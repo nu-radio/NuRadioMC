@@ -65,8 +65,8 @@ class Detector(object):
         self.__buffered_period = None
 
     # TODO do we need this?
-    def __error(self, frame):
-        pass
+    #def __error(self, frame):
+    #    pass
 
     def update(self, timestamp):
         logger.info("updating detector time to {}".format(timestamp))
@@ -503,6 +503,21 @@ class Detector(object):
                                })
 
     # TODO add functions from detector class
+    def get_station(self, station_id):
+        """
+        returns a dictionary of all station parameters
+
+        Parameters
+        ---------
+        station_id: int
+            the station id
+  
+        Return
+        -------------
+        dict of station parameters
+        """
+        return self.__db["stations"][station_id]
+
     def get_channel(self, station_id, channel_id):
         """
         returns a dictionary of all channel parameters
@@ -518,8 +533,7 @@ class Detector(object):
         -------------
         dict of channel parameters
         """
-        chan = get_channel_from_buffer(self.__db["stations"], station_id, channel_id)
-        return chan
+        return self.get_station(station_id)[channel_id]
 
     def get_absolute_position(self, station_id):
         """
@@ -535,7 +549,7 @@ class Detector(object):
         3-dim array of absolute station position in easting, northing and depth wrt. to snow level at
         time of measurement
         """
-        easting, northing, altitude = get_station_from_buffer(self.__db["stations"], station_id)['position']
+        easting, northing, altitude = self.get_station(station_id)['position']
         return np.array([easting, northing, altitude])
 
     def get_relative_position(self, station_id, channel_id):
@@ -568,8 +582,7 @@ class Detector(object):
 
         Returns int
         """
-        res = get_station_from_buffer(self.__db["stations"], station_id)["channels"]
-        return len(res)
+        return len(self.get_channel_ids(station_id))
 
     def get_channel_ids(self, station_id):
         """
@@ -582,7 +595,7 @@ class Detector(object):
 
         Returns list of ints
         """
-        channel_ids = [c["id"] for c in get_station_from_buffer(self.__db["stations"], station_id)["channels"]]
+        channel_ids = self.get_station(station_id)["channels"].keys()
         return sorted(channel_ids)
 
     def get_cable_delay(self, station_id, channel_id):
@@ -789,34 +802,34 @@ class Detector(object):
         -------------
         dict of signal chain items
         """
-        channel = get_channel_from_buffer(self.__db["stations"], station_id, channel_id)
-        return channel["signal_ch"]
+        chan = self.get_channel(station_id, channel_id)
+        return chan["signal_ch"]
 
-    #TODO not needed?!
-    def find_db_entry(self, station_id, channel_id=None):
-        """
-        returns a dictionary with a database entry
-
-        Parameters
-        ---------
-        station_id: int
-            the station id
-        channel_id: int
-            the channel id
-
-        Return
-        -------------
-        dict with database entry
-        """
-        if channel_id is None:
-            aggregation = [agg_station(station_id), agg_first()]
-        else:
-            aggregation = [agg_station(station_id),
-                      agg_unwind_channels(),
-                      agg_channel(channel_id, self.__current_time),
-                      agg_first()]
-        res = self.db.station.aggregate(aggregation).next()
-        return res
+    #TODO not needed any more?!
+    #def find_db_entry(self, station_id, channel_id=None):
+    #    """
+    #    returns a dictionary with a database entry
+    #
+    #    Parameters
+    #    ---------
+    #    station_id: int
+    #        the station id
+    #    channel_id: int
+    #        the channel id
+    #
+    #    Return
+    #    -------------
+    #    dict with database entry
+    #    """
+    #    if channel_id is None:
+    #        aggregation = [agg_station(station_id), agg_first()]
+    #    else:
+    #        aggregation = [agg_station(station_id),
+    #                  agg_unwind_channels(),
+    #                  agg_channel(channel_id, self.__current_time),
+    #                  agg_first()]
+    #    res = self.db.station.aggregate(aggregation).next()
+    #    return res
 
     def _update_buffer(self, force=False):
         """
@@ -840,9 +853,13 @@ class Detector(object):
             self._buffer_stations()
             self._buffer_hardware_components()
 
+
     def _buffer_stations(self):
-        # grouping dictionary to undo the unwind
+        """ write stations and channels for the current time to the buffer """
+
+        # grouping dictionary is needed to undo the unwind
         grouping_dict = {"_id": "$_id", "channels": {"$push": "$channels"}}
+        # add other keys that belong to a station
         for key in list(self.db.station.find_one().keys()):
             if key in grouping_dict:
                 continue
@@ -858,10 +875,22 @@ class Detector(object):
                             'channels.commission_time': {"$lte" : time},
                             'channels.decommission_time': {"$gte" : time}}},
                        { "$group": grouping_dict}]
-        self.__db["stations"] = list(self.db.station.aggregate(time_filter))
-        
+        stations_for_buffer = list(self.db.station.aggregate(time_filter))
+
+        # convert nested lists of dicts to nested dicts of dicts
+        self.__db["stations"] = dictionarize_nested_lists(stations_for_buffer, parent_key="id", nested_key="channels")
+
+
     def _find_hardware_components(self):
+        """
+        returns hardware component names grouped by hardware type at the current detector time
+  
+        Return
+        -------------
+        dict with hardware component names grouped by hardware type
+        """
         time = self.__current_time
+        # filter for current time, and return only hardware component types and names
         component_filter = [{"$match": {
                               'commission_time': {"$lte" : time},
                               'decommission_time': {"$gte" : time}}},
@@ -872,19 +901,22 @@ class Detector(object):
                          {"$unwind": '$channels.signal_ch'},
                          {"$project": {"_id": False, "channels.signal_ch.uname": True,  "channels.signal_ch.type": True}}]
 
-        
+        # convert retult to the dict of hardware types / names
         components = {}
         for item in list(self.db.station.aggregate(component_filter)):
             ch_type = item['channels']['signal_ch']['type']
             ch_uname = item['channels']['signal_ch']['uname']
+            # only add each component once
             if ch_type not in components:
                 components[ch_type] = set([])
             components[ch_type].add(ch_uname)
+        # convert sets to lists
         for key in components.keys():
             components[key] = list(components[key])
         return components
 
     def _buffer_hardware_components(self):
+        """ buffer all the components which appear in the current detector """
         component_dict = self._find_hardware_components()
 
         for hardware_type in component_dict:
@@ -893,18 +925,48 @@ class Detector(object):
                                        {"$unwind": "$channels"}])
                                        #{"$match": {"channels.S_parameter_DRAB": "S12"}}])
                                        #{"$limit": 1}])
-            self.__db[hardware_type] = list(matching_components)
+            #list to dict conversion using "id" as keys
+            self.__db[hardware_type] = dictionarize_nested_lists(stations_for_buffer, parent_key="name", nested_key="channels")
 
     def get_hardware_component(self, hardware_type, name):
-        component_buffer = self.__db[hardware_type]
-        return get_hardware_component_from_buffer(component_buffer, name)
+        """
+        get a specific hardware from the component buffer
+
+        Return
+        -------------
+        dict of hardware component properties
+        """
+
+        return self.__db[hardware_type][name]
 
     def get_hardware_channel(self, hardware_type, name, channel):
-        component_buffer = self.__db[hardware_type]
-        return get_hardware_channel_from_buffer(component_buffer, name, channel)
+        """
+        get a channel for a hardware from the component buffer
+
+        Return
+        -------------
+        dict of hardware channel info
+        """
+        component = self.__db[hardware_type][name]
+        return component[channel]
 
     def get_signal_ch_hardware(self, station_id, channel_id):
-        channel = get_channel_from_buffer(self.__db["stations"], station_id, channel_id)
+        """
+        get a list of component dicts for the signal chain
+
+        Parameters
+        ---------
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+
+        Return
+        -------------
+        list of hardware components
+        """
+
+        channel = self.get_channel(station_id, channel_id)
         components = []
         for component in channel["signal_ch"]:
             components.append(self.get_hardware_channel(component['type'], component['uname'], component['channel_id']))
@@ -968,85 +1030,96 @@ class Detector(object):
         modification_timestamps = [mod_t.timestamp() for mod_t in mod_set]
         return modification_timestamps
 
-# buffer readout option 1: buffer is stored directly as returned from aggregate/find function (list of dict)
-# (option 1b would be to convert lists of dicts in dicts of dicts (for stations, channels))
-def get_station_from_buffer(db, station_id):
-    station_documents = list(filter(lambda document: document['id'] == station_id, db))
-    if len(station_documents) == 0:
-        print("ERROR: station not found")
-        return None
-    if len(station_documents)>1:
-        print("ERROR: more than one match for station found, returning first")
-    return station_documents[0]
+def dictionarize_nested_lists(nested_lists, parent_key="id", nested_key="channels"):
+    """ mongodb aggregate returns lists of dicts, which can be converted to dicts of dicts """
+    nested_dicts = {}
+    for parent in nested_lists:
+        nested_dicts[parent[parent_key]] = parent
+        if nested_key in parent:
+            daughter_list = parent[nested_key]
+            daughter_dict = {d[perent_key]: d for d in daughter_list}
+            # replace list with dict
+            nested_dicts[parent[parent_key]][nested_key] = daughter_dict
+    return nested_dicts
 
-def get_channel_from_buffer(db, station_id, channel_id):
-    station = get_station_from_buffer(db, station_id)
-    channel_documents = list(filter(lambda document: document['id'] == channel_id, station['channels']))
-    if len(channel_documents) == 0:
-        print("ERROR: channel not found")
-        return None
-    if len(channel_documents)>1:
-        print("ERROR: more than one match for channel found, returning first")
-    return channel_documents[0]
-
-def get_hardware_component_from_buffer(hardware_db, name):
-    hardware_documents = list(filter(lambda document: document['name'] == name, hardware_db))
-    if len(hardware_documents) == 0:
-        print("ERROR: hardware component not found")
-        return None
-    if len(hardware_documents)>1:
-        print("ERROR: more than one match for hardware component found, returning first")
-    return hardware_documents[0]
-
-def get_hardware_channel_from_buffer(hardware_db, name, channel_id):
-    hardware_component = get_hardware_component_from_buffer(hardware_db, name)
-    #print(hardware_component)
-    channel_documents = list(filter(lambda document: document['id'] == channel_id, hardware_component))
-    if len(channel_documents) == 0:
-        print("ERROR: channel not found")
-        return None
-    if len(channel_documents)>1:
-        print("ERROR: more than one match for channel found, returning first")
-    return channel_documents[0]
+### some aggregation dicts, TODO can remove these? only used in _find....() member function, which is not used any more
+### (might want to write expressions into member functions directly if only used once)
+#def agg_channel(channel_id, time):
+#    time_filter = {"$match": {'channels.id': channel_id,
+#                              'channels.commission_time': {"$lte" : time},
+#                              'channels.decommission_time': {"$gte" : time}}}
+#    return time_filter
+#
+#def agg_station(station_id):
+#    return {"$match": {"id": station_id}}
+#
+#def agg_first():
+#    return {"$limit": 1}
+#
+#def agg_unwind_channels():
+#    return {"$unwind": '$channels'}
 
 
-# some aggregation dicts, TODO (might want to write expressions into member functions directly if only used once)
-def agg_channel(channel_id, time):
-    time_filter = {"$match": {'channels.id': channel_id,
-                              'channels.commission_time': {"$lte" : time},
-                              'channels.decommission_time': {"$gte" : time}}}
-    return time_filter
+### buffer readout option 1: buffer is stored directly as returned from aggregate/find function (list of dict)
+### (option 1b would be to convert lists of dicts in dicts of dicts (for stations, channels))
+#def get_station_from_buffer(db, station_id):
+#    station_documents = list(filter(lambda document: document['id'] == station_id, db))
+#    if len(station_documents) == 0:
+#        print("ERROR: station not found")
+#        return None
+#    if len(station_documents)>1:
+#        print("ERROR: more than one match for station found, returning first")
+#    return station_documents[0]
+#
+#def get_channel_from_buffer(db, station_id, channel_id):
+#    station = get_station_from_buffer(db, station_id)
+#    channel_documents = list(filter(lambda document: document['id'] == channel_id, station['channels']))
+#    if len(channel_documents) == 0:
+#        print("ERROR: channel not found")
+#        return None
+#    if len(channel_documents)>1:
+#        print("ERROR: more than one match for channel found, returning first")
+#    return channel_documents[0]
+#
+#def get_hardware_component_from_buffer(hardware_db, name):
+#    hardware_documents = list(filter(lambda document: document['name'] == name, hardware_db))
+#    if len(hardware_documents) == 0:
+#        print("ERROR: hardware component not found")
+#        return None
+#    if len(hardware_documents)>1:
+#        print("ERROR: more than one match for hardware component found, returning first")
+#    return hardware_documents[0]
+#
+#def get_hardware_channel_from_buffer(hardware_db, name, channel_id):
+#    hardware_component = get_hardware_component_from_buffer(hardware_db, name)
+#    #print(hardware_component)
+#    channel_documents = list(filter(lambda document: document['id'] == channel_id, hardware_component))
+#    if len(channel_documents) == 0:
+#        print("ERROR: channel not found")
+#        return None
+#    if len(channel_documents)>1:
+#        print("ERROR: more than one match for channel found, returning first")
+#    return channel_documents[0]
 
-def agg_station(station_id):
-    return {"$match": {"id": station_id}}
-
-def agg_first():
-    return {"$limit": 1}
-
-def agg_unwind_channels():
-    return {"$unwind": '$channels'}
-
-# if accessing via pandas, TODO (probably not. Remove!?)
-"""
-def get_channels(dd, station_id):
-    dd.set_index("id", inplace=True, drop=False, verify_integrity=True)
-    channel_df = pd.DataFrame(dd["channels"][station_id])
-    channel_df.set_index("id", inplace=True, drop=False, verify_integrity=True)
-    return channel_df
-
-pd.DataFrame.get_channels = get_channels
-
-def get_signal_ch(dd, station_id, channel_id):
-    channels = get_channels(dd, station_id)
-    res = pd.DataFrame(channels["signal_ch"][channel_id])
-    return res
-
-pd.DataFrame.get_signal_ch = get_signal_ch
-
-def get_channel(dd, station_id, channel_id):
-    channels = get_channels(dd, station_id)
-    channel = channels[channels.id==channel_id]
-    return channel
-
-pd.DataFrame.get_channel = get_channel
-"""
+### ONLY if accessing via pandas, TODO (probably not. Remove!?)
+#def get_channels(dd, station_id):
+#    dd.set_index("id", inplace=True, drop=False, verify_integrity=True)
+#    channel_df = pd.DataFrame(dd["channels"][station_id])
+#    channel_df.set_index("id", inplace=True, drop=False, verify_integrity=True)
+#    return channel_df
+#
+#pd.DataFrame.get_channels = get_channels
+#
+#def get_signal_ch(dd, station_id, channel_id):
+#    channels = get_channels(dd, station_id)
+#    res = pd.DataFrame(channels["signal_ch"][channel_id])
+#    return res
+#
+#pd.DataFrame.get_signal_ch = get_signal_ch
+#
+#def get_channel(dd, station_id, channel_id):
+#    channels = get_channels(dd, station_id)
+#    channel = channels[channels.id==channel_id]
+#    return channel
+#
+#pd.DataFrame.get_channel = get_channel
