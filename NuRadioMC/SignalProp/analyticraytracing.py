@@ -1540,6 +1540,13 @@ class ray_tracing:
 
         n_reflections: int (default 0)
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
+        config: dict
+            a dictionary with the optional config settings. If None, the config is intialized with default values,
+            which is needed to avoid any "key not available" errors. The default settings are
+                self.__config = {'propagation': {}}
+                self.__config['propagation']['attenuate_ice'] = True
+                self.__config['propagation']['focusing_limit'] = 2
+                self.__config['propagation']['focusing'] = False
 
         """
         # make sure that arrays are floats
