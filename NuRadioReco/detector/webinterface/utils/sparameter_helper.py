@@ -18,9 +18,10 @@ from NuRadioReco.detector.webinterface.utils.units import str_to_unit
 sparameters_layout = html.Div([
     dcc.Checklist(id="function-test",
         options=[
-            {'label': 'channel is working', 'value': 'working'}
+            {'label': 'Channel is working', 'value': 'working'},
+            {'label': 'Is this the Primary Measurement?', 'value': 'primary'}
             ],
-        value=['working'],
+        value=['working', 'primary'],
         style={'width': '10%'}
     ), html.Br(),
 
