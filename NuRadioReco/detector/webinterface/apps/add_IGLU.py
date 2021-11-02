@@ -212,8 +212,10 @@ def validate_global(Sdata_validated, board_dropdown, new_board_name, drab_id, fu
              State("DRAB-id", "value"),
              State('separator', 'value'),
              State('temperature-list', 'value'),
-             State("function-test", "value")])
-def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, unit_mag, unit_phase, drab_id, sep, temp, function_test):
+             State("function-test", "value"),
+             State("group_delay_corr", "value")])
+def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff,
+                 unit_mag, unit_phase, drab_id, sep, temp, function_test, corr_group_delay):
     print(f"n_clicks is {n_clicks}")
     if(not n_clicks is None):
         print("insert to db")
@@ -230,7 +232,7 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, un
             for i in range(7):
                 header.append(S_data_io.readline())
             date_string = header[2]
-            date_string_cropped = date_string[16:-2]
+            date_string_cropped = date_string[15:-2]
             date_string_fixed = date_string_cropped.replace(",", "")
             measurement_time = datetime.strptime(date_string_fixed, '%B %d %Y %X')
             if('primary' not in function_test):
@@ -242,11 +244,13 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, un
             for i in range(4):
                 S_data[1 + 2 * i] *= str_to_unit[unit_mag]
                 S_data[2 + 2 * i] *= str_to_unit[unit_phase]
+            time_delay = [0, corr_group_delay * units.ns, 0, 0]
             if(drab_id == "wo_DRAB"):
                 det.IGLU_board_channel_add_Sparameters_without_DRAB(board_name,
-                temp, S_data, measurement_time, primary_measurement)
+                temp, S_data, measurement_time, primary_measurement, time_delay)
             else:
-                det.IGLU_board_channel_add_Sparameters_with_DRAB(board_name, drab_id, temp, S_data, measurement_time, primary_measurement)
+                det.IGLU_board_channel_add_Sparameters_with_DRAB(board_name,
+                drab_id, temp, S_data, measurement_time, primary_measurement, time_delay)
         return {'display': 'none'}, {}
     else:
         return {}, {'display': 'none'}
