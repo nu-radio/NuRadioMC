@@ -174,14 +174,14 @@ keys = [
 error = test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error)
 
 keys = [
- u'max_amp_shower_and_ray',
- u'polarization',
  u'ray_tracing_C0',
+ u'ray_tracing_C1',
  u'launch_vectors',
  u'receive_vectors',
  u'travel_times',
  u'travel_distances',
- u'ray_tracing_C1',
+ u'polarization',
+ u'max_amp_shower_and_ray',
  ]
 
 error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error)
