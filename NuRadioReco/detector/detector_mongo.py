@@ -119,7 +119,7 @@ class Detector(object):
         """
         self.db.SURFACE.update_one({'name': board_name},
                                       {"$push":{'measurements': {
-                                          'id': surface_channel_id,
+                                          'surface_channel_id': channel_id,
                                           'last_updated': datetime.datetime.utcnow(),
                                           'function_test': False,
                                           }}},
