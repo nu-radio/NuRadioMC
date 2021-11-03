@@ -933,14 +933,25 @@ class Detector(object):
         """ buffer all the components which appear in the current detector """
         component_dict = self._find_hardware_components()
 
+        nested_key_dict = {"SURFACE": "surface_channel_id", "DRAB": "drab_channel_id"}
         for hardware_type in component_dict:
+            # grouping dictionary is needed to undo the unwind
+            grouping_dict = {"_id": "$_id", "measurements": {"$push": "$measurements"}}
+            # add other keys that belong to a station
+            for key in list(self.db[hardware_type].find_one().keys()):
+                if key in grouping_dict:
+                    continue
+                else:
+                    grouping_dict[key] = {"$first": "${}".format(key)}
+
             #TODO select more accurately. is there a "primary" mesurement field? is S_parameter_XXX matching possible to reduce data?
-            matching_components = list(self.db[hardware_type].aggregate([{"$match": {"name": {"$in": component_dict[hardware_type]}}}]))#,
-                                       #{"$unwind": "$channels"}])
-                                       #{"$match": {"channels.S_parameter_DRAB": "S12"}}])
-                                       #{"$limit": 1}])
-            #list to dict conversion using "id" as keys
-            self.__db[hardware_type] = dictionarize_nested_lists(matching_components, parent_key="name", nested_field="channels", nested_key="id")
+            matching_components = list(self.db[hardware_type].aggregate([{"$match": {"name": {"$in": component_dict[hardware_type]}}},
+                                                                         {"$unwind": "$measurements"},
+                                                                         {"$match": {"measurements.primary_measurement": True}},
+                                                                         { "$group": grouping_dict}]))
+            #TODO wind #only S21?
+            #list to dict conversion using "name" as keys
+            self.__db[hardware_type] = dictionarize_nested_lists(matching_components, parent_key="name", nested_field=None, nested_key=None)
 
     def get_hardware_component(self, hardware_type, name):
         """
@@ -1049,7 +1060,7 @@ def dictionarize_nested_lists(nested_lists, parent_key="id", nested_field="chann
     res = {}
     for parent in nested_lists:
         res[parent[parent_key]] = parent
-        if nested_field in parent:
+        if nested_field in parent and (nested_field is not None):
             daughter_list = parent[nested_field]
             daughter_dict = {}
             for daughter in daughter_list:
@@ -1060,3 +1071,13 @@ def dictionarize_nested_lists(nested_lists, parent_key="id", nested_field="chann
             # replace list with dict
             res[parent[parent_key]][nested_field] = daughter_dict
     return res
+
+
+def get_measurement_from_buffer(hardware_db, S_parameter="S21", channel_name=None, channel_id=None):
+    if channel_name is None:
+        measurements = list(filter(lambda document: document['S_parameter'] == S_parameter, hardware_db["measurements"]))
+    else:
+        measurements = list(filter(lambda document: (document['S_parameter'] == S_parameter) & (document[channel_name] == channel_id), hardware_db["measurements"]))
+    if len(measurements)>1:
+        print("WARNING: more than one match for requested measurement found")
+    return measurements
