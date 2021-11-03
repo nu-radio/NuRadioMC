@@ -1,0 +1,73 @@
+{
+  "channels": {
+    "0": {
+      "ant_comment": "phased array",
+      "amp_type": "iglu",
+      "adc_sampling_frequency": 2.4,
+      "adc_n_samples": 1024,
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": 0.0,
+      "ant_position_y": 20.0,
+      "ant_position_z": -97.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_vpol_4inch_center_n1.73",
+      "cab_time_delay": 0.0,
+      "channel_id": 0,
+      "station_id": 11
+    },
+    "1": {
+      "ant_comment": "phased array",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": 0.0,
+      "ant_position_y": 20.0,
+      "ant_position_z": -96.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_vpol_4inch_center_n1.73",
+      "channel_id": 1,
+      "station_id": 11
+    },
+    "2": {
+      "ant_comment": "phased array",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": 0.0,
+      "ant_position_y": 20.0,
+      "ant_position_z": -95.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_vpol_4inch_center_n1.73",
+      "channel_id": 2,
+      "station_id": 11
+    },
+    "3": {
+      "ant_comment": "phased array",
+      "amp_type": "iglu",
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 0.0,
+      "ant_position_x": 0.0,
+      "ant_position_y": 20.0,
+      "ant_position_z": -94.0,
+      "ant_rotation_phi": 90.0,
+      "ant_rotation_theta": 90.0,
+      "ant_type": "RNOG_vpol_4inch_center_n1.73",
+      "channel_id": 3,
+      "station_id": 11
+    }
+  },
+  "stations": {
+    "01": {
+      "pos_altitude": 0.0,
+      "pos_easting": 0.0,
+      "pos_northing": 0.0,
+      "pos_site": "summit",
+      "station_id": 11,
+      "station_type": null
+    }
+  }
+}

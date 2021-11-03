@@ -21,30 +21,36 @@ logger.setLevel(logging.INFO)
 def remove_duplicate_triggers(triggered, gids):
     """
     remove duplicate entried from triggered array
-    
+
     The hdf5 file contains a line per shower. One event can contain many showers, i.e. if we count all triggeres
     from all showers we overestimate the effective volume. This function modifies the triggered array such
-    that it contains not more than one True value for each event group. 
-    
+    that it contains not more than one True value for each event group.
+
     Parameters
     ----------
     triggered: array of bools
-        
+
     gids: array of ints
         the event group ids
-        
-    Returns: array of floats
+
+    Returns: array of bools
         the corrected triggered array
     """
     gids = np.array(gids)
     triggered = np.array(triggered)
-    uids, unique_mask, inv_mask, counts = np.unique(gids, return_index=True, return_inverse=True, return_counts=True)
-    for gid in uids[counts > 1]:
-        mask = gids == gid
-        if(np.sum(triggered[mask]) > 1):
-            idx = np.arange(len(triggered), dtype=np.int)[mask][triggered[mask] == True][1:]
-            triggered[idx] = False
-    return triggered
+
+    # shift the integer gids (just within the function) by 0.5 to avoid zeros
+    gids_shifted = gids + 0.5
+
+    # triggered gids, 0 where not triggered
+    triggered_gids = triggered*gids_shifted
+
+    unique_values, unique_indices = np.unique(triggered_gids, return_index=True)
+    # create output boolean array and set True for first triggered indices
+    first_occurences = np.zeros_like(triggered, dtype=bool)
+    np.put(first_occurences, unique_indices, True)
+    # the line above will also put the first untriggered, hence need to require "& triggered"
+    return first_occurences&triggered
 
 
 def FC_limits(counts):
@@ -219,8 +225,8 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
         logger.info("restricting thetamax from {} to {}".format(thetamax, max(bounds_theta)))
         thetamax = max(bounds_theta)
     # The restriction assumes isotropic event generation in cos(theta) band
-    theta_fraction = abs(np.cos(thetamin) - np.cos(thetamax))/theta_width_file
-    if theta_fraction<1:
+    theta_fraction = abs(np.cos(thetamin) - np.cos(thetamax)) / theta_width_file
+    if theta_fraction < 1:
         # adjust n_events to account for solid angle fraction in the requested theta range
         n_events *= theta_fraction
 
@@ -278,7 +284,7 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     # if theta range is restricted, select events in that range
     if theta_fraction < 1:
         # generate boolean mask for events in fin inside selected theta range
-        mask_theta = np.array((fin['zeniths']>thetamin) & (fin['zeniths']<thetamax))
+        mask_theta = np.array((fin['zeniths'] > thetamin) & (fin['zeniths'] < thetamax))
         # multiply events with mask, events outside are zero-weighted
         weights *= mask_theta
 
@@ -354,7 +360,7 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
                 if(np.sum(triggered)):
                     As = np.array(fin[f'station_{station:d}/max_amp_ray_solution'])
                     # find the ray tracing solution that produces the largest amplitude
-                    max_amps = np.argmax(np.argmax(As[:, :], axis=-1), axis=-1)
+                    max_amps = np.argmax(np.argmax(As[:,:], axis=-1), axis=-1)
                     # advanced indexing: selects the ray tracing solution per event with the highest amplitude
                     triggered = triggered & (np.array(fin[f'station_{station:d}/ray_tracing_reflection'])[..., max_amps, 0][:, 0] == values['n_reflections'])
 
@@ -538,12 +544,12 @@ def get_Veff_Aeff(folder,
             fin = h5py.File(f, 'r')
             costhetamin = np.cos(fin.attrs['thetamin'])
             costhetamax = np.cos(fin.attrs['thetamax'])
-            thetas = np.arccos(np.linspace(costhetamin, costhetamax, oversampling_theta+1))
+            thetas = np.arccos(np.linspace(costhetamin, costhetamax, oversampling_theta + 1))
             thetas_min = thetas[:-1]
             thetas_max = thetas[1:]
             for bounds_theta in zip(thetas_min, thetas_max):
                 args.append([f, trigger_names, trigger_names_dict, trigger_combinations, deposited, station, veff_aeff, bounds_theta])
-            
+
     if n_cores == 1:
         output = []
         for arg in args:
