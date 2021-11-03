@@ -253,7 +253,7 @@ class Detector(object):
                               'function_test': False,
                                   })
 
-    def VPol_add_Sparameters(self, VPol_name, S_data):
+    def VPol_add_Sparameters(self, VPol_name, S_data, primary_measurement):
         """
         inserts a new S11 measurement of a VPol.
         If the Antenna dosn't exist yet, it will be created.
@@ -265,13 +265,15 @@ class Detector(object):
         S_data: array of floats
             1st collumn: frequencies
             2ndcollumn: S11 mag (VSWR)
-
+        primary_measurement: bool
+            indicates the primary measurement to be used for analysis
 
         """
 
         self.db.VPol.insert_one({'name': VPol_name,
                                     'last_updated': datetime.datetime.utcnow(),
                                      'function_test': True,
+                                     'primary_measurement': primary_measurement,
                                      'S_parameter': 'S11',
                                      'frequencies': list(S_data[0]),
                                      'mag': list(S_data[1]),
@@ -294,7 +296,7 @@ class Detector(object):
                               'function_test': False,
                                   })
 
-    def CABLE_add_Sparameters(self, cable_name, Sm_data, Sp_data):
+    def CABLE_add_Sparameters(self, cable_name, Sm_data, Sp_data, primary_measurement):
         """
         inserts a new S21 measurement of a cable.
         If the cable dosn't exist yet, it will be created.
@@ -307,13 +309,15 @@ class Detector(object):
             1st collumn: frequencies
             2nd collumn: S21 mag (dB)
             3nd collumn: S21 phase (deg)
-
+        primary_measurement: bool
+            indicates the primary measurement to be used for analysis
 
         """
 
         self.db.CABLE.insert_one({'name': cable_name,
                                     'last_updated': datetime.datetime.utcnow(),
                                      'function_test': True,
+                                     'primary_measurement': primary_measurement,
                                      'S_parameter': 'S21',
                                      'frequencies': list(Sm_data[0]),
                                      'mag': list(Sm_data[1]),
@@ -335,7 +339,7 @@ class Detector(object):
                               'function_test': False,
                                   })
 
-    def surfCABLE_add_Sparameters(self, cable_name, Sm_data, Sp_data):
+    def surfCABLE_add_Sparameters(self, cable_name, Sm_data, Sp_data, primary_measurement):
         """
         inserts a new S21 measurement of a SURFACE (11m) cable.
         If the cable dosn't exist yet, it will be created.
@@ -348,18 +352,19 @@ class Detector(object):
             1st collumn: frequencies
             2nd collumn: S21 mag (dB)
             3nd collumn: S21 phase (deg)
-
+        primary_measurement: bool
+            indicates the primary measurement to be used for analysis
 
         """
 
         self.db.surfCABLE.insert_one({'name': cable_name,
-                                    'last_updated': datetime.datetime.utcnow(),
-                                     'function_test': True,
-                                     'S_parameter': 'S21',
-                                     'frequencies': list(Sm_data[0]),
-                                     'mag': list(Sm_data[1]),
-                                     'phase': list(Sp_data[1]),
-                                  })
+                                      'last_updated': datetime.datetime.utcnow(),
+                                      'function_test': True,
+                                      'primary_measurement': primary_measurement,
+                                      'S_parameter': 'S21',
+                                      'frequencies': list(Sm_data[0]),
+                                      'mag': list(Sm_data[1]),
+                                      'phase': list(Sp_data[1]), })
 
     #### add IGLU board
     def IGLU_board_channel_set_not_working(self, board_name):

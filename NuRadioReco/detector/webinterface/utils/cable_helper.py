@@ -16,10 +16,11 @@ from NuRadioReco.detector.webinterface.utils.units import str_to_unit
 sparameters_layout = html.Div([html.Br(),
     dcc.Checklist(id="function-test",
         options=[
-            {'label': 'cable is working', 'value': 'working'}
+            {'label': 'Channel is working', 'value': 'working'},
+            {'label': 'Is this the Primary Measurement?', 'value': 'primary'}
             ],
-        value=['working'],
-        style={'width': '20%'}
+        value=['working', 'primary'],
+        style={'width': '10%'}
     ), html.Br(),
 
     html.Div("specify data format:"),
@@ -32,7 +33,9 @@ sparameters_layout = html.Div([html.Br(),
             value=",",
             style={'width': '200px', 'float':'left'}
         ),
-    html.Div("units"),
+    html.Br(),
+    html.Br(),
+    html.Div([html.Div("units"),
     dcc.Dropdown(
         id='dropdown-frequencies',
         options=[
@@ -41,9 +44,7 @@ sparameters_layout = html.Div([html.Br(),
             {'label': 'Hz', 'value': "Hz"}
         ],
         value="Hz",
-        style={'width': '20%',
-#                'float': 'left'
-        }
+        style={'width': '100px', 'float':'left'}
     ),
     dcc.Dropdown(
             id='dropdown-magnitude',
@@ -52,11 +53,8 @@ sparameters_layout = html.Div([html.Br(),
                 {'label': 'MAG', 'value': "MAG"}
             ],
             value="dB",
-            style={'width': '20%',
-#                    'float': 'left'}
-                   }
+            style={'width': '100px', 'float':'left'}
         ),
-    html.Br(),
         dcc.Dropdown(
             id='dropdown-phase',
             options=[
@@ -64,10 +62,8 @@ sparameters_layout = html.Div([html.Br(),
                 {'label': 'rad', 'value': "rad"}
             ],
             value="deg",
-            style={'width': '20%',
-#                    'float': 'left'}
-            }
-        ),
+            style={'width': '100px', 'float':'left'}
+        ), ]),
     html.Br(),
     html.Br(),
     html.Div([
@@ -96,7 +92,7 @@ sparameters_layout = html.Div([html.Br(),
         dcc.Upload(
         id='S21_phase_data',
         children=html.Div([
-            'Drag and Drop your Phase CSV ',
+            'Drag and Drop your Phase CSV or ',
             html.A('Select File')
         ]),
         style={

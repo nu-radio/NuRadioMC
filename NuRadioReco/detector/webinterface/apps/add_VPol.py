@@ -154,8 +154,12 @@ def insert_to_db(n_clicks, VPol_dropdown, new_VPol_name, contents, unit_ff, unit
             S_data = np.genfromtxt(S_data_io, skip_header=17, skip_footer=1, delimiter=sep).T
             S_data[0] *= str_to_unit[unit_ff]
             S_data[1] *= str_to_unit[unit_mag]
+            if('primary' not in function_test):
+                primary_measurement = False
+            else:
+                primary_measurement = True
             print(VPol_name, S_data)
-            det.VPol_add_Sparameters(VPol_name, S_data)
+            det.VPol_add_Sparameters(VPol_name, S_data, primary_measurement)
 
         return {'display': 'none'}, {}
     else:
