@@ -55,15 +55,25 @@ sparameters_layout = html.Div([html.Br(),
             value="dB",
             style={'width': '100px', 'float':'left'}
         ),
-        dcc.Dropdown(
-            id='dropdown-phase',
-            options=[
-                {'label': 'degree', 'value': "deg"},
-                {'label': 'rad', 'value': "rad"}
-            ],
-            value="deg",
-            style={'width': '100px', 'float':'left'}
-        ), ]),
+    dcc.Dropdown(
+        id='dropdown-phase',
+        options=[
+            {'label': 'degree', 'value': "deg"},
+            {'label': 'rad', 'value': "rad"}
+        ],
+        value="deg",
+        style={'width': '100px', 'float':'left'}
+    ), ]),
+    html.Br(),
+    html.Br(),
+    html.Div("Specify the measurement protocol"),
+    dcc.Dropdown(id="protocol",
+                options=[
+                    {'label': 'Chicago 2020', 'value': "chicago2020"},
+                    {'label': 'Erlangen 2020', 'value': "erlangen2020"}],
+              value="chicago2020",
+              style={'width': '200px',
+                     'float': 'left'}),
     html.Br(),
     html.Br(),
     html.Div([

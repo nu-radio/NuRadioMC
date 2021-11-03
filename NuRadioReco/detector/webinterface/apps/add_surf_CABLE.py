@@ -178,8 +178,10 @@ def validate_global(Sdata_validated, color, station, string, function_test):
              State('dropdown-magnitude', 'value'),
              State('dropdown-phase', 'value'),
              State('separator', 'value'),
-             State("function-test", "value")])
-def insert_to_db(n_clicks, color, station, string, S21_mag_data, S21_phase_data, unit_ff, unit_mag, unit_phase, sep, function_test):
+             State("function-test", "value"),
+             State("protocol", "value")])
+def insert_to_db(n_clicks, color, station, string, S21_mag_data, S21_phase_data,
+                 unit_ff, unit_mag, unit_phase, sep, function_test, protocol):
     cable_name = str(station) + str(string) + str(color)
     print(f"n_clicks is {n_clicks}")
     if(not n_clicks is None):
@@ -208,7 +210,7 @@ def insert_to_db(n_clicks, color, station, string, S21_mag_data, S21_phase_data,
             else:
                 primary_measurement = True
             print(cable_name, Sm_data, Sp_data[1])
-            det.surfCABLE_add_Sparameters(cable_name, Sm_data, Sp_data, primary_measurement)
+            det.surfCABLE_add_Sparameters(cable_name, Sm_data, Sp_data, primary_measurement, protocol)
 
         return {'display': 'none'}, {}
     else:
