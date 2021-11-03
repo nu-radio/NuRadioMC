@@ -69,7 +69,7 @@ def test_almost_equal_attributes(keys, fin1=fin1, fin2=fin2, error=error):
 
 
 def test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accuracy=accuracy):
-    gids = np.array(fin1["station_101"]['event_group_ids'])
+    gids = np.array(fin1['event_group_ids'])
     for key in keys:
         arr1 = np.array(fin1['station_101'][key])
         arr2 = np.array(fin2['station_101'][key])
