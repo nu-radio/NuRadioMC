@@ -101,5 +101,5 @@ for channel_type in channel_types:
         'reflected': travel_times_reflected
     }
 
-with open('{}/lookup_table_greenland_{:.0f}.p'.format(args.output_path, args.antenna_depth), 'wb') as f:
+with open('{}/lookup_table_{:.0f}.p'.format(args.output_path, args.antenna_depth), 'wb') as f:
     pickle.dump(lookup_table, f)
