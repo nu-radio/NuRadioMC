@@ -2,6 +2,7 @@ import NuRadioReco.framework.event
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.station
 import NuRadioReco.framework.channel
+import NuRadioReco.framework.trigger
 import NuRadioReco.modules.channelSignalReconstructor
 signal_reconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
 
@@ -144,7 +145,13 @@ class readRNOGData:
         self.cut_string = cut_string
 
         self._set_iterators(cut=self.cut_string)
-
+        root_trigger_keys = [
+            'trigger_info.rf_trigger', 'trigger_info.force_trigger',
+            'trigger_info.pps_trigger', 'trigger_info.ext_trigger',
+            'trigger_info.radiant_trigger', 'trigger_info.lt_trigger',
+            'trigger_info.surface_trigger'
+        ]
+        self.__t = time.time()
         # Note: reading single events is inefficient...
         # for event_header, event in zip(self._iterator_header, self._iterator_data):
         for event_headers, events in zip(self.uproot_iterator_header, self.uproot_iterator_data):
@@ -173,6 +180,15 @@ class readRNOGData:
             event_time = astropy.time.Time(unix_time, format='unix')
 
             station.set_station_time(event_time)
+            for trigger_key in root_trigger_keys:
+                try:
+                    has_triggered = bool(event_header[trigger_key])
+                    trigger = NuRadioReco.framework.trigger.Trigger(trigger_key.split('.')[-1])
+                    trigger.set_triggered(has_triggered)
+                    station.set_trigger(trigger)
+                except ValueError:
+                    pass
+
             radiant_data = event["radiant_data[24][2048]"] # returns array of n_channels, n_points
             # Loop over all requested channels in data
             for chan in channels:
