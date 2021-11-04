@@ -6,9 +6,10 @@ import os.path
 
 
 # References
-# data_auger_19, https://www.auger.org/document-centre-public?task=download.send&id=5045&catid=78&m=0
-# data_TA_21, data provided by van Vliet
-# TA_19 analytic spectrum https://pos.sissa.it/358/298/pdf
+# data_auger_19: https://www.auger.org/document-centre-public?task=download.send&id=5045&catid=78&m=0
+# data_TA_21: data provided by van Vliet
+# analytic spectrum TA_19: https://pos.sissa.it/358/298/pdf
+# analytic spectrum auger: https://git.rwth-aachen.de/astro/astrotools/-/blob/master/astrotools
 
 def get_measured_data(type='data_auger_19'):
     """
