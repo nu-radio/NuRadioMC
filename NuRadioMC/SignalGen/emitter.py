@@ -54,57 +54,56 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
 
     """
     half_width = kwargs.get("half_width")
-    freq = kwargs.get("freq")
-    if(half_width> int(N/2)):
-        raise NotImplementedError("half_width {} not applicable".format(half_width))
+    emitter_frequency = kwargs.get("emitter_frequency")
     trace = None
     additional_output = {}
     if(amplitude == 0):
         trace = np.zeros(3, N)
-    if(model == 'spherical'):         # This takes spherical signal as input voltage
+    if(model == 'spherical'):         # this takes spherical signal as input voltage
         trace = np.zeros(N)
         trace[N // 2] = amplitude
-    elif(model=='cw'):   # generates a continuous signal of given frequency
-        f=freq*units.GHz
-        t=np.linspace(0,(N-1/2)*dt,N)*units.ns
-        trace=amplitude*np.sin(2*np.pi*f*t)
-    elif(model=='square'):  #generates a rectangular pulse of given width 
-        t=np.linspace(-N*dt/(2),(N-1)*dt/(2),N)*units.ns
-        shift=half_width*units.ns
-        Voltage=np.zeros(N)
+    elif(model == 'cw'):              # generates a continuous signal of given frequency 
+        time = np.linspace(-(N/2)*dt, ((N-1)/2)*dt , N) 
+        trace = amplitude * np.sin(2 * np.pi * emitter_frequency * time)
+    elif(model == 'square' or model == 'tone_burst' ):     # generates a rectangular or tone_burst signal of given width and frequency 
+        if(half_width > int(N/2)):
+            raise NotImplementedError(" half_width {} should be < half of the number of samples N " . format( half_width ) )
+        time = np.linspace(- N * dt/(2), (N-1) * dt/(2), N)
+        shift = half_width
+        voltage = np.zeros(N)
         for i in range(0,N):
-            if t[i]>=-shift and t[i]<=shift:
-                Voltage[i]=amplitude
-        trace=Voltage*units.volt
-    elif(model=='tone_burst'):  # a continuos signal that uses desired frequency and width
-        width=2*half_width*units.ns
-        f=freq*units.GHz
-        t=np.linspace(-(width*dt),(width*dt),int(2*width))*units.ns
-        Voltage=amplitude*np.sin(2*np.pi*f*t)
-        add_zeros=int((N-2*width)/2)
-        trace=np.pad(Voltage, (add_zeros, add_zeros), 'constant', constant_values=(0, 0))             
-    elif(model=='hvsp2'):            # The hvsp2 lab data from KU stored in hdf5 file
-        hf = h5py.File('hvsp2_data.hdf5', 'r')
-        time=hf.get('dataset_1')
-        t=np.linspace(time[0],time[len(time)-1],int(len(time)*dt))
-        Voltage1=hf.get('dataset_2')
-        interpolation=interp1d(time,Voltage1,kind='cubic')
-        Voltage2=interpolation(t)
-        add_zeros=int((N-len(Voltage2))/2)
-        trace=amplitude*np.pad(Voltage2, (add_zeros, add_zeros), 'constant', constant_values=(0, 0))
-        min_amplitude_index=np.where(trace==np.min(trace))[0][0]
-        trace=np.roll(trace,int(N/2)-min_amplitude_index)
-    elif(model=='idl'):             # The idl lab data from KU stored in hdf5 file
-        hf = h5py.File('idl_data.hdf5', 'r')
-        time=hf.get('dataset_1')
-        t=np.linspace(time[0],time[len(time)-1],int(len(time)*dt))
-        Voltage1=hf.get('dataset_2')
-        interpolation=interp1d(time,Voltage1,kind='cubic')
-        Voltage2=interpolation(t)
-        add_zeros=int((N-len(Voltage2))/2)
-        trace=amplitude*np.pad(Voltage2, (add_zeros, add_zeros), 'constant', constant_values=(0, 0))
-        max_amplitude_index=np.where(trace==np.min(trace))[0][0]
-        trace=np.roll(trace,int(N/2)+max_amplitude_index)
+            if time[i] >= -shift and time[i] <= shift:
+                voltage[i] = amplitude
+        if(model == 'square'):
+            trace = voltage
+        else:
+            trace = voltage * np.sin(2 * np.pi * emitter_frequency * time) 
+        import matplotlib.pyplot as plt
+        import os
+        plotDir = "./wf11/"
+        if (not os.path.exists(plotDir)):
+           os.makedirs(plotDir)
+        #time=np.linspace(-int(N*dt/2),int((N-1)*dt/2) , N)
+        plt.plot(time,trace)
+        plt.savefig(str(plotDir) + "/tone_burst" ".png", bbox_inches = "tight")
+        plt.close()
+
+
+    elif(model == 'idl' or model == 'hvsp2'):            # the idl & hvsp2 lab data from KU stored in hdf5 file
+        if(model == 'idl'):
+            read_file = h5py.File('idl_data.hdf5', 'r')
+        else:
+            read_file = h5py.File('hvsp2_data.hdf5', 'r')
+        time_original = read_file.get('time') 
+        time_new = np.linspace( time_original[0], time_original[len(time_original)-1], (int((time_original[len(time_original)-1]-time_original[0])/dt)+1))
+        voltage1 = read_file.get('voltage')
+        interpolation = interp1d(time_original,voltage1,kind='cubic')
+        voltage2 = interpolation(time_new)
+        add_zeros = int(( N-len(voltage2)) /2)
+        trace = np.pad(voltage2, (add_zeros, add_zeros), 'constant', constant_values=(0, 0))
+        trace = amplitude * trace /np.max(np.abs( trace ))
+        peak_amplitude_index = np.where( np.abs( trace ) == np.max( np.abs( trace ) ) )[0][0]
+        trace = np.roll( trace, int(N/2) - peak_amplitude_index )
     else:
         raise NotImplementedError("model {} unknown".format(model))
     if(full_output):
@@ -154,5 +153,7 @@ def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs)
         return fft.time2freq(tmp[0], 1 / dt), tmp[1]
     else:
         return fft.time2freq(tmp, 1 / dt)
+
+
 
 
