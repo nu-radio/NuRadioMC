@@ -690,7 +690,13 @@ class Detector(object):
         Returns float (delay time)
         """
         res = self.__get_channel(station_id, channel_id)
-        return res['cab_time_delay']
+        if 'cab_time_delay' not in res.keys():
+            logger.warning(
+                'Cable delay not set for channel {} in station {}, assuming cable delay is zero'.format(
+                    channel_id, station_id))
+            return 0
+        else:
+            return res['cab_time_delay']
 
     def get_cable_type_and_length(self, station_id, channel_id):
         """
