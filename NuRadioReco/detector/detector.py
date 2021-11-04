@@ -196,6 +196,7 @@ class Detector(object):
 
         self._stations = self._db.table('stations', cache_size=1000)
         self._channels = self._db.table('channels', cache_size=1000)
+        self._devices = self._db.table('devices', cache_size=1000)
         self.__positions = self._db.table('positions', cache_size=1000)
 
         logger.info("database initialized")
@@ -203,6 +204,7 @@ class Detector(object):
         self._buffered_stations = {}
         self.__buffered_positions = {}
         self._buffered_channels = {}
+        self._buffered_devices = {}
         self.__valid_t0 = astropy.time.Time('2100-1-1')
         self.__valid_t1 = astropy.time.Time('1970-1-1')
 
@@ -238,6 +240,15 @@ class Detector(object):
         return self._channels.search((Channel.station_id == station_id)
                                      & (Channel.commission_time <= self.__current_time.datetime)
                                      & (Channel.decommission_time > self.__current_time.datetime))
+                                     
+    def _query_devices(self, station_id):
+        Device = Query()
+        if self.__current_time is None:
+            raise ValueError(
+                "Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
+        return self._devices.search((Device.station_id == station_id)
+                                     & (Device.commission_time <= self.__current_time.datetime)
+                                     & (Device.decommission_time > self.__current_time.datetime))
 
     def _query_station(self, station_id):
         Station = Query()
@@ -303,6 +314,17 @@ class Detector(object):
         if station_id not in self._buffered_stations.keys():
             self._buffer(station_id)
         return self._buffered_channels[station_id][channel_id]
+        
+        
+    def __get_devices(self, station_id):
+        if station_id not in self._buffered_stations.keys():
+            self._buffer(station_id)
+        return self._buffered_devices[station_id]
+        
+    def __get_device(self, station_id, device_id):
+        if station_id not in self._buffered_stations.keys():
+            self._buffer(station_id)
+        return self._buffered_devices[station_id][device_id]
 
     def _buffer(self, station_id):
         self._buffered_stations[station_id] = self._query_station(station_id)
@@ -314,6 +336,13 @@ class Detector(object):
             self._buffered_channels[station_id][channel['channel_id']] = channel
             self.__valid_t0 = max(self.__valid_t0, astropy.time.Time(channel['commission_time']))
             self.__valid_t1 = min(self.__valid_t1, astropy.time.Time(channel['decommission_time']))
+        devices = self._query_devices(station_id)
+        self._buffered_devices[station_id] = {}
+        for device in devices:
+            self._buffered_devices[station_id][device['device_id']] = device
+            self.__valid_t0 = max(self.__valid_t0, astropy.time.Time(channel['commission_time']))
+            self.__valid_t1 = min(self.__valid_t1, astropy.time.Time(channel['decommission_time']))
+        
 
     def __buffer_position(self, position_id):
         self.__buffered_positions[position_id] = self.__query_position(position_id)
@@ -420,6 +449,24 @@ class Detector(object):
         dict of channel parameters
         """
         return self.__get_channel(station_id, channel_id)
+        
+        
+    def get_device(self, station_id, device_id):
+        """
+        returns a dictionary of all device parameters
+
+        Parameters
+        ---------
+        station_id: int
+            the station id
+        device_id: int
+            the device id
+
+        Return
+        -------------
+        dict of device parameters
+        """
+        return self.__get_device(station_id, device_id)
 
     def get_absolute_position(self, station_id):
         """
@@ -595,6 +642,39 @@ class Detector(object):
                             if np.sum(mask):
                                 parallel_antennas.append(channel_ids[mask])
         return np.array(parallel_antennas)
+        
+        
+        
+        
+    def get_number_of_devices(self, station_id):
+        """
+        Get the number of devices per station
+
+        Parameters
+        ---------
+        station_id: int
+            the station id
+
+        Returns int
+        """
+        res = self.__get_devices(station_id)
+        return len(res)
+
+    def get_device_ids(self, station_id):
+        """
+        get the device ids of a station
+
+        Parameters
+        ---------
+        station_id: int
+            the station id
+
+        Returns list of ints
+        """
+        device_ids = []
+        for device in self.__get_devices(station_id).values():
+            device_ids.append(device['device_id'])
+        return sorted(device_ids)
 
     def get_cable_delay(self, station_id, channel_id):
         """
@@ -610,7 +690,13 @@ class Detector(object):
         Returns float (delay time)
         """
         res = self.__get_channel(station_id, channel_id)
-        return res['cab_time_delay']
+        if 'cab_time_delay' not in res.keys():
+            logger.warning(
+                'Cable delay not set for channel {} in station {}, assuming cable delay is zero'.format(
+                    channel_id, station_id))
+            return 0
+        else:
+            return res['cab_time_delay']
 
     def get_cable_type_and_length(self, station_id, channel_id):
         """
