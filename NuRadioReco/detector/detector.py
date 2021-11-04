@@ -691,6 +691,9 @@ class Detector(object):
         """
         res = self.__get_channel(station_id, channel_id)
         if 'cab_time_delay' not in res.keys():
+            logger.warning(
+                'Cable delay not set for channel {} in station {}, assuming cable delay is zero'.format(
+                    channel_id, station_id))
             return 0
         else:
             return res['cab_time_delay']
