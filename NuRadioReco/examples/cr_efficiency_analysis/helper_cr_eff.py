@@ -35,8 +35,23 @@ def calculate_thermal_noise_Vrms(T_noise, T_noise_max_freq, T_noise_min_freq):
     return Vrms_thermal_noise
 
 
+def set_random_station_time(station, station_time):
+    '''this function gives a random hour for the choosen date'''
+    import datetime
+    date = datetime.datetime.date(datetime.datetime.strptime(station_time, "%Y-%m-%dT%H:%M:%S"))
+    random_generator_hour = np.random.RandomState()
+    hour = random_generator_hour.randint(0, 24)
+    if hour < 10:
+        station.set_station_time(astropy.time.Time('{}T0{}:00:00'.format(date, hour)))
+    elif hour >= 10:
+        station.set_station_time(astropy.time.Time('{}T{}:00:00'.format(date, hour)))
+
+    return station
+
+
 def create_empty_event(det, trace_samples, station_time='2019-01-01T00:00:00', station_time_random=True,
                        sampling_rate=1 * units.GHz):
+    import datetime
     station_ids = det.get_station_ids()
     station_id = station_ids[0]
     channel_ids = det.get_channel_ids(station_id)
@@ -47,12 +62,7 @@ def create_empty_event(det, trace_samples, station_time='2019-01-01T00:00:00', s
     station.set_station_time(astropy.time.Time(station_time))
 
     if station_time_random:
-        random_generator_hour = np.random.RandomState()
-        hour = random_generator_hour.randint(0, 24)
-        if hour < 10:
-            station.set_station_time(astropy.time.Time('2019-01-01T0{}:00:00'.format(hour)))
-        elif hour >= 10:
-            station.set_station_time(astropy.time.Time('2019-01-01T{}:00:00'.format(hour)))
+        set_random_station_time(station, station_time)
 
     for channel_id in channel_ids:  # take some channel id that match your detector
         channel = Channel(channel_id)
@@ -79,17 +89,6 @@ def add_random_phase(station, sampling_rate=1 * units.GHz):
         channel.set_frequency_spectrum(frequency_spectrum=freq_specs, sampling_rate=sampling_rate)
 
     return channel
-
-
-def set_random_station_time(station):
-    random_generator_hour = np.random.RandomState()
-    hour = random_generator_hour.randint(0, 24)
-    if hour < 10:
-        station.set_station_time(astropy.time.Time('2019-01-01T0{}:00:00'.format(hour)))
-    elif hour >= 10:
-        station.set_station_time(astropy.time.Time('2019-01-01T{}:00:00'.format(hour)))
-
-    return station
 
 
 def get_auger_cr_flux(energy):

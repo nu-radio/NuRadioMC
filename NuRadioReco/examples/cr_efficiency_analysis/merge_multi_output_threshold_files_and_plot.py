@@ -72,7 +72,7 @@ output_file = 'config/final_config_{}_trigger_{:.2e}_pb_{:.0f}_{:.0f}_n{}.json'.
                                          cfg['n_iterations_total'] * cfg['n_random_phase'])
 
 with open(output_file, 'w') as outfile:
-    json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4)
+    json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4, sort_keys=True)
 
 if args.create_plot:
     with open(output_file, 'r') as fp:
