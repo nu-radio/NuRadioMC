@@ -973,8 +973,15 @@ class Detector(object):
             components[key] = list(components[key])
         return components
 
-    def _buffer_hardware_components(self):
-        """ buffer all the components which appear in the current detector """
+    def _buffer_hardware_components(self, S_parameters = ["S21"]):
+        """
+        buffer all the components which appear in the current detector
+
+        Parameters
+        ----------
+        S_parameters: list
+            list of S-parameters to buffer
+        """
         component_dict = self._find_hardware_components()
 
         nested_key_dict = {"SURFACE": "surface_channel_id", "DRAB": "drab_channel_id"}
@@ -991,8 +998,9 @@ class Detector(object):
             #TODO select more accurately. is there a "primary" mesurement field? is S_parameter_XXX matching possible to reduce data?
             matching_components = list(self.db[hardware_type].aggregate([{"$match": {"name": {"$in": component_dict[hardware_type]}}},
                                                                          {"$unwind": "$measurements"},
-                                                                         {"$match": {"measurements.primary_measurement": True}},
-                                                                         { "$group": grouping_dict}]))
+                                                                         {"$match": {"measurements.primary_measurement": True,
+                                                                                     "measurements.S_parameter": {"$in": S_parameters}}},
+                                                                         {"$group": grouping_dict}]))
             #TODO wind #only S21?
             #list to dict conversion using "name" as keys
             self.__db[hardware_type] = dictionarize_nested_lists(matching_components, parent_key="name", nested_field=None, nested_key=None)
@@ -1041,7 +1049,7 @@ class Detector(object):
             components.append(self.get_hardware_channel(component['type'], component['uname'], component['channel_id']))
         return components
 
-    # TODO this is probably not needed, nless we want to update on a per-station level (but buffering should be fast)
+    # TODO this is probably not used, unless we want to update on a per-station level
     def _query_modification_timestamps_per_station(self):
         """
         collects all the timestamps from the database for which some modifications happened
@@ -1117,11 +1125,11 @@ def dictionarize_nested_lists(nested_lists, parent_key="id", nested_field="chann
     return res
 
 
-def get_measurement_from_buffer(hardware_db, S_parameter="S21", channel_name=None, channel_id=None):
-    if channel_name is None:
+def get_measurement_from_buffer(hardware_db, S_parameter="S21", channel_id=None):
+    if channel_id is None:
         measurements = list(filter(lambda document: document['S_parameter'] == S_parameter, hardware_db["measurements"]))
     else:
-        measurements = list(filter(lambda document: (document['S_parameter'] == S_parameter) & (document[channel_name] == channel_id), hardware_db["measurements"]))
+        measurements = list(filter(lambda document: (document['S_parameter'] == S_parameter) & (document["channel_id"] == channel_id), hardware_db["measurements"]))
     if len(measurements)>1:
         print("WARNING: more than one match for requested measurement found")
     return measurements
