@@ -78,17 +78,6 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
             trace = voltage
         else:
             trace = voltage * np.sin(2 * np.pi * emitter_frequency * time) 
-        import matplotlib.pyplot as plt
-        import os
-        plotDir = "./wf11/"
-        if (not os.path.exists(plotDir)):
-           os.makedirs(plotDir)
-        #time=np.linspace(-int(N*dt/2),int((N-1)*dt/2) , N)
-        plt.plot(time,trace)
-        plt.savefig(str(plotDir) + "/tone_burst" ".png", bbox_inches = "tight")
-        plt.close()
-
-
     elif(model == 'idl' or model == 'hvsp2'):            # the idl & hvsp2 lab data from KU stored in hdf5 file
         if(model == 'idl'):
             read_file = h5py.File('idl_data.hdf5', 'r')
@@ -110,7 +99,6 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         return trace, additional_output
     else:
         return trace
-
 
 def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs):
     """
