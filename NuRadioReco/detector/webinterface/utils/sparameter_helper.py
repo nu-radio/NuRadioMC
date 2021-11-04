@@ -51,10 +51,11 @@ sparameters_layout = html.Div([
         dcc.Dropdown(
             id='dropdown-magnitude',
             options=[
+                {'label': 'MAG', 'value': "MAG"},
                 {'label': 'V', 'value': "V"},
                 {'label': 'mV', 'value': "mV"}
                 ],
-                value="V",
+                value="MAG",
                 style={'width': '100px', 'float':'left'}
         ),
         dcc.Dropdown(
@@ -251,7 +252,7 @@ def plot_Sparameters(val_Sdata, corr_group_delay, contents, unit_ff, unit_mag, u
         for i in range(4):
             fig.append_trace(go.Scatter(
                         x=S_data[0] / units.MHz,
-                        y=S_data[i * 2 + 1] / units.V,
+                        y=S_data[i * 2 + 1], #/ units.V,
                         opacity=0.7,
                         marker={
                             'color': "blue",
@@ -272,7 +273,7 @@ def plot_Sparameters(val_Sdata, corr_group_delay, contents, unit_ff, unit_mag, u
         fig['layout']['xaxis1'].update(title='frequency [MHz]')
         fig['layout']['yaxis1'].update(title='Group Delay [ns]')
         fig['layout']['yaxis2'].update(title='Group Delay [ns]')
-        fig['layout']['yaxis3'].update(title='magnitude [V]')
+        fig['layout']['yaxis3'].update(title='Magnitude [MAG]')
         fig['layout']['yaxis4'].update(title='phase [deg]')
         fig['layout']['xaxis2'].update(title='frequency [MHz]')
         fig.update_layout(showlegend=False)

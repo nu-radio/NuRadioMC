@@ -141,7 +141,7 @@ class Detector(object):
         """
         self.db.SURFACE.update_one({'name': board_name},
                                       {"$push":{'measurements': {
-                                          'surface_channel_id': channel_id,
+                                          'channel_id': channel_id,
                                           'last_updated': datetime.datetime.utcnow(),
                                           'function_test': False,
                                           }}},
@@ -179,7 +179,7 @@ class Detector(object):
         for i in range(4):
             self.db.SURFACE.update_one({'name': board_name},
                                     {"$push": {'measurements': {
-                                          'surface_channel_id': channel_id,
+                                          'channel_id': channel_id,
                                           'last_updated': datetime.datetime.utcnow(),
                                           'function_test': True,
                                           'measurement_temp': temp,
@@ -242,7 +242,7 @@ class Detector(object):
         for i in range(4):
             self.db.DRAB.update_one({'name': board_name},
                                     {"$push": {'measurements': {
-                                          'drab_channel_id': channel_id,
+                                          'channel_id': channel_id,
                                           'last_updated': datetime.datetime.utcnow(),
                                           'function_test': True,
                                           'IGLU_id': iglu_id,
