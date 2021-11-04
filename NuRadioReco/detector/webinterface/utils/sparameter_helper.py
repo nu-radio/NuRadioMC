@@ -35,41 +35,48 @@ sparameters_layout = html.Div([
             value=",",
             style={'width': '200px', 'float':'left'}
         ),
-    html.Div("units"),
-    dcc.Dropdown(
-        id='dropdown-frequencies',
-        options=[
-            {'label': 'GHz', 'value': "GHz"},
-            {'label': 'MHz', 'value': "MHz"},
-            {'label': 'Hz', 'value': "Hz"}
-        ],
-        value="Hz",
-        style={'width': '20%',
-#                'float': 'left'
-        }
-    ),
-    dcc.Dropdown(
+    html.Br(),
+    html.Br(),
+    html.Div([html.Div("units"),
+        dcc.Dropdown(
+            id='dropdown-frequencies',
+            options=[
+                {'label': 'GHz', 'value': "GHz"},
+                {'label': 'MHz', 'value': "MHz"},
+                {'label': 'Hz', 'value': "Hz"}
+                ],
+                value="Hz",
+                style={'width': '100px', 'float':'left'}
+            ),
+        dcc.Dropdown(
             id='dropdown-magnitude',
             options=[
                 {'label': 'V', 'value': "V"},
                 {'label': 'mV', 'value': "mV"}
-            ],
-            value="V",
-            style={'width': '20%',
-#                    'float': 'left'}
-                   }
+                ],
+                value="V",
+                style={'width': '100px', 'float':'left'}
         ),
-    dcc.Dropdown(
-            id='dropdown-phase',
-            options=[
-                {'label': 'degree', 'value': "deg"},
-                {'label': 'rad', 'value': "rad"}
-            ],
-            value="deg",
-            style={'width': '20%',
-#                    'float': 'left'}
-            }
-        ),
+        dcc.Dropdown(
+                id='dropdown-phase',
+                options=[
+                    {'label': 'degree', 'value': "deg"},
+                    {'label': 'rad', 'value': "rad"}
+                ],
+                value="deg",
+                style={'width': '100px', 'float':'left'}
+            ), ]),
+    html.Br(),
+    html.Br(),
+    html.Div("Specify the measurement protocol"),
+    dcc.Dropdown(id="protocol",
+                options=[
+                    {'label': 'Chicago 2020', 'value': "chicago2020"},
+                    {'label': 'Erlangen 2020', 'value': "erlangen2020"}],
+              value="erlangen2020",
+              style={'width': '200px',
+                     'float': 'left'}),
+    html.Br(),
     html.Br(),
     html.Div("Enter group delay correction [ns] at around 200 MHz"),
     dcc.Input(id="group_delay_corr",

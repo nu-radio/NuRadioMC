@@ -18,13 +18,14 @@ from NuRadioReco.detector.webinterface.utils.units import str_to_unit
 sparameters_layout = html.Div([
     dcc.Checklist(id="function-test",
         options=[
-            {'label': 'channel is working', 'value': 'working'}
+            {'label': 'Channel is working', 'value': 'working'},
+            {'label': 'Is this the Primary Measurement?', 'value': 'primary'}
             ],
-        value=['working'],
-        style={'width': '20%'}
+        value=['working', 'primary'],
+        style={'width': '10%'}
     ), html.Br(),
 
-    html.Div("specify data format:"),
+    html.Div("Specify data format"),
     dcc.Dropdown(
             id='separator',
             options=[
@@ -34,7 +35,9 @@ sparameters_layout = html.Div([
             value=",",
             style={'width': '200px', 'float':'left'}
         ),
-    html.Div("units"),
+    html.Br(),
+    html.Br(),
+    html.Div([html.Div("Units"),
     dcc.Dropdown(
         id='dropdown-frequencies',
         options=[
@@ -43,24 +46,30 @@ sparameters_layout = html.Div([
             {'label': 'Hz', 'value': "Hz"}
         ],
         value="Hz",
-        style={'width': '20%',
-#                'float': 'left'
-        }
+        style={'width': '100px', 'float':'left'}
     ),
     dcc.Dropdown(
-            id='dropdown-magnitude',
-            options=[
-                {'label': 'VSWR', 'value': "VSWR"},
-                {'label': 'V', 'value': "V"},
-                {'label': 'mV', 'value': "mV"}
-            ],
-            value="VSWR",
-            style={'width': '20%',
-#                    'float': 'left'}
-                   }
+        id='dropdown-magnitude',
+        options=[
+            {'label': 'VSWR', 'value': "VSWR"},
+            {'label': 'V', 'value': "V"},
+            {'label': 'mV', 'value': "mV"}
+        ],
+        value="VSWR",
+        style={'width': '100px', 'float':'left'}
 
-        ),
+        ), ]),
     html.Br(),
+        html.Br(),
+        html.Div("Specify the measurement protocol"),
+        dcc.Dropdown(id="protocol",
+                    options=[
+                        {'label': 'Chicago 2020', 'value': "chicago2020"},
+                        {'label': 'Erlangen 2020', 'value': "erlangen2020"}],
+                  value="chicago2020",
+                  style={'width': '200px',
+                         'float': 'left'}),
+        html.Br(),
     html.Br(),
     html.Div([
         dcc.Upload(

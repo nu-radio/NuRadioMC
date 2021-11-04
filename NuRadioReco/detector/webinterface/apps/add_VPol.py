@@ -136,8 +136,9 @@ def validate_global(Sdata_validated, VPol_dropdown, new_VPol_name, function_test
              State('dropdown-frequencies', 'value'),
              State('dropdown-magnitude', 'value'),
              State('separator', 'value'),
-             State("function-test", "value")])
-def insert_to_db(n_clicks, VPol_dropdown, new_VPol_name, contents, unit_ff, unit_mag, sep, function_test):
+             State("function-test", "value"),
+             State("protocol", "value")])
+def insert_to_db(n_clicks, VPol_dropdown, new_VPol_name, contents, unit_ff, unit_mag, sep, function_test, protocol):
     print(f"n_clicks is {n_clicks}")
     if(not n_clicks is None):
         print("insert to db")
@@ -154,8 +155,12 @@ def insert_to_db(n_clicks, VPol_dropdown, new_VPol_name, contents, unit_ff, unit
             S_data = np.genfromtxt(S_data_io, skip_header=17, skip_footer=1, delimiter=sep).T
             S_data[0] *= str_to_unit[unit_ff]
             S_data[1] *= str_to_unit[unit_mag]
+            if('primary' not in function_test):
+                primary_measurement = False
+            else:
+                primary_measurement = True
             print(VPol_name, S_data)
-            det.VPol_add_Sparameters(VPol_name, S_data)
+            det.VPol_add_Sparameters(VPol_name, S_data, primary_measurement, protocol)
 
         return {'display': 'none'}, {}
     else:
