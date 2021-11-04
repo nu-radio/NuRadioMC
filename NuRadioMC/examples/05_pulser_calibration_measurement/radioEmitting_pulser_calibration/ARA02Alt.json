@@ -1,9 +1,9 @@
 {
     "_default": {},
     "channels": {
-        "16": {
+        "0": {
             "adc_id": null,
-            "adc_n_samples": 6200,
+            "adc_n_samples": 5000,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.6,
             "adc_time_delay": null,
@@ -31,7 +31,7 @@
 
         "1": {
             "adc_id": null,
-            "adc_n_samples": 6200,
+            "adc_n_samples": 5000,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.6,
             "adc_time_delay": null,
@@ -58,7 +58,7 @@
         },
         "2": {
             "adc_id": null,
-            "adc_n_samples": 6200,
+            "adc_n_samples": 5000,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.6,
             "adc_time_delay": null,
@@ -85,7 +85,7 @@
         },
         "3": {
             "adc_id": null,
-            "adc_n_samples": 6200,
+            "adc_n_samples": 5000,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.6,
             "adc_time_delay": null,
@@ -112,7 +112,7 @@
         },
         "4": {
             "adc_id": null,
-            "adc_n_samples": 6200,
+            "adc_n_samples": 5000,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.6,
             "adc_time_delay": null,
@@ -139,7 +139,7 @@
         },
         "5": {
             "adc_id": null,
-            "adc_n_samples": 6200,
+            "adc_n_samples": 5000,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.6,
             "adc_time_delay": null,
@@ -166,7 +166,7 @@
         },
         "6": {
             "adc_id": null,
-            "adc_n_samples": 6200,
+            "adc_n_samples": 5000,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.6,
             "adc_time_delay": null,
@@ -193,7 +193,7 @@
         },
         "7": {
             "adc_id": null,
-            "adc_n_samples": 6200,
+            "adc_n_samples": 5000,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.6,
             "adc_time_delay": null,
@@ -220,7 +220,7 @@
         },
         "8": {
             "adc_id": null,
-            "adc_n_samples": 6200,
+            "adc_n_samples": 5000,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.6,
             "adc_time_delay": null,
@@ -247,7 +247,7 @@
         },
         "9": {
             "adc_id": null,
-            "adc_n_samples": 6200,
+            "adc_n_samples": 5000,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.6,
             "adc_time_delay": null,
@@ -274,7 +274,7 @@
         },
         "10": {
             "adc_id": null,
-            "adc_n_samples": 6200,
+            "adc_n_samples": 5000,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.6,
             "adc_time_delay": null,
@@ -301,7 +301,7 @@
         },
         "11": {
             "adc_id": null,
-            "adc_n_samples": 6200,
+            "adc_n_samples": 5000,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.6,
             "adc_time_delay": null,
@@ -328,7 +328,7 @@
         },
         "12": {
             "adc_id": null,
-            "adc_n_samples": 6200,
+            "adc_n_samples": 5000,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.6,
             "adc_time_delay": null,
@@ -355,7 +355,7 @@
         },
         "13": {
             "adc_id": null,
-            "adc_n_samples": 6200,
+            "adc_n_samples": 5000,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.6,
             "adc_time_delay": null,
@@ -382,7 +382,7 @@
         },
         "14": {
             "adc_id": null,
-            "adc_n_samples": 6200,
+            "adc_n_samples": 5000,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.6,
             "adc_time_delay": null,
@@ -409,7 +409,7 @@
         },
         "15": {
             "adc_id": null,
-            "adc_n_samples": 6200,
+            "adc_n_samples": 5000,
             "adc_nbits": null,
             "adc_sampling_frequency": 1.6,
             "adc_time_delay": null,
