@@ -228,4 +228,4 @@ while sum_trigger > cfg['number_of_allowed_trigger']:
         abs_path_output_file = os.path.normpath(os.path.join(args.output_path, output_file))
 
         with open(abs_path_output_file, 'w') as outfile:
-            json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4)
+            json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4, sort_keys=True)

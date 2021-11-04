@@ -146,7 +146,7 @@ dic = {'T_noise': Tnoise, 'Vrms_thermal_noise': Vrms_thermal_noise, 'n_iteration
        'n_random_phase': n_random_phase, 'threshold_start': threshold_start, 'threshold_step': threshold_step}
 
 
-os.makedirs(os.path.join(abs_output_path,'config/'), exist_ok=True)
+os.makedirs(os.path.join(abs_output_path, 'config/'), exist_ok=True)
 
 output_file = 'config/config_{}_trigger_pb_{:.0f}_{:.0f}.json'.format(
     trigger_name, passband_trigger[0] / units.MHz, passband_trigger[1] / units.MHz)
@@ -154,4 +154,4 @@ output_file = 'config/config_{}_trigger_pb_{:.0f}_{:.0f}.json'.format(
 abs_path_output_file = os.path.normpath(os.path.join(abs_output_path, output_file))
 
 with open(abs_path_output_file, 'w') as outfile:
-    json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4)
+    json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4, sort_keys=True)

@@ -110,7 +110,7 @@ trigger_efficiency = []
 for n_it in range(n_iterations_total):
     station = event.get_station(cfg['default_station'])
     if cfg['station_time_random']:
-        station = hcr.set_random_station_time(station)
+        station = hcr.set_random_station_time(station, cfg['station_time'])
 
     eventTypeIdentifier.run(event, station, "forced", 'cosmic_ray')
 
@@ -171,7 +171,7 @@ dic = {'thresholds': trigger_thresholds, 'efficiency': trigger_efficiency, 'trig
        'detector_file': cfg['detector_file'], 'default_station': cfg['default_station'],
        'trace_samples': cfg['trace_samples'], 'sampling_rate': cfg['sampling_rate'],
        'trace_length': cfg['trace_length'], 'T_noise_min_freq': cfg['T_noise_min_freq'],
-       'T_noise_max_freq ': cfg['T_noise_max_freq'], 'galactic_noise_n_side': cfg['galactic_noise_n_side'],
+       'T_noise_max_freq': cfg['T_noise_max_freq'], 'galactic_noise_n_side': cfg['galactic_noise_n_side'],
        'galactic_noise_interpolation_frequencies_start': cfg['galactic_noise_interpolation_frequencies_start'],
        'galactic_noise_interpolation_frequencies_stop': cfg['galactic_noise_interpolation_frequencies_stop'],
        'galactic_noise_interpolation_frequencies_step': cfg['galactic_noise_interpolation_frequencies_step'],
@@ -189,4 +189,4 @@ output_file = 'output_threshold_calculation/{}_trigger_pb_{:.0f}_{:.0f}_i{}_{}.j
 
 abs_path_output_file = os.path.normpath(os.path.join(args.output_path, output_file))
 with open(abs_path_output_file, 'w') as outfile:
-    json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4)
+    json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4, sort_keys=True)
