@@ -187,9 +187,10 @@ def validate_global(Sdata_validated, board_dropdown, new_board_name, channel_id,
              State('separator', 'value'),
              State('temperature-list', 'value'),
              State("function-test", "value"),
-             State("group_delay_corr", "value")])
+             State("group_delay_corr", "value"),
+             State("protocol", "value")])
 def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, unit_mag,
-                 unit_phase, channel_id, sep, temp, function_test, corr_group_delay):
+                 unit_phase, channel_id, sep, temp, function_test, corr_group_delay, protocol):
     print(f"n_clicks is {n_clicks}")
     if(not n_clicks is None):
         print("insert to db")
@@ -222,7 +223,7 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff, un
             time_delay = [0, 0, corr_group_delay * units.ns, 0]
             det.surface_board_channel_add_Sparameters(board_name, channel_id,
                                                       temp, S_data, measurement_time,
-                                                      primary_measurement, time_delay)
+                                                      primary_measurement, time_delay, protocol)
 
         from NuRadioReco.detector.webinterface.apps import menu
         return {'display': 'none'}, {}

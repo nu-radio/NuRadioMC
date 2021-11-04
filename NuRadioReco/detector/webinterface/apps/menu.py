@@ -1,25 +1,40 @@
 import dash_core_components as dcc
 import dash_html_components as html
+import base64
+
+test_png = 'rno_logo.png'
+test_base64 = base64.b64encode(open(test_png, 'rb').read()).decode('ascii')
+
 
 layout = html.Div([
     html.H3('Welcome to the RNO-G Hardware Databse Uploader'),
-    dcc.Link('Add S parameter measurement of Surface Board', href='/apps/add_surface_board'),
+    html.Img(src='data:image/png;base64,{}'.format(test_base64), style={'float':'right', 'width':'50%'}),
+    dcc.Link('Add SURFACE Board S Parameters', href='/apps/add_surface_board'),
     html.Br(),
-    dcc.Link('Add DRAB unit measurement', href='/apps/add_DRAB'),
     html.Br(),
-    dcc.Link('Add S21 Cable measurments', href='/apps/add_CABLE'),
+    dcc.Link('Add DRAB S Parameters', href='/apps/add_DRAB'),
     html.Br(),
-    dcc.Link('Add S21 SURFACE Cable measurments', href='/apps/add_surf_CABLE'),
     html.Br(),
-    dcc.Link('Add S11 VPol measurment', href='/apps/add_VPol'),
+    dcc.Link('Add IGLU Board S Parameters', href='/apps/add_IGLU'),
     html.Br(),
-    dcc.Link('Add S parameter measurement of IGLU board', href='/apps/add_IGLU'),
+    html.Br(),
+    dcc.Link('Add Downhole Fiber Cable measurments (S21)', href='/apps/add_CABLE'),
+    html.Br(),
+    html.Br(),
+    dcc.Link('Add Surface Channel Cable measurments (S21)', href='/apps/add_surf_CABLE'),
+    html.Br(),
+    html.Br(),
+    dcc.Link('Add VPol measurment (S11)', href='/apps/add_VPol'),
+    html.Br(),
     html.Br(),
     dcc.Link('Add Pulser measurement (placeholder)', href='/apps/add_Pulser'),
     html.Br(),
+    html.Br(),
     dcc.Link('Add HPol measurement (placeholder)', href='/apps/add_HPol'),
     html.Br(),
+    html.Br(),
     dcc.Link('Add DAQ measurement (placeholder)', href='/apps/add_DAQ'),
+    html.Br(),
     html.Br(),
     dcc.Link('Read and download calibration values', href='/apps/reader')
 ])

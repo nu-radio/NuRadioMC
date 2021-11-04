@@ -140,15 +140,15 @@ class Detector(object):
 
         """
         self.db.SURFACE.update_one({'name': board_name},
-                                      {"$push":{'channels': {
-                                          'id': channel_id,
+                                      {"$push":{'measurements': {
+                                          'surface_channel_id': channel_id,
                                           'last_updated': datetime.datetime.utcnow(),
                                           'function_test': False,
                                           }}},
                                      upsert=True)
 
     def surface_board_channel_add_Sparameters(self, board_name, channel_id, temp, S_data,
-                                              measurement_time, primary_measurement, time_delay):
+                                              measurement_time, primary_measurement, time_delay, protocol):
         """
         inserts a new S parameter measurement of one channel of an amp board
         If the board dosn't exist yet, it will be created.
@@ -172,17 +172,20 @@ class Detector(object):
         time_delay: array of floats
             the absolute time delay of each S parameter measurement (e.g. the group delay at
             a reference frequency)
+        protocol: string
+            details of the testing enviornment
         """
         S_names = ["S11", "S12", "S21", "S22"]
         for i in range(4):
             self.db.SURFACE.update_one({'name': board_name},
-                                    {"$push": {'channels': {
+                                    {"$push": {'measurements': {
                                           'surface_channel_id': channel_id,
                                           'last_updated': datetime.datetime.utcnow(),
                                           'function_test': True,
                                           'measurement_temp': temp,
                                           'measurement_time': measurement_time,
                                           'primary_measurement': primary_measurement,
+                                          'measurement_protocol': protocol,
                                           'time_delay': time_delay[i],
                                           'S_parameter': S_names[i],
                                           'frequencies': list(S_data[0]),
@@ -209,7 +212,7 @@ class Detector(object):
                                   })
 
     def DRAB_add_Sparameters(self, board_name, channel_id, iglu_id, temp, S_data,
-                             measurement_time, primary_measurement, time_delay):
+                             measurement_time, primary_measurement, time_delay, protocol):
         """
         inserts a new S parameter measurement of one channel of an amp board
         If the board dosn't exist yet, it will be created.
@@ -231,12 +234,14 @@ class Detector(object):
         time_delay: array of floats
             the absolute time delay of each S parameter measurement (e.g. the group delay at
             a reference frequency)
+        protocol: string
+            details of the testing enviornment
 
         """
         S_names = ["S11", "S12", "S21", "S22"]
         for i in range(4):
             self.db.DRAB.update_one({'name': board_name},
-                                    {"$push": {'channels': {
+                                    {"$push": {'measurements': {
                                           'drab_channel_id': channel_id,
                                           'last_updated': datetime.datetime.utcnow(),
                                           'function_test': True,
@@ -244,6 +249,7 @@ class Detector(object):
                                           'measurement_temp': temp,
                                           'measurement_time': measurement_time,
                                           'primary_measurement': primary_measurement,
+                                          'measurement_protocol': protocol,
                                           'time_delay': time_delay[i],
                                           'S_parameter': S_names[i],
                                           'frequencies': list(S_data[0]),
@@ -269,7 +275,7 @@ class Detector(object):
                               'function_test': False,
                                   })
 
-    def VPol_add_Sparameters(self, VPol_name, S_data):
+    def VPol_add_Sparameters(self, VPol_name, S_data, primary_measurement, protocol):
         """
         inserts a new S11 measurement of a VPol.
         If the Antenna dosn't exist yet, it will be created.
@@ -281,13 +287,17 @@ class Detector(object):
         S_data: array of floats
             1st collumn: frequencies
             2ndcollumn: S11 mag (VSWR)
-
-
+        primary_measurement: bool
+            indicates the primary measurement to be used for analysis
+        protocol: string
+            details of the testing enviornment
         """
 
         self.db.VPol.insert_one({'name': VPol_name,
                                     'last_updated': datetime.datetime.utcnow(),
                                      'function_test': True,
+                                     'primary_measurement': primary_measurement,
+                                     'measurement_protocol': protocol,
                                      'S_parameter': 'S11',
                                      'frequencies': list(S_data[0]),
                                      'mag': list(S_data[1]),
@@ -310,7 +320,7 @@ class Detector(object):
                               'function_test': False,
                                   })
 
-    def CABLE_add_Sparameters(self, cable_name, Sm_data, Sp_data):
+    def CABLE_add_Sparameters(self, cable_name, Sm_data, Sp_data, primary_measurement, protocol):
         """
         inserts a new S21 measurement of a cable.
         If the cable dosn't exist yet, it will be created.
@@ -323,13 +333,17 @@ class Detector(object):
             1st collumn: frequencies
             2nd collumn: S21 mag (dB)
             3nd collumn: S21 phase (deg)
-
-
+        primary_measurement: bool
+            indicates the primary measurement to be used for analysis
+        protocol: string
+            details of the testing enviornment
         """
 
         self.db.CABLE.insert_one({'name': cable_name,
                                     'last_updated': datetime.datetime.utcnow(),
                                      'function_test': True,
+                                     'primary_measurement': primary_measurement,
+                                     'measurement_protocol': protocol,
                                      'S_parameter': 'S21',
                                      'frequencies': list(Sm_data[0]),
                                      'mag': list(Sm_data[1]),
@@ -351,7 +365,7 @@ class Detector(object):
                               'function_test': False,
                                   })
 
-    def surfCABLE_add_Sparameters(self, cable_name, Sm_data, Sp_data):
+    def surfCABLE_add_Sparameters(self, cable_name, Sm_data, Sp_data, primary_measurement, protocol):
         """
         inserts a new S21 measurement of a SURFACE (11m) cable.
         If the cable dosn't exist yet, it will be created.
@@ -364,18 +378,20 @@ class Detector(object):
             1st collumn: frequencies
             2nd collumn: S21 mag (dB)
             3nd collumn: S21 phase (deg)
-
+        primary_measurement: bool
+            indicates the primary measurement to be used for analysis
 
         """
 
         self.db.surfCABLE.insert_one({'name': cable_name,
-                                    'last_updated': datetime.datetime.utcnow(),
-                                     'function_test': True,
-                                     'S_parameter': 'S21',
-                                     'frequencies': list(Sm_data[0]),
-                                     'mag': list(Sm_data[1]),
-                                     'phase': list(Sp_data[1]),
-                                  })
+                                      'last_updated': datetime.datetime.utcnow(),
+                                      'function_test': True,
+                                      'primary_measurement': primary_measurement,
+                                      'measurement_protocol': protocol,
+                                      'S_parameter': 'S21',
+                                      'frequencies': list(Sm_data[0]),
+                                      'mag': list(Sm_data[1]),
+                                      'phase': list(Sp_data[1]), })
 
     #### add IGLU board
     def IGLU_board_channel_set_not_working(self, board_name):
@@ -390,7 +406,7 @@ class Detector(object):
 
         """
         self.db.IGLU.update_one({'name': board_name},
-                              {"$push":{'channels': {
+                              {"$push":{'measurements': {
                                   'last_updated': datetime.datetime.utcnow(),
                                   'function_test': False,
                                   }}},
@@ -398,7 +414,7 @@ class Detector(object):
 
     def IGLU_board_channel_add_Sparameters_with_DRAB(self, board_name, drab_id,
                                                      temp, S_data, measurement_time,
-                                                     primary_measurement, time_delay):
+                                                     primary_measurement, time_delay, protocol):
         """
         inserts a new S parameter measurement of one channel of an IGLU board
         If the board dosn't exist yet, it will be created.
@@ -424,18 +440,21 @@ class Detector(object):
         time_delay: array of floats
             the absolute time delay of each S parameter measurement (e.g. the group delay at
             a reference frequency)
+        protocol: string
+            details of the testing enviornment
 
         """
         S_names = ["S11", "S12", "S21", "S22"]
         for i in range(4):
             self.db.IGLU.update_one({'name': board_name},
-                                      {"$push":{'channels': {
+                                      {"$push":{'measurements': {
                                           'last_updated': datetime.datetime.utcnow(),
                                           'function_test': True,
                                           'DRAB-id': drab_id,
                                           'measurement_temp': temp,
                                           'measurement_time': measurement_time,
                                           'primary_measurement': primary_measurement,
+                                          'measurement_protocol': protocol,
                                           'time_delay': time_delay[i],
                                           'S_parameter_DRAB': S_names[i],
                                           'frequencies': list(S_data[0]),
@@ -446,7 +465,7 @@ class Detector(object):
 
     def IGLU_board_channel_add_Sparameters_without_DRAB(self, board_name, temp,
                                                         S_data, measurement_time,
-                                                        primary_measurement, time_delay):
+                                                        primary_measurement, time_delay, protocol):
         """
         inserts a new S parameter measurement of one channel of an IGLU board
         If the board dosn't exist yet, it will be created.
@@ -470,17 +489,20 @@ class Detector(object):
         time_delay: array of floats
             the absolute time delay of each S parameter measurement (e.g. the group delay at
             a reference frequency)
+        protocol: string
+            details of the testing enviornment
 
         """
         S_names = ["S11", "S12", "S21", "S22"]
         for i in range(4):
             self.db.IGLU.update_one({'name': board_name},
-                                      {"$push":{'channels': {
+                                      {"$push":{'measurements': {
                                           'last_updated': datetime.datetime.utcnow(),
                                           'function_test': True,
                                           'measurement_temp': temp,
                                           'measurement_time': measurement_time,
                                           'primary_measurement': primary_measurement,
+                                          'measurement_protocol': protocol,
                                           'time_delay': time_delay[i],
                                           'S_parameter_wo_DRAB': S_names[i],
                                           'frequencies': list(S_data[0]),
@@ -547,7 +569,7 @@ class Detector(object):
         ---------
         station_id: int
             the station id
-  
+
         Return
         -------------
         dict of station parameters
@@ -920,7 +942,7 @@ class Detector(object):
     def _find_hardware_components(self):
         """
         returns hardware component names grouped by hardware type at the current detector time
-  
+
         Return
         -------------
         dict with hardware component names grouped by hardware type
