@@ -95,7 +95,7 @@ class Detector(object):
             self._current_time = self.__det["detector_time"]
         else:
             logger.error("Cannot import detector. File {} does not exist.".format(filename))
-            
+
     def get_surface_board_names(self):
         """
         returns the unique names of all surface boards
@@ -1124,7 +1124,7 @@ def dictionarize_nested_lists_as_tuples(nested_lists, parent_key="name", nested_
                 #    logger.warning(f"trying to access unavailable nested key {nested_key} in field {nested_field}. Nothing to be done.")
             # replace list with dict
             res[parent[parent_key]][nested_field] = daughter_dict
-      return res
+    return res
 
 def get_measurement_from_buffer(hardware_db, S_parameter="S21", channel_id=None):
     if channel_id is None:
