@@ -7,6 +7,8 @@ import datetime
 from pprint import pprint
 import logging
 import urllib.parse
+import json
+from bson import json_util #bson dicts are used by pymongo
 import numpy as np
 import pandas as pd
 from NuRadioReco.utilities import units
@@ -73,7 +75,27 @@ class Detector(object):
         self.__current_time = timestamp
         self._update_buffer()
 
+    def export_detector(self, filename="detector.json"):
+        """ export the detector to file """
 
+        if os.path.exists(filename):
+            logger.error("Output file already exists.")
+        else:
+            self.__db["detector_time"] = self.__current_time
+            with open(filename, 'w') as fp:
+                fp.write(json_util.dumps(self.__db))#, fp, indent=4)
+                #Note: some output/timezone options can be set in bson.json_util.DEFAULT_JSON_OPTIONS
+            logger.info("Output written to {}.".format(filename))
+    def import_detector(self, filename):
+        """ import the detector from file """
+        if os.path.isfile(filename):
+            logger.info("Importing detector from file {}".format(filename))
+
+            self.__det = json.load(open(filename))
+            self._current_time = self.__det["detector_time"]
+        else:
+            logger.error("Cannot import detector. File {} does not exist.".format(filename))
+            
     def get_surface_board_names(self):
         """
         returns the unique names of all surface boards
