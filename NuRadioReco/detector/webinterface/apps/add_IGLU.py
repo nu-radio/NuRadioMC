@@ -245,7 +245,11 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff,
             for i in range(4):
                 S_data[1 + 2 * i] *= str_to_unit[unit_mag]
                 S_data[2 + 2 * i] *= str_to_unit[unit_phase]
-            time_delay = [0, 0, corr_group_delay * units.ns, 0]
+            if corr_group_delay is None:
+                correction = 0
+            else:
+                correction = corr_group_delay
+            time_delay = [0, 0, correction * units.ns, 0]
             if(drab_id == "wo_DRAB"):
                 det.IGLU_board_channel_add_Sparameters_without_DRAB(board_name,
                 temp, S_data, measurement_time, primary_measurement, time_delay, protocol)
