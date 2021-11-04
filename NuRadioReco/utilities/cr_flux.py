@@ -4,6 +4,7 @@ import scipy.interpolate as interpolate
 from scipy.integrate import quad
 import os.path
 
+
 # References
 # data_auger_19, https://www.auger.org/document-centre-public?task=download.send&id=5045&catid=78&m=0
 # data_TA_21, data provided by van Vliet
@@ -17,7 +18,6 @@ def get_measured_data(type='data_auger_19'):
     ---------
     type: string
         choose between data_auger_19 and data_TA_21
-
     Returns
     -------
     E: array of floats
@@ -40,7 +40,7 @@ def get_measured_data(type='data_auger_19'):
         J_err_low = data[:, 3] * units.m ** -2 * units.second ** -1 * units.steradian ** -1 / E
         J_err_up = data[:, 2] * units.m ** -2 * units.second ** -1 * units.steradian ** -1 / E
 
-    if type == 'data_TA_21':
+    elif type == 'data_TA_21':
         abspath = os.path.dirname(os.path.abspath(__file__))
         data = np.loadtxt(os.path.join(abspath, 'data/TA_combined_spectrum_ICRC_2021.txt'), skiprows=10)
         E = 10 ** (data[:, 0]) * units.eV
@@ -50,7 +50,11 @@ def get_measured_data(type='data_auger_19'):
         J_err_low = J - J_band_low
         J_err_up = J_band_up - J
 
+    else:
+        raise NotImplementedError(f"Type {type} is not supported")
+
     return E, J, J_err_low, J_err_up
+
 
 def get_flux_interpolation(type='data_auger_19'):
     """
@@ -65,7 +69,8 @@ def get_flux_interpolation(type='data_auger_19'):
     scipy interpolation of data in NuRadio base units (which are 1/(eV m^2 sr ns) )
     """
     E, J, J_err_low, J_err_up = get_measured_data(type)
-    return interpolate.interp1d(E, J, fill_value=0, bounds_error=False)
+    log10_e = np.log10(E)
+    return interpolate.interp1d(log10_e, J, fill_value=0, bounds_error=True)
 
 
 def get_cr_flux(log10_energy, type='data_auger_19'):
@@ -76,19 +81,15 @@ def get_cr_flux(log10_energy, type='data_auger_19'):
     ---------
     log10_energy: float
         energies (in log10(E / eV)))
-
     type: string
         choose between data_auger_19 and data_TA_21
-
-    Returns:
-        scipy interpolation of data in NuRadio base units (which are 1/(eV m^2 sr ns) )
+    Return
     -------
-    scipy interpolation of data in NuRadio base units (which are 1/(eV m^2 sr ns) )
+        scipy interpolation of data in NuRadio base units (which are 1/(eV m^2 sr ns) )
     """
 
     flux_interpolation = get_flux_interpolation(type=type)
-
-    return flux_interpolation(10**log10_energy)
+    return flux_interpolation(log10_energy)
 
 
 def get_analytic_cr_flux(log10_energy, type="auger_19"):
@@ -100,26 +101,25 @@ def get_analytic_cr_flux(log10_energy, type="auger_19"):
 
     type: string
         choose between auger_17, auger_19 and TA_19
-
-    Returns:
+    Returns
     -------
-    analytic parametrization of spectrum in NuRadio base units (which are 1/(eV m^2 sr ns) )
+    analytic parametrization of spectrum in NuRadio base units (which are 1/(eV m^2 sr ns)
     """
     energy = 10 ** log10_energy
 
     if type == "auger_17":
         p = np.array([2.8e-19, 5.08e18, 39e18, 3.293, 2.53, 2.5])
         spectrum = np.where(energy < p[1],
-                        p[0] * (energy / p[1]) ** (-p[3]),
-                        p[0] * (energy / p[1]) ** (-p[4]) * (1 + (p[1] / p[2]) ** p[5])
-                        * (1 + (energy / p[2]) ** p[5]) ** -1)
+                            p[0] * (energy / p[1]) ** (-p[3]),
+                            p[0] * (energy / p[1]) ** (-p[4]) * (1 + (p[1] / p[2]) ** p[5])
+                            * (1 + (energy / p[2]) ** p[5]) ** -1)
     elif type == "auger_19":
         p = np.array([3.46e12, 1.5e17, 6.2e18, 12e18, 50e18, 2.92, 3.27, 2.2, 3.2, 5.4])
         spectrum = (energy / p[0]) ** (-p[5]) * \
-               (1 + (energy / p[1]) ** p[5]) / (1 + (energy / p[1]) ** p[6]) * \
-               (1 + (energy / p[2]) ** p[6]) / (1 + (energy / p[2]) ** p[7]) * \
-               (1 + (energy / p[3]) ** p[7]) / (1 + (energy / p[3]) ** p[8]) * \
-               (1 + (energy / p[4]) ** p[8]) / (1 + (energy / p[4]) ** p[9])
+                   (1 + (energy / p[1]) ** p[5]) / (1 + (energy / p[1]) ** p[6]) * \
+                   (1 + (energy / p[2]) ** p[6]) / (1 + (energy / p[2]) ** p[7]) * \
+                   (1 + (energy / p[3]) ** p[7]) / (1 + (energy / p[3]) ** p[8]) * \
+                   (1 + (energy / p[4]) ** p[8]) / (1 + (energy / p[4]) ** p[9])
     elif type == "TA_19":
         p1 = -3.28
         p2 = -2.68
@@ -130,12 +130,16 @@ def get_analytic_cr_flux(log10_energy, type="auger_19"):
         c1 = c * (E1 / 1e18) ** p1
         c2 = c1 * (E2 / E1) ** p2
         spectrum = np.where(energy < E1,
-                 c * (energy / 1e18) ** p1,
-                 np.where(energy < E2,
-                          c1 * (energy / E1) ** p2,
-                          c2 * (energy / E2) ** p3))
+                            c * (energy / 1e18) ** p1,
+                            np.where(energy < E2,
+                                     c1 * (energy / E1) ** p2,
+                                     c2 * (energy / E2) ** p3))
 
-    spectrum = spectrum * (units.eV * units.km**2 * units.sr * units.year)**-1
+    else:
+        raise NotImplementedError(f"Type {type} is not supported")
+
+    spectrum = spectrum * (units.eV * units.km ** 2 * units.sr * units.year) ** -1
+
     return spectrum
 
 
@@ -152,27 +156,29 @@ def get_flux_per_energy_bin(log10e_min, log10e_max, type='data_auger_19'):
     type: string
         choose between data_auger_19, data_TA_21, auger_17, auger_19, TA_19
 
-    Returns:
+    Returns
     -------
     scipy integration of data in NuRadio base units (which are 1/(eV m^2 sr ns))
     """
-    if type in ['data_auger_19','data_TA_21']:
+    if type in ['data_auger_19', 'data_TA_21']:
         E, J, J_err_low, J_err_up = get_measured_data(type)
         flux_interpolation = get_flux_interpolation(type)
-        integrated_flux = quad(flux_interpolation, 10 ** log10e_min, 10 ** log10e_max,
+        integrated_flux = quad(flux_interpolation, log10e_min, log10e_max,
                                limit=2 * E.shape[0], points=E)
 
-    if type in ['auger_17', 'auger_19', 'TA_19']:
+    elif type in ['auger_17', 'auger_19', 'TA_19']:
         def flux(x):
             """ Bring parametrized energy spectrum in right shape for quad() function """
             return get_analytic_cr_flux(np.log10(np.array([x])), type)[0]
 
         integrated_flux = quad(flux, 10 ** log10e_min, 10 ** log10e_max)
+    else:
+        raise NotImplementedError(f"Type {type} is not supported")
 
     return integrated_flux[0]
 
 
-def cr_event_rate(log10e_min, log10e_max=21, zenith_min=10, zenith_max=80,  a_eff=1, type="auger_19"):
+def cr_event_rate(log10e_min, log10e_max=21, zenith_min=10, zenith_max=80, a_eff=1, type="auger_19"):
     """
     Cosmic ray event rate in specified energy range assuming a detector with effective area
     'A_eff' and zenith range. The detector projection and zenith band are taken into account.
@@ -192,12 +198,11 @@ def cr_event_rate(log10e_min, log10e_max=21, zenith_min=10, zenith_max=80,  a_ef
         effective area of detector
     type: string
         choose between auger_17, auger_19 and TA_19
-
-    Returns:
+    Returns
     -------
     eventrate
     """
-    projected_area = 0.5*(np.cos(zenith_min*units.deg) + np.cos(zenith_max*units.deg))
+    projected_area = 0.5 * (np.cos(zenith_min * units.deg) + np.cos(zenith_max * units.deg))
 
     dOmega = 2 * np.pi * ((1 - np.cos(zenith_max * units.deg)) - (1 - np.cos(zenith_min * units.deg)))
 
@@ -205,9 +210,11 @@ def cr_event_rate(log10e_min, log10e_max=21, zenith_min=10, zenith_max=80,  a_ef
 
     return integrated_flux * projected_area * dOmega * a_eff
 
-def plot_measured_spectrum(ax=None, scale=2.7, type='data_auger_19'):
+
+def plot_measured_spectrum(ax=None, scale=2.7, type='data_auger_19',
+                           base_units=True):
     """
-    Plot measured spectrum.
+    Plot measured spectrum. Attention: time unit is year instead of ns.
 
     Parameters
     ---------
@@ -217,8 +224,11 @@ def plot_measured_spectrum(ax=None, scale=2.7, type='data_auger_19'):
         scale factor for energy, default = 2.7
     type: string
         choose between data_auger_19 and data_TA_21
+    base_units: bool
+       if False spectrum will be plotted in
+        [m^{-2} yr^{-1} sr^{-1} eV^{%scale-1}] instead of NuRadio base units
 
-    Returns:
+    Returns
     -------
     plot of data without plt.show()
     """
@@ -229,14 +239,18 @@ def plot_measured_spectrum(ax=None, scale=2.7, type='data_auger_19'):
 
     E, J, J_err_low, J_err_up = get_measured_data(type)
 
-    E_J_scale_units = units.m**-2 * units.year**-1 * units.steradian**-1 * units.eV**(scale - 1)
+    if not base_units:
+        E_J_scale_units = units.m ** -2 * units.year ** -1 * units.steradian ** -1 * units.eV ** (scale - 1)
+        yl = r'$J(E)$ [m$^{-2}$ yr$^{-1}$ sr$^{-1}$ eV$^{%g}$]' % (scale - 1)
 
-    ax.errorbar(E, E**scale * J /E_J_scale_units,
-                yerr=[(E**scale * J_err_low) / E_J_scale_units, (E**scale * J_err_up)/E_J_scale_units],
-                marker='x', linewidth=1, markersize=8, ls='None', label='Measured by {}'.format(type))
+    else:
+        E_J_scale_units = units.m ** -2 * units.ns ** -1 * units.steradian ** -1 * units.eV ** (scale - 1)
+        yl = r'$J(E)$ [m$^{-2}$ ns$^{-1}$ sr$^{-1}$ eV$^{%g}$]' % (scale - 1)
 
+    ax.errorbar(E, E ** scale * J / E_J_scale_units,
+                yerr=[(E ** scale * J_err_low) / E_J_scale_units, (E ** scale * J_err_up) / E_J_scale_units],
+                marker='x', linewidth=1, markersize=8, ls='None', label=type)
 
-    yl = r'$J(E)$ [m$^{-2}$ yr$^{-1}$ sr$^{-1}$ eV$^{%g}$]' % (scale - 1)
     if scale != 0:
         yl = r'$E^{%g}\,$' % scale + yl
     ax.set_ylabel(yl)
