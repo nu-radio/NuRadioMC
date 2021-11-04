@@ -775,7 +775,7 @@ class Detector(object):
         """
         return None
 
-    def get_amplifier_measurement(self, station_id, channel_id):
+    def get_amplifier_measurement(self, station_id, channel_id, S_parameter="S21"):
         """
         returns a unique reference to the amplifier measurement
 
@@ -863,31 +863,6 @@ class Detector(object):
         chan = self.get_channel(station_id, channel_id)
         return chan["signal_ch"]
 
-    #TODO not needed any more?!
-    #def find_db_entry(self, station_id, channel_id=None):
-    #    """
-    #    returns a dictionary with a database entry
-    #
-    #    Parameters
-    #    ---------
-    #    station_id: int
-    #        the station id
-    #    channel_id: int
-    #        the channel id
-    #
-    #    Return
-    #    -------------
-    #    dict with database entry
-    #    """
-    #    if channel_id is None:
-    #        aggregation = [agg_station(station_id), agg_first()]
-    #    else:
-    #        aggregation = [agg_station(station_id),
-    #                  agg_unwind_channels(),
-    #                  agg_channel(channel_id, self.__current_time),
-    #                  agg_first()]
-    #    res = self.db.station.aggregate(aggregation).next()
-    #    return res
 
     def _update_buffer(self, force=False):
         """
@@ -1003,7 +978,11 @@ class Detector(object):
                                                                          {"$group": grouping_dict}]))
             #TODO wind #only S21?
             #list to dict conversion using "name" as keys
-            self.__db[hardware_type] = dictionarize_nested_lists(matching_components, parent_key="name", nested_field=None, nested_key=None)
+            self.__db[hardware_type] = dictionarize_nested_lists_as_tuples(matching_components,
+                        parent_key="name",
+                        nested_field="measurements",
+                        nested_keys=("channel_id","S_parameter"))
+            #self.__db[hardware_type] = dictionarize_nested_lists(matching_components, parent_key="name", nested_field=None, nested_key=None)
 
     def get_hardware_component(self, hardware_type, name):
         """
@@ -1016,7 +995,7 @@ class Detector(object):
 
         return self.__db[hardware_type][name]
 
-    def get_hardware_channel(self, hardware_type, name, channel):
+    def get_hardware_channel(self, hardware_type, name, channel, S_parameter="S21"):
         """
         get a channel for a hardware from the component buffer
 
@@ -1025,7 +1004,7 @@ class Detector(object):
         dict of hardware channel info
         """
         component = self.__db[hardware_type][name]
-        return component[channel]
+        return component[(channel, S_parameter)]
 
     def get_signal_ch_hardware(self, station_id, channel_id):
         """
@@ -1124,6 +1103,28 @@ def dictionarize_nested_lists(nested_lists, parent_key="id", nested_field="chann
             res[parent[parent_key]][nested_field] = daughter_dict
     return res
 
+def dictionarize_nested_lists_as_tuples(nested_lists, parent_key="name", nested_field="measurements", nested_keys=("channel_id","S_parameter")):
+    """ mongodb aggregate returns lists of dicts, which can be converted to dicts of dicts """
+    res = {}
+    for parent in nested_lists:
+        res[parent[parent_key]] = parent
+        if nested_field in parent and (nested_field is not None):
+            daughter_list = parent[nested_field]
+            daughter_dict = {}
+            for daughter in daughter_list:
+                # measurements do not have a unique column which can be used as key for the dictionnary, so use a tuple instead for indexing
+                dict_key = []
+                for nested_key in nested_keys:
+                    if nested_key in daughter:
+                        dict_key.append(daughter[nested_key])
+                    else:
+                        dict_key.append(None)
+                daughter_dict[tuple(dict_key)] = daughter
+                #else:
+                #    logger.warning(f"trying to access unavailable nested key {nested_key} in field {nested_field}. Nothing to be done.")
+            # replace list with dict
+            res[parent[parent_key]][nested_field] = daughter_dict
+      return res
 
 def get_measurement_from_buffer(hardware_db, S_parameter="S21", channel_id=None):
     if channel_id is None:
