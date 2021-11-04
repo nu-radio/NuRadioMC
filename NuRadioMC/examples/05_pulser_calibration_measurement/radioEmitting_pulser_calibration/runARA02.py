@@ -21,10 +21,7 @@ from NuRadioReco.framework.trigger import Trigger
 import logging
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("runARA02")
-
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
-#hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
-
 efieldToVoltageConverter.begin()
 simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 powerIntegration = NuRadioReco.modules.trigger.powerIntegration.triggerSimulator()
@@ -39,7 +36,12 @@ triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuste
 triggerSimulator.begin(log_level=logging.WARNING)
 class mySimulation(simulation.simulation):
     def _detector_simulation_filter_amp(self, evt, station, det):
-        pass
+        # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
+         channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 1000 * units.GHz],
+                                  filter_type='butter', order=2)
+         channelBandPassFilter.run(evt, station, det, passband=[0, 500 * units.MHz],
+                                  filter_type='butter', order=10)
+        
 
     def _detector_simulation_trigger(self, evt, station, det):
         # save the amplitudes to output hdf5 file
@@ -62,9 +64,6 @@ class mySimulation(simulation.simulation):
                            triggered_channels=[8,9,10,11,12,13,14,15])       
         
         triggerTimeAdjuster.run(evt, station, det)
-    
-        channelBandPassFilter.run(self._evt, self._station, self._det, passband=[80 * units.MHz, 1 * units.GHz], filter_type='rectangular', order = 2)#original80- 1000
-        channelBandPassFilter.run(self._evt, self._station, self._det, passband=[0, 500* units.MHz], filter_type='rectangular', order = 2) #original 0-500
            
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('inputfilename', type=str,
@@ -78,7 +77,6 @@ parser.add_argument('outputfilename', type=str,
 parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
                     help='outputfilename of NuRadioReco detector sim file')
 args = parser.parse_args()
-
 
 sim = mySimulation(inputfilename = args.inputfilename,
                             outputfilename = args.outputfilename,
