@@ -128,7 +128,7 @@ class ARZ(object):
             return True
         else:
             import requests
-            URL = 'http://arianna.ps.uci.edu/~arianna/data/ce_shower_library/library_v{:d}.{:d}.pkl'.format(*self._version)
+            URL = 'https://rnog-data.zeuthen.desy.de/shower_library/library_v{:d}.{:d}.pkl'.format(*self._version)
 
             logger.info("downloading shower library {} from {}. This can take a while...".format(self._version, URL))
             r = requests.get(URL)
@@ -272,12 +272,6 @@ class ARZ(object):
         # should not trigger, we return an empty trace for angular differences > 20 degrees.
         cherenkov_angle = np.arccos(1 / n_index)
 
-        if np.abs(theta - cherenkov_angle) > maximum_angle:
-            logger.info(f"viewing angle {theta/units.deg:.1f}deg is more than {maximum_angle/units.deg:.1f}deg away from the cherenkov cone. Returning zero trace.")
-            self._random_numbers[shower_type] = None
-            empty_trace = np.zeros((3, N))
-            return empty_trace
-
         # determine closes available energy in shower library
         energies = np.array([*self._library[shower_type]])
         iE = np.argmin(np.abs(energies - shower_energy))
@@ -286,7 +280,7 @@ class ARZ(object):
         profiles = self._library[shower_type][energies[iE]]
         N_profiles = len(profiles['charge_excess'])
 
-        if(iN is None):
+        if(iN is None or np.isnan(iN)):
             if(same_shower):
                 if(shower_type in self._random_numbers):
                     iN = self._random_numbers[shower_type]
@@ -304,6 +298,13 @@ class ARZ(object):
             iN = int(iN)  # saveguard against iN being a float
             logger.info("using shower {}/{} as specified by user".format(iN, N_profiles))
             self._random_numbers[shower_type] = iN
+
+        # we always need to generate a random shower realization. The second ray tracing solution might be closer
+        # to the cherenkov angle, but NuRadioMC will reuse the shower realization of the first ray tracing solution.
+        if np.abs(theta - cherenkov_angle) > maximum_angle:
+            logger.info(f"viewing angle {theta/units.deg:.1f}deg is more than {maximum_angle/units.deg:.1f}deg away from the cherenkov cone. Returning zero trace.")
+            empty_trace = np.zeros((3, N))
+            return empty_trace
 
         profile_depth = profiles['depth']
         profile_ce = profiles['charge_excess'][iN] * rescaling_factor
