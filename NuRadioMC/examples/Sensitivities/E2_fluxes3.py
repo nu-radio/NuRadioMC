@@ -486,7 +486,8 @@ def get_E2_limit_figure(diffuse=True,
                         show_TA_nominal=False,
                         show_TA_ICRC2021=False,
                         show_RNOG=False,
-                        show_IceCubeGen2=False,
+                        show_IceCubeGen2_whitepaper=False,
+                        show_IceCubeGen2_ICRC2021=False,
                         shower_Auger=True,
                         show_ara_1year=False,
                         show_prediction_arianna_200=False):
@@ -783,7 +784,7 @@ def get_E2_limit_figure(diffuse=True,
                     xy=(1e8 * units.GeV / plotUnitsEnergy, 1.05e-6), xycoords='data',
                     horizontalalignment='right', color='red', rotation=0, fontsize=legendfontsize)
 
-    if show_IceCubeGen2:
+    if show_IceCubeGen2_whitepaper:
         # flux limit for 5 years
         gen2_E = np.array([1.04811313e+07, 1.32571137e+07, 1.67683294e+07, 2.12095089e+07,
                  2.68269580e+07, 3.39322177e+07, 4.29193426e+07, 5.42867544e+07,
@@ -806,6 +807,18 @@ def get_E2_limit_figure(diffuse=True,
                  9.13675213e-10, 9.87276891e-10, 1.06320301e-09, 1.15183347e-09,
                  1.25627989e-09, 1.36100197e-09, 1.49171667e-09]) * plotUnitsFlux
         ax.plot(gen2_E / plotUnitsEnergy, gen2_flux / 2 / plotUnitsFlux, color='purple', linestyle=":")
+#         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
+        ax.annotate('IceCube-Gen2 radio',
+                    xy=(.8e8 * units.GeV / plotUnitsEnergy, 1.6e-10), xycoords='data',
+                    horizontalalignment='left', color='purple', rotation=0, fontsize=legendfontsize)
+        
+    if show_IceCubeGen2_ICRC2021:
+        # https://pos.sissa.it/395/1183/
+        # flux limit for 10 years
+        gen2_E, gen2_flux = np.loadtxt(os.path.join(os.path.dirname(__file__), "data/Gen2radio_sensitivity_ICRC2021.txt"))
+        gen2_E *= units.eV
+        gen2_flux *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
+        ax.plot(gen2_E / plotUnitsEnergy, gen2_flux / plotUnitsFlux, color='purple', linestyle=":")
 #         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
         ax.annotate('IceCube-Gen2 radio',
                     xy=(.8e8 * units.GeV / plotUnitsEnergy, 1.6e-10), xycoords='data',
