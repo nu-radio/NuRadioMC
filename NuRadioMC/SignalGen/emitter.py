@@ -62,8 +62,8 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
     if(model == 'spherical'):         # this takes spherical signal as input voltage
         trace = np.zeros(N)
         trace[N // 2] = amplitude
-    elif(model == 'cw'):              # generates a continuous signal of given frequency 
-        time = np.linspace(-(N/2)*dt, ((N-1)/2)*dt , N) 
+    elif(model == 'cw'):              # generates a sine wave of given frequency 
+        time = np.linspace(-(N/2) * dt, ((N-1)/2) * dt , N) 
         trace = amplitude * np.sin(2 * np.pi * emitter_frequency * time)
     elif(model == 'square' or model == 'tone_burst' ):     # generates a rectangular or tone_burst signal of given width and frequency 
         if(half_width > int(N/2)):
