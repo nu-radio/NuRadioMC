@@ -6,6 +6,105 @@ from NuRadioReco.detector import detector
 from scipy import constants
 import datetime
 import copy
+import time
+
+
+def rolled_sum_roll(traces, rolling):
+    """
+    calculates rolled sum via np.roll
+
+    Parameters
+    ----------
+    traces: list
+        list containing 1D traces
+    rolling: list
+        list of offsets per trace for rolling
+
+    Returns
+    -------
+    sumtr: np.array
+        1D array of summed traces
+    """
+
+    # assume first trace always has no rolling
+    sumtr = traces[0].copy()
+    for i in range(1,len(traces)):
+        sumtr += np.roll(traces[i], rolling[i])
+    return sumtr
+
+def rolling_indices(traces, rolling):
+    """
+    pre calculates rolling index array for rolled sum via take
+  
+    Parameters
+    ----------
+    traces: list
+        list containing (at least one) 1D trace
+    rolling: list
+        list of offsets per trace for rolling
+    """
+
+    rolling_indices = []
+    idx = np.arange(len(traces[0]))
+    for roll in rolling:
+        rolling_indices.append(np.roll(idx, roll))
+    return np.array(rolling_indices).astype(int)
+
+def rolled_sum_take(traces, rolling_indices):
+    """
+    calculates rolled sum via np.take
+
+    Parameters
+    ----------
+    traces: list
+        list containing 1D traces
+    rolling_indices: list
+        list of pre-calculated 1D index arrays for rolled sum
+
+    Returns
+    -------
+    sumtr: np.array
+        1D array of summed traces
+    """
+
+    # assume first trace always has no rolling
+    sumtr = traces[0].copy()
+    for i in range(1,len(traces)):
+        sumtr += np.take(traces[i], rolling_indices[i])
+    return sumtr
+
+def rolled_sum_slicing(traces, rolling):
+    """
+    calculates rolled sum via slicing
+
+    Parameters
+    ----------
+    traces: list
+        list containing 1D traces
+    rolling: list
+        list of offsets per trace for rolling
+
+    Returns
+    -------
+    sumtr: np.array
+        1D array of summed traces
+    """
+
+    # assume first trace always has no rolling
+    sumtr = traces[0].copy()
+    for i in range(1,len(traces)):
+        r = rolling[i]
+        if r > 0:
+            sumtr[:-r] += traces[i][r:]
+            sumtr[-r:] += traces[i][:r]
+        elif r < 0:
+            sumtr[:r] += traces[i][-r:]
+            sumtr[r:] += traces[i][:-r]
+        else:
+            sumtr += traces[i]
+    return sumtr
+
+
 
 
 class thermalNoiseGenerator():
@@ -138,6 +237,9 @@ class thermalNoiseGeneratorPhasedArray():
             * "rayleigh" (default)
             * "noise"
         """
+        self.debug = False
+        self.max_amp = 0
+
         self.upsampling = 2
         self.det = detector.Detector(json_filename=detector_filename)
         self.det.update(datetime.datetime(2018, 10, 1))
@@ -208,13 +310,24 @@ class thermalNoiseGeneratorPhasedArray():
 
         Returns np.array of shape (n_channels, n_samples)
         """
+        # some variables for profiling code
+        dt_generation = 0
+        dt_phasing = 0
+        dt_triggering = 0
+
         traces = np.zeros((self.n_channels, self.n_samples * self.upsampling))
+        self._traces = traces
         counter = 0
         max_amp = 0
         while True:
             counter += 1
             if(counter % 1000 == 0):
-                print(f"{counter:d}, {max_amp:.2f}, threshold = {self.threshold:.2f}")
+                print(f"{counter:d}, {self.max_amp:.2f}, threshold = {self.threshold:.2f}")
+                # some printout for profiling
+                print(f"GENERATION: {dt_generation:.4f}, PHASING: {dt_phasing:.4f}, TRIGGER: {dt_triggering:.4f}")
+            t0 = time.process_time()
+            self.__generation()
+            """
             for iCh in range(self.n_channels):
                 spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples * self.upsampling,
                                                     self.sampling_rate * self.upsampling,
@@ -223,14 +336,30 @@ class thermalNoiseGeneratorPhasedArray():
                 trace = fft.freq2time(spec, self.sampling_rate * self.upsampling)
 
                 traces[iCh] = perfect_floor_comparator(trace, self.adc_n_bits, self.adc_ref_voltage)
+            """
+            # profiling generation
+            dt_generation += time.process_time() - t0
+            t0 = time.process_time()
 
+            self.__phasing_roll()
+            """
             phased_traces = np.zeros((len(self.beam_time_delays), self.n_samples * self.upsampling))
 
             for iBeam, beam_time_delay in enumerate(self.beam_time_delays):
                 for iCh in range(self.n_channels):
                     trace = traces[iCh]
                     phased_traces[iBeam] += np.roll(traces[iCh], beam_time_delay[iCh])
-
+            """
+            dt_phasing += time.process_time() - t0
+            t0 = time.process_time()
+            is_triggered = self.__triggering_strided()
+            ### for comparison
+            #print(self.max_amp, "AMP1")
+            #is_triggered2 = self.__triggering()
+            #print(self.max_amp, "AMP2")
+            if is_triggered:
+                return self._traces, self._phased_traces
+            """
             for iBeam, phased_trace in enumerate(phased_traces):
                 # Create a sliding window
                 coh_sum_squared = phased_trace ** 2
@@ -252,6 +381,142 @@ class thermalNoiseGeneratorPhasedArray():
                         fig.tight_layout()
                         plt.show()
                     return traces, phased_traces
+            """
+            dt_triggering += time.process_time() - t0
+
+
+    def __generation(self):
+        """ separated trace generation part for PA noise trigger """
+
+        for iCh in range(self.n_channels):
+            spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples * self.upsampling,
+                                                self.sampling_rate * self.upsampling,
+                                                self.amplitude, self.noise_type, time_domain=False)
+            spec *= self.filt
+            trace = fft.freq2time(spec, self.sampling_rate * self.upsampling)
+
+            self._traces[iCh] = perfect_floor_comparator(trace, self.adc_n_bits, self.adc_ref_voltage)
+
+
+    def __phasing(self):
+        """ separated phasing part for PA noise trigger """
+
+        self._phased_traces = np.zeros((len(self.beam_time_delays), self.n_samples * self.upsampling))
+        for iBeam, beam_time_delay in enumerate(self.beam_time_delays):
+            self._phased_traces[iBeam] += rolled_sum_slicing(self._traces, beam_time_delay)
+
+    def __phasing_roll(self):
+        """ separated phasing part for PA noise trigger via np.roll """
+        self._phased_traces = np.zeros((len(self.beam_time_delays), self.n_samples * self.upsampling))
+        for iBeam, beam_time_delay in enumerate(self.beam_time_delays):
+            for iCh in range(self.n_channels):
+                self._phased_traces[iBeam] += np.roll(self._traces[iCh], beam_time_delay[iCh])
+
+    def __triggering(self):
+        """ separated trigger part for PA noise trigger """
+        # take square over entire array
+        coh_sum_squared = self._phased_traces**2
+        # bin the data into windows of length self.step and normalise to step length
+        reduced_array = np.add.reduceat(coh_sum_squared.T,np.arange(0,np.shape(coh_sum_squared)[1],self.step)).T / self.step
+        #print(np.shape(reduced_array))
+        #print("REDUCED ARRAY, first entry: ",reduced_array[0])
+
+        sliding_windows = []
+        # self.window can extend over multiple steps,
+        # assuming self.window being an integer multiple of self.step the reduction sums over subsequent steps
+        # TODO: ensure end/beginning are summed correctly
+        steps_per_window = self.window//self.step
+        for stride in range(steps_per_window):
+            window_sum = np.add.reduceat(reduced_array.T,np.arange(stride, np.shape(reduced_array)[1], steps_per_window)).T / steps_per_window
+            sliding_windows.append(window_sum)
+        #self.max_amp = max(np.array(sliding_windows).max(), self.max_amp)
+        self.max_amp = np.array(sliding_windows).max()
+
+        #print(np.shape(sliding_windows))
+        # check if trigger condition is fulfilled anywhere
+        if self.max_amp > self.threshold:
+            # check in which beam the trigger condition was fulfilled
+            sliding_windows = np.concatenate(sliding_windows, axis=1)
+            triggered_beams = np.amax(sliding_windows, axis=1) > self.threshold
+            for iBeam, is_triggered in enumerate(triggered_beams):
+                if is_triggered:
+                    print(f"triggered at beam {iBeam}")
+            if(self.debug):
+                import matplotlib.pyplot as plt
+                fig, ax = plt.subplots(5, 1, sharex=True)
+                for iCh in range(self.n_channels):
+                    ax[iCh].plot(self._traces[iCh])
+                    print(f"{self._traces[iCh].std():.2f}")
+                ax[4].plot(self._phased_traces[iBeam])
+                fig.tight_layout()
+                plt.show()
+            return True
+        return False
+
+    def __triggering_strided(self):
+        """ separated trigger part for PA noise trigger using np.lib.stride_tricks.as_strided """
+        self.max_amp = 0
+        for iBeam, phased_trace in enumerate(self._phased_traces):
+            # Create a sliding window
+            coh_sum_squared = phased_trace ** 2
+            num_frames = int(np.floor((len(phased_trace) - self.window) / self.step))
+            coh_sum_windowed = np.lib.stride_tricks.as_strided(coh_sum_squared, (num_frames, self.window),
+                                                       (coh_sum_squared.strides[0] * self.step, coh_sum_squared.strides[0]))
+            squared_mean = np.sum(coh_sum_windowed, axis=1) / self.window
+            #self.max_amp = max(squared_mean.max(), self.max_amp)
+            self.max_amp = max(squared_mean.max(), self.max_amp)
+            if True in (squared_mean > self.threshold):
+                print(f"triggered at beam {iBeam}")
+                if(self.debug):
+                    import matplotlib.pyplot as plt
+                    fig, ax = plt.subplots(5, 1, sharex=True)
+                    for iCh in range(self.n_channels):
+                        ax[iCh].plot(self._traces[iCh])
+                        print(f"{self._traces[iCh].std():.2f}")
+                    ax[4].plot(self._phased_traces[iBeam])
+                    fig.tight_layout()
+                    plt.show()
+                return True
+        return False
+
+    def generate_noise_optimised(self, debug=False):
+        """
+        generates noise traces for all channels that will cause a high/low majority logic trigger
+
+        Returns np.array of shape (n_channels, n_samples)
+        """
+        self.debug = debug
+        self.max_amp = 0
+        # some variables for profiling code
+        dt_generation = 0
+        dt_phasing = 0
+        dt_triggering = 0
+
+        # generate empty trace array
+        self._traces = np.zeros((self.n_channels, self.n_samples * self.upsampling))
+        counter = 0
+        max_amp = 0
+        #print("noise trace length:", self.n_samples * self.upsampling)
+        while True:
+            counter += 1
+            if(counter % 1000 == 0):
+                print(f"{counter:d}, {self.max_amp:.2f}, threshold = {self.threshold:.2f}")
+                # some printout for profiling
+                print(f"GENERATION: {dt_generation:.4f}, PHASING: {dt_phasing:.4f}, TRIGGER: {dt_triggering:.4f}")
+            tstart = time.process_time()
+            self.__generation()
+            dt_generation += time.process_time() - tstart
+
+            tstart = time.process_time()
+            self.__phasing()
+            dt_phasing += time.process_time() - tstart
+
+            tstart = time.process_time()
+            is_triggered = self.__triggering()
+            dt_triggering += time.process_time() - tstart
+            if is_triggered:
+                return self._traces, self._phased_traces
+
 
     def generate_noise2(self, debug=False):
         """
