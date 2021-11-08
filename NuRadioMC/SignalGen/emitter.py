@@ -69,10 +69,9 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         if(half_width > int(N/2)):
             raise NotImplementedError(" half_width {} should be < half of the number of samples N " . format( half_width ) )
         time = np.linspace(- N * dt/(2), (N-1) * dt/(2), N)
-        shift = half_width
         voltage = np.zeros(N)
         for i in range(0,N):
-            if time[i] >= -shift and time[i] <= shift:
+            if time[i] >= - half_width and time[i] <= half_width:
                 voltage[i] = amplitude
         if(model == 'square'):
             trace = voltage
@@ -90,9 +89,9 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         voltage2 = interpolation(time_new)
         add_zeros = int(( N-len(voltage2)) /2)
         trace = np.pad(voltage2, (add_zeros, add_zeros), 'constant', constant_values=(0, 0))
-        trace = amplitude * trace /np.max(np.abs( trace ))
+        trace = amplitude * trace /np.max(np.abs( trace ))                    # trace now has dimension of amplitude given from event generation file
         peak_amplitude_index = np.where( np.abs( trace ) == np.max( np.abs( trace ) ) )[0][0]
-        trace = np.roll( trace, int(N/2) - peak_amplitude_index )
+        trace = np.roll( trace, int(N/2) - peak_amplitude_index )             # this rolls the array(trace) to keep peak amplitude at center
     else:
         raise NotImplementedError("model {} unknown".format(model))
     if(full_output):
