@@ -178,8 +178,8 @@ def draw_station_view(station_id, checklist):
     antenna_rotations = np.array(antenna_rotations)
     channel_ids = np.array(channel_ids)
     lpda_mask = (np.char.find(antenna_types, 'createLPDA') >= 0)
-    vpol_mask = (np.char.find(antenna_types, 'bicone_v8') >= 0) | (np.char.find(antenna_types, 'greenland_vpol') >= 0)
-    hpol_mask = (np.char.find(antenna_types, 'fourslot') >= 0) | (np.char.find(antenna_types, 'trislot') >= 0)
+    vpol_mask = (np.char.find(antenna_types, 'bicone_v8') >= 0) | (np.char.find(antenna_types, 'vpol') >= 0)
+    hpol_mask = (np.char.find(antenna_types, 'fourslot') >= 0) | (np.char.find(antenna_types, 'trislot') >= 0) | (np.char.find(antenna_types, 'quadslot') >= 0)
     if len(channel_positions[:, 0][lpda_mask]) > 0:
         data.append(go.Scatter3d(
             x=channel_positions[:, 0][lpda_mask],
@@ -190,7 +190,7 @@ def draw_station_view(station_id, checklist):
             mode='markers+text',
             name='LPDAs',
             textposition='middle right',
-            marker_symbol='diamond-open',
+            marker_symbol='cross',
             marker=dict(
                 size=4
             )
@@ -205,7 +205,7 @@ def draw_station_view(station_id, checklist):
             mode='markers+text',
             name='V-pol',
             textposition='middle right',
-            marker_symbol='x',
+            marker_symbol='diamond-open',
             marker=dict(
                 size=4
             )
@@ -220,7 +220,7 @@ def draw_station_view(station_id, checklist):
             mode='markers+text',
             name='H-pol',
             textposition='middle right',
-            marker_symbol='cross',
+            marker_symbol='x',
             marker=dict(
                 size=4
             )
