@@ -379,7 +379,7 @@ class neutrinoDirectionReconstructor:
                # print("y", y)
                 #y2=np.zeros([3],dtype=np.float)
                 #for i in range(len(results2.x)):
-                #    y2[i] = results2.x[i]
+                #    y2[i] = resieults2.x[i]
 
                 #L2 = self.minimizer([y2[0], y2[1], y2[2]], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], True, False, False, True, False, ch_Vpol, ch_Hpol, True, False)
                 #print("L1", L1)
@@ -548,23 +548,23 @@ class neutrinoDirectionReconstructor:
                             ax[ich][0].set_xlabel("timing [ns]", fontsize = 30)
                             ax[ich][0].plot(channel.get_times(), channel.get_trace(), lw = linewidth, label = 'data', color = 'black')
                             #ax[ich][0].fill_between(timingsim[channel.get_id()][0],tracsim[channel.get_id()][0]- sigma, tracsim[channel.get_id()][0] + sigma, color = 'red', alpha = 0.2 )
-                     #       ax[ich][0].fill_between(timingdata[channel.get_id()][0], tracrec[channel.get_id()][0] - self._model_sys*tracrec[channel.get_id()][0], tracrec[channel.get_id()][0] + self._model_sys * tracrec[channel.get_id()][0], color = 'green', alpha = 0.2)
+                            ax[ich][0].fill_between(timingdata[channel.get_id()][0], tracrec[channel.get_id()][0] - self._model_sys*tracrec[channel.get_id()][0], tracrec[channel.get_id()][0] + self._model_sys * tracrec[channel.get_id()][0], color = 'green', alpha = 0.2)
                             ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel.get_id()][0]), 1/sampling_rate), abs(fft.time2freq( tracdata[channel.get_id()][0], sampling_rate)), color = 'black', lw = linewidth)
                             ax[ich][0].plot(timingsim[channel.get_id()][0], tracsim[channel.get_id()][0], label = 'simulation', color = 'orange', lw = linewidth)
-                            #ax[ich][0].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
+                            ax[ich][0].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
 
                             #ax[ich][0].plot(timingsim_recvertex[channel.get_id()][0], tracsim_recvertex[channel.get_id()][0], label = 'simulation rec vertex', color = 'lightblue' , lw = linewidth, ls = '--')
 
                             ax[ich][0].set_xlim((timingsim[channel.get_id()][0][0], timingsim[channel.get_id()][0][-1]))
             
-                            if 0:
+                            if 1:
                                  ax[ich][0].plot(timingdata[channel.get_id()][0], tracrec[channel.get_id()][0], label = 'reconstruction', lw = linewidth, color = 'green')
                                  ax[ich][0].plot(timingdata[channel.get_id()][0], tracrec[channel.get_id()][0], label = 'reconstruction', color = 'green')
 
                             ax[ich][2].plot( np.fft.rfftfreq(len(sim_trace.get_trace()), 1/sampling_rate), abs(fft.time2freq(sim_trace.get_trace(), sampling_rate)), lw = linewidth, color = 'red')
                             ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel.get_id()][0]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel.get_id()][0], sampling_rate)), lw = linewidth, color = 'orange')
                             if 1:
-                                # ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel.get_id()][0]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel.get_id()][0], sampling_rate)), color = 'green', lw = linewidth)
+                                 ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel.get_id()][0]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel.get_id()][0], sampling_rate)), color = 'green', lw = linewidth)
                                  ax[ich][2].set_xlim((0, 1))
                                  ax[ich][2].set_xlabel("frequency [GHz]", fontsize = 10)        
             #                ax[ich][0].legend(fontsize = 30)
@@ -574,16 +574,16 @@ class neutrinoDirectionReconstructor:
                             ax[ich][1].set_xlabel("timing [ns]")
                             ax[ich][1].plot(channel.get_times(), channel.get_trace(), label = 'data', lw = linewidth, color = 'black')
                           #  ax[ich][1].fill_between(timingsim[channel.get_id()][1],tracsim[channel.get_id()][1]- Vrms, tracsim[channel.get_id()][1] + Vrms, color = 'red', alpha = 0.2 )
-                           # ax[ich][2].plot(np.fft.rfftfreq(len(timingsim[channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel.get_id()][1], sampling_rate)), lw = linewidth, color = 'red')
+                            ax[ich][2].plot(np.fft.rfftfreq(len(timingsim[channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel.get_id()][1], sampling_rate)), lw = linewidth, color = 'red')
                             ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracdata[channel.get_id()][1], sampling_rate)), color = 'black', lw = linewidth)
                             ax[ich][1].plot(timingsim[channel.get_id()][1], tracsim[channel.get_id()][1], label = 'simulation', color = 'orange', lw = linewidth)
-                            #ax[ich][1].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
-                            if 0:#channel.get_id() in [6]:#,7,8,9]: 
+                            ax[ich][1].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
+                            if 1:#channel.get_id() in [6]:#,7,8,9]: 
                                 ax[ich][1].plot(timingdata[channel.get_id()][1], tracrec[channel.get_id()][1], label = 'reconstruction', color = 'green', lw = linewidth)
                                 ax[ich][1].fill_between(timingdata[channel.get_id()][1], tracrec[channel.get_id()][1] - self._model_sys*tracrec[channel.get_id()][1], tracrec[channel.get_id()][1] + self._model_sys * tracrec[channel.get_id()][1], color = 'green', alpha = 0.2)
                         
                             ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel.get_id()][1], sampling_rate)), lw = linewidth, color = 'orange')
-                            #ax[ich][1].plot(timingsim_recvertex[channel.get_id()][1], tracsim_recvertex[channel.get_id()][1], label = 'simulation rec vertex', color = 'lightblue', lw = linewidth, ls = '--')
+                            ax[ich][1].plot(timingsim_recvertex[channel.get_id()][1], tracsim_recvertex[channel.get_id()][1], label = 'simulation rec vertex', color = 'lightblue', lw = linewidth, ls = '--')
                             ax[ich][1].set_xlim((timingsim[channel.get_id()][1][0], timingsim[channel.get_id()][1][-1]))
                             if 0:#channel.get_id() in [6]:
                                  ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel.get_id()][1], sampling_rate)), color = 'green', lw = linewidth)
@@ -639,7 +639,7 @@ class neutrinoDirectionReconstructor:
 
 
                   
-    def minimizer(self, params, vertex_x, vertex_y, vertex_z, minimize = True, timing_k = False, first_iter = False, banana = False,  direction = [0, 0], ch_Vpol = 6, ch_Hpol = False, full_station = True, single_pulse =False, channels_step = [3], fixed_timing = False):
+    def minimizer(self, params, vertex_x, vertex_y, vertex_z, minimize = True, timing_k = False, first_iter = False, banana = False,  direction = [0, 0], ch_Vpol = 6, ch_Hpol = False, full_station = True, single_pulse =True, channels_step = [3], fixed_timing = False):
             """""""""""
             params: list
                 input paramters for viewing angle / direction
@@ -963,14 +963,14 @@ class neutrinoDirectionReconstructor:
                                     #reduced_chi2_Vpol +=  np.sum((rec_trace1 - data_trace_timing)**2 / ((sigma+model_sys*abs(data_trace_timing))**2))/len(rec_trace1)
                                     dof_channel += 1
                                  
-                                    if (i_trace == trace_ref) and (channel.get_id() == 3):
+                                    if (i_trace == trace_ref) and (channel.get_id() == 0):
                                         Vpol_ref = np.sum((rec_trace1 - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace1)
                                         reduced_chi2_Vpol +=  np.sum((rec_trace1 - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace1)
 
                                  
                                     
                                 elif ((channel.get_id() == ch_Hpol) and (len(channels_step) < 2) and (i_trace == trace_ref) and (not single_pulse)):
-                          #          print("Hpol", channel.get_id())
+                               #     print("Hpol", channel.get_id())
                                     echannel[i_trace] = 0
                                     mask_start = 0
                                     mask_end = 80 * self._sampling_rate
@@ -998,7 +998,7 @@ class neutrinoDirectionReconstructor:
                                     add = True
                                     dof_channel += 1
                                     
-                                elif ((SNR > 3.5) and (not single_pulse) and (len(channels_step) < 2)):#and (i_trace ==trace_ref)):
+                                elif (i_trace == trace_ref):#((SNR > 3.5) and (not single_pulse) and (len(channels_step) < 2)):# and (i_trace ==trace_ref)):
                     #                print("else")
                                     mask_start = 0
                                     echannel[i_trace] = 1
@@ -1050,8 +1050,9 @@ class neutrinoDirectionReconstructor:
                                 reduced_chi2_Vpol = Vpol_ref
                                 dof += 1
                             if (channel.get_id() == ch_Hpol):
-                                chi2 += chi2s[trace_ref]
-                                reduced_chi2_Hpol = Hpol_ref
+                                if 'Hpol_ref' in locals(): #Hpol_ref is only defined when this is supposed to be included in the fit
+                                    chi2 += chi2s[trace_ref]
+                                    reduced_chi2_Hpol = Hpol_ref
                          
                        
         
