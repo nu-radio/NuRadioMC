@@ -34,7 +34,6 @@ Due to computational efficiency (galactic noise adder is slow), one amplitude is
 
 parser = argparse.ArgumentParser(description='Noise Trigger Rate')
 parser.add_argument('--config_file', type=str, nargs='?',
-                    default='config/config_high_low_trigger_pb_80_180.json',
                     help='input filename from which the calculation starts.')
 parser.add_argument('--output_path', type=os.path.abspath, nargs='?', default='',
                     help='Path to save output, most likely the path to the cr_efficiency_analysis directory')
