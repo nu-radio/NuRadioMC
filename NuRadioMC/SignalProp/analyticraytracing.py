@@ -1540,6 +1540,13 @@ class ray_tracing:
 
         n_reflections: int (default 0)
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
+        config: dict
+            a dictionary with the optional config settings. If None, the config is intialized with default values,
+            which is needed to avoid any "key not available" errors. The default settings are
+                self.__config = {'propagation': {}}
+                self.__config['propagation']['attenuate_ice'] = True
+                self.__config['propagation']['focusing_limit'] = 2
+                self.__config['propagation']['focusing'] = False
 
         """
         # make sure that arrays are floats
@@ -1555,7 +1562,7 @@ class ray_tracing:
         self.__n_reflections = n_reflections
         self.__r2d = ray_tracing_2D(self.__medium, self.__attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self.__n_frequencies_integration)
-        self.__config = config
+        self.set_config(config)
         self.__detector = detector
         self.__max_detector_frequency = None
         if self.__detector is not None:
@@ -1668,7 +1675,7 @@ class ray_tracing:
         C0s = raytracing_results['ray_tracing_C0']
         for i in range(len(C0s)):
             if(not np.isnan(C0s[i])):
-                if 'ray_tracing_reflection' in raytracing_results.keys():   # for backward compatibility: Check if reflection layer information exists in data file
+                if 'ray_tracing_reflection' in raytracing_results.keys():  # for backward compatibility: Check if reflection layer information exists in data file
                     reflection = raytracing_results['ray_tracing_reflection'][i]
                     reflection_case = raytracing_results['ray_tracing_reflection_case'][i]
                 else:
@@ -2067,10 +2074,7 @@ class ray_tracing:
             The modified ElectricField object
         """
         spec = efield.get_frequency_spectrum()
-        if self.__config is None:   # done for easier compatibility, by default we do attenuation
-            apply_attenuation = True
-        else:
-            apply_attenuation = self.__config['propagation']['attenuate_ice']
+        apply_attenuation = self.__config['propagation']['attenuate_ice']
         if apply_attenuation:
             if self.__max_detector_frequency is None:
                 max_freq = np.max(efield.get_frequencies())
@@ -2121,10 +2125,17 @@ class ray_tracing:
 
         Parameters:
         ------------------
-        config: dict
+        config: dict or None
             The new configuration settings
+            If None, the default config settings will be applied
         """
-        self.__config = config
+        if(config is None):
+            self.__config = {'propagation': {}}
+            self.__config['propagation']['attenuate_ice'] = True
+            self.__config['propagation']['focusing_limit'] = 2
+            self.__config['propagation']['focusing'] = False
+        else:
+            self.__config = config
 
     def get_config(self):
         """

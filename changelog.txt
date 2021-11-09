@@ -8,6 +8,10 @@ new features:
 - major change in the declaration of mediums at the back end, at the front end nothing changed.
 - add a basic uproot data reader for RNO-G data
 
+bugfixes:
+- correct volume extension depending on zenith angle range when running with
+secondaries
+
 version 2.0.1
 new features
 - Veff utility can now calculate effective volumes for fine zenith angle binning
