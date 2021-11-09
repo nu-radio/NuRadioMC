@@ -57,24 +57,7 @@ def get_measured_data(type='data_auger_19'):
     return E, J, J_err_low, J_err_up
 
 
-def get_flux_interpolation(type='data_auger_19'):
-    """
-    Helper function to interpolate the measured data
-    Parameters
-    ---------
-    type: string
-        choose between data_auger_19 and data_TA_21
-
-    Returns
-    -------
-    scipy interpolation of data in NuRadio base units (which are 1/(eV m^2 sr ns) )
-    """
-    E, J, J_err_low, J_err_up = get_measured_data(type)
-    log10_e = np.log10(E)
-    return interpolate.interp1d(log10_e, J, fill_value=0, bounds_error=True)
-
-
-def get_cr_flux(log10_energy, type='data_auger_19'):
+def get_interpolated_cr_flux(log10_energy, type='data_auger_19'):
     """
     Evaluates the scipy interpolation of the measured data at a given energy
 
@@ -88,8 +71,9 @@ def get_cr_flux(log10_energy, type='data_auger_19'):
     -------
         scipy interpolation of data in NuRadio base units (which are 1/(eV m^2 sr ns) )
     """
-
-    flux_interpolation = get_flux_interpolation(type=type)
+    E, J, J_err_low, J_err_up = get_measured_data(type)
+    log10_e = np.log10(E)
+    flux_interpolation = interpolate.interp1d(log10_e, J, fill_value=0, bounds_error=True)
     return flux_interpolation(log10_energy)
 
 
@@ -144,7 +128,7 @@ def get_analytic_cr_flux(log10_energy, type="auger_19"):
     return spectrum
 
 
-def get_flux_per_energy_bin(log10e_min, log10e_max, type='data_auger_19'):
+def get_flux_per_energy_bin(log10e_min, log10e_max, type='auger_19'):
     """
     Returns an scipy integration of the measured data or the analytic spectrum over given interval.
 
@@ -161,13 +145,7 @@ def get_flux_per_energy_bin(log10e_min, log10e_max, type='data_auger_19'):
     -------
     scipy integration of data in NuRadio base units (which are 1/(eV m^2 sr ns))
     """
-    if type in ['data_auger_19', 'data_TA_21']:
-        E, J, J_err_low, J_err_up = get_measured_data(type)
-        flux_interpolation = get_flux_interpolation(type)
-        integrated_flux = quad(flux_interpolation, log10e_min, log10e_max,
-                               limit=2 * E.shape[0], points=E)
-
-    elif type in ['auger_17', 'auger_19', 'TA_19']:
+    if type in ['auger_17', 'auger_19', 'TA_19']:
         def flux(x):
             """ Bring parametrized energy spectrum in right shape for quad() function """
             return get_analytic_cr_flux(np.log10(np.array([x])), type)[0]
@@ -179,41 +157,40 @@ def get_flux_per_energy_bin(log10e_min, log10e_max, type='data_auger_19'):
     return integrated_flux[0]
 
 
-def cr_event_rate(log10e_min, log10e_max=21, zenith_min=10, zenith_max=80, a_eff=1, type="auger_19"):
+def get_cr_event_rate(log10energy=18, zenith=50*units.deg, a_eff=1, type="auger_19"):
     """
-    Cosmic ray event rate in specified energy range assuming a detector with effective area
-    'A_eff' and zenith range. The detector projection and zenith band are taken into account.
+    Cosmic ray event rate at a specific energy and zenith angle assuming a detector with effective area
+    'A_eff'. The detector projection and solid range are taken into account.
     The flux is calculated with the analytic spectrum.
 
     Parameters
     ---------
-    log10e_min: float
-        lower energy for energy range, in units log10(energy/eV)
-    log10e_max: float
-        upper energy for energy range, in units log10(energy/eV)
-    zenith_min: float
-        lower zenith for zenith range in deg
-    zenith_max: float
-        upper zenith for zenith range in deg
+    log10energy: float
+        energy in units log10(energy/eV)
+    zenith: float
+        zenith angle
     a_eff:
         effective area of detector
     type: string
         choose between auger_17, auger_19 and TA_19
     Returns
     -------
-    eventrate
+    eventrate for an isotropic flux with given energy and zenith angle.
+    The differential flux is returned in d/d zenith_angle, not d/d solid_angle.
     """
-    projected_area = 0.5 * (np.cos(zenith_min * units.deg) + np.cos(zenith_max * units.deg))
+    # The projected area, is the area visible to CR.
+    # None of the horizontal CR reach the flat detector, all CR from above reach the detector
+    projected_area = np.cos(zenith)
 
-    dOmega = 2 * np.pi * ((1 - np.cos(zenith_max * units.deg)) - (1 - np.cos(zenith_min * units.deg)))
+    solid_angle = 2 * np.pi * np.sin(zenith)
 
-    integrated_flux = get_flux_per_energy_bin(log10e_min, log10e_max, type)
+    flux = get_analytic_cr_flux(log10energy, type=type)
 
-    return integrated_flux * projected_area * dOmega * a_eff
+    return flux * projected_area * solid_angle * a_eff
 
 
 def plot_measured_spectrum(ax=None, scale=2.7, type='data_auger_19',
-                           base_units=True):
+                           base_units=False):
     """
     Plot measured spectrum. Attention: time unit is year instead of ns.
 
