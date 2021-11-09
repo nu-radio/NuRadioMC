@@ -98,6 +98,8 @@ def get_analytic_cr_flux(log10_energy, type="auger_19"):
                             p[0] * (energy / p[1]) ** (-p[3]),
                             p[0] * (energy / p[1]) ** (-p[4]) * (1 + (p[1] / p[2]) ** p[5])
                             * (1 + (energy / p[2]) ** p[5]) ** -1)
+        spectrum = spectrum * (units.eV * units.km ** 2 * units.sr * units.year) ** -1
+
     elif type == "auger_19":
         p = np.array([3.46e12, 1.5e17, 6.2e18, 12e18, 50e18, 2.92, 3.27, 2.2, 3.2, 5.4])
         spectrum = (energy / p[0]) ** (-p[5]) * \
@@ -105,6 +107,8 @@ def get_analytic_cr_flux(log10_energy, type="auger_19"):
                    (1 + (energy / p[2]) ** p[6]) / (1 + (energy / p[2]) ** p[7]) * \
                    (1 + (energy / p[3]) ** p[7]) / (1 + (energy / p[3]) ** p[8]) * \
                    (1 + (energy / p[4]) ** p[8]) / (1 + (energy / p[4]) ** p[9])
+        spectrum = spectrum * (units.eV * units.km ** 2 * units.sr * units.year) ** -1
+
     elif type == "TA_19":
         p1 = -3.28
         p2 = -2.68
@@ -119,11 +123,10 @@ def get_analytic_cr_flux(log10_energy, type="auger_19"):
                             np.where(energy < E2,
                                      c1 * (energy / E1) ** p2,
                                      c2 * (energy / E2) ** p3))
+        spectrum = spectrum * (units.eV * units.m ** 2 * units.sr * units.s) ** -1
 
     else:
         raise NotImplementedError(f"Type {type} is not supported")
-
-    spectrum = spectrum * (units.eV * units.km ** 2 * units.sr * units.year) ** -1
 
     return spectrum
 
