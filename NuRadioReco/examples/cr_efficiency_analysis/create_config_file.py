@@ -9,10 +9,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--output_path', type=os.path.abspath, nargs='?', default='',
                     help='Path to save output, most likely the path to the cr_efficiency_analysis directory')
 parser.add_argument('--detector_file', type=str, nargs='?',
-                    default='/Users/lilly/Software/NuRadioMC/NuRadioReco/examples/'
-                            'cr_efficiency_analysis/LPDA_Southpole.json',
+                    default='LPDA_Southpole.json',
                     help='file with one antenna at and the geographic location, change triggered channels accordingly')
-parser.add_argument('--target_global_trigger_rate', type=float, nargs='?', default=1,
+parser.add_argument('--target_global_trigger_rate', type=float, nargs='?', default=0.001,
                     help='trigger rate for all channels in Hz')
 parser.add_argument('--trigger_name', type=str, nargs='?', default='high_low',
                     help='name of the trigger, high_low or envelope')
@@ -24,7 +23,7 @@ parser.add_argument('--sampling_rate', type=int, nargs='?', default=1,
                     help='sampling rate in GHz')
 parser.add_argument('--triggered_channels', type=np.ndarray, nargs='?', default=np.array([1]),
                     help='channel on which the trigger is applied')
-parser.add_argument('--total_number_triggered_channels', type=int, nargs='?', default=3,
+parser.add_argument('--total_number_triggered_channels', type=int, nargs='?', default=4,
                     help='number ot channels that trigger.')
 parser.add_argument('--number_coincidences', type=int, nargs='?', default=2,
                     help='number coincidences of true trigger within on station of the detector')
@@ -57,11 +56,11 @@ parser.add_argument('--threshold_start', type=int, nargs='?',
                     help='value of the first tested threshold in Volt')
 parser.add_argument('--threshold_step', type=int, nargs='?',
                     help='value of the threshold step in Volt')
-parser.add_argument('--station_time', type=str, nargs='?', default='2019-01-01T00:00:00',
+parser.add_argument('--station_time', type=str, nargs='?', default='2021-01-01T00:00:00',
                     help='station time for calculation of galactic noise')
 parser.add_argument('--station_time_random', type=bool, nargs='?', default=True,
                     help='choose if the station time should be random or not')
-parser.add_argument('--hardware_response', type=bool, nargs='?', default=False,
+parser.add_argument('--hardware_response', type=bool, nargs='?', default=True,
                     help='choose if the hardware response (amp) should be True or False')
 parser.add_argument('--iterations_per_job', type=bool, nargs='?', default=200,
                     help='choose if the hardware response (amp) should be True or False')
@@ -148,8 +147,7 @@ dic = {'T_noise': Tnoise, 'Vrms_thermal_noise': Vrms_thermal_noise, 'n_iteration
 
 os.makedirs(os.path.join(abs_output_path, 'config/'), exist_ok=True)
 
-output_file = 'config/config_{}_trigger_pb_{:.0f}_{:.0f}.json'.format(
-    trigger_name, passband_trigger[0] / units.MHz, passband_trigger[1] / units.MHz)
+output_file = f'config/config_{trigger_name}_trigger_rate_{target_global_trigger_rate/units.Hz:.0f}Hz_coinc_{number_coincidences}_of_{total_number_triggered_channels}.json'
 
 abs_path_output_file = os.path.normpath(os.path.join(abs_output_path, output_file))
 

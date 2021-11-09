@@ -48,7 +48,6 @@ done
 
 parser = argparse.ArgumentParser(description='Noise Trigger Rate')
 parser.add_argument('--config_file', type=str, nargs='?',
-                    default='config/config_high_low_trigger_pb_80_180.json',
                     help='input filename from which the calculation starts.')
 parser.add_argument('--number', type=int, nargs='?', default=1,
                     help='Assigns a number to the scrip. '
