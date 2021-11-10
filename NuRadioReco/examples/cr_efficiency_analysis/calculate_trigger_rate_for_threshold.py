@@ -63,7 +63,7 @@ args = parser.parse_args()
 with open(args.config_file, 'r') as fp:
     cfg = json.load(fp)
 
-n_iterations_total = 5
+n_iterations_total = cfg['n_iterations_total']
 trigger_thresholds = (np.arange(cfg['threshold_start'],
                                 cfg['threshold_start'] + (args.n_thresholds * cfg['threshold_step']),
                                 cfg['threshold_step']))
@@ -181,10 +181,9 @@ dic = {'thresholds': trigger_thresholds, 'efficiency': trigger_efficiency, 'trig
 if not os.path.isdir(os.path.join(args.output_path, 'output_threshold_calculation')):
     os.mkdir(os.path.join(args.output_path, 'output_threshold_calculation'))
 
-output_file = 'output_threshold_calculation/{}_trigger_pb_{:.0f}_{:.0f}_i{}_{}.json'.format(cfg['trigger_name'],
-                                                                                cfg['passband_trigger'][0] / units.MHz,
-                                                                                cfg['passband_trigger'][1] / units.MHz,
-                                                                                len(trigger_status), args.number)
+output_file = 'output_threshold_calculation/{}_trigger_{:.0f}Hz_{}of{}_i{}_{}.json'.format(
+    cfg['trigger_name'], cfg['target_global_trigger_rate'] / units.Hz,
+    cfg['number_coincidences'], cfg['total_number_triggered_channels'], len(trigger_status), args.number)
 
 abs_path_output_file = os.path.normpath(os.path.join(args.output_path, output_file))
 with open(abs_path_output_file, 'w') as outfile:
