@@ -424,10 +424,10 @@ class thermalNoiseGeneratorPhasedArray():
         sliding_windows = []
         # self.window can extend over multiple steps,
         # assuming self.window being an integer multiple of self.step the reduction sums over subsequent steps
-        # TODO: ensure end/beginning are summed correctly
         steps_per_window = self.window//self.step
-        for stride in range(steps_per_window):
-            window_sum = np.add.reduceat(reduced_array.T,np.arange(stride, np.shape(reduced_array)[1], steps_per_window)).T / steps_per_window
+        extended_reduced_array = np.column_stack([reduced_array, reduced_array[:,0:steps_per_window]])
+        for offset in range(steps_per_window):
+            window_sum = np.add.reduceat(extended_reduced_array.T, np.arange(offset, np.shape(extended_reduced_array)[1], steps_per_window)).T / steps_per_window
             sliding_windows.append(window_sum)
         #self.max_amp = max(np.array(sliding_windows).max(), self.max_amp)
         self.max_amp = np.array(sliding_windows).max()
