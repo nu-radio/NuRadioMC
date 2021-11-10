@@ -19,7 +19,7 @@ sphericalWaveFitter = NuRadioReco.modules.sphericalWaveFitter.sphericalWaveFitte
 channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
 
 
-use_channels = [10, 0, 23]
+use_channels = [10,9, 0,3, 21, 22]
 sphericalWaveFitter.begin(channel_ids = use_channels)
 
 """ Specify the detector. """
