@@ -217,13 +217,12 @@ while sum_trigger > cfg['number_of_allowed_trigger']:
                'threshold_step': cfg['threshold_step']
                }
 
-        if not os.path.isdir(os.path.join(args.output_path, 'config')):
-            os.mkdir(os.path.join(args.output_path, 'config'))
+        if not os.path.isdir(os.path.join(args.output_path, 'config/air_shower')):
+            os.mkdir(os.path.join(args.output_path, 'config/air_shower'))
 
-        output_file = 'config/final_config_{}_trigger_{:.2e}_pb_{:.0f}_{:.0f}_n{}.json'.format(
-            cfg['trigger_name'], thresholds[-1], cfg['passband_trigger'][0] / units.MHz,
-            cfg['passband_trigger'][1] / units.MHz, cfg['n_iterations_total']*cfg['n_random_phase'])
-
+        output_file = 'config/air_shower/final_config_{}_trigger_{:.2e}_{}of{}_{:.0f}Hz.json'.format(
+            cfg['trigger_name'], thresholds[-1], cfg['target_global_trigger_rate']/ units.Hz,
+            cfg['number_coincidences'], cfg['total_number_triggered_channels'])
         abs_path_output_file = os.path.normpath(os.path.join(args.output_path, output_file))
 
         with open(abs_path_output_file, 'w') as outfile:

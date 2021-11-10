@@ -145,9 +145,9 @@ dic = {'T_noise': Tnoise, 'Vrms_thermal_noise': Vrms_thermal_noise, 'n_iteration
        'n_random_phase': n_random_phase, 'threshold_start': threshold_start, 'threshold_step': threshold_step}
 
 
-os.makedirs(os.path.join(abs_output_path, 'config/'), exist_ok=True)
+os.makedirs(os.path.join(abs_output_path, 'config/ntr'), exist_ok=True)
 
-output_file = f'config/config_{trigger_name}_trigger_rate_{target_global_trigger_rate/units.Hz:.0f}Hz_coinc_{number_coincidences}_of_{total_number_triggered_channels}.json'
+output_file = f'config/ntr/config_{trigger_name}_trigger_rate_{target_global_trigger_rate/units.Hz:.0f}Hz_coinc_{number_coincidences}of{total_number_triggered_channels}.json'
 
 abs_path_output_file = os.path.normpath(os.path.join(abs_output_path, output_file))
 
