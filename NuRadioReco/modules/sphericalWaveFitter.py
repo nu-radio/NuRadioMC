@@ -126,8 +126,8 @@ class sphericalWaveFitter:
         if debug:
             
             method = 'Nelder-Mead'
-            x = np.arange(x_start -4, x_start +1, dx)
-            y = np.arange(y_start - 2, y_start +4, dy)
+            x = np.arange(x_start -3, x_start +3, dx)
+            y = np.arange(y_start - 3, y_start +3, dy)
             z = np.arange(z_start - 2, z_start + 2, dz)
             xx, yy = np.meshgrid(x, y)
             zz = np.zeros((len(x), len(y)))
