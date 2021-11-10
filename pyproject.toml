@@ -24,9 +24,11 @@ requires = [
     "peakutils",
     "requests",
     "pymongo",
-    "dash",
+    "dash>=2.0.0",
     "plotly",
-    "sphinx"
+    "sphinx",
+    "uproot",
+    "awkward"
 ]
 requires-python=">=3.6"
 

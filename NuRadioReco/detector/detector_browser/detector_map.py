@@ -1,7 +1,7 @@
 import numpy as np
 from NuRadioReco.detector.detector_browser.app import app
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc as dcc
+from dash import html as html
 import plotly.graph_objs as go
 from dash.dependencies import Input, Output
 import NuRadioReco.detector.detector_browser.detector_provider

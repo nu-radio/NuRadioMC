@@ -1,7 +1,7 @@
 import json
 from NuRadioReco.eventbrowser.app import app
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import html
+from dash import dcc
 from dash.dependencies import Input, Output, State
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
@@ -51,7 +51,7 @@ station_properties_for_overview = [
               [State('user_id', 'children')])
 def station_overview_properties(filename, evt_counter, station_id, rec_or_sim, juser_id):
     if filename is None or station_id is None:
-        return ''
+        return []
     user_id = json.loads(juser_id)
     ariio = provider.get_arianna_io(user_id, filename)
     evt = ariio.get_event_i(evt_counter)
@@ -65,12 +65,15 @@ def station_overview_properties(filename, evt_counter, station_id, rec_or_sim, j
             return []
         else:
             prop_station = station.get_sim_station()
-    if prop_station.is_neutrino():
-        event_type = 'Neutrino'
-    elif prop_station.is_cosmic_ray():
-        event_type = 'Cosmic Ray'
-    else:
-        event_type = 'Unknown'
+    try:
+        if prop_station.is_neutrino(): # This throws an error if the particle type hasn't been set
+            event_type = 'Neutrino'
+        elif prop_station.is_cosmic_ray():
+            event_type = 'Cosmic Ray'
+        else:
+            event_type = 'Unknown'
+    except ValueError:
+        event_type = 'Unknown (not set)'
     reply = [html.Div([
         html.Div('Event Type:', className='custom-table-td'),
         html.Div(str(event_type), className='custom-table-td custom-table-td-last')

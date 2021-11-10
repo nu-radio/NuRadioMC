@@ -4,8 +4,8 @@ from NuRadioReco.utilities import units
 from NuRadioReco.eventbrowser.default_layout import default_layout, efield_plot_colors, efield_plot_linestyles, \
     polarizaiton_names
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import html
+from dash import dcc
 from dash.dependencies import Input, Output, State
 from NuRadioReco.eventbrowser.app import app
 import NuRadioReco.eventbrowser.dataprovider
