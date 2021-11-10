@@ -4,7 +4,7 @@ import plotly.subplots
 from NuRadioReco.utilities import units
 from NuRadioReco.eventbrowser.default_layout import default_layout
 import numpy as np
-import dash_core_components as dcc
+from dash import dcc
 from dash.dependencies import State
 from NuRadioReco.eventbrowser.app import app
 import NuRadioReco.eventbrowser.dataprovider
@@ -52,9 +52,11 @@ def update_time_trace(trigger, evt_counter, filename, station_id, juser_id):
                 'color': colors[i % len(colors)],
                 'line': {'color': colors[i % len(colors)]}
             },
-            name='Channel {}'.format(i)
+            name='Channel {}'.format(i),
+            uid='Channel {}'.format(i)
         ), 1, 1)
     fig['layout'].update(default_layout)
+    fig['layout']['legend']['uirevision'] = filename # only update channel selection on changing files.
     if trace_start_time_offset > 0:
         fig['layout']['xaxis1'].update(title='time [ns] - {:.0f}ns'.format(trace_start_time_offset))
     else:

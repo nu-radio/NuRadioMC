@@ -1,5 +1,5 @@
 
-import dash_html_components as html
+from dash import html as html
 import dash
 from NuRadioReco.detector.detector_browser import open_file
 from NuRadioReco.detector.detector_browser import detector_map
@@ -36,4 +36,4 @@ if __name__ == '__main__':
     if int(dash.__version__.split('.')[0]) <= 1:
         if int(dash.__version__.split('.')[1]) < 0:
             print('WARNING: Dash version 0.39.0 or newer is required, you are running version {}. Please update.'.format(dash.__version__))
-    app.run_server(debug=False, port=8080)
+    app.run_server(debug=True, port=8082)

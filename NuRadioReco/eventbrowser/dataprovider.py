@@ -1,5 +1,5 @@
-from __future__ import absolute_import, division, print_function  # , unicode_literals
-from NuRadioReco.modules.io import NuRadioRecoio
+import NuRadioReco.eventbrowser.dataprovider_root
+import NuRadioReco.eventbrowser.dataprovider_nur
 
 
 class DataProvider(object):
@@ -11,15 +11,13 @@ class DataProvider(object):
         return DataProvider.__instance
 
     def __init__(self):
-        self.__user_instances = {}
+        self.__data_provider = None
+
+    def set_filetype(self, use_root):
+        if use_root:
+            self.__data_provider = NuRadioReco.eventbrowser.dataprovider_root.DataProviderRoot()
+        else:
+            self.__data_provider = NuRadioReco.eventbrowser.dataprovider_nur.DataProvider()
 
     def get_arianna_io(self, user_id, filename):
-        if filename is None:
-            return
-        if user_id not in self.__user_instances:
-            self.__user_instances[user_id] = NuRadioRecoio.NuRadioRecoio(filename)
-        if filename != self.__user_instances[user_id].get_filenames()[0]:
-            # user is requesting new file -> close current file and open new one
-            self.__user_instances[user_id].close_files()
-            self.__user_instances[user_id] = NuRadioRecoio.NuRadioRecoio(filename)
-        return self.__user_instances[user_id]
+        return self.__data_provider.get_arianna_io(user_id, filename)

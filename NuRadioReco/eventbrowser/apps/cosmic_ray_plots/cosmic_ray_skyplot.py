@@ -2,7 +2,7 @@ import json
 import plotly
 import numpy as np
 from NuRadioReco.framework.parameters import stationParameters as stnp
-import dash_core_components as dcc
+from dash import dcc
 from dash.dependencies import Input, Output, State
 from NuRadioReco.eventbrowser.app import app
 import NuRadioReco.eventbrowser.dataprovider
