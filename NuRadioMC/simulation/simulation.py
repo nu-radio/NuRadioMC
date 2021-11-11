@@ -555,7 +555,7 @@ class simulation():
                                     100 * distance_cut_time / total_time,
                                     100 * (total_time - total_time_sum) / total_time))
 
-                    self._read_input_shower_properties(self._shower_index)
+                    self._read_input_shower_properties()
                     logger.debug(f"simulating shower {self._shower_index}: {self._shower_type} with E = {self._shower_energy/units.eV:.2g}eV")
                     x1 = self._shower_vertex  # the interaction point
 
