@@ -852,8 +852,7 @@ class simulation():
                     self._evt = NuRadioReco.framework.event.Event(self._event_group_id, iEvent)  # create new event
 
                     # add MC particles that belong to this (sub) event to event structure
-                    # add only primary and parent?
-                    # or all particles? usually not so many in our case...
+                    # add only primary for now, since full interaction chain is not typically in the input hdf5s
                     self._evt.add_particle(self.primary)
                     # copy over generator information from temporary event to event
                     self._evt._generator_info = self._generator_info
