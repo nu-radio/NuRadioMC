@@ -303,6 +303,9 @@ class thermalNoiseGeneratorPhasedArray():
         self.step = int(8 * units.ns * self.sampling_rate * 2.0)
 
         self.noise = channelGenericNoiseAdder.channelGenericNoiseAdder()
+        self.noise.precalculate_bandlimited_noise_parameters(self.min_freq, self.max_freq, self.n_samples * self.upsampling,
+                                                  self.sampling_rate * self.upsampling,
+                                                  self.amplitude, self.noise_type)        
 
     def generate_noise(self, debug=False):
         """
@@ -389,9 +392,12 @@ class thermalNoiseGeneratorPhasedArray():
         """ separated trace generation part for PA noise trigger """
 
         for iCh in range(self.n_channels):
-            spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples * self.upsampling,
-                                                self.sampling_rate * self.upsampling,
-                                                self.amplitude, self.noise_type, time_domain=False)
+            #spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples * self.upsampling,
+            #                                    self.sampling_rate * self.upsampling,
+            #                                    self.amplitude, self.noise_type, time_domain=False)
+            
+            # function that does not re-calculate parameters in each simulated trace
+            spec = self.noise.bandlimited_noise_from_precalculated_parameters(self.noise_type, time_domain=False)
             spec *= self.filt
             trace = fft.freq2time(spec, self.sampling_rate * self.upsampling)
 
@@ -407,6 +413,7 @@ class thermalNoiseGeneratorPhasedArray():
 
     def __phasing_roll(self):
         """ separated phasing part for PA noise trigger via np.roll """
+
         self._phased_traces = np.zeros((len(self.beam_time_delays), self.n_samples * self.upsampling))
         for iBeam, beam_time_delay in enumerate(self.beam_time_delays):
             for iCh in range(self.n_channels):
@@ -414,31 +421,32 @@ class thermalNoiseGeneratorPhasedArray():
 
     def __triggering(self):
         """ separated trigger part for PA noise trigger """
+
         # take square over entire array
         coh_sum_squared = self._phased_traces**2
         # bin the data into windows of length self.step and normalise to step length
         reduced_array = np.add.reduceat(coh_sum_squared.T,np.arange(0,np.shape(coh_sum_squared)[1],self.step)).T / self.step
-        #print(np.shape(reduced_array))
-        #print("REDUCED ARRAY, first entry: ",reduced_array[0])
 
         sliding_windows = []
         # self.window can extend over multiple steps,
         # assuming self.window being an integer multiple of self.step the reduction sums over subsequent steps
         steps_per_window = self.window//self.step
+        # better extend the array in order to also trigger on sum of last/first (matching a previous implementation)
         extended_reduced_array = np.column_stack([reduced_array, reduced_array[:,0:steps_per_window]])
         for offset in range(steps_per_window):
+            # sum over steps_per_window adjacent steps
             window_sum = np.add.reduceat(extended_reduced_array.T, np.arange(offset, np.shape(extended_reduced_array)[1], steps_per_window)).T / steps_per_window
             sliding_windows.append(window_sum)
         #self.max_amp = max(np.array(sliding_windows).max(), self.max_amp)
         self.max_amp = np.array(sliding_windows).max()
 
-        #print(np.shape(sliding_windows))
         # check if trigger condition is fulfilled anywhere
         if self.max_amp > self.threshold:
             # check in which beam the trigger condition was fulfilled
             sliding_windows = np.concatenate(sliding_windows, axis=1)
             triggered_beams = np.amax(sliding_windows, axis=1) > self.threshold
             for iBeam, is_triggered in enumerate(triggered_beams):
+                # print out each beam that has triggered
                 if is_triggered:
                     print(f"triggered at beam {iBeam}")
             if(self.debug):
