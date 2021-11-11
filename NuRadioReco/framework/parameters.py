@@ -120,7 +120,8 @@ class particleParameters(Enum):
     weight = 10
     inelasticity = 11  # inelasticity ot neutrino interaction
     interaction_type = 12  # interaction type, e.g., cc, nc
-    
+    n_interaction = 13 # number of interaction
+
     cr_energy = 101  # the cosmic-ray energy
     cr_zenith = 102  # zenith angle of the cosmic-ray incoming direction
     cr_azimuth = 103  # azimuth angle of the cosmic-ray incoming direction

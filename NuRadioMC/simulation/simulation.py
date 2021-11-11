@@ -261,8 +261,8 @@ class simulation():
         self._Vrms = 1
         for iSt, self._station_id in enumerate(self._station_ids):
             self._shower_index = 0
-            self._particle_index = 0
-            self._evt = NuRadioReco.framework.event.Event(0, self._particle_index)
+            self._primary_index = 0
+            self._evt = NuRadioReco.framework.event.Event(0, self._primary_index)
             # read all quantities from hdf5 file and store them in local variables
             self._read_input_particle_properties()
 
@@ -448,9 +448,7 @@ class simulation():
             t1 = time.time()
 
             self._primary_index = event_indices[0]
-            # set the shower index to the index of the primary particle to read in the neutrino properties from there
-            self._particle_index = self._primary_index
-            self._read_input_particle_properties() # this sets the self.input_particle for self._particle_index
+            self._read_input_particle_properties(self._primary_index) # this sets the self.input_particle for self._primary_index
             # calculate the weight for the primary particle
             self.primary = self.input_particle
             if(self._cfg['weights']['weight_mode'] == "existing"):
@@ -459,7 +457,7 @@ class simulation():
                 else:
                     logger.error("config file specifies to use weights from the input hdf5 file but the input file does not contain this information.")
             elif(self._cfg['weights']['weight_mode'] is None):
-                self.primary[simp.weight] = np.ones(self._n_showers)
+                self.primary[simp.weight] = 1.
             else:
                 self.primary[simp.weight] = get_weight(self.primary[simp.zenith],
                                                    self.primary[simp.energy],
@@ -557,7 +555,7 @@ class simulation():
                                     100 * distance_cut_time / total_time,
                                     100 * (total_time - total_time_sum) / total_time))
 
-                    self._read_input_shower_properties()
+                    self._read_input_shower_properties(self._shower_index)
                     logger.debug(f"simulating shower {self._shower_index}: {self._shower_type} with E = {self._shower_energy/units.eV:.2g}eV")
                     x1 = self._shower_vertex  # the interaction point
 
@@ -1261,33 +1259,40 @@ class simulation():
                 sg[parameter_entry['name']] = np.zeros((n_showers, n_antennas, nS, parameter_entry['ndim'])) * np.nan
         return sg
 
-    def _read_input_particle_properties(self):
-        self._n_interaction = self._fin['n_interaction'][self._particle_index]
-        self._event_group_id = self._fin['event_group_ids'][self._particle_index]
+    def _read_input_particle_properties(self, idx=None):
+        if idx is None:
+            idx = self._primary_index
+        self._n_interaction = self._fin['n_interaction'][idx]
+        self._event_group_id = self._fin['event_group_ids'][idx]
 
         self.input_particle = NuRadioReco.framework.particle.Particle(0)
-        self.input_particle[simp.flavor] = self._fin['flavors'][self._particle_index]
-        self.input_particle[simp.energy] = self._fin['energies'][self._particle_index]
-        self.input_particle[simp.interaction_type] = self._fin['interaction_type'][self._particle_index]
-        self.input_particle[simp.inelasticity] = self._fin['inelasticity'][self._particle_index]
-        self.input_particle[simp.vertex] = np.array([self._fin['xx'][self._particle_index],
-                                                  self._fin['yy'][self._particle_index],
-                                                  self._fin['zz'][self._particle_index]])
-        self.input_particle[simp.zenith] = self._fin['zeniths'][self._particle_index]
-        self.input_particle[simp.azimuth] = self._fin['azimuths'][self._particle_index]
-        self.input_particle[simp.inelasticity] = self._fin['inelasticity'][self._particle_index]
-        self.input_particle[simp.parent_id] = None # primary does not have a parent
+        self.input_particle[simp.flavor] = self._fin['flavors'][idx]
+        self.input_particle[simp.energy] = self._fin['energies'][idx]
+        self.input_particle[simp.interaction_type] = self._fin['interaction_type'][idx]
+        self.input_particle[simp.inelasticity] = self._fin['inelasticity'][idx]
+        self.input_particle[simp.vertex] = np.array([self._fin['xx'][idx],
+                                                  self._fin['yy'][idx],
+                                                  self._fin['zz'][idx]])
+        self.input_particle[simp.zenith] = self._fin['zeniths'][idx]
+        self.input_particle[simp.azimuth] = self._fin['azimuths'][idx]
+        self.input_particle[simp.inelasticity] = self._fin['inelasticity'][idx]
+        self.input_particle[simp.n_interaction] = self._fin['n_interaction'][idx]
+        if self._n_interaction <= 1:
+            # parents before the neutrino and outgoing daughters without shower are currently not
+            # simulated. The parent_id is therefore at the moment only rudimentarily populated.
+            self.input_particle[simp.parent_id] = None # primary does not have a parent
+
         
         self.input_particle[simp.vertex_time] = 0
         if 'vertex_times' in self._fin:
-            self.input_particle[simp.vertex_time] = self._fin['vertex_times'][self._particle_index]
+            self.input_particle[simp.vertex_time] = self._fin['vertex_times'][idx]
 
     def _read_input_shower_properties(self):
         """ read in the properties of the shower with index _shower_index from input """
         self._n_interaction = self._fin['n_interaction'][self._shower_index]
         self._event_group_id = self._fin['event_group_ids'][self._shower_index]
 
-        if 'flavor' in self._fin:
+        if 'flavors' in self._fin:
             self._flavor = self._fin['flavors'][self._shower_index]
         else:
             self._flavor = None
@@ -1331,7 +1336,8 @@ class simulation():
         self._sim_shower[shp.vertex] = self.input_particle[simp.vertex]
         self._sim_shower[shp.vertex_time] = self._vertex_time
         self._sim_shower[shp.type] = self._shower_type
-        #TODO parent does not necessarily need to be the neutrino primary!
+        #TODO direct parent does not necessarily need to be the primary in general, but full
+        # interaction chain is currently not populated in the input files.
         self._sim_shower[shp.parent_id] = self.primary.get_id()
 
     def _write_output_file(self, empty=False):
