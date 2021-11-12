@@ -36,12 +36,13 @@ the trigger parameters calculated before'''
 parser = argparse.ArgumentParser(description='Run air shower Reconstruction')
 
 parser.add_argument('detector_file', type=str, nargs='?',
-                    default='../example_data/arianna_station_32.json',
+                    default='Gen2/gen2_upward_LPDAs.json',
                     help='choose detector for air shower simulation')
 parser.add_argument('default_station', type=int, nargs='?',
-                    default=32, help='define default station for detector')
+                    default=101, help='define default station for detector')
 parser.add_argument('config_file', type=str, nargs='?',
-                    default='config/final_config', help='settings from the ntr results')
+                    default='config/air_shower/final_config_envelope_trigger_1Hz_2of3_22.46mV.json',
+                    help='settings from the ntr results')
 parser.add_argument('eventlist', type=list, nargs='?',
                     default=['../example_data/example_event.h5'], help='list with event files')
 parser.add_argument('number', type=int, nargs='?',
@@ -116,9 +117,13 @@ electricFieldResampler.begin()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelResampler.begin()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-eventWriter.begin(args.output_filename + 'pb_' + str(int(cfg['passband_trigger'][0] / units.MHz))
-                  + '_' + str(int(cfg['passband_trigger'][1] / units.MHz))
-                  + '_tt_' + str(round(cfg['final_threshold'], 6)) + '_' + str(args.number) + '.nur')
+eventWriter.begin(args.output_filename
+                  + str(cfg['trigger_name']) + '_'
+                  + str(cfg['target_global_trigger_rate'] / units.Hz) + 'Hz_'
+                  + str(cfg['number_coincidences']) + 'of'
+                  + str(cfg['total_number_triggered_channels']) + '_'
+                  + str(round(cfg['final_threshold']/units.mV, 2)) + 'mV_'
+                  + str(args.number) + '.nur')
 
 # Loop over all events in file as initialized in readCoRREAS and perform analysis
 i = 0
@@ -178,5 +183,5 @@ for evt in readCoREASStation.run(det):
 
         electricFieldResampler.run(evt, sta, det, sampling_rate=cfg['sampling_rate'])
         i += 1
-    eventWriter.run(evt, mode='micro')  # here you can change what should be stored in the nur files
+    eventWriter.run(evt, det=det, mode='micro')  # here you can change what should be stored in the nur files
 nevents = eventWriter.end()

@@ -1,38 +1,44 @@
 import numpy as np
-import datetime
 import os
 import glob
 import helper_cr_eff as hcr
 import json
 import NuRadioReco.modules.io.eventReader as eventReader
-from NuRadioReco.detector.generic_detector import GenericDetector
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.utilities import units
 import argparse
+import logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
-'''This script sorts the triggered events into different energy, zenith, and distance bins. Energy means shower energy, 
- zenith bin means inclination of the shower arrival direction and distance means distance between shower core and station.
-  These are important parameters to determine the trigger efficiency.'''
-
+'''
+This script sorts the triggered events into different energy, zenith, and distance bins. 
+Energy means shower energy, 
+zenith bin means inclination of the shower arrival direction and 
+distance means distance between shower core and station.
+These are important parameters to determine the trigger efficiency.
+'''
 
 parser = argparse.ArgumentParser(description='Nurfile analyser')
-parser.add_argument('result_dict', type=str, nargs='?',
-                    default='results/ntr/dict_ntr_high_low_pb_80_180.json', help='settings from the results from threshold analysis')
-parser.add_argument('input_filepath', type=str, nargs='?',
-                    default='output_air_shower_reco/', help='input path were results from air shower analysis are stored')
-parser.add_argument('energy_bins', type=list, nargs='?',
+parser.add_argument('--config_file', type=str, nargs='?',
+                    default='config/air_shower/final_config_envelope_trigger_1Hz_2of3_22.46mV.json',
+                    help='settings from threshold analysis')
+parser.add_argument('--directory', type=str, nargs='?',
+                    default='output_air_shower_reco/',
+                    help='path were results from air shower analysis are stored')
+parser.add_argument('--condition', type=str, nargs='?', default='envelope_trigger_0Hz_3of4',
+                    help='string which should be in dict name')
+parser.add_argument('--energy_bins', type=list, nargs='?',
                     default=[16.5, 20, 8], help='energy bins as log() with start, stop, number of bins (np.logspace)')
-parser.add_argument('zenith_bins', type=list, nargs='?',
+parser.add_argument('--zenith_bins', type=list, nargs='?',
                     default=[0, 100, 10], help='zenith bins in deg with start, stop, step (np.arange)')
-parser.add_argument('distance_bins', type=int, nargs='?',
+parser.add_argument('--distance_bins', type=int, nargs='?',
                     default=[0, 700, 4000], help='distance bin edges as list')
-parser.add_argument('number_of_sta_in_evt', type=int, nargs='?',
+parser.add_argument('--number_of_sta_in_evt', type=int, nargs='?',
                     default=72, help='number of stations in one event')
 
 args = parser.parse_args()
-result_dict = args.result_dict
-input_filepath = args.input_filepath
 energy_bins = args.energy_bins
 zenith_bins = args.zenith_bins
 distance_bins = args.distance_bins
@@ -41,60 +47,27 @@ number_of_sta_in_evt = args.number_of_sta_in_evt
 # the entries of this list are defined in the input argument energy_bins.
 # [0] is the start value, [1] is the stop value, [2] is the number of samples generated
 energy_bins = np.logspace(energy_bins[0], energy_bins[1], energy_bins[2])
-print(energy_bins)
 energy_bins_low = energy_bins[0:-1]
 energy_bins_high = energy_bins[1:]
+logger.info(f"Use energy bins {energy_bins} eV")
 
 # the entries of this list are defined in the input argument zenith_bins.
 # [0] is the start value, [1] is the stop value, [2] is step size
 zenith_bins = np.arange(zenith_bins[0], zenith_bins[1], zenith_bins[2]) * units.deg
 zenith_bins_low = zenith_bins[0:-1]
 zenith_bins_high = zenith_bins[1:]
+logger.info(f"Use zenith bins {zenith_bins/units.deg} deg")
 
 # the entries of this list are defined in the input argument distance_bins.
 distance_bins_low = np.array(distance_bins[0:-1])
 distance_bins_high = np.array(distance_bins[1:])
-
-with open(result_dict, 'r') as fp:
-    data = json.load(fp)
-
-detector_file = data['detector_file']
-default_station = data['default_station']
-sampling_rate = data['sampling_rate']
-station_time = data['station_time']
-station_time_random = data['station_time_random']
-
-Vrms_thermal_noise = data['Vrms_thermal_noise']
-T_noise = data['T_noise']
-T_noise_min_freq = data['T_noise_min_freq']
-T_noise_max_freq = data['T_noise_max_freq ']
-
-galactic_noise_n_side = data['galactic_noise_n_side']
-galactic_noise_interpolation_frequencies_start = data['galactic_noise_interpolation_frequencies_start']
-galactic_noise_interpolation_frequencies_stop = data['galactic_noise_interpolation_frequencies_stop']
-galactic_noise_interpolation_frequencies_step = data['galactic_noise_interpolation_frequencies_step']
-
-passband_trigger = data['passband_trigger']
-number_coincidences = data['number_coincidences']
-coinc_window = data['coinc_window']
-order_trigger = data['order_trigger']
-trigger_thresholds = data['threshold']
-n_iterations = data['iteration']
-hardware_response = data['hardware_response']
-
-trigger_rate = np.array(data['trigger_rate'])
-threshold_tested = data['threshold']
-
-zeros = np.where(trigger_rate == 0)[0]
-first_zero = zeros[0]
-trigger_threshold = threshold_tested[first_zero]
-
+logger.info(f"Use distance bins {distance_bins} m")
 
 nur_file_list = []  # get non corrupted input files with specified passband
 i = 0
-for nur_file in glob.glob('{}*.nur'.format(input_filepath)):
-    if os.path.isfile(nur_file) and str(int(passband_trigger[0]/units.MHz)) + '_' + str(int(passband_trigger[1]/units.MHz)) in nur_file:
-        i = i+1
+for nur_file in glob.glob('{}*.nur'.format(args.directory)):
+    if os.path.isfile(nur_file) and str(args.condition) in nur_file:
+        i += 1
         if os.path.getsize(nur_file) > 0:
             nur_file_list.append(nur_file)
 
@@ -112,12 +85,11 @@ trigger_in_station = []  # name of trigger
 weight = []
 num = 0
 
-det = GenericDetector(json_filename=detector_file, default_station=default_station) # detector file
-det.update(datetime.datetime(2019, 10, 1))
-
 evtReader = eventReader.eventReader()
-evtReader.begin(filename=nur_file, read_detector=False)
-for evt in evtReader.run(): # loop over all events, one event is one station
+evtReader.begin(filename=nur_file, read_detector=True)
+det = evtReader.get_detector()
+default_station = det.get_station_ids()[0]
+for evt in evtReader.run():  # loop over all events, one event is one station
     num += 1
     event_id = evt.get_id()
     events.append(evt)
@@ -127,7 +99,7 @@ for evt in evtReader.run(): # loop over all events, one event is one station
     energy.append(sim_station.get_parameter(stnp.cr_energy))
     zenith.append(sim_station.get_parameter(stnp.zenith))  # get zenith for each station
     azimuth.append(sim_station.get_parameter(stnp.azimuth))
-    current_weight = sim_station.get_simulation_weight() /(units.m**2)
+    current_weight = sim_station.get_simulation_weight() / (units.m**2)
     weight.append(current_weight)
     trigger_in_station.append(sta.get_triggers())  # get trigger for each station
     trigger_status.append(sta.has_triggered())
@@ -142,11 +114,11 @@ for evt in evtReader.run(): # loop over all events, one event is one station
 trigger_status = np.array(trigger_status)
 trigger_status_weight = np.array(trigger_status_weight)
 zenith = np.array(zenith)
-zenith_deg = zenith / units.deg # this is necessary to avoid mistakes due to decimals
+zenith_deg = zenith / units.deg  # this is necessary to avoid mistakes due to decimals
 distance = np.array(distance)
 energy = np.array(energy)
 
-#here we reshape the array in a form that the shower parameter are stored once instead one entry for each station.
+# here we reshape the array in a form that the shower parameter are stored once instead one entry for each station.
 # Energy and Zenith are shower parameters.
 energy_shower = np.array(energy).reshape(int(len(energy)/number_of_sta_in_evt), number_of_sta_in_evt)[:, 0]
 zenith_shower = np.array(zenith).reshape(int(len(zenith)/number_of_sta_in_evt), number_of_sta_in_evt)[:, 0]
@@ -186,7 +158,8 @@ for dim_0, energy_bin_low, energy_bin_high in zip(range(len(energy_bins_low)), e
     n_events_masked_e = np.sum(mask_e)  # number of events in that energy bin
 
     for dim_1, zenith_bin_low, zenith_bin_high in zip(range(len(zenith_bins_low)), zenith_bins_low, zenith_bins_high):
-        mask_z = (zenith_deg >= zenith_bin_low/units.deg) & (zenith_deg < zenith_bin_high/units.deg) # choose zenith bin
+        # choose zenith bin
+        mask_z = (zenith_deg >= zenith_bin_low/units.deg) & (zenith_deg < zenith_bin_high/units.deg)
         # trigger in in one energy bin and one zenith bin (ez) (values depend on the loop)
         mask_ez = mask_e & mask_z
         masked_trigger_status_ez = trigger_status[mask_ez]
@@ -214,7 +187,8 @@ for dim_0, energy_bin_low, energy_bin_high in zip(range(len(energy_bins_low)), e
         trigger_effective_area_e[dim_0, dim_1] = trigger_effective_area
         trigger_effective_area_err_e[dim_0, dim_1] = trigger_effective_area_err
 
-        for dim_2, distance_bin_low, distance_bin_high in zip(range(len(distance_bins_low)), distance_bins_low, distance_bins_high):
+        for dim_2, distance_bin_low, distance_bin_high in zip(range(len(distance_bins_low)),
+                                                              distance_bins_low, distance_bins_high):
             # bin for each event, since distance between shower core and station differs for each station
             # choose here, if distances should be in circles or rings,
             # so if it should include everything with in or only an interval
@@ -232,15 +206,14 @@ for dim_0, energy_bin_low, energy_bin_high in zip(range(len(energy_bins_low)), e
             triggered_trigger_e[dim_0, dim_1, dim_2] = triggered_trigger_ezd
             trigger_efficiency_e[dim_0, dim_1, dim_2] = trigger_efficiency_ezd
 
+with open(args.config_file, 'r') as fp:
+    cfg = json.load(fp)
+
 dic = {}
-dic['T_noise'] = T_noise
-dic['threshold'] = trigger_threshold
-dic['passband_trigger'] = passband_trigger
-dic['coinc_window'] = coinc_window
-dic['order_trigger'] = order_trigger
-dic['number_coincidences'] = number_coincidences
-dic['T_noise_min_freq'] = T_noise_min_freq
-dic['T_noise_max_freq'] = T_noise_max_freq
+for key in cfg:
+    dic[key] = cfg[key]
+dic['detector_file'] = []
+dic['default_station'] = default_station
 dic['energy_bins_low'] = energy_bins_low
 dic['energy_bins_high'] = energy_bins_high
 dic['zenith_bins_low'] = zenith_bins_low
@@ -254,14 +227,31 @@ dic['triggered_trigger'] = np.nan_to_num(triggered_trigger_e)
 dic['trigger_efficiency'] = np.nan_to_num(trigger_efficiency_e)
 dic['triggered_trigger_weight'] = triggered_trigger_weight_e
 
-if os.path.isdir('results/air_shower/') == False:
-    os.mkdir('results/air_shower/')
+if cfg['hardware_response']:
+    out_dir = 'results/air_shower_{}_trigger_{:.0f}Hz_{}of{}_{:.2f}mV'.format(
+        cfg['trigger_name'],
+        cfg['target_global_trigger_rate'] / units.Hz,
+        cfg['number_coincidences'],
+        cfg['total_number_triggered_channels'],
+        cfg['final_threshold'] / units.millivolt
+        )
 
-print(dic)
+else:
+    out_dir = 'results/air_shower_{}_trigger_{:.0f}Hz_{}of{}_{:.2f}V'.format(
+        cfg['trigger_name'],
+        cfg['target_global_trigger_rate'] / units.Hz,
+        cfg['number_coincidences'],
+        cfg['total_number_triggered_channels'],
+        cfg['final_threshold']
+        )
 
-output_file = 'results/air_shower/dict_air_shower_pb_{:.0f}_{:.0f}_e{}_z{}_d{}_{}.json'.format(
-        passband_trigger[0]/units.megahertz, passband_trigger[1]/units.megahertz,
-        len(energy_bins_low), len(zenith_bins_low), len(distance_bins_low), max(distance_bins))
+os.makedirs(out_dir, exist_ok=True)
 
-with open(output_file, 'w') as outfile:
+output_file = 'dict_air_shower_e{}_z{}_d{}_{}.json'.format(
+        len(energy_bins_low),
+        len(zenith_bins_low),
+        len(distance_bins_low),
+        max(distance_bins))
+
+with open(os.path.join(out_dir, output_file), 'w') as outfile:
     json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4)

@@ -6,7 +6,7 @@ from NuRadioReco.utilities import units
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--output_path', type=os.path.abspath, nargs='?', default='',
+parser.add_argument('--output_path', type=str, nargs='?', default=os.path.dirname(__file__),
                     help='Path to save output, most likely the path to the cr_efficiency_analysis directory')
 parser.add_argument('--detector_file', type=str, nargs='?',
                     default='LPDA_Southpole.json',
@@ -68,88 +68,70 @@ parser.add_argument('--number_of_allowed_trigger', type=bool, nargs='?', default
                     help='The number of iterations is calculated to yield a trigger rate')
 
 args = parser.parse_args()
-output_path = args.output_path
-trace_samples = args.trace_samples
 target_global_trigger_rate = args.target_global_trigger_rate * units.Hz
-n_random_phase = args.n_random_phase
-abs_output_path = os.path.abspath(args.output_path)
-trigger_name = args.trigger_name
 passband_low = args.passband_low * units.megahertz
 passband_high = args.passband_high * units.megahertz
 passband_trigger = np.array([passband_low, passband_high])
-detector_file = args.detector_file
-triggered_channels = args.triggered_channels
-default_station = args.default_station
 sampling_rate = args.sampling_rate * units.gigahertz
-total_number_triggered_channels = args.total_number_triggered_channels
 coinc_window = args.coinc_window * units.ns
-number_coincidences = args.number_coincidences
-order_trigger = args.order_trigger
 Tnoise = args.Tnoise * units.kelvin
 T_noise_min_freq = args.T_noise_min_freq * units.megahertz
 T_noise_max_freq = args.T_noise_max_freq * units.megahertz
-galactic_noise_n_side = args.galactic_noise_n_side
 galactic_noise_interpolation_frequencies_start = args.galactic_noise_interpolation_frequencies_start * units.MHz
 galactic_noise_interpolation_frequencies_stop = args.galactic_noise_interpolation_frequencies_stop * units.MHz
 galactic_noise_interpolation_frequencies_step = args.galactic_noise_interpolation_frequencies_step * units.MHz
-threshold_start = args.threshold_start
-threshold_step = args.threshold_step
-station_time = args.station_time
-station_time_random = args.station_time_random
-hardware_response = args.hardware_response
-iterations_per_job = args.iterations_per_job
-number_of_allowed_trigger = args.number_of_allowed_trigger
 
-trace_length = trace_samples / sampling_rate
+trace_length = args.trace_samples / sampling_rate
 target_single_trigger_rate = hcr.get_single_channel_trigger_rate(
-    target_global_trigger_rate, total_number_triggered_channels, number_coincidences, coinc_window)
+    target_global_trigger_rate, args.total_number_triggered_channels, args.number_coincidences, coinc_window)
 n_iteration_for_one_allowed_trigger = (trace_length * target_single_trigger_rate) ** -1
 
-n_iterations = int(n_iteration_for_one_allowed_trigger * number_of_allowed_trigger / n_random_phase)
-resolution = (n_iteration_for_one_allowed_trigger * number_of_allowed_trigger * trace_length) ** -1
+n_iterations = int(n_iteration_for_one_allowed_trigger * args.number_of_allowed_trigger / args.n_random_phase)
+resolution = (n_iteration_for_one_allowed_trigger * args.number_of_allowed_trigger * trace_length) ** -1
 
-number_of_jobs = n_iterations / iterations_per_job
+number_of_jobs = n_iterations / args.iterations_per_job
 number_of_jobs = int(np.ceil(number_of_jobs))
 Vrms_thermal_noise = hcr.calculate_thermal_noise_Vrms(Tnoise, T_noise_max_freq, T_noise_min_freq)
 
-if threshold_start is None:
-    if hardware_response:
+if args.threshold_start is None:
+    if args.hardware_response:
         threshold_start = 1e3 * Vrms_thermal_noise
-    elif not hardware_response:
+    elif not args.hardware_response:
         threshold_start = 1.8 * Vrms_thermal_noise
     else:
-        threshold_start = threshold_start * units.volt
+        threshold_start = args.threshold_start * units.volt
 
-if threshold_step is None:
-    if hardware_response:
+if args.threshold_step is None:
+    if args.hardware_response:
         threshold_step = 1e-3 * units.volt
-    elif not hardware_response:
+    elif not args.hardware_response:
         threshold_step = 1e-6 * units.volt
     else:
-        threshold_step = threshold_step * units.volt
+        threshold_step = args.threshold_step * units.volt
 
 dic = {'T_noise': Tnoise, 'Vrms_thermal_noise': Vrms_thermal_noise, 'n_iterations_total': n_iterations,
-       'number_of_allowed_trigger': number_of_allowed_trigger, 'iterations_per_job': iterations_per_job,
+       'number_of_allowed_trigger': args.number_of_allowed_trigger, 'iterations_per_job': args.iterations_per_job,
        'number_of_jobs': number_of_jobs, 'target_single_trigger_rate': target_single_trigger_rate,
-       'target_global_trigger_rate': target_global_trigger_rate, 'resolution': resolution, 'trigger_name': trigger_name,
-       'passband_trigger': passband_trigger, 'total_number_triggered_channels': total_number_triggered_channels,
-       'number_coincidences': number_coincidences, 'triggered_channels': triggered_channels,
-       'coinc_window': coinc_window, 'order_trigger': order_trigger, 'detector_file': detector_file,
-       'default_station': default_station, 'trace_samples': trace_samples, 'sampling_rate': sampling_rate,
+       'target_global_trigger_rate': target_global_trigger_rate, 'resolution': resolution,
+       'trigger_name': args.trigger_name, 'passband_trigger': passband_trigger,
+       'total_number_triggered_channels': args.total_number_triggered_channels,
+       'number_coincidences': args.number_coincidences, 'triggered_channels': args.triggered_channels,
+       'coinc_window': coinc_window, 'order_trigger': args.order_trigger, 'detector_file': args.detector_file,
+       'default_station': args.default_station, 'trace_samples': args.trace_samples, 'sampling_rate': sampling_rate,
        'trace_length': trace_length, 'T_noise_min_freq': T_noise_min_freq, 'T_noise_max_freq': T_noise_max_freq,
-       'galactic_noise_n_side': galactic_noise_n_side,
+       'galactic_noise_n_side': args.galactic_noise_n_side,
        'galactic_noise_interpolation_frequencies_start': galactic_noise_interpolation_frequencies_start,
        'galactic_noise_interpolation_frequencies_stop': galactic_noise_interpolation_frequencies_stop,
        'galactic_noise_interpolation_frequencies_step': galactic_noise_interpolation_frequencies_step,
-       'station_time': station_time, 'station_time_random': station_time_random, 'hardware_response': hardware_response,
-       'n_random_phase': n_random_phase, 'threshold_start': threshold_start, 'threshold_step': threshold_step}
+       'station_time': args.station_time, 'station_time_random': args.station_time_random,
+       'hardware_response': args.hardware_response, 'n_random_phase': args.n_random_phase,
+       'threshold_start': threshold_start, 'threshold_step': threshold_step}
 
+os.makedirs(os.path.join(args.output_path, 'config/ntr'), exist_ok=True)
 
-os.makedirs(os.path.join(abs_output_path, 'config/ntr'), exist_ok=True)
+output_file = f'config/ntr/config_{args.trigger_name}_trigger_rate_{target_global_trigger_rate/units.Hz:.0f}Hz_coinc_{args.number_coincidences}of{args.total_number_triggered_channels}.json '
 
-output_file = f'config/ntr/config_{trigger_name}_trigger_rate_{target_global_trigger_rate/units.Hz:.0f}Hz_coinc_{number_coincidences}of{total_number_triggered_channels}.json'
-
-abs_path_output_file = os.path.normpath(os.path.join(abs_output_path, output_file))
+abs_path_output_file = os.path.normpath(os.path.join(args.output_path, output_file))
 
 with open(abs_path_output_file, 'w') as outfile:
     json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4, sort_keys=True)

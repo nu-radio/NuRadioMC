@@ -55,7 +55,7 @@ parser.add_argument('--number', type=int, nargs='?', default=1,
                          'and sumbit the job with a for loop over the range of number_of_jobs')
 parser.add_argument('--n_thresholds', type=int, nargs='?', default=15,
                     help='number of thresholds that will be tested.')
-parser.add_argument('--output_path', type=os.path.abspath, nargs='?', default='',
+parser.add_argument('--output_path', type=str, nargs='?', default=os.path.dirname(__file__),
                     help='Path to save output, most likely the path to the cr_efficiency_analysis directory')
 
 args = parser.parse_args()
@@ -178,8 +178,7 @@ dic = {'thresholds': trigger_thresholds, 'efficiency': trigger_efficiency, 'trig
        'hardware_response': cfg['hardware_response'], 'n_random_phase': cfg['n_random_phase'],
        'threshold_start': cfg['threshold_start'], 'threshold_step': cfg['threshold_step']}
 
-if not os.path.isdir(os.path.join(args.output_path, 'output_threshold_calculation')):
-    os.mkdir(os.path.join(args.output_path, 'output_threshold_calculation'))
+os.makedirs(os.path.join(args.output_path, 'output_threshold_calculation'), exist_ok=True)
 
 output_file = 'output_threshold_calculation/{}_trigger_{:.0f}Hz_{}of{}_i{}_{}.json'.format(
     cfg['trigger_name'], cfg['target_global_trigger_rate'] / units.Hz,
