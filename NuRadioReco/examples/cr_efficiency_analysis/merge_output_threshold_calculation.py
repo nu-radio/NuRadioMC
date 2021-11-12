@@ -17,8 +17,10 @@ information of all files. This is necessary if you want to split the total numbe
 '''
 
 parser = argparse.ArgumentParser(description='Noise Trigger Rate')
-parser.add_argument('--directory', type=str, nargs='?', default='output_threshold_calculation/', help='directory with output files')
-parser.add_argument('--condition', type=str, nargs='?', default='i200', help='string which should be in dict name')
+parser.add_argument('--directory', type=str, nargs='?',
+                    default='output_threshold_calculation/', help='directory with output files')
+parser.add_argument('--condition', type=str, nargs='?',
+                    default='envelope_trigger_0Hz_3of4', help='string which should be in dict name')
 args = parser.parse_args()
 
 logger.info(f"Checking {args.directory} for string {args.condition}")
@@ -69,8 +71,15 @@ dic['final_threshold'] = final_threshold
 
 os.makedirs('config/air_shower', exist_ok=True)
 
-output_file = 'config/air_shower/final_config_{}_trigger_{}of{}_{:.2e}.json'.format(
-    cfg['trigger_name'], cfg['number_coincidences'], cfg['total_number_triggered_channels'], final_threshold)
+if cfg['hardware_response']:
+    output_file = 'config/air_shower/final_config_{}_trigger_{:.0f}Hz_{}of{}_{:.2f}mV.json'.format(
+        cfg['trigger_name'], cfg['target_global_trigger_rate']/units.Hz,
+        cfg['number_coincidences'], cfg['total_number_triggered_channels'],
+        final_threshold/units.millivolt)
+else:
+    output_file = 'config/air_shower/final_config_{}_trigger_{:.0f}Hz_{}of{}_{:.2e}V.json'.format(
+        cfg['trigger_name'], cfg['target_global_trigger_rate']/units.Hz,
+        cfg['number_coincidences'], cfg['total_number_triggered_channels'], final_threshold)
 
 with open(output_file, 'w') as outfile:
     json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4, sort_keys=True)

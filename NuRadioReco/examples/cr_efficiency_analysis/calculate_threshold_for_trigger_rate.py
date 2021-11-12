@@ -35,7 +35,7 @@ Due to computational efficiency (galactic noise adder is slow), one amplitude is
 parser = argparse.ArgumentParser(description='Noise Trigger Rate')
 parser.add_argument('--config_file', type=str, nargs='?',
                     help='input filename from which the calculation starts.')
-parser.add_argument('--output_path', type=os.path.abspath, nargs='?', default='',
+parser.add_argument('--output_path', type=str, nargs='?', default=os.path.dirname(__file__),
                     help='Path to save output, most likely the path to the cr_efficiency_analysis directory')
 
 args = parser.parse_args()
@@ -217,8 +217,7 @@ while sum_trigger > cfg['number_of_allowed_trigger']:
                'threshold_step': cfg['threshold_step']
                }
 
-        if not os.path.isdir(os.path.join(args.output_path, 'config/air_shower')):
-            os.mkdir(os.path.join(args.output_path, 'config/air_shower'))
+        os.makedirs(os.path.join(args.output_path, 'config/air_shower'), exist_ok=True)
 
         output_file = 'config/air_shower/final_config_{}_trigger_{:.2e}_{}of{}_{:.0f}Hz.json'.format(
             cfg['trigger_name'], thresholds[-1], cfg['target_global_trigger_rate']/ units.Hz,
