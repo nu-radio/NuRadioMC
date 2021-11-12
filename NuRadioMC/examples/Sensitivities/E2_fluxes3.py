@@ -11,7 +11,8 @@ from NuRadioMC.utilities import fluxes
 import os
 
 energyBinsPerDecade = 1.
-plotUnitsEnergy = units.GeV
+plotUnitsEnergy = units.eV
+plotUnitsEnergyStr = "eV"
 plotUnitsFlux = units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
 DIFFUSE = True
 
@@ -41,6 +42,8 @@ GRAND_10k = np.array(([8.41513361e-08, 7.38147706e-08, 5.69225180e-08, 3.4664793
 GRAND_10k *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
 # GRAND_10k /= 2 #halfdecade bins
 GRAND_10k *= energyBinsPerDecade
+# The expected sensitivities for GRAND are given for 3 years, rescaling them to 10 years
+GRAND_10k *= 3 / 10
 
 GRAND_200k = np.array(([4.26219753e-09, 3.58147708e-09, 2.75670137e-09, 1.85254042e-09,
                         1.13825106e-09, 7.70141315e-10, 6.51758930e-10, 6.35878242e-10,
@@ -56,6 +59,8 @@ GRAND_200k = np.array(([4.26219753e-09, 3.58147708e-09, 2.75670137e-09, 1.852540
 GRAND_200k *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
 # GRAND_200k /= 2 #halfdecade bins
 GRAND_200k *= energyBinsPerDecade
+# The expected sensitivities for GRAND are given for 3 years, rescaling them to 10 years
+GRAND_200k *= 3 / 10
 
 # RADAR proposed from https://arxiv.org/pdf/1710.02883.pdf
 
@@ -162,25 +167,64 @@ ice_cube_hese[:, 3] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.
 ice_cube_hese[:, 3] *= 3
 
 # Ice cube
+# ice cube nu_mu data points 9.5 years analysis
+nu_mu_data = np.array([[4.64588, -7.69107, -7.87555, -7.5549, ],
+                       [5.44266, -7.95022, -8.06881, -7.85359, ],
+                       [6.25755, -8.51245, -8.8287, -8.29283],
+                       [7.29276, -8.40264, 0, 0]])
+# nu_mu_data[:, 2] = 10 ** nu_mu_data[:, 1] - 10 ** (nu_mu_data[:, 1] - nu_mu_data[:, 2])
+# nu_mu_data[:, 3] = 10 ** (nu_mu_data[:, 1] + nu_mu_data[:, 3]) - 10 ** nu_mu_data[:, 1]
+# convert energy to correct units
+nu_mu_data[:, 1:] = (10 ** nu_mu_data[:, 1:]) * 3 * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)  # convert from single flavor to all flavor limit
+nu_mu_data[:, 2] = np.abs(nu_mu_data[:, 1] - nu_mu_data[:, 2])
+nu_mu_data[:, 3] = np.abs(nu_mu_data[:, 1] - nu_mu_data[:, 3])
+
+nu_mu_data[-1, 3] = 0
+nu_mu_data[-1, 2] = 2e-9 * 3 * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+nu_mu_data[:, 0] = 10 ** nu_mu_data[:, 0] * units.GeV
+
+# ApJ slope=-2.13, offset=0.9 (https://arxiv.org/pdf/1607.08006.pdf)
+# ICR2017 slope=-2.19, offset=1.01 (https://pos.sissa.it/301/1005/)
+# ICRC2019 slope=2.28, offset=1.44
+# 9.5 years analysis 2.37+0.08-0.09, offset 1.36 + 0.24 - 0.25, Astrophysical normalization @ 100TeV: 1.36 × 10−8GeV−1cm−2s−1sr−1
+
+# using ICRC2019 results for now which are the last published results. No Piecewise-Unfolding was already done at that time, so we don't have "data points".
+nu_mu_slope = -2.28
+nu_mu_slope_up = -(2.28 + 0.08)
+nu_mu_slope_down = -(2.28 - 0.09)
+nu_mu_offset = 1.44
+nu_mu_offset_up = 1.44 + 0.25
+nu_mu_offset_down = 1.44 - 0.24
+nu_mu_show_data_points = False
 
 
-def ice_cube_nu_fit(energy, slope=-2.19, offset=1.01):
-    # ApJ slope=-2.13, offset=0.9
+def ice_cube_nu_fit(energy, slope=nu_mu_slope, offset=nu_mu_offset):
     flux = 3 * offset * (energy / (100 * units.TeV)) ** slope * 1e-18 * \
         (units.GeV ** -1 * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
     return flux
 
 
 def get_ice_cube_mu_range():
-    energy = np.arange(1e5, 5e6, 1e5) * units.GeV
+    energy = np.arange(1e2, 5e6, 1e5) * units.GeV
 #     upper = np.maximum(ice_cube_nu_fit(energy, offset=0.9, slope=-2.), ice_cube_nu_fit(energy, offset=1.2, slope=-2.13)) # APJ
-    upper = np.maximum(ice_cube_nu_fit(energy, offset=1.01, slope=-2.09),
-                    ice_cube_nu_fit(energy, offset=1.27, slope=-2.19), ice_cube_nu_fit(energy, offset=1.27, slope=-2.09))  # ICRC
+#     upper = np.maximum(ice_cube_nu_fit(energy, offset=1.01, slope=-2.09),
+#                     ice_cube_nu_fit(energy, offset=1.27, slope=-2.19), ice_cube_nu_fit(energy, offset=1.27, slope=-2.09))  # ICRC
+    slope = nu_mu_slope
+    slope_up = nu_mu_slope_up
+    slope_down = nu_mu_slope_down
+    offset_up = nu_mu_offset_up
+    offset_down = nu_mu_offset_down
+    upper = np.maximum(ice_cube_nu_fit(energy, offset=offset_up, slope=slope_up),
+#                     ice_cube_nu_fit(energy, offset=offset_up, slope=slope),
+                    ice_cube_nu_fit(energy, offset=offset_up, slope=slope_down))  # 9.5 years
     upper *= energy ** 2
 #     lower = np.minimum(ice_cube_nu_fit(energy, offset=0.9, slope=-2.26),
 #                        ice_cube_nu_fit(energy, offset=0.63, slope=-2.13)) #ApJ
-    lower = np.minimum(ice_cube_nu_fit(energy, offset=1.01, slope=-2.29),
-                       ice_cube_nu_fit(energy, offset=0.78, slope=-2.19))  # ICRC
+#     lower = np.minimum(ice_cube_nu_fit(energy, offset=1.01, slope=-2.29),
+#                        ice_cube_nu_fit(energy, offset=0.78, slope=-2.19))  # ICRC
+    lower = np.minimum(ice_cube_nu_fit(energy, offset=offset_down, slope=slope_up),
+#                        ice_cube_nu_fit(energy, offset=offset_down, slope=slope),
+                       ice_cube_nu_fit(energy, offset=offset_down, slope=slope_down))  # 9.5 years
     lower *= energy ** 2
     return energy, upper, lower
 
@@ -195,40 +239,112 @@ def get_ice_cube_hese_range():
     lower *= energy ** 2
     return energy, upper, lower
 
+# IceCube Glashow
+# Paper: https://doi.org/10.1038/s41586-021-03256-1
+# Dataset: https://doi.org/10.21234/gr2021
+# https://icecube.wisc.edu/data-releases/2021/03/icecube-data-for-the-first-glashow-resonance-candidate/
+# NB: the csv file gives per-flavor, but we want all flavor, so multiply by 3
+
+
+i3_glashow_data = np.genfromtxt(os.path.join(os.path.dirname(__file__), 'data', "icecube_glashow.csv"),
+    skip_header=2, delimiter=',', names=['E_min', 'E_max', 'y', 'y_lower', 'y_upper'])
+i3_glashow_emin = i3_glashow_data['E_min'] * units.GeV / plotUnitsEnergy
+i3_glashow_emax = i3_glashow_data['E_max'] * units.GeV / plotUnitsEnergy
+i3_glashow_y = 3. * i3_glashow_data['y'] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1) * 1E-8 / plotUnitsFlux
+i3_glashow_y_lower = 3. * i3_glashow_data['y_lower'] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1) * 1E-8 / plotUnitsFlux
+i3_glashow_y_upper = 3. * i3_glashow_data['y_upper'] * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1) * 1E-8 / plotUnitsFlux
+
+'''
+Regarding ANITA Limits
+====================================================
+
+ANITA uses a *super* unusual differential limit bin width.
+
+A limit is generally given by:
+
+     E dN                           Sup
+---------------  =   -----------------------------------
+dE dA dOmega dt       T  * Efficiency * Aeff * BinWidth
+
+For most experiments, BinWidth is transformed into log space for convenience:
+               BinWidth = LN(10) * dlog10(E)
+And then a decade wide binning is assumed: dlog10(E) = 1
+
+But, in ANITA, they set BinWidth = 4 (!!!!!!!!!!!!!!)
+See eq D1 of the ANITA-III paper.
+"... the factor Delta = 4 follows the normalization convention..."
+
+This means that the ANITA limit is a factor of LN(10)/4 too strong
+when naively compared to other experiments, e.g. IceCube.
+So, below, we multply by by 4/LN(10) to fix the bin width.
+'''
 
 # ANITA I - III
+# https://arxiv.org/abs/1803.02719
 # Phys. Rev. D 98, 022001 (2018)
 anita_limit = np.array(([
-    (9.94e17, 	3.79e-14 * 9.94e17 / 1e9),
-    (2.37e18, 	2.15e-15 * 2.37e18 / 1e9),
-    (5.19e18, 	2.33e-16 * 5.19e18 / 1e9),
-    (1.10e19, 	3.64e-17 * 1.10e19 / 1e9),
-    (3.55e19, 	4.45e-18 * 3.55e19 / 1e9),
-    (1.11e20, 	9.22e-19 * 1.11e20 / 1e9),
-    (4.18e20, 	2.97e-19 * 4.18e20 / 1e9),
-    (9.70e20, 	1.62e-19 * 9.70e20 / 1e9)
+    (9.94e17, 3.79e-14 * 9.94e17 / 1e9),
+    (2.37e18, 2.15e-15 * 2.37e18 / 1e9),
+    (5.19e18, 2.33e-16 * 5.19e18 / 1e9),
+    (1.10e19, 3.64e-17 * 1.10e19 / 1e9),
+    (3.55e19, 4.45e-18 * 3.55e19 / 1e9),
+    (1.11e20, 9.22e-19 * 1.11e20 / 1e9),
+    (4.18e20, 2.97e-19 * 4.18e20 / 1e9),
+    (9.70e20, 1.62e-19 * 9.70e20 / 1e9)
 ]))
-
 anita_limit[:, 0] *= units.eV
 anita_limit[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-anita_limit[:, 1] /= 2
+anita_limit[:, 1] *= (4 / np.log(10))  # see discussion above about strange anita binning
 anita_limit[:, 1] *= energyBinsPerDecade
 
-# Auger neutrino limit
-# Auger 9 years, all flavour (x3)
-auger_limit = np.array(([
-    (16.7523809524, 4.462265901e-07),
-    (17.2523809524, 1.103901153e-07),
-    (17.7523809524, 6.487559078e-08),
-    (18.2380952381, 7.739545498e-08),
-    (18.7523809524, 1.387743075e-07),
-    (19.2571428571, 3.083827665e-07),
-    (19.7523809524, 7.467202523e-07),
-    (20.2476190476, 1.998499395e-06)
+# ANITA I - IV
+# https://arxiv.org/abs/1902.04005
+# Phys. Rev. D 99, 122001 (2019)
+# NB: The ANITA I-IV is indeed weaker than the ANITA I-III limit (!!)
+# The reason is not understood, but can be seen easily comparing the two limits side-by-side
+anita_i_iv_limit = np.array(([
+    (1.000e+18, 3.1098E+04),
+    (3.162e+18, 3.7069E+03),
+    (1.000e+19, 6.0475E+02),
+    (3.162e+19, 2.5019E+02),
+    (1.000e+20, 1.4476E+02),
+    (3.162e+20, 1.5519E+02),
+    (1.000e+21, 2.0658E+02)
 ]))
-auger_limit[:, 0] = 10 ** auger_limit[:, 0] * units.eV
+anita_i_iv_limit[:, 0] *= units.eV
+anita_i_iv_limit[:, 1] *= (units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+anita_i_iv_limit[:, 1] *= (4 / np.log(10))  # see discussion above about strange anita binning
+anita_i_iv_limit[:, 1] *= energyBinsPerDecade
+
+'''
+Regarding Auger Limits
+====================================================
+
+Auger publishes a limit that only applies to a single flavor.
+So, to make it an all-flavor limit, the limit must be multiplied by 3.
+Because this is a limit, multiplying by 3 makes the limit *weaker*.
+Also, Auger uses half decade bins, so that must be corrected to a single decade.
+The net factor of 3/2, on a log-log plot, leaves the limit's position (relative
+to other experiments) essentially unchanged.
+'''
+
+# Auger neutrino limit (2019, 14.7 years)
+# JCAP 10 (2019) 022
+# https://arxiv.org/abs/1906.07422
+auger_limit = np.array(([
+    (5.677E+16, 9.398E-08),
+    (1.771E+17, 2.298E-08),
+    (5.677E+17, 1.467E-08),
+    (1.771E+18, 1.881E-08),
+    (5.677E+18, 3.382E-08),
+    (1.771E+19, 7.179E-08),
+    (5.677E+19, 1.725E-07),
+    (1.771E+20, 4.412E-07)
+]))
+auger_limit[:, 0] *= units.eV
 auger_limit[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
 auger_limit[:, 1] /= 2  # half-decade binning
+auger_limit[:, 1] *= 3  # correction for 3 flavors
 auger_limit[:, 1] *= energyBinsPerDecade
 
 # ARA Published 2sta x 1yr analysis level limit:
@@ -246,23 +362,47 @@ ara_1year[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr *
 ara_1year[:, 1] /= 1  # binning is dLogE = 1
 ara_1year[:, 1] *= energyBinsPerDecade
 
-# Ongoing analysis 2sta x 4yr *trigger* level projected limit (analysis
-# level not fully defined yet)
+# Analysis from https://doi.org/10.1103/PhysRevD.102.043021  https://arxiv.org/abs/1912.00987
+# 2 stations (A2 and A3), approx 1100 days of livetime per station
+ara_4year_E, ara_4year_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "limit_a23.txt"), unpack=True)
+ara_4year_E *= units.eV
+ara_4year_limit *= units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
+ara_4year_limit *= energyBinsPerDecade
 
-ara_4year = np.array((
+# ARA 2023 projection
+'''
+This estimate is built by using the actual recorded livetime for the ARA stations 
+through June 2021. Specifically:
+1747 days of A1
+5627 days of A2 + A3 + A4
+826 days of A5
 
-[9.91245E+15, 3.11814E+16, 9.80021E+16, 3.10745E+17, 9.94099E+17, 3.0936E+18, 9.71449E+18, 3.07805E+19, 9.75192E+19],
-# [1.01518E+16,1.01357E+17,1.01748E+18,1.0234E+19,1.03113E+20],
-# [7.27626e-06,5.06909e-07,2.13658e-07,2.02468e-07,4.46012e-07]
-[5.35394e-06, 1.24309e-06, 4.20315e-07, 2.24199e-07, 1.61582e-07, 1.50329e-07, 1.63715e-07, 2.24543e-07, 3.36398e-07]
-))
+And then adding projected livetime
+A1: 7/12 of a year for 2021, then 1 year of 2022, and 1 year of 2023
+A2: no more data for 2021, no data for 2022, 1 year of 2023
+A3: 7/12 of a year for 2021, then 1 year of 2022, and 1 year of 2023
+A4: no more data for 2021, no data for 2022, 1 year of 2023
+A5: 7/12 of a year for 2021, then 1 year of 2022, and 1 year of 2023
 
-ara_4year = ara_4year.T
+We do include different effective areas for A1, A2/3/4, and A5,
+since A1 is smaller (only being at 100m), while A5 is larger (having the phased array).
 
-ara_4year[:, 0] *= units.eV
-ara_4year[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-ara_4year[:, 1] /= 1  # binning is dLogE = 1
-ara_4year[:, 1] *= energyBinsPerDecade
+We also included the trigger level and analysis level estimate.
+The analysis level option assumes the A2 analysis efficiency for stations A1-4,
+and a (preliminary) analysis efficiency estimate from the phased-array analysis.
+
+'''
+ara_2023_E_TL, ara_2023_limit_TL, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "limit_ara_2023_projected_trigger.txt"), unpack=True)
+ara_2023_E_TL *= units.GeV
+ara_2023_limit_TL *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
+ara_2023_limit_TL *= energyBinsPerDecade
+ara_2023_limit_TL *= 2.44  # convert to 90%CL limit to be comparable with information from other experiments
+
+ara_2023_E, ara_2023_limit, t1, t2 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "limit_ara_2023_projected_analysis.txt"), unpack=True)
+ara_2023_E *= units.GeV
+ara_2023_limit *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
+ara_2023_limit *= energyBinsPerDecade
+ara_2023_limit *= 2.44  # convert to 90%CL limit to be comparable with information from other experiments
 
 ARIANNA_HRA = np.array([[1.00000003e+07, 3.16228005e+07, 9.99999984e+07, 3.16227997e+08,
                          9.99999984e+08, 3.16228010e+09, 9.99999998e+09, 3.16228010e+10,
@@ -276,14 +416,49 @@ ARIANNA_HRA[:, 1] /= 1
 ARIANNA_HRA[:, 1] *= (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
 ARIANNA_HRA[:, 1] *= energyBinsPerDecade
 
+from scipy.interpolate import interp1d
 
-# get 10% proton flux
+
+def get_TAGZK_flux(energy):
+    """
+    GZK neutrino flux from TA best fit from D. Bergmann privat communications
+    """
+
+    TA_data = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_combined_fit_m3.txt"))
+    E = TA_data[:, 0] * units.GeV
+    f = TA_data[:, 1] * plotUnitsFlux / E ** 2
+    get_TAGZK_flux = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
+    return get_TAGZK_flux(energy)
+
+
+def get_TAGZK_flux_ICRC2021(energy):
+    """
+    GZK neutrino flux from TA best fit ICRC2021
+    https://pos.sissa.it/395/338/
+    """
+    TA_data = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_GZKprediction_ICRC2021.txt"))
+    E = TA_data[:, 0] * units.GeV
+    f = TA_data[:, 1] * plotUnitsFlux / E ** 2
+    get_TAGZK_flux = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
+    return get_TAGZK_flux(energy)
+
+
 def get_proton_10(energy):
-    vanVliet_reas = np.loadtxt(os.path.join(os.path.dirname(__file__), "ReasonableNeutrinos1.txt"))
-    E = vanVliet_reas[0, :] * plotUnitsEnergy
+    """
+    10% proton flux at source for astrophysical parameters determined by Auger data, by van Vliet et al.
+    """
+    vanVliet_reas = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "ReasonableNeutrinos1.txt"))
+    E = vanVliet_reas[0, :] * units.GeV
     f = vanVliet_reas[1, :] * plotUnitsFlux / E ** 2
-    from scipy.interpolate import interp1d
-    getE = interp1d(E, f)
+    getE = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
+    return getE(energy)
+
+
+def get_GZK_Auger_best_fit(energy):
+    Heinze_band = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "talys_neu_bands.out"))
+    E = Heinze_band[:, 0] * units.GeV
+    f = Heinze_band[:, 1] / units.GeV / units.cm ** 2 / units.s / units.sr
+    getE = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
     return getE(energy)
 
 
@@ -292,9 +467,13 @@ def get_E2_limit_figure(diffuse=True,
                         show_ice_cube_HESE_data=True,
                         show_ice_cube_HESE_fit=True,
                         show_ice_cube_mu=True,
-                        show_anita_I_III_limit=True,
+                        show_icecube_glashow=True,
+                        show_anita_I_III_limit=False,
+                        show_anita_I_IV_limit=True,
                         show_auger_limit=True,
                         show_ara=True,
+                        show_ara_2023=False,
+                        show_ara_2023_TL=False,
                         show_arianna=True,
                         show_neutrino_best_fit=True,
                         show_neutrino_best_case=True,
@@ -304,9 +483,14 @@ def get_E2_limit_figure(diffuse=True,
                         show_radar=False,
                         show_Heinze=True,
                         show_TA=False,
+                        show_TA_nominal=False,
+                        show_TA_ICRC2021=False,
                         show_RNOG=False,
-                        show_IceCubeGen2=False,
-                        shower_Auger=True):
+                        show_IceCubeGen2_whitepaper=False,
+                        show_IceCubeGen2_ICRC2021=False,
+                        shower_Auger=True,
+                        show_ara_1year=False,
+                        show_prediction_arianna_200=False):
 
     # Limit E2 Plot
     # ---------------------------------------------------------------------------
@@ -316,11 +500,31 @@ def get_E2_limit_figure(diffuse=True,
     # Version for a diffuse flux and for a source dominated flux
     if diffuse:
         legends = []
+        # TA combined fit
+        if(show_TA):
+            TA_data_low = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_combined_fit_low_exp_uncertainty.txt"))
+            TA_data_high = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_combined_fit_high_exp_uncertainty.txt"))
+            TA_m3 = ax.fill_between(TA_data_low[:, 0] * units.GeV / plotUnitsEnergy,
+                                     TA_data_low[:, 1], TA_data_high[:, 1],
+                              label=r'UHECRs TA combined fit (1$\sigma$), Bergman et al.', color='C0', alpha=0.5, zorder=-1)
+            legends.append(TA_m3)
+        if(show_TA_nominal):
+            TA_data = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_combined_fit_m3.txt"))
+            E = TA_data[:, 0] * units.GeV
+            f = TA_data[:, 1] * plotUnitsFlux
+            TA_nominal, = ax.plot(E / plotUnitsEnergy, f / plotUnitsFlux, "k-.", label="UHECRs TA combined fit, Bergman et al.")
+            legends.append(TA_nominal)
+        if(show_TA_ICRC2021):
+            TA_data = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "TA_GZKprediction_ICRC2021.txt"))
+            E = TA_data[:, 0] * units.GeV
+            f = TA_data[:, 1] * plotUnitsFlux
+            TA_nominal, = ax.plot(E / plotUnitsEnergy, f / plotUnitsFlux, "k-.", label="UHECRs TA combined fit, Bergman et al.")
+            legends.append(TA_nominal)
         if(shower_Auger):
 
-            vanVliet_max_1 = np.loadtxt(os.path.join(os.path.dirname(__file__), "MaxNeutrinos1.txt"))
-            vanVliet_max_2 = np.loadtxt(os.path.join(os.path.dirname(__file__), "MaxNeutrinos2.txt"))
-            vanVliet_reas = np.loadtxt(os.path.join(os.path.dirname(__file__), "ReasonableNeutrinos1.txt"))
+            vanVliet_max_1 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "MaxNeutrinos1.txt"))
+            vanVliet_max_2 = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "MaxNeutrinos2.txt"))
+            vanVliet_reas = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "ReasonableNeutrinos1.txt"))
 
             vanVliet_max = np.maximum(vanVliet_max_1[1, :], vanVliet_max_2[1, :])
 
@@ -333,16 +537,16 @@ def get_E2_limit_figure(diffuse=True,
             legends.append(prot)
 
         if(show_Heinze):
-            Heinze_band = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_bands.out"))
-#             best_fit, = ax.plot(Heinze_band[:, 0], Heinze_band[:, 1] * Heinze_band[:, 0] ** 2, c='k',
+            Heinze_band = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "talys_neu_bands.out"))
+#             best_fit, = ax.plot(Heinze_band[:, 0] * units.GeV / plotUnitsEnergy, Heinze_band[:, 1] * Heinze_band[:, 0] ** 2, c='k',
 #                                 label=r'UHECR (Auger) combined fit, Heinze et al.', linestyle='-.')
 
 #             Auger_bestfit = ax.fill_between(Heinze_band[:, 0],
 #                                      Heinze_band[:, 2] * Heinze_band[:, 0] ** 2, Heinze_band[:, 3] * Heinze_band[:, 0] ** 2,
 #                               label=r'UHECRs Auger combined fit, Heinze et al.', color='C1', alpha=0.5, zorder=1)
 
-            Heinze_evo = np.loadtxt(os.path.join(os.path.dirname(__file__), "talys_neu_evolutions.out"))
-            Auger_bestfit = ax.fill_between(Heinze_evo[:, 0],
+            Heinze_evo = np.loadtxt(os.path.join(os.path.dirname(__file__), 'data', "talys_neu_evolutions.out"))
+            Auger_bestfit = ax.fill_between(Heinze_evo[:, 0] * units.GeV / plotUnitsEnergy,
                                      Heinze_evo[:, 3] * Heinze_band[:, 0] ** 2, Heinze_evo[:, 4] * Heinze_band[:, 0] ** 2,
                               label=r'UHECRs Auger combined fit (3$\sigma$), Heinze et al.', color='C1', alpha=0.5, zorder=1)
 
@@ -351,15 +555,6 @@ def get_E2_limit_figure(diffuse=True,
 #                             2, color='0.5', label=r'UHECR (Auger) combined fit + 3$\sigma$, Heinze et al.', linestyle='-.')
             legends.append(Auger_bestfit)
 #             legends.append(best_fit_3s)
-
-        # TA combined fit
-        if(show_TA):
-            TA_data_low = np.loadtxt(os.path.join(os.path.dirname(__file__), "TA_combined_fit_low_exp_uncertainty.txt"))
-            TA_data_high = np.loadtxt(os.path.join(os.path.dirname(__file__), "TA_combined_fit_high_exp_uncertainty.txt"))
-            TA_m3 = ax.fill_between(TA_data_low[:, 0] * units.GeV / plotUnitsEnergy,
-                                     TA_data_low[:, 1], TA_data_high[:, 1],
-                              label=r'UHECRs TA combined fit (1$\sigma$), Bergman et al.', color='C0', alpha=0.5, zorder=-1)
-            legends.append(TA_m3)
 
         first_legend = plt.legend(handles=legends, loc=4, fontsize=legendfontsize, handlelength=4)
 
@@ -413,34 +608,34 @@ def get_E2_limit_figure(diffuse=True,
         ax.plot(GRAND_energy / plotUnitsEnergy, GRAND_10k / plotUnitsFlux, linestyle=":", color='saddlebrown')
         if energyBinsPerDecade == 2:
             ax.annotate('GRAND 10k',
-                            xy=(1e10, 1.1e-7), xycoords='data',
-                            horizontalalignment='left', color='saddlebrown', rotation=40, fontsize=legendfontsize)
+                            xy=(0.9e10 * units.GeV / plotUnitsEnergy, 2e-8), xycoords='data',
+                            horizontalalignment='left', color='saddlebrown', rotation=50, fontsize=legendfontsize)
         else:
             ax.annotate('GRAND 10k',
-                xy=(5e9, 7e-8), xycoords='data',
-                horizontalalignment='left', color='saddlebrown', rotation=40, fontsize=legendfontsize)
+                xy=(1.2e19 * units.eV / plotUnitsEnergy, 5e-8), xycoords='data',
+                horizontalalignment='left', va="top", color='saddlebrown', rotation=47, fontsize=legendfontsize)
 
     if show_grand_200k:
         ax.plot(GRAND_energy / plotUnitsEnergy, GRAND_200k / plotUnitsFlux, linestyle=":", color='saddlebrown')
         ax.annotate('GRAND 200k',
-                    xy=(1e10, 6e-9), xycoords='data',
+                    xy=(1e10 * units.GeV / plotUnitsEnergy, 6e-9), xycoords='data',
                     horizontalalignment='left', color='saddlebrown', rotation=40, fontsize=legendfontsize)
     if show_radar:
         ax.fill_between(Radar[:, 0] / plotUnitsEnergy, Radar[:, 1] / plotUnitsFlux,
                         Radar[:, 2] / plotUnitsFlux, facecolor='None', hatch='x', edgecolor='0.8')
         ax.annotate('Radar',
-                    xy=(1e9, 4.5e-8), xycoords='data',
+                    xy=(1e9 * units.GeV / plotUnitsEnergy, 4.5e-8), xycoords='data',
                     horizontalalignment='left', color='0.7', rotation=45, fontsize=legendfontsize)
 
     if show_ice_cube_EHE_limit:
-        ax.plot(ice_cube_limit[:, 0] / plotUnitsEnergy, ice_cube_limit[:, 1] / plotUnitsFlux, color='dodgerblue')
+        ax.plot(ice_cube_limit[2:, 0] / plotUnitsEnergy, ice_cube_limit[2:, 1] / plotUnitsFlux, color='dodgerblue')
         if energyBinsPerDecade == 2:
             ax.annotate('IceCube',
-                    xy=(0.7e7, 4e-8), xycoords='data',
+                    xy=(0.6e7 * units.GeV / plotUnitsEnergy, 2e-8), xycoords='data',
                     horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('IceCube',
-                    xy=(4e6, 4e-8), xycoords='data',
+                    xy=(3e6 * units.GeV / plotUnitsEnergy, 3e-8), xycoords='data',
                     horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
 
     if show_ice_cube_HESE_data:
@@ -464,61 +659,132 @@ def get_E2_limit_figure(diffuse=True,
         ax.fill_between(ice_cube_mu_range[0] / plotUnitsEnergy, ice_cube_mu_range[1] / plotUnitsFlux,
                         ice_cube_mu_range[2] / plotUnitsFlux, hatch='\\', edgecolor='dodgerblue', facecolor='azure', zorder=2)
         plt.plot(ice_cube_mu_range[0] / plotUnitsEnergy,
-                 ice_cube_nu_fit(ice_cube_mu_range[0], offset=1.01, slope=-2.19) * ice_cube_mu_range[0] ** 2 / plotUnitsFlux,
+                 ice_cube_nu_fit(ice_cube_mu_range[0]) * ice_cube_mu_range[0] ** 2 / plotUnitsFlux,
                  color='dodgerblue')
 
+        ax.annotate('IceCube',
+                    xy=(3e6 * units.GeV / plotUnitsEnergy, 3e-8), xycoords='data',
+                    horizontalalignment='center', color='dodgerblue', rotation=0, fontsize=legendfontsize)
+
         # Extrapolation
-        energy_placeholder = np.array(([1e14, 1e17])) * units.eV
+        energy_placeholder = np.array(([1e14, 1e19])) * units.eV
         plt.plot(energy_placeholder / plotUnitsEnergy,
-                 ice_cube_nu_fit(energy_placeholder, offset=1.01, slope=-2.19) * energy_placeholder ** 2 / plotUnitsFlux,
+                 ice_cube_nu_fit(energy_placeholder) * energy_placeholder ** 2 / plotUnitsFlux,
                  color='dodgerblue', linestyle=':')
+
+        uplimit = np.copy(nu_mu_data[:, 3])
+        uplimit[np.where(nu_mu_data[:, 3] == 0)] = 1
+        uplimit[np.where(nu_mu_data[:, 3] != 0.)] = 0
+
+        if nu_mu_show_data_points:
+            ax.errorbar(nu_mu_data[:, 0] / plotUnitsEnergy, nu_mu_data[:, 1] / plotUnitsFlux,
+                        yerr=nu_mu_data[:, 2:].T / plotUnitsFlux, uplims=uplimit, color='dodgerblue',
+                        marker='o', ecolor='dodgerblue', linestyle='None', zorder=3,
+                        markersize=7)
+
+    if show_icecube_glashow:
+        # only plot the Glashow data point (the first (0) and last (2) entries are upper limits)
+        point = 1
+        glashow_x = (i3_glashow_emax[point] - i3_glashow_emin[point]) / 2 + i3_glashow_emin[point]
+        glashow_y = i3_glashow_y[point]
+        ax.errorbar(
+            x=glashow_x,
+            y=glashow_y,
+            xerr=[[glashow_x - i3_glashow_emin[point]], [i3_glashow_emax[point] - glashow_x]],
+            yerr=[[glashow_y - i3_glashow_y_lower[point]], [i3_glashow_y_upper[point] - glashow_y]],
+            marker='o', markersize=7, color='dodgerblue', ecolor='dodgerblue',
+            )
 
     if show_anita_I_III_limit:
         ax.plot(anita_limit[:, 0] / plotUnitsEnergy, anita_limit[:, 1] / plotUnitsFlux, color='darkorange')
         if energyBinsPerDecade == 2:
             ax.annotate('ANITA I - III',
-                        xy=(7e9, 1e-6), xycoords='data',
+                        xy=(7e9 * units.GeV / plotUnitsEnergy, 1e-6), xycoords='data',
                         horizontalalignment='left', color='darkorange', fontsize=legendfontsize)
         else:
             ax.annotate('ANITA I - III',
-                        xy=(7e9, 5e-7), xycoords='data',
+                        xy=(7e9 * units.GeV / plotUnitsEnergy, 5e-7), xycoords='data',
+                        horizontalalignment='left', color='darkorange', fontsize=legendfontsize)
+
+    if show_anita_I_IV_limit:
+        ax.plot(anita_i_iv_limit[:, 0] / plotUnitsEnergy, anita_i_iv_limit[:, 1] / plotUnitsFlux, color='darkorange')
+        if energyBinsPerDecade == 2:
+            ax.annotate('ANITA I - IV',
+                        xy=(7e9 * units.GeV / plotUnitsEnergy, 1e-6), xycoords='data',
+                        horizontalalignment='left', color='darkorange', fontsize=legendfontsize)
+        else:
+            ax.annotate('ANITA I - IV',
+                        xy=(7e9 * units.GeV / plotUnitsEnergy, 5e-7), xycoords='data',
                         horizontalalignment='left', color='darkorange', fontsize=legendfontsize)
 
     if show_auger_limit:
         ax.plot(auger_limit[:, 0] / plotUnitsEnergy, auger_limit[:, 1] / plotUnitsFlux, color='forestgreen')
         if energyBinsPerDecade == 2:
             ax.annotate('Auger',
-                        xy=(1.1e8, 2.1e-7), xycoords='data',
+                        xy=(8e16 * units.eV / plotUnitsEnergy, 2.1e-7), xycoords='data',
                         horizontalalignment='left', color='forestgreen', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('Auger',
-                        xy=(2e8, 6e-8), xycoords='data',
-                        horizontalalignment='left', color='forestgreen', rotation=0, fontsize=legendfontsize)
+                        xy=(9.9e16 * units.eV / plotUnitsEnergy, 4e-8), xycoords='data',
+                        horizontalalignment='right', color='forestgreen', rotation=-50, fontsize=legendfontsize)
 
-    if show_ara:
+    if show_ara_1year:
         ax.plot(ara_1year[:, 0] / plotUnitsEnergy, ara_1year[:, 1] / plotUnitsFlux, color='indigo')
 #         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
         if energyBinsPerDecade == 2:
             ax.annotate('ARA',
-                        xy=(5e8, 6e-7), xycoords='data',
+                        xy=(5e8 * units.GeV / plotUnitsEnergy, 6e-7), xycoords='data',
                         horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('ARA',
-                    xy=(2e10, 1.05e-6), xycoords='data',
+                    xy=(2e10 * units.GeV / plotUnitsEnergy, 1.05e-6), xycoords='data',
                     horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
+    if show_ara:
+        ax.plot(ara_4year_E / plotUnitsEnergy, ara_4year_limit / plotUnitsFlux, color='indigo')
+#         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
+        if energyBinsPerDecade == 2:
+            ax.annotate('ARA',
+                        xy=(5e8 * units.GeV / plotUnitsEnergy, 6e-7), xycoords='data',
+                        horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
+        else:
+            ax.annotate('ARA',
+                    xy=(2e10 * units.GeV / plotUnitsEnergy, 1.05e-6), xycoords='data',
+                    horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
+    if show_ara_2023:
+        ax.plot(ara_2023_E / plotUnitsEnergy, ara_2023_limit / plotUnitsFlux, color='grey', linestyle='--')
+        if energyBinsPerDecade == 2:
+            ax.annotate('ARA 2023',
+                        xy=(2E16 * units.eV / plotUnitsEnergy, 6e-7), xycoords='data',
+                        horizontalalignment='left', color='grey', rotation=0, fontsize=legendfontsize)
+        else:
+            ax.annotate('ARA 2023',
+                    xy=(4E17 * units.eV / plotUnitsEnergy, 6e-8), xycoords='data',
+                    horizontalalignment='left', color='grey', rotation=0, fontsize=legendfontsize)
+
+    if show_ara_2023_TL:
+        ax.plot(ara_2023_E_TL / plotUnitsEnergy, ara_2023_limit_TL / plotUnitsFlux, color='grey', linestyle='--')
+        if energyBinsPerDecade == 2:
+            ax.annotate('ARA 2023 \n(TL)',
+                        xy=(1E16 * units.eV / plotUnitsEnergy, 6e-7), xycoords='data',
+                        horizontalalignment='left', color='grey', rotation=0, fontsize=legendfontsize)
+        else:
+            ax.annotate('ARA 2023 \n(TL)',
+                    xy=(1E16 * units.eV / plotUnitsEnergy, 6e-8), xycoords='data',
+                    horizontalalignment='left', color='grey', rotation=0, fontsize=legendfontsize)
+
     if show_arianna:
         ax.plot(ARIANNA_HRA[:, 0] / plotUnitsEnergy, ARIANNA_HRA[:, 1] / plotUnitsFlux, color='red')
 #         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
         if energyBinsPerDecade == 2:
             ax.annotate('ARIANNA',
-                        xy=(5e8, 6e-7), xycoords='data',
+                        xy=(5e8 * units.GeV / plotUnitsEnergy, 6e-7), xycoords='data',
                         horizontalalignment='left', color='red', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('ARIANNA',
-                    xy=(3e8, 1.05e-6), xycoords='data',
+                    xy=(1e8 * units.GeV / plotUnitsEnergy, 1.05e-6), xycoords='data',
                     horizontalalignment='right', color='red', rotation=0, fontsize=legendfontsize)
 
-    if show_IceCubeGen2:
+    if show_IceCubeGen2_whitepaper:
         # flux limit for 5 years
         gen2_E = np.array([1.04811313e+07, 1.32571137e+07, 1.67683294e+07, 2.12095089e+07,
                  2.68269580e+07, 3.39322177e+07, 4.29193426e+07, 5.42867544e+07,
@@ -543,7 +809,19 @@ def get_E2_limit_figure(diffuse=True,
         ax.plot(gen2_E / plotUnitsEnergy, gen2_flux / 2 / plotUnitsFlux, color='purple', linestyle=":")
 #         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
         ax.annotate('IceCube-Gen2 radio',
-                    xy=(.8e8, 1.6e-10), xycoords='data',
+                    xy=(.8e8 * units.GeV / plotUnitsEnergy, 1.6e-10), xycoords='data',
+                    horizontalalignment='left', color='purple', rotation=0, fontsize=legendfontsize)
+        
+    if show_IceCubeGen2_ICRC2021:
+        # https://pos.sissa.it/395/1183/
+        # flux limit for 10 years
+        gen2_E, gen2_flux = np.loadtxt(os.path.join(os.path.dirname(__file__), "data/Gen2radio_sensitivity_ICRC2021.txt"))
+        gen2_E *= units.eV
+        gen2_flux *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
+        ax.plot(gen2_E / plotUnitsEnergy, gen2_flux / plotUnitsFlux, color='purple', linestyle=":")
+#         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
+        ax.annotate('IceCube-Gen2 radio',
+                    xy=(.8e8 * units.GeV / plotUnitsEnergy, 1.6e-10), xycoords='data',
                     horizontalalignment='left', color='purple', rotation=0, fontsize=legendfontsize)
     if show_RNOG:
         # flux limit for 5 years
@@ -551,21 +829,35 @@ def get_E2_limit_figure(diffuse=True,
                            1.77827941e+09, 5.62341325e+09, 1.77827941e+10, 5.62341325e+10]) * units.GeV
         RNOG_flux = np.array([4.51342568e-08, 1.57748718e-08, 1.03345333e-08, 7.98437261e-09,
                               7.22245212e-09, 7.62588582e-09, 9.28033358e-09, 1.28698605e-08]) * plotUnitsFlux
-        ax.plot(RNOG_E / plotUnitsEnergy, RNOG_flux / 2 / plotUnitsFlux, color='red', linestyle="-.")
+        ax.plot(RNOG_E / plotUnitsEnergy, RNOG_flux / 0.7 / 2 / plotUnitsFlux, color='red', linestyle="-.")  # uses 70% uptime from RNO-G whitepaper and resacling to 10years
 #         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
         ax.annotate('RNO-G',
-                    xy=(3e8, 3e-9), xycoords='data',
-                    horizontalalignment='right', color='red', rotation=0, fontsize=legendfontsize)
+                    xy=(8e18 * units.eV / plotUnitsEnergy, 1e-8), xycoords='data',
+                    horizontalalignment='left', va="top", color='red', rotation=10, fontsize=legendfontsize)
+
+    if show_prediction_arianna_200:
+        # 10 year sensitivity
+        arianna_200 = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', "expected_sensivity_ARIANNA-200.txt"))
+        arianna_200[:, 0] *= units.GeV
+        arianna_200[:, 1] *= units.GeV * units.cm ** -2 * units.s ** -1
+        print(arianna_200)
+
+        _plt4, = ax.plot(arianna_200[:, 0] / plotUnitsEnergy, arianna_200[:, 1] / plotUnitsFlux, label='ARIANNA-200 (5 years)', color='blue', linestyle="--")
+        ax.annotate('ARIANNA-200',
+                    xy=(.9e19 * units.eV / plotUnitsEnergy, 3.15e-9), xycoords='data',
+                    horizontalalignment='left', color='blue', rotation=30, fontsize=legendfontsize)
+
+#         labels.append(_plt4)
 
     ax.set_yscale('log')
     ax.set_xscale('log')
 
-    ax.set_xlabel(r'neutrino energy [GeV]')
+    ax.set_xlabel(f'neutrino energy [{plotUnitsEnergyStr}]')
     ax.set_ylabel(r'$E^2\Phi$ [GeV cm$^{-2}$ s$^{-1}$ sr$^{-1}$]')
 
     if diffuse:
         ax.set_ylim(1e-12, 10e-6)
-        ax.set_xlim(1e5, 1e11)
+        ax.set_xlim(1e14 * units.eV / plotUnitsEnergy, 1e20 * units.eV / plotUnitsEnergy)
     else:
         ax.set_ylim(1e-11, 2e-6)
         ax.set_xlim(1e5, 1e11)
@@ -652,4 +944,3 @@ if __name__ == "__main__":
     else:
         name_plot = "Limit_sources.pdf"
     plt.savefig(name_plot)
-    plt.show()
