@@ -77,7 +77,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
             trace = voltage
         else:
             trace = voltage * np.sin(2 * np.pi * emitter_frequency * time) 
-    elif(model == 'idl' or model == 'hvsp2'):            # the idl & hvsp2 lab data from KU stored in hdf5 file
+    elif(model == 'idl' or model == 'hvsp2'):            # the idl & hvsp2 waveforms gemerated in KU Lab stored in hdf5 file
         if(model == 'idl'):
             read_file = h5py.File('idl_data.hdf5', 'r')
         else:
@@ -87,19 +87,22 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         time_new = np.linspace( time_original[0], time_original[len(time_original)-1], (int((time_original[len(time_original)-1]-time_original[0])/dt)+1))
         interpolation = interp1d(time_original,voltage_original,kind='cubic')
         voltage_new = interpolation(time_new)
+        # if the interpolated waveform has larger sample size than N , it will truncate the data keeping peak amplitude at center
         if len(voltage_new)>N:
             peak_amplitude_index = np.where( np.abs( voltage_new ) == np.max( np.abs( voltage_new ) ) )[0][0]
             voltage_new = np.roll( voltage_new, int(len(voltage_new)/2)-peak_amplitude_index)
-            trace = voltage_new[int(len(voltage_new)/2 - N/2):int(len(voltage_new)/2 + N/2)]
+            lower_index = int(len(voltage_new)/2 - N/2)
+            trace = voltage_new[lower_index : lower_index + N]   # this truncate data making trace lenght of N
+        # for the case with larger N, trace size will be adjusted depending on whether the number (N + len(voltage_new)) is even or odd
         else:
             add_zeros = int(( N-len(voltage_new)) /2)
-            if ( N %2 != len(voltage_new) %2 ):
-                trace = np.pad(voltage_new, (add_zeros+1, add_zeros), 'constant', constant_values=(0, 0))
-            else:
-                trace = np.pad(voltage_new, (add_zeros, add_zeros), 'constant', constant_values=(0, 0))
+            adjustment = 0
+            if (( N + len(voltage_new)) %2 != 0):
+                adjustment = 1
+            trace = np.pad(voltage_new, (add_zeros + adjustment, add_zeros), 'constant', constant_values=(0, 0))
         trace = amplitude * trace /np.max(np.abs( trace ))                    # trace now has dimension of amplitude given from event generation file
-        peak_amplitude_index = np.where( np.abs( trace ) == np.max( np.abs( trace ) ) )[0][0]
-        trace = np.roll( trace, int(N/2) - peak_amplitude_index )             # this rolls the array(trace) to keep peak amplitude at center
+        peak_amplitude_index_new = np.where( np.abs( trace ) == np.max( np.abs( trace ) ) )[0][0]
+        trace = np.roll( trace, int(N/2) - peak_amplitude_index_new )             # this rolls the array(trace) to keep peak amplitude at center
     else:
         raise NotImplementedError("model {} unknown".format(model))
     if(full_output):
