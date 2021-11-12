@@ -31,11 +31,11 @@ def generate_my_events(filename, n_events):
     ########### FOR Emitter ###############
     data_sets = {}
     data_sets["emitter_antenna_type"] = ["bicone_v8_inf_n1.78"] * n_events
-    data_sets["emitter_model"] = ["idl"] * n_events
+    data_sets["emitter_model"] = ["square"] * n_events
     data_sets["emitter_amplitude"] = np.ones(n_events) * 1 * units.V
 
     # we also have choice for the half width and frequency
-    data_sets["half_of_pulse_width"]= 100.0 * np.ones(n_events) *units.ns        # this will be the width of square and tone_burst signal  
+    data_sets["half_of_pulse_width"]= 1.0 * np.ones(n_events) *units.ns        # this will be the width of square and tone_burst signal  
     data_sets["emitter_frequency"] = 0.3 * np.ones(n_events)  *units.GHz       # this will be frequency of a signal ( for cw and tone_burst model)
     
     #the position of the emitter
@@ -73,5 +73,5 @@ def generate_my_events(filename, n_events):
     write_events_to_hdf5(filename, data_sets, attributes)
 
 if __name__ == "__main__":
-    generate_my_events("emitter_event_list.hdf5", 1)
+    generate_my_events("emitter_event_list.hdf5", 5)
 
