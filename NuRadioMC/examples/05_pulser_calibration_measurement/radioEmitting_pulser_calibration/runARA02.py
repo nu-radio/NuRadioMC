@@ -35,14 +35,15 @@ triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator
 triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
 triggerSimulator.begin(log_level=logging.WARNING)
 class mySimulation(simulation.simulation):
+
     def _detector_simulation_filter_amp(self, evt, station, det):
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
          channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 1000 * units.GHz],
                                   filter_type='butter', order=2)
          channelBandPassFilter.run(evt, station, det, passband=[0, 500 * units.MHz],
                                   filter_type='butter', order=10)
-        
 
+ 
     def _detector_simulation_trigger(self, evt, station, det):
         # save the amplitudes to output hdf5 file
         # save amplitudes per ray tracing solution to hdf5 data output
