@@ -8,7 +8,7 @@ python runARA02.py emitter_event_list.hdf5 ARA02Alt.json config.yaml output.hdf5
 
 Define 'simulation_mode' as "emitter" to work with radio emitting pulser models
 
-For "emitter_antenna_type" , all avialable antenna models in NuRadioMC can be used
+For "emitter_antenna_type" , all available antenna models in NuRadioMC can be used
 
 The amplitude of source voltage signal ( waveform ) including magnitude and dimesion (unit) is defined through "emitter_amplitude"
 
@@ -26,9 +26,10 @@ Instead of usual VPol and HPol antennas (bicone and fourslot),  ARA02Alt.json us
 ### hdf5 files ###
 
 
-The root data containing waveforms generated in University of Kansas (KU) lab for IDL abd HVSP2 signals, have been converted in to hdf5 files (ex: idl_data.hdf5, hvsp2_data.hdf5).
+The root data containing waveforms generated in University of Kansas (KU) lab for IDL and HVSP2 signals, have been converted in to hdf5 files (ex: idl_data.hdf5, hvsp2_data.hdf5).
 
 These files contain voltage array ( normalized to one) volt and corresponding time array converted in nanoseconds.
 
-
+## "emitter_model" ####
+There are many available radio emitting models including cw, square , tone_burst, idl, hvsp2 etc.. (for more detail, visit :  NuRadioMC/SignalGen/emitter.py )
 
