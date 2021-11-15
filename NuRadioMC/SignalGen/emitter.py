@@ -63,12 +63,12 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         trace = np.zeros(N)
         trace[N // 2] = amplitude
     elif(model == 'cw'):              # generates a sine wave of given frequency 
-        time = np.linspace(-(N/2)*dt, ((N-1) - N/2)*dt, N)
+        time = np.linspace(-(N/2) * dt, ((N - 1) - N/2) * dt, N)
         trace = amplitude * np.sin(2 * np.pi * emitter_frequency * time)
     elif(model == 'square' or model == 'tone_burst' ):     # generates a rectangular or tone_burst signal of given width and frequency 
         if(half_width > int(N/2)):
             raise NotImplementedError(" half_width {} should be < half of the number of samples N " . format( half_width ) )
-        time = np.linspace(-(N/2)*dt, ((N-1) - N/2)*dt, N)
+        time = np.linspace(-(N/2) * dt, ((N - 1) - N/2) * dt, N)
         voltage = np.zeros(N)
         for i in range(0,N):
             if time[i] >= - half_width and time[i] <= half_width:
@@ -84,13 +84,13 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
             read_file = h5py.File('hvsp2_data.hdf5', 'r')
         time_original = read_file.get('time') 
         voltage_original =  read_file.get('voltage')
-        time_new = np.linspace( time_original[0], time_original[len(time_original)-1], (int((time_original[len(time_original)-1]-time_original[0])/dt)+1))
+        time_new = np.linspace( time_original[0], time_original[len(time_original) - 1], (int((time_original[len(time_original) - 1] - time_original[0]) / dt) + 1))
         interpolation = interp1d(time_original,voltage_original,kind='cubic')
         voltage_new = interpolation(time_new)
         # if the interpolated waveform has larger sample size than N , it will truncate the data keeping peak amplitude at center
         if len(voltage_new)>N:
             peak_amplitude_index = np.where( np.abs( voltage_new ) == np.max( np.abs( voltage_new ) ) )[0][0]
-            voltage_new = np.roll( voltage_new, int(len(voltage_new)/2)-peak_amplitude_index)
+            voltage_new = np.roll( voltage_new, int(len(voltage_new)/2) - peak_amplitude_index)
             lower_index = int(len(voltage_new)/2 - N/2)
             trace = voltage_new[lower_index : lower_index + N]   # this truncate data making trace lenght of N
         # for the case with larger N, trace size will be adjusted depending on whether the number (N + len(voltage_new)) is even or odd
@@ -100,7 +100,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
             if (( N + len(voltage_new)) %2 != 0):
                 adjustment = 1
             trace = np.pad(voltage_new, (add_zeros + adjustment, add_zeros), 'constant', constant_values=(0, 0))
-        trace = amplitude * trace /np.max(np.abs( trace ))                    # trace now has dimension of amplitude given from event generation file
+        trace = amplitude * trace / np.max(np.abs( trace ))                    # trace now has dimension of amplitude given from event generation file
         peak_amplitude_index_new = np.where( np.abs( trace ) == np.max( np.abs( trace ) ) )[0][0]
         trace = np.roll( trace, int(N/2) - peak_amplitude_index_new )             # this rolls the array(trace) to keep peak amplitude at center
     else:
