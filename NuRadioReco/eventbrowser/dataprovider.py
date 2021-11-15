@@ -19,5 +19,5 @@ class DataProvider(object):
         else:
             self.__data_provider = NuRadioReco.eventbrowser.dataprovider_nur.DataProvider()
 
-    def get_arianna_io(self, user_id, filename):
-        return self.__data_provider.get_arianna_io(user_id, filename)
+    def get_file_handler(self, user_id, filename):
+        return self.__data_provider.get_file_handler(user_id, filename)

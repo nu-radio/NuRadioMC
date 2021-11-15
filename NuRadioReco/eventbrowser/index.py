@@ -150,7 +150,6 @@ app.layout = html.Div([
     ], style={'display': 'flex'}),
     dcc.RadioItems(
         options=[
-            # {'label': 'Welcome', 'value': 'welcome'},
             {'label': 'Summary', 'value': 'summary'},
             {'label': 'Traces', 'value': 'traces'},
             {'label': 'Simulation', 'value': 'simulation'},
@@ -180,8 +179,6 @@ def get_page_content(selection):
         return [simulation.layout]
     if selection == 'cosmic_rays':
         return [cosmic_rays.layout]
-    # if selection == 'welcome':
-    #     return [landing.layout]
     return []
 
 
@@ -205,8 +202,8 @@ def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, event_i
     if filename is None:
         return 0, None, None
     user_id = json.loads(juser_id)
-    number_of_events = provider.get_arianna_io(user_id, filename).get_n_events()
-    event_ids = provider.get_arianna_io(user_id, filename).get_event_ids()
+    number_of_events = provider.get_file_handler(user_id, filename).get_n_events()
+    event_ids = provider.get_file_handler(user_id, filename).get_event_ids()
     if context.triggered[0]['prop_id'] == 'filename.value':
         return 0, event_ids[0][0], event_ids[0][1]
     if context.triggered[0]['prop_id'] == 'event-click-coordinator.children':
@@ -229,9 +226,6 @@ def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, event_i
             else:
                 event_i = i_event - 1
         if context.triggered[0]['prop_id'] == 'btn-next-event.n_clicks_timestamp':
-            # user_id = json.loads(juser_id)
-
-            # number_of_events = provider.get_arianna_io(user_id, filename).get_n_events()
             if number_of_events == i_event + 1:
                 event_i =  number_of_events - 1
             else:
@@ -258,8 +252,8 @@ def update_slider_options(filename, juser_id):
     if filename is None:
         return 0
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    number_of_events = ariio.get_n_events()
+    nurio = provider.get_file_handler(user_id, filename)
+    number_of_events = nurio.get_n_events()
     return number_of_events - 1
 
 
@@ -272,8 +266,8 @@ def update_slider_marks(filename, juser_id):
     if filename is None:
         return {}
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    n_events = ariio.get_n_events()
+    nurio = provider.get_file_handler(user_id, filename)
+    n_events = nurio.get_n_events()
     step_size = int(np.power(10., int(np.log10(n_events))))
     marks = {}
     for i in range(0, n_events, step_size):
@@ -311,8 +305,8 @@ def get_station_dropdown_options(filename, i_event, juser_id):
     if filename is None:
         return []
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    event = ariio.get_event_i(i_event)
+    nurio = provider.get_file_handler(user_id, filename)
+    event = nurio.get_event_i(i_event)
     dropdown_options = []
     for station in event.get_stations():
         dropdown_options.append({
@@ -331,8 +325,8 @@ def set_to_first_station_in_event(filename, event_i, juser_id):
     if filename is None:
         return None
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    event = ariio.get_event_i(event_i)
+    nurio = provider.get_file_handler(user_id, filename)
+    event = nurio.get_event_i(event_i)
     for station in event.get_stations():
         return station.get_id()
 
@@ -393,8 +387,8 @@ def update_event_info_run_options(filename, juser_id):
     if filename == None:
         return []
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    run_numbers = np.unique([i[0] for i in ariio.get_event_ids()])
+    nurio = provider.get_file_handler(user_id, filename)
+    run_numbers = np.unique([i[0] for i in nurio.get_event_ids()])
     return [{'label':i, 'value':i} for i in run_numbers]
 
 @app.callback(
@@ -407,8 +401,8 @@ def update_event_info_id_options(run_number, filename, juser_id):
     if filename == None:
         return []
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    event_ids = [i[1] for i in ariio.get_event_ids() if i[0] == run_number]
+    nurio = provider.get_file_handler(user_id, filename)
+    event_ids = [i[1] for i in nurio.get_event_ids() if i[0] == run_number]
     return [{'label':i, 'value':i} for i in event_ids]
 
 
@@ -422,18 +416,18 @@ def update_event_info_time(event_i, filename, station_id, juser_id):
     if filename is None or station_id is None:
         return ""
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    evt = ariio.get_event_i(event_i)
+    nurio = provider.get_file_handler(user_id, filename)
+    evt = nurio.get_event_i(event_i)
     if evt.get_station(station_id).get_station_time() is None:
         return ''
     return '{:%d. %b %Y, %H:%M:%S}'.format(evt.get_station(station_id).get_station_time().datetime)
 
 
 if __name__ == '__main__':
-    # if int(dash.__version__.split('.')[0]) < 2:
-    #     print(
-    #         'WARNING: Dash version 2.0.0 or newer is required, you are running version {}. Please update.'.format(
-    #             dash.__version__))
+    if int(dash.__version__.split('.')[0]) < 2:
+        print(
+            'WARNING: Dash version 2.0.0 or newer is required, you are running version {}. Please update.'.format(
+                dash.__version__))
     if not parsed_args.debug:
         werkzeug_logger = logging.getLogger('werkzeug')
         werkzeug_logger.setLevel(logging.WARNING)

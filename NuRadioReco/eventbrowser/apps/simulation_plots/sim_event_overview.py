@@ -35,10 +35,10 @@ def update_sim_event_3d(i_event, filename, station_id, juser_id):
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    evt = ariio.get_event_i(i_event)
+    nurio = provider.get_file_handler(user_id, filename)
+    evt = nurio.get_event_i(i_event)
     station = evt.get_station(station_id)
-    det = ariio.get_detector()
+    det = nurio.get_detector()
     det.update(station.get_station_time())
     sim_station = station.get_sim_station()
     sim_showers = [sim_shower for sim_shower in evt.get_sim_showers()]
@@ -137,8 +137,8 @@ def get_sim_station_property_options(i_event, filename, station_id, juser_id):
         logger.info('No file or station selected')
         return []
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    evt = ariio.get_event_i(i_event)
+    nurio = provider.get_file_handler(user_id, filename)
+    evt = nurio.get_event_i(i_event)
     station = evt.get_station(station_id).get_sim_station()
     if station is None:
         logger.info('No simulated station found')
@@ -165,8 +165,8 @@ def get_sim_station_property_table(i_event, filename, properties, station_id, ju
     if filename is None or station_id is None:
         return []
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    evt = ariio.get_event_i(i_event)
+    nurio = provider.get_file_handler(user_id, filename)
+    evt = nurio.get_event_i(i_event)
     station = evt.get_station(station_id).get_sim_station()
     reply = []
     for prop in properties:
