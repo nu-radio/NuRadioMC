@@ -66,7 +66,7 @@ def dropdown_overview_channels(filename, evt_counter, station_id, rec_or_sim, ju
                 'label': 'Ch. {} / shower {} / ray {}'.format(*id_list),
                 'value': '_'.join([str(k) for k in id_list])
             })
-    return sorted(options, key=lambda k: k['label']), []
+    return sorted(options, key=lambda k: k['value']), []
 
 
 channel_properties_for_overview = [
