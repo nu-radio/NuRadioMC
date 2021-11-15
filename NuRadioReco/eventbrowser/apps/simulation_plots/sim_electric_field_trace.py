@@ -46,8 +46,8 @@ def update_sim_trace_plot(i_event, filename, signal_types, station_id, juser_id)
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    evt = ariio.get_event_i(i_event)
+    nurio = provider.get_file_handler(user_id, filename)
+    evt = nurio.get_event_i(i_event)
     station = evt.get_station(station_id)
     sim_station = station.get_sim_station()
     visibility_settings = ['legendonly', True, True]
