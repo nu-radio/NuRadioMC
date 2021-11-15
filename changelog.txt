@@ -9,6 +9,10 @@ new features:
 - add a basic uproot data reader for RNO-G data
 - changes to the eventbrowser in order to read RNO-G data
 
+bugfixes:
+- correct volume extension depending on zenith angle range when running with
+secondaries
+
 version 2.0.1
 new features
 - Veff utility can now calculate effective volumes for fine zenith angle binning

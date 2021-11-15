@@ -242,9 +242,10 @@ class ARZ(object):
         interp_factor: int (default 10)
             interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial
             for small vertex distances but also slows down the calculation proportional to the interpolation factor.
-        shift_for_xmax: bool (default True)
+        shift_for_xmax: bool (default False)
             if True the observer position is placed relative to the position of the shower maximum, if False it is placed
-            with respect to (0,0,0) which is the start of the charge-excess profile
+            with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined 
+            as the position of the maximum of the charge excess profile
         same_shower: bool (default False)
             if False, for each request a new random shower realization is choosen.
             if True, the shower from the last request of the same shower type is used. This is needed to get the Askaryan
@@ -317,7 +318,7 @@ class ARZ(object):
 #         trace = -np.gradient(vp, axis=0) / dt
 
         # use viewing angle relative to shower maximum for rotation into spherical coordinate system (that reduced eR component)
-        if shift_for_xmax:
+        if shift_for_xmax:  # if we shifted the observerposition already to be relative to Xmax, we don't need to do that here.
             thetaprime = theta
         else:
             thetaprime = theta_to_thetaprime(theta, xmax, R)
@@ -377,9 +378,10 @@ class ARZ(object):
             if None, the interpolation factor will be calculated from the distance
         interp_factor2: int (default 100)
             interpolation just around the peak of the form factor
-        shift_for_xmax: bool (default True)
+        shift_for_xmax: bool (default False)
             if True the observer position is placed relative to the position of the shower maximum, if False it is placed
-            with respect to (0,0,0) which is the start of the charge-excess profile
+            with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined 
+            as the position of the maximum of the charge excess profile
         """
 
         ttt = np.arange(0, (N + 1) * dt, dt)
