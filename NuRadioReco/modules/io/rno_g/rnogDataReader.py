@@ -25,6 +25,13 @@ class RNOGDataReader:
             self.__i_events_per_file[i_file] = [i_event, i_event + events_in_file]
             i_event += events_in_file
 
+        self._root_trigger_keys = [
+            'trigger_info.rf_trigger', 'trigger_info.force_trigger',
+            'trigger_info.pps_trigger', 'trigger_info.ext_trigger',
+            'trigger_info.radiant_trigger', 'trigger_info.lt_trigger',
+            'trigger_info.surface_trigger'
+        ]
+
     def get_filenames(self):
         return self.__filenames
 
@@ -78,6 +85,15 @@ class RNOGDataReader:
                     unix_time = file['header']['trigger_time'].array(library='np')[i_event_in_file]
                     event_time = astropy.time.Time(unix_time, format='unix')
                     station.set_station_time(event_time)
+
+            for trigger_key in self._root_trigger_keys:
+                try:
+                    has_triggered = bool(file['header'][trigger_key].array(library='np')[i_event_in_file])
+                    trigger = NuRadioReco.framework.trigger.Trigger(trigger_key.split('.')[-1])
+                    trigger.set_triggered(has_triggered)
+                    station.set_trigger(trigger)
+                except ValueError:
+                    pass
 
                 waveforms = file['waveforms']['radiant_data[24][2048]'].array(library='np', entry_start=i_event_in_file, entry_stop=(i_event_in_file+1))
                 for i_channel in range(waveforms.shape[1]):
