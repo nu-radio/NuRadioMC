@@ -100,7 +100,7 @@ def plot_event_overview(evt_counter, filename, station_id, station_mode, channel
             sim_station = station.get_sim_station()
             event_is_neutrino = sim_station.is_neutrino()
             event_is_cosmic_ray = sim_station.is_cosmic_ray()
-        except ValueError:
+        except (AttributeError, ValueError):
             logger.warning('Particle type has not been set in both the station and the sim_station.')
             event_is_neutrino = None
             event_is_cosmic_ray = None
