@@ -1,5 +1,4 @@
-
-from dash import html as html
+from dash import html
 import dash
 from NuRadioReco.detector.detector_browser import open_file
 from NuRadioReco.detector.detector_browser import detector_map
