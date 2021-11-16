@@ -12,8 +12,8 @@ from NuRadioReco.utilities import geometryUtilities
 from NuRadioReco.utilities import trace_utilities
 """
 import numpy as np
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import html
+from dash import dcc
 from dash.dependencies import Input, Output, State
 from NuRadioReco.eventbrowser.app import app
 import os
@@ -47,7 +47,9 @@ layout = [
             dcc.Dropdown(id='dropdown-trace-info',
                          options=[
                              {'label': 'RMS', 'value': 'RMS'},
-                             {'label': 'L1', 'value': 'L1'}
+                             {'label': 'L1', 'value': 'L1'},
+                             {'label': 'int. power', 'value':'int_power'},
+                             {'label':'frequency RMS', 'value':'freq_RMS'}
                          ],
                          multi=True,
                          value=["RMS", "L1"]
@@ -81,8 +83,8 @@ def get_dropdown_traces_options(evt_counter, filename, station_id, juser_id):
     if filename is None or station_id is None:
         return []
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    evt = ariio.get_event_i(evt_counter)
+    nurio = provider.get_file_handler(user_id, filename)
+    evt = nurio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     options = [
         {'label': 'calibrated trace', 'value': 'trace'},
@@ -131,16 +133,17 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
         return {}
     user_id = json.loads(juser_id)
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
-    ariio = provider.get_arianna_io(user_id, filename)
-    evt = ariio.get_event_i(evt_counter)
+    nurio = provider.get_file_handler(user_id, filename)
+    evt = nurio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     ymax = 0
     n_channels = 0
     plot_titles = []
     trace_start_times = []
-    fig = plotly.subplots.make_subplots(rows=station.get_number_of_channels(), cols=2,
+    n_rows = station.get_number_of_channels()
+    fig = plotly.subplots.make_subplots(rows=n_rows, cols=2,
                                         shared_xaxes=True, shared_yaxes=False,
-                                        vertical_spacing=0.01, subplot_titles=plot_titles)
+                                        vertical_spacing=0.05/n_rows, subplot_titles=plot_titles)
     for i, channel in enumerate(station.iter_channels()):
         n_channels += 1
         trace = channel.get_trace() / units.mV
@@ -169,24 +172,25 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
             fig.append_trace(plotly.graph_objs.Scatter(
                 x=tt,
                 y=trace,
-                # text=df_by_continent['country'],
-                # mode='markers',
                 opacity=0.7,
                 marker={
                     'color': colors[i % len(colors)],
                     'line': {'color': colors[i % len(colors)]}
                 },
-                name=channel_id
+                name=str(channel_id)
             ), i + 1, 1)
             if 'RMS' in dropdown_info:
-                fig.append_trace(
-                    plotly.graph_objs.Scatter(
-                        x=[0.99 * tt.max()],
-                        y=[0.98 * trace.max()],
-                        mode='text',
-                        text=[r'mu = {:.2g}, STD={:.2g}'.format(np.mean(trace), np.std(trace))],
-                        textposition='bottom left'
-                    ), i + 1, 1)
+                fig.add_annotation(
+                    text=r'mu = {:.2g}, STD={:.2g}'.format(np.mean(trace), np.std(trace)),
+                    x=0.99, y=0.98, xanchor='right', yanchor='top', showarrow=False,
+                    xref='x domain', yref='y domain',
+                    row=i+1, col=1)
+            if 'int_power' in dropdown_info:
+                fig.add_annotation(
+                    text=r'E ~ {:.3g}'.format(np.sum(trace**2)),
+                    x=0.99, y=0.3, xanchor='right', yanchor='top', showarrow=False,
+                    xref='x domain', yref='y domain',
+                    row=i+1, col=1)
     if 'envelope' in dropdown_traces:
         for i, channel_id in enumerate(channel_ids):
             channel = station.get_channel(channel_id)
@@ -198,12 +202,10 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
             fig.append_trace(plotly.graph_objs.Scatter(
                 x=channel.get_times() - trace_start_time_offset / units.ns,
                 y=yy,
-                # text=df_by_continent['country'],
-                # mode='markers',
                 opacity=0.7,
                 line=dict(
                     width=4,
-                    dash='dot'),  # dash options include 'dash', 'dot', and 'dashdot'
+                    dash='dot'),  
                 marker={
                     'color': colors[i % len(colors)],
                     'line': {'color': colors[i % len(colors)]}
@@ -298,8 +300,6 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
             fig.append_trace(plotly.graph_objs.Scatter(
                 x=tttemp[:len(trace)] / units.ns,
                 y=yy[:len(trace)] / units.mV,
-                # text=df_by_continent['country'],
-                # mode='markers',
                 opacity=0.7,
                 line=dict(
                     width=4,
@@ -417,7 +417,9 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
     for i, channel_id in enumerate(channel_ids):
         channel = station.get_channel(channel_id)
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(range=[-ymax, ymax])
-        fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(title='voltage [mV]')
+        fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(
+            title='<b>Ch. {}</b><br>voltage [mV]'.format(channel_id)
+        )
 
         if channel.get_trace() is None:
             continue
@@ -443,11 +445,22 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
                     textposition='top center'
                 ),
                 i + 1, 2)
+        if 'freq_RMS' in dropdown_info:
+            fig.add_hline(
+                .25 * np.max(np.abs(spec)[5:]) / units.MHz,
+                row=i+1, col=2
+            )
     if trace_start_time_offset > 0:
-        fig['layout']['xaxis1'].update(title='time [ns] - {:.0f}ns'.format(trace_start_time_offset))
+        fig['layout']['xaxis1'].update(title='time [ns] - {:.0f} ns'.format(trace_start_time_offset))
     else:
         fig['layout']['xaxis1'].update(title='time [ns]')
+    fig['layout']['xaxis1'].update(side='top', showticklabels=True)
+    fig['layout']['xaxis2'].update(side='top', showticklabels=True)
     fig['layout']['xaxis2'].update(title='frequency [MHz]')
+    for i in range(2):
+        last_xaxis = 'xaxis{}'.format(station.get_number_of_channels() * 2 + i - 1)
+        first_xaxis = 'xaxis{}'.format(i+1)
+        fig['layout'][last_xaxis].update(title=fig['layout'][first_xaxis]['title'])
     fig['layout'].update(height=n_channels * 150)
     fig['layout'].update(showlegend=False)
     return fig

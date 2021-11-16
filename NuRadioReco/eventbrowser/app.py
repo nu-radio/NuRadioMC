@@ -1,7 +1,10 @@
 import dash
 from flask import Flask
+import os
 
-server = Flask(__name__, static_folder='static')
+# if environment variable is set, use this instead of __name__ for the app location,
+# this helps combining the eventbrowser app with RNOGDataViewer
+server = Flask(os.getenv("FLASK_APP_DIR") or __name__, static_folder='static')
 app = dash.Dash(server=server)
 
 
