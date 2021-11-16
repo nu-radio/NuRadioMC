@@ -13,10 +13,8 @@ class RNOGDataReader:
     def __init__(self, filenames, *args, **kwargs):
         self.__filenames = filenames
         self.__event_ids = None
-        # self.__run_numbers = None
         self.__sampling_rate = 3.2 * units.GHz #TODO: 3.2 at the beginning of deployment. Will change to 2.4 GHz after firmware update eventually, but info not yet contained in the .root files. Read out once available.
         self.__parse_event_ids()
-        # self.__parse_run_numbers()
         self.__i_events_per_file = np.zeros((len(self.__filenames), 2), dtype=int)
         i_event = 0
         for i_file, filename in enumerate(filenames):
@@ -49,17 +47,6 @@ class RNOGDataReader:
             run_numbers = np.append(run_numbers, file['header']['run_number'].array(library='np').astype(int))
         self.__event_ids = np.array([run_numbers, event_ids]).T
 
-    # def get_run_numbers(self):
-    #     if self.__run_numbers is None:
-    #         self.__parse_run_numbers()
-    #     return self.__run_numbers
-
-    # def __parse_run_numbers(self):
-    #     self.__run_numbers = np.array([], dtype=int)
-    #     for filename in self.__filenames:
-    #         file = self.__open_file(filename)
-    #         self.__run_numbers = np.append(self.__run_numbers, file['header']['run_number'].array(library='np').astype(int))
-
     def __open_file(self, filename):
         file = uproot.open(filename)
         if 'combined' in file:
@@ -85,15 +72,16 @@ class RNOGDataReader:
                     unix_time = file['header']['trigger_time'].array(library='np')[i_event_in_file]
                     event_time = astropy.time.Time(unix_time, format='unix')
                     station.set_station_time(event_time)
-
-            for trigger_key in self._root_trigger_keys:
-                try:
-                    has_triggered = bool(file['header'][trigger_key].array(library='np')[i_event_in_file])
-                    trigger = NuRadioReco.framework.trigger.Trigger(trigger_key.split('.')[-1])
-                    trigger.set_triggered(has_triggered)
-                    station.set_trigger(trigger)
-                except ValueError:
-                    pass
+                    ### read in basic trigger data
+                    for trigger_key in self._root_trigger_keys:
+                        try:
+                            has_triggered = bool(file['header'][trigger_key].array(library='np')[i_event_in_file])
+                            trigger = NuRadioReco.framework.trigger.Trigger(trigger_key.split('.')[-1])
+                            trigger.set_triggered(has_triggered)
+                            # trigger.set_trigger_time(file['header']['trigger_time'])
+                            station.set_trigger(trigger)
+                        except uproot.exceptions.KeyInFileError:
+                            pass
 
                 waveforms = file['waveforms']['radiant_data[24][2048]'].array(library='np', entry_start=i_event_in_file, entry_stop=(i_event_in_file+1))
                 for i_channel in range(waveforms.shape[1]):

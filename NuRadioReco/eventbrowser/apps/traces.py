@@ -10,6 +10,8 @@ from NuRadioReco.eventbrowser.app import app
 import logging
 
 logger = logging.getLogger('traces')
+parent_logger = logging.getLogger('NuRadioReco')
+logger.setLevel(parent_logger.level)
 
 layout = html.Div([
     html.Div(id='trigger-trace', style={'display': 'none'}),
