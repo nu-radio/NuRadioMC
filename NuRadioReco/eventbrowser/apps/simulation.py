@@ -6,7 +6,9 @@ import NuRadioReco.eventbrowser.apps.simulation_plots.sim_event_overview
 import logging
 
 logger = logging.getLogger('traces')
-logger.setLevel(logging.DEBUG)
+parent_logger = logging.getLogger('NuRadioReco')
+logger.setLevel(parent_logger.level)
+
 layout = html.Div([
     html.Div([
         html.Div([

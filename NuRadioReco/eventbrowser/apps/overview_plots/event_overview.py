@@ -87,8 +87,8 @@ def plot_event_overview(evt_counter, filename, station_id, station_mode, channel
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    evt = ariio.get_event_i(evt_counter)
+    nurio = provider.get_file_handler(user_id, filename)
+    evt = nurio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     plots = []
     # First check the particle type
@@ -100,7 +100,7 @@ def plot_event_overview(evt_counter, filename, station_id, station_mode, channel
             sim_station = station.get_sim_station()
             event_is_neutrino = sim_station.is_neutrino()
             event_is_cosmic_ray = sim_station.is_cosmic_ray()
-        except ValueError:
+        except (AttributeError, ValueError):
             logger.warning('Particle type has not been set in both the station and the sim_station.')
             event_is_neutrino = None
             event_is_cosmic_ray = None
@@ -138,8 +138,8 @@ def plot_event_overview(evt_counter, filename, station_id, station_mode, channel
                 showlegend=False,
                 name='Neutrino direction'
             ))
-            if evt.has_parameter(evp.sim_config) and ariio.get_detector() is not None:
-                det = ariio.get_detector()
+            if evt.has_parameter(evp.sim_config) and nurio.get_detector() is not None:
+                det = nurio.get_detector()
                 det.update(station.get_station_time())
                 sim_config = evt.get_parameter(evp.sim_config)
                 import NuRadioMC.SignalProp.analyticraytracing
@@ -205,8 +205,8 @@ def plot_event_overview(evt_counter, filename, station_id, station_mode, channel
                 name='Shower direction'
             ))
 
-    if ariio.get_detector() is not None:
-        det = ariio.get_detector()
+    if nurio.get_detector() is not None:
+        det = nurio.get_detector()
         det.update(station.get_station_time())
         channel_positions = []
         channel_comments = []

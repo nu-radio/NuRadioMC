@@ -55,13 +55,6 @@ layout = [
                          value=["RMS", "L1"]
                          )
         ], style={'flex': '1'}),
-        # html.Div([
-        #     dcc.Dropdown(id='dropdown-multi-channels',
-        #                  options=[],
-        #                  multi=True,
-        #                  value=[]
-        #                  )
-        # ], style={'flex': '1'}),
     ], style={'display': 'flex'}),
     html.Div([
         html.Div([
@@ -78,36 +71,6 @@ layout = [
     dcc.Graph(id='time-traces')
 ]
 
-# @app.callback(
-#     [Output('dropdown-multi-channels', 'value'),
-#      Output('dropdown-multi-channels', 'options')],
-#     [Input('event-counter-slider', 'value'),
-#      Input('filename', 'value'),
-#      Input('station-id-dropdown', 'value')],
-#     [State('user_id', 'children'),
-#      State('dropdown-multi-channels', 'value'),
-#      State('dropdown-multi-channels', 'options')]
-# )
-# def get_channel_selection(evt_counter, filename, station_id, juser_id, selected_channels, all_channels):
-#     if filename is None or station_id is None:
-#         return [],[]
-#     user_id = json.loads(juser_id)
-#     ariio = provider.get_arianna_io(user_id, filename)
-#     evt = ariio.get_event_i(evt_counter)
-#     station = evt.get_station(station_id)
-#     channel_ids = sorted([
-#         channel.get_id() for channel in station.iter_channels()]
-#     )
-#     current_channel_ids = sorted([k['value'] for k in all_channels])
-#     if channel_ids == current_channel_ids:
-#         return selected_channels, all_channels
-#     else: # the list of available channels has changed
-#         channel_options = [
-#             {'label':'Ch. {}'.format(channel_id), 'value':channel_id}
-#             for channel_id in channel_ids
-#         ]
-#         return channel_ids, channel_options
-
 
 @app.callback(
     dash.dependencies.Output('dropdown-traces', 'options'),
@@ -120,8 +83,8 @@ def get_dropdown_traces_options(evt_counter, filename, station_id, juser_id):
     if filename is None or station_id is None:
         return []
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    evt = ariio.get_event_i(evt_counter)
+    nurio = provider.get_file_handler(user_id, filename)
+    evt = nurio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     options = [
         {'label': 'calibrated trace', 'value': 'trace'},
@@ -170,8 +133,8 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
         return {}
     user_id = json.loads(juser_id)
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
-    ariio = provider.get_arianna_io(user_id, filename)
-    evt = ariio.get_event_i(evt_counter)
+    nurio = provider.get_file_handler(user_id, filename)
+    evt = nurio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     ymax = 0
     n_channels = 0
@@ -209,8 +172,6 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
             fig.append_trace(plotly.graph_objs.Scatter(
                 x=tt,
                 y=trace,
-                # text=df_by_continent['country'],
-                # mode='markers',
                 opacity=0.7,
                 marker={
                     'color': colors[i % len(colors)],
@@ -241,12 +202,10 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
             fig.append_trace(plotly.graph_objs.Scatter(
                 x=channel.get_times() - trace_start_time_offset / units.ns,
                 y=yy,
-                # text=df_by_continent['country'],
-                # mode='markers',
                 opacity=0.7,
                 line=dict(
                     width=4,
-                    dash='dot'),  # dash options include 'dash', 'dot', and 'dashdot'
+                    dash='dot'),  
                 marker={
                     'color': colors[i % len(colors)],
                     'line': {'color': colors[i % len(colors)]}
@@ -341,8 +300,6 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
             fig.append_trace(plotly.graph_objs.Scatter(
                 x=tttemp[:len(trace)] / units.ns,
                 y=yy[:len(trace)] / units.mV,
-                # text=df_by_continent['country'],
-                # mode='markers',
                 opacity=0.7,
                 line=dict(
                     width=4,

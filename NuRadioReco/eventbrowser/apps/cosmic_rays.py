@@ -5,6 +5,9 @@ import NuRadioReco.eventbrowser.apps.cosmic_ray_plots.cosmic_ray_skyplot
 import NuRadioReco.eventbrowser.apps.cosmic_ray_plots.cosmic_ray_polarization_zenith
 import logging
 logger = logging.getLogger('traces')
+parent_logger = logging.getLogger('NuRadioReco')
+logger.setLevel(parent_logger.level)
+
 
 provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 
