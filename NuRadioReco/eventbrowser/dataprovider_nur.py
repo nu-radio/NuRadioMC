@@ -13,7 +13,7 @@ class DataProvider(object):
     def __init__(self):
         self.__user_instances = {}
 
-    def get_arianna_io(self, user_id, filename):
+    def get_file_handler(self, user_id, filename):
         if filename is None:
             return
         if user_id not in self.__user_instances:

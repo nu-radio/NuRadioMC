@@ -65,8 +65,8 @@ def efield_overview_properties(filename, evt_counter, station_id, rec_sim, juser
     if filename is None or station_id is None:
         return ''
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    evt = ariio.get_event_i(evt_counter)
+    nurio = provider.get_file_handler(user_id, filename)
+    evt = nurio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     if station is None:
         return []
