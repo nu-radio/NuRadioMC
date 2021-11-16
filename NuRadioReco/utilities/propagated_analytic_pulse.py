@@ -167,7 +167,7 @@ class simulation():
 		cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["launch vector"]))
 		return cs.transform_from_ground_to_onsky(polarization_direction)
 	
-	def simulation(self, det, station, vertex_x, vertex_y, vertex_z, nu_zenith, nu_azimuth, energy, use_channels, fit = 'seperate', first_iter = False, model = 'Alvarez2009'):
+	def simulation(self, det, station, vertex_x, vertex_y, vertex_z, nu_zenith, nu_azimuth, energy, use_channels, fit = 'seperate', first_iter = False, model = 'Alvarez2009', starting_values = False):
 		ice = medium.get_ice_model('greenland_simple')
 		prop = propagation.get_propagation_module('analytic')
 		attenuate_ice = True
@@ -276,8 +276,7 @@ class simulation():
 #			print("vertex sim:", vertex#)
 		#	R = 0#1000
 			###################################################################################
-			x1 = vertex#[vertex[0] +  R*np.cos(phi) * np.sin(theta), vertex[1] + R*np.sin(phi)* np.sin(theta),vertex[2] + R*np.cos(theta)] 
-			print("vertex used for reco:", x1)
+			x1 = vertex#[vertex[0] +  R*np.cos(phi) * np.sin(theta), vertex[1] + R*np.sin(phi)* np.sin(theta),vertex[2] + R*np.cos(theta)] 			print("vertex used for reco:", x1)
 
 
 
@@ -357,8 +356,8 @@ class simulation():
 					template_viewingangle = self._templates_viewingangles[np.abs(np.array(self._templates_viewingangles) - np.rad2deg(viewing_angle)).argmin()] ### viewing angle template which is closest to wanted viewing angle
 					self._templates[template_viewingangle]
 					template_energy = self._templates_energies[np.abs(np.array(self._templates_energies) - energy).argmin()]
-					print("template energy", template_energy)
-					print("template viewing angle", template_viewingangle)
+			#		print("template energy", template_energy)
+		#			print("template viewing angle", template_viewingangle)
 					spectrum = self._templates[template_viewingangle][template_energy]
 					spectrum = np.array(list(spectrum)[0])
 					spectrum *= self._templates_R
@@ -371,7 +370,7 @@ class simulation():
 				
 				else:
 					#print("MODEL IS USED {}".format(model))				
-					print('energy', energy)
+		#			print('energy', energy)
 					spectrum = signalgen.get_frequency_spectrum(energy , viewing_angle, self._n_samples, self._dt, "HAD", n_index, raytracing[channel_id][iS]["trajectory length"],model)
             
 					
@@ -385,7 +384,7 @@ class simulation():
 				if polarization:
 	
 					polarization_direction_onsky = self._calculate_polarization_vector(channel_id, iS)
-					print("polarization direction onsky {}, channel id {}".format(polarization_direction_onsky, channel_id))
+				#	print("polarization direction onsky {}, channel id {}".format(polarization_direction_onsky, channel_id))
 					cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["receive vector"]))
 					polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
 					logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
@@ -428,7 +427,8 @@ class simulation():
 				efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, self._ff, [channel_id], det, raytracing[channel_id][iS]["zenith"],  raytracing[channel_id][iS]["azimuth"], self.antenna_provider)
 				
                 ### convolve efield with antenna reponse
-				analytic_trace_fft = np.sum(efield_antenna_factor[0] * np.array([eTheta, ePhi]), axis = 0)
+				if starting_values: analytic_trace_fft = np.sum(efield_antenna_factor[0] * np.array([spectrum,np.zeros(len(spectrum))]), axis = 0)
+				if not starting_values: analytic_trace_fft = np.sum(efield_antenna_factor[0] * np.array([eTheta, ePhi]), axis = 0)
 				
                 ### filter the trace
 

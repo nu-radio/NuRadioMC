@@ -39,7 +39,7 @@ class stationParameters(Enum):
     first_step = 39
     area_sim = 40
     area_rec = 41
-
+    channels_pulses = 42
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
     azimuth = 2  # azimuth angle of the incoming signal direction
