@@ -2,7 +2,6 @@ import numpy as np
 import os, glob
 import json, pickle
 import helper_cr_eff as hcr
-import datetime
 from NuRadioReco.utilities import units
 from NuRadioReco.detector.generic_detector import GenericDetector
 import NuRadioReco.modules.io.coreas.readCoREASStation
@@ -40,13 +39,15 @@ parser.add_argument('detector_file', type=str, nargs='?',
                     help='choose detector for air shower simulation')
 parser.add_argument('default_station', type=int, nargs='?',
                     default=101, help='define default station for detector')
+parser.add_argument('triggered_channels', type=list, nargs='?',
+                    default=[1, 2, 3], help='define channels with trigger')
 parser.add_argument('config_file', type=str, nargs='?',
                     default='config/air_shower/final_config_envelope_trigger_1Hz_2of3_22.46mV.json',
                     help='settings from the ntr results')
-parser.add_argument('eventlist', type=list, nargs='?',
-                    default=['../example_data/example_event.h5'], help='list with event files')
+parser.add_argument('eventlist', type=str, nargs='?',
+                    default='/Users/lilly/Software/gen2/southpole_sim/SIM001041.hdf5', help='list with event files')
 parser.add_argument('number', type=int, nargs='?',
-                    default=0, help='number of element in eventlist')
+                    default=1, help='number of element in eventlist')
 parser.add_argument('output_filename', type=str, nargs='?',
                     default='output_air_shower_reco/air_shower_reco_', help='begin of output filename')
 
@@ -54,22 +55,24 @@ args = parser.parse_args()
 
 if '.p' in args.eventlist:
     eventlist = pickle.load(open(args.eventlist, 'br'))
+    eventlist = np.array(eventlist)
+    eventlist = eventlist[:, 0]
+
 else:
     eventlist = args.eventlist
 
+#input_file = eventlist[args.number]
+input_file = args.eventlist
 os.makedirs(args.output_filename, exist_ok=True)
 
 config_file = glob.glob('{}*'.format(args.config_file))[0]
 with open(config_file, 'r') as fp:
     cfg = json.load(fp)
 
-input_files = eventlist[args.number]
-
-logger.info(f"Apply {config_file} on {args.detector_file} with default station {args.default_station}")
-
+logger.info(f"Apply {config_file} on {args.detector_file} with default station {args.default_station} on {input_file}")
 
 det = GenericDetector(json_filename=args.detector_file, default_station=args.default_station)
-det.update(datetime.datetime(2019, 10, 1))
+det.update(cfg['station_time'])
 
 station_ids = det.get_station_ids()
 station_id = station_ids[0]
@@ -78,7 +81,7 @@ channel_ids = det.get_channel_ids(station_id)
 # initialize all modules that are needed for processing
 # provide input parameters that are to remain constant during processing
 readCoREASStation = NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation()
-readCoREASStation.begin([input_files], args.default_station, debug=False)
+readCoREASStation.begin([input_file], args.default_station, debug=False)
 simulationSelector = NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector()
 simulationSelector.begin()
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
@@ -119,7 +122,7 @@ channelResampler.begin()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
 eventWriter.begin(args.output_filename
                   + str(cfg['trigger_name']) + '_'
-                  + str(cfg['target_global_trigger_rate'] / units.Hz) + 'Hz_'
+                  + str(round(cfg['target_global_trigger_rate'] / units.Hz, 0)) + 'Hz_'
                   + str(cfg['number_coincidences']) + 'of'
                   + str(cfg['total_number_triggered_channels']) + '_'
                   + str(round(cfg['final_threshold']/units.mV, 2)) + 'mV_'
@@ -127,17 +130,17 @@ eventWriter.begin(args.output_filename
 
 # Loop over all events in file as initialized in readCoRREAS and perform analysis
 i = 0
-for evt in readCoREASStation.run(det):
+for evt in readCoREASStation.run(detector=det):
     for sta in evt.get_stations():
-        if i == 10:  # use this if you want to test something or if you want only 10 position
-            break
+        #if i == 10:  # use this if you want to test something or if you want only 10 position
+         #   break
         logger.info("processing event {:d} with id {:d}".format(i, evt.get_id()))
 
-        station = evt.get_station(args.default_station)
         if cfg['station_time_random']:
-            station = hcr.set_random_station_time(station, cfg['station_time'])
+            sta = hcr.set_random_station_time(sta, cfg['station_time'])
 
         efieldToVoltageConverter.run(evt, sta, det)
+
         eventTypeIdentifier.run(evt, sta, "forced", 'cosmic_ray')
         channelGenericNoiseAdder.run(evt, sta, det, amplitude=cfg['Vrms_thermal_noise'],
                                      min_freq=cfg['T_noise_min_freq'], max_freq=cfg['T_noise_max_freq'],
@@ -158,7 +161,7 @@ for evt in readCoREASStation.run(det):
                                  threshold_low=-cfg['final_threshold'],
                                  coinc_window=cfg['coinc_window'],
                                  number_concidences=cfg['number_coincidences'],
-                                 triggered_channels=cfg['triggered_channels'],
+                                 triggered_channels=args.triggered_channels,
                                  trigger_name='{}_pb_{:.0f}_{:.0f}_tt_{:.2f}'.format(
                                      cfg['trigger_name'],
                                      cfg['passband_trigger'][0] / units.MHz,
@@ -172,7 +175,7 @@ for evt in readCoREASStation.run(det):
                                  number_coincidences=cfg['number_coincidences'],
                                  threshold=cfg['final_threshold'],
                                  coinc_window=cfg['coinc_window'],
-                                 triggered_channels=cfg['triggered_channels'],
+                                 triggered_channels=args.triggered_channels,
                                  trigger_name='{}_pb_{:.0f}_{:.0f}_tt_{:.2f}'.format(
                                      cfg['trigger_name'],
                                      cfg['passband_trigger'][0] / units.MHz,
