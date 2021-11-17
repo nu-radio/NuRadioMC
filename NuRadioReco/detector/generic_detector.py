@@ -144,7 +144,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             logger.error("query for station {} returned no results".format(station_id))
             raise LookupError("query for station {} returned no results".format(station_id))
         if not raw:
-            reference_id = res['reference_station']
+            reference_id = self.__lookup_station_reference[station_id]
             for key in self.__default_stations[reference_id].keys():
                 if key not in res.keys():
                     #   if a property is missing, we use the value from the default station instead
