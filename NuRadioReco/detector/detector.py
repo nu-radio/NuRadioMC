@@ -522,7 +522,7 @@ class Detector(object):
             altitude = res['pos_altitude'] * units.m
         return np.array([easting, northing, altitude])
 
-    def get_relative_position(self, station_id, channel_id):
+    def get_relative_position(self, station_id, channel_id, mode = 'channel'):
         """
         get the relative position of a specific channels/antennas with respect to the station center
 
@@ -532,12 +532,18 @@ class Detector(object):
             the station id
         channel_id: int
             the channel id
+        mode_id: str
+            specify if relative position of a channel or a device is asked for
 
         Returns
         ---------------
         3-dim array of relative station position
         """
-        res = self.__get_channel(station_id, channel_id)
+        if mode == 'channel': res = self.__get_channel(station_id, channel_id)
+        elif mode == 'device': res = self.__get_device(station_id, channel_id)
+        else: 
+            logger.error("Mode {} does not exist. Use 'channel' or 'device'".format(mode))
+            raise NameError
         return np.array([res['ant_position_x'], res['ant_position_y'], res['ant_position_z']])
 
     def get_site(self, station_id):
