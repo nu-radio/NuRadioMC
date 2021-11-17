@@ -115,7 +115,7 @@ class sphericalWaveFitter:
             self._pos_starting[ich] = int(len(self.__correlation[ich]) / 2 - n_samples)
 
 
-        method = 'Nelder-Mead'
+        #method = 'Nelder-Mead'
         x_start, y_start, z_start = start_pulser_position
         dx, dy, dz = [.1, .1, .1]
         #ll = opt.minimize(likelihood, x0 = (start_pulser_position[0]-10, start_pulser_position[1], start_pulser_position[2]),method = method)#
