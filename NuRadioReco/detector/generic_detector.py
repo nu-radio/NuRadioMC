@@ -28,8 +28,9 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
     This detector only accepts json detector descriptions or dictionary.
     """
 
-    def __init__(self, json_filename, default_station, default_channel=None, default_device = None, source='json', dictionary=None,
-                 assume_inf=True, antenna_by_depth=True):
+    def __init__(self, json_filename, default_station=None, default_channel=None, default_device=None, source='json',
+                 dictionary=None,
+                 assume_inf=True, antenna_by_depth=False):
         """
         Initialize the stations detector properties.
 
@@ -40,12 +41,14 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             path relative to the current working directory of the user)
             default value is 'ARIANNA/arianna_detector_db.json'
         default_station:
-            ID of the station that should be used as the default station. The default station needs to have a complete detector
-            description. If a property is missing in any of the other stations, the value from the default station will be used instead
+            In case no reference station is set in the station parameters of the detector description,
+            the ID of the station that should be used as the default station should be inserted.
+            The default station needs to have a complete detector description. If a property is missing in any of the
+            other stations, the value from the default station will be used instead
         default_channel:
-            ID of the channel that should be used as the default channel. This channel has to be part of the default station and have a
-            complete detector description. If a property is missing in any of the other channels, the value from the default channel
-            will be used instead.
+            ID of the channel that should be used as the default channel. This channel has to be part of the default
+            station and have a complete detector description. If a property is missing in any of the other channels,
+            the value from the default channel will be used instead.
         source: str
             'json' or 'dictionary'
             default value is 'json'
@@ -57,53 +60,71 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             If 'dictionary' is passed to the parameter source, the dictionary
             passed to this parameter will be used for the detector description.
         assume_inf : Bool
-            Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.
+            Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna
+            madel will be determined by the station geometry.
         antenna_by_depth: bool (default True)
-            if True the antenna model is determined automatically depending on the depth of the antenna. This is done by
-            appending e.g. '_InfFirn' to the antenna model name.
+            if True the antenna model is determined automatically depending on the depth of the antenna.
+            This is done by appending e.g. '_InfFirn' to the antenna model name.
             if False, the antenna model as specified in the database is used.
         """
-        super(GenericDetector, self).__init__(source=source, json_filename=json_filename, dictionary=dictionary,
-                                              assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
-        self.__default_station_id = default_station
+        super(GenericDetector, self).__init__(source=source, json_filename=json_filename,
+                                              dictionary=dictionary, assume_inf=assume_inf,
+                                              antenna_by_depth=antenna_by_depth)
+
+        self.__default_station_ids = set([])
+        self.__lookup_station_reference = {}
+
+        for sta in self._stations.all():
+            if 'reference_station' in sta:
+                self.__lookup_station_reference[sta['station_id']] = sta['reference_station']
+                self.__default_station_ids.add(sta['reference_station'])
+            elif default_station is not None:
+                self.__lookup_station_reference[sta['station_id']] = default_station
+                self.__default_station_ids.add(default_station)
+        self.__default_station_ids = list(self.__default_station_ids)
         self.__default_channel_id = default_channel
         self._default_device_id = default_device
         self.__station_changes_for_event = []
         self.__run_number = None
         self.__event_id = None
-        if not self.has_station(self.__default_station_id):
-            raise ValueError(
-                'The default station {} was not found in the detector description'.format(self.__default_station_id))
+        for default_station_id in self.__default_station_ids:
+            if not self.has_station(default_station_id):
+                raise ValueError(
+                    'The default station {} was not found in the detector description'.format(default_station_id))
 
         Station = Query()
-        self.__default_station = self._stations.get((Station.station_id == self.__default_station_id))
-
+        self.__default_stations = {}
+        for default_station_id in self.__default_station_ids:
+            self.__default_stations[default_station_id] = self._stations.get((Station.station_id == default_station_id))
 
         if default_channel is not None:
             Channel = Query()
             self.__default_channel = self._channels.get(
                 (Channel.station_id == default_station) & (Channel.channel_id == default_channel))
+            logger.warning(
+                f'Channel parameters of default channel {default_channel} of default station {default_station}\
+                 are used, not from reference station')
             if self.__default_channel is None:
                 raise ValueError(
                     'The default channel {} of station {} was not found in the detector description'.format(
                         default_channel, self.__default_station_id))
         else:
             self.__default_channel = None
-            
-            
+
         if default_device is not None:
             Device = Query()
-            self.__default_device= self._devices.get(
+            self.__default_device = self._devices.get(
                 (Device.station_id == default_station) & (Device.device_id == default_device))
+            logger.warning(
+                f'Device parameters of default device {default_device} of default station {default_station} are \
+                used, not from reference station')
+
             if self.__default_device is None:
                 raise ValueError(
                     'The default device {} of station {} was not found in the detector description'.format(
                         default_device, self.__default_station_id))
         else:
             self.__default_device = None
-            
-            
-            
 
     def _get_station(self, station_id):
         if station_id not in self._buffered_stations.keys():
@@ -123,10 +144,11 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             logger.error("query for station {} returned no results".format(station_id))
             raise LookupError("query for station {} returned no results".format(station_id))
         if not raw:
-            for key in self.__default_station.keys():
+            reference_id = res['reference_station']
+            for key in self.__default_stations[reference_id].keys():
                 if key not in res.keys():
                     #   if a property is missing, we use the value from the default station instead
-                    res[key] = self.__default_station[key]
+                    res[key] = self.__default_stations[reference_id][key]
         return res
 
     def _query_channels(self, station_id, raw=False):
@@ -134,7 +156,8 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         res = self._channels.search((Channel.station_id == station_id))
         if not raw:
             if len(res) == 0:
-                default_channels = self._channels.search((Channel.station_id == self.__default_station_id))
+                reference_id = self.__lookup_station_reference[station_id]
+                default_channels = self._channels.search((Channel.station_id == reference_id))
                 res = []
                 for channel in default_channels:
                     new_channel = copy.copy(channel)
@@ -146,14 +169,14 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
                         if key not in channel.keys() and key != 'station_id':
                             channel[key] = self.__default_channel[key]
         return res
-        
-        
+
     def _query_devices(self, station_id, raw=False):
         Device = Query()
         res = self._devices.search((Device.station_id == station_id))
         if not raw:
             if len(res) == 0:
-                default_devices = self._devices.search((Device.station_id == self.__default_station_id))
+                reference_id = self.__lookup_station_reference[station_id]
+                default_devices = self._devices.search((Device.station_id == reference_id))
                 res = []
                 for device in default_devices:
                     new_device = copy.copy(device)
@@ -176,7 +199,6 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         self._buffered_devices[station_id] = {}
         for device in devices:
             self._buffered_devices[station_id][device['device_id']] = device
-            
 
     def add_generic_station(self, station_dict):
         """
@@ -196,20 +218,23 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             logger.warning('Station with ID {} already exists in buffer. Cannot add station with same ID'.format(
                 station_dict['station_id']))
             return
-
-        for key in self.__default_station.keys():
-            if key not in station_dict.keys():
-                station_dict[key] = self.__default_station[key]
+        if 'reference_station' in station_dict:
+            reference_id = station_dict['reference_station']
+            for key in self.__default_stations[reference_id].keys():
+                if key not in station_dict.keys():
+                    station_dict[key] = self.__default_stations[reference_id][key]
         self._buffered_stations[station_dict['station_id']] = station_dict
 
-        if self.__default_station_id not in self._buffered_channels.keys():
-            self._buffer(self.__default_station_id)
-        self._buffered_channels[station_dict['station_id']] = {}
+        if 'reference_station' in station_dict:
+            reference_id = station_dict['reference_station']
+            if self.__default_station_ids[reference_id] not in self._buffered_channels.keys():
+                self._buffer(self.__default_station_ids[reference_id])
 
-        for i_channel, channel in self._buffered_channels[self.__default_station_id].items():
-            new_channel = copy.copy(channel)
-            new_channel['station_id'] = station_dict['station_id']
-            self._buffered_channels[station_dict['station_id']][channel['channel_id']] = new_channel
+            self._buffered_channels[station_dict['station_id']] = {}
+            for i_channel, channel in self._buffered_channels[self.__default_station_ids[reference_id]].items():
+                new_channel = copy.copy(channel)
+                new_channel['station_id'] = station_dict['station_id']
+                self._buffered_channels[station_dict['station_id']][channel['channel_id']] = new_channel
 
     def add_station_properties_for_event(self, properties, station_id, run_number, event_id):
         """
@@ -253,7 +278,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         """
         changes = []
         for change in self.__station_changes_for_event:
-            if (change['run_number'] == run_number and change['event_id'] == event_id):
+            if change['run_number'] == run_number and change['event_id'] == event_id:
                 if station_id is None or change['station_id'] == station_id:
                     changes.append(change)
         return changes
@@ -276,17 +301,17 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         self.__run_number = run_number
         self.__event_id = event_id
 
-    def get_default_station(self):
+    def get_default_stations(self):
         """
         Get the properties of the default station
         """
-        return self.__default_station
+        return self.__default_stations
 
-    def get_default_station_id(self):
+    def get_default_station_ids(self):
         """
         Get the ID of the default station
         """
-        return self.__default_station_id
+        return self.__default_station_ids
 
     def get_default_channel(self):
         """
