@@ -22,7 +22,7 @@ class rayTypeSelecter:
     def begin(self):
         pass
 
-    def run(self, event, station, det, use_channels=[9, 14], noise_rms = 10, template = None, shower_id = None, icemodel = 'greenland_simple', raytracing_method = 'analytic', sim = False, debug_plots = True):
+    def run(self, event, station, det, use_channels=[9, 14], noise_rms = 10, template = None, shower_id = None, icemodel = 'greenland_simple', raytracing_method = 'analytic', sim = False, debug_plots = True, debugplots_path = None):
         """
         Finds the pulse position of the triggered pulse in the phased array and returns the raytype of the pulse
         
@@ -73,14 +73,11 @@ class rayTypeSelecter:
         for raytype in [ 1, 2,3]:
             type_exist = 0
             total_trace = np.zeros(len(station.get_channel(0).get_trace()))
-            #total_corr = np.zeros(len(scipy.signal.correlate(station.get_channel(0).get_trace(), template)))
-            print("len trace", len(station.get_channel(0).get_trace()))
             if template is not None:
                                 #### Run template through channel 6
-                                #channel = station.get_channel(6)
-                #                cp_trace = np.copy(channel.get_trace())
+                   
                 if len(station.get_channel(0).get_trace()) != len(template):
-                                    #add_zeros = np.zeros(abs(len(channel.get_trace()) - len(template)))
+                                   
                     if (len(template) < len(station.get_channel(0).get_trace())): template = np.pad(template, (0, abs(len(station.get_channel(0).get_trace()) - len(template))))
             corr_total = np.zeros(len(scipy.signal.correlate(station.get_channel(0).get_trace(), template)))
             for channel in station.iter_channels():
@@ -92,13 +89,9 @@ class rayTypeSelecter:
                     simchannel = []
                     r.find_solutions()
                     for iS in range(r.get_number_of_solutions()):
-                        print("solution type in raytypeselecter", r.get_solution_type(iS))
                         if r.get_solution_type(iS) == raytype:
-                           type_exist= 1#print("raytype", raytype)
-                          
+                           type_exist= 1
                            T = r.get_travel_time(iS)
-     #                      print("ref channel", use_channels[0])
-                           print("raytype", raytype)
                            if channel_id == use_channels[0]: T_ref[iS] = T
       #
                            dt = T - T_ref[iS]
@@ -106,34 +99,14 @@ class rayTypeSelecter:
                            dn_samples = math.ceil(-1*dn_samples)
                            cp_trace = np.copy(channel.get_trace())
                            cp_times= np.copy(channel.get_times())
-                          # if sim: #cp_trace = np.copy(station.get_sim_station.get_channel_id(channel_id).get_trace())
-                              
-                          #     for sim_channel in station.get_sim_station().get_channels_by_channel_id(channel_id):
-                          #         try:
-                          #             simchannel += sim_channel
-                          #         except:
-                          #             simchannel = sim_channel
-                               #sim_trace = simchannel.get_trace()
-                               ### get timing for maximum for simchannel
-                          #     timing_max_sim = simchannel.get_times()[np.argmax(simchannel.get_trace())]
-                          # print("len cp trace", len(cp_trace))
+                    
                            if template is not None:
-                                #### Run template through channel 6
-                                #channel = station.get_channel(6)
-                #                cp_trace = np.copy(channel.get_trace())
+                                #### Run template through channel
+
                                 if len(cp_trace) != len(template):
-                                    #add_zeros = np.zeros(abs(len(channel.get_trace()) - len(template)))
+                                   
                                     if (len(template) < len(cp_trace)): template = np.pad(template, (0, abs(len(cp_trace) - len(template))))
-                          # if sim:
-                               #print("timing max sim", timing_max_sim)
-                               #print("channel get times()", channel.get_times())
-                               #cp_times_float = np.around(cp_times, decimals = 1)#cp_times.astype(np.float)
-                               #print("channel times", channel.get_times())
-                             #  pos_pulse = abs(cp_times - timing_max_sim).argmin()
-                               #pos_pulse = np.where(cp_times_float ==  float(timing_max_sim))
-                               #print("pos pulse", pos_pulse)
-                             #  cp_trace[np.arange(len(cp_trace)) > (pos_pulse + 30 * sampling_rate)] = 0
-                             #  cp_trace[np.arange(len(cp_trace)) < (pos_pulse - 20 * sampling_rate)] = 0
+                        
                          
                            cp_trace_roll = np.roll(cp_trace, dn_samples)
                            corr = scipy.signal.correlate(cp_trace_roll*(1/(max(cp_trace_roll))), template*(1/(max(template))))
@@ -153,7 +126,7 @@ class rayTypeSelecter:
                            if debug_plots: 
                                if channel_id == use_channels[-1]:
                                    axs[iax].plot(total_trace, lw = 2, color = 'darkgreen', label= 'combined trace')
-                          #         axs[iax].plot(cp_trace, lw = 2, color = 'orange', label = 'trace')
+                        
                                    axs[iax].legend(loc = 1, fontsize= 20)
                                    for tick in axs[iax].yaxis.get_majorticklabels():
                                        tick.set_fontsize(20)
@@ -164,7 +137,6 @@ class rayTypeSelecter:
                                    for tick in axs[2].xaxis.get_majorticklabels():
                                        tick.set_fontsize(20)
             if debug_plots and type_exist:
-               # axs[iax].plot(cp_trace, lw = 2, color = 'orange')
                 axs[iax].set_title("raytype: {}".format(['direct', 'refracted', 'reflected'][raytype-1]), fontsize = 40)
                 axs[iax].grid()
                 axs[iax].set_xlim((position_max_totaltrace - 40*sampling_rate, position_max_totaltrace + 40*sampling_rate))
@@ -173,34 +145,27 @@ class rayTypeSelecter:
            
             if type_exist and debug_plots:
                 if 1:
-                    print("corr total", corr_total)
-                    axs[raytype-1].set_title("raytype {}".format(['direct', 'refracted', 'reflected'][raytype-1]))
-                    axs[2].plot(corr_total,  label= '{}'.format(['direct', 'refracted', 'reflected'][raytype-1]))
-                    #axs[2].plot(abs(scipy.signal.correlate(total_trace, template_roll/max(template))), label = '{}'.format(['direct', 'refracted', 'reflected'][raytype-1])) #hp.get_normalized_xcorr(total_trace, template_roll/(max(template)))), label = 'total {}'.format(raytype))
+                    axs[raytype-1].set_title("raytype {}".format(['direct', 'refracted', 'reflected'][raytype-1]), fontsize = 30)
+                    axs[2].plot(corr_total, lw = 2,  label= '{}'.format(['direct', 'refracted', 'reflected'][raytype-1]))
+                  
                     axs[2].legend(fontsize = 20)
-                    #axs[iax].legend(fontsize = 30)
                     axs[2].grid()
                     axs[2].set_title("correlation", fontsize = 30)
-                    #tick in axs2.yaxis.get_majorticklabels():
-   # tick.set_fontsize(20)
-        #        if debug_plots: axs[raytype-1].set_xlim((position_max_totaltrace - 200, position_max_totaltrace+200))
-                max_totalcorr[raytype-1] = max(abs(corr_total))#max(scipy.signal.correlate(total_trace, template_roll/max(template)))#abs(hp.get_normalized_xcorr(total_trace/max(total_trace), template_roll/max(template))))
+                    
+                max_totalcorr[raytype-1] = max(abs(corr_total))
                 where_are_NaNs = np.isnan(max_totalcorr)
-                max_totalcorr[where_are_NaNs] = 0 
-            #position_max_totaltrace[raytype-1] = pos_max#np.argmax((abs(total_trace)))
-        #print("max total trace", max_totaltrace)
+            
         if debug_plots:
             fig.tight_layout()
-            fig.savefig("/lustre/fs22/group/radio/plaisier/software/simulations/full_reco/pulse_selection.png")
+            fig.savefig("{}/pulse_selection.png".format(debugplots_path))
         
         ### store parameters
         reconstructed_raytype = ['direct', 'refracted', 'reflected'][np.argmax(max_totalcorr)]
         print("reconstructed raytype:", reconstructed_raytype)
         station.set_parameter(stnp.raytype, reconstructed_raytype)
-        #print("position max totaltrace", position_max_totaltrace)
+       
         position_pulse = pos_max[np.argmax(max_totalcorr)]
         station.set_parameter(stnp.pulse_position, position_pulse)
-        #print("reconstructed raytype", reconstructed_raytype)
 
 
         if debug_plots:
@@ -214,9 +179,6 @@ class rayTypeSelecter:
         r.set_start_and_end_point(vertex, x2)
         r.find_solutions()
         for iS in range(r.get_number_of_solutions()):
-            print("iS", iS)
-            print("solution type", r.get_solution_type(iS))
-            print("pos", [np.argmax(max_totalcorr)]) 
             if r.get_solution_type(iS) == np.argmax(max_totalcorr)+1:
            
                 T_reference = r.get_travel_time(iS) 
@@ -234,11 +196,11 @@ class rayTypeSelecter:
                 delta_toffset = delta_T * sampling_rate
 
                 ### figuring out the time offset for specfic trace
-                print("position pulse", T_reference)
-                k = int(position_pulse + delta_toffset ) 
+                k = int(position_pulse + delta_toffset )
                 pulse_window = channel.get_trace()[k-300: k + 500]
                 if debug_plots:
-                    axs[ich].plot(channel.get_times(), channel.get_trace())
+                    axs[ich].plot(channel.get_times(), channel.get_trace(), color = 'blue')
+                    axs[ich].set_xlabel("time [ns]")
                     if sim: 
                         for sim_ch in station.get_sim_station().get_channels_by_channel_id(channel_id):
                             axs[ich].plot(sim_ch.get_times(), sim_ch.get_trace(), color = 'orange') 
@@ -255,7 +217,7 @@ class rayTypeSelecter:
     
         if debug_plots:
             fig.tight_layout()              
-            fig.savefig("/lustre/fs22/group/radio/plaisier/software/simulations/full_reco/Penalty/pulse_window.pdf")       
+            fig.savefig("{}/pulse_window.pdf".format(debugplots_path))
         station.set_parameter(stnp.channels_pulses, channels_pulses)
 
     def end(self):
