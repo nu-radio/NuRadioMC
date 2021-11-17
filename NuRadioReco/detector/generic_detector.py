@@ -313,6 +313,12 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         """
         return self.__default_station_ids
 
+    def get_default_station_id(self):
+        """
+        Get the ID of the default station
+        """
+        return self.__default_station_ids
+
     def get_default_channel(self):
         """
         Get the properties of the default channel
