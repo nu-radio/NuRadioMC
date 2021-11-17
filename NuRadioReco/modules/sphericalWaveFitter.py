@@ -89,7 +89,7 @@ class sphericalWaveFitter:
 
         for ich, ch_pair in enumerate(self.__channel_pairs):
             trace1 = np.copy(station.get_channel(self.__channel_pairs[ich][0]).get_trace())
-            trace2 =np.copy(station.get_channel(self.__channel_pairs[ich][1]).get_trace())
+            trace2 = np.copy(station.get_channel(self.__channel_pairs[ich][1]).get_trace())
        
             t_max1 = station.get_channel(self.__channel_pairs[ich][0]).get_times()[np.argmax(np.abs(trace1))]
             t_max2 = station.get_channel(self.__channel_pairs[ich][1]).get_times()[np.argmax(np.abs(trace2))]
