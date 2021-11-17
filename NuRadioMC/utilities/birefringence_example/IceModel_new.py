@@ -13,17 +13,17 @@ print(n_all)
 
 znew = np.arange(pos[2], 0, 1)
 
-plt.plot(znew, n_all[:,0], label = 'n1 - model')
-plt.plot(znew, n_all[:,1], label = 'n2 - model')
-plt.plot(znew, n_all[:,2], label = 'n3 - model')
+plt.plot(znew, n_all[:,0], label = 'nx - model')
+plt.plot(znew, n_all[:,1], label = 'ny - model')
+plt.plot(znew, n_all[:,2], label = 'nz - model')
 
 plt.title('Refractive index model for birefringence')
 plt.xlabel('depth [m]')
 plt.ylabel('Refractive index')
-plt.legend()
+#plt.legend()
 #plt.xlim(100, 200)
-plt.ylim(1.77, 1.782)
-plt.grid()
+#plt.ylim(1.77, 1.782)
+#plt.grid()
 plt.show()
 
 
