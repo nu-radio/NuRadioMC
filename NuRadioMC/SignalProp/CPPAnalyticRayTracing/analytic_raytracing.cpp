@@ -594,9 +594,10 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	int status;
 	int iter=0, max_iter=200;
 	double precision_fit = 1e-9;
-	double x_guess = -1;
 	bool found_root_1=false;
 	double root_1=-10000000; //some insane value we'd never believe
+	int num_badfunc_tries = 0;
+	int max_badfunc_tries = 100;
 
 	const gsl_root_fdfsolver_type *Tfdf;
 	gsl_root_fdfsolver *sfdf;
@@ -606,18 +607,30 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 	FDF.fdf = &obj_delta_y_square_fdf;
 	FDF.params = &params;
 	Tfdf = gsl_root_fdfsolver_secant;
-	sfdf = gsl_root_fdfsolver_alloc(Tfdf);
-	int num_badfunc_tries = 0;
-	int max_badfunc_tries = 100;
-	gsl_root_fdfsolver_set(sfdf,&FDF,x_guess);
-		gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
+	gsl_error_handler_t *myhandler = gsl_set_error_handler_off(); //I want to handle my own errors (dangerous thing to do generally...)
+	
+	// We have to guess at the location of the first root (if it it exists at all).
+	// Because we might not guess correctly, or guess close enough,
+	// it's in our favor (for numerical stability reasons) to try several times.
+	// So, we start at 0, and walk back wards.
+	// This issue on GitHub (https://github.com/nu-radio/NuRadioMC/issues/286)
+	// revealed this case where only checking -1 didn't get us close enough
+	// for the method (which is admittedly a *polishing* algorithm) to find the root.
+
+	for (double x_guess_start = -1; x_guess_start>-3; x_guess_start-=1){
+		if(found_root_1) break;
+		double x_guess = x_guess_start;
+		sfdf = gsl_root_fdfsolver_alloc(Tfdf);
+		gsl_root_fdfsolver_set(sfdf,&FDF,x_guess);
 		do{
 			iter++;
-			//cout<<"Got to iter "<<iter<<" val is "<<GSL_FN_FDF_EVAL_F(&FDF,x_guess)<<endl;
+			// cout<<"Got to iter "<<iter<<", guess is "<<x_guess<<" val is "<<GSL_FN_FDF_EVAL_F(&FDF,x_guess)<<endl;
 			status = gsl_root_fdfsolver_iterate(sfdf);
+			
 			//we need to manually protect against the function blowing up, which *is an error*, but will casue GSL to fail
 			//so, if we get a GSL_EBADFUNC, we want to manually say skip this, but re-enable the continue flag
 			if(status==GSL_EBADFUNC) {status=GSL_CONTINUE; num_badfunc_tries++; continue;}
+			
 			root_1 = x_guess;
 			x_guess = gsl_root_fdfsolver_root(sfdf);
 			status = gsl_root_test_residual(GSL_FN_FDF_EVAL_F(&FDF,root_1),precision_fit);
@@ -627,8 +640,14 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
 				found_root_1=true;
 			}
 		} while (status == GSL_CONTINUE && iter < max_iter && num_badfunc_tries<max_badfunc_tries);
-		gsl_set_error_handler (myhandler); //restore original error handler
-	gsl_root_fdfsolver_free (sfdf);
+		gsl_root_fdfsolver_free (sfdf);		
+		if(!found_root_1){ //reset
+			num_badfunc_tries=0;
+			iter=0;
+			status = GSL_CONTINUE;
+		}
+	}
+	gsl_set_error_handler (myhandler); //restore original error handler
 
 	if(!found_root_1) {
 		// printf("NOT converged on root 1! Iteration %d\n",iter);

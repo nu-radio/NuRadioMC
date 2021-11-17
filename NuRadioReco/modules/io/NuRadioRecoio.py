@@ -161,11 +161,14 @@ class NuRadioRecoio(object):
                         self.__event_headers[station_id][key] = []
                     if(key == stnp.station_time):
                         import astropy.time
-                        if value.format == 'datetime':
-                            time_strings = str(value).split(' ')
-                            station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
+                        if value is not None:
+                            if value.format == 'datetime':
+                                time_strings = str(value).split(' ')
+                                station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
+                            else:
+                                station_time = time
                         else:
-                            station_time = time
+                            station_time = None
                         self.__event_headers[station_id][key].append(station_time)
                     else:
                         self.__event_headers[station_id][key].append(value)
@@ -216,6 +219,7 @@ class NuRadioRecoio(object):
             self.__scan_files()
         if(event_number < 0 or event_number >= self.get_n_events()):
             self.logger.error('event number {} out of bounds, only {} present in file'.format(event_number, self.get_n_events()))
+            self.__read_lock = False
             return None
         # determine in which file event i is
         istart = 0

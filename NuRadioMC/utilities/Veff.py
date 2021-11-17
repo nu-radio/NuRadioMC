@@ -21,30 +21,36 @@ logger.setLevel(logging.INFO)
 def remove_duplicate_triggers(triggered, gids):
     """
     remove duplicate entried from triggered array
-    
+
     The hdf5 file contains a line per shower. One event can contain many showers, i.e. if we count all triggeres
     from all showers we overestimate the effective volume. This function modifies the triggered array such
-    that it contains not more than one True value for each event group. 
-    
+    that it contains not more than one True value for each event group.
+
     Parameters
     ----------
     triggered: array of bools
-        
+
     gids: array of ints
         the event group ids
-        
-    Returns: array of floats
+
+    Returns: array of bools
         the corrected triggered array
     """
     gids = np.array(gids)
     triggered = np.array(triggered)
-    uids, unique_mask, inv_mask, counts = np.unique(gids, return_index=True, return_inverse=True, return_counts=True)
-    for gid in uids[counts > 1]:
-        mask = gids == gid
-        if(np.sum(triggered[mask]) > 1):
-            idx = np.arange(len(triggered), dtype=np.int)[mask][triggered[mask] == True][1:]
-            triggered[idx] = False
-    return triggered
+
+    # shift the integer gids (just within the function) by 0.5 to avoid zeros
+    gids_shifted = gids + 0.5
+
+    # triggered gids, 0 where not triggered
+    triggered_gids = triggered*gids_shifted
+
+    unique_values, unique_indices = np.unique(triggered_gids, return_index=True)
+    # create output boolean array and set True for first triggered indices
+    first_occurences = np.zeros_like(triggered, dtype=bool)
+    np.put(first_occurences, unique_indices, True)
+    # the line above will also put the first untriggered, hence need to require "& triggered"
+    return first_occurences&triggered
 
 
 def FC_limits(counts):
@@ -140,7 +146,7 @@ def get_Veff_water_equivalent(Veff, density_medium=0.917 * units.g / units.cm **
     return Veff * density_medium / density_water
 
 
-def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_combinations, deposited, station, veff_aeff="veff"):
+def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_combinations, deposited, station, veff_aeff="veff", bounds_theta=[0, np.pi]):
     """
     calculates the effective volume or effective area from surface muons from a single NuRadioMC hdf5 file
 
@@ -178,7 +184,10 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
         can be 
         * "veff" (default)
         * "aeff_surface_muons"
-
+    bounds_theta: list of floats
+        restrict theta to sub-range wrt. the simulated range in the file
+        Note: assumes events were simulated uniformly in cos(theta)
+        bounds_theta should be a (two-item) list, but will care only about the min/max values
     Returns
     ----------
     list of dictionary. Each file is one entry. The dictionary keys store all relevant properties
@@ -187,6 +196,8 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
         raise AttributeError(f"the paramter `veff_aeff` needs to be one of either `veff` or `aeff_surface_muons`")
     logger.warning(f"processing file  {filename}")
     fin = h5py.File(filename, 'r')
+    n_events = fin.attrs['n_events']
+
     out = {}
     Emin = fin.attrs['Emin']
     Emax = fin.attrs['Emax']
@@ -204,6 +215,21 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
         thetamin = fin.attrs['thetamin']
     if('thetamax' in fin.attrs):
         thetamax = fin.attrs['thetamax']
+
+    theta_width_file = abs(np.cos(thetamin) - np.cos(thetamax))
+    # restrict the theta range, if requested
+    if min(bounds_theta) > thetamin:
+        logger.info("restricting thetamin from {} to {}".format(thetamin, min(bounds_theta)))
+        thetamin = min(bounds_theta)
+    if max(bounds_theta) < thetamax:
+        logger.info("restricting thetamax from {} to {}".format(thetamax, max(bounds_theta)))
+        thetamax = max(bounds_theta)
+    # The restriction assumes isotropic event generation in cos(theta) band
+    theta_fraction = abs(np.cos(thetamin) - np.cos(thetamax)) / theta_width_file
+    if theta_fraction < 1:
+        # adjust n_events to account for solid angle fraction in the requested theta range
+        n_events *= theta_fraction
+
     if('phimin' in fin.attrs):
         phimin = fin.attrs['phimin']
     if('phimax' in fin.attrs):
@@ -231,7 +257,6 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     out[veff_aeff] = {}
     out['n_triggered_weighted'] = {}
     out['SNRs'] = {}
-    n_events = fin.attrs['n_events']
 
     if('weights' not in fin.keys()):
         logger.warning(f"file {filename} is empty")
@@ -256,6 +281,13 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
         logger.warning(f"file {filename} has no triggering events. Using trigger names from a different file: {trigger_names}")
 
     weights = np.array(fin['weights'])
+    # if theta range is restricted, select events in that range
+    if theta_fraction < 1:
+        # generate boolean mask for events in fin inside selected theta range
+        mask_theta = np.array((fin['zeniths'] > thetamin) & (fin['zeniths'] < thetamax))
+        # multiply events with mask, events outside are zero-weighted
+        weights *= mask_theta
+
     if(triggered.size == 0):
         FC_low, FC_high = FC_limits(0)
         Veff_low = volume_proj_area * FC_low / n_events
@@ -328,7 +360,7 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
                 if(np.sum(triggered)):
                     As = np.array(fin[f'station_{station:d}/max_amp_ray_solution'])
                     # find the ray tracing solution that produces the largest amplitude
-                    max_amps = np.argmax(np.argmax(As[:, :], axis=-1), axis=-1)
+                    max_amps = np.argmax(np.argmax(As[:,:], axis=-1), axis=-1)
                     # advanced indexing: selects the ray tracing solution per event with the highest amplitude
                     triggered = triggered & (np.array(fin[f'station_{station:d}/ray_tracing_reflection'])[..., max_amps, 0][:, 0] == values['n_reflections'])
 
@@ -412,7 +444,7 @@ def get_Veff_Aeff(folder,
              trigger_combinations={},
              station=101,
              veff_aeff="veff",
-             n_cores=1):
+             n_cores=1, oversampling_theta=1):
     """
     calculates the effective volume or effective area from surface muons from NuRadioMC hdf5 files
 
@@ -450,6 +482,11 @@ def get_Veff_Aeff(folder,
     n_cores: int
         the number of cores to use
 
+    oversampling_theta: int
+        calculate the effective volume for finer binning (<oversampling_theta> data points per file):
+        * 1: no oversampling
+        * >1: oversampling with <oversampling_theta> equal-size cos(theta) bins within thetamin/max of the input file
+        Note: oversampling assumes that events were simulated uniformly in cos(theta)
     Returns
     ----------
     list of dictionary. Each file is one entry. The dictionary keys store all relevant properties
@@ -497,8 +534,22 @@ def get_Veff_Aeff(folder,
     logger.warning(f"running {len(filenames)} jobs on {n_cores} cores")
 
     args = []
-    for f in filenames:
-        args.append([f, trigger_names, trigger_names_dict, trigger_combinations, deposited, station, veff_aeff])
+    if oversampling_theta == 1:
+        for f in filenames:
+            args.append([f, trigger_names, trigger_names_dict, trigger_combinations, deposited, station, veff_aeff])
+    else:
+        # get the thetamin, thetamax from the files and do oversampling
+        logger.info("Calculating effective volumes with finer binning, {} bins per input file".format(oversampling_theta))
+        for f in filenames:
+            fin = h5py.File(f, 'r')
+            costhetamin = np.cos(fin.attrs['thetamin'])
+            costhetamax = np.cos(fin.attrs['thetamax'])
+            thetas = np.arccos(np.linspace(costhetamin, costhetamax, oversampling_theta + 1))
+            thetas_min = thetas[:-1]
+            thetas_max = thetas[1:]
+            for bounds_theta in zip(thetas_min, thetas_max):
+                args.append([f, trigger_names, trigger_names_dict, trigger_combinations, deposited, station, veff_aeff, bounds_theta])
+
     if n_cores == 1:
         output = []
         for arg in args:

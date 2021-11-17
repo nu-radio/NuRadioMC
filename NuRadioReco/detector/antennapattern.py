@@ -99,7 +99,7 @@ def get_group_delay(vector_effective_length, df):
     return -np.diff(np.unwrap(np.angle(vector_effective_length))) / df / units.ns / 2 / np.pi
 
 
-def parse_RNOG_XFDTD_file(path_gain, path_phases):
+def parse_RNOG_XFDTD_file(path_gain, path_phases, encoding = None):
     """"
     reads in XFDTD data
 
@@ -115,7 +115,7 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
     all paramters of the file
     """""
 
-    with open(path_gain, 'r') as fin:
+    with open(path_gain, 'r', encoding = encoding) as fin:
         ff = []
         phis = []
         thetas = []
@@ -134,7 +134,7 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
 
             line_count += 1
 
-    with open(path_phases, 'r') as fin:
+    with open(path_phases, 'r', encoding = encoding) as fin:
         phase_phi = []
         phase_theta = []
         csv_reader = csv.reader(fin, delimiter=',')
@@ -142,17 +142,17 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
         for row in csv_reader:
             if 1:  # (line_count % 2) == 0:
                 if line_count != 0:
-                    complex_phi = float(row[3]) + 1j * float(row[4])
-                    phase_phi.append(cmath.phase(complex_phi))
-                    complex_theta = float(row[5] + 1j * float(row[6]))
-                    phase_theta.append(cmath.phase(complex_theta))
+                    complex = float(row[3]) + 1j * float(row[4])
+                    phase_phi.append(cmath.phase(complex))
+                    complex = float(row[5]) + 1j * float(row[6])
+                    phase_theta.append(cmath.phase(complex))
 
             line_count += 1
 
     return np.array(ff), np.array(phis), np.array(thetas), np.array(gain_phi), np.array(gain_theta), np.array(phase_phi), np.array(phase_theta)
 
 
-def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74):
+def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74, encoding = None):
     """"
     Preprocess an antenna pattern in XFDTD file format. The vector effective length is calculated and the output is saved to the NuRadioReco pickle format.
 
@@ -171,7 +171,7 @@ def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74):
         refractive index for requested antenna file. The method assumes that simulations are done in air (n = 1)
     """
 
-    ff, phi, theta, gain_phi, gain_theta, phase_phi, phase_theta = parse_RNOG_XFDTD_file(path_gain, path_phases)
+    ff, phi, theta, gain_phi, gain_theta, phase_phi, phase_theta = parse_RNOG_XFDTD_file(path_gain, path_phases, encoding = encoding)
     c = constants.c * units.m / units.s
     Z_0 = 119.9169 * np.pi
 
@@ -561,7 +561,7 @@ def get_pickle_antenna_response(path):
         # does not exist yet -> download file
         import requests
         antenna_pattern_name = os.path.splitext(os.path.basename(path))[0]
-        URL = 'http://arianna.ps.uci.edu/~arianna/data/AntennaModels/{name}/{name}.pkl'.format(
+        URL = 'https://rnog-data.zeuthen.desy.de/AntennaModels/{name}/{name}.pkl'.format(
             name=antenna_pattern_name)
 
         folder = os.path.dirname(path)

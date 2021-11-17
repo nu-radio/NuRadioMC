@@ -10,8 +10,11 @@ home-page = "https://github.com/nu-radio/NuRadioMC"
 classifiers = ["License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"]
 
 requires = [
+	"numpy",
+	"scipy",
     "tinydb>=4.1.1",
     "tinydb-serialization",
+	"pickle",
     "aenum",
     "astropy",
     "radiotools >=0.2.0",
@@ -19,7 +22,13 @@ requires = [
     "pyyaml",
     "cython",
     "peakutils",
-    "requests"
+    "requests",
+    "pymongo",
+    "dash>=2.0.0",
+    "plotly",
+    "sphinx",
+    "uproot==4.1.1",
+    "awkward"
 ]
 requires-python=">=3.6"
 
