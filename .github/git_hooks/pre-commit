@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+
+# Simple script to block commits when users try to add files over 5 MB
+
+import os
+import sys
+import subprocess
+
+max_file_size = 5e6 # 5 MB
+repo_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel']).decode().replace('\n', '')
+staged_files = subprocess.check_output(
+    ['git', 'diff-index', '--cached', '--name-only', 'HEAD']
+).decode().split('\n')
+staged_files = [file for file in staged_files if file != '']
+fail_commit = False
+for file in staged_files:
+	file_size = os.path.getsize(os.path.join(repo_root, file))
+	if file_size > max_file_size:
+		print('{} ({:.3g} MB) is larger than the maximum recommended file size ({:.0f} MB)\n'.format(file, file_size/1e6, max_file_size/1e6))
+		fail_commit = True
+
+if fail_commit:
+	print('One or more of your committed files exceeded the size limit. Use \"git restore --staged <file>\" to remove these files from the index, and try again.\n')
+	print('Commit failed')
+	sys.exit(1)
