@@ -21,6 +21,7 @@ def generate_my_events(filename, n_events):
         number of events to generate
     """
 
+
     # first set the meta attributes
     attributes = {}
     n_events = int(n_events)
@@ -32,10 +33,10 @@ def generate_my_events(filename, n_events):
     data_sets = {}
     data_sets["emitter_antenna_type"] = ["bicone_v8_inf_n1.78"] * n_events
     data_sets["emitter_model"] = ["square"] * n_events
-    data_sets["emitter_amplitude"] = np.ones(n_events) * 1 * units.V
+    data_sets["emitter_amplitudes"] = np.ones(n_events) * 1 * units.V
 
     # we also have choice for the half width and frequency
-    data_sets["half_of_pulse_width"]= 1.0 * np.ones(n_events) *units.ns        # this will be the width of square and tone_burst signal  
+    data_sets["emitter_half_width"]= 1.0 * np.ones(n_events) *units.ns        # this will be the width of square and tone_burst signal  
     data_sets["emitter_frequency"] = 0.3 * np.ones(n_events)  *units.GHz       # this will be frequency of a signal ( for cw and tone_burst model)
     
     #the position of the emitter

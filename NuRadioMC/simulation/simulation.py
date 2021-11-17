@@ -735,10 +735,10 @@ class simulation():
 
                             elif(self._fin_attrs['simulation_mode'] == "emitter"):
                                 # NuRadioMC also supports the simulation of emitters. In this case, the signal model specifies the electric field polarization
-                                amplitude = self._fin['emitter_amplitude'][self._shower_index]
+                                amplitude = self._fin['emitter_amplitudes'][self._shower_index]
                                 # following two lines used only for few models( not for all)
                                 emitter_frequency = self._fin['emitter_frequency'][self._shower_index] # the frequency of cw and tone_burst signal
-                                half_width = self._fin['half_of_pulse_width'][self._shower_index] # defines width of square and tone_burst signals
+                                half_width = self._fin['emitter_half_width'][self._shower_index] # defines width of square and tone_burst signals
                                 # get emitting antenna properties
                                 antenna_model = self._fin['emitter_antenna_type'][self._shower_index]
                                 antenna_pattern = self._antenna_pattern_provider.load_antenna_pattern(antenna_model)
