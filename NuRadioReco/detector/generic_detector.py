@@ -317,6 +317,12 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         """
         Get the ID of the default station
         """
+        if isinstance(self.__default_station_ids, list):
+            logger.warning(f'station id is list {self.__default_station_ids}')
+            if len(self.__default_station_ids) > 1:
+                logger.warning(
+                    f'more than one default station id: {self.__default_station_ids}, continue with first entry')
+            self.__default_station_ids = self.__default_station_ids[0]
         return self.__default_station_ids
 
     def get_default_channel(self):
@@ -365,6 +371,8 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         channel_id: integer
             ID of the requested channel
         """
+        if isinstance(station_id, list):
+            station_id = station_id[0]
 
         if station_id in self._buffered_channels.keys():
             if channel_id in self._buffered_channels[station_id].keys():
