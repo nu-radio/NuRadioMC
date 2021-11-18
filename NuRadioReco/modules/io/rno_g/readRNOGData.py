@@ -32,13 +32,12 @@ class readRNOGData:
         self.__t = None
         self.__sampling_rate = 3.2 * units.GHz #TODO: 3.2 at the beginning of deployment. Will change to 2.4 GHz after firmware update eventually, but info not yet contained in the .root files. Read out once available.
         self._iterator_data = None
-        self._iterator_header = None
         self._data_treename = "waveforms"
         self._header_treename = "header"
         self.n_events = None
         self.input_files = []
 
-    def begin(self, input_files, input_files_header=None):
+    def begin(self, input_files):
 
         """
         Begin function of the RNO-G reader
@@ -46,8 +45,6 @@ class readRNOGData:
         Parameters
         ----------
         input_files: list of paths to files containing waveforms
-        input_files_header: list of paths to files containing header,
-            if None, headers are expected to be stored in the input_files also
         """
 
         self.__id_current_event = -1
@@ -55,13 +52,8 @@ class readRNOGData:
 
         if isinstance(input_files, six.string_types):
             input_files = [input_files]
-        if isinstance(input_files_header, six.string_types):
-            input_files_header = [input_files_header]
-        if input_files_header is None:
-            input_files_header = input_files
 
         self.input_files = input_files
-        self.input_files_header = input_files_header
 
         self.n_events = 0
         # get the total number of events of all input files
@@ -70,6 +62,7 @@ class readRNOGData:
             if 'combined' in file:
                 file = file['combined']
             self.n_events += file[self._data_treename].num_entries
+
         self._set_iterators()
 
         return self.n_events
@@ -89,25 +82,17 @@ class readRNOGData:
         datadict = OrderedDict()
         for filename in self.input_files:
             if 'combined' in uproot.open(filename):
-                datadict[filename] = 'combined/' + self._data_treename
+                datadict[filename] = 'combined'
             else:
-                datadict[filename] = self._data_treename
+                print("Error: Provided file is not a 'combined' root file.")
 
-        headerdict = OrderedDict()
-        for filename in self.input_files_header:
-            if 'combined' in uproot.open(filename):
-                headerdict[filename] = 'combined/' + self._header_treename
-            else:
-                headerdict[filename] = self._header_treename
 
         # iterator over single events (step 1), for event looping in NuRadioReco dataformat
         # may restrict which data to read in the iterator by adding second argument
         # read_branches = ['run_number', 'event_number', 'station_number', 'radiant_data[24][2048]']
         self._iterator_data = uproot.iterate(datadict, cut=cut,step_size=1, how=dict, library="np")
-        self._iterator_header = uproot.iterate(headerdict, cut=cut, step_size=1, how=dict, library="np")
 
         self.uproot_iterator_data = uproot.iterate(datadict, cut=cut, step_size=1000)
-        self.uproot_iterator_header = uproot.iterate(headerdict, cut=cut, step_size=1000)
 
     @register_run()
     def run(self, channels=np.arange(24), event_numbers=None, run_numbers=None, cut_string=None):
@@ -153,9 +138,9 @@ class readRNOGData:
         ]
         self.__t = time.time()
         # Note: reading single events is inefficient...
-        # for event_header, event in zip(self._iterator_header, self._iterator_data):
-        for event_headers, events in zip(self.uproot_iterator_header, self.uproot_iterator_data):
-          for event_header, event in zip(event_headers, events):
+        # for event in self._iterator_data:
+        for events in self.uproot_iterator_data:
+          for event in events:
             self.__id_current_event += 1
             #if self.__id_current_event >= self.n_events:
             #    # all events processed, but iterator should stop before anyways.
@@ -169,20 +154,18 @@ class readRNOGData:
                 
             run_number = event["run_number"]
             evt_number = event["event_number"]
-            station_id = event_header["station_number"]
+            station_id = event["station_number"]
             self.logger.info("Reading Run: {run_number}, Event {evt_number}, Station {station_id}")
 
             evt = NuRadioReco.framework.event.Event(run_number, evt_number)
             station = NuRadioReco.framework.station.Station(station_id)
             #TODO in future: do need to apply calibrations?
-
-            unix_time = event_header["trigger_time"]
+            unix_time = event["trigger_time"]
             event_time = astropy.time.Time(unix_time, format='unix')
-
             station.set_station_time(event_time)
             for trigger_key in root_trigger_keys:
                 try:
-                    has_triggered = bool(event_header[trigger_key])
+                    has_triggered = bool(event[trigger_key])
                     trigger = NuRadioReco.framework.trigger.Trigger(trigger_key.split('.')[-1])
                     trigger.set_triggered(has_triggered)
                     station.set_trigger(trigger)
