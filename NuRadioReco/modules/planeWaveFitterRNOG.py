@@ -9,6 +9,7 @@ from NuRadioReco.framework.parameters import showerParameters as shp
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units, fft
 import scipy.signal
+from NuRadioReco.framework.parameters import channelParameters as chp
 
 class planeWaveFitterRNOG:
     " Fits the direction using plane wave fit to channels "
@@ -23,36 +24,13 @@ class planeWaveFitterRNOG:
         pass
 
 
-    def run(self, evt, station, det, n_index = None, template = None, event_id = None, debug = True):
+    def run(self, evt, station, det, n_index = None, template = None, debug = True, debugplots_path = None):
         if station.has_sim_station():
-            ice = medium.get_ice_model('greenland_simple')
-            prop = propagation.get_propagation_module('analytic')
-            # determine signal arrival direction from stimulations
-            for channel in station.get_sim_station().iter_channels():
-                if channel.get_id() in self.__channel_ids:
-                    print("channel id", channel.get_id())
-                    shower_id = channel.get_shower_id() 
-                    x2 = det.get_relative_position(station.get_id(), channel.get_id()) + det.get_absolute_position(station.get_id())
-                    r = prop( ice, 'GL1')
-                    r.set_start_and_end_point(evt.get_sim_shower(shower_id)[shp.vertex], x2)
-
-                    r.find_solutions()
-                    if(not r.has_solution()):
-                        print("warning: no solutions")
-                        continue
-                    else:
-                        for iS in range(r.get_number_of_solutions()):
-                            solution_type = r.get_solution_type(iS)
-                            print("solution type", solution_type)
-                            if iS:#
-                                signal_zenith = hp.cartesian_to_spherical(*r.get_receive_vector(iS))[0]
-                                signal_azimuth = hp.cartesian_to_spherical(*r.get_receive_vector(iS))[1] 
-                                print("solution type {}, signal_zenith {}, signal_azimuth {}".format(solution_type, np.rad2deg(signal_zenith), np.rad2deg(signal_azimuth)))
-                            if not iS:#
-                                signal_zenith1 = hp.cartesian_to_spherical(*r.get_receive_vector(iS))[0]
-                                signal_azimuth1 = hp.cartesian_to_spherical(*r.get_receive_vector(iS))[1]
-                                print("solution type {}, signal_zenith {}, signal_azimuth {}".format(solution_type, np.rad2deg(signal_zenith1), np.rad2deg(signal_azimuth1)))
-            vertex = evt.get_sim_shower(shower_id)[shp.vertex]
+            for channel in station.iter_channels():
+                if channel.get_id() == 0:
+                    signal_zenith = channel[chp.signal_receiving_zenith]
+                    signal_azimuth = channel[chp.signal_receiving_azimuth]
+      
 
 
         print("channels used for this reconstruction:", self.__channel_ids)
@@ -73,7 +51,7 @@ class planeWaveFitterRNOG:
         self.__template = template
     
         if debug:
-            fig, ax = plt.subplots( len(self.__channel_pairs), 2)
+            fig, ax = plt.subplots( len(self.__channel_pairs), 2, figsize = (10, 10))
 
     
         def likelihood(angles, sim = False, rec = False):#, debug = False):#, station):
@@ -93,23 +71,32 @@ class planeWaveFitterRNOG:
                 corr += self.__correlation[ich, pos]
                 
                 if sim:
-                    ax[ ich, 0].plot(self.__correlation[ich])
-           
-                    ax[ich, 0].axvline(pos, color = 'green', lw = 1, label = 'sim')#self.__correlation[ich, pos])
-                    ax[ich,0].legend()
+                    ax[ ich, 0].plot(self.__correlation[ich], color = 'blue')
+                    ax[ich, 0].axvline(pos, color = 'orange', lw = 1, label = 'sim')#self.__correlation[ich, pos])
+                    #ax[ich,0].legend()
                     #ax[ich, 0].set_title("channel pair {}- {}".format( ch_pair[0], ch_pair[1]))
                 if rec:
-                    ax[ ich, 0].plot(self.__correlation[ich])
+                   # ax[ ich, 0].plot(self.__correlation[ich])
                     ax[ich, 0].set_ylim((0, max(self.__correlation[ich])))
-     
-                    ax[ich, 1].plot(station.get_channel(ch_pair[0]).get_times(), station.get_channel(ch_pair[0]).get_trace())
+                    ax[ich, 0].axvline(pos, color = 'red', lw = 1, label= 'rec')
+                    ax[ich, 1].plot(station.get_channel(ch_pair[0]).get_times(), station.get_channel(ch_pair[0]).get_trace(), color = 'green', label = 'ch {}'.format(ch_pair[0]))
                   #  print("plot cannels", ch_pair)
-                    ax[ich, 1].plot(station.get_channel(ch_pair[1]).get_times(), station.get_channel(ch_pair[1]).get_trace())
+                    ax[ich, 1].plot(station.get_channel(ch_pair[1]).get_times(), station.get_channel(ch_pair[1]).get_trace(), color = 'red', label = 'ch {}'.format(ch_pair[1]))
                     ax[ich, 1].set_xlabel("timing [ns]")
+                    ax[ich, 1].legend()
+                    ax[ich, 0].legend()
+                if sim:
+                    for channel in station.get_sim_station().get_channels_by_channel_id(ch_pair[0]):
+                        print("PLOT")
+                        ax[ich,1].plot(channel.get_times(), channel.get_trace(), color = 'orange', zorder = 100)
+                    for channel in station.get_sim_station().get_channels_by_channel_id(ch_pair[1]):
+                        ax[ich,1].plot(channel.get_times(), channel.get_trace(), color = 'orange', zorder = 100)   
+                    # ax[ich,1].plot(station.get_sim_station().get_channel(ch_pair[0]).get_times(), station.get_sim_station().get_channel(ch_pair[0]).get_trace(), color = 'orange')
+    #                fig.tight_layout()
                     #ax[ich, 1].set_title("channel pair {}- {}".format( ch_pair[0], ch_pair[1]))
             if rec:
                 fig.tight_layout()
-                fig.savefig("/lustre/fs22/group/radio/plaisier/software/simulations/planeWaveFit/plots/corr_signal_{}.pdf".format(event_id)) 
+                fig.savefig("{}/planewave_corr.pdf".format(debugplots_path)) 
            # print(stop)
             ### calculate timing shift due to plane wave
             ### get value in correlation due to timing
@@ -172,17 +159,19 @@ class planeWaveFitterRNOG:
             
         ### minimizer
         zen_start = np.deg2rad(0)
-        zen_end = np.deg2rad(90)
+        zen_end = np.deg2rad(180)
         az_start = np.deg2rad(-180)
         az_end = np.deg2rad(180)
 
         if debug: print("Likelihood simulation", likelihood([signal_zenith, signal_azimuth], sim = True))
   
         ll = opt.brute(likelihood, ranges=(slice(zen_start, zen_end, 0.01), slice(az_start, az_end, 0.01)), finish = opt.fmin)
-        
+        rec_zenith = ll[0]
+        rec_azimuth = ll[1]
 
         if debug:
-            zens = np.arange(0, 90, 1)
+            print("creating debug plot for planwavefiter.....")
+            zens = np.arange(0, 180, 1)
             azs = np.arange(-180, 180, 1)
             xx, yy = np.meshgrid(zens, azs)
             zz = np.zeros((len(zens), len(azs)))
@@ -191,17 +180,17 @@ class planeWaveFitterRNOG:
                     c = likelihood([np.deg2rad(z), np.deg2rad(a)])
                     zz[iz, ia] = c
   
-            fig = plt.figure()
+            fig1 = plt.figure()
             plt.pcolor(zens, azs,  zz.T)
             plt.xlabel("zenith [degrees]")
             plt.ylabel("azimuth [azimuth]")
             plt.axhline(np.rad2deg(signal_azimuth), color = 'orange')
             plt.axvline(np.rad2deg(signal_zenith), color = 'orange', label = 'simulated values')
+            plt.axhline(np.rad2deg(rec_azimuth), color = 'white')
+            plt.axvline(np.rad2deg(rec_zenith), color = 'white', label = 'reconstructed values')
             plt.legend()
-            fig.savefig("/lustre/fs22/group/radio/plaisier/software/simulations/planeWaveFit/plots/zz.pdf")
-        rec_zenith = ll[0]
-        rec_azimuth = ll[1]
-        
+            fig1.savefig("{}/planewave_map.pdf".format(debugplots_path))
+     
         ##### run with reconstructed values
         if debug: print("likelihood reconstruction", likelihood(ll, rec = True))
         print("simulated zenith {} and reconstructed zenith {}".format(np.rad2deg(signal_zenith), np.rad2deg(rec_zenith)))

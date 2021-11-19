@@ -5,6 +5,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from scipy import signal
+from NuRadioReco.framework.parameters import channelParameters as chp
 from scipy import optimize as opt
 import datetime
 import math
@@ -58,6 +59,7 @@ class rayTypeSelecter:
         
         if sim:
             vertex = event.get_sim_shower(shower_id)[shp.vertex]
+            print("simulated vertex:", vertex)
         else:
             vertex = station[stnp.nu_vertex]
     
@@ -179,7 +181,7 @@ class rayTypeSelecter:
         r.set_start_and_end_point(vertex, x2)
         r.find_solutions()
         for iS in range(r.get_number_of_solutions()):
-            if r.get_solution_type(iS) == np.argmax(max_totalcorr)+1:
+            if r.get_solution_type(iS) in [np.argmax(max_totalcorr)+1]:
            
                 T_reference = r.get_travel_time(iS) 
                 
@@ -190,10 +192,22 @@ class rayTypeSelecter:
             r.set_start_and_end_point(vertex, x2)
             simchannel = []
             r.find_solutions()
+           # print("channel id {}, number of solutions {}".format(channel_id, r.get_number_of_solutions()))
             for iS in range(r.get_number_of_solutions()):
+               # print("ray type", r.get_solution_type(iS))
                 T = r.get_travel_time(iS)
                 delta_T =  T - T_reference  
                 delta_toffset = delta_T * sampling_rate
+                ### if channel is phased array channel, and pulse is triggered pulse, store signal zenith and azimuth
+                if channel_id == use_channels[0]: # if channel is upper phased array channel
+                  #  print("solution type", r.get_solution_type(iS))
+                  #  print("selected type", np.argmax(max_totalcorr)+1)
+                    if r.get_solution_type(iS) in [np.argmax(max_totalcorr)+1]: ## if solution type is triggered solution type
+                     #   print("get receive vector...............>>")
+                        receive_vector = r.get_receive_vector(iS)
+                        receive_zenith, receive_azimuth = hp.cartesian_to_spherical(*receive_vector)
+                        channel.set_parameter(chp.signal_receiving_zenith, receive_zenith)
+                        channel.set_parameter(chp.signal_receiving_azimuth, receive_azimuth)	
 
                 ### figuring out the time offset for specfic trace
                 k = int(position_pulse + delta_toffset )
@@ -213,7 +227,7 @@ class rayTypeSelecter:
                     axs[ich].set_title("channel {}".format(channel_id))  
                 if ((np.max(pulse_window) - np.min(pulse_window))/(2*noise_rms) > 3.5):
                     channels_pulses.append(channel.get_id())
-                    break;
+                   
     
         if debug_plots:
             fig.tight_layout()              

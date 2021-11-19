@@ -60,7 +60,7 @@ class neutrinoDirectionReconstructor:
         return self._launch_vector_sim
     
     def run(self, event, station, det, shower_ids = None,
-            use_channels=[6, 14], filenumber = 1, single_pulse = False, debug_plots = False, debugplots_path = None, template = False, sim_vertex = True, Vrms = 0.0114, only_simulation = False, ch_Vpol = 6, ch_Hpol = 13, full_station = True, brute_force = True, fixed_timing = False, restricted_input = True, starting_values = True, debugplots_path):
+            use_channels=[6, 14], filenumber = 1, single_pulse = False, debug_plots = False, template = False, sim_vertex = True, Vrms = 0.0114, only_simulation = False, ch_Vpol = 6, ch_Hpol = 13, full_station = True, brute_force = True, fixed_timing = False, restricted_input = True, starting_values = True, debugplots_path = None):
 
         """
         Module to reconstruct the direction of the event.
