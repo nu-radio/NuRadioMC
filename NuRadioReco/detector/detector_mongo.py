@@ -104,21 +104,6 @@ class Detector(object):
         """
         return self.db.SURFACE.distinct("name")
 
-    # def insert_amp_board_channel_S12(self, board_name, Sparameter, channel_id, ff, mag, phase):
-    #     """
-    #     inserts a new S12 measurement of one channel of an amp board
-    #     If the board dosn't exist yet, it will be created.
-    #     """
-    #     self.db.amp_boards.update_one({'name': board_name},
-    #                               {"$push" :{'channels': {
-    #                                   'id': channel_id,
-    #                                   'last_updated': datetime.datetime.utcnow(),
-    #                                   'S_parameter': Sparameter,
-    #                                   'frequencies': list(ff),
-    #                                   'mag': list(mag),
-    #                                   'phase': list(phase)
-    #                                   }}},
-    #                              upsert=True)
 
     def surface_board_channel_set_not_working(self, board_name, channel_id):
         """
@@ -194,6 +179,25 @@ class Detector(object):
                                           }}},
                                      upsert=True)
 
+    def SURFACE_remove_primary(self, board_name, channel_id):
+        """
+        updates the primary_measurement of previous entries to False by channel
+
+        Parameters
+        ---------
+        board_name: string
+            the unique identifier of the board
+        channel_id: int
+            the channel of the board whose measurement is being updated
+
+
+        """
+
+        self.db.SURFACE.update_one({'name': board_name},
+                                {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+                                array_filters=[{"updateIndex.channel_id": channel_id}])
+
+
     # DRAB
 
     def DRAB_set_not_working(self, board_name):
@@ -257,6 +261,29 @@ class Detector(object):
                                           'phase': list(S_data[2 * i + 2])
                                           }}},
                                      upsert=True)
+
+
+    def AMP_remove_primary(self, table_name, board_name, channel_id):
+        """
+        updates the primary_measurement of previous entries to False by channel
+        for amps with multiple channels (i.e., DRABs and SURFACEs)
+
+        Parameters
+        ---------
+        table_name: string
+            the database table name, passed from the add_[amplifier] pages
+        board_name: string
+            the unique identifier of the board
+        channel_id: int
+            the channel of the board whose measurement is being updated
+
+
+        """
+
+        self.db[table_name].update_one({'name': board_name},
+                                {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+                                array_filters=[{"updateIndex.channel_id": channel_id}])
+
 
     # VPol
 
@@ -462,6 +489,21 @@ class Detector(object):
                                           'phase': list(S_data[2 * i + 2])
                                           }}},
                                      upsert=True)
+
+
+    def IGLU_remove_primary(self, board_name):
+        """
+        updates the primary_measurement of previous entries to False by channel
+
+        Parameters
+        ---------
+        board_name: string
+            the unique identifier of the board
+        """
+
+        self.db.IGLU.update_one({'name': board_name},
+                                {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+                                array_filters=[{"updateIndex.primary_measurement": True}])
 
     def IGLU_board_channel_add_Sparameters_without_DRAB(self, board_name, temp,
                                                         S_data, measurement_time,

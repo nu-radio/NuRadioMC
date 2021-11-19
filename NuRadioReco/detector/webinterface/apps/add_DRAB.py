@@ -217,6 +217,7 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff,
                 primary_measurement = False
             else:
                 primary_measurement = True
+                det.AMP_remove_primary(table_name, board_name, channel_id)
             S_data = np.genfromtxt(S_data_io, skip_footer=1, delimiter=sep).T
             S_data[0] *= str_to_unit[unit_ff]
             for i in range(4):
