@@ -33,7 +33,7 @@ sphinx = "*"
 uproot = "4.1.1"
 awkward = "*"
 python = "^3.6"
-proposal = {version="6.1.6", optional=true}
+# proposal = {version="6.1.6", optional=true}
 matplotlib = "*"
 toml = ">=0.10.2"
 importlib-metadata = {version = ">=4.8.1", python = "<3.8"}

@@ -8,7 +8,7 @@ import tempfile
 logger = logging.getLogger('NuRadioMC-install-dev')
 logger.setLevel(logging.INFO)
 
-top_dir = os.path.dirname(os.path.realpath(__file__))#.split('.github')[0] #TODO - finalize path
+top_dir = os.path.dirname(os.path.realpath(__file__))
 os.chdir(top_dir) # change CWD to repository root
 
 def yesno_input(msg=''):
@@ -70,16 +70,26 @@ if '.git' in os.listdir(top_dir): # check that we are in a git repository
 
     ### Add NuRadioMC to PYTHONPATH in .bashrc, if not already available
     try:
-        current_pythonpath = os.environ["PYTHONPATH"].split(":")
+        current_pythonpath = os.environ["PYTHONPATH"]
     except KeyError:
         current_pythonpath = []
-    if top_dir not in [os.path.realpath(j) for j in current_pythonpath]:
+    check_pythonpath = [path for path in current_pythonpath.split(':') if len(path)>0] # the current directory doesn't count!
+    if top_dir not in [os.path.realpath(j) for j in check_pythonpath]:
         add_NuRadioMC_to_pythonpath = yesno_input("{} not yet in PYTHONPATH. Add to user .bashrc?".format(top_dir))
         if add_NuRadioMC_to_pythonpath:
             try:
                 bashrc_path = os.path.expanduser("~/.bashrc")
-                with open(bashrc_path, 'a') as bashrc_file:
-                    bashrc_file.write("export PYTHONPATH=$PYTHONPATH:{}".format(top_dir))
+                with open(bashrc_path, 'a+') as bashrc_file:
+                    exportline = "export PYTHONPATH=$PYTHONPATH:{}".format(top_dir)
+                    bashrc_file.seek(0)
+                    line_in_bashrc = any([ # check if we / the user has already updated .bashrc
+                        ('export' in k) & ('PYTHONPATH' in k) & (top_dir in k) 
+                        for k in bashrc_file.readlines()
+                    ])
+                    if line_in_bashrc:
+                        print("PYTHONPATH already updated in .bashrc. Try relaunching the shell.")
+                    else:
+                        bashrc_file.write("export PYTHONPATH=$PYTHONPATH:{}".format(top_dir))
             except OSError as e:
                 print("Failed to add {} to .bashrc. Please manually add it to your PYTHONPATH.".format(top_dir))
 
