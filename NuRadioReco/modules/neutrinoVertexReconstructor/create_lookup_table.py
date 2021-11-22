@@ -61,7 +61,7 @@ parser.add_argument(
 args = parser.parse_args()
 x_pos = np.arange(args.r_min, args.r_max, args.d_r)
 z_pos = np.arange(-args.z_min, -args.z_max, args.d_z)
-
+print(x_pos)
 
 ice = NuRadioMC.utilities.medium.get_ice_model(args.ice_model)
 ray_tracing = NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D(ice)
@@ -86,15 +86,17 @@ for channel_type in channel_types:
     travel_times_refracted = np.zeros((len(x_pos), len(z_pos)))
     travel_times_reflected = np.zeros((len(x_pos), len(z_pos)))
     for i_x, xx in enumerate(x_pos):
+        if i_x % 10 == 0:
+            print(xx)
         for i_z, zz in enumerate(z_pos):
-            solutions = ray_tracing.find_solutions([xx, zz], [0, channel_type['z']])
+            solutions = ray_tracing.find_solutions([-xx, zz], [0, channel_type['z']])
             for solution in solutions:
                 if solution['type'] == 1:
-                    travel_times_direct[i_x][i_z] = ray_tracing.get_travel_time([xx, zz], [0, channel_type['z']], solution['C0'])
+                    travel_times_direct[i_x][i_z] = ray_tracing.get_travel_time([-xx, zz], [0, channel_type['z']], solution['C0'])
                 if solution['type'] == 2:
-                    travel_times_refracted[i_x][i_z] = ray_tracing.get_travel_time([xx, zz], [0, channel_type['z']], solution['C0'])
+                    travel_times_refracted[i_x][i_z] = ray_tracing.get_travel_time([-xx, zz], [0, channel_type['z']], solution['C0'])
                 if solution['type'] == 3:
-                    travel_times_reflected[i_x][i_z] = ray_tracing.get_travel_time([xx, zz], [0, channel_type['z']], solution['C0'])
+                    travel_times_reflected[i_x][i_z] = ray_tracing.get_travel_time([-xx, zz], [0, channel_type['z']], solution['C0'])
     lookup_table[channel_type['name']] = {
         'direct': travel_times_direct,
         'refracted': travel_times_refracted,
