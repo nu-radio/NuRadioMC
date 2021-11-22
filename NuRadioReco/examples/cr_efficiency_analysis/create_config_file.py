@@ -14,7 +14,7 @@ parser.add_argument('--detector_file', type=str, nargs='?',
 parser.add_argument('--target_global_trigger_rate', type=float, nargs='?', default=0.001,
                     help='trigger rate for all channels in Hz')
 parser.add_argument('--trigger_name', type=str, nargs='?', default='high_low',
-                    help='name of the trigger, high_low or envelope')
+                    help='name of the trigger, high_low, envelope or power_integration')
 parser.add_argument('--default_station', type=int, nargs='?', default=101,
                     help='default station id')
 parser.add_argument('--trace_samples', type=int, nargs='?', default=1024,
@@ -23,12 +23,14 @@ parser.add_argument('--sampling_rate', type=int, nargs='?', default=1,
                     help='sampling rate in GHz')
 parser.add_argument('--triggered_channels', type=np.ndarray, nargs='?', default=np.array([1]),
                     help='channel on which the trigger is applied')
-parser.add_argument('--total_number_triggered_channels', type=int, nargs='?', default=4,
+parser.add_argument('--total_number_triggered_channels', type=int, nargs='?', default=3,
                     help='number ot channels that trigger.')
 parser.add_argument('--number_coincidences', type=int, nargs='?', default=2,
                     help='number coincidences of true trigger within on station of the detector')
 parser.add_argument('--coinc_window', type=int, nargs='?', default=80,
                     help='coincidence window within the number coincidence has to occur. In ns')
+parser.add_argument('--int_window', type=float, nargs='?', default=10,
+                    help='integration time window [ns] for power_integration trigger')
 parser.add_argument('--passband_low', type=int, nargs='?', default=80,
                     help='lower bound of the passband used for the trigger in MHz')
 parser.add_argument('--passband_high', type=int, nargs='?', default=180,
@@ -45,7 +47,7 @@ parser.add_argument('--galactic_noise_n_side', type=int, nargs='?', default=4,
                     help='The n_side parameter of the healpix map. Has to be power of 2, basicly the resolution')
 parser.add_argument('--galactic_noise_interpolation_frequencies_start', type=int, nargs='?', default=10,
                     help='start frequency the galactic noise is interpolated over in MHz')
-parser.add_argument('galactic_noise_interpolation_frequencies_stop', type=int, nargs='?', default=1100,
+parser.add_argument('--galactic_noise_interpolation_frequencies_stop', type=int, nargs='?', default=1100,
                     help='stop frequency the galactic noise is interpolated over in MHz')
 parser.add_argument('--galactic_noise_interpolation_frequencies_step', type=int, nargs='?', default=100,
                     help='frequency steps the galactic noise is interpolated over in MHz')
@@ -74,6 +76,7 @@ passband_high = args.passband_high * units.megahertz
 passband_trigger = np.array([passband_low, passband_high])
 sampling_rate = args.sampling_rate * units.gigahertz
 coinc_window = args.coinc_window * units.ns
+int_window = args.int_window * units.ns
 Tnoise = args.Tnoise * units.kelvin
 T_noise_min_freq = args.T_noise_min_freq * units.megahertz
 T_noise_max_freq = args.T_noise_max_freq * units.megahertz
@@ -116,7 +119,7 @@ dic = {'T_noise': Tnoise, 'Vrms_thermal_noise': Vrms_thermal_noise, 'n_iteration
        'trigger_name': args.trigger_name, 'passband_trigger': passband_trigger,
        'total_number_triggered_channels': args.total_number_triggered_channels,
        'number_coincidences': args.number_coincidences, 'triggered_channels': args.triggered_channels,
-       'coinc_window': coinc_window, 'order_trigger': args.order_trigger, 'detector_file': args.detector_file,
+       'coinc_window': coinc_window, 'int_window': int_window, 'order_trigger': args.order_trigger, 'detector_file': args.detector_file,
        'default_station': args.default_station, 'trace_samples': args.trace_samples, 'sampling_rate': sampling_rate,
        'trace_length': trace_length, 'T_noise_min_freq': T_noise_min_freq, 'T_noise_max_freq': T_noise_max_freq,
        'galactic_noise_n_side': args.galactic_noise_n_side,
