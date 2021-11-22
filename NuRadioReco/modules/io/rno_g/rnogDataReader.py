@@ -57,6 +57,7 @@ class RNOGDataReader:
             run_numbers = np.append(run_numbers, file['header']['run_number'].array(library='np').astype(int))
         self.__event_ids = np.array([run_numbers, event_ids]).T
 
+    @lru_cache(maxsize=1)
     def __open_file(self, filename):
         logger.debug("Opening file {}".format(filename))
         file = uproot.open(filename)
@@ -67,7 +68,7 @@ class RNOGDataReader:
     def get_n_events(self):
         return self.get_event_ids().shape[0]
 
-    # @lru_cache(maxsize=1) # probably not actually relevant outside the data viewer?
+    @lru_cache(maxsize=1) # probably not actually relevant outside the data viewer?
     def get_event_i(self, i_event):
         read_time = time.time()
         event = NuRadioReco.framework.event.Event(*self.get_event_ids()[i_event])
