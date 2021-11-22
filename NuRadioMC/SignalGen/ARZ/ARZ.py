@@ -641,6 +641,8 @@ class ARZ(object):
                                   shower_type="HAD", n_index=1.78, distance=1 * units.m,
                                   interp_factor=1., interp_factor2=100., shift_for_xmax=False):
         """
+        --- This function is deprecated and has been replaced by the module level ARZ.get_vector_potential() ---
+
         fast interpolation of time-domain calculation of vector potential of the
         Askaryan pulse from a charge-excess profile
 
@@ -679,7 +681,7 @@ class ARZ(object):
             with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined 
             as the position of the maximum of the charge excess profile
         """
-
+        logger.warning("This function has been deprecated - please use the module level ARZ.get_vector_potential_numba or ARZ.get_vector_potential instead")
         ttt = np.arange(0, (N + 1) * dt, dt)
         ttt = ttt + 0.5 * dt - ttt.mean()
         if(len(ttt) != N + 1):
@@ -912,7 +914,7 @@ class ARZ(object):
     def get_vector_potential(self, energy, theta, N, dt, y=1, ccnc='cc', flavor=12, n_index=1.78, R=1 * units.m,
                              profile_depth=None, profile_ce=None):
         """
-        python transcription of original FORTRAN code
+        python transcription of original FORTRAN code (slow, DO NOT USE)
         """
 
         tt = np.arange(0, (N + 1) * dt, dt)
