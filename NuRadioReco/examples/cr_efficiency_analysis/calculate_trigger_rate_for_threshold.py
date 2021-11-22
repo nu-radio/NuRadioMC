@@ -7,6 +7,7 @@ import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.channelGalacticNoiseAdder
 import NuRadioReco.modules.trigger.envelopeTrigger as envelopeTrigger
 import NuRadioReco.modules.trigger.highLowThreshold as highLowThreshold
+import NuRadioReco.modules.trigger.powerIntegration as powerIntegration
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.eventTypeIdentifier
@@ -88,6 +89,7 @@ channelGalacticNoiseAdder.begin(
     interpolation_frequencies=np.arange(cfg['galactic_noise_interpolation_frequencies_start'],
                                         cfg['galactic_noise_interpolation_frequencies_stop'],
                                         cfg['galactic_noise_interpolation_frequencies_step']))
+
 hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
 
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
@@ -143,6 +145,13 @@ for n_it in range(n_iterations_total):
 
             if cfg['trigger_name'] == 'envelope':
                 triggered_samples = envelopeTrigger.get_envelope_triggers(trace, threshold)
+                if True in triggered_samples:
+                    has_triggered = bool(1)
+                else:
+                    has_triggered = bool(0)
+
+            if cfg['trigger_name'] == 'power_integration':
+                triggered_samples = powerIntegration.get_power_int_triggers(trace, threshold, cfg['int_window'], dt=dt, full_output=False)
                 if True in triggered_samples:
                     has_triggered = bool(1)
                 else:

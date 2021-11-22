@@ -8,6 +8,7 @@ import NuRadioReco.modules.channelGalacticNoiseAdder
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.trigger.envelopeTrigger as envelopeTrigger
 import NuRadioReco.modules.trigger.highLowThreshold as highLowThreshold
+import NuRadioReco.modules.trigger.powerIntegration as powerIntegration
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 import NuRadioReco.modules.eventTypeIdentifier
 from NuRadioReco.detector.generic_detector import GenericDetector
@@ -132,6 +133,13 @@ while sum_trigger > cfg['number_of_allowed_trigger']:
 
             if cfg['trigger_name'] == 'envelope':
                 triggered_samples = envelopeTrigger.get_envelope_triggers(trace, threshold)
+                if True in triggered_samples:
+                    has_triggered = bool(1)
+                else:
+                    has_triggered = bool(0)
+
+            if cfg['trigger_name'] == 'power_integration':
+                triggered_samples = powerIntegration.get_power_int_triggers(trace, threshold, cfg['int_window'], dt=dt, full_output=False)
                 if True in triggered_samples:
                     has_triggered = bool(1)
                 else:
