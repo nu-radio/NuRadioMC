@@ -385,8 +385,6 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         channel_id: integer
             ID of the requested channel
         """
-        if isinstance(station_id, list):
-            station_id = station_id[0]
 
         if station_id in self._buffered_channels.keys():
             if channel_id in self._buffered_channels[station_id].keys():
