@@ -219,23 +219,21 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             logger.warning('Station with ID {} already exists in buffer. Cannot add station with same ID'.format(
                 station_dict['station_id']))
             return
-        if 'reference_station' in station_dict:
-            reference_id = station_dict['reference_station']
-            for key in self.__default_stations[reference_id].keys():
-                if key not in station_dict.keys():
-                    station_dict[key] = self.__default_stations[reference_id][key]
+
+        reference_id = self.__lookup_station_reference[station_dict['station_id']]
+        for key in self.__default_stations[reference_id].keys():
+            if key not in station_dict.keys():
+                station_dict[key] = self.__default_stations[reference_id][key]
         self._buffered_stations[station_dict['station_id']] = station_dict
 
-        if 'reference_station' in station_dict:
-            reference_id = station_dict['reference_station']
-            if self.__default_station_ids[reference_id] not in self._buffered_channels.keys():
-                self._buffer(self.__default_station_ids[reference_id])
+        if reference_id not in self._buffered_channels.keys():
+            self._buffer(reference_id)
 
-            self._buffered_channels[station_dict['station_id']] = {}
-            for i_channel, channel in self._buffered_channels[self.__default_station_ids[reference_id]].items():
-                new_channel = copy.copy(channel)
-                new_channel['station_id'] = station_dict['station_id']
-                self._buffered_channels[station_dict['station_id']][channel['channel_id']] = new_channel
+        self._buffered_channels[station_dict['station_id']] = {}
+        for i_channel, channel in self._buffered_channels[reference_id].items():
+            new_channel = copy.copy(channel)
+            new_channel['station_id'] = station_dict['station_id']
+            self._buffered_channels[station_dict['station_id']][channel['channel_id']] = new_channel
 
     def add_station_properties_for_event(self, properties, station_id, run_number, event_id):
         """
