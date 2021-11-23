@@ -71,6 +71,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
                                               dictionary=dictionary, assume_inf=assume_inf,
                                               antenna_by_depth=antenna_by_depth)
 
+        self.__default_station_id = default_station #the generic default station if it is set
         self.__default_station_ids = set([])
         self.__lookup_station_reference = {}
 
@@ -303,9 +304,15 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
 
     def get_default_stations(self):
         """
-        Get the properties of the default station
+        Get the properties of the default stations
         """
         return self.__default_stations
+
+    def get_default_station(self):
+        """
+        Get the properties of the default station
+        """
+        return self.__default_stations[self.get_default_station_id()]
 
     def get_default_station_ids(self):
         """
@@ -317,13 +324,22 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         """
         Get the ID of the default station
         """
-        if isinstance(self.__default_station_ids, list):
-            logger.warning(f'station id is list {self.__default_station_ids}')
-            if len(self.__default_station_ids) > 1:
+        if len(self.__default_station_ids) == 1:
+            # only one default station, either passed as "reference_station" in detector description or in the ini
+            return self.__default_station_ids[0]
+        else:
+            if self.__default_station_id is not None:
+                # more than one station passed, so let's return the default station set in the init
                 logger.warning(
-                    f'more than one default station id: {self.__default_station_ids}, continue with first entry')
-            self.__default_station_ids = self.__default_station_ids[0]
-        return self.__default_station_ids
+                    f'more than one station id set as "reference_station" or default station: {self.__default_station_ids},\
+                      continue with passed default station: {self.__default_station_id}')
+                return self.__default_station_id
+            else:
+                # more than one "reference_station" passed in the detector description, return the first one
+                logger.warning(
+                    f'more than one station id set as "reference station": {self.__default_station_ids},\
+                      continue with first entry: {self.__default_station_ids[0]}')
+                return  self.__default_station_ids[0]
 
     def get_default_channel(self):
         """
