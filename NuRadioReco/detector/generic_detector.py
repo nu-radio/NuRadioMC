@@ -82,6 +82,8 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             elif default_station is not None:
                 self.__lookup_station_reference[sta['station_id']] = default_station
                 self.__default_station_ids.add(default_station)
+            else:
+                self.__lookup_station_reference[sta['station_id']] = None
         self.__default_station_ids = list(self.__default_station_ids)
         self.__default_channel_id = default_channel
         self._default_device_id = default_device
