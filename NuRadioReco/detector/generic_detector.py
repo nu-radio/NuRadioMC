@@ -72,19 +72,12 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
                                               antenna_by_depth=antenna_by_depth)
 
         self.__default_station_id = default_station #the generic default station if it is set
-        self.__default_station_ids = set([])
+        self.__default_station_ids = []
         self.__lookup_station_reference = {}
 
         for sta in self._stations.all():
-            if 'reference_station' in sta:
-                self.__lookup_station_reference[sta['station_id']] = sta['reference_station']
-                self.__default_station_ids.add(sta['reference_station'])
-            elif default_station is not None:
-                self.__lookup_station_reference[sta['station_id']] = default_station
-                self.__default_station_ids.add(default_station)
-            else:
-                self.__lookup_station_reference[sta['station_id']] = None
-        self.__default_station_ids = list(self.__default_station_ids)
+            self._update_reference_station_lookup(sta)
+
         self.__default_channel_id = default_channel
         self._default_device_id = default_device
         self.__station_changes_for_event = []
@@ -203,6 +196,20 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         for device in devices:
             self._buffered_devices[station_id][device['device_id']] = device
 
+    def _update_reference_station_lookup(self, station_dict):
+        default_ids = set(self.__default_station_ids)
+
+        if 'reference_station' in station_dict:
+            self.__lookup_station_reference[station_dict['station_id']] = station_dict['reference_station']
+            default_ids.add(station_dict['reference_station'])
+        elif self.__default_station_id is not None:
+            self.__lookup_station_reference[station_dict['station_id']] = self.__default_station_id
+            default_ids.add(self.__default_station_id)
+        else:
+            self.__lookup_station_reference[station_dict['station_id']] = None
+
+        self.__default_station_ids = list(default_ids)
+
     def add_generic_station(self, station_dict):
         """
         Add a generic station to the detector. The station is treated like a
@@ -221,6 +228,9 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             logger.warning('Station with ID {} already exists in buffer. Cannot add station with same ID'.format(
                 station_dict['station_id']))
             return
+
+        if station_dict['station_id'] not in self.__lookup_station_reference:
+            self._update_reference_station_lookup(station_dict)
 
         reference_id = self.__lookup_station_reference[station_dict['station_id']]
         for key in self.__default_stations[reference_id].keys():
