@@ -310,7 +310,7 @@ class simulation():
 						raytracing[station_id][channel_id][iS]["trajectory length"] = R
 						T = r.get_travel_time(soltype)  # calculate travel time
 						if (R == None or T == None):
-							ontinue
+							continue
 						raytracing[station_id][channel_id][iS]["travel time"] = T
 						receive_vector = r.get_receive_vector(soltype)
 						zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)

@@ -24,7 +24,7 @@ import NuRadioMC
 
 
 
-receive_pickle, launch_pickle, solution_pickle, zenith_vertex_pickle = pickle.load(open('/lustre/fs22/group/radio/plaisier/software/simulations/planeWaveFit/receive_launch.pkl', 'rb')) ## i used this to play around with a four parameter fit (R, E, theta, phi)
+# receive_pickle, launch_pickle, solution_pickle, zenith_vertex_pickle = pickle.load(open('/lustre/fs22/group/radio/plaisier/software/simulations/planeWaveFit/receive_launch.pkl', 'rb')) ## i used this to play around with a four parameter fit (R, E, theta, phi)
 #(librabry = '/lustre/fs22/group/radio/plaisier/software/NuRadioMC/NuRadioMC/SignalGen/ARZ/average.pkl') ## average ARZ model. In practice this is way too slow.
 
 logger = logging.getLogger("sim")
@@ -209,7 +209,7 @@ class simulation():
 					raytracing[channel_id][iS]["trajectory length"] = R
 					T = r.get_travel_time(soltype)  # calculate travel time
 					if (R == None or T == None):
-						ontinue
+						continue
 					raytracing[channel_id][iS]["travel time"] = T
 					receive_vector = r.get_receive_vector(soltype)
 					zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
