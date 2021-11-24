@@ -70,19 +70,25 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         super(GenericDetector, self).__init__(source=source, json_filename=json_filename,
                                               dictionary=dictionary, assume_inf=assume_inf,
                                               antenna_by_depth=antenna_by_depth)
-
+        if default_station is not None:
+            logger.warning("DeprecationWarning: replace default_station by setting a\
+                            'reference_station' per station in the json.\
+                            This allows to define multiple default station types")
         self.__default_station_id = default_station #the generic default station if it is set
-        self.__default_station_ids = []
-        self.__lookup_station_reference = {}
+        self.__default_channel_id = default_channel
+        self.__default_device_id = default_device
 
+        self.__default_station_ids = []
+        # a lookup with one reference station for each station in the detector description
+        self.__lookup_station_reference = {}
+        # add all stations to the lookup
         for sta in self._stations.all():
             self._update_reference_station_lookup(sta)
 
-        self.__default_channel_id = default_channel
-        self._default_device_id = default_device
         self.__station_changes_for_event = []
         self.__run_number = None
         self.__event_id = None
+
         for default_station_id in self.__default_station_ids:
             if not self.has_station(default_station_id):
                 raise ValueError(
@@ -197,6 +203,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             self._buffered_devices[station_id][device['device_id']] = device
 
     def _update_reference_station_lookup(self, station_dict):
+        """ add a station to the lookup of reference stations and update the list of default station ids """
         default_ids = set(self.__default_station_ids)
 
         if 'reference_station' in station_dict:
