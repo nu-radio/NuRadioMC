@@ -4,8 +4,8 @@ import plotly.subplots
 import numpy as np
 from NuRadioReco.utilities import units
 from NuRadioReco.eventbrowser.default_layout import default_layout
-import dash_core_components as dcc
-from dash.dependencies import State
+from dash import dcc
+from dash.dependencies import Input, Output, State
 from NuRadioReco.eventbrowser.app import app
 import NuRadioReco.eventbrowser.dataprovider
 
@@ -17,19 +17,19 @@ layout = [
 
 
 @app.callback(
-    dash.dependencies.Output('efield-trace', 'figure'),
-    [dash.dependencies.Input('trigger-trace', 'children'),
-     dash.dependencies.Input('event-counter-slider', 'value'),
-     dash.dependencies.Input('filename', 'value'),
-     dash.dependencies.Input('station-id-dropdown', 'value')],
+    Output('efield-trace', 'figure'),
+    [Input('trigger-trace', 'children'),
+     Input('event-counter-slider', 'value'),
+     Input('filename', 'value'),
+     Input('station-id-dropdown', 'value')],
     [State('user_id', 'children')])
 def update_time_efieldtrace(trigger, evt_counter, filename, station_id, juser_id):
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
-    ariio = provider.get_arianna_io(user_id, filename)
-    evt = ariio.get_event_i(evt_counter)
+    nurio = provider.get_file_handler(user_id, filename)
+    evt = nurio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     fig = plotly.subplots.make_subplots(rows=1, cols=1)
     for electric_field in station.get_electric_fields():
