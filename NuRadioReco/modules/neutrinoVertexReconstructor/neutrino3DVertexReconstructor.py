@@ -180,7 +180,7 @@ class neutrino3DVertexReconstructor:
 
         if debug:
             plt.close('all')
-            fig1 = plt.figure(figsize=(12, (len(self.__channel_pairs) // 2 + len(self.__channel_pairs) % 2)))
+            fig1 = plt.figure(figsize=(12, (len(self.__channel_pairs) + len(self.__channel_pairs) % 2)))
         self.__pair_correlations = np.zeros((len(self.__channel_pairs), station.get_channel(self.__channel_ids[0]).get_number_of_samples() + self.__electric_field_template.get_number_of_samples() - 1))
         for i_pair, channel_pair in enumerate(self.__channel_pairs):
             channel_1 = station.get_channel(channel_pair[0])
@@ -218,6 +218,9 @@ class neutrino3DVertexReconstructor:
                                          i_pair + 1)
                 ax1_1.grid()
                 ax1_1.plot(toffset, correlation_product)
+                ax1_1.set_title('Ch.{} & Ch.{}'.format(channel_pair[0], channel_pair[1]))
+                ax1_1.set_xlabel(r'$\Delta t$ [ns]')
+                ax1_1.set_ylabel('correlation')
         if debug:
             fig1.tight_layout()
             fig1.savefig('{}/{}_{}_correlation.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
@@ -585,7 +588,8 @@ class neutrino3DVertexReconstructor:
             z_0,
             np.max(correlation_map, axis=2).T / np.max(correlation_map),
             vmin=.5,
-            vmax=1
+            vmax=1,
+            shading='auto'
         )
         plt.colorbar(cplot, ax=ax4_1).set_label('correlation sum', fontsize=14)
         ax4_1.plot(
@@ -611,46 +615,6 @@ class neutrino3DVertexReconstructor:
         ax4_1.set_ylim([np.min(self.__z_coordinates_2d), np.max(self.__z_coordinates_2d)])
         ax4_1.set_aspect('equal')
         ax4_1.grid()
-        """
-        theta_0, d_0 = np.meshgrid(self.__azimuths_2d, self.__distances_2d)
-        ax4_2 = fig4.add_subplot(312, projection='polar')
-        ax4_2.pcolor(
-            theta_0,
-            d_0,
-            np.max(correlation_map, axis=1)
-        )
-        ax4_2.grid()
-        ax4_3 = fig4.add_subplot(313)
-        theta_0, z_0 = np.meshgrid(self.__azimuths_2d, self.__z_coordinates_2d)
-        ax4_3.pcolor(
-            theta_0 / units.deg,
-            z_0,
-            np.max(correlation_map, axis=0)
-        )
-        ax4_3.grid()
-        sim_vertex = None
-        for sim_shower in event.get_sim_showers():
-            sim_vertex = sim_shower.get_parameter(shp.vertex)
-            break
-        if sim_vertex is not None:
-            ax4_2.scatter(
-                [hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]],
-                [np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)],
-                c='r',
-                alpha=.5,
-                marker='+'
-            )
-            ax4_3.scatter(
-                [hp.get_normalized_angle(
-                    hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]) / units.deg],
-                [(sim_vertex[2])],
-                c='r',
-                alpha=.5,
-                marker='+'
-            )
-        ax4_3.set_xlabel(r'$\phi [^\circ]$')
-        ax4_3.set_ylabel('z [m]')
-        """
         sim_vertex = None
         for sim_shower in event.get_sim_showers():
             sim_vertex = sim_shower.get_parameter(shp.vertex)
@@ -860,9 +824,9 @@ class neutrino3DVertexReconstructor:
             np.max(correlation_sum, axis=0),
             cmap=colormap,
             vmin=vmin,
-            vmax=vmax
+            vmax=vmax,
+            shading='auto'
         )
-        # plt.colorbar(cplot1, ax=ax6_1)
         ax6_2 = fig6.add_subplot(224)
         cplot2 = ax6_2.pcolor(
             x_0[:, :, 0],
@@ -870,9 +834,9 @@ class neutrino3DVertexReconstructor:
             np.max(correlation_sum, axis=2),
             cmap=colormap,
             vmin=vmin,
-            vmax=vmax
+            vmax=vmax,
+            shading='auto'
         )
-        # plt.colorbar(cplot2, ax=ax6_2)
 
         ax6_3 = fig6.add_subplot(221)
         cplot3 = ax6_3.pcolor(
@@ -881,11 +845,11 @@ class neutrino3DVertexReconstructor:
             np.max(correlation_sum, axis=0),
             cmap=colormap,
             vmin=vmin,
-            vmax=vmax
+            vmax=vmax,
+            shading='auto'
         )
         ax6_3.set_xlim([np.min(self.__distances_2d), np.max(self.__distances_2d)])
         ax6_3.set_ylim([np.min(self.__z_coordinates_2d), np.max(self.__z_coordinates_2d)])
-        # plt.colorbar(cplot3, ax=ax6_3)
         ax6_3.set_aspect('equal')
         ax6_4 = fig6.add_subplot(223)
         cplot4 = ax6_4.pcolor(
@@ -894,9 +858,9 @@ class neutrino3DVertexReconstructor:
             np.max(correlation_sum, axis=2),
             cmap=colormap,
             vmin=vmin,
-            vmax=vmax
+            vmax=vmax,
+            shading='auto'
         )
-        # plt.colorbar(cplot4, ax=ax6_4)
         ax6_4.set_aspect('equal')
         ax6_4.set_xlim([-np.max(self.__distances_2d), np.max(self.__distances_2d)])
         ax6_4.set_ylim([-np.max(self.__distances_2d), np.max(self.__distances_2d)])
@@ -1006,54 +970,30 @@ class neutrino3DVertexReconstructor:
             np.max(self_correlation_sum, axis=0),
             cmap=colormap,
             vmin=vmin,
-            vmax=vmax
+            vmax=vmax,
+            shading='auto'
         )
         plt.colorbar(cplot1, ax=ax8_1).set_label('correlation sum', fontsize=fontsize)
-        # cplot2 = ax8_2.pcolor(
-        #     x_0[:, :, 0],
-        #     y_0[:, :, 0],
-        #     np.max(self_correlation_sum, axis=2),
-        #     cmap=colormap,
-        #     vmin=vmin,
-        #     vmax=vmax
-        # )
-        # plt.colorbar(cplot2, ax=ax8_2)
-
         cplot3 = ax8_3.pcolor(
             x_0[0],
             z_0[0],
             np.max(combined_correlations, axis=0),
             cmap=colormap,
             vmin=vmin,
-            vmax=vmax
+            vmax=vmax,
+            shading='auto'
         )
         plt.colorbar(cplot3, ax=ax8_3).set_label('correlation sum', fontsize=fontsize)
-        # cplot4 = ax8_4.pcolor(
-        #     x_0[:, :, 0],
-        #     y_0[:, :, 0],
-        #     np.max(combined_correlations, axis=2),
-        #     cmap=colormap,
-        #     vmin=vmin,
-        #     vmax=vmax
-        # )
-        # plt.colorbar(cplot4, ax=ax8_4)
         cplot5 = ax8_5.pcolor(
             x_0[0],
             z_0[0],
             np.max(correlation_sum, axis=0),
             cmap=colormap,
             vmin=vmin,
-            vmax=vmax
+            vmax=vmax,
+            shading='auto'
         )
         plt.colorbar(cplot5, ax=ax8_5).set_label('correlation sum', fontsize=fontsize)
-        # cplot6 = ax8_6.pcolor(
-        #     x_0[:, :, 0],
-        #     y_0[:, :, 0],
-        #     np.max(correlation_sum, axis=2),
-        #     cmap=colormap,
-        #     vmin=vmin,
-        #     vmax=vmax
-        # )
         ax8_5.scatter(
             [x_0[i_max]],
             [z_0[i_max]],
@@ -1068,7 +1008,6 @@ class neutrino3DVertexReconstructor:
             marker='o',
             s=20
         )
-        # plt.colorbar(cplot6, ax=ax8_6)
         sim_vertex = None
         for sim_shower in event.get_sim_showers():
             sim_vertex = sim_shower.get_parameter(shp.vertex)
@@ -1082,12 +1021,6 @@ class neutrino3DVertexReconstructor:
                 marker='o',
                 s=20
             )
-            # ax8_2.scatter(
-            #     [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
-            #     [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
-            #     c='r',
-            #     marker='+'
-            # )
             ax8_3.scatter(
                 [sim_vertex_dhor],
                 [sim_vertex[2] - sim_vertex_dhor * slope - offset],
@@ -1095,12 +1028,6 @@ class neutrino3DVertexReconstructor:
                 marker='o',
                 s=20
             )
-            # ax8_4.scatter(
-            #     [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
-            #     [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
-            #     c='r',
-            #     marker='+'
-            # )
             ax8_5.scatter(
                 [sim_vertex_dhor],
                 [sim_vertex[2] - sim_vertex_dhor * slope - offset],
@@ -1108,12 +1035,6 @@ class neutrino3DVertexReconstructor:
                 marker='o',
                 s=20
             )
-            # ax8_6.scatter(
-            #     [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
-            #     [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
-            #     c='r',
-            #     marker='+'
-            # )
         ax8_1.grid()
         ax8_3.grid()
         ax8_5.grid()

@@ -46,6 +46,7 @@ class IftElectricFieldReconstructor:
         self.__phase_slope = None
         self.__slope_passbands = None
         self.__energy_fluence_passbands = None
+        self.__plot_folder = None
         return
 
     def begin(
@@ -64,7 +65,8 @@ class IftElectricFieldReconstructor:
         energy_fluence_passbands=None,
         slope_passbands=None,
         phase_slope='both',
-        debug=False
+        debug=False,
+        plot_folder='.'
     ):
         """
         Define settings for the reconstruction.
@@ -127,6 +129,7 @@ class IftElectricFieldReconstructor:
         self.__relative_tolerance = relative_tolerance
         self.__pulse_time_prior = pulse_time_prior
         self.__pulse_time_uncertainty = pulse_time_uncertainty
+        self.__plot_folder = plot_folder
         if phase_slope not in ['both', 'negative', 'positive']:
             raise ValueError('Phase slope has to be either both, negative of positive.')
         self.__phase_slope = phase_slope
@@ -506,7 +509,7 @@ class IftElectricFieldReconstructor:
         if self.__debug:
             ax1_2.plot(correlation_sum)
             fig2.tight_layout()
-            fig2.savefig('{}_{}_traces.png'.format(event.get_run_number(), event.get_id()))
+            fig2.savefig('{}/{}_{}_traces.png'.format(self.__plot_folder, event.get_run_number(), event.get_id()))
 
     def __get_detector_operators(
         self,
@@ -821,7 +824,7 @@ class IftElectricFieldReconstructor:
         ax1_3.set_title('Channel Spectrum')
         ax1_4.set_title('Channel Trace')
         fig1.tight_layout()
-        fig1.savefig('priors_{}_{}.png'.format(event.get_id(), event.get_run_number()))
+        fig1.savefig('{}/priors_{}_{}.png'.format(self.__plot_folder/event.get_id(), event.get_run_number()))
 
     def __draw_reconstruction(
         self,
@@ -1003,6 +1006,6 @@ class IftElectricFieldReconstructor:
             if sim_efield_max is not None:
                 ax1_2.set_ylim([0, 1.2 * sim_efield_max / (units.mV / units.m / units.GHz)])
         fig1.tight_layout()
-        fig1.savefig('{}_{}_spec_reco_{}_{}_{}.png'.format(event.get_run_number(), event.get_id(), suffix, self.__ray_type, self.__plot_title))
+        fig1.savefig('{}/{}_{}_spec_reco_{}_{}_{}.png'.format(self.__plot_folder, event.get_run_number(), event.get_id(), suffix, self.__ray_type, self.__plot_title))
         fig2.tight_layout()
-        fig2.savefig('{}_{}_trace_reco_{}_{}_{}.png'.format(event.get_run_number(), event.get_id(), suffix, self.__ray_type, self.__plot_title))
+        fig2.savefig('{}/{}_{}_trace_reco_{}_{}_{}.png'.format(self.__plot_folder, event.get_run_number(), event.get_id(), suffix, self.__ray_type, self.__plot_title))
