@@ -1539,10 +1539,10 @@ class ray_tracing(ray_tracing_base):
         config: dict
             a dictionary with the optional config settings. If None, the config is intialized with default values,
             which is needed to avoid any "key not available" errors. The default settings are
-                self.__config = {'propagation': {}}
-                self.__config['propagation']['attenuate_ice'] = True
-                self.__config['propagation']['focusing_limit'] = 2
-                self.__config['propagation']['focusing'] = False
+                self._config = {'propagation': {}}
+                self._config['propagation']['attenuate_ice'] = True
+                self._config['propagation']['focusing_limit'] = 2
+                self._config['propagation']['focusing'] = False
         detector: detector object
         """
         super().__init__(medium=medium, 
@@ -1552,7 +1552,7 @@ class ray_tracing(ray_tracing_base):
                          n_reflections=n_reflections,
                          config=config, 
                          detector=detector)
-
+        self.set_config(config=config)
         self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self._n_frequencies_integration)
 
@@ -1998,7 +1998,7 @@ class ray_tracing(ray_tracing_base):
             The modified ElectricField object
         """
         spec = efield.get_frequency_spectrum()
-        apply_attenuation = self.__config['propagation']['attenuate_ice']
+        apply_attenuation = self._config['propagation']['attenuate_ice']
         if apply_attenuation:
             if self._max_detector_frequency is None:
                 max_freq = np.max(efield.get_frequencies())
@@ -2054,15 +2054,9 @@ class ray_tracing(ray_tracing_base):
             If None, the default config settings will be applied
         """
         if(config is None):
-            self.__config = {'propagation': {}}
-            self.__config['propagation']['attenuate_ice'] = True
-            self.__config['propagation']['focusing_limit'] = 2
-            self.__config['propagation']['focusing'] = False
+            self._config = {'propagation': {}}
+            self._config['propagation']['attenuate_ice'] = True
+            self._config['propagation']['focusing_limit'] = 2
+            self._config['propagation']['focusing'] = False
         else:
-            self.__config = config
-
-    def get_config(self):
-        """
-        Returns the current configuration file
-        """
-        return self.__config
+            self._config = config
