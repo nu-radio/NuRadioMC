@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event Generation &mdash; NuRadio 2.0.0 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Signal Generation (electric field)" href="signal_generation.html" />
+    <link rel="prev" title="Manuals" href="../manuals.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../main.html" class="icon icon-home"> NuRadio<img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                2.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../NuRadioReco/pages/welcome_page.html">NuRadioReco Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html">Installing NuRadioReco</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html#installation-using-pip">Installation using Pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html#manual-installation">Manual Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html#dependencies">Dependencies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html#core-dependencies">Core Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html#optional-dependencies">Optional Dependencies</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html">Data Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#nur-files-and-how-to-use-them">.nur Files and How to Use Them</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#philosophy-and-basic-structure">Philosophy and Basic Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#reading-and-writing-nur-files">Reading and Writing .nur Files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#parameter-storage">Parameter Storage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#list-of-data-classes">List of Data Classes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#basetrace">BaseTrace</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#electric-field">Electric Field</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#channel">Channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#hybrid-information">Hybrid Information</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#hybrid-shower">Hybrid Shower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#hybrid-detector">Hybrid Detector</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html">Detector Description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#the-detector-class">The Detector Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#detector-description-formats">Detector Description Formats</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#database">DataBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#json">JSON</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#dictionary">Dictionary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#signal-chain-responses">Signal Chain Responses</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#id1">GenericDetector</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#event-specific-changes">Event-Specific Changes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#detector-description-in-event-files">Detector Description in Event Files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#writing-the-detector">Writing the Detector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#reading-the-detector">Reading the Detector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#detector-viewer">Detector Viewer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/event_display.html">Event Display</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/utilities.html">Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/utilities.html#unit-system">Unit System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/utilities.html#fourier-transformation">Fourier Transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/utilities.html#metaclasses">Metaclasses</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/utilities.html#singleton">Singleton</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html">Contributing to NuRadioReco</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#workflow">Workflow</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#filing-tickets">Filing Tickets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#submitting-pull-requests">Submitting Pull Requests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#coding-conventions">Coding Conventions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#versioning">Versioning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#unit-tests">Unit Tests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#coding-standards-and-linting">Coding Standards and Linting</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#documentation">Documentation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#writing-docstrings">Writing Docstrings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#deploying-the-documentation">Deploying the Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#technical-implementation">Technical Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#usage-convention">Usage convention</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/code_documentation.html">Code Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html">NuRadioReco.framework package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-base-shower-module">NuRadioReco.framework.base_shower module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-base-station-module">NuRadioReco.framework.base_station module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-base-trace-module">NuRadioReco.framework.base_trace module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-channel-module">NuRadioReco.framework.channel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-electric-field-module">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-event-module">NuRadioReco.framework.event module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-hybrid-information-module">NuRadioReco.framework.hybrid_information module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-hybrid-shower-module">NuRadioReco.framework.hybrid_shower module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-parameter-serialization-module">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-parameters-module">NuRadioReco.framework.parameters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-radio-shower-module">NuRadioReco.framework.radio_shower module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-sim-channel-module">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-sim-station-module">NuRadioReco.framework.sim_station module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-station-module">NuRadioReco.framework.station module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-trigger-module">NuRadioReco.framework.trigger module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html">NuRadioReco.modules package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-analogtodigitalconverter-module">NuRadioReco.modules.analogToDigitalConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-beamformingdirectionfitter-module">NuRadioReco.modules.beamFormingDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channeladdcabledelay-module">NuRadioReco.modules.channelAddCableDelay module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelantennadedispersion-module">NuRadioReco.modules.channelAntennaDedispersion module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelbandpassfilter-module">NuRadioReco.modules.channelBandPassFilter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelgalacticnoiseadder-module">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelgenericnoiseadder-module">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channellengthadjuster-module">NuRadioReco.modules.channelLengthAdjuster module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelmeasurednoiseadder-module">NuRadioReco.modules.channelMeasuredNoiseAdder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelresampler-module">NuRadioReco.modules.channelResampler module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelsignalreconstructor-module">NuRadioReco.modules.channelSignalReconstructor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelstopfilter-module">NuRadioReco.modules.channelStopFilter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channeltemplatecorrelation-module">NuRadioReco.modules.channelTemplateCorrelation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channeltimeoffsetcalculator-module">NuRadioReco.modules.channelTimeOffsetCalculator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channeltimewindow-module">NuRadioReco.modules.channelTimeWindow module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-correlationdirectionfitter-module">NuRadioReco.modules.correlationDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-cosmicrayenergyreconstructor-module">NuRadioReco.modules.cosmicRayEnergyReconstructor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-efieldairtoicepropagator-module">NuRadioReco.modules.efieldAirToIcePropagator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-efieldtimedirectionfitter-module">NuRadioReco.modules.efieldTimeDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-efieldtovoltageconverter-module">NuRadioReco.modules.efieldToVoltageConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-efieldtovoltageconverterperefield-module">NuRadioReco.modules.efieldToVoltageConverterPerEfield module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-electricfieldbandpassfilter-module">NuRadioReco.modules.electricFieldBandPassFilter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-electricfieldresampler-module">NuRadioReco.modules.electricFieldResampler module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-electricfieldsignalreconstructor-module">NuRadioReco.modules.electricFieldSignalReconstructor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-eventtypeidentifier-module">NuRadioReco.modules.eventTypeIdentifier module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-templatedirectionfitter-module">NuRadioReco.modules.templateDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-triggertimeadjuster-module">NuRadioReco.modules.triggerTimeAdjuster module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-voltagetoanalyticefieldconverter-module">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-voltagetoefieldconverter-module">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-voltagetoefieldconverterperchannel-module">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html">NuRadioReco.detector package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-amp-module">NuRadioReco.detector.amp module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-antennapattern-module">NuRadioReco.detector.antennapattern module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-detector-module">NuRadioReco.detector.detector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-detector-sql-module">NuRadioReco.detector.detector_sql module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-detector-sys-uncertainties-module">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-filterresponse-module">NuRadioReco.detector.filterresponse module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-generic-detector-module">NuRadioReco.detector.generic_detector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-sql-to-json-module">NuRadioReco.detector.sql_to_json module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-test-detector-db-module">NuRadioReco.detector.test_detector_db module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-visualize-detector-module">NuRadioReco.detector.visualize_detector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html">NuRadioReco.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-analytic-pulse-module">NuRadioReco.utilities.analytic_pulse module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-bandpass-filter-module">NuRadioReco.utilities.bandpass_filter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-diodesimulator-module">NuRadioReco.utilities.diodeSimulator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-fft-module">NuRadioReco.utilities.fft module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-geometryutilities-module">NuRadioReco.utilities.geometryUtilities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-ice-module">NuRadioReco.utilities.ice module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-io-utilities-module">NuRadioReco.utilities.io_utilities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-metaclasses-module">NuRadioReco.utilities.metaclasses module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-noise-module">NuRadioReco.utilities.noise module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-templates-module">NuRadioReco.utilities.templates module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-timing-module">NuRadioReco.utilities.timing module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-tracewindows-module">NuRadioReco.utilities.traceWindows module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-trace-utilities-module">NuRadioReco.utilities.trace_utilities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-units-module">NuRadioReco.utilities.units module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-version-module">NuRadioReco.utilities.version module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/detector_database_fields.html">Properties of Detector Description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector_database_fields.html#antenna-table">Antenna Table</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector_database_fields.html#further-discussion-on-antenna-coordinates">Further Discussion on Antenna Coordinates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector_database_fields.html#adc-table">ADC Table</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/howto_documentation.html">How To</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/how_to/vertex_reconstruction.html">Use the Vertex Reconstruction Modules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-lookup-tables">Creating Lookup Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-electric-field-templates">Creating Electric Field Templates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#d-vs-3d-vertex-reconstructor">2D vs. 3D Vertex Reconstructor</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="../welcome_page.html">NuRadioMC Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../code_documentation.html">Code Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-nuradiomctoarasim-module">NuRadioMC.EvtGen.NuRadioMCtoAraSim module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-nuradioproposal-module">NuRadioMC.EvtGen.NuRadioProposal module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-create-tau-tab-module">NuRadioMC.EvtGen.create_tau_tab module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-generate-cylinder-module">NuRadioMC.EvtGen.generate_cylinder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-generate-unforced-module">NuRadioMC.EvtGen.generate_unforced module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-generator-module">NuRadioMC.EvtGen.generator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-generator-ascii-module">NuRadioMC.EvtGen.generator_ASCII module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-generator-skeleton-module">NuRadioMC.EvtGen.generator_skeleton module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-hdf5-to-ascii-module">NuRadioMC.EvtGen.hdf5_to_ASCII module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-readaraeventlist-module">NuRadioMC.EvtGen.readARAEventList module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-readeventlist-ascii-module">NuRadioMC.EvtGen.readEventList_ASCII module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.SignalGen.html">NuRadioMC.SignalGen package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#nuradiomc-signalgen-hcrb2017-module">NuRadioMC.SignalGen.HCRB2017 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#nuradiomc-signalgen-askaryan-module">NuRadioMC.SignalGen.askaryan module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#nuradiomc-signalgen-parametrizations-module">NuRadioMC.SignalGen.parametrizations module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.SignalProp.html">NuRadioMC.SignalProp package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#nuradiomc-signalprop-analyticraytracing-module">NuRadioMC.SignalProp.analyticraytracing module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#nuradiomc-signalprop-directraytracing-module">NuRadioMC.SignalProp.directRayTracing module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#nuradiomc-signalprop-propagation-module">NuRadioMC.SignalProp.propagation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#nuradiomc-signalprop-propagation-base-class-module">NuRadioMC.SignalProp.propagation_base_class module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-e04runstrawmensim2-module">NuRadioMC.simulation.E04RunStrawmenSim2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t04visualize-sim-input-module">NuRadioMC.simulation.T04visualize_sim_input module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t04visualize-sim-inputextend-module">NuRadioMC.simulation.T04visualize_sim_inputExtend module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t05visualize-sim-output-module">NuRadioMC.simulation.T05visualize_sim_output module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t05visualize-sim-outputextend-module">NuRadioMC.simulation.T05visualize_sim_outputExtend module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t06read-sim-output-module">NuRadioMC.simulation.T06read_sim_output module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t07plot-ray-tracing-solutions-module">NuRadioMC.simulation.T07plot_ray_tracing_solutions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-simulation-module">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.utilities.html">NuRadioMC.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-veff-module">NuRadioMC.utilities.Veff module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-attenuation-module">NuRadioMC.utilities.attenuation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-cross-sections-module">NuRadioMC.utilities.cross_sections module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-dump-hdf5-module">NuRadioMC.utilities.dump_hdf5 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-earth-attenuation-module">NuRadioMC.utilities.earth_attenuation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-fluxes-module">NuRadioMC.utilities.fluxes module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-inelasticities-module">NuRadioMC.utilities.inelasticities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-medium-module">NuRadioMC.utilities.medium module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-merge-hdf5-module">NuRadioMC.utilities.merge_hdf5 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-plotting-module">NuRadioMC.utilities.plotting module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-split-hdf5-module">NuRadioMC.utilities.split_hdf5 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.studies.html">NuRadioMC.studies package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.studies.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.examples.html">NuRadioMC.examples package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.examples.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.examples.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="reference internal" href="../manuals.html">Manuals</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Event Generation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#events-in-a-cylindrical-volume">Events in a cylindrical volume</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#atmospheric-muons-generated-on-a-flat-surface">Atmospheric muons generated on a flat surface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nuradioproposal-as-a-standalone-module">NuRadioProposal as a standalone module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="signal_generation.html">Signal Generation (electric field)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="signal_generation.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="signal_generation.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="signal_generation.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="signal_generation.html#timing">Timing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="signal_generation.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="signal_generation.html#fft-normalisation">FFT normalisation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="signal_propagation.html">Signal Propagation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="signal_propagation.html#propagation-module">Propagation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="signal_propagation.html#ray-tracing">Ray tracing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="signal_propagation.html#example-scripts">Example scripts</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="icemodels.html">Ice and attenuation models</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="icemodels.html#ice-model-implementation">Ice model implementation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="icemodels.html#available-models-in-nuradiomc">Available models in NuRadioMC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="icemodels.html#example-script">Example script</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="simulation_configuration.html">Simulation and configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="simulation_configuration.html#steering-files">Steering files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="simulation_configuration.html#config-files">Config files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="simulation_configuration.html#detector-description">Detector description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="simulation_configuration.html#detector-simulation">Detector simulation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../main.html">NuRadio</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../main.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../welcome_page.html">NuRadioMC Documentation</a> &raquo;</li>
+          <li><a href="../manuals.html">Manuals</a> &raquo;</li>
+      <li>Event Generation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/NuRadioMC/pages/Manuals/event_generation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="event-generation">
+<h1>Event Generation<a class="headerlink" href="#event-generation" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div><div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">This document has been written for the master branch available in July 2020. It must be updated when the new internal looping is approved and merged.</p>
+</div>
+</div></blockquote>
+<p>The first thing to do when using NuRadioMC for simulating a realistic experiment is generating events. The module <code class="docutils literal notranslate"><span class="pre">generator.py</span></code> contained in the folder EvtGen allows the user to create input files for different detector geometries and physical assumptions, and constitutes the most important module for event generation.</p>
+<div class="section" id="events-in-a-cylindrical-volume">
+<h2>Events in a cylindrical volume<a class="headerlink" href="#events-in-a-cylindrical-volume" title="Permalink to this headline">¶</a></h2>
+<p>Generating input events for calculating effective volumes can be done just by importing the function <code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder</span></code> and calling it with the minimum number of arguments requested:</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">NuRadioMC.EvtGen.generator</span> <span class="kn">import</span> <span class="n">generate_eventlist_cylinder</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+<span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;input_file.hdf5&#39;</span>
+<span class="n">n_events</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e5</span><span class="p">)</span>
+<span class="n">Emin</span> <span class="o">=</span> <span class="mf">1e18</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span>
+<span class="n">Emax</span> <span class="o">=</span> <span class="mf">2e18</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span>
+<span class="n">fiducial_rmin</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span>
+<span class="n">fiducial_rmax</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span>
+<span class="n">fiducial_zmin</span> <span class="o">=</span> <span class="o">-</span><span class="mi">3</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span>
+<span class="n">fiducial_zmax</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span>
+<span class="n">generate_eventlist_cylinder</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span>
+                            <span class="n">fiducial_rmin</span><span class="p">,</span> <span class="n">fiducial_rmax</span><span class="p">,</span>
+                            <span class="n">fiducial_zmin</span><span class="p">,</span> <span class="n">fiducial_zmax</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>These few lines generate a mixture of all-flavour events (1:1:1) in a fiducial cylinder. Each event constitutes a forced neutrino interaction in our fiducial volume. The event vertex distribution is homogeneous, and the flux in any region of the cylinder is isotropic, which is what would be expected in nature were the radius of the Earth small compared to the interaction length. NuRadioMC then uses weights to account for the probability that the neutrino reaches the vertex position.</p>
+<div class="section" id="input-parameters">
+<h3>Input parameters<a class="headerlink" href="#input-parameters" title="Permalink to this headline">¶</a></h3>
+<p>We explain here all the different input values for the <code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder</span></code> function.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_eventlist_cylinder</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span>
+                                <span class="n">fiducial_rmin</span><span class="p">,</span> <span class="n">fiducial_rmax</span><span class="p">,</span>
+                                <span class="n">fiducial_zmin</span><span class="p">,</span> <span class="n">fiducial_zmax</span><span class="p">,</span>
+                                <span class="n">full_rmin</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">full_rmax</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                <span class="n">full_zmin</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">full_zmax</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                <span class="n">thetamin</span><span class="o">=</span><span class="mf">0.</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span> <span class="n">thetamax</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span>
+                                <span class="n">phimin</span><span class="o">=</span><span class="mf">0.</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span> <span class="n">phimax</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span>
+                                <span class="n">start_event_id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                <span class="n">flavor</span><span class="o">=</span><span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="o">-</span><span class="mi">12</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="o">-</span><span class="mi">14</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="o">-</span><span class="mi">16</span><span class="p">],</span>
+                                <span class="n">n_events_per_file</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                <span class="n">spectrum</span><span class="o">=</span><span class="s1">&#39;log_uniform&#39;</span><span class="p">,</span>
+                                <span class="n">add_tau_second_bang</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                <span class="n">tabulated_taus</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                <span class="n">deposited</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                <span class="n">proposal</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                <span class="n">proposal_config</span><span class="o">=</span><span class="s1">&#39;SouthPole&#39;</span><span class="p">,</span>
+                                <span class="n">start_file_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Event generator</span>
+
+<span class="sd">    Generates neutrino interactions, i.e., vertex positions, neutrino directions,</span>
+<span class="sd">    neutrino flavor, charged currend/neutral current and inelasticity distributions.</span>
+<span class="sd">    All events are saved in an hdf5 file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename: string</span>
+<span class="sd">        the output filename of the hdf5 file</span>
+<span class="sd">    n_events: int</span>
+<span class="sd">        number of events to generate</span>
+<span class="sd">    Emin: float</span>
+<span class="sd">        the minimum neutrino energy (energies are randomly chosen assuming a</span>
+<span class="sd">        uniform distribution in the logarithm of the energy)</span>
+<span class="sd">    Emax: float</span>
+<span class="sd">        the maximum neutrino energy (energies are randomly chosen assuming a</span>
+<span class="sd">        uniform distribution in the logarithm of the energy)</span>
+
+<span class="sd">    fiducial_rmin: float</span>
+<span class="sd">        lower r coordinate of fiducial volume (the fiducial volume needs to be</span>
+<span class="sd">        chosen large enough such that no events outside of it will trigger)</span>
+<span class="sd">    fiducial_rmax: float</span>
+<span class="sd">        upper r coordinate of fiducial volume (the fiducial volume needs to be</span>
+<span class="sd">        chosen large enough such that no events outside of it will trigger)</span>
+<span class="sd">    fiducial_zmin: float</span>
+<span class="sd">        lower z coordinate of fiducial volume (the fiducial volume needs to be</span>
+<span class="sd">        chosen large enough such that no events outside of it will trigger)</span>
+<span class="sd">    fiducial_zmax: float</span>
+<span class="sd">        upper z coordinate of fiducial volume (the fiducial volume needs to be</span>
+<span class="sd">        chosen large enough such that no events outside of it will trigger)</span>
+<span class="sd">    full_rmin: float (default None)</span>
+<span class="sd">        lower r coordinate of simulated volume (if None it is set to fiducial_rmin)</span>
+<span class="sd">    full_rmax: float (default None)</span>
+<span class="sd">        upper r coordinate of simulated volume (if None it is set to fiducial_rmax)</span>
+<span class="sd">    full_zmin: float (default None)</span>
+<span class="sd">        lower z coordinate of simulated volume (if None it is set to fiducial_zmin)</span>
+<span class="sd">    full_zmax: float (default None)</span>
+<span class="sd">        upper z coordinate of simulated volume (if None it is set to fiducial_zmax)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>These four parameters, <code class="docutils literal notranslate"><span class="pre">full_rmin</span></code>, <code class="docutils literal notranslate"><span class="pre">full_rmax</span></code>, <code class="docutils literal notranslate"><span class="pre">full_zmax</span></code>, and <code class="docutils literal notranslate"><span class="pre">full_zmin</span></code> serve to increase the total interaction volume while saving and simulating only event vertices that lie within the cylinder defined by the parameters that start with <code class="docutils literal notranslate"><span class="pre">fiducial</span></code>, so that the simulation time remains small. This is extremely useful for simulating multiple interactions from a single event. When a tau or muon neutrino interacts via charged current (CC), the resulting lepton can radiate and decay. In the case of a tau lepton, the range can reach 100 km around 100 EeV, which means that our interaction volume must be increased a lot so that we account correctly for these taus that can reach our fiducial volume after being created tens of kilometres away. The total number of events is also increased proportionally to the ratio of full volume vs fiducial volume.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">thetamin: float</span>
+<span class="sd">    lower zenith angle for neutrino arrival direction</span>
+<span class="sd">thetamax: float</span>
+<span class="sd">    upper zenith angle for neutrino arrival direction</span>
+<span class="sd">phimin: float</span>
+<span class="sd">    lower azimuth angle for neutrino arrival direction</span>
+<span class="sd">phimax: float</span>
+<span class="sd">     upper azimuth angle for neutrino arrival direction</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>These parameters control the arrival directions of the incoming neutrinos. The azimuth distribution is uniform, while the zenith distribution is flat as a function of the cosine of the zenith, which implies an isotropic flux and a constant number of events per solid angle. Please keep in mind that, while the physical flux depends on the projected area of the cylinder, the probability of interaction (assuming a thin volume) depends on the chord length of the neutrino trajectory within the volume. For any direction, the product of the projected area times the average chord length is the total volume, so for any volume that is small with respect to the interaction length, the flux of interacting events must be isotropic (ignoring the probability of previous interaction). This is confirmed by the unforced event generator in <code class="docutils literal notranslate"><span class="pre">generate_unforced.py</span></code>.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">start_event: int</span>
+<span class="sd">    default: 1</span>
+<span class="sd">    event number of first event</span>
+<span class="sd">flavor: array of ints</span>
+<span class="sd">    default: [12, -12, 14, -14, 16, -16]</span>
+<span class="sd">    specify which neutrino flavors to generate. A uniform distribution of</span>
+<span class="sd">    all specified flavors is assumed.</span>
+<span class="sd">    The neutrino flavor (integer) encoded as using PDF numbering scheme,</span>
+<span class="sd">    particles have positive sign, anti-particles have negative sign,</span>
+<span class="sd">    relevant for us are:</span>
+<span class="sd">    * 12: electron neutrino</span>
+<span class="sd">    * 14: muon neutrino</span>
+<span class="sd">    * 16: tau neutrino</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>The flavour codes follow the PDG conventions. Positive integers indicate neutrinos and negative numbers indicate antineutrinos. Neutrinos and antineutrinos possess a slightly different cross section, and also the lepton created via CC interaction changes, which in turn changes the stochastic losses of the lepton. However, at high energies and for the radio technique, the difference between neutrinos and antineutrinos is negligible for practical purposes. The input <code class="docutils literal notranslate"><span class="pre">flavor</span></code> must be a list, from which the neutrino flavour will be randomly drawn. So, the default list <code class="docutils literal notranslate"><span class="pre">[12,-12,14,-14,16,-16]</span></code> creates a 1:1:1 flavour ratio. If we want to use a single flavour, e.g. electron neutrino, we can use [12,-12]. Integer ratios are easily created. If we want a 1:2:0 ratio, we can pass [12,-12,14,14,-14,-14] as <code class="docutils literal notranslate"><span class="pre">flavor</span></code>.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">n_events_per_file: int or None</span>
+<span class="sd">    the maximum number of events per output files. Default is None, which</span>
+<span class="sd">    means that all events are saved in one file. If &#39;n_events_per_file&#39; is</span>
+<span class="sd">    smaller than &#39;n_events&#39; the event list is split up into multiple files.</span>
+<span class="sd">    This is useful to split up the computing on multiple cores.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>When producing effective volumes for a large number of events, it is advisable to split the files in smaller input files so that each
+file can be simulated in parallel using a cluster. Due to the Poissonian distribution of the number of triggered events, the relative uncertainty for, let’s say, an effective volume goes with <span class="math notranslate nohighlight">\(1/N_{triggered}^{0.5}\)</span>. However, the number of triggers is unknown a priori because that’s precisely one of the things NuRadioMC calculates. A good rule of thumb for most detector configurations is to take around 10<sup>5</sup> ~ 10<sup>6</sup> events per energy bin for low energies (<code class="docutils literal notranslate"><span class="pre">n_events</span></code>), where radio efficiency is low, and for high energies the number of simulated neutrinos can be reduced. The number of events per file will depend on the number of jobs desired.</p>
+<blockquote>
+<div></div></blockquote>
+<p>If instead of simulating a small energy bin one wishes to simulate a larger part of the neutrino spectrum, one can make use of this feature. By default, the input neutrino energies are drawn from a log-uniform distribution, which is appropriate for bins. An arbitrary power law, the measured IceCube flux, a GZK neutrino model, and a combination of the two previous can be chosen. If a really large <code class="docutils literal notranslate"><span class="pre">n_events</span></code> is used and then the file is split into reasonable cluster jobs using an appropriate <code class="docutils literal notranslate"><span class="pre">n_events_per_file</span></code>, the NuRadioMC output files can be merged after simulation and all the relevant information on the measured events can be obtained. Keep in mind, however, that it is usually more flexible to simulate single bins with a log-uniform distribution and then convolve the results with whatever neutrino flux model we fancy.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">add_tau_second_bang: bool</span>
+<span class="sd">    if True simulate second vertices from tau decays</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">add_tau_second_bang</span></code> should be set to True if one wants to simulate tau double bangs with the simple model native to NuRadioMC. It also controls the full radius of the cylinder if <code class="docutils literal notranslate"><span class="pre">full_rmax</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, and it sets it to the 95% percentile of the tau range for a given energy, where the value is taken from a fit to the range.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">add_tau_second_bang</span></code> is <cite>True</cite> and <code class="docutils literal notranslate"><span class="pre">proposal</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code>, tau decays will be simulated using a continuous slowing down approximation (CSDA) where the only relevant interaction is the photonuclear interaction. Stochastic losses are ignored. See the <a class="reference external" href="https://dx.doi.org/10.1140/epjc/s10052-020-7612-8">NuRadioMC paper</a> for more details.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">tabulated_taus: bool</span>
+<span class="sd">    if True the tau decay properties are taken from a table</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">tabulated_taus</span></code> controls if the code uses the tabulated results for the photonuclear CSDA. It is recommended to be used if the CSDA is wanted, although using PROPOSAL is the best option, if it’s available.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">deposited: bool</span>
+<span class="sd">    if True, generate deposited energies instead of primary neutrino energies</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">deposited</span></code> allows us to choose to work with shower energy instead of neutrino energy. This variable should be set to <code class="docutils literal notranslate"><span class="pre">True</span></code> only for first neutrino interactions, without lepton propagation. It is useful when the response of the detector as a function of shower energy, which is what is actually measurable, is needed. It has been used for generating the radio effective volumes that are used in Jakob van Santen’s <a class="reference external" href="https://github.com/IceCubeOpenSource/gen2-analysis.git">Gen2 framework</a>. Using this feature, the shower energy is randomly drawn using the input <code class="docutils literal notranslate"><span class="pre">Emin</span></code> and <code class="docutils literal notranslate"><span class="pre">Emax</span></code>, as well as the inelasticity, both of which can be used to find out the initial neutrino energy. Then, the file is saved and it can be normally executed using NuRadioMC.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">proposal: bool</span>
+<span class="sd">    if True, the tau and muon secondaries are calculated using PROPOSAL</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>If <code class="docutils literal notranslate"><span class="pre">proposal</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, an accurate propagation of muons (if a muon neutrino undergoes a CC interaction) and taus (the same, for a tau neutrino). This propagation is performed using the PROPOSAL code, which must be previously installed on the system. See how to at:</p>
+<blockquote>
+<div><a class="reference external" href="https://github.com/tudo-astroparticlephysics/PROPOSAL/blob/master/INSTALL.md">https://github.com/tudo-astroparticlephysics/PROPOSAL/blob/master/INSTALL.md</a></div></blockquote>
+<p>NuRadioMC feeds PROPOSAL the lepton properties and PROPOSAL propagates them, storing every interaction along the way as well as the final decay. NuRadioMC then saves only the interactions that produce a shower above some energy threshold and transform them into events. See the NuRadioProposal.py module for more information.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">proposal_config: string or path</span>
+<span class="sd">    The user can specify the path to their own config file or choose among</span>
+<span class="sd">    the three available options:</span>
+<span class="sd">    -&#39;SouthPole&#39;, a config file for the South Pole (spherical Earth). It</span>
+<span class="sd">    consists of a 2.7 km deep layer of ice, bedrock below and air above.</span>
+<span class="sd">    -&#39;MooresBay&#39;, a config file for Moore&#39;s Bay (spherical Earth). It</span>
+<span class="sd">    consists of a 576 m deep ice layer with a 2234 m deep water layer below,</span>
+<span class="sd">    and bedrock below that.</span>
+<span class="sd">    -&#39;InfIce&#39;, a config file with a medium of infinite ice</span>
+<span class="sd">    -&#39;Greenland&#39;, a config file for Summit Station, Greenland (spherical Earth),</span>
+<span class="sd">    same as SouthPole but with a 3 km deep ice layer.</span>
+<span class="sd">    IMPORTANT: If these options are used, the code is more efficient if the</span>
+<span class="sd">    user requests their own &quot;path_to_tables&quot; and &quot;path_to_tables_readonly&quot;,</span>
+<span class="sd">    pointing them to a writable directory</span>
+<span class="sd">    If one of these three options is chosen, the user is supposed to edit</span>
+<span class="sd">    the corresponding config_PROPOSAL_xxx.json.sample file to include valid</span>
+<span class="sd">    table paths and then copy this file to config_PROPOSAL_xxx.json.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>PROPOSAL needs a configuration file specifying the geometry to be run. The user can choose among the media listed above or they can specify the path to an own file. Important: the listed media need some input from the user. The files that end with <code class="docutils literal notranslate"><span class="pre">.sample</span></code> need to have two writable directories on the user’s system to save some tables (which makes PROPOSAL faster), and they need to be renamed by removing the suffix <code class="docutils literal notranslate"><span class="pre">.sample</span></code>.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">start_file_id: int (default 0)</span>
+<span class="sd">    in case the data set is distributed over several files,</span>
+<span class="sd">    this number specifies the id of the first file</span>
+<span class="sd">    (useful if an existing data set is extended)</span>
+<span class="sd">    if True, generate deposited energies instead of primary neutrino energies</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="data-sets-and-attributes">
+<h3>Data sets and attributes<a class="headerlink" href="#data-sets-and-attributes" title="Permalink to this headline">¶</a></h3>
+<p>The function <code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder</span></code> creates events according to the input parameters and saves all the relevant parameters to a set of HDF5 files. These files created by the event generator consist of a collection of arrays containing the properties of the neutrinos and other secondary particles. The array keys and contents are the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">azimuths</span></code>, the arrival azimuth angles in radians.</li>
+<li><code class="docutils literal notranslate"><span class="pre">zeniths</span></code>, the arrival zenith angles in radians.</li>
+<li><code class="docutils literal notranslate"><span class="pre">xx</span></code>, <code class="docutils literal notranslate"><span class="pre">yy</span></code>, and <code class="docutils literal notranslate"><span class="pre">zz</span></code>, the x, y and z coordinates in metres for the point where the particles interact or decay.</li>
+<li><code class="docutils literal notranslate"><span class="pre">event_ids</span></code>, the event identification numbers</li>
+<li><code class="docutils literal notranslate"><span class="pre">n_interaction</span></code>, the interaction number. 1 indicates a neutrino interaction, 2 and greater indicates decay or interaction of a lepton created after the neutrino interaction.</li>
+</ul>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">As of July 2020, the event ids are not unique. This is because we consider as a single event all the shower-inducing interaction created by a neutrino and its secondary particles. One of our open issues is to change this numbering scheme in order to facilitate the splitting of events in different sub-events with a fixed-length trace. See <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/pull/208">this pull request</a>.</p>
+</div>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">vertex_times</span></code>, the time at which the interaction happens. The first neutrino interaction is taken to be equal to zero, and the rest of the interactions are referred to this first interaction and calculated using the time of flight.</li>
+<li><code class="docutils literal notranslate"><span class="pre">flavors</span></code>, neutrino flavours. 12 for electron neutrino, 14 for muon neutrino, and 16 for tau neutrino. Antineutrinos are represented by -12, -14, and -16. A value of 15 indicates a tau lepton. The numbers are following the <a class="reference external" href="http://pdg.lbl.gov/2007/reviews/montecarlorpp.pdf">PDG standard</a>, and we have added some more between 80 and 90 to denote the particles and groups of particles created by PROPOSAL. The codes can be consulted in the table below.</li>
+<li><code class="docutils literal notranslate"><span class="pre">energies</span></code>, the particle energies in electronvolts</li>
+<li><code class="docutils literal notranslate"><span class="pre">interaction_type</span></code>, the interaction type. <cite>‘cc’</cite> for charged current, and <cite>‘nc’</cite> for neutral current. <cite>‘tau_had’, ‘tau_em’, ‘tau_mu’</cite> indicate the tau decays into the hadronic, electromagnetic and muonic channels respectively, calculated using the CSDA for taus. If the vertex has been created by a secondary particle propagated by PROPOSAL, <cite>had</cite> indicates a hadronic shower, and <cite>em</cite> an electromagnetic shower.</li>
+<li><code class="docutils literal notranslate"><span class="pre">inelasticities</span></code>, the inelasticities for the neutrino interactions and the tau decays. The inelasticity value represents the fraction of the initial energy taken by the product hadronic cascade. This is only relevant for first interactions. For secondary interactions, this field is set to 1.</li>
+</ul>
+</div></blockquote>
+<p>In these HDF5 files we also save as HDF5 attributes:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">n_events</span></code>, the number of events in the present file. If the file is split into smaller files, the number of events is recalculated.</li>
+<li><code class="docutils literal notranslate"><span class="pre">NuRadioMC_EvtGen_version</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">NuRadioMC_EvtGen_version_hash</span></code></li>
+</ul>
+</div></blockquote>
+<p>The following items have the same meaning as the parameters that are passed to the generator function.</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">start_event_id</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">fiducial_rmin</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">fiducial_rmax</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">fiducial_zmin</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">fiducial_zmax</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">rmin</span></code>, equivalent to <code class="docutils literal notranslate"><span class="pre">full_rmin</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">rmax</span></code>, equivalent to <code class="docutils literal notranslate"><span class="pre">full_rmax</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">zmin</span></code>, equivalent to <code class="docutils literal notranslate"><span class="pre">full_zmin</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">zmax</span></code>, equivalent to <code class="docutils literal notranslate"><span class="pre">full_zmax</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">flavors</span></code>, the flavour list</li>
+<li><code class="docutils literal notranslate"><span class="pre">Emin</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">Emax</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">thetamin</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">thetamax</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">phimin</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">phimax</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">deposited</span></code></li>
+</ul>
+</div></blockquote>
+<p>The HDF5 data sets outlined here are what constitute a NuRadioMC input file produced its generator module. However, any HDF5 file containing equally named data sets (and, depending on the purpose, also the attributes) can be processed by NuRadioMC to simulate a detector. This is useful in case one wants to compare the effect of a different input generation on the simulation output. However, although these comparisons are necessary for cross-checking, we encourage our NuRadioMC users to contribute to our projects and expand on our event generators if they consider that a different or complementary way of drawing input events is advisable.</p>
+<blockquote>
+<div><table border="1" class="docutils" id="id1">
+<caption><span class="caption-text">Particle codes used in NuRadioMC</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Name</th>
+<th class="head">Symbol</th>
+<th class="head">Code</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Gamma (photon)</td>
+<td><span class="math notranslate nohighlight">\(\gamma\)</span></td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td>Electron</td>
+<td><span class="math notranslate nohighlight">\(e^-\)</span></td>
+<td>11</td>
+</tr>
+<tr class="row-even"><td>Positron</td>
+<td><span class="math notranslate nohighlight">\(e^+\)</span></td>
+<td>-11</td>
+</tr>
+<tr class="row-odd"><td>Electron neutrino</td>
+<td><span class="math notranslate nohighlight">\(\nu_e\)</span></td>
+<td>12</td>
+</tr>
+<tr class="row-even"><td>Electron antineutrino</td>
+<td><span class="math notranslate nohighlight">\(\bar{\nu}_e\)</span></td>
+<td>-12</td>
+</tr>
+<tr class="row-odd"><td>Muon (negative)</td>
+<td><span class="math notranslate nohighlight">\(\mu^-\)</span></td>
+<td>13</td>
+</tr>
+<tr class="row-even"><td>Antimuon (positive muon)</td>
+<td><span class="math notranslate nohighlight">\(\mu^+\)</span></td>
+<td>-13</td>
+</tr>
+<tr class="row-odd"><td>Muon neutrino</td>
+<td><span class="math notranslate nohighlight">\(\nu_{\mu}\)</span></td>
+<td>14</td>
+</tr>
+<tr class="row-even"><td>Muon antineutrino</td>
+<td><span class="math notranslate nohighlight">\(\bar{\nu}_{\mu}\)</span></td>
+<td>-14</td>
+</tr>
+<tr class="row-odd"><td>Tau (negative)</td>
+<td><span class="math notranslate nohighlight">\(\tau^-\)</span></td>
+<td>15</td>
+</tr>
+<tr class="row-even"><td>Antitau (or positive tau)</td>
+<td><span class="math notranslate nohighlight">\(\tau^+\)</span></td>
+<td>-15</td>
+</tr>
+<tr class="row-odd"><td>Tau neutrino</td>
+<td><span class="math notranslate nohighlight">\(\nu_{\tau}\)</span></td>
+<td>16</td>
+</tr>
+<tr class="row-even"><td>Tau antineutrino</td>
+<td><span class="math notranslate nohighlight">\(\bar{\nu}_{\tau}\)</span></td>
+<td>-16</td>
+</tr>
+<tr class="row-odd"><td>Bremsstrahlung photon</td>
+<td><span class="math notranslate nohighlight">\(\gamma_{brems}\)</span></td>
+<td>81</td>
+</tr>
+<tr class="row-even"><td>Ionised electron</td>
+<td><span class="math notranslate nohighlight">\(\delta\)</span></td>
+<td>82</td>
+</tr>
+<tr class="row-odd"><td>Electron-positron pair</td>
+<td><span class="math notranslate nohighlight">\(e^+e^-\)</span></td>
+<td>83</td>
+</tr>
+<tr class="row-even"><td>Hadron blundle</td>
+<td>&#160;</td>
+<td>84</td>
+</tr>
+<tr class="row-odd"><td>Nuclear interaction products</td>
+<td>&#160;</td>
+<td>85</td>
+</tr>
+<tr class="row-even"><td>Hadronic Decay bundle</td>
+<td>&#160;</td>
+<td>86</td>
+</tr>
+<tr class="row-odd"><td>Muon pair</td>
+<td><span class="math notranslate nohighlight">\(\mu^+\mu^-\)</span></td>
+<td>87</td>
+</tr>
+<tr class="row-even"><td>Continuous loss</td>
+<td>&#160;</td>
+<td>88</td>
+</tr>
+<tr class="row-odd"><td>Weak interaction</td>
+<td>&#160;</td>
+<td>89</td>
+</tr>
+<tr class="row-even"><td>Compton</td>
+<td>&#160;</td>
+<td>90</td>
+</tr>
+<tr class="row-odd"><td>Pion (neutral)</td>
+<td><span class="math notranslate nohighlight">\(\pi^0\)</span></td>
+<td>111</td>
+</tr>
+<tr class="row-even"><td>Pion (positive)</td>
+<td><span class="math notranslate nohighlight">\(\pi^+\)</span></td>
+<td>211</td>
+</tr>
+<tr class="row-odd"><td>Pion (negative)</td>
+<td><span class="math notranslate nohighlight">\(\pi^-\)</span></td>
+<td>-211</td>
+</tr>
+<tr class="row-even"><td>Kaon (neutral)</td>
+<td><span class="math notranslate nohighlight">\(K^0\)</span></td>
+<td>311</td>
+</tr>
+<tr class="row-odd"><td>Kaon (positive)</td>
+<td><span class="math notranslate nohighlight">\(K^+\)</span></td>
+<td>321</td>
+</tr>
+<tr class="row-even"><td>Kaon (negative)</td>
+<td><span class="math notranslate nohighlight">\(K^-\)</span></td>
+<td>-321</td>
+</tr>
+<tr class="row-odd"><td>Proton</td>
+<td><span class="math notranslate nohighlight">\(p^+\)</span></td>
+<td>2212</td>
+</tr>
+<tr class="row-even"><td>Antiproton</td>
+<td><span class="math notranslate nohighlight">\(p^-\)</span></td>
+<td>-2212</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="atmospheric-muons-generated-on-a-flat-surface">
+<h2>Atmospheric muons generated on a flat surface<a class="headerlink" href="#atmospheric-muons-generated-on-a-flat-surface" title="Permalink to this headline">¶</a></h2>
+<p>The function <code class="docutils literal notranslate"><span class="pre">generate_surface_muons</span></code> generates muons (leptons, NOT muon neutrinos) at <code class="docutils literal notranslate"><span class="pre">z=0</span></code> and propagates them using PROPOSAL. Please be aware that a functioning installation of PROPOSAL is needed for using this function.</p>
+<blockquote>
+<div></div></blockquote>
+<p>Most of the arguments are the same as the ones used for <code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder</span></code>, although there are fewer and <code class="docutils literal notranslate"><span class="pre">spectrum</span></code> can only be <code class="docutils literal notranslate"><span class="pre">&quot;log-uniform&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;E-X&quot;</span></code>. The only additional option for <code class="docutils literal notranslate"><span class="pre">generate_surface_muons</span></code> is <code class="docutils literal notranslate"><span class="pre">plus_minus</span></code>.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">plus_minus: string</span>
+<span class="sd">    if &#39;plus&#39;: generates only positive muons</span>
+<span class="sd">    if &#39;minus&#39;: generates only negative muons</span>
+<span class="sd">    else generates positive and negative muons randomly</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>This parameter controls if the generated muons are negative, positive, or an equal mixture.</p>
+<p>This function takes a thin disk of 10 cm of height near z=0 and randomly generates muons using an isotropic flux. The radius of this cylinder is equal to <code class="docutils literal notranslate"><span class="pre">full_rmax</span></code> and given by the user. Then, NuRadioMC calls PROPOSAL and saves all the shower-inducing interactions muons have undergone in a cylindrical region defined by <code class="docutils literal notranslate"><span class="pre">rmin</span></code>, <code class="docutils literal notranslate"><span class="pre">rmax</span></code>, <code class="docutils literal notranslate"><span class="pre">zmin`</span></code>, and <code class="docutils literal notranslate"><span class="pre">zmax</span></code>. Although the generation of events is done in a flat surface near z=0, the curvature of the Earth is correctly considered by PROPOSAL provided the configuration file defines a spherical medium.</p>
+<p>The main purpose of the <code class="docutils literal notranslate"><span class="pre">generate_surface_muons</span></code> is to generate muons coming from air showers to know how many of
+these muons are detected by an in-ice array and therefore constitute a physical background for neutrino detection. This has been
+explored in one of our papers (<a class="reference external" href="https://arxiv.org/abs/2003.13442">lepton paper</a>). The user can choose the incoming zenith angle of these atmospheric muons as well, and they should be careful to use only the upper half of the sky (from 0 to 90 degrees in a standard simulation) to simulate muons coming from above.</p>
+<p>For a realistic background simulation for which high statistics are needed, we recommend the use of a cluster to execute this function in parallel to create one or more files for each energy bin. The user should be aware of the following pitfall: if two input files with the same input parameters are going to be used for the same analysis, these two files should not have overlapping event IDs. The number of events for each file is an input parameter, so one can know a priori how many event IDs are going to be in a file. Unlike when using the <code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder</span></code>, increasing the full volume does not change the total number of events. The user can use the parameter <code class="docutils literal notranslate"><span class="pre">n_events_per_file</span></code> to split the file, but sometimes it is more convenient and faster to execute the function in parallel than calling it once and splitting the file.</p>
+</div>
+<div class="section" id="nuradioproposal-as-a-standalone-module">
+<h2>NuRadioProposal as a standalone module<a class="headerlink" href="#nuradioproposal-as-a-standalone-module" title="Permalink to this headline">¶</a></h2>
+<p>The module <code class="docutils literal notranslate"><span class="pre">NuRadioProposal.py</span></code> in EvtGen can also be used standalone to study the propagation of leptons created by neutrino interactions and the radio-detectable showers they produce. For instance, for propagating 1000 taus having 1 EeV of energy in infinite ice, we can use the following code.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">NuRadioMC.EvtGen.NuRadioProposal</span> <span class="kn">import</span> <span class="n">ProposalFunctions</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+<span class="n">proposal_functions</span> <span class="o">=</span> <span class="n">ProposalFunctions</span><span class="p">(</span><span class="n">config_file</span><span class="o">=</span><span class="s1">&#39;InfIce&#39;</span><span class="p">)</span>
+
+<span class="n">N_taus</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">energy_leptons</span> <span class="o">=</span> <span class="p">[</span><span class="n">units</span><span class="o">.</span><span class="n">EeV</span><span class="p">]</span> <span class="o">*</span> <span class="n">N_taus</span>
+<span class="n">tau_codes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">15</span><span class="p">]</span> <span class="o">*</span> <span class="n">N_taus</span>
+
+<span class="n">secondaries_array</span> <span class="o">=</span> <span class="n">proposal_functions</span><span class="o">.</span><span class="n">get_secondaries_array</span><span class="p">(</span><span class="n">energy_leptons</span><span class="p">,</span>
+                                         <span class="n">lepton_codes</span><span class="p">,</span>
+                                         <span class="n">config_file</span><span class="o">=</span><span class="s1">&#39;InfIce&#39;</span><span class="p">,</span>
+                                         <span class="n">low_nu</span><span class="o">=</span><span class="mf">0.1</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">,</span>
+                                         <span class="n">propagate_decay_muons</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>The minimum energy when the lepton propagation stops can be controlled with <code class="docutils literal notranslate"><span class="pre">low_nu</span></code>, and the minimal energy of the shower-inducing secondaries can be controlled with <code class="docutils literal notranslate"><span class="pre">min_energy_loss_nu</span></code>. <code class="docutils literal notranslate"><span class="pre">get_secondaries_array</span></code> returns a 2D list containing all the secondary particles that induce a shower. The first dimension indicates the primary lepton and the second dimension navigates through the secondaries produced by that primary. Each one of the elements is a member of the SecondaryProperties class, which has the distance from the lepton creation, its energy, the shower type, the PDG code and the name of the secondary particle as class properties.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SecondaryProperties</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class stores the properties from secondary particles that are</span>
+<span class="sd">    relevant for NuRadioMC, namely:</span>
+<span class="sd">    - distance, the distance to the first interaction vertex</span>
+<span class="sd">    - energy, the particle energy</span>
+<span class="sd">    - shower_type, whether the shower they induce is hadronic or electromagnetic</span>
+<span class="sd">    - name, its name according to the particle_name dictionary on this module</span>
+
+<span class="sd">    Distance and energy are expected to be in NuRadioMC units</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">distance</span><span class="p">,</span>
+                 <span class="n">energy</span><span class="p">,</span>
+                 <span class="n">shower_type</span><span class="p">,</span>
+                 <span class="n">code</span><span class="p">,</span>
+                 <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">distance</span> <span class="o">=</span> <span class="n">distance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="n">energy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shower_type</span> <span class="o">=</span> <span class="n">shower_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>So, each property can be retrieved just by taking a SecondaryProperties object and accessing its properties. If the particle code lies between 80 and 90 (except for 86, hadronic decay bundle), the particle has been created upon an interaction before decaying. Any other particle is a product of decay. If there is more than one hadron created during decay, the NuRadioProposal module groups them into a hadronic decay bundle and adds their energies, so that the final shower is hadronic and with the sum of the energies.</p>
+<p>If the user is only interested in decay energy and distance,
+the function <code class="docutils literal notranslate"><span class="pre">get_decays</span></code> can be used in a similar way, and it returns a list of (distance, energy) tuples.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../manuals.html" class="btn btn-neutral float-left" title="Manuals" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="signal_generation.html" class="btn btn-neutral float-right" title="Signal Generation (electric field)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, The NuRadio Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

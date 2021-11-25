@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signal Generation (electric field) &mdash; NuRadio 2.0.0 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Signal Propagation" href="signal_propagation.html" />
+    <link rel="prev" title="Event Generation" href="event_generation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../main.html" class="icon icon-home"> NuRadio<img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                2.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../NuRadioReco/pages/welcome_page.html">NuRadioReco Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html">Installing NuRadioReco</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html#installation-using-pip">Installation using Pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html#manual-installation">Manual Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html#dependencies">Dependencies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html#core-dependencies">Core Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html#optional-dependencies">Optional Dependencies</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html">Data Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#nur-files-and-how-to-use-them">.nur Files and How to Use Them</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#philosophy-and-basic-structure">Philosophy and Basic Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#reading-and-writing-nur-files">Reading and Writing .nur Files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#parameter-storage">Parameter Storage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#list-of-data-classes">List of Data Classes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#basetrace">BaseTrace</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#electric-field">Electric Field</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#channel">Channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#hybrid-information">Hybrid Information</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#hybrid-shower">Hybrid Shower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#hybrid-detector">Hybrid Detector</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html">Detector Description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#the-detector-class">The Detector Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#detector-description-formats">Detector Description Formats</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#database">DataBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#json">JSON</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#dictionary">Dictionary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#signal-chain-responses">Signal Chain Responses</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#id1">GenericDetector</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#event-specific-changes">Event-Specific Changes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#detector-description-in-event-files">Detector Description in Event Files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#writing-the-detector">Writing the Detector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#reading-the-detector">Reading the Detector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#detector-viewer">Detector Viewer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/event_display.html">Event Display</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/utilities.html">Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/utilities.html#unit-system">Unit System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/utilities.html#fourier-transformation">Fourier Transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/utilities.html#metaclasses">Metaclasses</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/utilities.html#singleton">Singleton</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html">Contributing to NuRadioReco</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#workflow">Workflow</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#filing-tickets">Filing Tickets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#submitting-pull-requests">Submitting Pull Requests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#coding-conventions">Coding Conventions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#versioning">Versioning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#unit-tests">Unit Tests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#coding-standards-and-linting">Coding Standards and Linting</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#documentation">Documentation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#writing-docstrings">Writing Docstrings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#deploying-the-documentation">Deploying the Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#technical-implementation">Technical Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#usage-convention">Usage convention</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/code_documentation.html">Code Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html">NuRadioReco.framework package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-base-shower-module">NuRadioReco.framework.base_shower module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-base-station-module">NuRadioReco.framework.base_station module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-base-trace-module">NuRadioReco.framework.base_trace module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-channel-module">NuRadioReco.framework.channel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-electric-field-module">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-event-module">NuRadioReco.framework.event module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-hybrid-information-module">NuRadioReco.framework.hybrid_information module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-hybrid-shower-module">NuRadioReco.framework.hybrid_shower module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-parameter-serialization-module">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-parameters-module">NuRadioReco.framework.parameters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-radio-shower-module">NuRadioReco.framework.radio_shower module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-sim-channel-module">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-sim-station-module">NuRadioReco.framework.sim_station module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-station-module">NuRadioReco.framework.station module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-trigger-module">NuRadioReco.framework.trigger module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html">NuRadioReco.modules package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-analogtodigitalconverter-module">NuRadioReco.modules.analogToDigitalConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-beamformingdirectionfitter-module">NuRadioReco.modules.beamFormingDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channeladdcabledelay-module">NuRadioReco.modules.channelAddCableDelay module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelantennadedispersion-module">NuRadioReco.modules.channelAntennaDedispersion module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelbandpassfilter-module">NuRadioReco.modules.channelBandPassFilter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelgalacticnoiseadder-module">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelgenericnoiseadder-module">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channellengthadjuster-module">NuRadioReco.modules.channelLengthAdjuster module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelmeasurednoiseadder-module">NuRadioReco.modules.channelMeasuredNoiseAdder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelresampler-module">NuRadioReco.modules.channelResampler module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelsignalreconstructor-module">NuRadioReco.modules.channelSignalReconstructor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelstopfilter-module">NuRadioReco.modules.channelStopFilter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channeltemplatecorrelation-module">NuRadioReco.modules.channelTemplateCorrelation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channeltimeoffsetcalculator-module">NuRadioReco.modules.channelTimeOffsetCalculator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channeltimewindow-module">NuRadioReco.modules.channelTimeWindow module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-correlationdirectionfitter-module">NuRadioReco.modules.correlationDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-cosmicrayenergyreconstructor-module">NuRadioReco.modules.cosmicRayEnergyReconstructor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-efieldairtoicepropagator-module">NuRadioReco.modules.efieldAirToIcePropagator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-efieldtimedirectionfitter-module">NuRadioReco.modules.efieldTimeDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-efieldtovoltageconverter-module">NuRadioReco.modules.efieldToVoltageConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-efieldtovoltageconverterperefield-module">NuRadioReco.modules.efieldToVoltageConverterPerEfield module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-electricfieldbandpassfilter-module">NuRadioReco.modules.electricFieldBandPassFilter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-electricfieldresampler-module">NuRadioReco.modules.electricFieldResampler module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-electricfieldsignalreconstructor-module">NuRadioReco.modules.electricFieldSignalReconstructor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-eventtypeidentifier-module">NuRadioReco.modules.eventTypeIdentifier module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-templatedirectionfitter-module">NuRadioReco.modules.templateDirectionFitter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-triggertimeadjuster-module">NuRadioReco.modules.triggerTimeAdjuster module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-voltagetoanalyticefieldconverter-module">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-voltagetoefieldconverter-module">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-voltagetoefieldconverterperchannel-module">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html">NuRadioReco.detector package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-amp-module">NuRadioReco.detector.amp module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-antennapattern-module">NuRadioReco.detector.antennapattern module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-detector-module">NuRadioReco.detector.detector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-detector-sql-module">NuRadioReco.detector.detector_sql module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-detector-sys-uncertainties-module">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-filterresponse-module">NuRadioReco.detector.filterresponse module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-generic-detector-module">NuRadioReco.detector.generic_detector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-sql-to-json-module">NuRadioReco.detector.sql_to_json module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-test-detector-db-module">NuRadioReco.detector.test_detector_db module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-visualize-detector-module">NuRadioReco.detector.visualize_detector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html">NuRadioReco.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-analytic-pulse-module">NuRadioReco.utilities.analytic_pulse module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-bandpass-filter-module">NuRadioReco.utilities.bandpass_filter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-diodesimulator-module">NuRadioReco.utilities.diodeSimulator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-fft-module">NuRadioReco.utilities.fft module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-geometryutilities-module">NuRadioReco.utilities.geometryUtilities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-ice-module">NuRadioReco.utilities.ice module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-io-utilities-module">NuRadioReco.utilities.io_utilities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-metaclasses-module">NuRadioReco.utilities.metaclasses module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-noise-module">NuRadioReco.utilities.noise module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-templates-module">NuRadioReco.utilities.templates module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-timing-module">NuRadioReco.utilities.timing module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-tracewindows-module">NuRadioReco.utilities.traceWindows module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-trace-utilities-module">NuRadioReco.utilities.trace_utilities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-units-module">NuRadioReco.utilities.units module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-version-module">NuRadioReco.utilities.version module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/detector_database_fields.html">Properties of Detector Description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector_database_fields.html#antenna-table">Antenna Table</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector_database_fields.html#further-discussion-on-antenna-coordinates">Further Discussion on Antenna Coordinates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector_database_fields.html#adc-table">ADC Table</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/howto_documentation.html">How To</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/how_to/vertex_reconstruction.html">Use the Vertex Reconstruction Modules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-lookup-tables">Creating Lookup Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-electric-field-templates">Creating Electric Field Templates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#d-vs-3d-vertex-reconstructor">2D vs. 3D Vertex Reconstructor</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="../welcome_page.html">NuRadioMC Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../code_documentation.html">Code Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-nuradiomctoarasim-module">NuRadioMC.EvtGen.NuRadioMCtoAraSim module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-nuradioproposal-module">NuRadioMC.EvtGen.NuRadioProposal module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-create-tau-tab-module">NuRadioMC.EvtGen.create_tau_tab module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-generate-cylinder-module">NuRadioMC.EvtGen.generate_cylinder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-generate-unforced-module">NuRadioMC.EvtGen.generate_unforced module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-generator-module">NuRadioMC.EvtGen.generator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-generator-ascii-module">NuRadioMC.EvtGen.generator_ASCII module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-generator-skeleton-module">NuRadioMC.EvtGen.generator_skeleton module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-hdf5-to-ascii-module">NuRadioMC.EvtGen.hdf5_to_ASCII module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-readaraeventlist-module">NuRadioMC.EvtGen.readARAEventList module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-readeventlist-ascii-module">NuRadioMC.EvtGen.readEventList_ASCII module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.SignalGen.html">NuRadioMC.SignalGen package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#nuradiomc-signalgen-hcrb2017-module">NuRadioMC.SignalGen.HCRB2017 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#nuradiomc-signalgen-askaryan-module">NuRadioMC.SignalGen.askaryan module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#nuradiomc-signalgen-parametrizations-module">NuRadioMC.SignalGen.parametrizations module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.SignalProp.html">NuRadioMC.SignalProp package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#nuradiomc-signalprop-analyticraytracing-module">NuRadioMC.SignalProp.analyticraytracing module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#nuradiomc-signalprop-directraytracing-module">NuRadioMC.SignalProp.directRayTracing module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#nuradiomc-signalprop-propagation-module">NuRadioMC.SignalProp.propagation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#nuradiomc-signalprop-propagation-base-class-module">NuRadioMC.SignalProp.propagation_base_class module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-e04runstrawmensim2-module">NuRadioMC.simulation.E04RunStrawmenSim2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t04visualize-sim-input-module">NuRadioMC.simulation.T04visualize_sim_input module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t04visualize-sim-inputextend-module">NuRadioMC.simulation.T04visualize_sim_inputExtend module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t05visualize-sim-output-module">NuRadioMC.simulation.T05visualize_sim_output module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t05visualize-sim-outputextend-module">NuRadioMC.simulation.T05visualize_sim_outputExtend module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t06read-sim-output-module">NuRadioMC.simulation.T06read_sim_output module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t07plot-ray-tracing-solutions-module">NuRadioMC.simulation.T07plot_ray_tracing_solutions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-simulation-module">NuRadioMC.simulation.simulation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.utilities.html">NuRadioMC.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-veff-module">NuRadioMC.utilities.Veff module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-attenuation-module">NuRadioMC.utilities.attenuation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-cross-sections-module">NuRadioMC.utilities.cross_sections module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-dump-hdf5-module">NuRadioMC.utilities.dump_hdf5 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-earth-attenuation-module">NuRadioMC.utilities.earth_attenuation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-fluxes-module">NuRadioMC.utilities.fluxes module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-inelasticities-module">NuRadioMC.utilities.inelasticities module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-medium-module">NuRadioMC.utilities.medium module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-merge-hdf5-module">NuRadioMC.utilities.merge_hdf5 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-plotting-module">NuRadioMC.utilities.plotting module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-split-hdf5-module">NuRadioMC.utilities.split_hdf5 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.studies.html">NuRadioMC.studies package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.studies.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.examples.html">NuRadioMC.examples package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.examples.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.examples.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="reference internal" href="../manuals.html">Manuals</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="event_generation.html">Event Generation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="event_generation.html#events-in-a-cylindrical-volume">Events in a cylindrical volume</a></li>
+<li class="toctree-l4"><a class="reference internal" href="event_generation.html#atmospheric-muons-generated-on-a-flat-surface">Atmospheric muons generated on a flat surface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="event_generation.html#nuradioproposal-as-a-standalone-module">NuRadioProposal as a standalone module</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Signal Generation (electric field)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timing">Timing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fft-normalisation">FFT normalisation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="signal_propagation.html">Signal Propagation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="signal_propagation.html#propagation-module">Propagation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="signal_propagation.html#ray-tracing">Ray tracing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="signal_propagation.html#example-scripts">Example scripts</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="icemodels.html">Ice and attenuation models</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="icemodels.html#ice-model-implementation">Ice model implementation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="icemodels.html#available-models-in-nuradiomc">Available models in NuRadioMC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="icemodels.html#example-script">Example script</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="simulation_configuration.html">Simulation and configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="simulation_configuration.html#steering-files">Steering files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="simulation_configuration.html#config-files">Config files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="simulation_configuration.html#detector-description">Detector description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="simulation_configuration.html#detector-simulation">Detector simulation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../main.html">NuRadio</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../main.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../welcome_page.html">NuRadioMC Documentation</a> &raquo;</li>
+          <li><a href="../manuals.html">Manuals</a> &raquo;</li>
+      <li>Signal Generation (electric field)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/NuRadioMC/pages/Manuals/signal_generation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="signal-generation-electric-field">
+<h1>Signal Generation (electric field)<a class="headerlink" href="#signal-generation-electric-field" title="Permalink to this headline">¶</a></h1>
+<p>One of the NuRadioMC pillars is the signal generation procedure. All the relevant modules for signal generation can be found in the SignalGen folder. NuRadioMC has two methods for generating the electric field. The first one is through the use of frequency-domain parameterisations, and the second one is the use of the semianalytical ARZ model. An more in-depth explanation of the models can be found in the <a class="reference external" href="https://link.springer.com/article/10.1140%2Fepjc%2Fs10052-020-7612-8">NuRadioMC paper</a>.</p>
+<div class="section" id="frequency-domain-parameterisations">
+<h2>Frequency-domain parameterisations<a class="headerlink" href="#frequency-domain-parameterisations" title="Permalink to this headline">¶</a></h2>
+<p>Frequency-domain parameterisations are fits to simulation results for which the fitting functions are motivated by physical arguments. These parameterisations return waveforms and spectra that closely resemble the results of of full Monte Carlos. For instance, their predicted amplitudes are not far off of what a refined Monte Carlo would yield, so they can be used for simple trigger studies and for effective volume calculations. However, the fine details of the shower emission, an accurate timing, shower-to-shower fluctuations, or LPM effect cannot be fully reproduced with these frequency domain parameterisations. These parameterisations are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">ZHS1992</span></code>: The first parameterisation of its kind, from the seminal <a class="reference external" href="https://journals.aps.org/prd/abstract/10.1103/PhysRevD.45.362">ZHS paper</a>. Included mainly for historical reasons.</li>
+<li><code class="docutils literal notranslate"><span class="pre">Alvarez2000</span></code>: A more accurate version of the ZHS1992 parameterisation. One of the most used by the radio neutrino community. More information can be found in <a class="reference external" href="https://journals.aps.org/prd/abstract/10.1103/PhysRevD.62.063001">this paper</a>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">Alvarez2009</span></code>: The most complete of the parameterisations available in NuRadioMC. It possesses two different parameterisations: one for hadronic and another one for electromagnetic cascades. It also has a stochastic method (not incredibly accurate for individual pulses, but it reproduces effective volumes quite well) for emulating the LPM effect in electromagnetic cascades at high energies. More information can be found in <a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S0927650509001029">this paper</a>.</li>
+</ul>
+</div></blockquote>
+<p>We vividly recommend the use of the Alvarez2009 parameterisation, which is the one that comes by default, for most of the applications. If a higher accuracy is needed, the user should resort to the ARZ models.</p>
+<p>We reproduce here a simple example of how the parameterisations can be used:</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span> <span class="nn">NuRadioMC.SignalGen.askaryan</span> <span class="kn">import</span> <span class="n">get_time_trace</span>
+
+<span class="n">energy</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">EeV</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="mi">57</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span> <span class="c1"># Viewing angle w.r.t. shower axis</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">2048</span> <span class="c1"># Number of samples</span>
+<span class="n">dt</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span> <span class="c1"># Time binning</span>
+<span class="n">shower_type</span> <span class="o">=</span> <span class="s1">&#39;HAD&#39;</span> <span class="c1"># &#39;HAD&#39; or &#39;EM&#39;</span>
+<span class="n">R</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span> <span class="c1"># Distance to shower vertex</span>
+<span class="n">n_index</span> <span class="o">=</span> <span class="mf">1.78</span> <span class="c1"># refractive index</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;Alvarez2009&#39;</span>
+
+<span class="n">trace</span> <span class="o">=</span> <span class="n">get_time_trace</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">shower_type</span><span class="p">,</span>
+                       <span class="n">n_index</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>The trace returned by <code class="docutils literal notranslate"><span class="pre">get_time_trace</span></code> is a one-dimensional array. This is enough to characterise the electric field because, since it is a radiation field from a shower, it is polarised on the direction perpendicular to the line of sight between the observer and the emitter. For the parameterisations, it is assumed that the shower dimensions are negligible with respect to the distance between shower and observer. The <code class="docutils literal notranslate"><span class="pre">theta</span></code> parameter controls the angle formed between the shower axis and the vertex-observer line.</p>
+<p>The trace units are the standard units for an electric field in NuRadioMC, that is, volts per metre. The user can also obtain the Fourier transform using the function <code class="docutils literal notranslate"><span class="pre">get_frequency_spectrum</span></code>. An FFT wrapper coded in NuRadioReco ensures that the units of this spectrum are units of electric field per frequency (volts per metre per gigahertz, in default NuRadioMC units), rejecting the standard adimensional FFT convention and freeing the user of keeping track of the transform normalisation.</p>
+</div>
+<div class="section" id="arz-semi-analytical-model">
+<h2>ARZ - semi-analytical model<a class="headerlink" href="#arz-semi-analytical-model" title="Permalink to this headline">¶</a></h2>
+<p>NuRadioMC posesses an implementation of the semi-analytical <a class="reference external" href="https://dx.doi.org/10.1103/PhysRevD.84.103003">ARZ model</a>. This model uses a library of simulated shower longitudinal profiles together with a simulated parameterisation of the electric field at the Cherenkov angle and a formula for calculating the electric field for every observer using these data. This method agrees with the ZHS MC to the few percent level up to ~3 GHz. This model offers the advantage of having shower-to-shower fluctuations thanks to the simulated shower profiles library.  These showers have been simulated using a model for the LPM effect, which means that high-energy electromagnetic showers will be stretched and can present several local shower maxima. Also, hadronic showers can have a displaced maximum due to a pion that takes a lot of time to decay. All of the shower physics complexity is present if the library contains a fair sample of neutrino-induced showers, which translates into an accurate depiction of the electric field.</p>
+<p>When the user calls the ARZ module, the shower library <code class="docutils literal notranslate"><span class="pre">ARZ/shower_profile/shower_library_vX.Y.pkl</span></code> will be loaded in memory, and the shower profiles will be drawn from there. However, advanced users can provide their own shower profiles using a format similar to the files <code class="docutils literal notranslate"><span class="pre">ARZ/shower_profile/nue*tXXXX</span></code> and then use the file <code class="docutils literal notranslate"><span class="pre">A01preprocess_shower_library.py</span></code> to create the pickle library.</p>
+<p>The ARZ module should be the one used for reconstruction purposes, while the Alvarez2009 module can be used for effective volume calculations. However, if time is not an issue, we also recommend the use of the ARZ module for effective volume calculations.</p>
+<p>The disadvantage of the ARZ module is that a numerical integration must be performed, so it is slower than the frequency-domain parameterisations. The way NuRadioMC integrates this formula by default is by using the trapezoid rule in two different regions. Where the integrand is larger and therefore results in more electric field, a fine subdivision is used, as opposed to the rest of the integration region, where the subdivisions are larger. This is controlled by the parameters <code class="docutils literal notranslate"><span class="pre">interp_factor</span></code> (for the less contributing region, default 1) and <code class="docutils literal notranslate"><span class="pre">interp_factor2</span></code> (for the most contributing region, default 100).</p>
+<p>To calculate the electric field with the ARZ module, it suffices to use the example above with:</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;ARZ2020&#39;</span> <span class="c1"># or &#39;ARZ2019&#39;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>The ARZ2019 model is a hadronic extension of the ARZ model. The ARZ2020 model is an update of ARZ2019 with slightly better fits (<a class="reference external" href="https://dx.doi.org/10.1103/PhysRevD.101.083005">ARZ2020 paper</a>).</p>
+<p>The trace returned by <code class="docutils literal notranslate"><span class="pre">get_time_trace</span></code> in this case is also a one-dimensional array containing the projection of the field perpendicular to the line of sight. Due to the extension of the shower in this model, there is a small electric field component  that parallel to the line of sight. However, this field is ignored by the function, as it is rather small. If this radial field is big, that’s an indication that the observer is too close to the shower and the ARZ method is not valid anyway.</p>
+<p>While the function <code class="docutils literal notranslate"><span class="pre">get_time_trace</span></code> in askaryan.py can be used for our simulations, if the user wishes to study the output of the ARZ model to better know the electric field, it is recommended to use the <code class="docutils literal notranslate"><span class="pre">SignalGen/ARZ/ARZ.py</span></code> module. This gives access to the three-dimensional electric field, and it also allows the user to specify the distance and viewing angle with respect to either the shower maximum or the shower vertex.</p>
+<p>This piece of code illustrates how to use the ARZ module directly.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">NuRadioMC.SignalGen.ARZ</span> <span class="kn">import</span> <span class="n">ARZ</span>
+
+<span class="n">energy</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">EeV</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="mi">57</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span> <span class="c1"># Viewing angle w.r.t. shower axis</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">2048</span> <span class="c1"># Number of samples</span>
+<span class="n">dt</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span> <span class="c1"># Time binning</span>
+<span class="n">shower_type</span> <span class="o">=</span> <span class="s1">&#39;HAD&#39;</span> <span class="c1"># &#39;HAD&#39; or &#39;EM&#39;</span>
+<span class="n">R</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span> <span class="c1"># Distance to shower vertex</span>
+<span class="n">n_index</span> <span class="o">=</span> <span class="mf">1.78</span> <span class="c1"># refractive index</span>
+<span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;ARZ2019&#39;</span>
+<span class="n">same_shower</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="n">cARZ</span> <span class="o">=</span> <span class="n">ARZ</span><span class="o">.</span><span class="n">ARZ</span><span class="p">()</span>
+<span class="n">trace</span> <span class="o">=</span> <span class="n">cARZ</span><span class="o">.</span><span class="n">get_time_trace</span><span class="p">(</span><span class="n">shower_energy</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">shower_type</span><span class="p">,</span> <span class="n">n_index</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">shift_for_xmax</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>In this case, the trace object is a 2D array where the first dimension controls the electric field coordinates and the second gives the time dependence. The electric field is given in a spherical frame (<span class="math notranslate nohighlight">\(E_r\)</span>, <span class="math notranslate nohighlight">\(E_{\theta}\)</span>, <span class="math notranslate nohighlight">\(E_{\phi}\)</span>), where the theta unit vector is perpendicular to the line of sight between the observer and <em>the shower maximum</em> and lies on the plane defined by the shower axis and the observer. The radial unit vector lies on the line of sight between observer and shower maximum. The phi unit vector is the cross product of the radial vector times the theta vector. Important: each time the function <code class="docutils literal notranslate"><span class="pre">get_time_trace</span></code> is called, a new, different shower is taken from the shower library. If we want to use the same shower, the keyword argument <code class="docutils literal notranslate"><span class="pre">same_shower</span> <span class="pre">=</span> <span class="pre">True</span></code> can be used.</p>
+<p>Brief explanation of some of the most obscure parameters of the function:</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">shift_for_xmax: bool (default False)</span>
+<span class="sd">    if True the observer position is placed relative to the position of the shower</span>
+<span class="sd">    maximum, if False it is placed with respect to (0,0,0) which is the start of</span>
+<span class="sd">    the charge-excess profile</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>If <code class="docutils literal notranslate"><span class="pre">shift_for_xmax</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, the distance (<span class="math notranslate nohighlight">\(R\)</span>) and angle (<span class="math notranslate nohighlight">\(\theta\)</span>) fed to the function are referred to the shower maximum instead of the shower vertex. This makes sense, as it is the shower maximum the part that also emits the most electric field, and therefore the field scales with the distance to the shower maximum and the Cherenkov angle should be measured with respect to the shower maximum as well. We only recommend it to be set to False when it is absolutely necessary that the vertex becomes the reference point.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">same_shower: bool (default False)</span>
+<span class="sd">    if False, for each request a new random shower realization is chosen.</span>
+<span class="sd">    if True, the shower from the last request of the same shower type is used.</span>
+<span class="sd">    This is needed to get the Askaryan signal for both ray tracing solutions from</span>
+<span class="sd">    the same shower.</span>
+<span class="sd">iN: int or None (default None)</span>
+<span class="sd">    specify shower number</span>
+<span class="sd">output_mode: string</span>
+<span class="sd">    * &#39;trace&#39; (default): return only the electric field trace</span>
+<span class="sd">    * &#39;Xmax&#39;: return trace and position of xmax in units of length</span>
+<span class="sd">    * &#39;full&#39; return trace, depth and charge_excess profile</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>The user can choose to have a tuple with the trace and the distance between the vertex and shower maximum if <code class="docutils literal notranslate"><span class="pre">output_mode</span></code> is <code class="docutils literal notranslate"><span class="pre">'Xmax'</span></code>. If it is <code class="docutils literal notranslate"><span class="pre">'full'</span></code>, the function returns a tuple with three elements: the trace, the shower profile depths in units of mass per area, and shower charge excess in number of excess negative particles. Keep in mind that in NuRadioReco, the energy unit is the electronvolt and the kilogram is defined as J s<sup>2</sup> m<sup>-2</sup>, which makes densities hard to read with default units. We
+recommend to always divide all variables by the units the user wants to display them on, and even more for density units.</p>
+</div>
+<div class="section" id="validity-of-the-parameterisations-and-the-arz-model">
+<h2>Validity of the parameterisations and the ARZ model<a class="headerlink" href="#validity-of-the-parameterisations-and-the-arz-model" title="Permalink to this headline">¶</a></h2>
+<p>The ARZ model is valid as long as the minimum distance between shower and observer is much larger than the minimum observation wavelength of interest. When this happens we say that the observer is in the far field (in an electromagnetic sense) (<a class="reference external" href="https://journals.aps.org/prd/abstract/10.1103/PhysRevD.87.023003">see paper</a>):</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><span class="math notranslate nohighlight">\(kR &gt;&gt; 1\)</span>,</li>
+</ol>
+</div></blockquote>
+<p>with k the wavenumber and R the distance between shower and observer. The Fresnel condition has also to be fulfilled, which can be expressed as:</p>
+<blockquote>
+<div><ol class="arabic simple" start="2">
+<li><span class="math notranslate nohighlight">\(k L^2R \sin^2(\theta) &lt;&lt; 1\)</span>,</li>
+</ol>
+</div></blockquote>
+<p>with k the wavenumber, L the length of the shower, R the distance between shower and observer, and &amp;theta; the viewing angle with respect to the shower axis. In practice, these two conditions apply to almost any neutrino shower in our simulations.</p>
+<p>The integrals in the ARZ model present serious instabilities when the observer is near the axis or near 90 degrees (perpendicular to the shower axis). Along these directions, coherence is almost non-existent, and therefore the electric field is much lower than near the Cherenkov angle. However, these numerical instabilities can create artificial peaks and trigger our detector. <strong>ARZ should not be used with viewing angles lower than 30 or greater than 80</strong>. To that effect, we can limit the <code class="docutils literal notranslate"><span class="pre">delta_C_cut</span></code> in the configuration file so that we don’t consider events 25 degrees away from the Cherenkov angle.</p>
+<p>For the parameterisations to be valid, besides Eqs. 1) and 2), we have one extra condition. The shower has to be far away from the observer, such as all the different parts of the shower are seen by the observer with the same viewing angle. In other words, the shower has to be approximated as a point-like region. Some people call this also the far-field approximation, to compare with the one defined above. So it is good to always ask if they mean far away with respect to the wavelength or far away with respect to the shower size.</p>
+<p>The parameterisations and the ARZ model, just like the ZHS Monte Carlo, have been created for a homogeneous medium. However, for experiments like ARIANNA or RNO, the ice layer cannot be considered homogeneous. In the atmosphere, even for relatively inclined showers, the electromagnetic waves are not bent because of the refraction and keeping track of the different speed of light at each height is enough. However, in ice, we also need to calculate how much the rays bend near the surface (100 m for Greenland and 200 m for South Pole). That is why the signal generation module has to be combined with a ray tracing module, such as the one in SignalProp in NuRadioMC. However, knowing how they should be combined and justifying it is not easy. In NuRadioMC, we assume that we can calculate the electric field in a homogeneous medium given by the refractive index in the vicinity of the shower. The ray tracing module is called to know the distance travelled by the refracted ray and how much it bends. This information is used to get a corrected distance and a corrected viewing angle that are then fed to the signal generation module to calculate the electric field. The simulation module makes sure that the geometry and the rotations are correct. But we must keep three things in mind:
+* We are using the index in the vicinity of the shower while codes like ZHAireS or CoREAS use the average index along the ray path. In the atmosphere, this path is a straight line, but the different speeds change the propagation times and therefore also change the coherence pattern. This, in turn, changes the Cherenkov cone, which is really important.
+It can be argued that we should use the <strong>average</strong> refractive index <strong>along the ray path</strong>. This is not so relevant if the antenna is located 100 m deep in ice, and the ray comes from below and on a direct path, but it can change the emission a lot for shallow channels and reflected trajectories. To give an idea of how much this could affect, keep in mind that the index of deep ice is 1.78 and the Cherenkov angle is 55.8 degrees. If the average index along the path is 1.70 instead, the Cherenkov angle changes to 54 degrees. These 3 degrees of difference can hinder our reconstruction accuracy. For shallow channels or reflected trajectories, if the average index along the path is 1.5, the Cherenkov angle would be 48.2 degrees.</p>
+<blockquote>
+<div><ul class="simple">
+<li>There is a focusing correction implemented in the simulation module. In a non-homogeneous optical medium, the rays from a source with slightly different trajectories can converge at the same point, which causes regions with more concentration of electric field. Next to the shadow zone, where the rays cannot reach the observer, there is a region called the caustic, where the concentration is the largest.</li>
+<li>The combination of ray tracing (bending plus speed changes) and focusing is thought to be a good approximation to the actual electric field. However, we have seen that it is not entirely clear what index to use. It would be nice to be able to settle this debate with equations, but the solutions for Maxwell’s equations in a non-homogeneous medium like ours have not been calculated yet. To prove that is harder than it looks, let us take one of Maxwell’s equations in a medium.</li>
+</ul>
+</div></blockquote>
+<p><span class="math notranslate nohighlight">\(\nabla\cdot\boldsymbol{D} = \rho_f\)</span>,</p>
+<p>with <span class="math notranslate nohighlight">\(\boldsymbol{D}\)</span> the electric displacement and <span class="math notranslate nohighlight">\(\rho_f\)</span> the free density charge. Let us express this equation in terms of the electric field <span class="math notranslate nohighlight">\(\boldsymbol{E}\)</span> and then in terms of the potentials.</p>
+<p><span class="math notranslate nohighlight">\(\nabla\cdot\boldsymbol{D} = \rho_f = \nabla\cdot(\epsilon\boldsymbol{E}) = \epsilon\nabla\cdot\boldsymbol{E} +
+\boldsymbol{E}\nabla\epsilon\)</span>,</p>
+<p>where we have used the definition of electric displacement with a position-dependent permittivity, <span class="math notranslate nohighlight">\(\epsilon = \epsilon(\boldsymbol{x})\)</span>. Now, in terms of potentials:</p>
+<p><span class="math notranslate nohighlight">\(\rho_f = \epsilon(-\nabla^2\Phi - \partial_t\nabla\cdot\boldsymbol{A}) +
+(-\nabla\Phi - \partial_t\boldsymbol{A}) \cdot\nabla\epsilon\)</span>,</p>
+<p>where we have only used <span class="math notranslate nohighlight">\(\boldsymbol{E} = - \nabla\Phi - \partial_t\boldsymbol{A}\)</span>. Let us use the Lorenz gauge condition:</p>
+<p><span class="math notranslate nohighlight">\(\nabla\cdot\boldsymbol{A} = -\mu\epsilon\partial_t\Phi\)</span>,</p>
+<p>which leads us to:</p>
+<p><span class="math notranslate nohighlight">\(\rho_f = -\epsilon(\nabla^2\Phi - \partial_t^2\Phi) + (-\nabla\Phi -\partial_t\boldsymbol{A}) \cdot\nabla\epsilon = -\epsilon(\nabla^2\Phi - \partial_t^2\Phi) + \boldsymbol{E}\cdot\nabla\epsilon\)</span>.</p>
+<p>This reduces to the standard wave equation if we neglect the term <span class="math notranslate nohighlight">\(\boldsymbol{E}\cdot\nabla\epsilon\)</span>. This is the approximation that is usually made (implicitly) in papers like <a class="reference external" href="https://dx.doi.org/10.1103/PhysRevLett.123.091102">this one</a>. While it’s a good starting point, we cannot claim to have a complete solution when neglecting this term. The gradient of the permittivity doesn’t seem negligible in shallow ice, and also this term is coupled to the electric field, which means it is larger for those regions where the electric field is larger. Another problem is that when neglecting this term, refraction disappears and we have to put it back ad hoc, as we usually do. But it is in principle not clear what we have lost along the way by removing the permittivity gradient and putting it back with ray tracing, although it does seem physically sound as a first-order approximation. The best way to settle this debate is with a proper finite differences in time domain (FDTD) method.</p>
+</div>
+<div class="section" id="timing">
+<h2>Timing<a class="headerlink" href="#timing" title="Permalink to this headline">¶</a></h2>
+<p>Knowing the way timing works in NuRadioMC is crucial for reconstruction applications. As of now, the calculation of times is an interplay between the event generator, the signal generator, and the signal propagator modules.</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>The event generator creates a vertex time, assuming that the first neutrino interaction happens at <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code>, and the time for subsequent interactions are given by the time of flight.</li>
+<li>The signal generator creates a trace. For every model, the <strong>middle of the trace</strong> corresponds to the time when the <strong>signal from the vertex arrives</strong> at the observer. If the parameterisations are used, the timing will not be accurate to nanosecond or subnanosecond level, since these models do not contain phase information. <strong>Parameterisations must NOT be used when accurate timing is needed.</strong></li>
+<li>The signal propagation module computes the time it takes for the wave to get from vertex position to observer.</li>
+</ol>
+</div></blockquote>
+<p>The simulation module takes the vertex interaction time (point 1), adds the propagation time (point 3) and substracts half of the trace window to obtain the observer time for the first point of the trace. This time is then used as the channel trace starting time.</p>
+<p>In short, the times obtained for each channel trace are calculated assuming that the first interaction happens at <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code>, and the time array obtained with the method <code class="docutils literal notranslate"><span class="pre">channel.get_times()</span></code> are consistent with this description.</p>
+</div>
+<div class="section" id="using-the-same-shower-random-seed">
+<h2>Using the same shower. Random seed<a class="headerlink" href="#using-the-same-shower-random-seed" title="Permalink to this headline">¶</a></h2>
+<p>Two of the most relevant models have randomness added to simulate shower to shower fluctuations: the Alvarez2009 and the ARZ2020 (or 2019) model.</p>
+<p>The randomness in the Alvarez2009 model comes from a crude simulation of the LPM effect for electromagnetic showers. The constant k:sub:<cite>L</cite> is obtained from a log-gaussian distribution to simulate the stretching of the shower due to LPM. This stretching leaves the EM shower with the same smooth profile, only extended along a larger length, unlike a true LPM shower profile which should be bumpy because of the stochastic interactions. Nevertheless, it is a decent first approximation for illustration purposes.</p>
+<p>The ARZ models give different results each time they are called because the shower profile taken from the shower library changes. This mimics shower-to-shower fluctuations in a rigorous way.</p>
+<p>The problem arises when we want to use the same shower to calculate the field for different positions, like different channels. All we have to do is call any of the <code class="docutils literal notranslate"><span class="pre">get_time_trace</span></code> methods, whether in the Askaryan module, the paremeterisations module or the ARZ module, with the argument:</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">same_shower</span> <span class="o">=</span> <span class="bp">True</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>If we want to draw a different shower, it suffices to call the <code class="docutils literal notranslate"><span class="pre">get_time_trace</span></code> once again with <code class="docutils literal notranslate"><span class="pre">same_shower</span></code> set to <code class="docutils literal notranslate"><span class="pre">False</span></code> and then set it again to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<p>If the user wants to use a specific shower to reproduce some previous results or to make them reproducible in the future,
+the numpy random seed can be fixed right before calling the  <code class="docutils literal notranslate"><span class="pre">get_time_trace</span></code> method.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="n">my_seed</span> <span class="o">=</span> <span class="mi">42</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">my_seed</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="fft-normalisation">
+<h2>FFT normalisation<a class="headerlink" href="#fft-normalisation" title="Permalink to this headline">¶</a></h2>
+<p>FFT normalisation is a confusing subject to most people that that have worked with FFT algorithms. For the sake of speed, FFT algorithms work without any notion of dimensions or intervals between the points of an array, which combined with many other things, allows for a much faster transform, hence the first F for fast. The issue is, when using an FFT to transform from time to frequency, for instance, the FFT does not tell us the dimensions of the resulting transform or the frequencies. That is left for the user, so the fast part seems to be when calculating the transform and not when one has to interpret it, where it is really easy to commit a mistake and waste more time, effectively turning our FFTs into SFTs (Slow Fourier Transforms) or JWFTs (Just Wrong Fourier Transforms). The problem is only aggravated when transforming back, as some implementations present an extra N factor, the number of samples.</p>
+<p>With the FFT implementation in numpy, it is enough to multiply the result by the sampling rate to get the Fourier transform in the trace dimensions per frequency unit. It uses a standard normalisation with factor 1. In our case, we are using <code class="docutils literal notranslate"><span class="pre">numpy.rfft</span></code>, the real transform, instead of the general complex <code class="docutils literal notranslate"><span class="pre">numpy.fft</span></code>. This implementation ignores the negative frequencies, so if we want to get the whole energy of a signal integrating on the positive frequencies only, we have to multiply our transform by a factor of square root of 2.</p>
+<p>We have written a convenient FFT wrapper in NuRadioReco.utilities.fft. This wrapper has two functions, <code class="docutils literal notranslate"><span class="pre">time2freq</span></code>, to transform from time to frequency, and <code class="docutils literal notranslate"><span class="pre">freq2time</span></code>, for the inverse operation. The factors of square root of 2 and the dimensions of the function in frequency space are automatically taken into account. These functions need as arguments both the trace or spectrum, and the sampling rate. <code class="docutils literal notranslate"><span class="pre">time2freq</span></code> returns the spectrum in the input trace units per GHz. So, if a voltage in volts is passed as input, <code class="docutils literal notranslate"><span class="pre">time2freq</span></code> will return the spectrum in V/GHz.</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">fft</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span> <span class="nn">NuRadioMC.SignalGen.askaryan</span> <span class="kn">import</span> <span class="n">get_time_trace</span>
+<span class="kn">import</span> <span class="nn">numpy.fft</span>
+
+<span class="n">sampling_time</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span>
+<span class="c1"># we define an electric field trace with any arguments and model we fancy</span>
+<span class="n">trace</span> <span class="o">=</span> <span class="n">get_time_trace</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">sampling_time</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+<span class="n">sampling_rate</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">sampling_time</span>
+<span class="n">spectrum</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
+<span class="c1"># The resulting spectrum has dimensions of V/m/GHz and we can get the whole energy</span>
+<span class="c1"># by integrating positive frequencies only.</span>
+
+<span class="c1"># The frequencies can be obtained with numpy.fft.rfftfreq:</span>
+<span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+<span class="n">frequencies</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_time</span><span class="p">)</span>
+<span class="c1"># Now we could perform operations in frequency domain</span>
+
+<span class="c1"># Let us transform back to time</span>
+<span class="n">trace_back_in_time</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
+<span class="c1"># trace and trace_back_in_time are equal if no operation has been performed on spectrum</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="event_generation.html" class="btn btn-neutral float-left" title="Event Generation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="signal_propagation.html" class="btn btn-neutral float-right" title="Signal Propagation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, The NuRadio Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
