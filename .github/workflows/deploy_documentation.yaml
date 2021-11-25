@@ -1,4 +1,4 @@
-name: Unit tests
+name: Deploy Documentation
 
 on: [push]
 jobs:
