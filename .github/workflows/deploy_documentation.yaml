@@ -20,6 +20,10 @@ jobs:
               cd documentation/
               make html
 
+          - name: No Jekyll
+            run: |
+              touch documentation/build/html/.nojekyll
+
 
           - name: Deploy 🚀
             uses: JamesIves/github-pages-deploy-action@4.1.6
