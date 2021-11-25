@@ -6,7 +6,7 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 SPHINXPROJ    = NuRadio
 SOURCEDIR     = source
-BUILDDIR      = ../../docu_NuRadio
+BUILDDIR      = build
 
 # Put it first so that "make" without argument is like "make help".
 help:
