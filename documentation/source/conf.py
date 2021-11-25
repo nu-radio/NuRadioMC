@@ -48,7 +48,7 @@ templates_path = ['.templates']
 source_suffix = '.rst'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = 'main'
 
 # General information about the project.
 project = 'NuRadio'
