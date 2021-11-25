@@ -219,6 +219,7 @@ class NuRadioRecoio(object):
             self.__scan_files()
         if(event_number < 0 or event_number >= self.get_n_events()):
             self.logger.error('event number {} out of bounds, only {} present in file'.format(event_number, self.get_n_events()))
+            self.__read_lock = False
             return None
         # determine in which file event i is
         istart = 0

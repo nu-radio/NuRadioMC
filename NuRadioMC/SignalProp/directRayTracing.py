@@ -20,7 +20,7 @@ class directRayTracing():
     
     
     
-    def __init__(self, medium, attenuation_model , log_level, n_frequencies_integration, n_reflections , config, detector = None):
+    def __init__(self, medium, attenuation_model = None , log_level = None, n_frequencies_integration = None, n_reflections = None , config = None, detector = None):
         self._medium = medium
         self._attenuation_model = attenuation_model
         self._results = None
@@ -89,7 +89,7 @@ class directRayTracing():
         return 1
     
     def get_path(self, iS, n_points = 1000):
-        delta_x = self._x2-self._x1/n_points
+        delta_x =(self._x2-self._x1)/n_points
         path = [[],[],[]]
         for i in range(n_points+1):
             for j in range(3):
