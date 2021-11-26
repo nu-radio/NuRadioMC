@@ -49,19 +49,21 @@ class mySimulation(simulation.simulation):
         # save amplitudes per ray tracing solution to hdf5 data output
         calculateAmplitudePerRaySolution.run(self._evt, self._station, self._det)
         triggerSimulator.run(evt, station, det,
-                           threshold_high=1e-8 * self._Vrms,
-                           threshold_low=-1e-8 * self._Vrms,
+                           threshold_high=1e-6 * self._Vrms,
+                           threshold_low=-1e-6 * self._Vrms,
                            high_low_window=50 * units.ns,
                            coinc_window=170 * units.ns,
                            number_concidences=4,
+                           trigger_name='highlow_2sigma',
                            triggered_channels=[0,1,2,3,4,5,6,7])
                 
         triggerSimulator.run(evt, station, det,
-                           threshold_high=1e-8 * self._Vrms,
-                           threshold_low=-1e-8 * self._Vrms,
+                           threshold_high=1e-6 * self._Vrms,
+                           threshold_low=-1e-6 * self._Vrms,
                            high_low_window=50 * units.ns,
                            coinc_window=170 * units.ns,
                            number_concidences=4,
+                           trigger_name='highlow_2sigma',
                            triggered_channels=[8,9,10,11,12,13,14,15])       
         
         triggerTimeAdjuster.run(evt, station, det)
