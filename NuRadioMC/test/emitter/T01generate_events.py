@@ -73,6 +73,9 @@ def generate_my_events(filename, n_events):
     data_sets["zz"] = np.ones(n_events) * -2 * units.km
     # the amplitude of the emitter
     data_sets["emitter_amplitudes"] = np.ones(n_events) * 1000 * units.V
+    # the frequency and half_width of emitter
+    data_sets["emitter_frequency"] = 0.3 * np.ones(n_events) * units.GHz 
+    data_sets["emitter_half_width"]= 1.0 * np.ones(n_events) * units.ns 
     # the orientation of the emiting antenna, defined via two vectors that are defined with two angles each (see https://nu-radio.github.io/NuRadioReco/pages/detector_database_fields.html)
     # the following definition specifies a traditional “upright” dipole.
     data_sets["emitter_orientation_phi"] = np.ones(n_events) * 0
