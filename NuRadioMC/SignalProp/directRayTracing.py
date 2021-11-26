@@ -23,30 +23,30 @@ class direct_ray_tracing(ray_tracing_base):
         return results    
     
     def get_launch_vector(self, iS):
-        launch_vector = self._x2 - self._x1  
+        launch_vector = self._X2 - self._X1  
         return launch_vector 
     
-    def get_number_of_raytracing_solutions(self):
+    def get_number_of_solutions(self):
         return 1
     
     def get_solution_type(self, iS):
         return solution_types_revert['direct']
     
     def get_path(self, iS, n_points = 1000):
-        delta_x =(self._x2-self._x1)/n_points
+        delta_x =(self._X2-self._X1)/n_points
         path = [[],[],[]]
         for i in range(n_points+1):
             for j in range(3):
-                path[j].append(self._x1[j] + i*delta_x[j])
+                path[j].append(self._X1[j] + i*delta_x[j])
                 
-        return path
+        return np.array(path)
     
     def get_receive_vector(self, iS):
-        receive_vector = self._x1 - self._x2
+        receive_vector = self._X1 - self._X2
         return receive_vector
     
     def get_path_length(self, iS):
-        path_length = np.linalg.norm(self._x2 - self._x1)
+        path_length = np.linalg.norm(self._X2 - self._X1)
         return path_length 
     
     def get_travel_time(self, iS):

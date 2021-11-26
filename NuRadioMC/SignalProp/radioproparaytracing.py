@@ -67,8 +67,12 @@ class radiopropa_ray_tracing(ray_tracing_base):
             is obtained via linear interpolation.
         n_reflections: int (default 0)
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
-        config: nested dictionary
-            loaded yaml config file
+        config: dict or None
+            a dictionary with the optional config settings. If None, the default config is used:
+                config['propagation']['attenuate_ice'] = True
+                config['propagation']['focusing_limit'] = 2
+                config['propagation']['focusing'] = False
+                config['speedup']['delta_C_cut'] = 40 * units.degree
         detector: detector object
         """
         super().__init__(medium=medium, 
@@ -84,14 +88,9 @@ class radiopropa_ray_tracing(ray_tracing_base):
         except ImportError:
             self._logger.error('ImportError: This raytracer depends on radiopropa which could not be imported. Check wether all dependencies are installed correctly. More information on https://github.com/nu-radio/RadioPropa')
             raise ImportError('This raytracer depends on radiopropa which could not be imported. Check wether all dependencies are installed correctly. More information on https://github.com/nu-radio/RadioPropa')
-        
+        self.set_config(config=config)
         self._ice_model = self._medium.get_ice_model_radiopropa()
 
-        ## discard events if delta_C (angle off cherenkov cone) is too large
-        if self._config != None: 
-            self._cut_viewing_angle = config['speedup']['delta_C_cut']*units.radian
-        else: 
-            self._cut_viewing_angle = 40*units.degree
         ## maximal length to what the trajectory will be calculated
         self._max_traj_length = 10000*units.meter
         self.set_iterative_sphere_sizes()
@@ -107,7 +106,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         in the loop before a new raytracing is prepared.
         """
       
-        super().reset_solution()
+        super().reset_solutions()
         self._shower_axis = None
         self._rays = None
 
@@ -301,7 +300,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
                     viewing = np.arccos(np.dot(shower_dir, ray_dir)) * units.radian
                     return viewing - cherenkov_angle
 
-                if (self.__shower_axis is None) or (abs(delta(ray_dir,self.__shower_axis)) < self.__cut_viewing_angle):
+                if (self._shower_axis is None) or (abs(delta(ray_dir,self._shower_axis)) < self._cut_viewing_angle):
                     source = radiopropa.Source()
                     source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*X1)))
                     source.add(radiopropa.SourceDirection(radiopropa.Vector3d(*ray_dir)))
@@ -849,10 +848,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         spec = efield.get_frequency_spectrum()
         ## aply attenuation
-        if self._config is None:
-            apply_attenuation = True
-        else:
-            apply_attenuation = self._config['propagation']['attenuate_ice']
+        apply_attenuation = self._config['propagation']['attenuate_ice']
         if apply_attenuation:
             if self._max_detector_frequency is None:
                 max_freq = np.max(efield.get_frequencies())
@@ -894,7 +890,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
 
         ## apply focussing effect
-        if self._config != None and self._config['propagation']['focusing']:
+        if self._config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
             spec[1:] *= focusing
 
@@ -962,7 +958,17 @@ class radiopropa_ray_tracing(ray_tracing_base):
         config: dict
             The new configuration settings
         """
-        super().set_config(config)
+        if config == None:
+            config = dict()
+            config['propagation'] = dict(
+                attenuate_ice = True,
+                focusing_limit = 2,
+                focusing = False
+            )
+            config['speedup'] = dict(
+                delta_C_cut = 40 * units.degree
+            )
+        super().set_config(config)    
         self._cut_viewing_angle = config['speedup']['delta_C_cut'] * units.radian
 
     ## helper functions
