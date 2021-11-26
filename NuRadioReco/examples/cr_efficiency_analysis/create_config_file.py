@@ -13,7 +13,7 @@ parser.add_argument('--detector_file', type=str, nargs='?',
                     help='file with one antenna at and the geographic location, change triggered channels accordingly')
 parser.add_argument('--target_global_trigger_rate', type=float, nargs='?', default=0.001,
                     help='trigger rate for all channels in Hz')
-parser.add_argument('--trigger_name', type=str, nargs='?', default='high_low',
+parser.add_argument('--trigger_name', type=str, nargs='?', default='power_integration',
                     help='name of the trigger, high_low, envelope or power_integration')
 parser.add_argument('--default_station', type=int, nargs='?', default=101,
                     help='default station id')
@@ -23,7 +23,7 @@ parser.add_argument('--sampling_rate', type=int, nargs='?', default=1,
                     help='sampling rate in GHz')
 parser.add_argument('--triggered_channels', type=np.ndarray, nargs='?', default=np.array([1]),
                     help='channel on which the trigger is applied')
-parser.add_argument('--total_number_triggered_channels', type=int, nargs='?', default=3,
+parser.add_argument('--total_number_triggered_channels', type=int, nargs='?', default=4,
                     help='number ot channels that trigger.')
 parser.add_argument('--number_coincidences', type=int, nargs='?', default=2,
                     help='number coincidences of true trigger within on station of the detector')
@@ -54,9 +54,9 @@ parser.add_argument('--galactic_noise_interpolation_frequencies_step', type=int,
 parser.add_argument('--n_random_phase', type=int, nargs='?', default=10,
                     help='for computing time reasons one galactic noise amplitude is reused '
                          'n_random_phase times, each time a random phase is added')
-parser.add_argument('--threshold_start', type=int, nargs='?',
+parser.add_argument('--threshold_start', type=float, nargs='?',
                     help='value of the first tested threshold in Volt')
-parser.add_argument('--threshold_step', type=int, nargs='?',
+parser.add_argument('--threshold_step', type=float, nargs='?',
                     help='value of the threshold step in Volt')
 parser.add_argument('--station_time', type=str, nargs='?', default='2021-01-01T00:00:00',
                     help='station time for calculation of galactic noise')
@@ -64,7 +64,7 @@ parser.add_argument('--station_time_random', type=bool, nargs='?', default=True,
                     help='choose if the station time should be random or not')
 parser.add_argument('--hardware_response', type=bool, nargs='?', default=True,
                     help='choose if the hardware response (amp) should be True or False')
-parser.add_argument('--iterations_per_job', type=bool, nargs='?', default=200,
+parser.add_argument('--iterations_per_job', type=int, nargs='?', default=200,
                     help='choose if the hardware response (amp) should be True or False')
 parser.add_argument('--number_of_allowed_trigger', type=bool, nargs='?', default=3,
                     help='The number of iterations is calculated to yield a trigger rate')
@@ -97,20 +97,26 @@ number_of_jobs = int(np.ceil(number_of_jobs))
 Vrms_thermal_noise = hcr.calculate_thermal_noise_Vrms(Tnoise, T_noise_max_freq, T_noise_min_freq)
 
 if args.threshold_start is None:
-    if args.hardware_response:
-        threshold_start = 1e3 * Vrms_thermal_noise
-    elif not args.hardware_response:
-        threshold_start = 1.8 * Vrms_thermal_noise
+    if args.trigger_name == "power_integration":
+        raise Exception('Please set threshold start value manually for the power integration trigger')
     else:
-        threshold_start = args.threshold_start * units.volt
+        if args.hardware_response:
+            threshold_start = 1e3 * Vrms_thermal_noise
+        elif not args.hardware_response:
+            threshold_start = 1.8 * Vrms_thermal_noise
+else:
+    threshold_start = args.threshold_start * units.volt
 
 if args.threshold_step is None:
-    if args.hardware_response:
-        threshold_step = 1e-3 * units.volt
-    elif not args.hardware_response:
-        threshold_step = 1e-6 * units.volt
+    if args.trigger_name == "power_integration":
+        raise Exception('Please set threshold step value manually for the power integration trigger')
     else:
-        threshold_step = args.threshold_step * units.volt
+        if args.hardware_response:
+            threshold_step = 1e-3 * units.volt
+        elif not args.hardware_response:
+            threshold_step = 1e-6 * units.volt
+else:
+    threshold_step = args.threshold_step * units.volt
 
 dic = {'T_noise': Tnoise, 'Vrms_thermal_noise': Vrms_thermal_noise, 'n_iterations_total': n_iterations,
        'number_of_allowed_trigger': args.number_of_allowed_trigger, 'iterations_per_job': args.iterations_per_job,
@@ -132,7 +138,7 @@ dic = {'T_noise': Tnoise, 'Vrms_thermal_noise': Vrms_thermal_noise, 'n_iteration
 
 os.makedirs(os.path.join(args.output_path, 'config/ntr'), exist_ok=True)
 
-output_file = f'config/ntr/config_{args.trigger_name}_trigger_rate_{target_global_trigger_rate/units.Hz:.0f}Hz_coinc_{args.number_coincidences}of{args.total_number_triggered_channels}.json '
+output_file = f'config/ntr/config_{args.trigger_name}_trigger_rate_{target_global_trigger_rate/units.Hz:.0f}Hz_coinc_{args.number_coincidences}of{args.total_number_triggered_channels}.json'
 
 abs_path_output_file = os.path.normpath(os.path.join(args.output_path, output_file))
 
