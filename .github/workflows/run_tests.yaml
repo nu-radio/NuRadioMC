@@ -96,6 +96,11 @@ jobs:
         export GSLDIR=$(gsl-config --prefix)
         pip install proposal==6.1.6
         NuRadioMC/test/examples/test_cal_pulser_example.sh
+    - name: "Test radio emitter pulser example"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/examples/test_radio_emitting_pulser_example.sh
     - name: "Test webinar examples"
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
