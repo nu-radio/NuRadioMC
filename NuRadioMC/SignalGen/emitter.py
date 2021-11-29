@@ -3,10 +3,9 @@ import numpy as np
 import h5py
 from scipy.interpolate import interp1d
 from NuRadioReco.utilities import units, fft
-from NuRadioMC.SignalGen import parametrizations as par
 import logging
 logger = logging.getLogger("SignalGen.emitter")
-
+import os
 def set_log_level(level):
     logger.setLevel(level)
     par.set_log_level(level)
@@ -59,7 +58,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
     additional_output = {}
     if(amplitude == 0):
         trace = np.zeros(3, N)
-    if(model == 'spherical'):         # this takes spherical signal as input voltage
+    if(model == 'delta_pulse'):         # this takes delta signal as input voltage
         trace = np.zeros(N)
         trace[N // 2] = amplitude
     elif(model == 'cw'):              # generates a sine wave of given frequency 
@@ -78,10 +77,12 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         else:
             trace = voltage * np.sin(2 * np.pi * emitter_frequency * time) 
     elif(model == 'idl' or model == 'hvsp2'):            # the idl & hvsp2 waveforms gemerated in KU Lab stored in hdf5 file
+        path = os.path.dirname(os.path.dirname(__file__))
         if(model == 'idl'):
-            read_file = h5py.File('idl_data.hdf5', 'r')
+            input_file = os.path.join(path , 'data/idl_data.hdf5')    
         else:
-            read_file = h5py.File('hvsp2_data.hdf5', 'r')
+            input_file = os.path.join(path , 'data/hvsp2_data.hdf5')
+        read_file = h5py.File(input_file, 'r')
         time_original = read_file.get('time') 
         voltage_original =  read_file.get('voltage')
         time_new = np.linspace( time_original[0], time_original[len(time_original) - 1], (int((time_original[len(time_original) - 1] - time_original[0]) / dt) + 1))
@@ -103,6 +104,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         trace = amplitude * trace / np.max(np.abs( trace ))                    # trace now has dimension of amplitude given from event generation file
         peak_amplitude_index_new = np.where( np.abs( trace ) == np.max( np.abs( trace ) ) )[0][0]
         trace = np.roll( trace, int(N/2) - peak_amplitude_index_new )             # this rolls the array(trace) to keep peak amplitude at center
+
     else:
         raise NotImplementedError("model {} unknown".format(model))
     if(full_output):
@@ -152,7 +154,3 @@ def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs)
         return fft.time2freq(tmp[0], 1 / dt), tmp[1]
     else:
         return fft.time2freq(tmp, 1 / dt)
-
-
-
-
