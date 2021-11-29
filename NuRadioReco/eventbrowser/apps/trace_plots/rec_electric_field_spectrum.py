@@ -4,7 +4,7 @@ import plotly.subplots
 from NuRadioReco.utilities import units
 from NuRadioReco.eventbrowser.default_layout import default_layout
 import numpy as np
-import dash_core_components as dcc
+from dash import dcc
 from dash.dependencies import State
 from NuRadioReco.eventbrowser.app import app
 import NuRadioReco.eventbrowser.dataprovider
@@ -28,8 +28,8 @@ def update_efield_spectrum(trigger, evt_counter, filename, station_id, juser_id)
         return {}
     user_id = json.loads(juser_id)
     colors = plotly.colors.DEFAULT_PLOTLY_COLORS
-    ariio = provider.get_arianna_io(user_id, filename)
-    evt = ariio.get_event_i(evt_counter)
+    nurio = provider.get_file_handler(user_id, filename)
+    evt = nurio.get_event_i(evt_counter)
     station = evt.get_station(station_id)
     fig = plotly.subplots.make_subplots(rows=1, cols=1)
     for electric_field in station.get_electric_fields():
