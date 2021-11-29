@@ -83,7 +83,7 @@ def generate_my_events(filename, n_events):
     data_sets["emitter_rotation_phi"] = np.ones(n_events) * 0
     data_sets["emitter_rotation_theta"] = np.ones(n_events) * 90 * units.deg
     data_sets["emitter_antenna_type"] = ["RNOG_vpol_v1_n1.73"] * n_events
-    data_sets["emitter_model"] = ["spherical"] * n_events
+    data_sets["emitter_model"] = ["delta_pulse"] * n_events
 
     # give each shower a unique id (we can also have multiple showers for a single event by just giving several showers
     # the same event_group_id)
