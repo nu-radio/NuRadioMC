@@ -6,9 +6,6 @@ from NuRadioReco.utilities import units, fft
 import logging
 logger = logging.getLogger("SignalGen.emitter")
 import os
-def set_log_level(level):
-    logger.setLevel(level)
-    par.set_log_level(level)
 
 def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
     """
