@@ -9,7 +9,7 @@ import os
 
 def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
     """
-    returns the electric field of an emitter
+    returns the voltage trace of an emitter
 
     We implement only the time-domain solution and obtain the frequency spectrum
     via FFT (with the standard normalization of NuRadioMC). This approach assures
@@ -19,27 +19,22 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
 
     Parameters
     ----------
-    energy : float
-        energy of the shower
-    theta: float
-        viewangle: angle between shower axis (neutrino direction) and the line
-        of sight between interaction and detector
+    amplitude : float 
+        strength of a pulse
     N : int
         number of samples in the time domain
     dt: float
         time bin width, i.e. the inverse of the sampling rate
-    shower_type: string (default "HAD")
-        type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
-        note that TAU showers are currently only implemented in the ARZ2019 model
-    n_index: float
-        index of refraction at interaction vertex
-    R: float
-        distance from vertex to observer
     model: string
         specifies the signal model
-        * spherical: a simple signal model of a spherical delta pulse emitter
+        * delta_pulse: a simple signal model of a delta pulse emitter
+        * cw : a sinusoidal wave of given frequency
+        * square : a rectangular pulse of given amplituede and width
+        * tone_burst : a short sine wave pulse of given frequency and desired width
+        * idl & hvsp2 : these are the waveforms generated in KU lab and stored in hdf5 files
+        * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
     full_output: bool (default False)
-        if True, askaryan modules can return additional output
+        if True, can return additional output
 
     Returns
     -------
@@ -73,6 +68,11 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
             trace = voltage
         else:
             trace = voltage * np.sin(2 * np.pi * emitter_frequency * time) 
+    elif(model == 'gaussian'):          # generates gaussian pulse where half_width represents the half width at half maximum
+        time = np.linspace(-(N/2) * dt, ((N - 1) - N/2) * dt, N)
+        sigma = half_width/( np.sqrt( 2 * np.log(2) ) )          
+        trace = 1/( sigma * np.sqrt( 2 * np.pi ) ) * np.exp(-1/2 * (( time - 500)/sigma ) ** 2 )
+        trace = amplitude * 1/np.max(np.abs(trace)) * trace
     elif(model == 'idl' or model == 'hvsp2'):            # the idl & hvsp2 waveforms gemerated in KU Lab stored in hdf5 file
         path = os.path.dirname(os.path.dirname(__file__))
         if(model == 'idl'):
@@ -116,28 +116,22 @@ def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs)
 
     Parameters
     ----------
-    energy : float
-        energy of the shower
-    theta: float
-        viewangle: angle between shower axis (neutrino direction) and the line
-        of sight between interaction and detector
+    amplitude : float
+        strength of a pulse
     N : int
         number of samples in the time domain
     dt: float
         time bin width, i.e. the inverse of the sampling rate
-    shower_type: string (default "HAD")
-        type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
-        note that TAU showers are currently only implemented in the ARZ2019 model
-    n_index: float
-        index of refraction at interaction vertex
-    R: float
-        distance from vertex to observer
     model: string
         specifies the signal model
-        * spherical: a simple signal model of a spherical delta pulse emitter
+        * delta_pulse: a simple signal model of a delta pulse emitter
+        * cw : a sinusoidal wave of given frequency
+        * square : a rectangular pulse of given amplituede and width
+        * tone_burst : a short sine wave pulse of given frequency and desired width
+        * idl & hvsp2 : these are the waveforms generated in KU lab and stored in hdf5 files
+        * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
     full_output: bool (default False)
-        if True, askaryan modules can return additional output
-
+        if True, can return additional output
     Returns
     -------
     time trace: 2d array, shape (3, N)
