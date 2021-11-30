@@ -78,8 +78,7 @@ Antenna positions can be visualized in 3D using the script
 Additionally, for the antenna, the  user must specify 
 
 - deployment_time: the time of antenna deployment aka the time when the antenna depth was measured (relevant because the depth changes because of snow accumulation)
-- type: the type of antenna
-
+- type: the type of antenna. A list of available antenna types and their descriptions is given :doc:`here </NuRadioReco/pages/detector/antennamodels>`
 
 Further Discussion on Antenna Coordinates
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -37,8 +37,8 @@ ________________________________
   Reading and writing *.nur* files is done by dedicated IO modules.
   Writing events is done by the eventWriter module. To save disc space it offers
   the option to not store channel and electric field traces, in case only
-  the higher-level parameters are needed. It is also possible to `write the
-  detector description onto a *.nur* file <detector.html#writing-the-detector>`_.
+  the higher-level parameters are needed. It is also possible to :ref:`write the
+  detector description onto a *.nur* file <NuRadioReco/pages/detector/detector:Writing the detector>`.
 
   .. code-block:: Python
 
@@ -52,7 +52,7 @@ ________________________________
   general-purpose reader that provides different ways to access events e.g. by
   ID or by event number. The ``eventReader`` is a more streamlined wrapper around
   ``NuRadioRecoio`` that provides an iterator over all events. Both modules provide
-  as way to `read the detector description from a *.nur* file <detector.html#reading-the-detector>`_.
+  as way to :ref:`read the detector description from a *.nur* file <NuRadioReco/pages/detector/detector:Reading the detector>`.
 
   .. code-block:: Python
 
@@ -111,7 +111,7 @@ Parameter Storage
   objects along with their uncertainties and correlation to any other paramters.
   The parameters are defined in an enumerated type *enum*, so to add a new parameter,
   it just needs to be added to the
-  `list of parameters <../NuRadioReco.framework.html#module-NuRadioReco.framework.parameters>`_
+  :ref:`list of parameters <NuRadioReco/NuRadioReco.framework:NuRadioReco.framework.parameters module>`.
 
   .. Important:: New parameters should always be added to the bottom of the list. Do not re-use old Enums!
 
@@ -139,19 +139,19 @@ List of Data Classes
 
 Event
 ____________
-  The `Event <../NuRadioReco.framework.html#module-NuRadioReco.framework.event>`_
+  The :class:`Event <NuRadioReco.framework.event.Event>`
   is the upper-most element of the event structure and holds all simulated and reconstructed
   showers and stations as well as the event ID and run number.
 
 Radio Shower
 ______________
-  A `Radio Shower <../NuRadioReco.framework.html#module-NuRadioReco.framework.radio_shower>`_ is used to
+  A :class:`Radio Shower <NuRadioReco.framework.radio_shower.RadioShower>` is used to
   hold reconstructed shower parameters via the parameter storage. It should only be
   used for properties reconstructed from the radio signal, for properties from a simulated
   shower or reconstructed from another detector, the SimShower or HybridShower should be
   used, respectrively.
 
-  It can be accessed by the ``get_showers`` and ``get_first_shower`` methods of the `Event <../NuRadioReco.framework.html#NuRadioReco.framework.event.Event>`_ class.
+  It can be accessed by the ``get_showers`` and ``get_first_shower`` methods of the :class:`Event<NuRadioReco.framework.event.Event>` class.
 
 SimShower
 ____________
@@ -159,11 +159,11 @@ ____________
   They are the same class as ``RadioShower``, but are stored separately to distinguish
   between simulated and reconstructed properties.
 
-  It can be accessed by the ``get_sim_showers`` method of the `Event <../NuRadioReco.framework.html#NuRadioReco.framework.event.Event>`_ class.
+  It can be accessed by the ``get_sim_showers`` method of the :class:`Event<NuRadioReco.framework.event.Event>` class.
 
 Station
 ____________
-  A `Station <../NuRadioReco.framework.html#module-NuRadioReco.framework.station>`_ is used to hold event properties
+  A :class:`Station<NuRadioReco.framework.station>` is used to hold event properties
   reconstructed at the station level, i.e. reconstructed from the data of a single station.
 
   It can be accessed by the ``get_station`` and ``get_stations`` methods of the ``Event`` class
@@ -173,7 +173,7 @@ ____________
 
 SimStation
 ____________
-  A `SimStation <../NuRadioReco.framework.html#module-NuRadioReco.framework.sim_station>`_ can hold the same
+  A :class:`SimStation<NuRadioReco.framework.sim_station>` can hold the same
   properties as the ``Station`` (and inherits from it), but is used for the MC truth  of the simulation. This
   also implies that events from measured data typically do not have a ``SimStation``.
 
@@ -181,7 +181,7 @@ ____________
 
 BaseTrace
 ____________
-  The `BaseTrace <../NuRadioReco.framework.html#module-NuRadioReco.framework.base_trace>`_ class
+  The :class:`BaseTrace<NuRadioReco.framework.base_trace>` class
   is used to store waveforms, both for voltages in the channels and electric fields.
   While internally traces are stored in the time
   domain, where they can be accessed via the ``get_trace`` and ``set_trace`` method, it is also
@@ -206,7 +206,7 @@ ____________
 
 Electric Field
 _______________
-  The `ElectricField <../NuRadioReco.framework.html#module-NuRadioReco.framework.electric_field>`_
+  The :class:`ElectricField<NuRadioReco.framework.electric_field>`
   is used to store information about electric fields, which can be accessed via the parameter storage
   and methods inherited from the ``BaseTrace`` class.
 
@@ -224,7 +224,7 @@ _______________
 
 Channel
 ____________
-  The `Channel <../NuRadioReco.framework.html#module-NuRadioReco.framework.channel>`_
+  The :class:`Channel<NuRadioReco.framework.channel>`
   is used to store information about the voltage traces recorded in a channel,
   which can be accessed via the parameter storage and methods inherited from
   the ``BaseTrace`` class.
@@ -234,7 +234,7 @@ Hybrid Information
 ___________________
   As many radio detectors are built as part of a hybrid detector whose data may be used in the
   radio event reconstruction, a way to make this data accessible in NuRadioReco is needed. The
-  `HybridInformation <../NuRadioReco.framework.html#module-NuRadioReco.framework.hybrid_information>`_
+  :class:`HybridInformation<NuRadioReco.framework.hybrid_information>`
   class provides this functionality and sections the information from the
   other detectors off from the radio part to avoid confusion. Despite its name, it does not
   hold any data from the other detectors itself, but offers access to ``HybridShower`` objects in
@@ -246,7 +246,7 @@ ___________________
 
 Hybrid Shower
 ______________
-  The `HybridShower <../NuRadioReco.framework.html#module-NuRadioReco.framework.hybrid_shower>`_ is
+  The :class:`HybridShower<NuRadioReco.framework.hybrid_shower>` is
   used to store information about a shower that was reconstructed with a complementary detector,
   mainly via the parameter storage.
 
