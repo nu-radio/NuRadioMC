@@ -1,17 +1,17 @@
 Signal Propagation
-==========
+===================
 Propagation module
-----------
+------------------
 The modules for the raytracing are stored in the folder **SignalProp**. All the propagation effects (attenuation, focussing) are also taken account for in the raytracer module itself. 
 The configuration of the raytracing and propagation effects are specified in the ``config.yaml`` file under ``propagation`` with the following attributes:
-  * module: [string] the ray tracing method to use
-  * ice_model: [string] the description of the refractive index of the ice and all its special effects
-  * attenuation_model: [string] the description of the attenuation of the ice
-  * attenuation_ice: [boolean] whether the attenuation due to the propagation through the ice should be applied. Note: The 1/R amplitude scaling will be applied in either case.
-  * n_freq: [int] the number of frequencies where the attenuation length is calculated for. The remaining frequencies will be determined from a linear interpolation between the reference frequencies. The reference frequencies are equally spaced over the complete frequency range.
-  * focusing: [boolean] whether the focusing effect should be applied.
-  * focusing_limit: [float] the maximum amplification factor of the focusing correction
-  * n_reflections: [int] the maximum number of reflections off a reflective layer at the bottom of the ice layer
+* module: [string] the ray tracing method to use
+* ice_model: [string] the description of the refractive index of the ice and all its special effects
+* attenuation_model: [string] the description of the attenuation of the ice
+* attenuation_ice: [boolean] whether the attenuation due to the propagation through the ice should be applied. Note: The 1/R amplitude scaling will be applied in either case.
+* n_freq: [int] the number of frequencies where the attenuation length is calculated for. The remaining frequencies will be determined from a linear interpolation between the reference frequencies. The reference frequencies are equally spaced over the complete frequency range.
+* focusing: [boolean] whether the focusing effect should be applied.
+* focusing_limit: [float] the maximum amplification factor of the focusing correction
+* n_reflections: [int] the maximum number of reflections off a reflective layer at the bottom of the ice layer
 
 Below you find the **default settings** of the **config file**.
   
@@ -30,7 +30,7 @@ Below you find the **default settings** of the **config file**.
 How to implement new ice-models and information on all the available ice-models and attenuation models can be found in the documentation. 
 
 Ray tracing
-----------
+-----------
 Ray tracing is the module to calculate the trajectory of the emitted radiaton. Depending on the ice model one wants to use, the user can specify which ray tracer method should be used by NuRadioMC. This can be done in the ``config.yaml`` file by setting the propagation module to the desired module name.
   
   .. code-block:: yaml
@@ -41,7 +41,7 @@ Ray tracing is the module to calculate the trajectory of the emitted radiaton. D
 One has to keep in mind that it is possible some methods only work using specific classes of ice models.
 
 Analytical ray tracer
-___________
+_____________________
 The analytical ray tracer of NuRadioMC is a method that can only handle the so called *simple* ice models. Simple ice models are media with a planar geometry and a refractive index with an exponential profile depending on the depth in the ice. The module name to be used in the config file for this method is ``analytic``. The analytic method is implemented in both python but also in c++ for more rapid solving which will automatically be used when all dependencies are available on the users machine. Below you'll find an overview of the mathematics and an example of the possible rays. The details of this method can be found in the `NuRadioMC paper <http://dx.doi.org/10.1140/epjc/s10052-020-7612-8>`__.
 
 Take the following ice model:
@@ -75,7 +75,7 @@ Once GSLDIR is configured, the user can also compile it by hand executing the fo
 
 
 RadioPropa numerical ray tracer (in development)
-__________
+_________________________________________________
 For ice models other then the simple ones, one need a numerical ray tracer which is provided by the RadioPropa method. This method uses the RadioPropa package which is written in c++. Information on the installation of RadioPropa can found on https://github.com/nu-radio/RadioPropa. The module name for this method is ``radiopropa``.
 
   .. code-block:: yaml
@@ -88,10 +88,10 @@ RadioPropa is a modular ray tracing code that solves the eikonal equation for a 
 For now, this method can be used for a refractive index with any profile depending on the depth (only z, no x or y dependence) in the ice and some additional features like discontinuities or reflective/transmissive layers. In the future, more effect and the handling of more complex profiles will become available.
 
 Example scripts
----------
+---------------
 
 How to calculate an analytic ray path
-__________
+______________________________________
 The following code shows how to perform a analytic ray tracing and extract information on the solutions, such as trajectory, travel time, or attenuation.
 
   .. code-block:: Python
@@ -173,7 +173,7 @@ The following code shows how to perform a analytic ray tracing and extract infor
     plt.show()
 
 How to calculate an radiopropa ray path
-__________
+_________________________________________
 The following code shows how to perform a ray tracing and extract  information on the solutions, such as trajectory, travel time, or attenuation.
 
   .. code-block:: Python

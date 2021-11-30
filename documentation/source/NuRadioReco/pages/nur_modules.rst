@@ -17,19 +17,16 @@ to make a standard reconstruction model, that performs a reconstruction with the
 default settings deemed best for a given experiment.
 
 Basic Module Structure
------------
+----------------------
 Each module consists of four components:
-  * A constructor to create the module. In a reconstruction, this is usually
-  called to create the modules before looping over all events in the event file.
-
-  * The *begin* method. This is used to specify settings that will not change on
-  an event-by-event basis.
-
-  * The *run* method. This is executed for each event and executes the task that
-  the module was built for.
-
-  * The *end* Method. This is run after the last event was processed for cleanup
-  or to print information on what the module has done.
+* A constructor to create the module. In a reconstruction, this is usually
+called to create the modules before looping over all events in the event file.
+* The *begin* method. This is used to specify settings that will not change on
+an event-by-event basis.
+* The *run* method. This is executed for each event and executes the task that
+the module was built for.
+* The *end* Method. This is run after the last event was processed for cleanup
+or to print information on what the module has done.
 
 These methods should all be called in that order, though the *begin* and *end*
 function can be skipped for some modules.

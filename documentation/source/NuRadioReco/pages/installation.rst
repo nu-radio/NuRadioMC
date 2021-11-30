@@ -107,7 +107,7 @@ These packages are recommended to be able to use all of NuRadioReco's features:
 
         pip install pymongo
 
-    - To use the `Event Display <./event_display.html>`_ you need plotly and dash:
+    - To use the :ref:`Event Display <NuRadioReco/pages/event_display:Event Display>` you need plotly and dash:
 
       .. code-block:: Bash
 

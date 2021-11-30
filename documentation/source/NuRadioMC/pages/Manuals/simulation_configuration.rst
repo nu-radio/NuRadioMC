@@ -1,5 +1,5 @@
 Simulation and configuration
-==========
+=============================
 
 The simulation class and the module of the same name, located in the `simulation <https://github.com/nu-radio/NuRadioMC/tree/master/NuRadioMC/simulation>`__ folder, constitute the heart of NuRadioMC. The simulation module takes the neutrino input files and creates events with them. These events are then processed using the information in the config file and the detector layout specified in the detector JSON file. Finally, the trigger description in a steering file is used to determine whether an event triggers or not.
 
@@ -10,7 +10,7 @@ Let us begin with a description of the steering files needed to run the simulati
     .. Important:: The description of the simulation module, steering files, and configuration files reflect the status of the master as of July 2020. This needs to be updated after the new looping is approved and merged.
 
 Steering files
-----------
+---------------
 A NuRadioMC steering file is the file that describes and runs the simulation. As a small example, we can define a detector with an empty detector description. Every steering file should have a class that inherits from the simulation class, that we can call ``mySimulation``. This class must have a method called ``_detector_simulation``, which uses NuRadioReco modules to simulate the detector response.
 
 To create a simulation instance, we need a NuRadioMC neutrino input file, a detector description JSON file, a YAML file with various configuration settings, the output file name, and optionally the output NuRadioReco file name (nur file).
@@ -49,7 +49,7 @@ When the simulation child object is initialised, the detector description in the
 An example of a steering file, complete with detector description, can be found in `examples/06_webinar/W02RunSimulation.py <https://github.com/nu-radio/NuRadioMC/blob/master/NuRadioMC/examples/06_webinar/W02RunSimulation.py>`__.
 
 Config files
-----------
+------------
 The default configuration (or config) file used is the ``config_default.yaml`` file in the simulation folder. If the user wants to use different parameters, it suffices to specify ONLY the parameters they want to be overriden in their own config file. For instance, if the user wants to change only the emission model to ARZ2020, a short file like the following is enough:
 
     .. code-block:: yaml
@@ -156,7 +156,7 @@ The available options for weight mode are:
         # save triggering events
 
 Detector description
-----------
+----------------------
 The detector description used by NuRadioReco must be specified in a JSON detector file. We will explain the most important fields needed in these JSON files.
 
 To write a JSON detector file, first we start with the channels, each one having an antenna. The mandatory parameters for a channel are:
@@ -178,7 +178,7 @@ For instance, a vertical dipole would have ``ant_orientation_theta: 0`` and any 
 
 Another example: a 45-degree downward-pointing LPDA antenna with the tines on the XZ plane would have ``ant_orientation_theta: 135``, ``ant_orientation_phi: 0``, ``ant_rotation_theta: 45``, ``ant_rotation_phi: 0``.
 
-See the `NuRadioReco documentation <https://nu-radio.github.io/NuRadioReco/pages/detector_database_fields.html>`__ for a more complete explanation of the antenna angles.
+See the :doc:`NuRadioReco documentation </NuRadioReco/pages/detector/detector_database_fields>` for a more complete explanation of the antenna angles.
 
 The rest of the parameters are either not used yet (they're here for future modules) or they are used by modules not needed for the present example.
 
@@ -325,7 +325,7 @@ We show in the following an example of a JSON detector file.
         }
 
 Detector simulation
-----------
+---------------------
 The following steering file teaches what the principal constituents of a detector simulation are. This code has been taken from the `examples/06_webinar/W02RunSimulation.py <https://github.com/nu-radio/NuRadioMC/blob/master/NuRadioMC/examples/06_webinar/W02RunSimulation.py>`__. It contains guidelines for generating noise, resampling, filtering, and implementing a trigger.
 
     .. code-block:: Python

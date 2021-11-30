@@ -3,8 +3,8 @@ Detector Description
 NuRadioReco provides detector description classes that allow access to any
 relevant information about the state of the radio detector at a given time.
 There are two classes that provide this functionality: The
-`Detector <../NuRadioReco.detector.html#NuRadioReco.detector.detector.Detector>`_ and the
-`GenericDetector <../NuRadioReco.detector.html#NuRadioReco.detector.generic_detector.GenericDetector>`_.
+:class:`Detector <NuRadioReco.detector.detector.Detector>` and the
+:class:`GenericDetector <NuRadioReco.detector.generic_detector.GenericDetector>`.
 Both are used very similarly, with the ``GenericDetector`` being more for
 simulation studies.
 
@@ -82,7 +82,7 @@ e.g. when loading the detector description from an event file. For most applicat
 we recommend not using this feature and storing the description in a JSON file instead.
 
 Signal Chain Responses
-_______________
+_______________________
 
 GenericDetector
 ----------------------------
@@ -117,11 +117,11 @@ in the same way as the normal ``Detector`` class, e.g. be passed to reconstructi
 modules.
 
 .. Important:: The ``GenericDetector`` does not support commission and decommission times.
-It can therefore not give a time-dependent detector description and should only be used
-for simulation studies, never to reconstruct real data.
+  It can therefore not give a time-dependent detector description and should only be used
+  for simulation studies, never to reconstruct real data.
 
 Event-Specific Changes
-_______________
+______________________
 In some situations, events in the same file can have a different detector description.
 While these situations should be avoided, doing so would sometimes be too cumbersome,
 so the ``GenericDetector`` offers a way to store event-specific changes to the
@@ -142,13 +142,13 @@ Here, only the station positions are different between each event and saved at _
 description.
 
 Detector Description in Event Files
-----------------------------
+-----------------------------------
 To make it easier to keep track of which detector description was used in the reconstruction
 of a given event file, it is possible to store the detector description in an
 event file and read it along with the events.
 
 Writing the Detector
-_______________
+____________________
 To write a detector description into an event file, the detector description
 is passed to the ``run`` method of the ``EventWriter`` module. In order to
 keep the file size small, only information about channels and stations that
@@ -174,7 +174,7 @@ are used in the saved events are written into the event file.
     event_writer.run(event, det=det)
 
 Reading the Detector
-_______________
+____________________
 To access the detector description in an event file, the ``EventReader`` and
 ``NuRadioRecoio`` modules provide the ``get_detector`` method, which always
 returns the detector for the last file from which an event was requested. If

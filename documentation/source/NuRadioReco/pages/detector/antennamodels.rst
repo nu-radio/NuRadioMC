@@ -459,7 +459,7 @@ Last updated: 2021
 
 
 RNOG_quadslot_v3_air_rescaled_to_n1.74
-----------------------
+--------------------------------------
 XFdtd simulations in for the RNO-G Hpol.
 Simulations are done in air, frequencies are rescaled with n=1.74. 
 Theta range [-180, 180] Phi range [0, 360] Freq range [57, 574]MHz
