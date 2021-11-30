@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function  # , unicode_literals
-import dash_html_components as html
+from dash import html
 import NuRadioReco.eventbrowser.dataprovider
 import NuRadioReco.eventbrowser.apps.overview_plots.template_correlation
 import NuRadioReco.eventbrowser.apps.overview_plots.rec_directions
@@ -11,6 +11,8 @@ import NuRadioReco.eventbrowser.apps.overview_plots.event_overview
 import logging
 
 logger = logging.getLogger('overview')
+parent_logger = logging.getLogger('NuRadioReco')
+logger.setLevel(parent_logger.level)
 
 provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 

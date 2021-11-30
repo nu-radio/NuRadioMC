@@ -74,6 +74,12 @@ jobs:
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/emitter/run_test.sh
+    - name: Test Numba version of ARZ
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        pip install numba
+        NuRadioMC/test/SingleEvents/validate_ARZ.sh
     - name: Signal generation test
       run : |
           export PYTHONPATH=$PWD:$PYTHONPATH
