@@ -4,8 +4,8 @@ from NuRadioReco.utilities import units
 from NuRadioReco.eventbrowser.default_layout import default_layout, efield_plot_colors, efield_plot_linestyles, \
     polarizaiton_names
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import html
+from dash import dcc
 from dash.dependencies import Input, Output, State
 from NuRadioReco.eventbrowser.app import app
 import NuRadioReco.eventbrowser.dataprovider
@@ -47,8 +47,8 @@ def update_sim_spectrum_plot(i_event, filename, signal_types, station_id, juser_
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
-    evt = ariio.get_event_i(i_event)
+    nurio = provider.get_file_handler(user_id, filename)
+    evt = nurio.get_event_i(i_event)
     station = evt.get_station(station_id)
     sim_station = station.get_sim_station()
     if sim_station is None:
