@@ -42,6 +42,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         the amplitudes for each time bin
     additional information: dict
         only available if `full_output` enabled
+
     """
     half_width = kwargs.get("half_width")
     emitter_frequency = kwargs.get("emitter_frequency")
