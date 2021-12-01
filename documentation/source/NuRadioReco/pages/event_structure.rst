@@ -111,7 +111,7 @@ Parameter Storage
   objects along with their uncertainties and correlation to any other paramters.
   The parameters are defined in an enumerated type *enum*, so to add a new parameter,
   it just needs to be added to the
-  :ref:`list of parameters <NuRadioReco/NuRadioReco.framework:NuRadioReco.framework.parameters module>`.
+  :mod:`list of parameters <NuRadioReco.framework.parameters>`.
 
   .. Important:: New parameters should always be added to the bottom of the list. Do not re-use old Enums!
 

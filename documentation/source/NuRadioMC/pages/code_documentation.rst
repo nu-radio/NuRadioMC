@@ -5,10 +5,10 @@ Code Documentation
 .. toctree::
    :maxdepth: 2
 
-   ../NuRadioMC.EvtGen
-   ../NuRadioMC.SignalGen
-   ../NuRadioMC.SignalProp
-   ../NuRadioMC.simulation
-   ../NuRadioMC.utilities
-   ../NuRadioMC.studies
-   ../NuRadioMC.examples
+   ../apidoc/NuRadioMC.EvtGen
+   ../apidoc/NuRadioMC.SignalGen
+   ../apidoc/NuRadioMC.SignalProp
+   ../apidoc/NuRadioMC.simulation
+   ../apidoc/NuRadioMC.utilities
+   ../apidoc/NuRadioMC.studies
+   ../apidoc/NuRadioMC.examples
