@@ -1,3 +1,4 @@
 build/*
+source/*/apidoc
 arianna_detector_db.json
 decay_library.hdf5

@@ -20,6 +20,7 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../..'))
 
 # -- General configuration ------------------------------------------------
 
@@ -32,12 +33,14 @@ sys.path.insert(0, os.path.abspath('.'))
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    # 'autoapi.extension',
     'numpydoc',
     'sphinx.ext.intersphinx',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+    # 'sphinx.ext.autosummary',
     # 'sphinx.ext.napoleon',
     'sphinx.ext.autosectionlabel',
 ]
@@ -100,7 +103,8 @@ html_theme = 'sphinx_rtd_theme'
 #
 html_theme_options = {
     'collapse_navigation': False,
-    'sticky_navigation': True
+    'sticky_navigation': True,
+    'navigation_depth': 5
 }
 html_css_files = [os.path.abspath('custom_scripts/styling.css')]
 
@@ -210,5 +214,9 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 # Make sure the target is unique
 autosectionlabel_prefix_document = True
 
+# Don't make toctrees for class methods (doesn't seem to work with apidoc)
+numpydoc_class_members_toctree = False
+
+autodoc_mock_imports = ['ROOT', 'mysql-python', 'pygdsm', 'MySQLdb']
 # Raise warnings if any cross-references are broken
 nitpicky = True
