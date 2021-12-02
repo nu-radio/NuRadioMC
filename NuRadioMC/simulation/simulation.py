@@ -606,7 +606,10 @@ class simulation():
                     # be careful, zenith/azimuth angle always refer to where the neutrino came from,
                     # i.e., opposite to the direction of propagation. We need the propagation direction here,
                     # so we multiply the shower axis with '-1'
-                    self._shower_axis = -1 * hp.spherical_to_cartesian(self._zenith_shower, self._azimuth_shower)
+                    if 'zeniths' in self._fin:
+                        self._shower_axis = -1 * hp.spherical_to_cartesian(self._fin['zeniths'][self._shower_index], self._fin['azimuths'][self._shower_index])
+                    else:
+                        self._shower_axis = np.array([0, 0, 1])
 
                     # calculate correct Cherenkov angle for ice density at vertex position
                     n_index = self._ice.get_index_of_refraction(x1)
@@ -1344,9 +1347,6 @@ class simulation():
         self._vertex_time = 0
         if 'vertex_times' in self._fin:
             self._vertex_time = self._fin['vertex_times'][self._shower_index]
-
-        self._zenith_shower = self._fin['zeniths'][self._shower_index]
-        self._azimuth_shower = self._fin['azimuths'][self._shower_index]
 
     def _create_sim_station(self):
         """
