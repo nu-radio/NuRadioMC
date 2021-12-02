@@ -59,15 +59,16 @@ def generate_my_events(filename, n_events):
     data_sets["zeniths"] = np.zeros(n_events)
 
     # everything below this line are required to run NuRadioMC simulation
-    data_sets["shower_type"] = ['had'] * n_events
-    data_sets["shower_energies"] = np.ones(n_events)
-    data_sets["shower_ids"] = np.arange(n_events) 
     data_sets["event_group_ids"] = np.arange(n_events)
-    data_sets["interaction_type"] = np.full(n_events, "nc", dtype='U2')    #for neutrino interactions can be either CC or NC.
-    data_sets["n_interaction"] = np.ones(n_events, dtype=int)
-    data_sets["flavors"] = 12 * np.ones(n_events, dtype=int)    
-    data_sets["energies"] = np.ones(n_events) * 1 * units.EeV
-    data_sets["inelasticity"] = np.ones(n_events)
+    data_sets["shower_ids"] = np.arange(n_events) 
+
+    # data_sets["shower_type"] = ['had'] * n_events
+    # data_sets["shower_energies"] = np.ones(n_events)
+    # data_sets["interaction_type"] = np.full(n_events, "nc", dtype='U2')    #for neutrino interactions can be either CC or NC.
+    # data_sets["n_interaction"] = np.ones(n_events, dtype=int)
+    # data_sets["flavors"] = 12 * np.ones(n_events, dtype=int)    
+    # data_sets["energies"] = np.ones(n_events) * 1 * units.EeV
+    # data_sets["inelasticity"] = np.ones(n_events)
 
     
     # write events to file
