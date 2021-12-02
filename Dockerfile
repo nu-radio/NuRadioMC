@@ -8,7 +8,7 @@ RUN apt-get upgrade -y
 RUN pip install aenum astropy matplotlib numpy radiotools scipy tinydb tinydb-serialization
 
 # Install optional dependencies
-RUN pip install dash gunicorn h5py peakutils plotly pymongo sphinx pandas
+RUN pip install dash gunicorn h5py peakutils plotly pymongo sphinx pandas six
 
 # Install NuRadioReco
 ADD NuRadioMC /usr/local/lib/python3.6/site-packages/NuRadioMC
