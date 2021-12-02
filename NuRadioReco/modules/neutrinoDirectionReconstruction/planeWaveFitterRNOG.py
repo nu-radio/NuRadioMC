@@ -24,13 +24,48 @@ class planeWaveFitterRNOG:
         pass
 
 
-    def run(self, evt, station, det, n_index = None, template = None, debug = True, debugplots_path = None):
+    def run(
+        self, evt, station, det, n_index = None, 
+        template = None, mode = 'add', debug = True, debugplots_path = None):
+        """Run the plane wave fitter
+
+        Parameters
+        ----------
+        evt: Event
+        station: station
+            The station to use for reconstruction
+        det: Detector object
+            The detector that specifies the channel positions and cable delays
+        n_index: float
+            The average index of refraction
+        template: np.array or None
+            If given, the timing difference is determined by correlation with
+            the template instead of pair-wise channel correlation.
+        mode: string
+            How to maximize the channel-channel or channel-template
+            correlations. Options:
+            * 'add' (default): maximize the sum of all correlations
+            * 'add_normalize': same as 'add', but normalize all traces first
+            * 'add_normalize_correlation': same as 'add', but normalize 
+            the maximum correlation for each channel pair
+            * 'multiply': maximize the product of all correlations
+            * 'log': maximize the log of the product of all correlations
+        debug: bool
+            If True, produce some debug plots and save them under 
+            debugplots_path
+        debugplots_path: string
+            Path to existing directory to save debug plots
+        
+        """
         if station.has_sim_station():
             for channel in station.iter_channels():
                 if channel.get_id() == 0:
                     signal_zenith = channel[chp.signal_receiving_zenith]
                     signal_azimuth = channel[chp.signal_receiving_azimuth]
-      
+        else:
+            signal_zenith = np.nan
+            signal_azimuth = np.nan
+            print('No simulation available')
 
 
         print("channels used for this reconstruction:", self.__channel_ids)
@@ -38,12 +73,17 @@ class planeWaveFitterRNOG:
 
         self.__channel_pairs = []
         self.__relative_positions = []
+        self.__relative_delays = []
         station_id = station.get_id() 
         for i in range(len(self.__channel_ids) - 1):
             for j in range(i + 1, len(self.__channel_ids)):
-                relative_positions = det.get_relative_position(station_id, self.__channel_ids[i]) - det.get_relative_position(station_id, self.__channel_ids[j])
+                id1, id2 = self.__channel_ids[i], self.__channel_ids[j]
+                relative_positions = det.get_relative_position(station_id, id1) - det.get_relative_position(station_id, id2)
                 self.__relative_positions.append(relative_positions)
-                
+                self.__relative_delays.append(
+                    station.get_channel(id1).get_trace_start_time()
+                    - station.get_channel(id2).get_trace_start_time()
+                )
                 self.__channel_pairs.append([self.__channel_ids[i], self.__channel_ids[j]])
                 
        
@@ -54,21 +94,26 @@ class planeWaveFitterRNOG:
             fig, ax = plt.subplots( len(self.__channel_pairs), 2, figsize = (10, 10))
 
     
-        def likelihood(angles, sim = False, rec = False):#, debug = False):#, station):
+        def likelihood(angles, mode='add', sim = False, rec = False):#, debug = False):#, station):
             zenith, azimuth = angles
-            corr = 0
+            if 'add' in mode:
+                corr = 0
+            else:
+                corr = 1
         
             for ich, ch_pair in enumerate(self.__channel_pairs):
                 positions = self.__relative_positions[ich]
-                times = []
+                relative_delay = self.__relative_delays[ich]
                 
                 tmp = geo_utl.get_time_delay_from_direction(zenith, azimuth, positions, n=n_index)#,
-       
+                tmp -= relative_delay
                 n_samples = -1*tmp * self.__sampling_rate
         
                 pos = int(len(self.__correlation[ich]) / 2 - n_samples)
-      
-                corr += self.__correlation[ich, pos]
+                if 'add' in mode:
+                    corr += self.__correlation[ich, pos]
+                else:
+                    corr *= self.__correlation[ich, pos]
                 
                 if sim:
                     ax[ ich, 0].plot(self.__correlation[ich], color = 'blue')
@@ -76,7 +121,7 @@ class planeWaveFitterRNOG:
                     #ax[ich,0].legend()
                     #ax[ich, 0].set_title("channel pair {}- {}".format( ch_pair[0], ch_pair[1]))
                 if rec:
-                   # ax[ ich, 0].plot(self.__correlation[ich])
+                    ax[ ich, 0].plot(self.__correlation[ich])
                     ax[ich, 0].set_ylim((0, max(self.__correlation[ich])))
                     ax[ich, 0].axvline(pos, color = 'red', lw = 1, label= 'rec')
                     ax[ich, 1].plot(station.get_channel(ch_pair[0]).get_times(), station.get_channel(ch_pair[0]).get_trace(), color = 'green', label = 'ch {}'.format(ch_pair[0]))
@@ -100,10 +145,10 @@ class planeWaveFitterRNOG:
             ### calculate timing shift due to plane wave
             ### get value in correlation due to timing
             
-            
-            likelihood = corr
+            if mode == 'log':
+                corr = np.log(corr)
            # print("likelihood", likelihood)
-            return -1*likelihood
+            return -1*corr
             
             
 
@@ -153,7 +198,12 @@ class planeWaveFitterRNOG:
                     trace1[np.abs(station.get_channel(self.__channel_pairs[ich][0]).get_times() - t_max1) > corr_range] = 0
                 else:
                     trace2[np.abs(station.get_channel(self.__channel_pairs[ich][1]).get_times() - t_max2) > corr_range] = 0
-                self.__correlation[ich] = np.abs(scipy.signal.correlate(trace1, trace2))
+                if mode == 'add_normalize':
+                    self.__correlation[ich] = np.abs(scipy.signal.correlate(trace1/np.max(np.abs(trace1)), trace2/np.max(np.abs(trace2))))
+                else:
+                    self.__correlation[ich] = np.abs(scipy.signal.correlate(trace1, trace2))
+                if mode == 'add_normalize_correlation':
+                    self.__correlation[ich] /= np.max(self.__correlation[ich])
           
             
         ### minimizer
@@ -162,9 +212,13 @@ class planeWaveFitterRNOG:
         az_start = np.deg2rad(-180)
         az_end = np.deg2rad(180)
 
-        if debug: print("Likelihood simulation", likelihood([signal_zenith, signal_azimuth], sim = True))
+        if debug & station.has_sim_station(): 
+            print(
+                "Likelihood simulation", 
+                likelihood([signal_zenith, signal_azimuth], sim = True, mode=mode)
+            )
   
-        ll = opt.brute(likelihood, ranges=(slice(zen_start, zen_end, 0.01), slice(az_start, az_end, 0.01)), finish = opt.fmin)
+        ll = opt.brute(likelihood, ranges=(slice(zen_start, zen_end, 0.01), slice(az_start, az_end, 0.01)), args=(mode,), finish = opt.fmin)
         rec_zenith = ll[0]
         rec_azimuth = ll[1]
 
@@ -176,7 +230,7 @@ class planeWaveFitterRNOG:
             zz = np.zeros((len(zens), len(azs)))
             for iz, z in enumerate(zens):
                 for ia, a in enumerate(azs):
-                    c = likelihood([np.deg2rad(z), np.deg2rad(a)])
+                    c = likelihood([np.deg2rad(z), np.deg2rad(a)], mode=mode)
                     zz[iz, ia] = c
   
             fig1 = plt.figure()
@@ -188,7 +242,8 @@ class planeWaveFitterRNOG:
             plt.axhline(np.rad2deg(rec_azimuth), color = 'white')
             plt.axvline(np.rad2deg(rec_zenith), color = 'white', label = 'reconstructed values')
             plt.legend()
-            fig1.savefig("{}/planewave_map.pdf".format(debugplots_path))
+            if debugplots_path != None:
+                fig1.savefig("{}/planewave_map.pdf".format(debugplots_path))
      
         ##### run with reconstructed values
         if debug: print("likelihood reconstruction", likelihood(ll, rec = True))
