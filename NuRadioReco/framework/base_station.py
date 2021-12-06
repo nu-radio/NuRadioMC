@@ -107,8 +107,8 @@ class BaseStation():
         """
         checks if station has a trigger with a certain name
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         trigger_name: string
             the name of the trigger
 

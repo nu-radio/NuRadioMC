@@ -192,7 +192,7 @@ class ray_tracing_2D():
         analytic form of the ray tracing part given an exponential index of refraction profile
 
         Parameters
-        -------
+        ----------
         gamma: (float or array)
             gamma is a function of the depth z
         C_0: (float)
@@ -238,7 +238,7 @@ class ray_tracing_2D():
         so that this function is defined for all z
 
         Parameters
-        -------
+        ----------
         z: (float or array)
             depth z
         C_0: (float)
@@ -632,6 +632,7 @@ class ray_tracing_2D():
             the number of bottom reflections to consider
         reflection_case: int (default 1)
             only relevant if `reflection` is larger than 0
+
             * 1: rays start upwards
             * 2: rays start downwards
 
@@ -691,8 +692,10 @@ class ray_tracing_2D():
             the number of bottom reflections to consider
         reflection_case: int (default 1)
             only relevant if `reflection` is larger than 0
+
             * 1: rays start upwards
             * 2: rays start downwards
+
         """
         last_segment = self.get_path_segments(x_start, x, C_0, reflection, reflection_case)[-1]
         x_start = last_segment[1]
@@ -754,7 +757,7 @@ class ray_tracing_2D():
         the result is only valid if C_0 is a solution to the ray tracing problem
 
         Parameters
-        -------
+        ----------
         x1: array
             start position (y, z)
         x2: array
@@ -811,6 +814,7 @@ class ray_tracing_2D():
             the number of bottom reflections to consider
         reflection_case: int (default 1)
             only relevant if `reflection` is larger than 0
+
             * 1: rays start upwards
             * 2: rays start downwards
 
@@ -984,9 +988,11 @@ class ray_tracing_2D():
         Returns
         -------
         solution_type: int
+
             * 1: 'direct'
             * 2: 'refracted'
             * 3: 'reflected
+
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
         C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
@@ -1008,7 +1014,7 @@ class ray_tracing_2D():
         because this requirement can be achieved with a simple coordinate transformation
 
         Parameters
-        -----------
+        ----------
         x1: tuple
             (y,z) coordinate of start point
         x2: tuple
@@ -1372,17 +1378,22 @@ class ray_tracing_2D():
         firn just at the point to reach the receiver at x2, entering the firn at the surface at the same
         angle it reached the surface from x1..
 
-        Input:
-            x1, x2: Arrays with x and z positions of emitter x1 and receiver x2
-            infirn: Boolean. Set to True if surface ray travels in the firn, set to False (default) if it travels
-                    in air.
-            angle:  String specifying angle at which ray reaches/leaves the surface. Can be 'Brewster' or 'critical'
-                    If neither of these is chosen, a warning is printed and angle is set to 'critical'
-            chdraw: If None, do not draw the path of the ray. If the ray should be drawn, a string consistent with
-                    the matplotlib.pyplot library has to be specified, e.g. 'r:' to draw a dotted red line.
-                    It is assumed that an appropriate figure on which to draw the ray has been created and set as
-                    current figure by the user before calling this method.
-            label:  Label for plot
+        Parameters
+        ----------
+        x1, x2: arrays
+            Arrays with x and z positions of emitter x1 and receiver x2
+        infirn: Boolean. 
+            Set to True if surface ray travels in the firn, set to False (default) if it travels
+            in air.
+        angle:  String 
+            specifying angle at which ray reaches/leaves the surface. Can be 'Brewster' or 'critical'
+            If neither of these is chosen, a warning is printed and angle is set to 'critical'
+        chdraw: string or None
+            If None, do not draw the path of the ray. If the ray should be drawn, a string consistent with
+            the matplotlib.pyplot library has to be specified, e.g. 'r:' to draw a dotted red line.
+            It is assumed that an appropriate figure on which to draw the ray has been created and set as
+            current figure by the user before calling this method.
+        label:  Label for plot
         '''
 
         draw = False
@@ -1473,10 +1484,12 @@ class ray_tracing_2D():
         depth z_refl, for which the emisssion angles to pulser_pos and receiver_pos are the same (i.e. the output
         of angular_diff is zero). The x-position would be output "result" ofoptimize.root() above.
 
-        output:
-               float, is zero if the angles (w.r.t. the vertical) of rays emitted from [x_refl,z_refl] to
-               positions pulser_pos and receiver_pos are the same or greater than zero, if this is not the case.
-               For exact defintion, see "result" in code below
+        Returns
+        -------
+        result: float
+            Is zero if the angles (w.r.t. the vertical) of rays emitted from [x_refl,z_refl] to
+            positions pulser_pos and receiver_pos are the same or greater than zero, if this is not the case.
+            For exact defintion, see "result" in code below
         '''
 
         # treat position of reflection as emitter and Rx/Tx as receivers
@@ -1532,6 +1545,7 @@ class ray_tracing:
             * logging.WARNING
             * logging.INFO
             * logging.DEBUG
+            
             default is WARNING
         n_frequencies_integration: int
             the number of frequencies for which the frequency dependent attenuation
@@ -1599,8 +1613,8 @@ class ray_tracing:
         """
         Set the start and end points of the raytracing
 
-        Parameters:
-        ----------------------
+        Parameters
+        ----------
         x1: 3dim np.array
             start point of the ray
         x2: 3dim np.array
@@ -1652,8 +1666,8 @@ class ray_tracing:
                   all all the neseccary keyword arguments for the function in the
                   form of key=argument and separated by a comma
 
-        Example
-        -------
+        Examples
+        --------
         use_optional_function('set_shower_axis',np.array([0,0,1]))
         use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
         """
@@ -1666,8 +1680,8 @@ class ray_tracing:
         """
         Read an already calculated raytracing solution from the input array
 
-        Parameters:
-        -------------
+        Parameters
+        ----------
         raytracing_results: dict
             The dictionary containing the raytracing solution.
         """
@@ -1732,9 +1746,11 @@ class ray_tracing:
         Returns
         -------
         solution_type: int
+
             * 1: 'direct'
             * 2: 'refracted'
             * 3: 'reflected
+        
         """
         return self.__r2d.determine_solution_type(self.__x1, self.__x2, self.__results[iS]['C0'])
 
@@ -2061,8 +2077,8 @@ class ray_tracing:
         Apply propagation effects to the electric field
         Note that the 1/r weakening of the electric field is already accounted for in the signal generation
 
-        Parameters:
-        ----------------
+        Parameters
+        ----------
         efield: ElectricField object
             The electric field that the effects should be applied to
         i_solution: int
@@ -2123,8 +2139,8 @@ class ray_tracing:
         """
         Change the configuration file used by the raytracer
 
-        Parameters:
-        ------------------
+        Parameters
+        ----------
         config: dict or None
             The new configuration settings
             If None, the default config settings will be applied

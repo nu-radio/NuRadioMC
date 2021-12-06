@@ -54,13 +54,14 @@ parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=No
                     help='outputfilename of NuRadioReco detector sim file')
 args = parser.parse_args()
 
-sim = mySimulation(inputfilename=args.inputfilename,
-                            outputfilename=args.outputfilename,
-                            detectorfile=args.detectordescription,
-                            outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
-                            config_file=args.config,
-                            log_level=logging.WARNING,
-                            evt_time=datetime.datetime(2018, 12, 30),
-                            file_overwrite=True)
-sim.run()
+if __name__ == "__main__":
+    sim = mySimulation(inputfilename=args.inputfilename,
+                                outputfilename=args.outputfilename,
+                                detectorfile=args.detectordescription,
+                                outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
+                                config_file=args.config,
+                                log_level=logging.WARNING,
+                                evt_time=datetime.datetime(2018, 12, 30),
+                                file_overwrite=True)
+    sim.run()
 

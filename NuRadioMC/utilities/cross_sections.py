@@ -178,23 +178,27 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
     flavors: float / array of floats
         neutrino flavor (integer) encoded as using PDG numbering scheme,
         particles have positive sign, anti-particles have negative sign, relevant are:
+        
         12: electron neutrino
         14: muon neutrino
         16: tau neutrino
 
     inttype: str, array of str
-        interaction type
-        nc : neutral current
-        cc : charged current
-        total: total (for non-array type)
+        interaction type. Options:
 
-    cross_section_type: str
-        defines model of cross-section
-        ghandi : according to Ghandi et al. Phys.Rev.D58:093009,1998
+        * nc : neutral current
+        * cc : charged current
+        * total: total (for non-array type)
+
+    cross_section_type: {'ctw', 'ghandi', 'csms'}, default 'ctw'
+        defines model of cross-section. Options:
+
+        * ctw    : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
+            cross-sections for all interaction types and flavors
+        * ghandi : according to Ghandi et al. Phys.Rev.D58:093009,1998
                  only one cross-section for all interactions and flavors
-        ctw    : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
-                 cross-sections for all interaction types and flavors
-        csms   : A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
+        * csms   : A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
+
     """
 
     if cross_section_type == 'ghandi':
@@ -299,25 +303,31 @@ def get_interaction_length(Enu, density=.917 * units.g / units.cm ** 3, flavor=1
     flavors: float / array of floats
         neutrino flavor (integer) encoded as using PDG numbering scheme,
         particles have positive sign, anti-particles have negative sign, relevant are:
+        
         12: electron neutrino
         14: muon neutrino
         16: tau neutrino
 
     inttype: str, array of str
-        interaction type
-        nc : neutral current
-        cc : charged current
-        total: total (for non-array type)
+        interaction type. Options:
 
-    cross_section_type: str
-        defines model of cross-section
-        ghandi : according to Ghandi et al. Phys.Rev.D58:093009,1998
-                 only one cross-section for all interactions and flavors
-        ctw    : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
-                 cross-sections for all interaction types and flavors
-        csms   : A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
+        * nc : neutral current
+        * cc : charged current
+        * total: total (for non-array type)
 
-    Returns float: interaction length
+    cross_section_type: {'ctw', 'ghandi', 'csms'}, default 'ctw'
+        defines model of cross-section. Options:
+
+        * ctw: A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
+            cross-sections for all interaction types and flavors
+        * ghandi: according to Ghandi et al. Phys.Rev.D58:093009,1998
+            only one cross-section for all interactions and flavors
+        * csms: A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
+
+    Returns
+    -------
+    L_int: float
+        interaction length
 
     """
     m_n = constants.m_p * units.kg  # nucleon mass, assuming proton mass
