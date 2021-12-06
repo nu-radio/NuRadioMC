@@ -6,13 +6,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v2.4.0
-        
+      - uses: actions/checkout@v2.4.0        
       - name: Set up Python 3.7
         uses: actions/setup-python@v2
         with:
           python-version: 3.7
+      - name: git pull
+        run: git pull
 
       ##TODO: replace the below with the poetry installation, once it is merged
       - name: Cache pip
