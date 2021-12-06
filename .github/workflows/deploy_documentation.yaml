@@ -11,8 +11,6 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.7
-      - name: git pull
-        run: git pull
 
       ##TODO: replace the below with the poetry installation, once it is merged
       - name: Cache pip
@@ -53,6 +51,23 @@ jobs:
       - name: Install documentation dependencies
         run: |
           pip install sphinx sphinx_rtd_theme numpydoc --user
+
+      - name: Debugging
+        run: |
+          echo checking git status...
+          git status
+          echo show last 3 commits
+          git log -n 3
+          echo show list of files modified wrt develop
+          git diff origin/develop --name-only
+          echo checking PYTHONPATH
+          echo $PYTHONPATH
+          echo checking current directory
+          echo $(pwd)
+          echo checking NuRadioReco folder structure
+          echo $(ls NuRadioReco)
+          echo checking NuRadioMC folder structure
+          echo $(ls NuRadioMC)
 
       - name: Build Documentation
         run: |
