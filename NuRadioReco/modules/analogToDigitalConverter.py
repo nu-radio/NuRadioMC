@@ -166,9 +166,9 @@ class analogToDigitalConverter:
     If the ADC is used for triggering and the user does not want to modify the
     trace, the function get_digital_trace can be used. If there are two different
     ADCs for the same channel, one for triggering and another one for storing,
-    one can define a trigger ADC adding "trigger_" to every relevant ADC field
-    in the detector configuration, and use them setting trigger_adc to True in
-    get_digital_trace.
+    one can define a trigger ADC adding `"trigger_"` to every relevant ADC field
+    in the detector configuration, and use them setting `trigger_adc` to True in
+    `get_digital_trace`.
 
     """
 
@@ -204,7 +204,7 @@ class analogToDigitalConverter:
             If supplied, overrides adc_reference_voltage as supplied in the detector description file
         trigger_adc: bool
             If True, the relevant ADC parameters in the config file are the ones
-            that start with 'trigger_'
+            that start with `'trigger_'`
         random_clock_offset: bool
             If True, a random clock offset between -1 and 1 clock cycles is added
         adc_type: string

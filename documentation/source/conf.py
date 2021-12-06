@@ -222,18 +222,18 @@ numpydoc_class_members_toctree = False
 # coverage_ignore_modules
 
 
-autodoc_mock_imports = ['ROOT', 'mysql-python', 'pygdsm', 'MySQLdb', 'healpy']
+autodoc_mock_imports = ['ROOT', 'mysql-python', 'pygdsm', 'MySQLdb', 'healpy', 'scripts']
 # Raise warnings if any cross-references are broken
 nitpicky = True
 
-def skip_modules(app, what, name, obj, skip, options):
-    if skip: # we ignore anything autodoc is configured to ignore
-        return skip
-    exclusions = [
-        '[/\]setup', '[ET][0-9][0-9]*'
-    ]
-    # print(name, what)
-    return any([fnmatch.fnmatch(name, pat) for pat in exclusions])
+# def skip_modules(app, what, name, obj, skip, options):
+#     if skip: # we ignore anything autodoc is configured to ignore
+#         return skip
+#     exclusions = [
+#         '[/\]setup', '[ET][0-9][0-9]*'
+#     ]
+#     # print(name, what)
+#     return any([fnmatch.fnmatch(name, pat) for pat in exclusions])
 
-def setup(app):
-    app.connect('autodoc-skip-member', skip_modules)
+# def setup(app):
+#     app.connect('autodoc-skip-member', skip_modules)
