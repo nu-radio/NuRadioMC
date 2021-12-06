@@ -91,6 +91,7 @@ class showerParameters(Enum):
     shower_maximum = 9  # position of shower maximum in slant depth, e.g., Xmax
     distance_shower_maximum_geometric = 10  # distance to xmax in meter
     distance_shower_maximum_grammage = 11  # distance to xmax in g / cm^2
+    parent_id = 12 # id of parent in sim particles
 
     # dedicated parameter for sim showers
     refractive_index_at_ground = 100  # refractivity at sea level
@@ -108,6 +109,78 @@ class showerParameters(Enum):
     k_L = 110  # the k_L parameter of the Alvarez2009 parameter that controls the longitudional width of the charge excess profile
     flavor = 111  # the flavor of the particle initiating the shower
 
+class particleParameters(Enum):
+    parent_id = 1 # the entry number of the parent particle, None if primary.
+    zenith = 2  # the zenith angle of the incoming neutrino direction
+    azimuth = 3  # the azimuth angle of the incoming neutrino direction
+    energy = 4  # the energy of the neutrino
+    flavor = 5  # the flavor of the neutrino, more generally the PDG code
+    vertex = 6  # the neutrino vertex position (x,y,z)
+    vertex_time = 9
+    weight = 10
+    inelasticity = 11  # inelasticity ot neutrino interaction
+    interaction_type = 12  # interaction type, e.g., cc, nc
+    n_interaction = 13 # number of interaction
+
+    cr_energy = 101  # the cosmic-ray energy
+    cr_zenith = 102  # zenith angle of the cosmic-ray incoming direction
+    cr_azimuth = 103  # azimuth angle of the cosmic-ray incoming direction
+    cr_energy_em = 104  # the electromagnetic shower energy (the cosmic ray energy that ends up in electrons, positrons and gammas)
+
+class generatorAttributes(Enum):
+    Emax = 1 # maximum simulated energy
+    Emin = 2 # minimum simulated energy
+
+    deposited = 3 # deposited energies or neutrino energies?
+
+    # fiducial volume parameters, rmin/max for circular footprint
+    fiducial_rmin = 4
+    fiducial_rmax = 5
+    #  alternatively xy min/max for rectangular footprint will be set
+    fiducial_xmin = 6
+    fiducial_xmax = 7
+    fiducial_ymin = 8
+    fiducial_ymax = 9
+
+    fiducial_zmin = 10
+    fiducial_zmax = 11
+
+    # volume parameters, rmin/max for circular footprint
+    rmin = 12
+    rmax = 13
+    # alternatively xy min/max for rectangular footprint will be set
+    xmin = 14
+    xmax = 15
+    ymin = 16
+    ymax = 17
+
+    zmin = 18
+    zmax = 19
+
+    # volume calculated from the (z r) min max or (x y z) min max parameters
+    volume = 20
+    area = 21
+
+    # simulated space angle range
+    phimax = 22
+    phimin = 23
+    thetamax = 24
+    thetamin = 25
+
+    flavors = 26 # list of simulated event flavours
+    dt = 27 # not sure the dt (time since primary vertex from proposal) is needed here.
+
+    # simulated statistics
+    n_events = 100
+    n_samples = 101
+    start_event_id = 102
+    total_number_of_events = 103
+
+    # version numbers
+    NuRadioMC_EvtGen_version = 200
+    NuRadioMC_EvtGen_version_hash = 201
+    NuRadioMC_version = 202
+    NuRadioMC_version_hash = 203
 
 class eventParameters(Enum):
     sim_config = 1  # contents of the config file that the NuRadioMC simulation was run with
