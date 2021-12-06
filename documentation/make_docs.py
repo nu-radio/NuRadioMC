@@ -70,7 +70,7 @@ if __name__ == "__main__":
         with open(logfile, 'w') as file:
             pass
         file_logger = logging.FileHandler(logfile)
-        file_logger.setLevel(logger.getEffectiveLevel)
+        file_logger.setLevel(logger.getEffectiveLevel())
         logger.addHandler(file_logger)
 
     doc_path = os.path.dirname(os.path.realpath(__file__))
