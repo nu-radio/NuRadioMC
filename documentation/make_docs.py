@@ -1,5 +1,6 @@
 import subprocess
 import os
+import sys
 import argparse
 import logging
 
@@ -61,34 +62,44 @@ error_classes = [
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('--keep_old_build', default=False, const=True, action='store_const')
+    argparser.add_argument('--no-clean', default=False, const=True, action='store_const')
     argparser.add_argument('--debug', default=False, const=True, action='store_const')
     parsed_args = argparser.parse_args()
+    if parsed_args.debug: # set up the logger to also write output to make_docs.log
+        logfile = 'make_docs.log'
+        with open(logfile, 'w') as file:
+            pass
+        file_logger = logging.FileHandler(logfile)
+        file_logger.setLevel(logger.getEffectiveLevel)
+        logger.addHandler(file_logger)
 
     doc_path = os.path.dirname(os.path.realpath(__file__))
     os.chdir(doc_path)
 
-    # create the automatic code documentation
+    # we exclude scripts, examples and tests from the code documentation,
+    # as apidoc doesn't really handle those well
+    exclude_modules = []
+    exclude_modules.append('../**/test')
+    exclude_modules.append('../**/tests')
+    exclude_modules.append('../**/scripts')
+    exclude_modules.append('../**/examples')
+    exclude_modules.append('../**/eventbrowser') 
+    exclude_modules.append('../**/setup.py')
+    exclude_modules.append('../**/CPPAnalyticRayTracing') # C code also doesn't work right now
+
+    # create the automatic code documentation with apidoc
     for module in ['NuRadioReco', 'NuRadioMC']:
         output_folder = 'source/{}/apidoc'.format(module)
         if os.path.exists(output_folder):
-            if not parsed_args.keep_old_build: # remove old apidoc folder
+            if not parsed_args.no_clean: # remove old apidoc folder
                 logger.info('Removing old apidoc folder: {}'.format(output_folder))
                 subprocess.check_output(['rm', '-rf', output_folder])
 
         module_path = '../{}/'.format(module)
-        
-        # we exclude some modules from the documentation
-        exclude_modules = [
-            os.path.join(module_path, exclude_module, '*')
-            for exclude_module in ['examples', 'eventbrowser']
-        ]
-        # we also exclude example / tutorial scripts, which look like 
-        # E01filename.py or T01filename.py
-        exclude_modules.append('**/[ET][0-9][0-9]*')
-        exclude_modules.append('**/setup.py')
 
-        subprocess.check_output(
+        logger.info("Creating automatic documentation files with apidoc:")
+        logger.info("excluding modules: {}".format(exclude_modules))
+        subprocess.call(
             [
                 'sphinx-apidoc', '-efMT', '--ext-autodoc', '--ext-intersphinx',
                 '--ext-coverage', '--ext-githubpages', '-o', output_folder,
@@ -100,26 +111,18 @@ if __name__ == "__main__":
         subprocess.check_output([
             'rm', os.path.join(output_folder, '{}.rst'.format(module))])
 
-    if not parsed_args.keep_old_build:
+    if not parsed_args.no_clean:
         logger.info('Removing old \'build\' directory...')
         subprocess.check_output(['make', 'clean'])
-    sphinx_log = subprocess.run(['make', 'html'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    sphinx_log = subprocess.run(['make', 'html'], stderr=subprocess.PIPE) # stdout=subprocess.PIPE,
 
     errs = sphinx_log.stderr.decode().split('\n')
-    output = sphinx_log.stdout.decode().split('\n')
+    # output = sphinx_log.stdout.decode().split('\n')
 
-    # error_dict = dict()
-    # classified_errs = []
-    # for error_class in error_classes:
-    #     error_name, match_str = error_class
-    #     error_dict[error_name] = filter_errs(errs, match_str, include_line_numbers=True)
-    #     err_ids = [k[0] for k in error_dict[error_name]]
-    #     logger.info("{}: found {} errors".format(error_name, len(err_ids)))
-    
-    # other_errs = [errs[i] for i in range(len(errs))]
     # broken cross-references. We ignore warnings originating from docstrings
     match_str = 'reference target not found|undefined label'
     xref_errs = filter_errs(errs, match_str)
+    xref_errs_in_docstrings = filter_errs(xref_errs, 'docstring')
     xref_tofix = filter_errs(errs, match_str, exclude='docstring')
     logger.info('{} broken xrefs, of which {} outside docstrings'.format(len(xref_errs), len(xref_tofix)))
 
@@ -157,13 +160,9 @@ if __name__ == "__main__":
     logger.info(
         '{} toctree errors (missing document or missing entry)'.format(len(toctree_errs))
     )
-
-    print('\n'.join(output[-4:])) # prints the last 4 lines of stdout
     
-
-
     all_errs = (
-        ['[reference target not found]'] + xref_errs 
+        ['[reference target not found]'] + xref_tofix # we exclude broken xrefs in docstrings
         + ['[title underline too short]'] + [k for j in section_errs for k in j]
         + ['[stub file not found]'] + stub_errs 
         + ['[unexpected section title]'] + [k for j in unexpected_title_errs for k in j]
@@ -171,17 +170,37 @@ if __name__ == "__main__":
         + ['[indentation]'] + indentation_errs
         + [err_sections[6]] + toctree_errs
     )
-    other_errs = [err for err in errs if err not in all_errs]
+
+    other_errs = [
+        err for err in errs 
+        if (err not in all_errs) & (err not in xref_errs)
+    ]
+
+    fixable_errors = (len(all_errs) > len(err_sections))
+
+    if fixable_errors:
+        logger.warning("The documentation was not built without errors. Please fix the following errors!")
+        print('\n'.join(all_errs))
+    elif len(other_errs):
+        logger.warning((
+            "make_docs found some errors but doesn't know what to do with them.\n"
+            "The documentation will not be rejected, but consider fixing the following anyway:"
+            ))
+        print('\n'.join(other_errs))
 
     if parsed_args.debug:
-        logfile = 'make_docs.log'
         logger.info('Logging output under {}'.format(logfile))
         with open(logfile, 'w') as file:
-            file.write('[stdout]\n')
-            file.write('\n'.join(output))
+            # file.write('[stdout]\n')
+            # file.write('\n'.join(output))
+            # file.write('\n')
+            file.write('[broken references in docstrings] # these can be ignored\n')
+            file.write('\n'.join(xref_errs_in_docstrings))
             file.write('\n')
             file.write('\n'.join(all_errs))
             file.write('\n')
             file.write('[other]\n')
             file.write('\n'.join(other_errs))
     
+    if fixable_errors:
+        sys.exit(1)
