@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@2.4.0 # get the develop branch
+      - uses: actions/checkout@v2.4.0 # get the develop branch
         with:
           ref: 'refs/heads/develop'
       - uses: actions/checkout@v2.4.0        
