@@ -1,0 +1,35 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+          - name: Checkout 🛎️
+            uses: actions/checkout@v2.3.1
+
+          - name: Install dependencies
+            run: |
+              sudo apt-get install python3-sphinx
+              python -m pip install --upgrade pip
+              pip install sphinx_rtd_theme --user
+
+          - name: Build Documentation
+            run: |
+              cd documentation/
+              make html
+
+          - name: No Jekyll
+            run: |
+              touch documentation/build/html/.nojekyll
+
+
+          - name: Deploy 🚀
+            uses: JamesIves/github-pages-deploy-action@4.1.6
+            with:
+              branch: gh-pages # The branch the action should deploy to.
+              folder: documentation/build/html # The folder the action should deploy.
