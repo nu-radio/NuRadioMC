@@ -6,6 +6,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@develop # get the develop branch
       - uses: actions/checkout@v2.4.0        
       - name: Set up Python 3.7
         uses: actions/setup-python@v2
@@ -34,10 +35,6 @@ jobs:
           #unzip /tmp/radiotools.zip
           #mv radiotools-master radiotools
           #export PYTHONPATH=$PWD/radiotools
-          wget https://github.com/nu-radio/NuRadioReco/archive/refactor-pa.zip -O /tmp/NuRadioReco.zip
-          unzip /tmp/NuRadioReco.zip
-          mv NuRadioReco-refactor-pa/NuRadioReco $PWD/NuRadioReco
-          export PYTHONPATH=$PYTHONPATH:$PWD
           #wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
           #mkdir -p $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn
           #mv createLPDA_100MHz_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
