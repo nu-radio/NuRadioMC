@@ -66,9 +66,7 @@ def covariance(function, vmin, up, fast=False):
 
     The fast alternative is to invert the hessian matrix at the minimum.
 
-    Author
-    ------
-    Hans Dembinski <hans.dembinski@kit.edu>
+    Author: Hans Dembinski <hans.dembinski@kit.edu>
     """
 
     from scipy.optimize import brentq
@@ -277,7 +275,7 @@ class voltageToAnalyticEfieldConverter:
         run method. This function is executed for each event
 
         Parameters
-        ---------
+        ----------
         evt
         station
         det

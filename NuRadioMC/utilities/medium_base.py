@@ -25,7 +25,7 @@ class IceModel():
         The latter can be added using the `add_reflective_layer` function.
 
         Parameters
-        ---------
+        ----------
         z_air_boundary:  float, NuRadio length units
                          z coordinate of the surface of the glacier
         z_bottom:  float, NuRadio length units
@@ -39,7 +39,7 @@ class IceModel():
         function which adds a reflective bottom to your ice model
 
         Parameters
-        ---------
+        ----------
         refl_z:  float, NuRadio length units
                  z coordinate of the bottom reflective layer
         refl_coef:  float between 0 and 1
@@ -61,12 +61,12 @@ class IceModel():
         Reimplement everytime in the specific model
 
         Parameters
-        ---------
+        ----------
         position:  3dim np.array
                     point
 
-        Returns:
-        --------
+        Returns
+        -------
         n:  float
             index of refraction
         """
@@ -152,7 +152,7 @@ class IceModelSimple(IceModel):
         profiles also
 
         Parameters
-        ---------
+        ----------
         z_air_boundary:  float, NuRadio length units
                          z coordinate of the surface of the glacier
         z_bottom:  float, NuRadio length units
@@ -180,12 +180,12 @@ class IceModelSimple(IceModel):
         Overwrites function of the mother class
 
         Parameters
-        ---------
+        ----------
         position:  3dim np.array
                     point
 
-        Returns:
-        --------
+        Returns
+        -------
         n:  float
             index of refraction
         """
@@ -378,8 +378,8 @@ if radiopropa_is_imported:
             a discontinuity in refractive index, observers ...) of the ice 
             to the dictionary
 
-            Parameter
-            -------
+            Parameters
+            ----------
             name:   string
                     name to identify the module  
             module: radiopropa.Module (and all the daugther classes)
@@ -397,8 +397,8 @@ if radiopropa_is_imported:
             a discontinuity in refractive index, observers ...) of the ice 
             to the dictionary
 
-            Parameter
-            -------
+            Parameters
+            ----------
             name:   string
                     name to identify the module to be removed
             """
@@ -411,8 +411,8 @@ if radiopropa_is_imported:
             a discontinuity in refractive index, observers ...) of the ice 
             to the dictionary
 
-            Parameter
-            -------
+            Parameters
+            ----------
             name:   string
                     name to identify the module to be replaced
             module: radiopropa.Module (and all the daugther classes)
@@ -428,8 +428,8 @@ if radiopropa_is_imported:
             a discontinuity in refractive index, observers ...) of the ice 
             to the dictionary
 
-            Parameter
-            -------
+            Parameters
+            ----------
             scalar_field: radiopropa.ScalarField
                           scalar field that holds the refractive index to use in radiopropa
             """
@@ -450,12 +450,12 @@ if radiopropa_is_imported:
             returns the index of refraction at position for radiopropa tracer
 
             Parameters
-            ---------
+            ----------
             position:   radiopropa.Vector3d
                         point
 
-            Returns:
-            --------
+            Returns
+            -------
             n:  float
                 index of refraction
             """

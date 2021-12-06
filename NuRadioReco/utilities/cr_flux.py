@@ -16,7 +16,7 @@ def get_measured_data(type='data_auger_19'):
     Helper function get data points in NuRadio base units
 
     Parameters
-    ---------
+    ----------
     type: string
         choose between data_auger_19 and data_TA_21
     Returns
@@ -62,7 +62,7 @@ def get_interpolated_cr_flux(log10_energy, type='data_auger_19'):
     Evaluates the scipy interpolation of the measured data at a given energy
 
     Parameters
-    ---------
+    ----------
     log10_energy: float
         energies (in log10(E / eV)))
     type: string
@@ -80,7 +80,7 @@ def get_interpolated_cr_flux(log10_energy, type='data_auger_19'):
 def get_analytic_cr_flux(log10_energy, type="auger_19"):
     """
     Parameters
-    ---------
+    ----------
     log10_energy: float
         energies (in log10(E / eV)))
 
@@ -136,7 +136,7 @@ def get_flux_per_energy_bin(log10e_min, log10e_max, type='auger_19'):
     Returns an scipy integration of the measured data or the analytic spectrum over given interval.
 
     Parameters
-    ---------
+    ----------
     log10e_min: float
         Input energy lower bound (in log10(E / eV)))
     log10e_max: float
@@ -167,7 +167,7 @@ def get_cr_event_rate(log10energy=18, zenith=50*units.deg, a_eff=1, type="auger_
     The flux is calculated with the analytic spectrum.
 
     Parameters
-    ---------
+    ----------
     log10energy: float
         energy in units log10(energy/eV)
     zenith: float
@@ -198,7 +198,7 @@ def plot_measured_spectrum(ax=None, scale=2.7, type='data_auger_19',
     Plot measured spectrum. Attention: time unit is year instead of ns.
 
     Parameters
-    ---------
+    ----------
     ax:
         axis on which the data is plotted
     scale:
