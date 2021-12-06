@@ -15,7 +15,9 @@ import NuRadioMC.utilities.medium
 import NuRadioReco.framework.base_trace
 import argparse
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(
+    'Run the IFT electric field reconstruction.'
+)
 parser.add_argument(
     '--input_file',
     type=str,

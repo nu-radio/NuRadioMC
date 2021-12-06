@@ -36,8 +36,8 @@ noise_level = args.noise_level * units.mV
 sampling_rate = 5. * units.GHz
 
 """
-IDs of the channels to be used for the vertex reconstruction. The shorter list saves time, but results may be less accurate.
-The commented-out list contains all usable channels.
+IDs of the channels to be used for the vertex reconstruction, assuming you used the RNO-G detector description set as
+the default. The shorter list saves time, but results may be less accurate.
 """
 # vertex_channel_ids = [0, 1, 6, 7, 8, 9, 21]
 vertex_channel_ids = [0, 1, 2, 3, 6, 7, 8, 9, 10, 21, 22]
@@ -100,8 +100,6 @@ vertex_reconstructor.begin(
 
 for i_event, event in enumerate(event_reader.run()):
     print('Event {}, ID={}, Run={}'.format(i_event, event.get_id(), event.get_run_number()))
-    if i_event >= 10:
-        break
     station = event.get_station(11)
     station.set_is_neutrino()
     noise_adder.run(event, station, det, amplitude=noise_level, type='rayleigh')
