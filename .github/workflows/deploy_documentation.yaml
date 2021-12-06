@@ -9,12 +9,49 @@ jobs:
           - name: Checkout 🛎️
             uses: actions/checkout@v2.3.1
 
+          - name: Set up Python 3.7
+            uses: actions/setup-python@v2
+            with:
+              python-version: 3.7
+
+          ##TODO: replace the below with the poetry installation, once it is merged
+          - name: Cache pip
+            uses: actions/cache@v2
+            with:
+              # This path is specific to Ubuntu
+              path: ~/.cache/pip
+              # Look to see if there is a cache hit for the corresponding requirements file
+              key: ${{ runner.os }}-pip-${{ hashFiles('NuRadioMC/test/requirements.txt') }}
+              restore-keys: |
+                ${{ runner.os }}-pip-
+                ${{ runner.os }}-
           - name: Install dependencies
             run: |
-              sudo apt-get install python3-sphinx
+              sudo apt-get install libgsl-dev
               python -m pip install --upgrade pip
-              pip install sphinx_rtd_theme --user
-              pip install numpydoc --user
+              pip install flake8 pytest
+              export GSLDIR=$(gsl-config --prefix)
+              if [ -f NuRadioMC/test/requirements.txt ]; then pip install -r NuRadioMC/test/requirements.txt; fi
+              #wget https://github.com/nu-radio/radiotools/archive/master.zip -O /tmp/radiotools.zip
+              #unzip /tmp/radiotools.zip
+              #mv radiotools-master radiotools
+              #export PYTHONPATH=$PWD/radiotools
+              wget https://github.com/nu-radio/NuRadioReco/archive/refactor-pa.zip -O /tmp/NuRadioReco.zip
+              unzip /tmp/NuRadioReco.zip
+              mv NuRadioReco-refactor-pa/NuRadioReco $PWD/NuRadioReco
+              export PYTHONPATH=$PYTHONPATH:$PWD
+              #wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
+              #mkdir -p $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn
+              #mv createLPDA_100MHz_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
+              #wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/bicone_v8_InfFirn/bicone_v8_InfFirn.pkl
+              #mkdir -p $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn
+              #mv bicone_v8_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
+              export PYTHONPATH=$PWD:$PYTHONPATH
+          ### end TODO
+
+          - name: Install documentation dependencies
+            run: |
+              pip install sphinx sphinx_rtd_theme numpydoc --user
 
           - name: Build Documentation
             run: |
