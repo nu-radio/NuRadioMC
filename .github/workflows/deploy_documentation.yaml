@@ -14,6 +14,7 @@ jobs:
               sudo apt-get install python3-sphinx
               python -m pip install --upgrade pip
               pip install sphinx_rtd_theme --user
+              pip install numpydoc --user
 
           - name: Build Documentation
             run: |
