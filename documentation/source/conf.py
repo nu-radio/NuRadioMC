@@ -222,7 +222,10 @@ numpydoc_class_members_toctree = False
 # coverage_ignore_modules
 
 
-autodoc_mock_imports = ['ROOT', 'mysql-python', 'pygdsm', 'MySQLdb', 'healpy', 'scripts']
+autodoc_mock_imports = [
+    'ROOT', 'mysql-python', 'pygdsm', 'MySQLdb', 'healpy', 'scripts',
+    'uproot', 'proposal', 'radiopropa', 'plotly', 'past'
+    ]
 # Raise warnings if any cross-references are broken
 nitpicky = True
 
