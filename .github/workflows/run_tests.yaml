@@ -69,11 +69,6 @@ jobs:
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         NuRadioMC/test/SingleEvents/validate_ARZ.sh
-    - name: Single event test (emitter)
-      run: |
-        export PYTHONPATH=$PWD:$PYTHONPATH
-        export GSLDIR=$(gsl-config --prefix)
-        NuRadioMC/test/emitter/run_test.sh
     - name: Test Numba version of ARZ
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
@@ -101,7 +96,7 @@ jobs:
         export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
         pip install proposal==6.1.6
-        NuRadioMC/test/examples/test_cal_pulser_example.sh
+        NuRadioMC/test/examples/test_emitter_example.sh
     - name: "Test radio emitter pulser example"
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
