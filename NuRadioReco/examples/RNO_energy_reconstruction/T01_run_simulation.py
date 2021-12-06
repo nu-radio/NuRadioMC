@@ -31,11 +31,11 @@ noise_adder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAd
 noise_adder.begin()
 noise_level = args.noise_level * units.mV
 
+
 class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
         hardware_response.run(evt, station, det, sim_to_data=True)
-        # noise_adder.run(evt, station, det, amplitude=noise_level, type='rayleigh')
 
     def _detector_simulation_trigger(self, evt, station, det):
         highLowThreshold.run(evt, station, det,
@@ -45,6 +45,7 @@ class mySimulation(simulation.simulation):
                                     number_concidences=2,  # 2/4 majority logic
                                     trigger_name='main_trigger'
                              )
+
 
 sim = mySimulation(
     inputfilename=args.input_file,

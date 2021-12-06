@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from NuRadioReco.framework.parameters import showerParameters as shp
-from NuRadioReco.framework.parameters import stationParameters as stnp
 import NuRadioReco.modules.neutrinoEnergyReconstructor
 import NuRadioMC.utilities.medium
 import NuRadioReco.modules.io.eventReader
@@ -51,6 +50,7 @@ for event in event_reader.run():
 
     sim_energy = 0
     interaction_type = None
+    nu_flavor = None
     for sim_shower in event.get_sim_showers():
         print(sim_shower.get_parameter(shp.flavor))
         sim_energy += sim_shower.get_parameter(shp.energy)

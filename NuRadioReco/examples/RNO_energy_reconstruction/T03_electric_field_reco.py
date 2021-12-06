@@ -13,7 +13,6 @@ import NuRadioReco.modules.channelPulseFinderSimulator
 from NuRadioReco.utilities import units, bandpass_filter
 import NuRadioMC.utilities.medium
 import NuRadioReco.framework.base_trace
-import glob
 import argparse
 
 parser = argparse.ArgumentParser()

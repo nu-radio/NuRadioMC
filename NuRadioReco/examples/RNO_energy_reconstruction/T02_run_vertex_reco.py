@@ -7,7 +7,6 @@ import NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstru
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units, bandpass_filter
-
 import NuRadioReco.framework.base_trace
 import argparse
 
