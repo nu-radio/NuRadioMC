@@ -64,8 +64,8 @@ class Detector(object):
         self.__buffered_period = None
 
         # just for testing
-        logger.info("setting detector time to current time")
-        self.update(datetime.datetime.now())
+        # logger.info("setting detector time to current time")
+        # self.update(datetime.datetime.now())
 
 
 
