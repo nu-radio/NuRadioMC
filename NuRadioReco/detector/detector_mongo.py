@@ -21,7 +21,7 @@ logger.setLevel(logging.DEBUG)
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class Detector(object):
 
-    def __init__(self, database_connection="test"):
+    def __init__(self, database_connection="env_pw_user"):
 
         if database_connection == "local":
             MONGODB_URL = "localhost"
@@ -46,7 +46,7 @@ class Detector(object):
                 logger.warning('"mongo_user" or "mongo_password" not set')
             # start client
             self.__mongo_client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
-            self.db = self.__mongo_client.RNOG_live
+            self.db = self.__mongo_client.RNOG_test
         elif database_connection == "test":
             self.__mongo_client = MongoClient("mongodb+srv://RNOG_test:TTERqY1YWBYB0KcL@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
             self.db = self.__mongo_client.RNOG_test
@@ -1176,3 +1176,8 @@ def get_measurement_from_buffer(hardware_db, S_parameter="S21", channel_id=None)
     if len(measurements)>1:
         print("WARNING: more than one match for requested measurement found")
     return measurements
+
+
+# if __name__ == "__main__":
+#     test = sys.argv[1]
+#     det = Detector(test)
