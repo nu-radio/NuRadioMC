@@ -8,13 +8,12 @@ import base64
 from io import StringIO
 import csv
 
-from NuRadioReco.detector import detector_mongo as det
+from NuRadioReco.detector.detector_mongo import det
 from NuRadioReco.detector.webinterface.utils.cable_helper import validate_Sdata, plot_Sparameters, sparameters_layout
 from NuRadioReco.detector.webinterface.utils.table import get_table
 from NuRadioReco.detector.webinterface.utils.units import str_to_unit
 from NuRadioReco.detector.webinterface.app import app
 
-# det = detector_mongo.Detector()
 
 table_name = "CABLE"
 
