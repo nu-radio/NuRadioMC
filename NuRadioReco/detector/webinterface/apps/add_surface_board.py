@@ -18,7 +18,7 @@ from NuRadioReco.detector.webinterface.utils.table import get_table
 from NuRadioReco.detector.webinterface.utils.units import str_to_unit
 from NuRadioReco.detector.webinterface.app import app
 
-det = detector_mongo.Detector()
+# det = detector_mongo.Detector()
 
 number_of_channels = 5  # define number of channels for surface board
 table_name = "SURFACE"

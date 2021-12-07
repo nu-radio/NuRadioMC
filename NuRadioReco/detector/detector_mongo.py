@@ -18,57 +18,64 @@ logger = logging.getLogger("database")
 logger.setLevel(logging.DEBUG)
 
 
-@six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
-class Detector(object):
-
-    def __init__(self, database_connection="env_pw_user"):
-
-        if database_connection == "local":
-            MONGODB_URL = "localhost"
-            self.__mongo_client = MongoClient(MONGODB_URL)
-            self.db = self.__mongo_client.RNOG_live
-        elif database_connection == "env_url":
-            # connect to MongoDB, change the << MONGODB_URL >> to reflect your own connection string
-            MONGODB_URL = os.environ.get('MONGODB_URL')
-            if MONGODB_URL is None:
-                logger.warning('MONGODB_URL not set, defaulting to "localhost"')
-                MONGODB_URL = 'localhost'
-            self.__mongo_client = MongoClient(MONGODB_URL)
-            self.db = self.__mongo_client.RNOG_live
-        elif database_connection == "env_pw_user":
-            # use db connection from environment, pw and user need to be percent escaped
-            mongo_password = urllib.parse.quote_plus(os.environ.get('mongo_password'))
-            mongo_user = urllib.parse.quote_plus(os.environ.get('mongo_user'))
-            mongo_server = os.environ.get('mongo_server')
-            if mongo_server is None:
-                logger.warning('variable "mongo_server" not set')
-            if None in [mongo_user, mongo_server]:
-                logger.warning('"mongo_user" or "mongo_password" not set')
-            # start client
-            self.__mongo_client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
-            self.db = self.__mongo_client.RNOG_test
-        elif database_connection == "test":
-            self.__mongo_client = MongoClient("mongodb+srv://RNOG_test:TTERqY1YWBYB0KcL@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
-            self.db = self.__mongo_client.RNOG_test
-        elif database_connection == "RNOG_public":
-            self.__mongo_client = MongoClient("mongodb+srv://RNOG_read:7-fqTRedi$_f43Q@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
-            self.db = self.__mongo_client.RNOG_live
-        else:
-            logger.error('specify a defined database connection ["local", "env_url", "env_pw_user", "test"]')
-
-        logger.info("database connection to {} established".format(self.db.name))
-
-        self.__current_time = None
-
-        self.__modification_timestamps = self._query_modification_timestamps()
-        self.__buffered_period = None
-
-        # just for testing
-        logger.info("setting detector time to current time")
-        self.update(datetime.datetime.now())
-    # TODO do we need this?
-    #def __error(self, frame):
-    #    pass
+# @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
+# class Detector(object):
+#
+#     def __init__(self, database_connection="env_pw_user"):
+#
+#         if database_connection == "local":
+#             MONGODB_URL = "localhost"
+#             self.__mongo_client = MongoClient(MONGODB_URL)
+#             self.db = self.__mongo_client.RNOG_live
+#         elif database_connection == "env_url":
+#             # connect to MongoDB, change the << MONGODB_URL >> to reflect your own connection string
+#             MONGODB_URL = os.environ.get('MONGODB_URL')
+#             if MONGODB_URL is None:
+#                 logger.warning('MONGODB_URL not set, defaulting to "localhost"')
+#                 MONGODB_URL = 'localhost'
+#             self.__mongo_client = MongoClient(MONGODB_URL)
+#             self.db = self.__mongo_client.RNOG_live
+#         elif database_connection == "env_pw_user":
+#             # use db connection from environment, pw and user need to be percent escaped
+#             mongo_password = urllib.parse.quote_plus(os.environ.get('mongo_password'))
+#             mongo_user = urllib.parse.quote_plus(os.environ.get('mongo_user'))
+#             mongo_server = os.environ.get('mongo_server')
+#             if mongo_server is None:
+#                 logger.warning('variable "mongo_server" not set')
+#             if None in [mongo_user, mongo_server]:
+#                 logger.warning('"mongo_user" or "mongo_password" not set')
+#             # start client
+#             self.__mongo_client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
+#             self.db = self.__mongo_client.RNOG_test
+#         elif database_connection == "test":
+#             self.__mongo_client = MongoClient("mongodb+srv://RNOG_test:TTERqY1YWBYB0KcL@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
+#             self.db = self.__mongo_client.RNOG_test
+#         elif database_connection == "RNOG_public":
+#             self.__mongo_client = MongoClient("mongodb+srv://RNOG_read:7-fqTRedi$_f43Q@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
+#             self.db = self.__mongo_client.RNOG_live
+#         else:
+#             logger.error('specify a defined database connection ["local", "env_url", "env_pw_user", "test"]')
+#
+#         logger.info("database connection to {} established".format(self.db.name))
+#
+#         self.__current_time = None
+#
+#         self.__modification_timestamps = self._query_modification_timestamps()
+#         self.__buffered_period = None
+#
+#         # just for testing
+#         logger.info("setting detector time to current time")
+#         self.update(datetime.datetime.now())
+mongo_password = urllib.parse.quote_plus(os.environ.get('mongo_password'))
+mongo_user = urllib.parse.quote_plus(os.environ.get('mongo_user'))
+mongo_server = os.environ.get('mongo_server')
+if mongo_server is None:
+    logging.warning('variable "mongo_server" not set')
+if None in [mongo_user, mongo_server]:
+    logging.warning('"mongo_user" or "mongo_password" not set')
+# start client
+client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
+db = client.RNOG_test
 
     def update(self, timestamp):
         logger.info("updating detector time to {}".format(timestamp))
