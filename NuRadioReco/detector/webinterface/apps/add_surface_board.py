@@ -12,7 +12,7 @@ import csv
 import base64
 from datetime import datetime
 
-from NuRadioReco.detector import detector_mongo
+from NuRadioReco.detector import detector_mongo as det
 from NuRadioReco.detector.webinterface.utils.sparameter_helper import validate_Sdata, update_dropdown_amp_names, enable_board_name_input, plot_Sparameters, sparameters_layout
 from NuRadioReco.detector.webinterface.utils.table import get_table
 from NuRadioReco.detector.webinterface.utils.units import str_to_unit
