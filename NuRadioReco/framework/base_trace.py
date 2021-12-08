@@ -169,23 +169,13 @@ class BaseTrace:
         if sampling_rate == self.get_sampling_rate():
             return
         resampling_factor = fractions.Fraction(decimal.Decimal(sampling_rate / self.get_sampling_rate())).limit_denominator(5000)
-        if self.get_trace().ndim == 1:
-            trace = self.get_trace()
-            if (resampling_factor.numerator != 1):
-                trace = scipy.signal.resample(trace, resampling_factor.numerator * self.get_number_of_samples())
-            if (resampling_factor.denominator != 1):
-                trace = scipy.signal.resample(trace, len(trace) // resampling_factor.denominator)
-            resampled_trace = trace
-        else:
-            new_length = int(self.get_trace().shape[1] * resampling_factor)
-            resampled_trace = np.zeros((self.get_trace().shape[0], new_length))  # create new data structure with new efield length
-            for i_pol in range(self.get_trace().shape[0]):
-                trace = self.get_trace()[i_pol]
-                if (resampling_factor.numerator != 1):
-                    trace = scipy.signal.resample(trace, resampling_factor.numerator * len(trace))
-                if (resampling_factor.denominator != 1):
-                    trace = scipy.signal.resample(trace, len(trace) // resampling_factor.denominator)
-                resampled_trace[i_pol] = trace
+
+        resampled_trace = self.get_trace()
+        if resampling_factor.numerator != 1:
+            resampled_trace = scipy.signal.resample(resampled_trace, resampling_factor.numerator * self.get_number_of_samples(), axis=-1)
+        if resampling_factor.denominator != 1:
+            resampled_trace = scipy.signal.resample(resampled_trace, np.shape(resampled_trace)[-1] // resampling_factor.denominator, axis=-1)
+
         if resampled_trace.shape[-1] % 2 != 0:
             resampled_trace = resampled_trace.T[:-1].T
         self.set_trace(resampled_trace, sampling_rate)
