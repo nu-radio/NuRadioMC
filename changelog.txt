@@ -15,8 +15,8 @@ calculation of the cable delays
 bugfixes:
 - correct volume extension depending on zenith angle range when running with
 secondaries
-- corrected get_hilbert_envelope in BaseTrace to actually return the Hilbert
-envelope
+- corrected get_hilbert_envelope(_mag) in BaseTrace to actually return the
+Hilbert envelope and simplified resamle function
 
 version 2.0.1
 new features:
