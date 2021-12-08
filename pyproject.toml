@@ -5,13 +5,15 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "NuRadioMC"
 version = "2.1.0"
-authors = ["Christian Glaser"]
+authors = ["Christian Glaser et al."]
 homepage = "https://github.com/nu-radio/NuRadioMC"
 license = "GPL-3.0-or-later"
 packages = [
     {include = "NuRadioMC"},
     {include = "NuRadioReco"}
 ]
+readme = "README.md"
+include = ["changelog.txt"]
 description = "A Monte Carlo simulation package for radio neutrino detectors and reconstruction framework for radio detectors of high-energy neutrinos and cosmic-rays."
 # classifiers = ["License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"]
 
@@ -30,11 +32,29 @@ h5py = "*"
 peakutils = "*"
 pymongo = "*"
 pyyaml = "*"
-sphinx = "*"
-uproot = "4.1.1"
 awkward = "*"
 python = "^3.6"
-# proposal = {version="6.1.6", optional=true}
 matplotlib = "*"
 toml = ">=0.10.2"
 importlib-metadata = {version = ">=4.8.1", python = "<3.8"}
+numba = "*"
+
+# pandas = {version='*', optional=True}
+
+# [tool.poetry.dev-dependencies]
+# sphinx = {version='*', comment="Required to build the documentation"}
+# sphinx-rtd-theme = {version = "*", comment="Required to build the documentation"}
+# numpydoc = {version='*', comment="Required to build the documentation"}
+# proposal = {version='6.1.6', comment="Required to use proposal simulation"}
+# uproot = {version="4.1.4", comment="Required to read RNO-G data files"}
+[tool.poetry.dev-dependencies]
+Sphinx = "*"
+sphinx-rtd-theme = "*"
+numpydoc = "*"
+proposal = "6.1.6"
+uproot = "4.1.1"
+
+[tool.poetry.extras]
+documentation = ["Sphinx", "sphinx-rtd-theme", "numpydoc"]
+proposal = ["proposal"]
+rnog_root_data = ["uproot"]
