@@ -30,20 +30,6 @@ jobs:
         pip install flake8 pytest
         export GSLDIR=$(gsl-config --prefix)
         if [ -f NuRadioMC/test/requirements.txt ]; then pip install -r NuRadioMC/test/requirements.txt; fi
-        #wget https://github.com/nu-radio/radiotools/archive/master.zip -O /tmp/radiotools.zip
-        #unzip /tmp/radiotools.zip
-        #mv radiotools-master radiotools
-        #export PYTHONPATH=$PWD/radiotools
-        wget https://github.com/nu-radio/NuRadioReco/archive/refactor-pa.zip -O /tmp/NuRadioReco.zip
-        unzip /tmp/NuRadioReco.zip
-        mv NuRadioReco-refactor-pa/NuRadioReco $PWD/NuRadioReco
-        export PYTHONPATH=$PYTHONPATH:$PWD
-        #wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
-        #mkdir -p $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn
-        #mv createLPDA_100MHz_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
-        #wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/bicone_v8_InfFirn/bicone_v8_InfFirn.pkl
-        #mkdir -p $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn
-        #mv bicone_v8_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
         export PYTHONPATH=$PWD:$PYTHONPATH
         
     - name: Display Python version
