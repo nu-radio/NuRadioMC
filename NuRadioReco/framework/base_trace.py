@@ -129,7 +129,7 @@ class BaseTrace:
         return np.abs(h)
 
     def get_hilbert_envelope_mag(self):
-        return np.linalg.norm(self.get_hilbert_envelope(), axis=-1)
+        return np.linalg.norm(np.atleast_2d(self.get_hilbert_envelope()), axis=0)
 
     def get_number_of_samples(self):
         """
