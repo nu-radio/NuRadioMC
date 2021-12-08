@@ -126,7 +126,7 @@ class BaseTrace:
     def get_hilbert_envelope(self):
         from scipy import signal
         h = signal.hilbert(self.get_trace())
-        return np.array([np.abs(h[0]), np.abs(h[1]), np.abs(h[2])])
+        return np.abs(h)
 
     def get_hilbert_envelope_mag(self):
         return np.linalg.norm(self.get_hilbert_envelope(), axis=0)

@@ -15,10 +15,14 @@ calculation of the cable delays
 bugfixes:
 - correct volume extension depending on zenith angle range when running with
 secondaries
+- corrected get_hilbert_envelope in BaseTrace to actually return the Hilbert
+envelope
 
 version 2.0.1
-new features
+new features:
 - Veff utility can now calculate effective volumes for fine zenith angle binning
+- Monte Carlo info introduced in .nur files via Particle and generator_info
+
 bugfixes:
 - fixed rare cases where the Cpp implementation of the analytic ray tracer did not find a solution
 
