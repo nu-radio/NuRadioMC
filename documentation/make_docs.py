@@ -120,7 +120,7 @@ if __name__ == "__main__":
     # output = sphinx_log.stdout.decode().split('\n')
 
     # broken cross-references. We ignore warnings originating from docstrings
-    match_str = 'reference target not found|undefined label'
+    match_str = 'reference target not found|undefined label|unknown document'
     xref_errs = filter_errs(errs, match_str)
     xref_errs_in_docstrings = filter_errs(xref_errs, 'docstring')
     xref_tofix = filter_errs(errs, match_str, exclude='docstring')
@@ -176,8 +176,8 @@ if __name__ == "__main__":
         if (err not in all_errs) & (err not in xref_errs)
     ]
 
-    fixable_errors = (len(all_errs) > len(err_sections))
-
+    fixable_errors = (len(all_errs) > len(err_sections) - 1)
+    
     if fixable_errors:
         logger.warning("The documentation was not built without errors. Please fix the following errors!")
         print('\n'.join(all_errs))
