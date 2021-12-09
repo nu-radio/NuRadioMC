@@ -12,6 +12,8 @@ from NuRadioReco.detector.webinterface.apps import add_Pulser
 from NuRadioReco.detector.webinterface.apps import add_HPol
 from NuRadioReco.detector.webinterface.apps import add_DAQ
 from NuRadioReco.detector.webinterface.apps import reader
+from NuRadioReco.detector.webinterface.apps import channel
+from NuRadioReco.detector.webinterface.apps import station
 from NuRadioReco.detector.webinterface.app import app
 
 # app.config.suppress_callback_exceptions = True
@@ -45,6 +47,10 @@ def display_page(pathname):
         return add_DAQ.layout
     elif pathname == '/apps/reader':
         return reader.layout
+    elif pathname == '/apps/channel':
+        return channel.layout
+    elif pathname == '/apps/station':
+        return station.layout
     else:
         return menu.layout
 

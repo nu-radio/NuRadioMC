@@ -36,5 +36,10 @@ layout = html.Div([
     dcc.Link('Add DAQ measurement (placeholder)', href='/apps/add_DAQ'),
     html.Br(),
     html.Br(),
-    dcc.Link('Read and download calibration values', href='/apps/reader')
-])
+    dcc.Link('Read and download calibration values', href='/apps/reader'),
+    html.Br(),
+    html.Br(),
+    dcc.Link('Insert Station or Channel details', href='/apps/channel'),
+    html.Br(),
+    html.Br(),
+    dcc.Link('Build a Station', href='/apps/station')])
