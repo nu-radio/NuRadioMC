@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger("cross sections")
 
 
-def param(energy, inttype='cc'):
+def param(energy, inttype='cc', parameterization='ctw'):
     """
     Parameterization and constants as used in
     get_nu_cross_section()
@@ -15,39 +15,65 @@ def param(energy, inttype='cc'):
 
     """
     if(np.any(energy < 1e4 * units.GeV)):
-        logger.warning(f"CTW neutrino nucleon cross sections not valid for energies below 1e4 GeV, ({energy/units.GeV}GeV was requested)")
+        logger.warning(f"CTW / BGR neutrino nucleon cross sections not valid for energies below 1e4 GeV, ({energy/units.GeV}GeV was requested)")
         if(hasattr(energy, "__len__")):
             return np.nan * np.ones_like(energy)
         else:
             return np.nan
 
-    if inttype == 'cc':
-        c = (-1.826, -17.31, -6.406, 1.431, -17.91)  # nu, CC
-    elif inttype == 'nc':
-        c = (-1.826, -17.31, -6.448, 1.431, -18.61)  # nu, NC
-    elif inttype == 'cc_bar':
-        c = (-1.033, -15.95, -7.247, 1.569, -17.72)  # nu_bar, CC
-    elif inttype == 'nc_bar':
-        c = (-1.033, -15.95, -7.296, 1.569, -18.30)  # nu_bar, NC
+    if parameterization == 'ctw':
+        """
+        Phys.Rev.D83:113009,2011 Amy Connolly, Robert S. Thorne, David Waters
+        """
+        if inttype == 'cc':
+            c = (-1.826, -17.31, -6.406, 1.431, -17.91)  # nu, CC
+        elif inttype == 'nc':
+            c = (-1.826, -17.31, -6.448, 1.431, -18.61)  # nu, NC
+        elif inttype == 'cc_bar':
+            c = (-1.033, -15.95, -7.247, 1.569, -17.72)  # nu_bar, CC
+        elif inttype == 'nc_bar':
+            c = (-1.033, -15.95, -7.296, 1.569, -18.30)  # nu_bar, NC
 
-    elif inttype == 'nc_up':
-        c = (-1.456, 32.23, -32.32, 5.881, -49.41)  # nu, NC
-    elif inttype == 'cc_up':
-        c = (-1.456, 33.47, -33.02, 6.026, -49.41)  # nu, CC
-    elif inttype == 'nc_bar_up':
-        c = (-2.945, 143.2, -76.70, 11.75, -142.8)  # nu_bar, NC
-    elif inttype == 'cc_bar_up':
-        c = (-2.945, 144.5, -77.44, 11.9, -142.8)  # nu_bar, CC
-    elif inttype == 'nc_down':
-        c = (-15.35, 16.16, 37.71, -8.801, -253.1)  # nu, NC
-    elif inttype == 'cc_down':
-        c = (-15.35, 13.86, 39.84, -9.205, -253.1)  # nu, CC
-    elif inttype == 'nc_bar_down':
-        c = (-13.08, 15.17, 31.19, -7.757, -216.1)  # nu_bar, NC
-    elif inttype == 'cc_bar_down':
-        c = (-13.08, 12.48, 33.52, -8.191, -216.1)  # nu_bar, CC
+        elif inttype == 'nc_up':
+            c = (-1.456, 32.23, -32.32, 5.881, -49.41)  # nu, NC
+        elif inttype == 'cc_up':
+            c = (-1.456, 33.47, -33.02, 6.026, -49.41)  # nu, CC
+        elif inttype == 'nc_bar_up':
+            c = (-2.945, 143.2, -76.70, 11.75, -142.8)  # nu_bar, NC
+        elif inttype == 'cc_bar_up':
+            c = (-2.945, 144.5, -77.44, 11.9, -142.8)  # nu_bar, CC
+        elif inttype == 'nc_down':
+            c = (-15.35, 16.16, 37.71, -8.801, -253.1)  # nu, NC
+        elif inttype == 'cc_down':
+            c = (-15.35, 13.86, 39.84, -9.205, -253.1)  # nu, CC
+        elif inttype == 'nc_bar_down':
+            c = (-13.08, 15.17, 31.19, -7.757, -216.1)  # nu_bar, NC
+        elif inttype == 'cc_bar_down':
+            c = (-13.08, 12.48, 33.52, -8.191, -216.1)  # nu_bar, CC
+        else:
+            logger.error("Type {0} of interaction not defined".format(inttype))
+            raise NotImplementedError
+    elif parameterization == 'hedis_bgr18':
+        """
+        Parameterization as above fitted to GENIE HEDIS module (with BGR18) cross sections
+        as in arXiv:2004.04756v2 (prepared for JCAP)
+        Precalculated xsec tables for 'nu_mu(_bar)_O16/tot_cc(nc)'/16 for isoscalar target
+        obtained from GHE19_00a_00_000.root in https://github.com/pochoarus/GENIE-HEDIS/tree/nupropearth/genie_xsec
+        Fitted in the energy range above 1 TeV; do not use below
+        """
+        if inttype == 'cc':
+            c = (-1.6049779136562436, -17.7480299104706, -6.748861524562085, 1.5569481852252935, -16.545379184836094)  # nu, CC
+        elif inttype == 'nc':
+            c = (-1.9625311094497564, -17.576550328008224, -6.444583672267122, 1.4702739736023922, -18.6167800243672)  # nu, NC
+        elif inttype == 'cc_bar':
+            c = (-2.28879962998228, -15.725804320703244, -5.273935123272873, 1.0314821502761589, -23.15773837113476)  # nu_bar, CC
+        elif inttype == 'nc_bar':
+            c = (-2.582585867636026, -15.742658435090945, -5.075692336968196, 0.9963850387362603, -24.870843546539973)  # nu_bar, NC
+        else:
+            logger.error("Type {0} of interaction not defined".format(inttype))
+            raise NotImplementedError
     else:
-        logger.error("Type {0} of interaction not defined".format(inttype))
+        logger.error("Parameterization {0} of interaction cross section not defined".format(parameterization))
         raise NotImplementedError
 
     epsilon = np.log10(energy / units.GeV)
