@@ -21,7 +21,7 @@ logger.setLevel(logging.DEBUG)
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class Detector(object):
 
-    def __init__(self, database_connection="env_pw_user"):
+    def __init__(self, database_connection="test"):
 
         if database_connection == "local":
             MONGODB_URL = "localhost"
