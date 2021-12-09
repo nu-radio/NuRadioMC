@@ -20,6 +20,9 @@ class planeWaveFitterRNOG:
         
         
     def begin(self, det, channel_ids = [0, 3, 9, 10], template = None):
+        """
+        Set the channel ids to be used in the plane wave fit.
+        """
         self.__channel_ids = channel_ids
         pass
 
@@ -44,12 +47,14 @@ class planeWaveFitterRNOG:
         mode: string
             How to maximize the channel-channel or channel-template
             correlations. Options:
+
             * 'add' (default): maximize the sum of all correlations
             * 'add_normalize': same as 'add', but normalize all traces first
             * 'add_normalize_correlation': same as 'add', but normalize 
-            the maximum correlation for each channel pair
+              the maximum correlation for each channel pair
             * 'multiply': maximize the product of all correlations
             * 'log': maximize the log of the product of all correlations
+
         debug: bool
             If True, produce some debug plots and save them under 
             debugplots_path
