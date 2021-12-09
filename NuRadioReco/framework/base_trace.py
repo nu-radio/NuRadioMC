@@ -125,10 +125,12 @@ class BaseTrace:
 
     def get_hilbert_envelope(self):
         from scipy import signal
+        # get hilbert envelope for either 1D (N) analytic trace or (3,N) E-field
         h = signal.hilbert(self.get_trace())
         return np.abs(h)
 
     def get_hilbert_envelope_mag(self):
+        # ensure taking axis 0 of a 2D trace (trace might be (N) for analytic trace or (3,N) for E-field
         return np.linalg.norm(np.atleast_2d(self.get_hilbert_envelope()), axis=0)
 
     def get_number_of_samples(self):
@@ -172,8 +174,10 @@ class BaseTrace:
 
         resampled_trace = self.get_trace()
         if resampling_factor.numerator != 1:
+            # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
             resampled_trace = scipy.signal.resample(resampled_trace, resampling_factor.numerator * self.get_number_of_samples(), axis=-1)
         if resampling_factor.denominator != 1:
+            # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
             resampled_trace = scipy.signal.resample(resampled_trace, np.shape(resampled_trace)[-1] // resampling_factor.denominator, axis=-1)
 
         if resampled_trace.shape[-1] % 2 != 0:
