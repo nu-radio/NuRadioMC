@@ -7,6 +7,7 @@ name = "NuRadioMC"
 version = "2.1.0"
 authors = ["Christian Glaser et al."]
 homepage = "https://github.com/nu-radio/NuRadioMC"
+documentation = "https://nu-radio.github.io/NuRadioMC/main.html"
 license = "GPL-3.0-or-later"
 packages = [
     {include = "NuRadioMC"},
