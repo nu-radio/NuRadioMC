@@ -23,7 +23,7 @@ sphericalWaveFitter.begin(channel_ids = use_channels)
 
 """ Specify the detector. """
 
-det = detector.Detector(json_filename = "../detector_description.json")
+det = detector.Detector(json_filename = "../../../detector/RNO_G/RNO_season_2021.json")
 det.update(datetime.datetime(2022, 10, 1))
 
 """ Get positions for the pulsers from the detector file as starting positions for the fit """
