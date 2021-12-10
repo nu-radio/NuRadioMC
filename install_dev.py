@@ -62,7 +62,14 @@ def convert_poetry_to_pip(reqs):
                 cond = '; python_version {}'.format(
                     convert_version_number(version['python'], to_string=True)
                 )
-            version = version['version']
+            if 'git' in version:
+                req = 'git+{}'.format(version['git'])
+                if 'branch' in version:
+                    req+='@{}'.format(version['branch'])
+            if 'version' in version:
+                version = version['version']
+            else:
+                version = '*'
         version = convert_version_number(version)
         reqs_pip.append(''.join([req, version, cond]))
     return reqs_pip
@@ -176,7 +183,7 @@ if __name__ == "__main__":
                     (key in install_dev_dependencies),
                     ('ALL' in [j.upper() for j in install_dev_dependencies])
                 ])
-                if (str(i) in install_dev_dependencies) or (key in install_dev_dependencies):
+                if install_extra:
                     install_modules += extras[key]
                     install_extras.append(key)
             

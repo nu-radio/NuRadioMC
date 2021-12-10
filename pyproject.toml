@@ -45,8 +45,13 @@ sphinx-rtd-theme = "*"
 numpydoc = "*"
 proposal = "6.1.6"
 uproot = "4.1.1"
+pygdsm = {git = "https://github.com/telegraphic/pygdsm"}
+nifty5 = {git = "https://gitlab.mpcdf.mpg.de/ift/nifty.git", branch="NIFTy_5"}
+pypocketfft = {git = "https://gitlab.mpcdf.mpg.de/mtr/pypocketfft"}
 
 [tool.poetry.extras]
 documentation = ["Sphinx", "sphinx-rtd-theme", "numpydoc"]
 proposal = ["proposal"]
 rnog_root_data = ["uproot"]
+galacticnoise = ['pygdsm']
+ift_reco = ['nifty5', 'pypocketfft']
