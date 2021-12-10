@@ -126,13 +126,14 @@ class efieldToVoltageConverter():
                     times_min.append(t0)
                     times_max.append(t0 + electric_field.get_number_of_samples() / electric_field.get_sampling_rate())
                     self.logger.debug("trace start time {}, cab_delty {}, tracelength {}".format(electric_field.get_trace_start_time(), cab_delay, electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
-        times_min = np.array(times_min)
-        times_max = np.array(times_max)
-        if times_min.min() < 0:
-            times_min -= times_min.min()
-            times_max -= times_min.min()
+        # pad event times by pre/post pulse time
         times_min = np.array(times_min) - self.__pre_pulse_time
         times_max = np.array(times_max) + self.__post_pulse_time
+        if times_min.min() < 0:
+            # move padded times (inc. padding) to start at 0
+            tfirst = times_min.min()
+            times_min -= tfirst
+            times_max -= tfirst
         trace_length = times_max.max() - times_min.min()
         trace_length_samples = int(round(trace_length / time_resolution))
         if trace_length_samples % 2 != 0:
