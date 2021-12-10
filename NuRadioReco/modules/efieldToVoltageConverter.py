@@ -185,11 +185,11 @@ class efieldToVoltageConverter():
                             antenna_position,
                             index_of_refraction
                         )
-                        start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min() + added_trace_start_offset + travel_time_shift
+                        start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min() + travel_time_shift
                         start_bin = int(round(start_time / time_resolution))
                         time_remainder = start_time - start_bin * time_resolution
                     else:
-                        start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min() + added_trace_start_offset
+                        start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min()
                         start_bin = int(round(start_time / time_resolution))
                         time_remainder = start_time - start_bin * time_resolution
                     self.logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
