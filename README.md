@@ -1,7 +1,8 @@
 # NuRadioMC/NuRadioReco
 A Monte Carlo simulation package for radio neutrino detectors and reconstruction framework for radio detectors of high-energy neutrinos and cosmic-rays
 
-Please visit the wiki at https://github.com/nu-radio/NuRadioMC/wiki for documentation.
+The documentation can be found at https://nu-radio.github.io/NuRadioMC/main.html
+Please visit the wiki at https://github.com/nu-radio/NuRadioMC/wiki for additional documentation.
 
 If you want to keep up to date, consider signing up to the following email lists:
  * user email list, will be used to announce new versions and major improvements etc. Subscribe via https://lists.uu.se/sympa/subscribe/physics-astro-nuradiomc
