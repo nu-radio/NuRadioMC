@@ -131,15 +131,16 @@ class efieldToVoltageConverter():
         times_min = np.array(times_min) - self.__pre_pulse_time
         times_max = np.array(times_max) + self.__post_pulse_time
         # track the shifting of the beginning of the trace
-        added_trace_start_offset = self.__pre_pulse_time
+        added_trace_start_offset = 0
         if times_min.min() < 0:
-            # move padded times (inc. padding) to start at 0
+            # move padded times to start at 0
             negative_trace_start = times_min.min()
             times_min -= negative_trace_start
             times_max -= negative_trace_start
             added_trace_start_offset -= negative_trace_start
-        self.logger.debug("times are shifted to positive values and padding is added, added_trace_start_offset:", added_trace_start_offset)
-
+            # calculate the number of samples this corresponds to, for debugging:
+            added_trace_start_offset_samples = int(round(added_trace_start_offset/time_resolution))
+            self.logger.debug(f"times are shifted to positive values, added_trace_start_offset: {added_trace_start_offset} ({added_trace_start_offset_samples} samples)")
         trace_length = times_max.max() - times_min.min()
         trace_length_samples = int(round(trace_length / time_resolution))
         if trace_length_samples % 2 != 0:
@@ -185,11 +186,11 @@ class efieldToVoltageConverter():
                             antenna_position,
                             index_of_refraction
                         )
-                        start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min() + travel_time_shift
+                        start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min() + added_trace_start_offset + travel_time_shift
                         start_bin = int(round(start_time / time_resolution))
                         time_remainder = start_time - start_bin * time_resolution
                     else:
-                        start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min()
+                        start_time = electric_field.get_trace_start_time() + cab_delay - times_min.min() + added_trace_start_offset
                         start_bin = int(round(start_time / time_resolution))
                         time_remainder = start_time - start_bin * time_resolution
                     self.logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
@@ -198,12 +199,12 @@ class efieldToVoltageConverter():
                     tr = new_efield.get_trace()
                     stop_bin = start_bin + new_efield.get_number_of_samples()
                     if stop_bin > np.shape(new_trace)[-1]:
-                        # ensure new efield does not extend beyond end of trace, might happen due to cable delay?
+                        # ensure new efield does not extend beyond end of trace although this should not happen
                         self.logger.warning("electric field trace extends beyond the end of the trace and will be cut.")
                         stop_bin = np.shape(new_trace)[-1]
                         tr = np.atleast_2d(tr)[:,:stop_bin-start_bin]
                     if start_bin < 0:
-                        # ensure new efield does not extend beyond start of trace, might happen due to cable delay?
+                        # ensure new efield does not extend beyond start of trace although this should not happen
                         self.logger.warning("electric field trace extends beyond the beginning of the trace and will be cut.")
                         tr = np.atleast_2d(tr)[:,-start_bin:]
                         start_bin = 0
