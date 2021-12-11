@@ -82,7 +82,7 @@ class readARIANNAData:
         self.skipped_events_stop = 0
 
         self.n_events = self.data_tree.GetEntries()
-        self._evt_range = np.arange(self.n_events, dtype=np.int)
+        self._evt_range = np.arange(self.n_events, dtype=int)
         if(random_iterator):
             np.random.shuffle(self._evt_range)
         self.__id_current_event = -1

@@ -59,7 +59,7 @@ def generate_my_events(filename, n_events):
     data_sets["zz"] = -np.linspace(0, 1800, n_events) * units.m
     data_sets["event_group_ids"] = np.arange(n_events)
     data_sets["shower_ids"] = np.arange(n_events)
-    data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
+    data_sets["n_interaction"] = np.ones(n_events, dtype=int)
     data_sets["interaction_type"] = np.array(['had'] * n_events)
 
     # again these parameters are irrelevant for our simulation but still need to be set
