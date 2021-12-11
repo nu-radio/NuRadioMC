@@ -341,7 +341,7 @@ class voltageToAnalyticEfieldConverter:
 
             n_channels = len(V_timedomain)
             analytic_traces = np.zeros((n_channels, n_samples_time))
-            positions = np.zeros(n_channels, dtype=np.int)
+            positions = np.zeros(n_channels, dtype=int)
             max_xcorrs = np.zeros(n_channels)
             # first determine the position with the larges xcorr
             for iCh, trace in enumerate(V_timedomain):
@@ -375,8 +375,8 @@ class voltageToAnalyticEfieldConverter:
                 analytic_traces[iCh] = fft.freq2time(analytic_trace_fft, sampling_rate)
 
                 argmax = np.argmax(np.abs(trace))
-                imin = np.int(argmax - 30 * sampling_rate)
-                imax = np.int(argmax + 50 * sampling_rate)
+                imin = int(argmax - 30 * sampling_rate)
+                imax = int(argmax + 50 * sampling_rate)
 
                 tmp = np.sum(np.abs(trace[imin:imax] - np.roll(analytic_traces[iCh], pos)[imin:imax]) / noise_RMS)
                 chi2 += tmp ** 2
@@ -408,8 +408,8 @@ class voltageToAnalyticEfieldConverter:
                 if np.max(np.abs(trace)) > channel_max:
                     channel_max = np.max(np.abs(trace))
                     argmax = np.argmax(np.abs(trace))
-                    imin = np.int(max(argmax - 50 * sampling_rate, 0))
-                    imax = np.int(argmax + 50 * sampling_rate)
+                    imin = int(max(argmax - 50 * sampling_rate, 0))
+                    imax = int(argmax + 50 * sampling_rate)
             for iCh, trace in enumerate(V_timedomain):
                 analytic_trace_fft = np.sum(efield_antenna_factor[iCh] * np.array([analytic_pulse_theta, analytic_pulse_phi]), axis=0)
                 analytic_traces[iCh] = fft.freq2time(analytic_trace_fft, sampling_rate)
@@ -458,8 +458,8 @@ class voltageToAnalyticEfieldConverter:
                 if np.max(np.abs(trace)) > channel_max:
                     channel_max = np.max(np.abs(trace))
                     argmax = np.argmax(np.abs(trace))
-                    imin = np.int(max(argmax - 50 * sampling_rate, 0))
-                    imax = np.int(argmax + 50 * sampling_rate)
+                    imin = int(max(argmax - 50 * sampling_rate, 0))
+                    imax = int(argmax + 50 * sampling_rate)
             for iCh, trace in enumerate(V_timedomain):
                 analytic_trace_fft = np.sum(efield_antenna_factor[iCh] * np.array([analytic_pulse_theta, analytic_pulse_phi]), axis=0)
                 analytic_traces[iCh] = fft.freq2time(analytic_trace_fft, sampling_rate)
@@ -516,7 +516,7 @@ class voltageToAnalyticEfieldConverter:
 
         n_channels = len(V_timedomain)
         analytic_traces = np.zeros((n_channels, n_samples_time))
-        positions = np.zeros(n_channels, dtype=np.int)
+        positions = np.zeros(n_channels, dtype=int)
         max_xcorrs = np.zeros(n_channels)
         for iCh, trace in enumerate(V_timedomain):
             analytic_trace_fft = np.sum(efield_antenna_factor[iCh] * np.array([analytic_pulse_theta_freq, analytic_pulse_phi_freq]), axis=0)

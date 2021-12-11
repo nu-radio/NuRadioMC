@@ -92,7 +92,7 @@ def csms(energy, inttype, flavors):
     if type(inttype) == str:
         inttype = np.array([inttype] * energy.shape[0])
 
-    if (type(flavors) == int or type(flavors) == np.int64):
+    if isinstance(flavors, (int, np.integer)):
         flavors = np.array([flavors] * energy.shape[0])
 
     neutrino = np.array((
@@ -231,7 +231,7 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
         if type(inttype) == str:
             if inttype == 'total':
 
-                if (type(flavors) == int or type(flavors) == np.int64):
+                if isinstance(flavors, (int, np.integer)):
                     if flavors >= 0:
                         crscn = param(energy, 'nc', parameterization=cross_section_type) + param(energy, 'cc', parameterization=cross_section_type)
                     else:
@@ -244,7 +244,7 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
                     crscn[antiparticles] = param(energy[antiparticles], 'nc_bar', parameterization=cross_section_type) + param(energy[antiparticles], 'cc_bar', parameterization=cross_section_type)
             elif inttype == 'total_up':
 
-                if (type(flavors) == int or type(flavors) == np.int64):
+                if isinstance(flavors, (int, np.integer)):
                     if flavors >= 0:
                         crscn = param(energy, 'nc_up') + param(energy, 'cc_up', parameterization=cross_section_type)
                     else:
@@ -257,7 +257,7 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
                     crscn[antiparticles] = param(energy[antiparticles], 'nc_bar_up') + param(energy[antiparticles], 'cc_bar_up', parameterization=cross_section_type)
             elif inttype == 'total_down':
 
-                if (type(flavors) == int or type(flavors) == np.int64):
+                if isinstance(flavors, (int, np.integer)):
                     if flavors >= 0:
                         crscn = param(energy, 'nc_down') + param(energy, 'cc_down', parameterization=cross_section_type)
                     else:
@@ -270,7 +270,7 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
                     crscn[antiparticles] = param(energy[antiparticles], 'nc_bar_down') + param(energy[antiparticles], 'cc_bar_down', parameterization=cross_section_type)
 
             else:
-                if (type(flavors) == int or type(flavors) == np.int64):
+                if isinstance(flavors, (int, np.integer)):
                     crscn = param(energy, inttype, parameterization=cross_section_type)
                 else:
                     antiparticles = np.where(flavors < 0)
@@ -279,7 +279,7 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
                     crscn[antiparticles] = param(energy[antiparticles], inttype, parameterization=cross_section_type)
         else:
 
-                if (type(flavors) == int or type(flavors) == np.int64):
+                if isinstance(flavors, (int, np.integer)):
 
                     particles_cc = np.where(inttype == 'cc')
                     particles_nc = np.where(inttype == 'nc')
