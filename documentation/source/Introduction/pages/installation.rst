@@ -44,7 +44,19 @@ This will launch an interactive installer that allows you to install all core an
 in case you want to contribute to NuRadioMC. **We highly recommend installing NuRadioMC inside a** `virtual environment <https://docs.python.org/3/tutorial/venv.html>`_. You can either use ``python3 -m venv name_of_venv``
 or use a virtual environment manager like `conda <https://anaconda.org/anaconda/python>`_.
 
-If the installer above does not work, or you want/need to install additional dependencies, please follow the :ref:`manual installation instructions <Introduction/pages/installation:Manual installation>` below.
+If the installer above does not work, or you want/need to install additional dependencies, 
+please follow the :ref:`manual installation instructions <Introduction/pages/installation:Manual installation>` below.
+
+PYTHONPATH
+__________
+To use the development version of NuRadioMC, its installation path needs to be included in the user PYTHONPATH.
+If the installer does not succesfully do this, please manually add
+
+.. code-block:: Bash
+
+  export PYTHONPATH=/path/to/NuRadioMC:$PYTHONPATH
+
+to your ``~/.profile``. (Depending on which terminal you use, you may have to modify one of ``.zprofile``, ``.bashrc`` or ``.zshrc`` instead).
 
 Manual installation
 -------------------
@@ -62,7 +74,7 @@ Note that some optional dependencies are not pip-installable and need to be
 :ref:`installed manually <Introduction/pages/installation:Not pip-installable packages>`
 
 Core Dependencies
-______________________
+^^^^^^^^^^^^^^^^^
 
 - radiotools:
 
@@ -108,7 +120,7 @@ ______________________
     pip install aenum
 
 Optional Dependencies
-______________________
+^^^^^^^^^^^^^^^^^^^^^
 
 These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's features:
 

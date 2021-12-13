@@ -1,193 +1,277 @@
 Contributing to NuRadioReco
 ============================
-  Thank you for considering to contribute to NuRadioReco.
-  NuRadioReco is intended as community based reconstruction software for
-  radio (neutrino) detectors. Everyone is invited to contribute and use the
-  software for their experiment.
+Thank you for considering to contribute to NuRadioReco.
+NuRadioReco is intended as community based reconstruction software for
+radio (neutrino) detectors. Everyone is invited to contribute and use the
+software for their experiment.
 
-  If you intend to contribute significantly to NuRadioReco, please contact
-  @anelles and @cg-laser on GitHub so that we are informed about ongoing
-  activities. Both will also be able to provide commit access to the repository.
+If you intend to contribute significantly to NuRadioReco, please contact
+`@anelles <https://github.com/anelles>`_ and `@cg-laser <https://github.com/cg-laser>`_ on GitHub so that we are informed about ongoing
+activities. Both will also be able to provide commit access to the repository.
 
 Workflow
 --------------
-Filing Tickets
-_______________
-  If you work with NuRadioReco and you encounter a problem that you CANNOT solve,
-  please file an issue. Please provide as much information as you can. Best, if
-  you provide us with a minimal working example that reproduces the problem or
-  refer to specific lines of code.
+If you find an issue or bug in NuRadioMC, please `create an issue on GitHub <https://github.com/nu-radio/NuRadioMC/issues>`_.
+If you want to contribute to NuRadioMC, please provide your code addition in a new branch and `make a pull request <https://github.com/nu-radio/NuRadioMC/pulls>`_. 
+Your pull request may only be merged if
 
-Submitting Pull Requests
-__________________________
-  If you work with NuRadioReco and you encounter a problem that you CAN solve,
-  please provide your fix in a new branch and make a pull request. We work with
-  continous integration, so you will immediately see, whether your code causes
-  siginifcant problems or changes existing results. This is of course no
-  guarantee that every piece of code is correct.
+* It succesfully completes the tests. These are implemented to make sure that previous working code does not break,
+  the new code is correctly documented, and NuRadioMC can still be built.
+* One of the core developers has approved your pull request. **Please wait at least 24 hours to merge your pull request,
+  even if it has been approved, so that other developers may also have a look - they might find something the first reviewer
+  missed!**
 
-  The core team of developers will review your pull request as soon as possible
-  and provide feedback. Once approved, you can merge your code into the master
-  and delete the branch. Allow for at least 24h review time between the last
-  change (commit) and the merge even if the pull request was approved quickly
-  to allow for additional comments or concerns. Before merging the pull request,
-  document the relevant changes in "changelog.txt". We use this information for
-  our releases.
+We loosely follow the git flow model. A detailed tutorial is given  `here <https://jeffkreeftmeijer.com/git-flow/>`_.
+A short summary is provided below.
 
-  .. Important::
+* The ``master`` branch is reserved for stable releases. A user can always check out ``master`` to get the latest stable version of NuRadioMC. 
+* All development happens on the ``develop`` branch. All feature branches will be merged (after review) into ``develop``. 
+  Make sure to specify that you want to merge into ``develop`` when creating a new pull request on github. 
+* We allow for hotfixes. These branches will be merged both into ``develop`` as well as into ``master`` where also a new tag and release is made.
+  
+  .. Important:: 
+    
+    When merging hotfixes into both develop and master, make sure the changelog & version number are correct for both!
 
-    It is not permitted (or possible) to push changes directly to the master branch. Please always use pull requests!
+Example workflow
+----------------
+To start developing a new feature or hotfix, first create a new branch:
 
-Coding Conventions
-______________________
-  In general we try to follow 'industry' coding workflow conventions. So, if
-  something is not explicitly mentioned here, please resort to 'best practices'.
-  NuRadioMC tries to follow `PEP-8 coding conventions <https://www.python.org/dev/peps/pep-0008/>`_
+.. code-block:: Python
 
-  Please document your code extensively, especially the physics behind it.
-  Each function should come with its doc string where all variables are defined.
-  All variables representing something with a unit must make use of the
-  NuRadioMC/utilities/units convention. Please avoid adding additional
-  dependencies without clearing this with the core developers.
+  git checkout develop # for a hotfix that should be merged into master also, 
+  git pull             # create the new branch from 'master' instead
+  git checkout -b feature/my_new_feature # creates a new branch
 
-Versioning
-____________
-  NuRadioReco differentiates between versions of the software and the file format.
-  The software version is specified in the *__init__.py* file at the top level
-  of the repository. The current version is 1.0.1. It is upped in increments of
-  0.0.1 for large changes that change physics behavior and a tag is added on GitHub
-  for every increment.
+Now code can be written, fixed, committed and pushed to git as normally (**exception**: for your first
+push to the git repository, you need to include ``--set-upstream``, as the branch initially only exists
+on your local machine). Once you are ready for your code to be merged into ``develop`` (for features and hotfixes) and/or
+``master`` (for hotfixes only), you should `create a pull request <https://github.com/nu-radio/NuRadioMC/pulls>`_.
 
-  File versions consist of a major and a minor file version, which are specified
-  in the ``NuRadioRecoio`` module. Major versions are incremented for changes
-  that break backward compatibility. Minor versions are incremented if the file
-  format changes but old files remain readable, e.g. if a parameter is added
-  or removed.
+Before you make a pull request, make that your code:
 
-  By default, ``NuRadioRecoio`` will throw an error if the major file version is
-  different and show a warning if the minor version is different. This can be
-  overridden, but one should of course be careful when doing so.
+* is correct - it fixes bugs, not introduces more of them!
+* is clearly documented - functions should have correctly written docstrings, and comments where appropriate.
+* is reflected both in the **changelog** and by an appropriate update of the **version number**.
 
-Unit Tests
-____________
-  After every commit `Travis CI <https://travis-ci.com/>`_ will run a test on
-  the repository that executes a number of test scripts, checks for errors
-  and compares the results to a reference. For safety, the tests implemented in
-  NuRadioMC are run as well, since it uses some elements of NuRadioReco.
-  Whether the test passes or fails
-  is shown as a green tick or red cross next to the commit on the GitHub page.
-  Pull requests can not be merged until all tests pass.
+As mentioned above, your code can only be merged once one of the core developers has **approved your pull request**. 
+Please allow 24 hours between approval and merging to allow for additional comments.
 
-What to do if Unit Tests Fail
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  If a unit test fails, it usually means that your changes have some unintended
-  side effects that cause the event simulation or reconstruction to lead to
-  different results. In that case, please find out which of your changes caused
-  this and fix it.
+Coding conventions
+------------------
+In general we try to follow 'industry' coding workflow conventions. So, if
+something is not explicitly mentioned here, please resort to 'best practices'.
+NuRadioMC tries to follow `PEP-8 coding conventions <https://www.python.org/dev/peps/pep-0008/>`_
 
-  In rare cases, the tests can fail for other reasons:
+Please document your code extensively, especially the physics behind it.
+Each function should come with a docstring where all variables are defined.
+All variables representing something with a unit must make use of the
+NuRadioMC/utilities/units convention. Please avoid adding additional
+dependencies without clearing this with the core developers.
 
-    - Travis fails to download some necessary package. In that case, restarting the
-      test usually fixes the issue.
-    - Changes in NuRadioMC cause the tests to fail. A good sign for this is that
-      the tests fail on the master branch as well. In this case, the issue with
-      NuRadioMC needs to be fixed instead
-    - Some elements of NuRadioMC use random numbers, which can cause random
-      fluctuations to lead to failing tests. Especially the V_eff test in
-      NuRadioMC is susceptible to this. Usually re-running the test solves this.
-    - The C++ raytracer in NuRadioMC is numerically unstable. The effect is small,
-      but results can vary slightly between different systems. Therefore, some
-      margin of error is given when comparing tests that involve raytracing.
-    - The changes in the reconstruction may be intended, i.e. because a
-      reconstruction method was improved or a bug was found. In this case, the
-      references have to be updated. All test scripts can be run with the option
-      ``--create_reference``, which will make them produce a new reference file.
-      Just create a new reference and commit it to the repository.
+How to
+------
 
-  .. Important::
-    Only change the references if you are absolutely sure that all changes are
-    intentional!
+Writing docstrings
+__________________
+All parts of the software are documented in the source code using python
+docstrings. Human-Readable documentation can then be generated using Sphinx.
+We use the `numpy docstring syntax <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
+Briefly, this means a docstring should look like this:
 
-Coding Standards and Linting
-______________________________
-  Python code submitted to the NuRadioReco main branch has to follow PEP8 code standards,
-  with some exceptions listed below. To ensure this, the GitHub Super Linter is run on
-  every pull request. The linter checks the code for any potential errors or violations
-  of PEP8 coding conventions. This is done to prevent bugs, ensure a better code quality
-  and avoid changes in code style hiding the actually functional changes in a pull request.
+.. code-block:: Python
 
-  The code check is done via the `flake8 <https://flake8.pycqa.org/>`_ linter, using mostly
-  the default settings, with the following checks turned off:
+  def example_function(x, y, mode="quickly")
+  """
+  Short, one-line description of function or method
 
-    - E501: Line too long
-    - W391: Blank line at end of file
-    - E722: Avoid bare 'except'
-    - W503: Line break before a binary operator
+  Here there is space for an optional longer, more detailed description.
+  While this is not currently enforced, please **always** include at least
+  the one-line docstring!
 
-  For anyone contributing to NuRadioReco, it is recommended to install flake8 locally and
-  perform codechecks regularly. It can easily be installed using pip: ``pip install flake8``.
-  To ignore the checks listed above, add the line ``ignore = E501, W391, E722, W503`` to the
-  flake8 config file.
-  After this, flake8 can be run through the console. However, most modern code editors either
-  provide their own flake8 code checks or support its use as an external tool.
+  The longer docstring may contain multiple paragraphs. Paragraphs are separated
+  by newlines.
 
+  Parameters
+  ----------
+  x : float
+    This is a description of x (e.g., distance in metres)
+  y : int
+    This is a description of y
+  mode : str, default "quickly"
+    Some parameters may have a limited list of options
+    Lists need to be separated from the rest of the docstring
+    by newlines, like so:
 
-Documentation
--------------
+    * "quickly" - do it quickly (default)
+    * "slowly" - do it slowly
+    * "multiline" - for a list entry over multiple lines,
+      don't forget to indent!
+  
+  Returns
+  -------
+  res : float
+    This is a description of the function result
 
-Writing Docstrings
-_____________________
-  All parts of the software are documented in the source code using python
-  docstrings. Human-Readable documentation can then be generated using Sphinx.
-  We use the `numpy docstring syntax <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
+  
+  Examples
+  --------
 
-  If you added, changed or removed a function in an existing module, there is
-  nothing else you need to do (just make sure all your functions have docstrings).
-  The same is true for changing or adding docstrings, your changes will
-  automatically be included the next time the documentation is generated.
+  .. code-block::
 
-  If you added a new module, you need to make sure sphinx knows about it. To do
-  so, go into the autodoc folder and open the .rst file corresponding to the
-  folder that your module is in. The file contains a list of modules inside
-  the folder that should be included in the documentation, so just add your
-  module to the list and the next time the documentation is generated it will
-  be included.
+    x = 1.3
+    y = 4
+    result = example_function(x, y)
+  """
 
-Deploying the Documentation
-_____________________________
-  We update the documentation regularly (about weekly), but if you don't want
-  to wait that long, here is how to update it yourself:
-  First you need to set up a repository for the gh-pages branch. Just follow
-  the steps in the section Setting up cloned repos on another machine from
-  `this tutorial <https://daler.github.io/sphinxdoc-test/includeme.html>`_.
-  The directory in which to set up the gh-pages repo
-  (called *sphinxdoc-test-docs* in the tutorial) is specified under BUILDDIR in
-  NuRadioReco/autodoc/Makefile . In our case, it is a folder called
-  docs_NuRadioReco next to your NuRadioReco repo.
-  Once you set everything up, go into the NuRadioReco/autodoc directory and
-  execute the command ``make html``. This generates the documentation into the
-  docs_NuRadioReco directory. Go into that directory and commit all changes to
-  the html files. Push them to GitHub and the documentation is updated.
+Please only use docstrings sections allowed by `numpydoc <https://numpydoc.readthedocs.io/en/latest/format.html>`_. The most useful ones are 
+the short + (optional) extended summary, ``Parameters``, ``Returns``, ``Yields``,  ``See Also``, ``Notes``, ``Examples``. 
+Section titles should always be underlined with (at least) the same number of hyphens ``-`` as characters, as in the above example.
 
-Technical Implementation
-___________________________
-  To generate the documentation from scratch,
-  `sphinx-apidoc <https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html>`_
-  is used.
-  The documentation uses the sphinx rtd theme, which has to be installed before
-  generating the documentation html files (``pip install sphinx-rtd-theme``). Some
-  custom css code is stored under *custom_scripts/styling.css*.
-  The generated html documentation has to be pushed onto the *gh-pages* branch in
-  order to be hosted on github. To set this up, follow
-  `this tutorial <https://daler.github.io/sphinxdoc-test/includeme.html>`_.
+Docstrings, as well as the rest of the documentation, are written in `reStructuredText <https://docutils.sourceforge.io/rst.html>`_. 
+Please consult this link for correct syntax. 
 
-Usage convention
----------------------
+Update the version number / dependencies
+________________________________________
+``NuRadioMC`` is built and published using `poetry <https://python-poetry.org/docs/pyproject/>`_. To update the current version number, 
+open the ``pyproject.toml`` file in the top directory, and update ``version`` under ``[tool.poetry]``. 
+We use `semantic versioning <https://semver.org/>`_, i.e. MAJOR.MINOR.PATCH.
+Dependencies are also maintained in ``pyproject.toml``. To update the dependencies:
 
-  Please cite C. Glaser, A. Nelles, I. Plaisier, C. Welling et al., "NuRadioReco: A reconstruction framework for radio neutrino detectors", Eur. Phys. J. C (2019) 79: 464, doi:10.1140/epjc/s10052-019-6971-5, arXiv:1903.07023 when using NuRadioReco.
+* If you are adding a **core** dependency, first ensure that the core developers agree!
+  Then add your dependency (e.g. ``numpy``)
+  
+  .. code-block::
 
-  Should the code improve/change significantly, we will consider writing an
-  updated publication. All people actively contributing to the main part of the
-  code will be included in such a publication.
+    numpy = "1.21.1"
+  
+  under ``[tool.poetry.dependencies]``. Acceptable version specifications are ``"4.1.1"`` (4.1.1 only), 
+  ``">=4.1.1"`` (4.1.1 or greater), or ``"*"`` (any version). Please do not use poetry-specific version 
+  specifiers like ``^`` or ``~``.
+* If you are adding an **optional** dependency, add your dependency under ``[tool.poetry.dev-dependencies]``.
+  Additionally, please name the feature that requires this dependency, and add it under ``[tool.poetry.extras]``.
+  E.g. in order to generate the documentation, we require ``Sphinx``, ``sphinx-rtd-theme`` and ``numpydoc`` to be installed.
+  This is specified in ``pyproject.toml`` as follows:
+  
+  .. code-block::
+    
+    [tool.poetry.dev-dependencies]
+    Sphinx = "*"
+    sphinx-rtd-theme = "*"
+    numpydoc = "*"
 
-  Thank you for reading and for considering to contribute.
+    [tool.poetry.extras]
+    documentation = ["Sphinx", "sphinx-rtd-theme", "numpydoc"]
+
+Writing additional documentation
+________________________________
+Code documentation is generated automatically using `sphinx-apidoc <https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html>`_
+and `sphinx.ext.autodoc <https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#module-sphinx.ext.autodoc>`_. 
+Any new modules with correctly written docstrings will therefore be added to the :doc:`code documentation </NuRadioMC/pages/code_documentation>`
+without additional input. However, in many cases it is extremely helpful if additional documentation is available. 
+This may take different forms:
+
+* Clear, well-annotated examples scripts that users can run and modify to get to grips with the new features.
+  Please place these examples in the ``NuRadioMC/examples`` or ``NuRadioReco/examples`` folders - having scripts
+  inside the module folders confuses ``sphinx``.
+* Additional :doc:`manuals </NuRadioMC/pages/manuals>` or tutorials, to be published as part of the online documentation.
+
+The documentation is written in `reStructuredText <https://docutils.sourceforge.io/rst.html>`_ and built using
+`sphinx <https://www.sphinx-doc.org/en/master/index.html>`_. Please consult these websites for a more extensive overview
+of the correct syntax. You can use any existing page of the documentation (which can be found in the ``documentation/source`` directory)
+as a template for how to write more code. However, below is a summary of the basics:
+
+Headings and text
+^^^^^^^^^^^^^^^^^
+.. code-block:: reStructuredText
+
+  Document Title
+  ==============
+  Headings should always be underlined by one of the following symbols: 
+  "= - _ ^ + ~ # < >". 
+  The underline must be at least as long as the title text. 
+  Nesting determines the level of heading.
+
+  Subheading
+  ----------
+  This is a subsection
+
+  Long text may be split over multiple lines; a new line / new paragraph is only
+  started if it is separated by a newline
+
+Some commonly used text formatting:
+
+* ``*italicized*`` results in *italicized* text;
+* ``**bold**`` results in **bold** text;
+* ````single-spaced```` results in ``single-spaced`` text.
+
+Lists
+^^^^^
+Lists can be included using "-", "*" or "+" (for bullet points), or 
+"1.", "2.", ... (enumerated) / "#." (automatically enumerated). Lists should always
+be separated by newlines above and below from other text:
+
+.. code-block:: reStructuredText
+
+  Lists
+  -----
+  This is some text
+
+  * This is the first bullet point
+  * This is the second bullet point. Longer
+    text may be split over multiple lines by 
+    indenting appropriately
+  * This is another bullet point
+
+    #. This is an enumerated sub-list.
+       Notice that it has been separated from its 
+       parent bullet point by a newlines
+    #. Similarly, there will be another newline
+       before continuing the bullet list
+
+  * This is the last bullet point
+
+Links and cross-references
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+Links look like this: ```link text <https://link-url.com>`_``. Note the trailing underscore!
+For internal links (e.g. to other parts of the documentation), we prefer 
+`cross-references <https://docs.readthedocs.io/en/stable/guides/cross-referencing-with-sphinx.html>`_
+instead. These depend on what is being linked to:
+
+* For another page in the documentation, use ``:doc:``. E.g. ``:doc:`introduction </Introduction/pages/introduction>``` renders as
+  :doc:`introduction </Introduction/pages/introduction>`. 
+* One can reference a specific subsection instead by using ``:ref:`` and appending ``:Section title``. E.g.
+  ``:ref:`Lists </Introduction/pages/contributing:Lists>``` links to the previous paragraph: 
+  :ref:`Lists <Introduction/pages/contributing:Lists>`.
+* Finally, one can refer to python modules, classes, functions etc. by using ``:mod:``, ``:class:``, ``:func:``
+  respectively. The name of the function follows the same logic as in Python, e.g.
+  ``:class:`base trace class <NuRadioReco.framework.base_trace>``` refers to the NuRadioReco 
+  :class:`base trace class <NuRadioReco.framework.base_trace>`
+
+Showing code
+^^^^^^^^^^^^
+To render code, use the ``.. code-block::`` directive, optionally followed by the code language that is used
+(e.g. ``Python``). As with lists, the code block needs to be separated from the rest of the text using
+newlines. E.g. the following:
+
+.. code-block:: reStructuredText
+
+  Some text
+
+  .. code-block:: Python
+
+    def example_function(r):
+      return r**2 + 5
+    
+  Some more text  
+  
+renders as:
+
+Some text
+
+.. code-block:: Python
+
+  def example_function(r):
+    return r**2 + 5
+  
+Some more text  
