@@ -16,6 +16,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
     that the units are interpreted correctly. In the time domain, the amplitudes
     are well defined and not details about fourier transform normalizations needs
     to be known by the user.
+
     Parameters
     ----------
     amplitude : float 
@@ -36,6 +37,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
 
     full_output: bool (default False)
         if True, can return additional output
+
     Returns
     -------
     time trace: 2d array, shape (3, N)
@@ -134,6 +136,7 @@ def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs)
 
     full_output: bool (default False)
         if True, can return additional output
+
     Returns
     -------
     time trace: 2d array, shape (3, N)
