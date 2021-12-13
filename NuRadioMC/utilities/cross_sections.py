@@ -197,7 +197,7 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
     return neutrino cross-section
 
     Parameters
-        ----------
+    ----------
     energy: float/ array of floats
         neutrino energies/momenta in standard units
 
@@ -205,9 +205,9 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
         neutrino flavor (integer) encoded as using PDG numbering scheme,
         particles have positive sign, anti-particles have negative sign, relevant are:
         
-        12: electron neutrino
-        14: muon neutrino
-        16: tau neutrino
+        * 12: electron neutrino
+        * 14: muon neutrino
+        * 16: tau neutrino
 
     inttype: str, array of str
         interaction type. Options:
@@ -219,11 +219,11 @@ def get_nu_cross_section(energy, flavors, inttype='total', cross_section_type='c
     cross_section_type: {'ctw', 'ghandi', 'csms'}, default 'ctw'
         defines model of cross-section. Options:
 
-        * ctw    : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
-            cross-sections for all interaction types and flavors
+        * ctw : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
+          cross-sections for all interaction types and flavors
         * ghandi : according to Ghandi et al. Phys.Rev.D58:093009,1998
-                 only one cross-section for all interactions and flavors
-        * csms   : A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
+          only one cross-section for all interactions and flavors
+        * csms : A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
 
     """
 
@@ -330,9 +330,9 @@ def get_interaction_length(Enu, density=.917 * units.g / units.cm ** 3, flavor=1
         neutrino flavor (integer) encoded as using PDG numbering scheme,
         particles have positive sign, anti-particles have negative sign, relevant are:
         
-        12: electron neutrino
-        14: muon neutrino
-        16: tau neutrino
+        * 12: electron neutrino
+        * 14: muon neutrino
+        * 16: tau neutrino
 
     inttype: str, array of str
         interaction type. Options:
@@ -345,9 +345,9 @@ def get_interaction_length(Enu, density=.917 * units.g / units.cm ** 3, flavor=1
         defines model of cross-section. Options:
 
         * ctw: A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
-            cross-sections for all interaction types and flavors
+          cross-sections for all interaction types and flavors
         * ghandi: according to Ghandi et al. Phys.Rev.D58:093009,1998
-            only one cross-section for all interactions and flavors
+          only one cross-section for all interactions and flavors
         * csms: A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
 
     Returns

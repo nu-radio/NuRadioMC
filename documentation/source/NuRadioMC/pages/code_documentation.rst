@@ -10,4 +10,3 @@ Code Documentation
    ../apidoc/NuRadioMC.SignalProp
    ../apidoc/NuRadioMC.simulation
    ../apidoc/NuRadioMC.utilities
-   ../apidoc/NuRadioMC.studies
