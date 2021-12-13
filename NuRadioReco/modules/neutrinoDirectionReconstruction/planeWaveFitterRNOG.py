@@ -55,7 +55,7 @@ class planeWaveFitterRNOG:
             * 'multiply': maximize the product of all correlations
             * 'log': maximize the log of the product of all correlations
 
-        debug: bool
+        debug: bool, default True
             If True, produce some debug plots and save them under 
             debugplots_path
         debugplots_path: string
