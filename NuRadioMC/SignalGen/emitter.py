@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy as np
 import h5py
 from scipy.interpolate import interp1d
@@ -17,7 +16,6 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
     that the units are interpreted correctly. In the time domain, the amplitudes
     are well defined and not details about fourier transform normalizations needs
     to be known by the user.
-
     Parameters
     ----------
     amplitude : float 
@@ -28,15 +26,16 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         time bin width, i.e. the inverse of the sampling rate
     model: string
         specifies the signal model
+
         * delta_pulse: a simple signal model of a delta pulse emitter
         * cw : a sinusoidal wave of given frequency
         * square : a rectangular pulse of given amplituede and width
         * tone_burst : a short sine wave pulse of given frequency and desired width
         * idl & hvsp2 : these are the waveforms generated in KU lab and stored in hdf5 files
         * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
+
     full_output: bool (default False)
         if True, can return additional output
-
     Returns
     -------
     time trace: 2d array, shape (3, N)
@@ -125,12 +124,14 @@ def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs)
         time bin width, i.e. the inverse of the sampling rate
     model: string
         specifies the signal model
+
         * delta_pulse: a simple signal model of a delta pulse emitter
         * cw : a sinusoidal wave of given frequency
         * square : a rectangular pulse of given amplituede and width
         * tone_burst : a short sine wave pulse of given frequency and desired width
         * idl & hvsp2 : these are the waveforms generated in KU lab and stored in hdf5 files
         * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
+
     full_output: bool (default False)
         if True, can return additional output
     Returns
