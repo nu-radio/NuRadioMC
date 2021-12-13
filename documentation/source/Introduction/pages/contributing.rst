@@ -220,7 +220,7 @@ be separated by newlines above and below from other text:
   * This is the first bullet point
   * This is the second bullet point. Longer
     text may be split over multiple lines by 
-    indenting appropriately
+    indenting by 2 spaces
   * This is another bullet point
 
     #. This is an enumerated sub-list.
