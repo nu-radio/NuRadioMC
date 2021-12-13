@@ -443,7 +443,14 @@ def set_volume_attributes(volume, proposal, attributes):
                 rmax = volume['full_rmax']
             else:
                 tau_95_length = get_tau_95_length(attributes['Emax'])
-                max_horizontal_dist = np.abs(max(np.abs(np.tan(attributes['thetamin'])), np.abs(np.tan(attributes['thetamax']))) * volume['fiducial_zmin'])  # calculates the maximum horizontal distance through the ice
+                # check if thetamax/thetamin are in same quadrant
+                is_same_quadrant = np.sign(np.cos(attributes['thetamin']))==np.sign(np.cos(attributes['thetamax']))
+                if is_same_quadrant:
+                    max_horizontal_dist = np.abs(max(np.abs(np.tan(attributes['thetamin'])), np.abs(np.tan(attributes['thetamax']))) * volume['fiducial_zmin'])  # calculates the maximum horizontal distance through the ice
+                else:
+                    # not same quadrant: theta range surpasses pi/2 -> horizontal trajectories
+                    # geometric trajectory is infinite, but not acutally used. distance is limited by the min() to allowed length below
+                    max_horizontal_dist = np.inf
                 d_extent = min(tau_95_length, max_horizontal_dist)
                 logger.info(f"95% quantile of tau decay length is {tau_95_length/units.km:.1f}km. Maximum horizontal distance for zenith range of {attributes['thetamin']/units.deg:.0f} - {attributes['thetamax']/units.deg:.0f}deg and depth of {volume['fiducial_zmin']/units.km:.1f}km is {max_horizontal_dist/units.km:.1f}km -> extending horizontal volume by {d_extent/units.km:.1f}km")
 
@@ -502,7 +509,14 @@ def set_volume_attributes(volume, proposal, attributes):
             if('full_xmax' not in volume):  # assuming that also full_xmin, full_ymin, full_ymax are not set.
                 # extent fiducial by tau decay length
                 tau_95_length = get_tau_95_length(attributes['Emax'])
-                max_horizontal_dist = np.abs(max(np.abs(np.tan(attributes['thetamin'])), np.abs(np.tan(attributes['thetamax']))) * volume['fiducial_zmin'])  # calculates the maximum horizontal distance through the ice
+                # check if thetamax/thetamin are in same quadrant
+                is_same_quadrant = np.sign(np.cos(attributes['thetamin']))==np.sign(np.cos(attributes['thetamax']))
+                if is_same_quadrant:
+                    max_horizontal_dist = np.abs(max(np.abs(np.tan(attributes['thetamin'])), np.abs(np.tan(attributes['thetamax']))) * volume['fiducial_zmin'])  # calculates the maximum horizontal distance through the ice
+                else:
+                    # not same quadrant: theta range surpasses pi/2 -> horizontal trajectories
+                    # geometric trajectory is infinite, but not acutally used. distance is limited by the min() to allowed length below
+                    max_horizontal_dist = np.inf
                 d_extent = min(tau_95_length, max_horizontal_dist)
                 logger.info(f"95% quantile of tau decay length is {tau_95_length/units.km:.1f}km. Maximum horizontal distance for zenith range of {attributes['thetamin']/units.deg:.0f} - {attributes['thetamax']/units.deg:.0f}deg and depth of {volume['fiducial_zmin']/units.km:.1f}km is {max_horizontal_dist/units.km:.1f}km -> extending horizontal volume by {d_extent/units.km:.1f}km")
                 xmax += d_extent
@@ -992,7 +1006,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 proposal_kwargs={},
                                 max_n_events_batch=1e5,
                                 write_events=True,
-                                seed=None):
+                                seed=None,
+                                interaction_type="ccnc"):
     """
     Event generator
 
@@ -1123,6 +1138,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         if False the event datasets + atrributes are returned
     seed: None of int
         seed of the random state
+    interaction_type: string
+        the interaction type. default is "ccnc" which randomly choses neutral current (NC) or charged-current (CC) interactions. 
+        The use can also specify "nc" or "cc" to exclusively simulate NC or CC interactions
     """
     rnd = Generator(Philox(seed))
     t_start = time.time()
@@ -1184,7 +1202,12 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         data_sets["energies"] = get_energies(n_events_batch, Emin, Emax, spectrum, rnd)
         # generate charged/neutral current randomly
         logger.debug("interaction type")
-        data_sets["interaction_type"] = inelasticities.get_ccnc(n_events_batch, rnd=rnd)
+        if(interaction_type == "ccnc"):
+            data_sets["interaction_type"] = inelasticities.get_ccnc(n_events_batch, rnd=rnd)
+        elif(interaction_type == "cc"):
+            data_sets["interaction_type"] = np.full(n_events_batch, "cc", dtype='U2')
+        elif(interaction_type == "nc"):
+            data_sets["interaction_type"] = np.full(n_events_batch, "nc", dtype='U2')
 
         # generate inelasticity
         logger.debug("generating inelasticities")

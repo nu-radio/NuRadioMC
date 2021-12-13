@@ -3,8 +3,8 @@ import plotly
 from NuRadioReco.utilities import units
 import numpy as np
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import html
+from dash import dcc
 from dash.dependencies import Input, Output, State
 from NuRadioReco.eventbrowser.app import app
 import NuRadioReco.eventbrowser.dataprovider
@@ -29,13 +29,13 @@ def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, station_id, j
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
+    nurio = provider.get_file_handler(user_id, filename)
     traces = []
     pol = []
     pol_exp = []
     zeniths = []
-    for i_event in range(ariio.get_n_events()):
-        event = ariio.get_event_i(i_event)
+    for i_event in range(nurio.get_n_events()):
+        event = nurio.get_event_i(i_event)
         for station in event.get_stations():
             for electric_field in station.get_electric_fields():
                 if electric_field.has_parameter(efp.polarization_angle) and electric_field.has_parameter(efp.polarization_angle_expectation) and electric_field.has_parameter(efp.zenith):
@@ -52,9 +52,9 @@ def plot_cr_polarization_zenith(filename, btn, jcurrent_selection, station_id, j
     traces.append(plotly.graph_objs.Scatter(
         x=zeniths / units.deg,
         y=np.abs(pol - pol_exp) / units.deg,
-        text=[str(x) for x in ariio.get_event_ids()],
+        text=[str(x) for x in nurio.get_event_ids()],
         mode='markers',
-        customdata=[x for x in range(ariio.get_n_events())],
+        customdata=[x for x in range(nurio.get_n_events())],
         opacity=1
     ))
 
