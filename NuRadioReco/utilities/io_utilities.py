@@ -9,7 +9,7 @@ def read_pickle(filename, encoding='latin1'):
     load the file with a specific encoding.
 
     Parameters
-    ---------
+    ----------
     filename: string
         Name of the pickle file to be opened
     encoding: string

@@ -120,25 +120,25 @@ class mySimulation(simulation.simulation):
 
 
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
+    parser.add_argument('inputfilename', type=str,
+                        help='path to NuRadioMC input event list')
+    parser.add_argument('detectordescription', type=str,
+                        help='path to file containing the detector description')
+    parser.add_argument('config', type=str,
+                        help='NuRadioMC yaml config file')
+    parser.add_argument('outputfilename', type=str,
+                        help='hdf5 output filename')
+    parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
+                        help='outputfilename of NuRadioReco detector sim file')
+    args = parser.parse_args()
 
-parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
-parser.add_argument('inputfilename', type=str,
-                    help='path to NuRadioMC input event list')
-parser.add_argument('detectordescription', type=str,
-                    help='path to file containing the detector description')
-parser.add_argument('config', type=str,
-                    help='NuRadioMC yaml config file')
-parser.add_argument('outputfilename', type=str,
-                    help='hdf5 output filename')
-parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
-                    help='outputfilename of NuRadioReco detector sim file')
-args = parser.parse_args()
-
-sim = mySimulation(eventlist=args.inputfilename,
-                            outputfilename=args.outputfilename,
-                            detectorfile=args.detectordescription,
-                            station_id=101,
-                            outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
-                            config_file=args.config)
-sim.run()
+    sim = mySimulation(eventlist=args.inputfilename,
+                                outputfilename=args.outputfilename,
+                                detectorfile=args.detectordescription,
+                                station_id=101,
+                                outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
+                                config_file=args.config)
+    sim.run()
 
