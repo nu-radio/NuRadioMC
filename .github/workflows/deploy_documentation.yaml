@@ -35,10 +35,6 @@ jobs:
           export PYTHONPATH=$PWD:$PYTHONPATH
           echo $PYTHONPATH
 
-      - name: Install documentation dependencies
-        run: |
-          pip install sphinx sphinx_rtd_theme numpydoc --user
-
       - name: Debugging
         run: |
           echo checking git status...
@@ -58,6 +54,7 @@ jobs:
 
       - name: Build Documentation
         run: |
+          export PYTHONPATH=$(pwd):$PYTHONPATH
           cd documentation/
           python make_docs.py
 
