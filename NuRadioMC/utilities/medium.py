@@ -142,7 +142,7 @@ class greenland_firn(medium_base.IceModel):
         profiles also
 
         Parameters
-        ---------
+        ----------
         z_air_boundary:  float, NuRadio length units
                          z coordinate of the surface of the glacier
         z_bottom:  float, NuRadio length units
@@ -192,12 +192,12 @@ class greenland_firn(medium_base.IceModel):
         Overwrites function of the mother class
 
         Parameters
-        ---------
+        ----------
         position:  3dim np.array
                     point
 
-        Returns:
-        --------
+        Returns
+        -------
         n:  float
             index of refraction
         """
@@ -270,8 +270,8 @@ def get_ice_model(name):
     """
     function to access the right ice model class by name of the class
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     name: string
           name of the class of the requested ice model
 

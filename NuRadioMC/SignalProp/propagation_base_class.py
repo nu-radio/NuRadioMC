@@ -32,10 +32,12 @@ class ray_tracing_base:
             signal attenuation model (so far only "SP1" is implemented)
         log_level: logging object
             specify the log level of the ray tracing class
+
             * logging.ERROR
             * logging.WARNING
             * logging.INFO
             * logging.DEBUG
+
             default is WARNING
         n_frequencies_integration: int
             the number of frequencies for which the frequency dependent attenuation
@@ -51,8 +53,8 @@ class ray_tracing_base:
         It is recommended to also reset the solutions from any previous raytracing to avoid
         confusing them with the current solution
 
-        Parameters:
-        --------------
+        Parameters
+        ----------
         x1: 3D array
             Start point of the ray
         x2: 3D array
@@ -75,10 +77,13 @@ class ray_tracing_base:
                   all all the neseccary keyword arguments for the function in the
                   form of key=argument and separated by a comma
 
-        Example
-        -------
-        use_optional_function('set_shower_axis',np.array([0,0,1]))
-        use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
+        Examples
+        --------
+        .. code-block::
+        
+            use_optional_function('set_shower_axis',np.array([0,0,1]))
+            use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
+        
         """
         if not hasattr(self,function_name):
             pass
@@ -121,9 +126,11 @@ class ray_tracing_base:
         Returns
         -------
         solution_type: int
+
             * 1: 'direct'
             * 2: 'refracted'
             * 3: 'reflected
+            
         """
         pass
 
@@ -262,8 +269,8 @@ class ray_tracing_base:
         Apply propagation effects to the electric field
         Note that the 1/r weakening of the electric field is already accounted for in the signal generation
 
-        Parameters:
-        ----------------
+        Parameters
+        ----------
         efield: ElectricField object
             The electric field that the effects should be applied to
         i_solution: int
@@ -283,8 +290,8 @@ class ray_tracing_base:
 
         ! be sure that the first entry is specific to your raytracer !
 
-        Returns:
-        -----------------
+        Returns
+        -------
         list with entries of form [{'name': str, 'ndim': int}]
             ! be sure that the first entry is specific to your raytracer !
             'name': Name of the new parameter to include in the data structure
@@ -296,13 +303,13 @@ class ray_tracing_base:
         """
         Write parameters that are specific to this raytracer into the output data.
 
-        Parameters:
-        ---------------
+        Parameters
+        ----------
         i_solution: int
             The index of the raytracing solution
 
-        Returns:
-        ---------------
+        Returns
+        -------
         dictionary with the keys matching the parameter names specified in get_output_parameters and the values being
         the results from the raytracing
         """
@@ -325,8 +332,8 @@ class ray_tracing_base:
         """
         Function to change the configuration file used by the raytracer
 
-        Parameters:
-        ----------------
+        Parameters
+        ----------
         config: dict
             The new configuration settings
         """

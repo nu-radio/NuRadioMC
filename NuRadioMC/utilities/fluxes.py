@@ -15,8 +15,8 @@ def get_limit_from_aeff(energy, aeff,
     """
     Limit from effective volume
 
-    Parameters:
-        --------------
+    Parameters
+    ----------
     energy: array of floats
         neutrino energy
     veff: array of floats
@@ -54,8 +54,8 @@ def get_limit_flux(energy, veff_sr,
     """
     Limit from effective volume
 
-    Parameters:
-        --------------
+    Parameters
+    ----------
     energy: array of floats
         neutrino energy
     veff_sr: array of floats
@@ -137,8 +137,8 @@ def get_limit_e1_flux(energy, veff_sr,
     """
     Limit from effective volume on E^1 flux plot
 
-    Parameters:
-        --------------
+    Parameters
+    ----------
     energy: array of floats
         neutrino energy
     veff_sr: array of floats
@@ -178,8 +178,8 @@ def get_limit_e2_flux(energy, veff_sr,
     """
     Limit from effective volume on E^2 flux plot
 
-    Parameters:
-        --------------
+    Parameters
+    ----------
     energy: array of floats
         neutrino energy
     veff_sr: array of floats
@@ -242,6 +242,7 @@ def get_exposure(energy, Veff, field_of_view=2 * np.pi):
         the field of view of the detector
 
     Returns
+    -------
     float: exposure
     """
     return Veff / field_of_view / cross_sections.get_interaction_length(energy)
