@@ -1,35 +1,87 @@
 name: Deploy Documentation
 
-on:
-  push:
-    branches:
-      - develop
+on: push
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-          - name: Checkout 🛎️
-            uses: actions/checkout@v2.3.1
+      - uses: actions/checkout@v2.4.0 # get the develop branch
+        with:
+          ref: 'refs/heads/develop'
+      - uses: actions/checkout@v2.4.0        
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
 
-          - name: Install dependencies
-            run: |
-              sudo apt-get install python3-sphinx
-              python -m pip install --upgrade pip
-              pip install sphinx_rtd_theme --user
+      ##TODO: replace the below with the poetry installation, once it is merged
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          # This path is specific to Ubuntu
+          path: ~/.cache/pip
+          # Look to see if there is a cache hit for the corresponding requirements file
+          key: ${{ runner.os }}-pip-${{ hashFiles('NuRadioMC/test/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+      - name: Install dependencies
+        run: |
+          sudo apt-get install libgsl-dev
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          export GSLDIR=$(gsl-config --prefix)
+          if [ -f NuRadioMC/test/requirements.txt ]; then pip install -r NuRadioMC/test/requirements.txt; fi
+          #wget https://github.com/nu-radio/radiotools/archive/master.zip -O /tmp/radiotools.zip
+          #unzip /tmp/radiotools.zip
+          #mv radiotools-master radiotools
+          #export PYTHONPATH=$PWD/radiotools
+          #wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
+          #mkdir -p $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn
+          #mv createLPDA_100MHz_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
+          #wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/bicone_v8_InfFirn/bicone_v8_InfFirn.pkl
+          #mkdir -p $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn
+          #mv bicone_v8_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
+          export PYTHONPATH=$PWD:$PYTHONPATH
+          echo $PYTHONPATH
+      ### end TODO
 
-          - name: Build Documentation
-            run: |
-              cd documentation/
-              make html
+      - name: Install documentation dependencies
+        run: |
+          pip install sphinx sphinx_rtd_theme numpydoc --user
 
-          - name: No Jekyll
-            run: |
-              touch documentation/build/html/.nojekyll
+      - name: Debugging
+        run: |
+          echo checking git status...
+          git status
+          echo show last 3 commits
+          git log -n 3
+          echo show list of files modified wrt develop
+          git diff origin/develop --name-only
+          echo checking PYTHONPATH
+          echo $PYTHONPATH
+          echo checking current directory
+          echo $(pwd)
+          echo checking NuRadioReco folder structure
+          echo $(ls NuRadioReco)
+          echo checking NuRadioMC folder structure
+          echo $(ls NuRadioMC)
+
+      - name: Build Documentation
+        run: |
+          cd documentation/
+          python make_docs.py
+
+      - name: No Jekyll
+        if: ${{ github.ref == 'refs/heads/develop'}}
+        run: |
+          touch documentation/build/html/.nojekyll
 
 
-          - name: Deploy 🚀
-            uses: JamesIves/github-pages-deploy-action@4.1.6
-            with:
-              branch: gh-pages # The branch the action should deploy to.
-              folder: documentation/build/html # The folder the action should deploy.
+      - name: Deploy 🚀
+        if: ${{ github.ref == 'refs/heads/develop'}} # only runs if the push is to develop
+        uses: JamesIves/github-pages-deploy-action@4.1.6
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: documentation/build/html # The folder the action should deploy.

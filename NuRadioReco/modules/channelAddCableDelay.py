@@ -15,7 +15,13 @@ class channelAddCableDelay:
     def run(self, evt, station, det, mode = 'add'):
         """
         Adds cable delays to channels
-        mode: str
+
+        Parameters
+        ----------
+        evt : Event
+        station : Station
+        det : Detector
+        mode : str
             options: 'add' or 'subtract'. 
         """
         for channel in station.iter_channels():

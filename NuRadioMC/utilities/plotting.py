@@ -9,7 +9,8 @@ def plot_vertex_distribution(xx, yy, zz, weights=None,
     """
     produces beautiful plot of the vertex distribution
 
-    Parameters:
+    Parameters
+    ----------
     xx: array
         the x positions of the vertices
     yy: array
