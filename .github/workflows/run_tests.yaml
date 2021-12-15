@@ -30,7 +30,7 @@ jobs:
         pip install flake8 pytest
         export GSLDIR=$(gsl-config --prefix)
         python install_dev.py --install --dev proposal --no-interactive
-        pip uninstall numba # easiest way to test ARZ without numba
+        pip uninstall numba -y # easiest way to test ARZ without numba
         export PYTHONPATH=$(pwd):$PYTHONPATH
         
     - name: Display Python version
