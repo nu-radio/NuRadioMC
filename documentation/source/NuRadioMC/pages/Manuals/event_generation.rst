@@ -322,7 +322,7 @@ Atmospheric muons generated on a flat surface
 --------------------------------------------------
 The function ``generate_surface_muons`` generates muons (leptons, NOT muon neutrinos) at ``z=0`` and propagates them using PROPOSAL. Please be aware that a functioning installation of PROPOSAL is needed for using this function. 
 
-    .. code-block: Python
+    .. code-block:: Python
         def generate_surface_muons(filename, n_events, Emin, Emax,
                                    fiducial_rmin, fiducial_rmax, 
                                    fiducial_zmin, fiducial_zmax,

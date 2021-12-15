@@ -96,13 +96,17 @@ class eventWriter:
         det: detector object
             If a detector object is passed, the detector description for the
             events is written in the file as well
-        mode: dictionary (default: {'Channels': True, 'ElectricFields': True, 'SimChannels': True, 'SimElectricFields': True})
-            specifies what will saved into the *.nur output file
-            can contain the strings
+        mode: dictionary, optional 
+            Specifies what will saved into the `*.nur` output file.
+            Can contain the following keys:
+
             * 'Channels': if True channel traces of Stations will be saved
             * 'ElectricFields': if True (reconstructed) electric field traces of Stations will be saved
             * 'SimChannels': if True SimChannels of SimStations will be saved
             * 'SimElectricFields': if True electric field traces of SimStations will be saved
+
+            if no dictionary is passed, the default option is to save all of the above
+
         """
         if mode is None:
             mode = {

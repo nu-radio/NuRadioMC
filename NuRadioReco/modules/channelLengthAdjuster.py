@@ -35,7 +35,7 @@ class channelLengthAdjuster:
         Run method for the channelLengthAdjuster
 
         Parameters
-        ..............
+        ----------
         evt: Event object
             The event containing the station whose channels should be cut
         station: Station object
