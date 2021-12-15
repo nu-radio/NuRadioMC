@@ -58,6 +58,8 @@ jobs:
         NuRadioMC/test/SingleEvents/validate_ARZ.sh
     - name: Test Numba version of ARZ
       run: |
+        export GSLDIR=$(gsl-config --prefix)
+        export PYTHONPATH=$(pwd):$PYTHONPATH
         pip install numba
         NuRadioMC/test/SingleEvents/validate_ARZ.sh
     - name: Signal generation test
