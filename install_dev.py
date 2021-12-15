@@ -210,7 +210,7 @@ if __name__ == "__main__":
         try:
             current_pythonpath = os.environ["PYTHONPATH"]
         except KeyError:
-            current_pythonpath = []
+            current_pythonpath = ""
         check_pythonpath = [path for path in current_pythonpath.split(':') if len(path)>0] # the current directory doesn't count!
         if top_dir not in [os.path.realpath(j) for j in check_pythonpath]:
             add_NuRadioMC_to_pythonpath = yesno_input("{} not yet in PYTHONPATH. Add to user .bashrc?".format(top_dir), skip=args['pythonpath'])
