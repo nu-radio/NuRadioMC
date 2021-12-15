@@ -1,0 +1,7 @@
+NuRadioMC.utilities.runner\_example module
+==========================================
+
+.. automodule:: NuRadioMC.utilities.runner_example
+   :members:
+   :undoc-members:
+   :show-inheritance:

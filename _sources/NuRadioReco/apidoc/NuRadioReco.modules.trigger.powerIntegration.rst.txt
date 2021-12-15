@@ -1,0 +1,7 @@
+NuRadioReco.modules.trigger.powerIntegration module
+===================================================
+
+.. automodule:: NuRadioReco.modules.trigger.powerIntegration
+   :members:
+   :undoc-members:
+   :show-inheritance:

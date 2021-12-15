@@ -1,0 +1,7 @@
+NuRadioMC.SignalProp.propagation module
+=======================================
+
+.. automodule:: NuRadioMC.SignalProp.propagation
+   :members:
+   :undoc-members:
+   :show-inheritance:

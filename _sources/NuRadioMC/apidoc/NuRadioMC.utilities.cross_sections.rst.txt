@@ -1,0 +1,7 @@
+NuRadioMC.utilities.cross\_sections module
+==========================================
+
+.. automodule:: NuRadioMC.utilities.cross_sections
+   :members:
+   :undoc-members:
+   :show-inheritance:

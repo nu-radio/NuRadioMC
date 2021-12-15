@@ -1,0 +1,7 @@
+NuRadioReco.modules.io.snowshovel.readARIANNADataCalib module
+=============================================================
+
+.. automodule:: NuRadioReco.modules.io.snowshovel.readARIANNADataCalib
+   :members:
+   :undoc-members:
+   :show-inheritance:

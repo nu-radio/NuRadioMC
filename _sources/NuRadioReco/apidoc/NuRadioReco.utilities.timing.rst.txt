@@ -1,0 +1,7 @@
+NuRadioReco.utilities.timing module
+===================================
+
+.. automodule:: NuRadioReco.utilities.timing
+   :members:
+   :undoc-members:
+   :show-inheritance:

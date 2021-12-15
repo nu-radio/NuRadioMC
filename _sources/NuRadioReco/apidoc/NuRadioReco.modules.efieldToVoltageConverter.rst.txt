@@ -1,0 +1,7 @@
+NuRadioReco.modules.efieldToVoltageConverter module
+===================================================
+
+.. automodule:: NuRadioReco.modules.efieldToVoltageConverter
+   :members:
+   :undoc-members:
+   :show-inheritance:

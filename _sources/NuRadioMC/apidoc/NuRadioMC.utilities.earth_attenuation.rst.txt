@@ -1,0 +1,7 @@
+NuRadioMC.utilities.earth\_attenuation module
+=============================================
+
+.. automodule:: NuRadioMC.utilities.earth_attenuation
+   :members:
+   :undoc-members:
+   :show-inheritance:

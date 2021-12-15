@@ -1,0 +1,7 @@
+NuRadioReco.modules.sphericalWaveFitter module
+==============================================
+
+.. automodule:: NuRadioReco.modules.sphericalWaveFitter
+   :members:
+   :undoc-members:
+   :show-inheritance:

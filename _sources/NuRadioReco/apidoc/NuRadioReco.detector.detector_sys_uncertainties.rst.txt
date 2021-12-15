@@ -1,0 +1,7 @@
+NuRadioReco.detector.detector\_sys\_uncertainties module
+========================================================
+
+.. automodule:: NuRadioReco.detector.detector_sys_uncertainties
+   :members:
+   :undoc-members:
+   :show-inheritance:

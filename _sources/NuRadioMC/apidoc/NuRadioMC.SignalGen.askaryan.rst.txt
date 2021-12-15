@@ -1,0 +1,7 @@
+NuRadioMC.SignalGen.askaryan module
+===================================
+
+.. automodule:: NuRadioMC.SignalGen.askaryan
+   :members:
+   :undoc-members:
+   :show-inheritance:

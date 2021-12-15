@@ -1,0 +1,7 @@
+NuRadioReco.utilities.io\_utilities module
+==========================================
+
+.. automodule:: NuRadioReco.utilities.io_utilities
+   :members:
+   :undoc-members:
+   :show-inheritance:

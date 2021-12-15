@@ -1,0 +1,7 @@
+NuRadioReco.modules.efieldAirToIcePropagator module
+===================================================
+
+.. automodule:: NuRadioReco.modules.efieldAirToIcePropagator
+   :members:
+   :undoc-members:
+   :show-inheritance:

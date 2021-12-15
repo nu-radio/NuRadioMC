@@ -1,0 +1,7 @@
+NuRadioReco.modules.channelBandPassFilter module
+================================================
+
+.. automodule:: NuRadioReco.modules.channelBandPassFilter
+   :members:
+   :undoc-members:
+   :show-inheritance:

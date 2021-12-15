@@ -1,0 +1,15 @@
+NuRadioReco.modules.RNO\_G package
+==================================
+
+.. automodule:: NuRadioReco.modules.RNO_G
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.RNO_G.hardwareResponseIncorporator

@@ -1,0 +1,7 @@
+NuRadioReco.utilities.fft module
+================================
+
+.. automodule:: NuRadioReco.utilities.fft
+   :members:
+   :undoc-members:
+   :show-inheritance:

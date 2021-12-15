@@ -1,0 +1,7 @@
+NuRadioReco.detector.antennapattern module
+==========================================
+
+.. automodule:: NuRadioReco.detector.antennapattern
+   :members:
+   :undoc-members:
+   :show-inheritance:

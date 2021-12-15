@@ -1,0 +1,7 @@
+NuRadioMC.EvtGen.create\_tau\_tab module
+========================================
+
+.. automodule:: NuRadioMC.EvtGen.create_tau_tab
+   :members:
+   :undoc-members:
+   :show-inheritance:

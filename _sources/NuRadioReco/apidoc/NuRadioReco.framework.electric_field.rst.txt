@@ -1,0 +1,7 @@
+NuRadioReco.framework.electric\_field module
+============================================
+
+.. automodule:: NuRadioReco.framework.electric_field
+   :members:
+   :undoc-members:
+   :show-inheritance:

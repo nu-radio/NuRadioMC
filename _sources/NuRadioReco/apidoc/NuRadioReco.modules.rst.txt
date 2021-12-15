@@ -1,0 +1,61 @@
+NuRadioReco.modules package
+===========================
+
+.. automodule:: NuRadioReco.modules
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.ARA
+   NuRadioReco.modules.ARIANNA
+   NuRadioReco.modules.RNO_G
+   NuRadioReco.modules.base
+   NuRadioReco.modules.custom
+   NuRadioReco.modules.io
+   NuRadioReco.modules.neutrinoVertexReconstructor
+   NuRadioReco.modules.phasedarray
+   NuRadioReco.modules.trigger
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.analogToDigitalConverter
+   NuRadioReco.modules.beamFormingDirectionFitter
+   NuRadioReco.modules.channelAddCableDelay
+   NuRadioReco.modules.channelAntennaDedispersion
+   NuRadioReco.modules.channelBandPassFilter
+   NuRadioReco.modules.channelGalacticNoiseAdder
+   NuRadioReco.modules.channelGenericNoiseAdder
+   NuRadioReco.modules.channelLengthAdjuster
+   NuRadioReco.modules.channelMeasuredNoiseAdder
+   NuRadioReco.modules.channelResampler
+   NuRadioReco.modules.channelSignalReconstructor
+   NuRadioReco.modules.channelStopFilter
+   NuRadioReco.modules.channelTemplateCorrelation
+   NuRadioReco.modules.channelTimeOffsetCalculator
+   NuRadioReco.modules.channelTimeWindow
+   NuRadioReco.modules.correlationDirectionFitter
+   NuRadioReco.modules.cosmicRayEnergyReconstructor
+   NuRadioReco.modules.efieldAirToIcePropagator
+   NuRadioReco.modules.efieldTimeDirectionFitter
+   NuRadioReco.modules.efieldToVoltageConverter
+   NuRadioReco.modules.efieldToVoltageConverterPerEfield
+   NuRadioReco.modules.electricFieldBandPassFilter
+   NuRadioReco.modules.electricFieldResampler
+   NuRadioReco.modules.electricFieldSignalReconstructor
+   NuRadioReco.modules.eventTypeIdentifier
+   NuRadioReco.modules.sphericalWaveFitter
+   NuRadioReco.modules.templateDirectionFitter
+   NuRadioReco.modules.triggerTimeAdjuster
+   NuRadioReco.modules.voltageToAnalyticEfieldConverter
+   NuRadioReco.modules.voltageToEfieldConverter
+   NuRadioReco.modules.voltageToEfieldConverterPerChannel

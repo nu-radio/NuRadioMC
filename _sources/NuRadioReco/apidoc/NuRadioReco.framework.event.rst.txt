@@ -1,0 +1,7 @@
+NuRadioReco.framework.event module
+==================================
+
+.. automodule:: NuRadioReco.framework.event
+   :members:
+   :undoc-members:
+   :show-inheritance:

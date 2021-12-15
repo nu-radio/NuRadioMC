@@ -1,0 +1,7 @@
+NuRadioReco.framework.sim\_station module
+=========================================
+
+.. automodule:: NuRadioReco.framework.sim_station
+   :members:
+   :undoc-members:
+   :show-inheritance:

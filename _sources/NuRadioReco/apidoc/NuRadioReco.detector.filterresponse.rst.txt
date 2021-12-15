@@ -1,0 +1,7 @@
+NuRadioReco.detector.filterresponse module
+==========================================
+
+.. automodule:: NuRadioReco.detector.filterresponse
+   :members:
+   :undoc-members:
+   :show-inheritance:

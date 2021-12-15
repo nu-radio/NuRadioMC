@@ -1,0 +1,7 @@
+NuRadioReco.modules.trigger.envelopeTrigger module
+==================================================
+
+.. automodule:: NuRadioReco.modules.trigger.envelopeTrigger
+   :members:
+   :undoc-members:
+   :show-inheritance:

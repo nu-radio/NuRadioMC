@@ -1,12 +1,12 @@
 Ice and attenuation models
-==========
+================================
 
 Ice model implementation
-----------
+------------------------------
 Ice models are the object in NuRadioMC that holds all the information of the ice needed to calculate the trajectory, namely: the refractive index at all the relevant points in space, boundary conditions and other special features that determine the ice medium. It can be found in the **utilities** module under ``medium.py`` and ``medium_base.py``. 
 
 The IceModel and IceModel_Simple class
-___________
+_______________________________________
 ``medium_base.py`` holds the framework of which all the specific ice models depends. The most basic class of ice models is the ``IceModel`` from which all final models should inherit directly or via some daughter classes. It represents a planar medium with a top and bottom boundary and in between a refractive index. A reflective bottom layer may be added as well.
 
     .. code-block:: Python
@@ -51,7 +51,7 @@ where z is the depth and :math:`n_{ice}`, :math:`\Delta_n`, `math:`z_0` are the 
                     delta_n = 0.51)
 
 RadioPropaIceWrapper
-__________
+_____________________
 The analytic ray tracer can only handle simple ice models. For other models you need the RadioPropa ray tracer. However, for this to work, the model needs a translation into proper RadioPropa object. To facilitate this, the ``RadioPropaIceWrapper`` class is defined in ``medium_base.py``. This class hold the index of refraction as a RadioPropa scalar field and the boundary conditions and special features in the relevant RadioPropa modules.
     
     .. code-block:: Python
@@ -107,10 +107,10 @@ An example of the implementation of a non-simple model if given by ``greenland_f
 
 
 Available models in NuRadioMC
-----------
+---------------------------------
 
 Simple ice models
-__________
+____________________
 In the table below we can find the different parameters for the simple ice refractive index models available in NuRadioMC. 
 
     .. csv-table:: Simple Ice Models
@@ -127,11 +127,11 @@ The models ``mooresbay_simple`` and ``mooresbay_simple_2`` also contain a reflec
 
 
 RadioPropa ice models
-__________
+______________________
 Besides the simple ice models above, there is also one other ice model implemented: `greenland_firn <https://arxiv.org/abs/1805.12576>`__
 
 Attenuation model
-__________
+___________________
 NuRadioMC has also three attenuation models available. These models provide attenuation lengths that are depth- and frequency-dependent.
 
   * `GL1 <https://www.cambridge.org/core/journals/journal-of-glaciology/article/an-in-situ-measurement-of-the-radiofrequency-attenuation-in-ice-at-summit-station-greenland/69FBB917D29DD43EE4DCDCC3EC21EA9F>`__, for Greenland.
@@ -140,7 +140,7 @@ NuRadioMC has also three attenuation models available. These models provide atte
 
 
 Using specific models
-__________
+_______________________
 Both the ice model and the attenuation model can be specified in the config file. As an example, if we want to use the ``greenland_simple`` ice model together with the GL1 attenuation, we have to write on the yaml configuration file:
 
     .. code-block:: yaml
@@ -150,7 +150,7 @@ Both the ice model and the attenuation model can be specified in the config file
             attenuation_model: GL1
 
 Example script
-----------
+-------------------
 The following snippet shows how the ice properties can be retrieved from NuRadioMC for an independent analysis.
 
     .. code-block:: Python

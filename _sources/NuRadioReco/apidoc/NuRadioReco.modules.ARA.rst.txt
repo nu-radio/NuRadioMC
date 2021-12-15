@@ -1,0 +1,16 @@
+NuRadioReco.modules.ARA package
+===============================
+
+.. automodule:: NuRadioReco.modules.ARA
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.ARA.hardwareResponseIncorporator
+   NuRadioReco.modules.ARA.triggerSimulator

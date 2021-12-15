@@ -1,9 +1,9 @@
 Signal Generation (electric field)
-==========
+====================================
 One of the NuRadioMC pillars is the signal generation procedure. All the relevant modules for signal generation can be found in the SignalGen folder. NuRadioMC has two methods for generating the electric field. The first one is through the use of frequency-domain parameterisations, and the second one is the use of the semianalytical ARZ model. An more in-depth explanation of the models can be found in the `NuRadioMC paper <https://link.springer.com/article/10.1140%2Fepjc%2Fs10052-020-7612-8>`__.
 
 Frequency-domain parameterisations
-----------
+-----------------------------------
 Frequency-domain parameterisations are fits to simulation results for which the fitting functions are motivated by physical arguments. These parameterisations return waveforms and spectra that closely resemble the results of of full Monte Carlos. For instance, their predicted amplitudes are not far off of what a refined Monte Carlo would yield, so they can be used for simple trigger studies and for effective volume calculations. However, the fine details of the shower emission, an accurate timing, shower-to-shower fluctuations, or LPM effect cannot be fully reproduced with these frequency domain parameterisations. These parameterisations are:
 
     * ``ZHS1992``: The first parameterisation of its kind, from the seminal `ZHS paper <https://journals.aps.org/prd/abstract/10.1103/PhysRevD.45.362>`__. Included mainly for historical reasons.
@@ -37,7 +37,7 @@ The trace returned by ``get_time_trace`` is a one-dimensional array. This is eno
 The trace units are the standard units for an electric field in NuRadioMC, that is, volts per metre. The user can also obtain the Fourier transform using the function ``get_frequency_spectrum``. An FFT wrapper coded in NuRadioReco ensures that the units of this spectrum are units of electric field per frequency (volts per metre per gigahertz, in default NuRadioMC units), rejecting the standard adimensional FFT convention and freeing the user of keeping track of the transform normalisation.
 
 ARZ - semi-analytical model
-----------
+-----------------------------
 NuRadioMC posesses an implementation of the semi-analytical `ARZ model <https://dx.doi.org/10.1103/PhysRevD.84.103003>`__. This model uses a library of simulated shower longitudinal profiles together with a simulated parameterisation of the electric field at the Cherenkov angle and a formula for calculating the electric field for every observer using these data. This method agrees with the ZHS MC to the few percent level up to ~3 GHz. This model offers the advantage of having shower-to-shower fluctuations thanks to the simulated shower profiles library.  These showers have been simulated using a model for the LPM effect, which means that high-energy electromagnetic showers will be stretched and can present several local shower maxima. Also, hadronic showers can have a displaced maximum due to a pion that takes a lot of time to decay. All of the shower physics complexity is present if the library contains a fair sample of neutrino-induced showers, which translates into an accurate depiction of the electric field.
 
 When the user calls the ARZ module, the shower library ``ARZ/shower_profile/shower_library_vX.Y.pkl`` will be loaded in memory, and the shower profiles will be drawn from there. However, advanced users can provide their own shower profiles using a format similar to the files ``ARZ/shower_profile/nue*tXXXX`` and then use the file ``A01preprocess_shower_library.py`` to create the pickle library.
@@ -112,7 +112,7 @@ The user can choose to have a tuple with the trace and the distance between the 
 recommend to always divide all variables by the units the user wants to display them on, and even more for density units.
 
 Validity of the parameterisations and the ARZ model
-----------
+------------------------------------------------------
 The ARZ model is valid as long as the minimum distance between shower and observer is much larger than the minimum observation wavelength of interest. When this happens we say that the observer is in the far field (in an electromagnetic sense) (`see paper <https://journals.aps.org/prd/abstract/10.1103/PhysRevD.87.023003>`__):
 
     1. :math:`kR >> 1`,
@@ -170,7 +170,7 @@ The simulation module takes the vertex interaction time (point 1), adds the prop
 In short, the times obtained for each channel trace are calculated assuming that the first interaction happens at ``t = 0``, and the time array obtained with the method ``channel.get_times()`` are consistent with this description.
 
 Using the same shower. Random seed
-----------
+----------------------------------
 Two of the most relevant models have randomness added to simulate shower to shower fluctuations: the Alvarez2009 and the ARZ2020 (or 2019) model.
 
 The randomness in the Alvarez2009 model comes from a crude simulation of the LPM effect for electromagnetic showers. The constant k:sub:`L` is obtained from a log-gaussian distribution to simulate the stretching of the shower due to LPM. This stretching leaves the EM shower with the same smooth profile, only extended along a larger length, unlike a true LPM shower profile which should be bumpy because of the stochastic interactions. Nevertheless, it is a decent first approximation for illustration purposes.
@@ -195,7 +195,7 @@ the numpy random seed can be fixed right before calling the  ``get_time_trace`` 
         np.random.seed(my_seed)
 
 FFT normalisation
-----------
+--------------------
 FFT normalisation is a confusing subject to most people that that have worked with FFT algorithms. For the sake of speed, FFT algorithms work without any notion of dimensions or intervals between the points of an array, which combined with many other things, allows for a much faster transform, hence the first F for fast. The issue is, when using an FFT to transform from time to frequency, for instance, the FFT does not tell us the dimensions of the resulting transform or the frequencies. That is left for the user, so the fast part seems to be when calculating the transform and not when one has to interpret it, where it is really easy to commit a mistake and waste more time, effectively turning our FFTs into SFTs (Slow Fourier Transforms) or JWFTs (Just Wrong Fourier Transforms). The problem is only aggravated when transforming back, as some implementations present an extra N factor, the number of samples.
 
 With the FFT implementation in numpy, it is enough to multiply the result by the sampling rate to get the Fourier transform in the trace dimensions per frequency unit. It uses a standard normalisation with factor 1. In our case, we are using ``numpy.rfft``, the real transform, instead of the general complex ``numpy.fft``. This implementation ignores the negative frequencies, so if we want to get the whole energy of a signal integrating on the positive frequencies only, we have to multiply our transform by a factor of square root of 2.

@@ -1,0 +1,7 @@
+NuRadioReco.modules.cosmicRayEnergyReconstructor module
+=======================================================
+
+.. automodule:: NuRadioReco.modules.cosmicRayEnergyReconstructor
+   :members:
+   :undoc-members:
+   :show-inheritance:

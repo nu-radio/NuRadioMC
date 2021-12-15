@@ -1,0 +1,15 @@
+NuRadioReco.modules.custom package
+==================================
+
+.. automodule:: NuRadioReco.modules.custom
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.custom.deltaT

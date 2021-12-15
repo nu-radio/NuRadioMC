@@ -1,0 +1,7 @@
+NuRadioReco.modules.channelSignalReconstructor module
+=====================================================
+
+.. automodule:: NuRadioReco.modules.channelSignalReconstructor
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,7 @@
+NuRadioReco.modules.channelTimeWindow module
+============================================
+
+.. automodule:: NuRadioReco.modules.channelTimeWindow
+   :members:
+   :undoc-members:
+   :show-inheritance:

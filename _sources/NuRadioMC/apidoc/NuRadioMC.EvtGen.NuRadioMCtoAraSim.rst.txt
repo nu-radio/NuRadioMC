@@ -1,0 +1,7 @@
+NuRadioMC.EvtGen.NuRadioMCtoAraSim module
+=========================================
+
+.. automodule:: NuRadioMC.EvtGen.NuRadioMCtoAraSim
+   :members:
+   :undoc-members:
+   :show-inheritance:

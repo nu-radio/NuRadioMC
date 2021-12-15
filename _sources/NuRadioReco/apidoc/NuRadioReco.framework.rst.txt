@@ -1,0 +1,30 @@
+NuRadioReco.framework package
+=============================
+
+.. automodule:: NuRadioReco.framework
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.framework.base_shower
+   NuRadioReco.framework.base_station
+   NuRadioReco.framework.base_trace
+   NuRadioReco.framework.channel
+   NuRadioReco.framework.electric_field
+   NuRadioReco.framework.event
+   NuRadioReco.framework.hybrid_information
+   NuRadioReco.framework.hybrid_shower
+   NuRadioReco.framework.parameter_serialization
+   NuRadioReco.framework.parameters
+   NuRadioReco.framework.particle
+   NuRadioReco.framework.radio_shower
+   NuRadioReco.framework.sim_channel
+   NuRadioReco.framework.sim_station
+   NuRadioReco.framework.station
+   NuRadioReco.framework.trigger

@@ -1,0 +1,7 @@
+NuRadioReco.framework.hybrid\_information module
+================================================
+
+.. automodule:: NuRadioReco.framework.hybrid_information
+   :members:
+   :undoc-members:
+   :show-inheritance:

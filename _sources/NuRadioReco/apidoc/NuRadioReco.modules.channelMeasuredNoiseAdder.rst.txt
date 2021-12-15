@@ -1,0 +1,7 @@
+NuRadioReco.modules.channelMeasuredNoiseAdder module
+====================================================
+
+.. automodule:: NuRadioReco.modules.channelMeasuredNoiseAdder
+   :members:
+   :undoc-members:
+   :show-inheritance:

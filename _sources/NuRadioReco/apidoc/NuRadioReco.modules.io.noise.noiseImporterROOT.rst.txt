@@ -1,0 +1,7 @@
+NuRadioReco.modules.io.noise.noiseImporterROOT module
+=====================================================
+
+.. automodule:: NuRadioReco.modules.io.noise.noiseImporterROOT
+   :members:
+   :undoc-members:
+   :show-inheritance:

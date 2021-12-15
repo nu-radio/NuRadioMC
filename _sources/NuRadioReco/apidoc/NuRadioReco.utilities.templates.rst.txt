@@ -1,0 +1,7 @@
+NuRadioReco.utilities.templates module
+======================================
+
+.. automodule:: NuRadioReco.utilities.templates
+   :members:
+   :undoc-members:
+   :show-inheritance:

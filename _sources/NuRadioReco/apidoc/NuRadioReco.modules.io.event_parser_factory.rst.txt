@@ -1,0 +1,7 @@
+NuRadioReco.modules.io.event\_parser\_factory module
+====================================================
+
+.. automodule:: NuRadioReco.modules.io.event_parser_factory
+   :members:
+   :undoc-members:
+   :show-inheritance:

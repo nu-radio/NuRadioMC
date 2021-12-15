@@ -1,0 +1,7 @@
+NuRadioMC.EvtGen.NuRadioProposal module
+=======================================
+
+.. automodule:: NuRadioMC.EvtGen.NuRadioProposal
+   :members:
+   :undoc-members:
+   :show-inheritance:

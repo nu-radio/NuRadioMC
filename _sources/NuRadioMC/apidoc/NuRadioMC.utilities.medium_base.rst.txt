@@ -1,0 +1,7 @@
+NuRadioMC.utilities.medium\_base module
+=======================================
+
+.. automodule:: NuRadioMC.utilities.medium_base
+   :members:
+   :undoc-members:
+   :show-inheritance:

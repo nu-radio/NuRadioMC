@@ -1,0 +1,7 @@
+NuRadioReco.detector.generic\_detector module
+=============================================
+
+.. automodule:: NuRadioReco.detector.generic_detector
+   :members:
+   :undoc-members:
+   :show-inheritance:

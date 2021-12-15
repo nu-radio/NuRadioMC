@@ -1,0 +1,7 @@
+NuRadioReco.framework.particle module
+=====================================
+
+.. automodule:: NuRadioReco.framework.particle
+   :members:
+   :undoc-members:
+   :show-inheritance:

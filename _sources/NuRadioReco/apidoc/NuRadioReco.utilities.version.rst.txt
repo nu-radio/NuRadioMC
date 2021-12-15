@@ -1,0 +1,7 @@
+NuRadioReco.utilities.version module
+====================================
+
+.. automodule:: NuRadioReco.utilities.version
+   :members:
+   :undoc-members:
+   :show-inheritance:

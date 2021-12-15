@@ -1,0 +1,7 @@
+NuRadioReco.modules.triggerTimeAdjuster module
+==============================================
+
+.. automodule:: NuRadioReco.modules.triggerTimeAdjuster
+   :members:
+   :undoc-members:
+   :show-inheritance:

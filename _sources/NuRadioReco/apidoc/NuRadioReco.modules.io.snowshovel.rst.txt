@@ -1,0 +1,16 @@
+NuRadioReco.modules.io.snowshovel package
+=========================================
+
+.. automodule:: NuRadioReco.modules.io.snowshovel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.io.snowshovel.readARIANNAData
+   NuRadioReco.modules.io.snowshovel.readARIANNADataCalib

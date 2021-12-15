@@ -1,23 +1,25 @@
 <!DOCTYPE html>
-<html class="writer-html4" lang="en" >
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulation and configuration &mdash; NuRadio 2.0.0 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <title>Simulation and configuration &mdash; NuRadio 2.0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Calculating effective volume" href="veff_tutorial.html" />
     <link rel="prev" title="Ice and attenuation models" href="icemodels.html" /> 
 </head>
 
@@ -26,7 +28,8 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../../main.html" class="icon icon-home"> NuRadio<img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
+            <a href="../../../main.html" class="icon icon-home"> NuRadio
+            <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
                 2.0.0
@@ -39,20 +42,49 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../Introduction/pages/welcome_page.html">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../Introduction/pages/introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../Introduction/pages/installation.html">Installing NuRadioMC / NuRadioReco</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/installation.html#requirements">Requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/installation.html#installation-using-pip">Installation using Pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/installation.html#development-version">Development version</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/installation.html#pythonpath">PYTHONPATH</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/installation.html#manual-installation">Manual installation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/installation.html#pip-installable-dependencies">Pip-installable dependencies</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/installation.html#core-dependencies">Core Dependencies</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/installation.html#optional-dependencies">Optional Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/installation.html#not-pip-installable-packages">Not pip-installable packages</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../Introduction/pages/contributing.html">Contributing to NuRadioReco</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/contributing.html#workflow">Workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/contributing.html#example-workflow">Example workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/contributing.html#coding-conventions">Coding conventions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/contributing.html#how-to">How to</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#headings-and-text">Headings and text</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#lists">Lists</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#links-and-cross-references">Links and cross-references</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#showing-code">Showing code</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../../../NuRadioReco/pages/welcome_page.html">NuRadioReco Documentation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/introduction.html">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html">Installing NuRadioReco</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html#installation-using-pip">Installation using Pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html#manual-installation">Manual Installation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html#dependencies">Dependencies</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html#core-dependencies">Core Dependencies</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/installation.html#optional-dependencies">Optional Dependencies</a></li>
-</ul>
-</li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html">Data Structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#nur-files-and-how-to-use-them">.nur Files and How to Use Them</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#philosophy-and-basic-structure">Philosophy and Basic Structure</a></li>
@@ -77,23 +109,87 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html">Detector Description</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#the-detector-class">The Detector Class</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#detector-description-formats">Detector Description Formats</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#database">DataBase</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#json">JSON</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#dictionary">Dictionary</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#signal-chain-responses">Signal Chain Responses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/detector_tree.html">Detector Description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html">Detector Description</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#the-detector-class">The Detector Class</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#detector-description-formats">Detector Description Formats</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#database">DataBase</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#json">JSON</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#dictionary">Dictionary</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#signal-chain-responses">Signal Chain Responses</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#id1">GenericDetector</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#event-specific-changes">Event-Specific Changes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#genericdetector">GenericDetector</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#event-specific-changes">Event-Specific Changes</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#detector-description-in-event-files">Detector Description in Event Files</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#writing-the-detector">Writing the Detector</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#reading-the-detector">Reading the Detector</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector.html#detector-viewer">Detector Viewer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#detector-description-in-event-files">Detector Description in Event Files</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#writing-the-detector">Writing the Detector</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#reading-the-detector">Reading the Detector</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#detector-viewer">Detector Viewer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector_database_fields.html">Properties of Detector Description</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector_database_fields.html#antenna-table">Antenna Table</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector_database_fields.html#further-discussion-on-antenna-coordinates">Further Discussion on Antenna Coordinates</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector_database_fields.html#adc-table">ADC Table</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html">Antenna Models</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#overview-of-available-antenna-models">Overview of available Antenna Models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#bicone-v8-infair">bicone_v8_infAir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#bicone-v8-inf-n1-32">bicone_v8_inf_n1.32</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#bicone-v8-inf-n1-4">bicone_v8_inf_n1.4</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#bicone-v8-inf-n1-78">bicone_v8_inf_n1.78</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-100mhz-inffirn">createLPDA_100MHz_InfFirn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-inffirn-n1-4">createLPDA_InfFirn_n1.4</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-100mhz-z1cm-infirn-rg">createLPDA_100MHz_z1cm_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z1cm-infirn-boresighttoboundary">createLPDA_z1cm_InFirn_BoresightToBoundary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z10cm-infirn-rg">createLPDA_z10cm_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z1m-infirn-rg">createLPDA_z1m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z2m-infirn-rg">createLPDA_z2m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z2m-infirn-backlobe-norg">createLPDA_z2m_InFirn_Backlobe_NoRG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z3m-inair-rg">createLPDA_z3m_InAir_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z3m-infirn-boresighttoboundary">createLPDA_z3m_InFirn_BoresightToBoundary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z3mandlpdalen-infirn-boresighttoboundary">createLPDA_z3mAndLPDALen_InFirn_BoresightToBoundary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z5m-infirn-rg">createLPDA_z5m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z10m-infirn-rg">createLPDA_z10m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z100m-infirn-rg">createLPDA_z100m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z200m-infirn-rg">createLPDA_z200m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-100mhz-infair">createLPDA_100MHz_InfAir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-100mhz-z1cm-inair-rg">createLPDA_100MHz_z1cm_InAir_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-hpol-inffirn">dip7cm_hpol_infFirn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-hpol-z2m-infirn-rg">dip7cm_hpol_z2m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-inffirn">dip7cm_InfFirn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z260mm-infirn-rg">dip7cm_z260mm_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z1m-infirn-rg">dip7cm_z1m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z2m-infirn-rg">dip7cm_z2m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z3m-infirn-rg-nearhorizontalhd">dip7cm_z3m_InFirn_RG_NearHorizontalHD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z5m-infirn-rg">dip7cm_z5m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z10m-infirn-rg">dip7cm_z10m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z20m-infirn-rg">dip7cm_z20m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z100m-infirn-rg">dip7cm_z100m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z200m-infirn-rg">dip7cm_z200m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-infair">dip7cm_InfAir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z270mm-inair">dip7cm_z270mm_InAir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z1m-inair">dip7cm_z1m_InAir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z1m-inair-rg-nearhorizontalhd">dip7cm_z1m_InAir_RG_NearHorizontalHD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z1m-inair-rg-nearhorizontalhd2">dip7cm_z1m_InAir_RG_NearHorizontalHD2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z2m-inair">dip7cm_z2m_InAir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z5m-inair">dip7cm_z5m_InAir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#ara-quadslot-data-measurement-fit">ARA_quadslot_data+measurement_fit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#ara-bicone-data-measurement-fit">ARA_bicone_data+measurement_fit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#rnog-vpol-4inch-center-1-73">RNOG_vpol_4inch_center_1.73</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#rnog-vpol-4inch-half-1-73">RNOG_vpol_4inch_half_1.73</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#rnog-vpol-4inch-wall-1-73">RNOG_vpol_4inch_wall_1.73</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#rnog-quadslot-v1-1-74">RNOG_quadslot_v1_1.74</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#rnog-quadslot-v2-1-74">RNOG_quadslot_v2_1.74</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#skala-inair">SKALA_InAir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#rnog-quadslot-v3-air-rescaled-to-n1-74">RNOG_quadslot_v3_air_rescaled_to_n1.74</a></li>
 </ul>
 </li>
 </ul>
@@ -113,129 +209,125 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html">Contributing to NuRadioReco</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#workflow">Workflow</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#filing-tickets">Filing Tickets</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#submitting-pull-requests">Submitting Pull Requests</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#coding-conventions">Coding Conventions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#versioning">Versioning</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#unit-tests">Unit Tests</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#coding-standards-and-linting">Coding Standards and Linting</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#documentation">Documentation</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#writing-docstrings">Writing Docstrings</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#deploying-the-documentation">Deploying the Documentation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#technical-implementation">Technical Implementation</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/contributing.html#usage-convention">Usage convention</a></li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/code_documentation.html">Code Documentation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html">NuRadioReco.framework package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-base-shower-module">NuRadioReco.framework.base_shower module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-base-station-module">NuRadioReco.framework.base_station module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-base-trace-module">NuRadioReco.framework.base_trace module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-channel-module">NuRadioReco.framework.channel module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-electric-field-module">NuRadioReco.framework.electric_field module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-event-module">NuRadioReco.framework.event module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-hybrid-information-module">NuRadioReco.framework.hybrid_information module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-hybrid-shower-module">NuRadioReco.framework.hybrid_shower module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-parameter-serialization-module">NuRadioReco.framework.parameter_serialization module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-parameters-module">NuRadioReco.framework.parameters module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-radio-shower-module">NuRadioReco.framework.radio_shower module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-sim-channel-module">NuRadioReco.framework.sim_channel module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-sim-station-module">NuRadioReco.framework.sim_station module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-station-module">NuRadioReco.framework.station module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#nuradioreco-framework-trigger-module">NuRadioReco.framework.trigger module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.framework.html#module-contents">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html">NuRadioReco.modules package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#subpackages">Subpackages</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-analogtodigitalconverter-module">NuRadioReco.modules.analogToDigitalConverter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-beamformingdirectionfitter-module">NuRadioReco.modules.beamFormingDirectionFitter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channeladdcabledelay-module">NuRadioReco.modules.channelAddCableDelay module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelantennadedispersion-module">NuRadioReco.modules.channelAntennaDedispersion module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelbandpassfilter-module">NuRadioReco.modules.channelBandPassFilter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelgalacticnoiseadder-module">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelgenericnoiseadder-module">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channellengthadjuster-module">NuRadioReco.modules.channelLengthAdjuster module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelmeasurednoiseadder-module">NuRadioReco.modules.channelMeasuredNoiseAdder module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelresampler-module">NuRadioReco.modules.channelResampler module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelsignalreconstructor-module">NuRadioReco.modules.channelSignalReconstructor module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channelstopfilter-module">NuRadioReco.modules.channelStopFilter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channeltemplatecorrelation-module">NuRadioReco.modules.channelTemplateCorrelation module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channeltimeoffsetcalculator-module">NuRadioReco.modules.channelTimeOffsetCalculator module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-channeltimewindow-module">NuRadioReco.modules.channelTimeWindow module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-correlationdirectionfitter-module">NuRadioReco.modules.correlationDirectionFitter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-cosmicrayenergyreconstructor-module">NuRadioReco.modules.cosmicRayEnergyReconstructor module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-efieldairtoicepropagator-module">NuRadioReco.modules.efieldAirToIcePropagator module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-efieldtimedirectionfitter-module">NuRadioReco.modules.efieldTimeDirectionFitter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-efieldtovoltageconverter-module">NuRadioReco.modules.efieldToVoltageConverter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-efieldtovoltageconverterperefield-module">NuRadioReco.modules.efieldToVoltageConverterPerEfield module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-electricfieldbandpassfilter-module">NuRadioReco.modules.electricFieldBandPassFilter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-electricfieldresampler-module">NuRadioReco.modules.electricFieldResampler module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-electricfieldsignalreconstructor-module">NuRadioReco.modules.electricFieldSignalReconstructor module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-eventtypeidentifier-module">NuRadioReco.modules.eventTypeIdentifier module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-templatedirectionfitter-module">NuRadioReco.modules.templateDirectionFitter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-triggertimeadjuster-module">NuRadioReco.modules.triggerTimeAdjuster module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-voltagetoanalyticefieldconverter-module">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-voltagetoefieldconverter-module">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#nuradioreco-modules-voltagetoefieldconverterperchannel-module">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.modules.html#module-contents">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html">NuRadioReco.detector package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#subpackages">Subpackages</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-amp-module">NuRadioReco.detector.amp module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-antennapattern-module">NuRadioReco.detector.antennapattern module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-detector-module">NuRadioReco.detector.detector module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-detector-sql-module">NuRadioReco.detector.detector_sql module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-detector-sys-uncertainties-module">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-filterresponse-module">NuRadioReco.detector.filterresponse module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-generic-detector-module">NuRadioReco.detector.generic_detector module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-sql-to-json-module">NuRadioReco.detector.sql_to_json module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-test-detector-db-module">NuRadioReco.detector.test_detector_db module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#nuradioreco-detector-visualize-detector-module">NuRadioReco.detector.visualize_detector module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.detector.html#module-contents">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html">NuRadioReco.utilities package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-analytic-pulse-module">NuRadioReco.utilities.analytic_pulse module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-bandpass-filter-module">NuRadioReco.utilities.bandpass_filter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-diodesimulator-module">NuRadioReco.utilities.diodeSimulator module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-fft-module">NuRadioReco.utilities.fft module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-geometryutilities-module">NuRadioReco.utilities.geometryUtilities module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-ice-module">NuRadioReco.utilities.ice module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-io-utilities-module">NuRadioReco.utilities.io_utilities module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-metaclasses-module">NuRadioReco.utilities.metaclasses module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-noise-module">NuRadioReco.utilities.noise module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-templates-module">NuRadioReco.utilities.templates module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-timing-module">NuRadioReco.utilities.timing module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-tracewindows-module">NuRadioReco.utilities.traceWindows module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-trace-utilities-module">NuRadioReco.utilities.trace_utilities module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-units-module">NuRadioReco.utilities.units module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#nuradioreco-utilities-version-module">NuRadioReco.utilities.version module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/NuRadioReco.utilities.html#module-contents">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.html">NuRadioReco.framework package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html">NuRadioReco.framework.base_shower module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html">NuRadioReco.framework.base_station module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html">NuRadioReco.framework.base_trace module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.channel.html">NuRadioReco.framework.channel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_serialization.html">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html">NuRadioReco.framework.parameters module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html">NuRadioReco.framework.sim_station module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html">NuRadioReco.framework.station module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html">NuRadioReco.framework.trigger module</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/detector_database_fields.html">Properties of Detector Description</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector_database_fields.html#antenna-table">Antenna Table</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector_database_fields.html#further-discussion-on-antenna-coordinates">Further Discussion on Antenna Coordinates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.html">NuRadioReco.modules package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector_database_fields.html#adc-table">ADC Table</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.analogToDigitalConverter.html">NuRadioReco.modules.analogToDigitalConverter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.beamFormingDirectionFitter.html">NuRadioReco.modules.beamFormingDirectionFitter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelAddCableDelay.html">NuRadioReco.modules.channelAddCableDelay module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelAntennaDedispersion.html">NuRadioReco.modules.channelAntennaDedispersion module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelBandPassFilter.html">NuRadioReco.modules.channelBandPassFilter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelLengthAdjuster.html">NuRadioReco.modules.channelLengthAdjuster module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelMeasuredNoiseAdder.html">NuRadioReco.modules.channelMeasuredNoiseAdder module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelResampler.html">NuRadioReco.modules.channelResampler module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSignalReconstructor.html">NuRadioReco.modules.channelSignalReconstructor module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelStopFilter.html">NuRadioReco.modules.channelStopFilter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTemplateCorrelation.html">NuRadioReco.modules.channelTemplateCorrelation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTimeOffsetCalculator.html">NuRadioReco.modules.channelTimeOffsetCalculator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTimeWindow.html">NuRadioReco.modules.channelTimeWindow module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.correlationDirectionFitter.html">NuRadioReco.modules.correlationDirectionFitter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.cosmicRayEnergyReconstructor.html">NuRadioReco.modules.cosmicRayEnergyReconstructor module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldAirToIcePropagator.html">NuRadioReco.modules.efieldAirToIcePropagator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldTimeDirectionFitter.html">NuRadioReco.modules.efieldTimeDirectionFitter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverter.html">NuRadioReco.modules.efieldToVoltageConverter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverterPerEfield.html">NuRadioReco.modules.efieldToVoltageConverterPerEfield module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.electricFieldBandPassFilter.html">NuRadioReco.modules.electricFieldBandPassFilter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.electricFieldResampler.html">NuRadioReco.modules.electricFieldResampler module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.electricFieldSignalReconstructor.html">NuRadioReco.modules.electricFieldSignalReconstructor module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.eventTypeIdentifier.html">NuRadioReco.modules.eventTypeIdentifier module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.sphericalWaveFitter.html">NuRadioReco.modules.sphericalWaveFitter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.templateDirectionFitter.html">NuRadioReco.modules.templateDirectionFitter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html">NuRadioReco.modules.triggerTimeAdjuster module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToAnalyticEfieldConverter.html">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannel.html">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/howto_documentation.html">How To</a><ul>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.html">NuRadioReco.detector package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.ARA.html">NuRadioReco.detector.ARA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.ARIANNA.html">NuRadioReco.detector.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.html">NuRadioReco.detector.RNO_G package</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.amp.html">NuRadioReco.detector.amp module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html">NuRadioReco.detector.antennapattern module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector.html">NuRadioReco.detector.detector module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html">NuRadioReco.detector.detector_sql module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.filterresponse.html">NuRadioReco.detector.filterresponse module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html">NuRadioReco.detector.generic_detector module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.sql_to_json.html">NuRadioReco.detector.sql_to_json module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.test_detector_db.html">NuRadioReco.detector.test_detector_db module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.visualize_detector.html">NuRadioReco.detector.visualize_detector module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.html">NuRadioReco.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.analytic_pulse.html">NuRadioReco.utilities.analytic_pulse module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.bandpass_filter.html">NuRadioReco.utilities.bandpass_filter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html">NuRadioReco.utilities.cr_flux module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.diodeSimulator.html">NuRadioReco.utilities.diodeSimulator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.fft.html">NuRadioReco.utilities.fft module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.geometryUtilities.html">NuRadioReco.utilities.geometryUtilities module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.ice.html">NuRadioReco.utilities.ice module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.io_utilities.html">NuRadioReco.utilities.io_utilities module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html">NuRadioReco.utilities.trace_utilities module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.units.html">NuRadioReco.utilities.units module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.version.html">NuRadioReco.utilities.version module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/howto_documentation.html">Manuals</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/how_to/vertex_reconstruction.html">Use the Vertex Reconstruction Modules</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-lookup-tables">Creating Lookup Tables</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-electric-field-templates">Creating Electric Field Templates</a></li>
@@ -248,84 +340,83 @@
 </li>
 <li class="toctree-l1 current"><a class="reference internal" href="../welcome_page.html">NuRadioMC Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../code_documentation.html">Code Documentation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-nuradiomctoarasim-module">NuRadioMC.EvtGen.NuRadioMCtoAraSim module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-nuradioproposal-module">NuRadioMC.EvtGen.NuRadioProposal module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-create-tau-tab-module">NuRadioMC.EvtGen.create_tau_tab module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-generate-cylinder-module">NuRadioMC.EvtGen.generate_cylinder module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-generate-unforced-module">NuRadioMC.EvtGen.generate_unforced module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-generator-module">NuRadioMC.EvtGen.generator module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-generator-ascii-module">NuRadioMC.EvtGen.generator_ASCII module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-generator-skeleton-module">NuRadioMC.EvtGen.generator_skeleton module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-hdf5-to-ascii-module">NuRadioMC.EvtGen.hdf5_to_ASCII module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-readaraeventlist-module">NuRadioMC.EvtGen.readARAEventList module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#nuradiomc-evtgen-readeventlist-ascii-module">NuRadioMC.EvtGen.readEventList_ASCII module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.EvtGen.html#module-contents">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../apidoc/NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../apidoc/NuRadioMC.EvtGen.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.EvtGen.NuRadioMCtoAraSim.html">NuRadioMC.EvtGen.NuRadioMCtoAraSim module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.EvtGen.NuRadioProposal.html">NuRadioMC.EvtGen.NuRadioProposal module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.EvtGen.create_tau_tab.html">NuRadioMC.EvtGen.create_tau_tab module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.EvtGen.generate_cylinder.html">NuRadioMC.EvtGen.generate_cylinder module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.EvtGen.generate_unforced.html">NuRadioMC.EvtGen.generate_unforced module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.EvtGen.generator.html">NuRadioMC.EvtGen.generator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.EvtGen.generator_ASCII.html">NuRadioMC.EvtGen.generator_ASCII module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.EvtGen.generator_skeleton.html">NuRadioMC.EvtGen.generator_skeleton module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.EvtGen.hdf5_to_ASCII.html">NuRadioMC.EvtGen.hdf5_to_ASCII module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.EvtGen.readARAEventList.html">NuRadioMC.EvtGen.readARAEventList module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.EvtGen.readEventList_ASCII.html">NuRadioMC.EvtGen.readEventList_ASCII module</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.SignalGen.html">NuRadioMC.SignalGen package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#subpackages">Subpackages</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#nuradiomc-signalgen-hcrb2017-module">NuRadioMC.SignalGen.HCRB2017 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#nuradiomc-signalgen-askaryan-module">NuRadioMC.SignalGen.askaryan module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#nuradiomc-signalgen-parametrizations-module">NuRadioMC.SignalGen.parametrizations module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalGen.html#module-contents">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.SignalProp.html">NuRadioMC.SignalProp package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#subpackages">Subpackages</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#nuradiomc-signalprop-analyticraytracing-module">NuRadioMC.SignalProp.analyticraytracing module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#nuradiomc-signalprop-directraytracing-module">NuRadioMC.SignalProp.directRayTracing module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#nuradiomc-signalprop-propagation-module">NuRadioMC.SignalProp.propagation module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#nuradiomc-signalprop-propagation-base-class-module">NuRadioMC.SignalProp.propagation_base_class module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.SignalProp.html#module-contents">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalGen.html">NuRadioMC.SignalGen package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalGen.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalGen.ARZ.html">NuRadioMC.SignalGen.ARZ package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-e04runstrawmensim2-module">NuRadioMC.simulation.E04RunStrawmenSim2 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t04visualize-sim-input-module">NuRadioMC.simulation.T04visualize_sim_input module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t04visualize-sim-inputextend-module">NuRadioMC.simulation.T04visualize_sim_inputExtend module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t05visualize-sim-output-module">NuRadioMC.simulation.T05visualize_sim_output module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t05visualize-sim-outputextend-module">NuRadioMC.simulation.T05visualize_sim_outputExtend module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t06read-sim-output-module">NuRadioMC.simulation.T06read_sim_output module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-t07plot-ray-tracing-solutions-module">NuRadioMC.simulation.T07plot_ray_tracing_solutions module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#nuradiomc-simulation-simulation-module">NuRadioMC.simulation.simulation module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.simulation.html#module-contents">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalGen.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalGen.HCRB2017.html">NuRadioMC.SignalGen.HCRB2017 module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalGen.askaryan.html">NuRadioMC.SignalGen.askaryan module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalGen.parametrizations.html">NuRadioMC.SignalGen.parametrizations module</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.utilities.html">NuRadioMC.utilities package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-veff-module">NuRadioMC.utilities.Veff module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-attenuation-module">NuRadioMC.utilities.attenuation module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-cross-sections-module">NuRadioMC.utilities.cross_sections module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-dump-hdf5-module">NuRadioMC.utilities.dump_hdf5 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-earth-attenuation-module">NuRadioMC.utilities.earth_attenuation module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-fluxes-module">NuRadioMC.utilities.fluxes module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-inelasticities-module">NuRadioMC.utilities.inelasticities module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-medium-module">NuRadioMC.utilities.medium module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-merge-hdf5-module">NuRadioMC.utilities.merge_hdf5 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-plotting-module">NuRadioMC.utilities.plotting module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#nuradiomc-utilities-split-hdf5-module">NuRadioMC.utilities.split_hdf5 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.utilities.html#module-contents">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.studies.html">NuRadioMC.studies package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.studies.html#module-contents">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalProp.html">NuRadioMC.SignalProp package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalProp.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalProp.analyticraytracing.html">NuRadioMC.SignalProp.analyticraytracing module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalProp.directRayTracing.html">NuRadioMC.SignalProp.directRayTracing module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalProp.propagation.html">NuRadioMC.SignalProp.propagation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalProp.propagation_base_class.html">NuRadioMC.SignalProp.propagation_base_class module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.SignalProp.radioproparaytracing.html">NuRadioMC.SignalProp.radioproparaytracing module</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC.examples.html">NuRadioMC.examples package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.examples.html#subpackages">Subpackages</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC.examples.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../apidoc/NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../apidoc/NuRadioMC.simulation.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.simulation.simulation.html">NuRadioMC.simulation.simulation module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.html">NuRadioMC.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.Veff.html">NuRadioMC.utilities.Veff module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.attenuation.html">NuRadioMC.utilities.attenuation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.cross_sections.html">NuRadioMC.utilities.cross_sections module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.dump_hdf5.html">NuRadioMC.utilities.dump_hdf5 module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.earth_attenuation.html">NuRadioMC.utilities.earth_attenuation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.fluxes.html">NuRadioMC.utilities.fluxes module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.inelasticities.html">NuRadioMC.utilities.inelasticities module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.medium.html">NuRadioMC.utilities.medium module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.medium_base.html">NuRadioMC.utilities.medium_base module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.merge_hdf5.html">NuRadioMC.utilities.merge_hdf5 module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.plotting.html">NuRadioMC.utilities.plotting module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.runner.html">NuRadioMC.utilities.runner module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.runner_example.html">NuRadioMC.utilities.runner_example module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioMC.utilities.split_hdf5.html">NuRadioMC.utilities.split_hdf5 module</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2 current"><a class="reference internal" href="../manuals.html">Manuals</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="event_generation.html">Event Generation</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="event_generation.html#events-in-a-cylindrical-volume">Events in a cylindrical volume</a></li>
+<li class="toctree-l4"><a class="reference internal" href="event_generation.html#events-in-a-cylindrical-volume">Events in a cylindrical volume</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="event_generation.html#input-parameters">Input parameters</a></li>
+<li class="toctree-l5"><a class="reference internal" href="event_generation.html#data-sets-and-attributes">Data sets and attributes</a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="event_generation.html#atmospheric-muons-generated-on-a-flat-surface">Atmospheric muons generated on a flat surface</a></li>
 <li class="toctree-l4"><a class="reference internal" href="event_generation.html#nuradioproposal-as-a-standalone-module">NuRadioProposal as a standalone module</a></li>
 </ul>
@@ -341,13 +432,31 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="signal_propagation.html">Signal Propagation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="signal_propagation.html#propagation-module">Propagation module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="signal_propagation.html#ray-tracing">Ray tracing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="signal_propagation.html#example-scripts">Example scripts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="signal_propagation.html#ray-tracing">Ray tracing</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="signal_propagation.html#analytical-ray-tracer">Analytical ray tracer</a></li>
+<li class="toctree-l5"><a class="reference internal" href="signal_propagation.html#radiopropa-numerical-ray-tracer-in-development">RadioPropa numerical ray tracer (in development)</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="signal_propagation.html#example-scripts">Example scripts</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="signal_propagation.html#how-to-calculate-an-analytic-ray-path">How to calculate an analytic ray path</a></li>
+<li class="toctree-l5"><a class="reference internal" href="signal_propagation.html#how-to-calculate-an-radiopropa-ray-path">How to calculate an radiopropa ray path</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="icemodels.html">Ice and attenuation models</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="icemodels.html#ice-model-implementation">Ice model implementation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="icemodels.html#available-models-in-nuradiomc">Available models in NuRadioMC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="icemodels.html#ice-model-implementation">Ice model implementation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="icemodels.html#the-icemodel-and-icemodel-simple-class">The IceModel and IceModel_Simple class</a></li>
+<li class="toctree-l5"><a class="reference internal" href="icemodels.html#radiopropaicewrapper">RadioPropaIceWrapper</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="icemodels.html#available-models-in-nuradiomc">Available models in NuRadioMC</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="icemodels.html#simple-ice-models">Simple ice models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="icemodels.html#radiopropa-ice-models">RadioPropa ice models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="icemodels.html#attenuation-model">Attenuation model</a></li>
+<li class="toctree-l5"><a class="reference internal" href="icemodels.html#using-specific-models">Using specific models</a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="icemodels.html#example-script">Example script</a></li>
 </ul>
 </li>
@@ -356,6 +465,16 @@
 <li class="toctree-l4"><a class="reference internal" href="#config-files">Config files</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#detector-description">Detector description</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#detector-simulation">Detector simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="veff_tutorial.html">Calculating effective volume</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="veff_tutorial.html#installation">Installation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="veff_tutorial.html#run-an-effective-volume-simulation">Run an effective volume simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="veff_tutorial.html#generating-the-input-event-list">Generating the input event list</a></li>
+<li class="toctree-l4"><a class="reference internal" href="veff_tutorial.html#running-the-simulation">Running the simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="veff_tutorial.html#more-details-the-detector-description">More details: the detector description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="veff_tutorial.html#more-details-the-config-file">More details: the config file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="veff_tutorial.html#visualization-of-results">Visualization of results</a></li>
 </ul>
 </li>
 </ul>
@@ -390,19 +509,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="simulation-and-configuration">
-<h1>Simulation and configuration<a class="headerlink" href="#simulation-and-configuration" title="Permalink to this headline">¶</a></h1>
+  <section id="simulation-and-configuration">
+<h1>Simulation and configuration<a class="headerlink" href="#simulation-and-configuration" title="Permalink to this headline"></a></h1>
 <p>The simulation class and the module of the same name, located in the <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/tree/master/NuRadioMC/simulation">simulation</a> folder, constitute the heart of NuRadioMC. The simulation module takes the neutrino input files and creates events with them. These events are then processed using the information in the config file and the detector layout specified in the detector JSON file. Finally, the trigger description in a steering file is used to determine whether an event triggers or not.</p>
 <p>This page outlines the important aspects of how to operate a NuRadioMC simulation. For a practical example, visit <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/tree/master/NuRadioMC/examples/06_webinar">the webinar example</a>.</p>
 <p>Let us begin with a description of the steering files needed to run the simulation then let us discuss a brief outline of the procedure in <code class="docutils literal notranslate"><span class="pre">simulation.py</span></code>.</p>
 <blockquote>
 <div><div class="admonition important">
-<p class="first admonition-title">Important</p>
-<p class="last">The description of the simulation module, steering files, and configuration files reflect the status of the master as of July 2020. This needs to be updated after the new looping is approved and merged.</p>
+<p class="admonition-title">Important</p>
+<p>The description of the simulation module, steering files, and configuration files reflect the status of the master as of July 2020. This needs to be updated after the new looping is approved and merged.</p>
 </div>
 </div></blockquote>
-<div class="section" id="steering-files">
-<h2>Steering files<a class="headerlink" href="#steering-files" title="Permalink to this headline">¶</a></h2>
+<section id="steering-files">
+<h2>Steering files<a class="headerlink" href="#steering-files" title="Permalink to this headline"></a></h2>
 <p>A NuRadioMC steering file is the file that describes and runs the simulation. As a small example, we can define a detector with an empty detector description. Every steering file should have a class that inherits from the simulation class, that we can call <code class="docutils literal notranslate"><span class="pre">mySimulation</span></code>. This class must have a method called <code class="docutils literal notranslate"><span class="pre">_detector_simulation</span></code>, which uses NuRadioReco modules to simulate the detector response.</p>
 <p>To create a simulation instance, we need a NuRadioMC neutrino input file, a detector description JSON file, a YAML file with various configuration settings, the output file name, and optionally the output NuRadioReco file name (nur file).</p>
 <p>The following code shows how to run a simulation by creating an instance of mySimulation, who is a child class of simulation, and then run it.</p>
@@ -432,16 +551,16 @@
 <p>When the simulation child object is initialised, the detector description in the JSON file is loaded via NuRadioReco. Then, when the <code class="docutils literal notranslate"><span class="pre">run()</span></code> method is called, the simulation module starts the following process:</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li>It reads the events from the input file, one by one, and assigns weights given by the probability that the neutrino reaches our effective volume</li>
-<li>It calculates the ray tracing solutions from the interaction vertices to the channels in each station</li>
-<li>Then, for the existing ray tracing solutions, the electric field is calculated using the SignalGen models, taking into account that propagation will modify the SignalGen input parameters</li>
-<li>The detector is simulated with the description provided in <code class="docutils literal notranslate"><span class="pre">_detector_simulation</span></code>. Usually, at least a conversion to voltage, a filter, and a trigger is applied.</li>
+<li><p>It reads the events from the input file, one by one, and assigns weights given by the probability that the neutrino reaches our effective volume</p></li>
+<li><p>It calculates the ray tracing solutions from the interaction vertices to the channels in each station</p></li>
+<li><p>Then, for the existing ray tracing solutions, the electric field is calculated using the SignalGen models, taking into account that propagation will modify the SignalGen input parameters</p></li>
+<li><p>The detector is simulated with the description provided in <code class="docutils literal notranslate"><span class="pre">_detector_simulation</span></code>. Usually, at least a conversion to voltage, a filter, and a trigger is applied.</p></li>
 </ol>
 </div></blockquote>
 <p>An example of a steering file, complete with detector description, can be found in <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/blob/master/NuRadioMC/examples/06_webinar/W02RunSimulation.py">examples/06_webinar/W02RunSimulation.py</a>.</p>
-</div>
-<div class="section" id="config-files">
-<h2>Config files<a class="headerlink" href="#config-files" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="config-files">
+<h2>Config files<a class="headerlink" href="#config-files" title="Permalink to this headline"></a></h2>
 <p>The default configuration (or config) file used is the <code class="docutils literal notranslate"><span class="pre">config_default.yaml</span></code> file in the simulation folder. If the user wants to use different parameters, it suffices to specify ONLY the parameters they want to be overriden in their own config file. For instance, if the user wants to change only the emission model to ARZ2020, a short file like the following is enough:</p>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">signal</span><span class="p">:</span>
@@ -452,7 +571,7 @@
 <p>The following is a description of the default configuration file and what can be changed therein.</p>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">weights</span><span class="p">:</span>
-    <span class="nt">weight_mode</span><span class="p">:</span> <span class="nt">core_mantle_crust # core_mantle_crust</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">use the three layer earth model,</span>
+    <span class="nt">weight_mode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">core_mantle_crust</span> <span class="c1"># core_mantle_crust: use the three layer earth model,</span>
     <span class="c1"># which considers the different densities of the core, mantle and crust.</span>
     <span class="nt">cross_section_type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ctw</span>
     <span class="c1"># neutrino cross section: ghandi : according to Ghandi et al. Phys.Rev.D58:093009,1998,</span>
@@ -464,11 +583,11 @@
 <p>The available options for weight mode are:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">simple</span></code>: assuming interaction happens at the surface and approximating the Earth with constant density</li>
-<li><code class="docutils literal notranslate"><span class="pre">core\_mantle\_crust\_simple</span></code>: assuming interaction happens at the surface and approximating the Earth with 3 layers of constant density</li>
-<li><code class="docutils literal notranslate"><span class="pre">core\_mantle\_crust</span></code>: approximating the Earth with 3 layers of constant density, path through Earth to interaction vertex is considered</li>
-<li><code class="docutils literal notranslate"><span class="pre">PREM</span></code>: density of Earth is parameterised as a function of radius, path through Earth to interaction vertex is considered</li>
-<li><code class="docutils literal notranslate"><span class="pre">None</span></code>: all weights are set to 1.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">simple</span></code>: assuming interaction happens at the surface and approximating the Earth with constant density</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">core\_mantle\_crust\_simple</span></code>: assuming interaction happens at the surface and approximating the Earth with 3 layers of constant density</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">core\_mantle\_crust</span></code>: approximating the Earth with 3 layers of constant density, path through Earth to interaction vertex is considered</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PREM</span></code>: density of Earth is parameterised as a function of radius, path through Earth to interaction vertex is considered</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code>: all weights are set to 1.</p></li>
 </ul>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">noise</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">False</span>  <span class="c1"># specify if simulation should be run with or without noise</span>
 <span class="c1"># The user must add noise manually in the detector description</span>
@@ -510,7 +629,7 @@
 <span class="c1"># The following block specifies the options for ray tracing</span>
 <span class="nt">propagation</span><span class="p">:</span>
   <span class="nt">module</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">analytic</span>
-  <span class="nt">ice_model</span><span class="p">:</span> <span class="nt">southpole_2015 # There&#39;s a range of available models</span><span class="p">:</span>
+  <span class="nt">ice_model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">southpole_2015</span> <span class="c1"># There&#39;s a range of available models:</span>
   <span class="c1"># greenland_simple, mooresbay_simple, southpole_2015, southpole_simple, ARASim_southpole</span>
   <span class="nt">attenuation_model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">SP1</span> <span class="c1"># SP1 for South Pole, GL1 for Greenland, and</span>
   <span class="c1"># MB1 for Moore&#39;s Bay</span>
@@ -548,43 +667,42 @@
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="detector-description">
-<h2>Detector description<a class="headerlink" href="#detector-description" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="detector-description">
+<h2>Detector description<a class="headerlink" href="#detector-description" title="Permalink to this headline"></a></h2>
 <p>The detector description used by NuRadioReco must be specified in a JSON detector file. We will explain the most important fields needed in these JSON files.</p>
 <p>To write a JSON detector file, first we start with the channels, each one having an antenna. The mandatory parameters for a channel are:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">channel_id</span></code>, the ID that will be used internally in NuRadioMC and NuRadioReco</li>
-<li><code class="docutils literal notranslate"><span class="pre">station_id</span></code>, the ID of the station the channel belongs to</li>
-<li><code class="docutils literal notranslate"><span class="pre">adc_sampling_frequency</span></code>, the sampling frequency for the analog-to-digital converter, which can be used for resampling traces.</li>
-<li><code class="docutils literal notranslate"><span class="pre">ant_type</span></code>, the antenna type. For instance, ‘bicone_v8’ or ‘createLPDA_100MHz’.</li>
-<li><dl class="first docutils">
-<dt>These positions are referred to the altitude, northing, and easting of the associated station.</dt>
-<dd><ul class="first last">
-<li><code class="docutils literal notranslate"><span class="pre">ant_position_x</span></code>, the x coordinate of the antenna in metres</li>
-<li><code class="docutils literal notranslate"><span class="pre">ant_position_y</span></code>, the y coordinate of the antenna in metres</li>
-<li><code class="docutils literal notranslate"><span class="pre">ant_position_z</span></code>, the z coordinate of the antenna in metres.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">channel_id</span></code>, the ID that will be used internally in NuRadioMC and NuRadioReco</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">station_id</span></code>, the ID of the station the channel belongs to</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">adc_sampling_frequency</span></code>, the sampling frequency for the analog-to-digital converter, which can be used for resampling traces.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ant_type</span></code>, the antenna type. For instance, ‘bicone_v8’ or ‘createLPDA_100MHz’.</p></li>
+<li><dl class="simple">
+<dt>These positions are referred to the altitude, northing, and easting of the associated station.</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">ant_position_x</span></code>, the x coordinate of the antenna in metres</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ant_position_y</span></code>, the y coordinate of the antenna in metres</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ant_position_z</span></code>, the z coordinate of the antenna in metres.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">ant_orientation_theta</span></code>. For dipoles, this theta marks the zenith of the direction along which the axis is placed. For LPDAs, it marks the boresight, the direction of maximum gain. All angles are in degrees.</li>
-<li><code class="docutils literal notranslate"><span class="pre">ant_orientation_phi</span></code>. The same as ant_orientation_theta, but for azimuth.</li>
-<li><code class="docutils literal notranslate"><span class="pre">ant_rotation_theta</span></code>. The zenith angle of the direction of the tines of the antenna, that must be perpendicular to the direction defined by ant_orientation_theta and ant_orientation_phi.</li>
-<li><code class="docutils literal notranslate"><span class="pre">ant_rotation_phi</span></code>. The same as ant_rotation_theta, but for azimuth.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ant_orientation_theta</span></code>. For dipoles, this theta marks the zenith of the direction along which the axis is placed. For LPDAs, it marks the boresight, the direction of maximum gain. All angles are in degrees.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ant_orientation_phi</span></code>. The same as ant_orientation_theta, but for azimuth.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ant_rotation_theta</span></code>. The zenith angle of the direction of the tines of the antenna, that must be perpendicular to the direction defined by ant_orientation_theta and ant_orientation_phi.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ant_rotation_phi</span></code>. The same as ant_rotation_theta, but for azimuth.</p></li>
 </ul>
 </div></blockquote>
 <p>For instance, a vertical dipole would have <code class="docutils literal notranslate"><span class="pre">ant_orientation_theta:</span> <span class="pre">0</span></code> and any <code class="docutils literal notranslate"><span class="pre">ant_orientation_phi</span></code>. <code class="docutils literal notranslate"><span class="pre">ant_rotation_theta</span></code> and <code class="docutils literal notranslate"><span class="pre">ant_rotation_phi</span></code> can be any direction perpendicular to the orientation, for instance <code class="docutils literal notranslate"><span class="pre">ant_rotation_theta:</span> <span class="pre">90</span></code> and <code class="docutils literal notranslate"><span class="pre">ant_rotation_phi:</span> <span class="pre">90</span></code>.</p>
 <p>Another example: a 45-degree downward-pointing LPDA antenna with the tines on the XZ plane would have <code class="docutils literal notranslate"><span class="pre">ant_orientation_theta:</span> <span class="pre">135</span></code>, <code class="docutils literal notranslate"><span class="pre">ant_orientation_phi:</span> <span class="pre">0</span></code>, <code class="docutils literal notranslate"><span class="pre">ant_rotation_theta:</span> <span class="pre">45</span></code>, <code class="docutils literal notranslate"><span class="pre">ant_rotation_phi:</span> <span class="pre">0</span></code>.</p>
-<p>See the <a class="reference external" href="https://nu-radio.github.io/NuRadioReco/pages/detector_database_fields.html">NuRadioReco documentation</a> for a more complete explanation of the antenna angles.</p>
+<p>See the <a class="reference internal" href="../../../NuRadioReco/pages/detector/detector_database_fields.html"><span class="doc">NuRadioReco documentation</span></a> for a more complete explanation of the antenna angles.</p>
 <p>The rest of the parameters are either not used yet (they’re here for future modules) or they are used by modules not needed for the present example.</p>
 <p>After the channels, the stations must be defined. The mandatory parameters for a station are:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">pos_altitud</span></code>, the altitude of the station in metres</li>
-<li><code class="docutils literal notranslate"><span class="pre">pos_easting</span></code>, the easting of the station in metres</li>
-<li><code class="docutils literal notranslate"><span class="pre">pos_northing</span></code>, the northing of the station in metres</li>
-<li><code class="docutils literal notranslate"><span class="pre">station_id</span></code>, the ID of the station that will be used internally by NuRadioMC and NuRadioReco</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pos_altitud</span></code>, the altitude of the station in metres</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pos_easting</span></code>, the easting of the station in metres</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pos_northing</span></code>, the northing of the station in metres</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">station_id</span></code>, the ID of the station that will be used internally by NuRadioMC and NuRadioReco</p></li>
 </ul>
 <p>One of the advantages of the default_detector_station option given by NuRadioReco is that, if we want to create another station 102 that has a channel setup identical to station 101, we can just define station 102 without any channel associated and then run our simulation using <code class="docutils literal notranslate"><span class="pre">default_detector_station=101</span></code>. The channels from station 101 will be copied to station 102, and their coordinates will be read as relative to the easting, northing, and altitude of station 102.</p>
 <p>We show in the following an example of a JSON detector file.</p>
@@ -720,9 +838,9 @@
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="detector-simulation">
-<h2>Detector simulation<a class="headerlink" href="#detector-simulation" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="detector-simulation">
+<h2>Detector simulation<a class="headerlink" href="#detector-simulation" title="Permalink to this headline"></a></h2>
 <p>The following steering file teaches what the principal constituents of a detector simulation are. This code has been taken from the <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/blob/master/NuRadioMC/examples/06_webinar/W02RunSimulation.py">examples/06_webinar/W02RunSimulation.py</a>. It contains guidelines for generating noise, resampling, filtering, and implementing a trigger.</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">argparse</span>
@@ -734,9 +852,9 @@
 <span class="kn">import</span> <span class="nn">NuRadioReco.modules.channelBandPassFilter</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.modules.channelGenericNoiseAdder</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">NuRadioMC.simulation</span> <span class="kn">import</span> <span class="n">simulation</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="n">results_folder</span> <span class="o">=</span> <span class="s1">&#39;results&#39;</span>
@@ -774,7 +892,7 @@
                     <span class="n">help</span><span class="o">=</span><span class="s1">&#39;NuRadioMC yaml config file&#39;</span><span class="p">)</span>
 <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--outputfilename&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">results_folder</span><span class="p">,</span> <span class="s1">&#39;NuMC_output.hdf5&#39;</span><span class="p">),</span>
                     <span class="n">help</span><span class="o">=</span><span class="s1">&#39;hdf5 output filename&#39;</span><span class="p">)</span>
-<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--outputfilenameNuRadioReco&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--outputfilenameNuRadioReco&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">help</span><span class="o">=</span><span class="s1">&#39;outputfilename of NuRadioReco detector sim file&#39;</span><span class="p">)</span>
 <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
@@ -955,14 +1073,15 @@
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="icemodels.html" class="btn btn-neutral float-left" title="Ice and attenuation models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="veff_tutorial.html" class="btn btn-neutral float-right" title="Calculating effective volume" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

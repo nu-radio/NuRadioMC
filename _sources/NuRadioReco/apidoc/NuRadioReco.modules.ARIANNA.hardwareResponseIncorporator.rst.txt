@@ -1,0 +1,7 @@
+NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator module
+===============================================================
+
+.. automodule:: NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,12 +1,12 @@
 Event Generation
-==========
+=================
     .. Important:: This document has been written for the master branch available in July 2020. It must be updated when the new internal looping is approved and merged.
 
 
 The first thing to do when using NuRadioMC for simulating a realistic experiment is generating events. The module ``generator.py`` contained in the folder EvtGen allows the user to create input files for different detector geometries and physical assumptions, and constitutes the most important module for event generation.
 
 Events in a cylindrical volume
-----------
+-------------------------------
 
 Generating input events for calculating effective volumes can be done just by importing the function ``generate_eventlist_cylinder`` and calling it with the minimum number of arguments requested:
 
@@ -29,7 +29,7 @@ Generating input events for calculating effective volumes can be done just by im
 These few lines generate a mixture of all-flavour events (1:1:1) in a fiducial cylinder. Each event constitutes a forced neutrino interaction in our fiducial volume. The event vertex distribution is homogeneous, and the flux in any region of the cylinder is isotropic, which is what would be expected in nature were the radius of the Earth small compared to the interaction length. NuRadioMC then uses weights to account for the probability that the neutrino reaches the vertex position.
 
 Input parameters
-__________
+___________________
 We explain here all the different input values for the ``generate_eventlist_cylinder`` function.
 
     .. code-block:: Python
@@ -238,7 +238,7 @@ PROPOSAL needs a configuration file specifying the geometry to be run. The user 
         """
 
 Data sets and attributes
-__________
+_____________________________
 The function ``generate_eventlist_cylinder`` creates events according to the input parameters and saves all the relevant parameters to a set of HDF5 files. These files created by the event generator consist of a collection of arrays containing the properties of the neutrinos and other secondary particles. The array keys and contents are the following:
 
     * ``azimuths``, the arrival azimuth angles in radians.
@@ -319,10 +319,10 @@ The HDF5 data sets outlined here are what constitute a NuRadioMC input file prod
             Antiproton, :math:`p^-`, -2212
 
 Atmospheric muons generated on a flat surface
-----------
+--------------------------------------------------
 The function ``generate_surface_muons`` generates muons (leptons, NOT muon neutrinos) at ``z=0`` and propagates them using PROPOSAL. Please be aware that a functioning installation of PROPOSAL is needed for using this function. 
 
-    .. code-block: Python
+    .. code-block:: Python
         def generate_surface_muons(filename, n_events, Emin, Emax,
                                    fiducial_rmin, fiducial_rmax, 
                                    fiducial_zmin, fiducial_zmax,
@@ -366,7 +366,7 @@ explored in one of our papers (`lepton paper <https://arxiv.org/abs/2003.13442>`
 For a realistic background simulation for which high statistics are needed, we recommend the use of a cluster to execute this function in parallel to create one or more files for each energy bin. The user should be aware of the following pitfall: if two input files with the same input parameters are going to be used for the same analysis, these two files should not have overlapping event IDs. The number of events for each file is an input parameter, so one can know a priori how many event IDs are going to be in a file. Unlike when using the ``generate_eventlist_cylinder``, increasing the full volume does not change the total number of events. The user can use the parameter ``n_events_per_file`` to split the file, but sometimes it is more convenient and faster to execute the function in parallel than calling it once and splitting the file.
 
 NuRadioProposal as a standalone module
-----------
+---------------------------------------
 The module ``NuRadioProposal.py`` in EvtGen can also be used standalone to study the propagation of leptons created by neutrino interactions and the radio-detectable showers they produce. For instance, for propagating 1000 taus having 1 EeV of energy in infinite ice, we can use the following code.
 
     .. code-block:: Python

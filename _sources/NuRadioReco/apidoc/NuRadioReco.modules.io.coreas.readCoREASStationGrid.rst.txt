@@ -1,0 +1,7 @@
+NuRadioReco.modules.io.coreas.readCoREASStationGrid module
+==========================================================
+
+.. automodule:: NuRadioReco.modules.io.coreas.readCoREASStationGrid
+   :members:
+   :undoc-members:
+   :show-inheritance:

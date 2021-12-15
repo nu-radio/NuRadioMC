@@ -1,0 +1,7 @@
+NuRadioReco.modules.trigger.multiHighLowThreshold module
+========================================================
+
+.. automodule:: NuRadioReco.modules.trigger.multiHighLowThreshold
+   :members:
+   :undoc-members:
+   :show-inheritance:

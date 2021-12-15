@@ -1,0 +1,7 @@
+NuRadioReco.utilities.analytic\_pulse module
+============================================
+
+.. automodule:: NuRadioReco.utilities.analytic_pulse
+   :members:
+   :undoc-members:
+   :show-inheritance:

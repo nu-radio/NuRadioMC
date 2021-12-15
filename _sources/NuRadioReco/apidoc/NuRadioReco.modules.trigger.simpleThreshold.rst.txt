@@ -1,0 +1,7 @@
+NuRadioReco.modules.trigger.simpleThreshold module
+==================================================
+
+.. automodule:: NuRadioReco.modules.trigger.simpleThreshold
+   :members:
+   :undoc-members:
+   :show-inheritance:

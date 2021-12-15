@@ -1,0 +1,28 @@
+NuRadioMC.utilities package
+===========================
+
+.. automodule:: NuRadioMC.utilities
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioMC.utilities.Veff
+   NuRadioMC.utilities.attenuation
+   NuRadioMC.utilities.cross_sections
+   NuRadioMC.utilities.dump_hdf5
+   NuRadioMC.utilities.earth_attenuation
+   NuRadioMC.utilities.fluxes
+   NuRadioMC.utilities.inelasticities
+   NuRadioMC.utilities.medium
+   NuRadioMC.utilities.medium_base
+   NuRadioMC.utilities.merge_hdf5
+   NuRadioMC.utilities.plotting
+   NuRadioMC.utilities.runner
+   NuRadioMC.utilities.runner_example
+   NuRadioMC.utilities.split_hdf5

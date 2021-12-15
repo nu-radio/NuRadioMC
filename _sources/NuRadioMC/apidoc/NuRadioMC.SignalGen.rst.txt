@@ -1,0 +1,25 @@
+NuRadioMC.SignalGen package
+===========================
+
+.. automodule:: NuRadioMC.SignalGen
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioMC.SignalGen.ARZ
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioMC.SignalGen.HCRB2017
+   NuRadioMC.SignalGen.askaryan
+   NuRadioMC.SignalGen.parametrizations

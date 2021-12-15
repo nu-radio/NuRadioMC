@@ -1,0 +1,7 @@
+NuRadioReco.modules.eventTypeIdentifier module
+==============================================
+
+.. automodule:: NuRadioReco.modules.eventTypeIdentifier
+   :members:
+   :undoc-members:
+   :show-inheritance:

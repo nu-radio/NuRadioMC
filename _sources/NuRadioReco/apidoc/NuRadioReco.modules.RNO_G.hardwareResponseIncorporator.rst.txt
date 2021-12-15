@@ -1,0 +1,7 @@
+NuRadioReco.modules.RNO\_G.hardwareResponseIncorporator module
+==============================================================
+
+.. automodule:: NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
+   :members:
+   :undoc-members:
+   :show-inheritance:

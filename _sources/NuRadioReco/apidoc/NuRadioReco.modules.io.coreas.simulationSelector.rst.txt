@@ -1,0 +1,7 @@
+NuRadioReco.modules.io.coreas.simulationSelector module
+=======================================================
+
+.. automodule:: NuRadioReco.modules.io.coreas.simulationSelector
+   :members:
+   :undoc-members:
+   :show-inheritance:

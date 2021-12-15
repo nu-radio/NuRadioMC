@@ -1,0 +1,7 @@
+NuRadioReco.modules.efieldTimeDirectionFitter module
+====================================================
+
+.. automodule:: NuRadioReco.modules.efieldTimeDirectionFitter
+   :members:
+   :undoc-members:
+   :show-inheritance:

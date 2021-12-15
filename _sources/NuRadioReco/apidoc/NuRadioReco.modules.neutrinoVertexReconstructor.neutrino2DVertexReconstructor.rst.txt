@@ -1,0 +1,7 @@
+NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor module
+====================================================================================
+
+.. automodule:: NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor
+   :members:
+   :undoc-members:
+   :show-inheritance:

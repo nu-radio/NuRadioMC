@@ -10,3 +10,4 @@ Manuals
    Manuals/signal_propagation
    Manuals/icemodels
    Manuals/simulation_configuration
+   Manuals/veff_tutorial

@@ -1,0 +1,7 @@
+NuRadioReco.modules.voltageToAnalyticEfieldConverter module
+===========================================================
+
+.. automodule:: NuRadioReco.modules.voltageToAnalyticEfieldConverter
+   :members:
+   :undoc-members:
+   :show-inheritance:

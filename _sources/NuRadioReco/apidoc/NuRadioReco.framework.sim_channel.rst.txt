@@ -1,0 +1,7 @@
+NuRadioReco.framework.sim\_channel module
+=========================================
+
+.. automodule:: NuRadioReco.framework.sim_channel
+   :members:
+   :undoc-members:
+   :show-inheritance:

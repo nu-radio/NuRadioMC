@@ -1,0 +1,7 @@
+NuRadioReco.modules.analogToDigitalConverter module
+===================================================
+
+.. automodule:: NuRadioReco.modules.analogToDigitalConverter
+   :members:
+   :undoc-members:
+   :show-inheritance:

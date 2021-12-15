@@ -1,0 +1,7 @@
+NuRadioReco.utilities.cr\_flux module
+=====================================
+
+.. automodule:: NuRadioReco.utilities.cr_flux
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,7 @@
+NuRadioReco.modules.electricFieldBandPassFilter module
+======================================================
+
+.. automodule:: NuRadioReco.modules.electricFieldBandPassFilter
+   :members:
+   :undoc-members:
+   :show-inheritance:

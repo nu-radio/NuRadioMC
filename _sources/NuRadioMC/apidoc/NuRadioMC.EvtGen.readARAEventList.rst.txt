@@ -1,0 +1,7 @@
+NuRadioMC.EvtGen.readARAEventList module
+========================================
+
+.. automodule:: NuRadioMC.EvtGen.readARAEventList
+   :members:
+   :undoc-members:
+   :show-inheritance:

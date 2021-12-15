@@ -1,0 +1,16 @@
+NuRadioReco.detector.ARIANNA package
+====================================
+
+.. automodule:: NuRadioReco.detector.ARIANNA
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.detector.ARIANNA.analog_components
+   NuRadioReco.detector.ARIANNA.preprocessAmpResponses

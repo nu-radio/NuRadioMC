@@ -1,0 +1,15 @@
+NuRadioReco.modules.io.araroot package
+======================================
+
+.. automodule:: NuRadioReco.modules.io.araroot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.io.araroot.readARAData

@@ -1,0 +1,7 @@
+NuRadioReco.framework.base\_shower module
+=========================================
+
+.. automodule:: NuRadioReco.framework.base_shower
+   :members:
+   :undoc-members:
+   :show-inheritance:

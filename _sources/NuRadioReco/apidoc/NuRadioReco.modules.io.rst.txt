@@ -1,0 +1,30 @@
+NuRadioReco.modules.io package
+==============================
+
+.. automodule:: NuRadioReco.modules.io
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.io.araroot
+   NuRadioReco.modules.io.coreas
+   NuRadioReco.modules.io.noise
+   NuRadioReco.modules.io.rno_g
+   NuRadioReco.modules.io.snowshovel
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.io.NuRadioRecoio
+   NuRadioReco.modules.io.eventReader
+   NuRadioReco.modules.io.eventWriter
+   NuRadioReco.modules.io.event_parser_factory

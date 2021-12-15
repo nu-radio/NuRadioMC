@@ -1,0 +1,7 @@
+NuRadioReco.modules.correlationDirectionFitter module
+=====================================================
+
+.. automodule:: NuRadioReco.modules.correlationDirectionFitter
+   :members:
+   :undoc-members:
+   :show-inheritance:

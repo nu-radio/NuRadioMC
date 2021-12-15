@@ -1,0 +1,7 @@
+NuRadioMC.SignalGen.ARZ.ARZ module
+==================================
+
+.. automodule:: NuRadioMC.SignalGen.ARZ.ARZ
+   :members:
+   :undoc-members:
+   :show-inheritance:

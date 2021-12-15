@@ -1,0 +1,7 @@
+NuRadioReco.modules.channelAntennaDedispersion module
+=====================================================
+
+.. automodule:: NuRadioReco.modules.channelAntennaDedispersion
+   :members:
+   :undoc-members:
+   :show-inheritance:

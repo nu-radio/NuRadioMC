@@ -1,0 +1,7 @@
+NuRadioReco.modules.beamFormingDirectionFitter module
+=====================================================
+
+.. automodule:: NuRadioReco.modules.beamFormingDirectionFitter
+   :members:
+   :undoc-members:
+   :show-inheritance:

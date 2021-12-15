@@ -1,0 +1,7 @@
+NuRadioReco.framework.trigger module
+====================================
+
+.. automodule:: NuRadioReco.framework.trigger
+   :members:
+   :undoc-members:
+   :show-inheritance:

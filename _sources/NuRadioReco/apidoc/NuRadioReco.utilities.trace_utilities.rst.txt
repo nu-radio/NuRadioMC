@@ -1,0 +1,7 @@
+NuRadioReco.utilities.trace\_utilities module
+=============================================
+
+.. automodule:: NuRadioReco.utilities.trace_utilities
+   :members:
+   :undoc-members:
+   :show-inheritance:

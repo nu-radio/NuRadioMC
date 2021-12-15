@@ -1,0 +1,7 @@
+NuRadioReco.modules.io.NuRadioRecoio module
+===========================================
+
+.. automodule:: NuRadioReco.modules.io.NuRadioRecoio
+   :members:
+   :undoc-members:
+   :show-inheritance:

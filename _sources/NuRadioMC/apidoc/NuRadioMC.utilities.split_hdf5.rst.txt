@@ -1,0 +1,7 @@
+NuRadioMC.utilities.split\_hdf5 module
+======================================
+
+.. automodule:: NuRadioMC.utilities.split_hdf5
+   :members:
+   :undoc-members:
+   :show-inheritance:

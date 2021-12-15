@@ -1,0 +1,7 @@
+NuRadioMC.utilities.plotting module
+===================================
+
+.. automodule:: NuRadioMC.utilities.plotting
+   :members:
+   :undoc-members:
+   :show-inheritance:

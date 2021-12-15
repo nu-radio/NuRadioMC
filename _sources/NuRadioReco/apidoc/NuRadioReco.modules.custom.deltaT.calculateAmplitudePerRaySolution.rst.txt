@@ -1,0 +1,7 @@
+NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution module
+=========================================================================
+
+.. automodule:: NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution
+   :members:
+   :undoc-members:
+   :show-inheritance:

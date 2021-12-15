@@ -1,0 +1,7 @@
+NuRadioMC.utilities.inelasticities module
+=========================================
+
+.. automodule:: NuRadioMC.utilities.inelasticities
+   :members:
+   :undoc-members:
+   :show-inheritance:

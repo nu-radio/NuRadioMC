@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NuRadioMC.EvtGen.NuRadioProposal &mdash; NuRadio 2.0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../main.html" class="icon icon-home"> NuRadio
+            <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                2.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Introduction/pages/welcome_page.html">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../Introduction/pages/introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../Introduction/pages/installation.html">Installing NuRadioMC / NuRadioReco</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/installation.html#requirements">Requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/installation.html#installation-using-pip">Installation using Pip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/installation.html#development-version">Development version</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/installation.html#pythonpath">PYTHONPATH</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/installation.html#manual-installation">Manual installation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/installation.html#pip-installable-dependencies">Pip-installable dependencies</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/installation.html#core-dependencies">Core Dependencies</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/installation.html#optional-dependencies">Optional Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/installation.html#not-pip-installable-packages">Not pip-installable packages</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../Introduction/pages/contributing.html">Contributing to NuRadioReco</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/contributing.html#workflow">Workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/contributing.html#example-workflow">Example workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/contributing.html#coding-conventions">Coding conventions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/contributing.html#how-to">How to</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#headings-and-text">Headings and text</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#lists">Lists</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#links-and-cross-references">Links and cross-references</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#showing-code">Showing code</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../NuRadioReco/pages/welcome_page.html">NuRadioReco Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html">Data Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#nur-files-and-how-to-use-them">.nur Files and How to Use Them</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#philosophy-and-basic-structure">Philosophy and Basic Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#reading-and-writing-nur-files">Reading and Writing .nur Files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#parameter-storage">Parameter Storage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#list-of-data-classes">List of Data Classes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#basetrace">BaseTrace</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#electric-field">Electric Field</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#channel">Channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#hybrid-information">Hybrid Information</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#hybrid-shower">Hybrid Shower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#hybrid-detector">Hybrid Detector</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/detector_tree.html">Detector Description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html">Detector Description</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#the-detector-class">The Detector Class</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#detector-description-formats">Detector Description Formats</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#database">DataBase</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#json">JSON</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#dictionary">Dictionary</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#signal-chain-responses">Signal Chain Responses</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#genericdetector">GenericDetector</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#event-specific-changes">Event-Specific Changes</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#detector-description-in-event-files">Detector Description in Event Files</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#writing-the-detector">Writing the Detector</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#reading-the-detector">Reading the Detector</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html#detector-viewer">Detector Viewer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector_database_fields.html">Properties of Detector Description</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector_database_fields.html#antenna-table">Antenna Table</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector_database_fields.html#further-discussion-on-antenna-coordinates">Further Discussion on Antenna Coordinates</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/detector_database_fields.html#adc-table">ADC Table</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html">Antenna Models</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#overview-of-available-antenna-models">Overview of available Antenna Models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#bicone-v8-infair">bicone_v8_infAir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#bicone-v8-inf-n1-32">bicone_v8_inf_n1.32</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#bicone-v8-inf-n1-4">bicone_v8_inf_n1.4</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#bicone-v8-inf-n1-78">bicone_v8_inf_n1.78</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-100mhz-inffirn">createLPDA_100MHz_InfFirn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-inffirn-n1-4">createLPDA_InfFirn_n1.4</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-100mhz-z1cm-infirn-rg">createLPDA_100MHz_z1cm_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z1cm-infirn-boresighttoboundary">createLPDA_z1cm_InFirn_BoresightToBoundary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z10cm-infirn-rg">createLPDA_z10cm_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z1m-infirn-rg">createLPDA_z1m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z2m-infirn-rg">createLPDA_z2m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z2m-infirn-backlobe-norg">createLPDA_z2m_InFirn_Backlobe_NoRG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z3m-inair-rg">createLPDA_z3m_InAir_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z3m-infirn-boresighttoboundary">createLPDA_z3m_InFirn_BoresightToBoundary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z3mandlpdalen-infirn-boresighttoboundary">createLPDA_z3mAndLPDALen_InFirn_BoresightToBoundary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z5m-infirn-rg">createLPDA_z5m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z10m-infirn-rg">createLPDA_z10m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z100m-infirn-rg">createLPDA_z100m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-z200m-infirn-rg">createLPDA_z200m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-100mhz-infair">createLPDA_100MHz_InfAir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#createlpda-100mhz-z1cm-inair-rg">createLPDA_100MHz_z1cm_InAir_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-hpol-inffirn">dip7cm_hpol_infFirn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-hpol-z2m-infirn-rg">dip7cm_hpol_z2m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-inffirn">dip7cm_InfFirn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z260mm-infirn-rg">dip7cm_z260mm_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z1m-infirn-rg">dip7cm_z1m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z2m-infirn-rg">dip7cm_z2m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z3m-infirn-rg-nearhorizontalhd">dip7cm_z3m_InFirn_RG_NearHorizontalHD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z5m-infirn-rg">dip7cm_z5m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z10m-infirn-rg">dip7cm_z10m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z20m-infirn-rg">dip7cm_z20m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z100m-infirn-rg">dip7cm_z100m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z200m-infirn-rg">dip7cm_z200m_InFirn_RG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-infair">dip7cm_InfAir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z270mm-inair">dip7cm_z270mm_InAir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z1m-inair">dip7cm_z1m_InAir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z1m-inair-rg-nearhorizontalhd">dip7cm_z1m_InAir_RG_NearHorizontalHD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z1m-inair-rg-nearhorizontalhd2">dip7cm_z1m_InAir_RG_NearHorizontalHD2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z2m-inair">dip7cm_z2m_InAir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#dip7cm-z5m-inair">dip7cm_z5m_InAir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#ara-quadslot-data-measurement-fit">ARA_quadslot_data+measurement_fit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#ara-bicone-data-measurement-fit">ARA_bicone_data+measurement_fit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#rnog-vpol-4inch-center-1-73">RNOG_vpol_4inch_center_1.73</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#rnog-vpol-4inch-half-1-73">RNOG_vpol_4inch_half_1.73</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#rnog-vpol-4inch-wall-1-73">RNOG_vpol_4inch_wall_1.73</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#rnog-quadslot-v1-1-74">RNOG_quadslot_v1_1.74</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#rnog-quadslot-v2-1-74">RNOG_quadslot_v2_1.74</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#skala-inair">SKALA_InAir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/detector/antennamodels.html#rnog-quadslot-v3-air-rescaled-to-n1-74">RNOG_quadslot_v3_air_rescaled_to_n1.74</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/event_display.html">Event Display</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/utilities.html">Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/utilities.html#unit-system">Unit System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/utilities.html#fourier-transformation">Fourier Transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/utilities.html#metaclasses">Metaclasses</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/utilities.html#singleton">Singleton</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/code_documentation.html">Code Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.html">NuRadioReco.framework package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html">NuRadioReco.framework.base_shower module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html">NuRadioReco.framework.base_station module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html">NuRadioReco.framework.base_trace module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.channel.html">NuRadioReco.framework.channel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html">NuRadioReco.framework.electric_field module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html">NuRadioReco.framework.event module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html">NuRadioReco.framework.hybrid_information module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_shower.html">NuRadioReco.framework.hybrid_shower module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameter_serialization.html">NuRadioReco.framework.parameter_serialization module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html">NuRadioReco.framework.parameters module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html">NuRadioReco.framework.particle module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html">NuRadioReco.framework.radio_shower module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html">NuRadioReco.framework.sim_channel module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html">NuRadioReco.framework.sim_station module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.station.html">NuRadioReco.framework.station module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html">NuRadioReco.framework.trigger module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.html">NuRadioReco.modules package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.analogToDigitalConverter.html">NuRadioReco.modules.analogToDigitalConverter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.beamFormingDirectionFitter.html">NuRadioReco.modules.beamFormingDirectionFitter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelAddCableDelay.html">NuRadioReco.modules.channelAddCableDelay module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelAntennaDedispersion.html">NuRadioReco.modules.channelAntennaDedispersion module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelBandPassFilter.html">NuRadioReco.modules.channelBandPassFilter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelLengthAdjuster.html">NuRadioReco.modules.channelLengthAdjuster module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelMeasuredNoiseAdder.html">NuRadioReco.modules.channelMeasuredNoiseAdder module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelResampler.html">NuRadioReco.modules.channelResampler module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSignalReconstructor.html">NuRadioReco.modules.channelSignalReconstructor module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelStopFilter.html">NuRadioReco.modules.channelStopFilter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTemplateCorrelation.html">NuRadioReco.modules.channelTemplateCorrelation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTimeOffsetCalculator.html">NuRadioReco.modules.channelTimeOffsetCalculator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTimeWindow.html">NuRadioReco.modules.channelTimeWindow module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.correlationDirectionFitter.html">NuRadioReco.modules.correlationDirectionFitter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.cosmicRayEnergyReconstructor.html">NuRadioReco.modules.cosmicRayEnergyReconstructor module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldAirToIcePropagator.html">NuRadioReco.modules.efieldAirToIcePropagator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldTimeDirectionFitter.html">NuRadioReco.modules.efieldTimeDirectionFitter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverter.html">NuRadioReco.modules.efieldToVoltageConverter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverterPerEfield.html">NuRadioReco.modules.efieldToVoltageConverterPerEfield module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.electricFieldBandPassFilter.html">NuRadioReco.modules.electricFieldBandPassFilter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.electricFieldResampler.html">NuRadioReco.modules.electricFieldResampler module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.electricFieldSignalReconstructor.html">NuRadioReco.modules.electricFieldSignalReconstructor module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.eventTypeIdentifier.html">NuRadioReco.modules.eventTypeIdentifier module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.sphericalWaveFitter.html">NuRadioReco.modules.sphericalWaveFitter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.templateDirectionFitter.html">NuRadioReco.modules.templateDirectionFitter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html">NuRadioReco.modules.triggerTimeAdjuster module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToAnalyticEfieldConverter.html">NuRadioReco.modules.voltageToAnalyticEfieldConverter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html">NuRadioReco.modules.voltageToEfieldConverter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannel.html">NuRadioReco.modules.voltageToEfieldConverterPerChannel module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.html">NuRadioReco.detector package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.ARA.html">NuRadioReco.detector.ARA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.ARIANNA.html">NuRadioReco.detector.ARIANNA package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.html">NuRadioReco.detector.RNO_G package</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.amp.html">NuRadioReco.detector.amp module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html">NuRadioReco.detector.antennapattern module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector.html">NuRadioReco.detector.detector module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html">NuRadioReco.detector.detector_sql module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.filterresponse.html">NuRadioReco.detector.filterresponse module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html">NuRadioReco.detector.generic_detector module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.sql_to_json.html">NuRadioReco.detector.sql_to_json module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.test_detector_db.html">NuRadioReco.detector.test_detector_db module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.visualize_detector.html">NuRadioReco.detector.visualize_detector module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.html">NuRadioReco.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.analytic_pulse.html">NuRadioReco.utilities.analytic_pulse module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.bandpass_filter.html">NuRadioReco.utilities.bandpass_filter module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html">NuRadioReco.utilities.cr_flux module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.diodeSimulator.html">NuRadioReco.utilities.diodeSimulator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.fft.html">NuRadioReco.utilities.fft module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.geometryUtilities.html">NuRadioReco.utilities.geometryUtilities module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.ice.html">NuRadioReco.utilities.ice module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.io_utilities.html">NuRadioReco.utilities.io_utilities module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html">NuRadioReco.utilities.trace_utilities module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.units.html">NuRadioReco.utilities.units module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.version.html">NuRadioReco.utilities.version module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioReco/pages/howto_documentation.html">Manuals</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/pages/how_to/vertex_reconstruction.html">Use the Vertex Reconstruction Modules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-lookup-tables">Creating Lookup Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#creating-electric-field-templates">Creating Electric Field Templates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/how_to/vertex_reconstruction.html#d-vs-3d-vertex-reconstructor">2D vs. 3D Vertex Reconstructor</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../NuRadioMC/pages/welcome_page.html">NuRadioMC Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioMC/pages/code_documentation.html">Code Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioMCtoAraSim.html">NuRadioMC.EvtGen.NuRadioMCtoAraSim module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html">NuRadioMC.EvtGen.NuRadioProposal module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.create_tau_tab.html">NuRadioMC.EvtGen.create_tau_tab module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generate_cylinder.html">NuRadioMC.EvtGen.generate_cylinder module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generate_unforced.html">NuRadioMC.EvtGen.generate_unforced module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html">NuRadioMC.EvtGen.generator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator_ASCII.html">NuRadioMC.EvtGen.generator_ASCII module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator_skeleton.html">NuRadioMC.EvtGen.generator_skeleton module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.hdf5_to_ASCII.html">NuRadioMC.EvtGen.hdf5_to_ASCII module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.readARAEventList.html">NuRadioMC.EvtGen.readARAEventList module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.readEventList_ASCII.html">NuRadioMC.EvtGen.readEventList_ASCII module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.html">NuRadioMC.SignalGen package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.ARZ.html">NuRadioMC.SignalGen.ARZ package</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.HCRB2017.html">NuRadioMC.SignalGen.HCRB2017 module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.askaryan.html">NuRadioMC.SignalGen.askaryan module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.parametrizations.html">NuRadioMC.SignalGen.parametrizations module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.html">NuRadioMC.SignalProp package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html">NuRadioMC.SignalProp.analyticraytracing module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.directRayTracing.html">NuRadioMC.SignalProp.directRayTracing module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation.html">NuRadioMC.SignalProp.propagation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html">NuRadioMC.SignalProp.propagation_base_class module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.radioproparaytracing.html">NuRadioMC.SignalProp.radioproparaytracing module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.html">NuRadioMC.simulation package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html">NuRadioMC.simulation.simulation module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.html">NuRadioMC.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.html#submodules">Submodules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.Veff.html">NuRadioMC.utilities.Veff module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.attenuation.html">NuRadioMC.utilities.attenuation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.cross_sections.html">NuRadioMC.utilities.cross_sections module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.dump_hdf5.html">NuRadioMC.utilities.dump_hdf5 module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.earth_attenuation.html">NuRadioMC.utilities.earth_attenuation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.fluxes.html">NuRadioMC.utilities.fluxes module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.inelasticities.html">NuRadioMC.utilities.inelasticities module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html">NuRadioMC.utilities.medium module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html">NuRadioMC.utilities.medium_base module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.merge_hdf5.html">NuRadioMC.utilities.merge_hdf5 module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.plotting.html">NuRadioMC.utilities.plotting module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.runner.html">NuRadioMC.utilities.runner module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.runner_example.html">NuRadioMC.utilities.runner_example module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.split_hdf5.html">NuRadioMC.utilities.split_hdf5 module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../NuRadioMC/pages/manuals.html">Manuals</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/event_generation.html">Event Generation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/event_generation.html#events-in-a-cylindrical-volume">Events in a cylindrical volume</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/event_generation.html#input-parameters">Input parameters</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/event_generation.html#data-sets-and-attributes">Data sets and attributes</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/event_generation.html#atmospheric-muons-generated-on-a-flat-surface">Atmospheric muons generated on a flat surface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/event_generation.html#nuradioproposal-as-a-standalone-module">NuRadioProposal as a standalone module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html">Signal Generation (electric field)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#timing">Timing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_generation.html#fft-normalisation">FFT normalisation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_propagation.html">Signal Propagation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_propagation.html#propagation-module">Propagation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_propagation.html#ray-tracing">Ray tracing</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_propagation.html#analytical-ray-tracer">Analytical ray tracer</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_propagation.html#radiopropa-numerical-ray-tracer-in-development">RadioPropa numerical ray tracer (in development)</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_propagation.html#example-scripts">Example scripts</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_propagation.html#how-to-calculate-an-analytic-ray-path">How to calculate an analytic ray path</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/signal_propagation.html#how-to-calculate-an-radiopropa-ray-path">How to calculate an radiopropa ray path</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html">Ice and attenuation models</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#ice-model-implementation">Ice model implementation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#the-icemodel-and-icemodel-simple-class">The IceModel and IceModel_Simple class</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#radiopropaicewrapper">RadioPropaIceWrapper</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#available-models-in-nuradiomc">Available models in NuRadioMC</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#simple-ice-models">Simple ice models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#radiopropa-ice-models">RadioPropa ice models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#attenuation-model">Attenuation model</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#using-specific-models">Using specific models</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/icemodels.html#example-script">Example script</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/simulation_configuration.html">Simulation and configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/simulation_configuration.html#steering-files">Steering files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/simulation_configuration.html#config-files">Config files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/simulation_configuration.html#detector-description">Detector description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/simulation_configuration.html#detector-simulation">Detector simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/veff_tutorial.html">Calculating effective volume</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/veff_tutorial.html#installation">Installation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/veff_tutorial.html#run-an-effective-volume-simulation">Run an effective volume simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/veff_tutorial.html#generating-the-input-event-list">Generating the input event list</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/veff_tutorial.html#running-the-simulation">Running the simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/veff_tutorial.html#more-details-the-detector-description">More details: the detector description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/veff_tutorial.html#more-details-the-config-file">More details: the config file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/Manuals/veff_tutorial.html#visualization-of-results">Visualization of results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../main.html">NuRadio</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../main.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>NuRadioMC.EvtGen.NuRadioProposal</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for NuRadioMC.EvtGen.NuRadioProposal</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">proposal</span> <span class="k">as</span> <span class="nn">pp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module takes care of the PROPOSAL implementation. Some important things</span>
+<span class="sd">should be considered.</span>
+<span class="sd">Units: PROPOSAL used a fixed system of units that differs from that of NuRadioMC</span>
+<span class="sd">and conversion between them must be done carefully. The definition of PROPOSAL</span>
+<span class="sd">units can be found in this file. The most important are the energy unit (MeV)</span>
+<span class="sd">and the distance unit (cm).</span>
+<span class="sd">When a muon or a tau is propagated using PROPOSAL and its secondaries are obtained,</span>
+<span class="sd">most of the secondaries have an InteractionType associated. The more important for</span>
+<span class="sd">us are the following:</span>
+<span class="sd">- Brems: a bremsstrahlung photon</span>
+<span class="sd">- DeltaE: an ionized electron</span>
+<span class="sd">- EPair: an electron/positron pair</span>
+<span class="sd">- Hadrons: a set of unspecified hadrons</span>
+<span class="sd">- NuclInt: the products of a nuclear interaction</span>
+<span class="sd">- MuPair: a muon/antimuon pair</span>
+<span class="sd">- WeakInt: a weak interaction</span>
+<span class="sd">- Compton: Compton effect</span>
+<span class="sd">The last secondaries obtained via the propagation belong to the Particle DynamicData</span>
+<span class="sd">type, and represent the products of the decay. They are standard particles with</span>
+<span class="sd">a PDG code.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Units definition in PROPOSAL</span>
+<span class="n">pp_eV</span> <span class="o">=</span> <span class="mf">1.e-6</span>
+<span class="n">pp_keV</span> <span class="o">=</span> <span class="mf">1.e-3</span>
+<span class="n">pp_MeV</span> <span class="o">=</span> <span class="mf">1.e0</span>
+<span class="n">pp_GeV</span> <span class="o">=</span> <span class="mf">1.e3</span>
+<span class="n">pp_TeV</span> <span class="o">=</span> <span class="mf">1.e6</span>
+<span class="n">pp_PeV</span> <span class="o">=</span> <span class="mf">1.e9</span>
+<span class="n">pp_EeV</span> <span class="o">=</span> <span class="mf">1.e12</span>
+<span class="n">pp_ZeV</span> <span class="o">=</span> <span class="mf">1.e15</span>
+
+<span class="n">pp_m</span> <span class="o">=</span> <span class="mf">1.e2</span>
+<span class="n">pp_km</span> <span class="o">=</span> <span class="mf">1.e5</span>
+
+
+<div class="viewcode-block" id="Singleton"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.Singleton">[docs]</a><span class="k">class</span> <span class="nc">Singleton</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="n">_instances</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">Singleton</span><span class="o">.</span><span class="n">_instances</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Singleton</span><span class="o">.</span><span class="n">_instances</span><span class="p">[</span><span class="bp">cls</span><span class="p">]</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Singleton</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Singleton</span><span class="o">.</span><span class="n">_instances</span><span class="p">[</span><span class="bp">cls</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="SecondaryProperties"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.SecondaryProperties">[docs]</a><span class="k">class</span> <span class="nc">SecondaryProperties</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class stores the properties from secondary particles that are</span>
+<span class="sd">    relevant for NuRadioMC, namely:</span>
+<span class="sd">    - distance, the distance to the first interaction vertex</span>
+<span class="sd">    - energy, the particle energy</span>
+<span class="sd">    - shower_type, whether the shower they induce is hadronic or electromagnetic</span>
+<span class="sd">    - name, its name according to the particle_name dictionary on this module</span>
+
+<span class="sd">    Distance and energy are expected to be in NuRadioMC units</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">distance</span><span class="p">,</span>
+                 <span class="n">energy</span><span class="p">,</span>
+                 <span class="n">shower_type</span><span class="p">,</span>
+                 <span class="n">code</span><span class="p">,</span>
+                 <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">distance</span> <span class="o">=</span> <span class="n">distance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="n">energy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shower_type</span> <span class="o">=</span> <span class="n">shower_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;Particle and code: </span><span class="si">{:}</span><span class="s2"> (</span><span class="si">{:}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;Energy in PeV: </span><span class="si">{:}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;Distance from vertex in km: </span><span class="si">{:}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distance</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;Shower type: </span><span class="si">{:}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shower_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span></div>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Codes for the InteractionType class from PROPOSAL. These represent interactions</span>
+<span class="sd">calculated by PROPOSAL, and although most of them correspond to actual particles -</span>
+<span class="sd">Brems is a bremsstrahlung photon, DeltaE is an ionised electron, and EPair is an</span>
+<span class="sd">electron-positron pair, it is useful to treat them as separate entities so that</span>
+<span class="sd">we know they come from an interaction. PROPOSAL returns particles as decay products</span>
+<span class="sd">only, in our case.</span>
+
+<span class="sd">We have followed the PDG recommendation and used numbers between 80 and 89 for</span>
+<span class="sd">our own-defined particles, although we have needed also 90 and 91 (they are</span>
+<span class="sd">very rarely used).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">proposal_interaction_names</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1000000001</span><span class="p">:</span> <span class="s1">&#39;particle&#39;</span><span class="p">,</span>
+                               <span class="mi">1000000002</span><span class="p">:</span> <span class="s1">&#39;brems&#39;</span><span class="p">,</span>
+                               <span class="mi">1000000003</span><span class="p">:</span> <span class="s1">&#39;ionized_e&#39;</span><span class="p">,</span>
+                               <span class="mi">1000000004</span><span class="p">:</span> <span class="s1">&#39;e_pair&#39;</span><span class="p">,</span>
+                               <span class="mi">1000000005</span><span class="p">:</span> <span class="s1">&#39;nucl_int&#39;</span><span class="p">,</span>
+                               <span class="mi">1000000006</span><span class="p">:</span> <span class="s1">&#39;mu_pair&#39;</span><span class="p">,</span>
+                               <span class="mi">1000000007</span><span class="p">:</span> <span class="s1">&#39;hadrons&#39;</span><span class="p">,</span>
+                               <span class="mi">1000000008</span><span class="p">:</span> <span class="s1">&#39;cont_loss&#39;</span><span class="p">,</span>
+                               <span class="mi">1000000009</span><span class="p">:</span> <span class="s1">&#39;weak_int&#39;</span><span class="p">,</span>
+                               <span class="mi">1000000010</span><span class="p">:</span> <span class="s1">&#39;compton&#39;</span><span class="p">,</span>
+                               <span class="mi">1000000011</span><span class="p">:</span> <span class="s1">&#39;decay&#39;</span> <span class="p">}</span>
+
+<span class="n">proposal_interaction_codes</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1000000001</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span>
+                               <span class="mi">1000000002</span><span class="p">:</span> <span class="mi">81</span><span class="p">,</span>
+                               <span class="mi">1000000003</span><span class="p">:</span> <span class="mi">82</span><span class="p">,</span>
+                               <span class="mi">1000000004</span><span class="p">:</span> <span class="mi">83</span><span class="p">,</span>
+                               <span class="mi">1000000005</span><span class="p">:</span> <span class="mi">85</span><span class="p">,</span>
+                               <span class="mi">1000000006</span><span class="p">:</span> <span class="mi">87</span><span class="p">,</span>
+                               <span class="mi">1000000007</span><span class="p">:</span> <span class="mi">84</span><span class="p">,</span>
+                               <span class="mi">1000000008</span><span class="p">:</span> <span class="mi">88</span><span class="p">,</span>
+                               <span class="mi">1000000009</span><span class="p">:</span> <span class="mi">89</span><span class="p">,</span>
+                               <span class="mi">1000000010</span><span class="p">:</span> <span class="mi">90</span><span class="p">,</span>
+                               <span class="mi">1000000011</span><span class="p">:</span> <span class="mi">91</span> <span class="p">}</span>
+
+<span class="c1"># NuRadioMC internal particle names organised using the PDG codes as keys</span>
+<span class="n">particle_name</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">0</span> <span class="p">:</span> <span class="s1">&#39;gamma&#39;</span><span class="p">,</span>
+                 <span class="mi">11</span> <span class="p">:</span> <span class="s1">&#39;e-&#39;</span><span class="p">,</span>
+                <span class="o">-</span><span class="mi">11</span> <span class="p">:</span> <span class="s1">&#39;e+&#39;</span><span class="p">,</span>
+                 <span class="mi">12</span> <span class="p">:</span> <span class="s1">&#39;nu_e&#39;</span><span class="p">,</span>
+                <span class="o">-</span><span class="mi">12</span> <span class="p">:</span> <span class="s1">&#39;nu_e_bar&#39;</span><span class="p">,</span>
+                 <span class="mi">13</span> <span class="p">:</span> <span class="s1">&#39;mu-&#39;</span><span class="p">,</span>
+                <span class="o">-</span><span class="mi">13</span> <span class="p">:</span> <span class="s1">&#39;mu+&#39;</span><span class="p">,</span>
+                 <span class="mi">14</span> <span class="p">:</span> <span class="s1">&#39;nu_mu&#39;</span><span class="p">,</span>
+                <span class="o">-</span><span class="mi">14</span> <span class="p">:</span> <span class="s1">&#39;nu_mu_bar&#39;</span><span class="p">,</span>
+                 <span class="mi">15</span> <span class="p">:</span> <span class="s1">&#39;tau-&#39;</span><span class="p">,</span>
+                <span class="o">-</span><span class="mi">15</span> <span class="p">:</span> <span class="s1">&#39;tau+&#39;</span><span class="p">,</span>
+                 <span class="mi">16</span> <span class="p">:</span> <span class="s1">&#39;nu_tau&#39;</span><span class="p">,</span>
+                <span class="o">-</span><span class="mi">16</span> <span class="p">:</span> <span class="s1">&#39;nu_tau_bar&#39;</span><span class="p">,</span>
+                 <span class="mi">80</span> <span class="p">:</span> <span class="s1">&#39;particle&#39;</span><span class="p">,</span>
+                 <span class="mi">81</span> <span class="p">:</span> <span class="s1">&#39;brems&#39;</span><span class="p">,</span>
+                 <span class="mi">82</span> <span class="p">:</span> <span class="s1">&#39;ionized_e&#39;</span><span class="p">,</span>
+                 <span class="mi">83</span> <span class="p">:</span> <span class="s1">&#39;e_pair&#39;</span><span class="p">,</span>
+                 <span class="mi">84</span> <span class="p">:</span> <span class="s1">&#39;hadrons&#39;</span><span class="p">,</span>
+                 <span class="mi">85</span> <span class="p">:</span> <span class="s1">&#39;nucl_int&#39;</span><span class="p">,</span>
+                 <span class="mi">86</span> <span class="p">:</span> <span class="s1">&#39;decay_bundle&#39;</span><span class="p">,</span>
+                 <span class="mi">87</span> <span class="p">:</span> <span class="s1">&#39;mu_pair&#39;</span><span class="p">,</span>
+                 <span class="mi">88</span> <span class="p">:</span> <span class="s1">&#39;cont_loss&#39;</span><span class="p">,</span>
+                 <span class="mi">89</span> <span class="p">:</span> <span class="s1">&#39;weak_int&#39;</span><span class="p">,</span>
+                 <span class="mi">90</span> <span class="p">:</span> <span class="s1">&#39;compton&#39;</span><span class="p">,</span>
+                 <span class="mi">91</span> <span class="p">:</span> <span class="s1">&#39;decay&#39;</span><span class="p">,</span>
+                <span class="mi">111</span> <span class="p">:</span> <span class="s1">&#39;pi0&#39;</span><span class="p">,</span>
+                <span class="mi">211</span> <span class="p">:</span> <span class="s1">&#39;pi+&#39;</span><span class="p">,</span>
+               <span class="o">-</span><span class="mi">211</span> <span class="p">:</span> <span class="s1">&#39;pi-&#39;</span><span class="p">,</span>
+                <span class="mi">311</span> <span class="p">:</span> <span class="s1">&#39;K0&#39;</span><span class="p">,</span>
+                <span class="mi">321</span> <span class="p">:</span> <span class="s1">&#39;K+&#39;</span><span class="p">,</span>
+               <span class="o">-</span><span class="mi">321</span> <span class="p">:</span> <span class="s1">&#39;K-&#39;</span><span class="p">,</span>
+               <span class="mi">2212</span> <span class="p">:</span> <span class="s1">&#39;p+&#39;</span><span class="p">,</span>
+              <span class="o">-</span><span class="mi">2212</span> <span class="p">:</span> <span class="s1">&#39;p-&#39;</span> <span class="p">}</span>
+
+<span class="n">em_primary_names</span> <span class="o">=</span> <span class="p">[</span> <span class="s1">&#39;gamma&#39;</span><span class="p">,</span> <span class="s1">&#39;e-&#39;</span><span class="p">,</span> <span class="s1">&#39;e+&#39;</span><span class="p">,</span> <span class="s1">&#39;brems&#39;</span><span class="p">,</span> <span class="s1">&#39;ionized_e&#39;</span><span class="p">,</span> <span class="s1">&#39;e_pair&#39;</span><span class="p">,</span> <span class="s1">&#39;weak_int&#39;</span><span class="p">,</span> <span class="s1">&#39;compton&#39;</span> <span class="p">]</span>
+
+<span class="n">had_primary_names</span> <span class="o">=</span> <span class="p">[</span> <span class="s1">&#39;hadrons&#39;</span><span class="p">,</span> <span class="s1">&#39;nucl_int&#39;</span><span class="p">,</span> <span class="s1">&#39;decay_bundle&#39;</span><span class="p">,</span> <span class="s1">&#39;pi0&#39;</span><span class="p">,</span> <span class="s1">&#39;pi+&#39;</span><span class="p">,</span> <span class="s1">&#39;pi-&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;K0&#39;</span><span class="p">,</span> <span class="s1">&#39;K+&#39;</span><span class="p">,</span> <span class="s1">&#39;K-&#39;</span><span class="p">,</span> <span class="s1">&#39;p+&#39;</span><span class="p">,</span> <span class="s1">&#39;p-&#39;</span> <span class="p">]</span>
+
+<span class="n">primary_names</span> <span class="o">=</span> <span class="n">em_primary_names</span> <span class="o">+</span> <span class="n">had_primary_names</span>
+
+
+<div class="viewcode-block" id="particle_code"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.particle_code">[docs]</a><span class="k">def</span> <span class="nf">particle_code</span> <span class="p">(</span><span class="n">particle</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If a particle object from PROPOSAL is passed as input, it returns the</span>
+<span class="sd">    corresponding PDG particle code. DynamicData objects are not considered</span>
+<span class="sd">    particles internally in PROPOSAL, so they are handled differently.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    particle: particle object from PROPOSAL</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    integer with the particle code. None if the argument is not a particle</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">particle_type</span> <span class="o">=</span> <span class="n">particle</span><span class="o">.</span><span class="n">type</span>
+
+    <span class="k">if</span> <span class="n">particle_type</span> <span class="ow">in</span> <span class="n">proposal_interaction_codes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">proposal_interaction_codes</span><span class="p">[</span><span class="n">particle_type</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">particle_type</span> <span class="ow">in</span> <span class="n">particle_name</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">particle_type</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">particle_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="is_em_primary"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_em_primary">[docs]</a><span class="k">def</span> <span class="nf">is_em_primary</span> <span class="p">(</span><span class="n">particle</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a PROPOSAL particle object as an input, returns True if the particle</span>
+<span class="sd">    can be an electromagnetic shower primary and False otherwise</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">particle_code</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">particle_name</span><span class="p">[</span><span class="n">code</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">em_primary_names</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="is_had_primary"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_had_primary">[docs]</a><span class="k">def</span> <span class="nf">is_had_primary</span><span class="p">(</span><span class="n">particle</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a PROPOSAL particle object as an input, returns True if the particle</span>
+<span class="sd">    can be a hadronic shower primary and False otherwise</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">particle_code</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">particle_name</span><span class="p">[</span><span class="n">code</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">had_primary_names</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="is_shower_primary"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_shower_primary">[docs]</a><span class="k">def</span> <span class="nf">is_shower_primary</span><span class="p">(</span><span class="n">particle</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a PROPOSAL particle object, returns True if the particle can be</span>
+<span class="sd">    a shower primary and False otherwise</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">particle_code</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">particle_name</span><span class="p">[</span><span class="n">code</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">primary_names</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="check_path_to_tables"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.check_path_to_tables">[docs]</a><span class="k">def</span> <span class="nf">check_path_to_tables</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks if the paths for the PROPOSAL tables in the input config file are</span>
+<span class="sd">    existing directories.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+
+        <span class="n">config_file</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="n">path_to_tables</span> <span class="o">=</span> <span class="n">config_file</span><span class="p">[</span><span class="s1">&#39;global&#39;</span><span class="p">][</span><span class="s1">&#39;interpolation&#39;</span><span class="p">][</span><span class="s1">&#39;path_to_tables&#39;</span><span class="p">]</span>
+    <span class="n">path_to_tables_readonly</span> <span class="o">=</span> <span class="n">config_file</span><span class="p">[</span><span class="s1">&#39;global&#39;</span><span class="p">][</span><span class="s1">&#39;interpolation&#39;</span><span class="p">][</span><span class="s1">&#39;path_to_tables_readonly&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path_to_tables</span><span class="p">):</span>
+
+        <span class="n">error_msg</span> <span class="o">=</span> <span class="s2">&quot;&#39;path_to_tables&#39; in </span><span class="si">{}</span><span class="s2"> points to </span><span class="si">{}</span><span class="s2">, which is a non-existing directory. &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span>
+                                                                                                     <span class="n">path_to_tables</span><span class="p">)</span>
+        <span class="n">error_msg</span> <span class="o">+=</span> <span class="s2">&quot;Please choose a valid path for the PROPOSAL config file in </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path_to_tables_readonly</span><span class="p">):</span>
+
+        <span class="n">error_msg</span> <span class="o">=</span> <span class="s2">&quot;&#39;path_to_tables_readonly&#39; in </span><span class="si">{}</span><span class="s2"> points to </span><span class="si">{}</span><span class="s2">, which is a non-existing directory. &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span>
+                                                                                                              <span class="n">path_to_tables_readonly</span><span class="p">)</span>
+        <span class="n">error_msg</span> <span class="o">+=</span> <span class="s2">&quot;Please choose a valid path for the PROPOSAL config file in </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ProposalFunctions"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">Singleton</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ProposalFunctions</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class serves as a container for PROPOSAL functions. The functions that</span>
+<span class="sd">    start with double underscore take PROPOSAL units as an argument and should</span>
+<span class="sd">    not be used from the outside to avoid mismatching units.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="o">=</span><span class="s1">&#39;SouthPole&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        config_file: string or path</span>
+<span class="sd">            The user can specify the path to their own config file or choose among</span>
+<span class="sd">            the three available options:</span>
+<span class="sd">            -&#39;SouthPole&#39;, a config file for the South Pole (spherical Earth)</span>
+<span class="sd">            -&#39;MooresBay&#39;, a config file for Moore&#39;s Bay (spherical Earth)</span>
+<span class="sd">            -&#39;InfIce&#39;, a config file with a medium of infinite ice</span>
+<span class="sd">            -&#39;Greenland&#39;, a config file for Summit Station, Greenland (spherical Earth)</span>
+<span class="sd">            IMPORTANT: If these options are used, the code is more efficient if the</span>
+<span class="sd">            user requests their own &quot;path_to_tables&quot; and &quot;path_to_tables_readonly&quot;,</span>
+<span class="sd">            pointing them to a writable directory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;proposal&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;initializing proposal interface class&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span> <span class="o">=</span> <span class="n">config_file</span>
+
+    <span class="k">def</span> <span class="nf">__get_propagator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                            <span class="n">particle_code</span><span class="o">=</span><span class="mi">13</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a PROPOSAL propagator for muons or taus. If it does not exist yet it is being generated.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        particle_code: integer</span>
+<span class="sd">            Particle code for the muon- (13), muon+ (-13), tau- (15), or tau+ (-15)</span>
+<span class="sd">        config_file: string or path</span>
+<span class="sd">            The user can specify the path to their own config file or choose among</span>
+<span class="sd">            the three available options:</span>
+<span class="sd">            -&#39;SouthPole&#39;, a config file for the South Pole (spherical Earth). It</span>
+<span class="sd">            consists of a 2.7 km deep layer of ice, bedrock below and air above.</span>
+<span class="sd">            -&#39;MooresBay&#39;, a config file for Moore&#39;s Bay (spherical Earth). It</span>
+<span class="sd">            consists of a 576 m deep ice layer with a 2234 m deep water layer below,</span>
+<span class="sd">            and bedrock below that.</span>
+<span class="sd">            -&#39;InfIce&#39;, a config file with a medium of infinite ice</span>
+<span class="sd">            -&#39;Greenland&#39;, a config file for Summit Station, Greenland (spherical Earth),</span>
+<span class="sd">            same as SouthPole but with a 3 km deep ice layer.</span>
+<span class="sd">            IMPORTANT: If these options are used, the code is more efficient if the</span>
+<span class="sd">            user requests their own &quot;path_to_tables&quot; and &quot;path_to_tables_readonly&quot;,</span>
+<span class="sd">            pointing them to a writable directory</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        propagator: PROPOSAL propagator</span>
+<span class="sd">            Propagator that can be used to calculate the interactions of a muon or tau</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">particle_code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;initializing propagator for particle code </span><span class="si">{</span><span class="n">particle_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">mu_def_builder</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">ParticleDefBuilder</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">particle_code</span> <span class="o">==</span> <span class="mi">13</span><span class="p">):</span>
+                <span class="n">mu_def_builder</span><span class="o">.</span><span class="n">SetParticleDef</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuMinusDef</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">particle_code</span> <span class="o">==</span> <span class="o">-</span><span class="mi">13</span><span class="p">):</span>
+                <span class="n">mu_def_builder</span><span class="o">.</span><span class="n">SetParticleDef</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuPlusDef</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">particle_code</span> <span class="o">==</span> <span class="mi">15</span><span class="p">):</span>
+                <span class="n">mu_def_builder</span><span class="o">.</span><span class="n">SetParticleDef</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">TauMinusDef</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">particle_code</span> <span class="o">==</span> <span class="o">-</span><span class="mi">15</span><span class="p">):</span>
+                <span class="n">mu_def_builder</span><span class="o">.</span><span class="n">SetParticleDef</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">TauPlusDef</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">error_str</span> <span class="o">=</span> <span class="s2">&quot;The propagation of this particle via PROPOSAL is not currently supported.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">error_str</span> <span class="o">+=</span> <span class="s2">&quot;Please choose between -/+muon (13/-13) and -/+tau (15/-15)&quot;</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">error_str</span><span class="p">)</span>
+
+            <span class="n">mu_def</span> <span class="o">=</span> <span class="n">mu_def_builder</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span> <span class="o">==</span> <span class="s1">&#39;SouthPole&#39;</span><span class="p">):</span>
+                <span class="n">config_file_full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;config_PROPOSAL.json&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span> <span class="o">==</span> <span class="s1">&#39;MooresBay&#39;</span><span class="p">):</span>
+                <span class="n">config_file_full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;config_PROPOSAL_mooresbay.json&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span> <span class="o">==</span> <span class="s1">&#39;InfIce&#39;</span><span class="p">):</span>
+                <span class="n">config_file_full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;config_PROPOSAL_infice.json&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span> <span class="o">==</span> <span class="s1">&#39;Greenland&#39;</span><span class="p">):</span>
+                <span class="n">config_file_full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;config_PROPOSAL_greenland.json&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span><span class="p">)):</span>
+                <span class="n">config_file_full_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Proposal config file is not valid. Please provide a valid option.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">config_file_full_path</span><span class="p">):</span>
+                <span class="n">error_message</span> <span class="o">=</span> <span class="s2">&quot;Proposal config file does not exist.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">error_message</span> <span class="o">+=</span> <span class="s2">&quot;Please provide valid paths for the interpolation tables &quot;</span>
+                <span class="n">error_message</span> <span class="o">+=</span> <span class="s2">&quot;in file </span><span class="si">{}</span><span class="s2">.sample &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_file_full_path</span><span class="p">)</span>
+                <span class="n">error_message</span> <span class="o">+=</span> <span class="s2">&quot;and copy the file to </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">config_file_full_path</span><span class="p">))</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="p">)</span>
+
+            <span class="n">check_path_to_tables</span><span class="p">(</span><span class="n">config_file_full_path</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span><span class="p">[</span><span class="n">particle_code</span><span class="p">]</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Propagator</span><span class="p">(</span><span class="n">particle_def</span><span class="o">=</span><span class="n">mu_def</span><span class="p">,</span> <span class="n">config_file</span><span class="o">=</span><span class="n">config_file_full_path</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span><span class="p">[</span><span class="n">particle_code</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__produces_shower</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                          <span class="n">particle</span><span class="p">,</span>
+                          <span class="n">min_energy_loss</span><span class="o">=</span><span class="mi">1</span> <span class="o">*</span> <span class="n">pp_PeV</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns True if the input particle or interaction can be a shower primary</span>
+<span class="sd">        and its energy is above min_energy_loss</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        particle: PROPOSAL particle or DynamicData (interaction)</span>
+<span class="sd">            Input particle</span>
+<span class="sd">        min_energy_loss: float</span>
+<span class="sd">            Threshold above which a particle shower is considered detectable</span>
+<span class="sd">            or relevant, in PROPOSAL units (MeV)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if particle produces shower, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">energy_threshold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__secondary_energy</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_energy_loss</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">energy_threshold</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">shower_inducing</span> <span class="o">=</span> <span class="n">is_shower_primary</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">shower_inducing</span>
+
+    <span class="k">def</span> <span class="nf">__secondary_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sec</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves the energy of the secondary particle</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sec: Particle</span>
+<span class="sd">            Secondary particle issued by Proposal</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        energy: float</span>
+<span class="sd">            Energy in MeV</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Checking if the secondary type is greater than 1000000000, which means</span>
+        <span class="c1"># that the secondary is an interaction particle.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="o">&gt;</span> <span class="mi">1000000000</span><span class="p">):</span>
+            <span class="n">energy</span> <span class="o">=</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">parent_particle_energy</span> <span class="o">-</span> <span class="n">sec</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span>
+        <span class="c1"># Else, the secondary is a particle issued upon decay.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">energy</span> <span class="o">=</span> <span class="n">sec</span><span class="o">.</span><span class="n">energy</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span>
+
+        <span class="k">return</span> <span class="n">energy</span>
+
+    <span class="k">def</span> <span class="nf">__shower_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates shower properties for the shower created by the input particle</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        particle: PROPOSAL particle or DynamicData</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        shower_type: string</span>
+<span class="sd">            &#39;em&#39; for EM showers and &#39;had&#39; for hadronic showers</span>
+<span class="sd">        code: integer</span>
+<span class="sd">            Particle code for the shower primary</span>
+<span class="sd">        name: string</span>
+<span class="sd">            Name of the shower primary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_shower_primary</span><span class="p">(</span><span class="n">particle</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+        <span class="n">code</span> <span class="o">=</span> <span class="n">particle_code</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">is_em_primary</span><span class="p">(</span><span class="n">particle</span><span class="p">):</span>
+            <span class="n">shower_type</span> <span class="o">=</span> <span class="s1">&#39;em&#39;</span>
+
+        <span class="k">if</span> <span class="n">is_had_primary</span><span class="p">(</span><span class="n">particle</span><span class="p">):</span>
+            <span class="n">shower_type</span> <span class="o">=</span> <span class="s1">&#39;had&#39;</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="n">particle_name</span><span class="p">[</span><span class="n">code</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">shower_type</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">name</span>
+
+    <span class="k">def</span> <span class="nf">__propagate_particle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                             <span class="n">energy_lepton</span><span class="p">,</span>
+                             <span class="n">lepton_code</span><span class="p">,</span>
+                             <span class="n">lepton_position</span><span class="p">,</span>
+                             <span class="n">lepton_direction</span><span class="p">,</span>
+                             <span class="n">propagation_length</span><span class="p">,</span>
+                             <span class="n">low</span><span class="o">=</span><span class="mi">1</span> <span class="o">*</span> <span class="n">pp_PeV</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates secondary particles using a PROPOSAL propagator. It needs to</span>
+<span class="sd">        be given a propagators dictionary with particle codes as key</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        energy_lepton: float</span>
+<span class="sd">            Energy of the input lepton, in PROPOSAL units (MeV)</span>
+<span class="sd">        lepton_code: integer</span>
+<span class="sd">            Input lepton code</span>
+<span class="sd">        lepton_position: (float, float, float) tuple</span>
+<span class="sd">            Position of the input lepton, in PROPOSAL units (cm)</span>
+<span class="sd">        lepton_direction: (float, float, float) tuple</span>
+<span class="sd">            Lepton direction vector, normalised to 1</span>
+<span class="sd">        propagation_length: float</span>
+<span class="sd">            Maximum length the particle is propagated, in PROPOSAL units (cm)</span>
+<span class="sd">        low: float</span>
+<span class="sd">            Low energy limit for the propagating particle in Proposal units (MeV)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        secondaries: array of PROPOSAL particles</span>
+<span class="sd">            Secondaries created by the propagation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">lepton_position</span>
+        <span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">,</span> <span class="n">pz</span> <span class="o">=</span> <span class="n">lepton_direction</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">lepton_code</span> <span class="o">==</span> <span class="mi">13</span><span class="p">):</span>
+            <span class="n">particle_def</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuMinusDef</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">lepton_code</span> <span class="o">==</span> <span class="o">-</span><span class="mi">13</span><span class="p">):</span>
+            <span class="n">particle_def</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuPlusDef</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">lepton_code</span> <span class="o">==</span> <span class="mi">15</span><span class="p">):</span>
+            <span class="n">particle_def</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">TauMinusDef</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">lepton_code</span> <span class="o">==</span> <span class="o">-</span><span class="mi">15</span><span class="p">):</span>
+            <span class="n">particle_def</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">TauPlusDef</span><span class="p">()</span>
+
+        <span class="n">initial_condition</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">DynamicData</span><span class="p">(</span><span class="n">particle_def</span><span class="o">.</span><span class="n">particle_type</span><span class="p">)</span>
+        <span class="n">initial_condition</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Vector3D</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="n">initial_condition</span><span class="o">.</span><span class="n">direction</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Vector3D</span><span class="p">(</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">,</span> <span class="n">pz</span><span class="p">)</span>
+        <span class="n">initial_condition</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="n">energy_lepton</span>
+        <span class="n">initial_condition</span><span class="o">.</span><span class="n">propagated_distance</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">secondaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_propagator</span><span class="p">(</span><span class="n">lepton_code</span><span class="p">)</span><span class="o">.</span><span class="n">propagate</span><span class="p">(</span><span class="n">initial_condition</span><span class="p">,</span>
+                                                                  <span class="n">propagation_length</span><span class="p">,</span>
+                                                                  <span class="n">minimal_energy</span><span class="o">=</span><span class="n">low</span><span class="p">)</span><span class="o">.</span><span class="n">particles</span>
+        <span class="k">return</span> <span class="n">secondaries</span>
+
+    <span class="k">def</span> <span class="nf">__filter_secondaries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                             <span class="n">secondaries</span><span class="p">,</span>
+                             <span class="n">min_energy_loss</span><span class="p">,</span>
+                             <span class="n">lepton_position</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Takes an input secondary particles array and returns an array with the</span>
+<span class="sd">        SecondaryProperties of those particles that create a shower above a threshold</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        secondaries: array of PROPOSAL particles</span>
+<span class="sd">            Array with secondary particles</span>
+<span class="sd">        min_energy_loss: float</span>
+<span class="sd">            Threshold for shower production, in PROPOSAL units (MeV)</span>
+<span class="sd">        lepton_position: tuple (float, float, float)</span>
+<span class="sd">            Initial position of the primary lepton, in PROPOSAL units (cm)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        shower_inducing_prods: list</span>
+<span class="sd">            List containing the secondary properties of every shower-inducing</span>
+<span class="sd">            secondary particle, in NuRadioMC units</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">shower_inducing_prods</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">sec</span> <span class="ow">in</span> <span class="n">secondaries</span><span class="p">:</span>
+
+            <span class="c1"># Decays contain only one shower-inducing particle</span>
+            <span class="c1"># Muons and neutrinos resulting from decays are ignored</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__produces_shower</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="n">min_energy_loss</span><span class="p">):</span>
+
+                <span class="n">distance</span> <span class="o">=</span> <span class="p">((</span><span class="n">sec</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">lepton_position</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+                <span class="n">distance</span> <span class="o">+=</span> <span class="p">((</span><span class="n">sec</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">lepton_position</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+                <span class="n">distance</span> <span class="o">+=</span> <span class="p">((</span><span class="n">sec</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">z</span> <span class="o">-</span> <span class="n">lepton_position</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+                <span class="n">distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">distance</span><span class="p">)</span>
+
+                <span class="n">energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__secondary_energy</span><span class="p">(</span><span class="n">sec</span><span class="p">)</span>
+
+                <span class="n">shower_type</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__shower_properties</span><span class="p">(</span><span class="n">sec</span><span class="p">)</span>
+
+                <span class="n">shower_inducing_prods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SecondaryProperties</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">energy</span><span class="p">,</span> <span class="n">shower_type</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">shower_inducing_prods</span>
+
+<div class="viewcode-block" id="ProposalFunctions.get_secondaries_array"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_secondaries_array">[docs]</a>    <span class="k">def</span> <span class="nf">get_secondaries_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                              <span class="n">energy_leptons_nu</span><span class="p">,</span>
+                              <span class="n">lepton_codes</span><span class="p">,</span>
+                              <span class="n">lepton_positions_nu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                              <span class="n">lepton_directions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                              <span class="n">low_nu</span><span class="o">=</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">,</span>
+                              <span class="n">propagation_length_nu</span><span class="o">=</span><span class="mi">1000</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="p">,</span>
+                              <span class="n">min_energy_loss_nu</span><span class="o">=</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">,</span>
+                              <span class="n">propagate_decay_muons</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Propagates a set of leptons and returns a list with the properties for</span>
+<span class="sd">        all the properties of the shower-inducing secondary particles</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        energy_leptons_nu: array of floats</span>
+<span class="sd">            Array with the energies of the input leptons, in NuRadioMC units (eV)</span>
+<span class="sd">        lepton_codes: array of integers</span>
+<span class="sd">            Array with the PDG lepton codes</span>
+<span class="sd">        lepton_positions_nu: array of (float, float, float) tuples</span>
+<span class="sd">            Array containing the lepton positions in NuRadioMC units (m)</span>
+<span class="sd">        lepton_directions: array of (float, float, float) tuples</span>
+<span class="sd">            Array containing the lepton directions, normalised to 1</span>
+<span class="sd">        low_nu: float</span>
+<span class="sd">            Low energy limit for the propagating particle in NuRadioMC units (eV)</span>
+<span class="sd">            controls the minimum energy of the particle. Below this energy, the propagated particle will be discarded</span>
+<span class="sd">        propagation_length_nu: float</span>
+<span class="sd">            Maximum propagation length in NuRadioMC units (m)</span>
+<span class="sd">        min_energy_loss_nu: float</span>
+<span class="sd">            Minimum energy for a selected secondary-induced shower (eV)</span>
+<span class="sd">            controls the minimum energy a secondary shower must have to be returned and saved in an event file</span>
+<span class="sd">        propagate_decay_muons: bool</span>
+<span class="sd">            If True, muons created by tau decay are propagated and their induced</span>
+<span class="sd">            showers are stored</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        secondaries_array: 2D-list containing SecondaryProperties objects</span>
+<span class="sd">            List containing the information on the shower-inducing secondaries. The</span>
+<span class="sd">            first dimension indicates the primary lepton and the second dimension</span>
+<span class="sd">            navigates through the secondaries produced by that primary.</span>
+
+<span class="sd">            The SecondaryProperties objects are expressed in NuRadioMC units.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Converting to PROPOSAL units</span>
+        <span class="n">low</span> <span class="o">=</span> <span class="n">low_nu</span> <span class="o">*</span> <span class="n">pp_eV</span>
+        <span class="n">propagation_length</span> <span class="o">=</span> <span class="n">propagation_length_nu</span> <span class="o">*</span> <span class="n">pp_m</span>
+        <span class="n">min_energy_loss</span> <span class="o">=</span> <span class="n">min_energy_loss_nu</span> <span class="o">*</span> <span class="n">pp_eV</span>
+        <span class="n">energy_leptons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">energy_leptons_nu</span><span class="p">)</span> <span class="o">*</span> <span class="n">pp_eV</span>
+
+        <span class="k">if</span> <span class="n">lepton_positions_nu</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lepton_positions</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">energy_leptons</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lepton_positions</span> <span class="o">=</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">lepton_position_nu</span><span class="p">)</span> <span class="o">*</span> <span class="n">pp_m</span> <span class="k">for</span> <span class="n">lepton_position_nu</span> <span class="ow">in</span> <span class="n">lepton_positions_nu</span> <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">lepton_directions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lepton_directions</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">energy_leptons</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">propagate_decay_muons</span><span class="p">:</span>
+
+            <span class="n">decay_muons_array</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">secondaries_array</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">energy_lepton</span><span class="p">,</span> <span class="n">lepton_code</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">,</span> <span class="n">lepton_direction</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">energy_leptons</span><span class="p">,</span>
+            <span class="n">lepton_codes</span><span class="p">,</span> <span class="n">lepton_positions</span><span class="p">,</span> <span class="n">lepton_directions</span><span class="p">):</span>
+
+            <span class="n">secondaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__propagate_particle</span><span class="p">(</span><span class="n">energy_lepton</span><span class="p">,</span> <span class="n">lepton_code</span><span class="p">,</span>
+                                                    <span class="n">lepton_position</span><span class="p">,</span> <span class="n">lepton_direction</span><span class="p">,</span>
+                                                    <span class="n">propagation_length</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="n">low</span><span class="p">)</span>
+
+            <span class="n">shower_inducing_prods</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__filter_secondaries</span><span class="p">(</span><span class="n">secondaries</span><span class="p">,</span> <span class="n">min_energy_loss</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">)</span>
+
+            <span class="c1"># Checking if there is a muon in the products</span>
+            <span class="k">if</span> <span class="n">propagate_decay_muons</span><span class="p">:</span>
+
+                <span class="n">decay_muons_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>
+
+                <span class="k">for</span> <span class="n">sec</span> <span class="ow">in</span> <span class="n">secondaries</span><span class="p">:</span>
+
+                    <span class="k">if</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">proposal_interaction_codes</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">particle_name</span><span class="p">):</span>
+                        <span class="k">continue</span>
+
+                    <span class="k">if</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">particle_def</span> <span class="o">==</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuMinusDef</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">particle_def</span> <span class="o">==</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuPlusDef</span><span class="p">()):</span>
+
+                        <span class="k">if</span> <span class="n">sec</span><span class="o">.</span><span class="n">particle_def</span> <span class="o">==</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuMinusDef</span><span class="p">():</span>
+                            <span class="n">mu_code</span> <span class="o">=</span> <span class="mi">13</span>
+                        <span class="k">elif</span> <span class="n">sec</span><span class="o">.</span><span class="n">particle_def</span> <span class="o">==</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuPlusDef</span><span class="p">():</span>
+                            <span class="n">mu_code</span> <span class="o">=</span> <span class="o">-</span><span class="mi">13</span>
+
+                        <span class="n">mu_energy</span> <span class="o">=</span> <span class="n">sec</span><span class="o">.</span><span class="n">energy</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">mu_energy</span> <span class="o">&lt;=</span> <span class="n">low</span><span class="p">):</span>
+                            <span class="k">continue</span>
+                        <span class="n">mu_position</span> <span class="o">=</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">sec</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">sec</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+                        <span class="n">mu_direction</span> <span class="o">=</span> <span class="n">lepton_direction</span>  <span class="c1"># We reuse the primary lepton direction</span>
+                                                        <span class="c1"># At these energies the muon direction is the same</span>
+                        <span class="n">decay_muons_array</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">mu_energy</span><span class="p">,</span> <span class="n">mu_code</span><span class="p">,</span> <span class="n">mu_position</span><span class="p">,</span> <span class="n">mu_direction</span><span class="p">]</span>
+                        <span class="c1"># I store the properties of each muon in an array because they cannot be</span>
+                        <span class="c1"># propagated while we are looping the secondaries array. Doing that can</span>
+                        <span class="c1"># create a segmentation fault because the results of the new propagation</span>
+                        <span class="c1"># are written into the secondaries array (!)</span>
+
+            <span class="c1"># group shower-inducing decay products so that they create a single shower</span>
+            <span class="n">min_distance</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
+            <span class="k">while</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shower_inducing_prods</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span>
+                   <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">shower_inducing_prods</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">distance</span> <span class="o">-</span> <span class="n">shower_inducing_prods</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">distance</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">min_distance</span><span class="p">):</span>
+
+                <span class="n">last_decay_prod</span> <span class="o">=</span> <span class="n">shower_inducing_prods</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">shower_inducing_prods</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">energy</span> <span class="o">+=</span> <span class="n">last_decay_prod</span><span class="o">.</span><span class="n">energy</span>
+                <span class="n">shower_inducing_prods</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="mi">86</span>
+                <span class="n">shower_inducing_prods</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">particle_name</span><span class="p">[</span><span class="mi">86</span><span class="p">]</span>
+
+            <span class="n">secondaries_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shower_inducing_prods</span><span class="p">)</span>
+
+        <span class="c1"># Propagating the decay muons</span>
+        <span class="k">if</span> <span class="n">propagate_decay_muons</span><span class="p">:</span>
+
+            <span class="k">for</span> <span class="n">shower_inducing_prods</span><span class="p">,</span> <span class="n">decay_muon</span><span class="p">,</span> <span class="n">lepton_position</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">secondaries_array</span><span class="p">,</span>
+                <span class="n">decay_muons_array</span><span class="p">,</span> <span class="n">lepton_positions</span><span class="p">):</span>
+
+                <span class="k">if</span> <span class="n">decay_muon</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">mu_energy</span><span class="p">,</span> <span class="n">mu_code</span><span class="p">,</span> <span class="n">mu_position</span><span class="p">,</span> <span class="n">mu_direction</span> <span class="o">=</span> <span class="n">decay_muon</span>
+                <span class="n">mu_secondaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__propagate_particle</span><span class="p">(</span><span class="n">mu_energy</span><span class="p">,</span> <span class="n">mu_code</span><span class="p">,</span> <span class="n">mu_position</span><span class="p">,</span> <span class="n">mu_direction</span><span class="p">,</span>
+                                                           <span class="n">propagation_length</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="n">low</span><span class="p">)</span>
+
+                <span class="n">mu_shower_inducing_prods</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__filter_secondaries</span><span class="p">(</span><span class="n">mu_secondaries</span><span class="p">,</span> <span class="n">min_energy_loss</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">)</span>
+
+                <span class="n">shower_inducing_prods</span> <span class="o">+=</span> <span class="n">mu_shower_inducing_prods</span>
+
+        <span class="k">return</span> <span class="n">secondaries_array</span></div>
+
+<div class="viewcode-block" id="ProposalFunctions.get_decays"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_decays">[docs]</a>    <span class="k">def</span> <span class="nf">get_decays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                   <span class="n">energy_leptons_nu</span><span class="p">,</span>
+                   <span class="n">lepton_codes</span><span class="p">,</span>
+                   <span class="n">lepton_positions_nu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">lepton_directions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">low_nu</span><span class="o">=</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">,</span>
+                   <span class="n">propagation_length_nu</span><span class="o">=</span><span class="mi">1000</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Propagates a set of leptons and returns a list with the properties of</span>
+<span class="sd">        the decay particles.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        energy_leptons_nu: array of floats</span>
+<span class="sd">            Array with the energies of the input leptons, in NuRadioMC units (eV)</span>
+<span class="sd">        lepton_codes: array of integers</span>
+<span class="sd">            Array with the PDG lepton codes</span>
+<span class="sd">        lepton_positions_nu: array of (float, float, float) tuples</span>
+<span class="sd">            Array containing the lepton positions in NuRadioMC units (m)</span>
+<span class="sd">        lepton_directions: array of (float, float, float) tuples</span>
+<span class="sd">            Array containing the lepton directions, normalised to 1</span>
+<span class="sd">        low_nu: float</span>
+<span class="sd">            Low energy limit for the propagating particle in NuRadioMC units (eV)</span>
+<span class="sd">        propagation_length_nu: float</span>
+<span class="sd">            Maximum propagation length in NuRadioMC units (m)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        decays_array: array of (float, float) tuples</span>
+<span class="sd">            The first element of the tuple contains the decay distance in m</span>
+<span class="sd">            The second element contains the decay energy in eV (NuRadioMC units)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Converting to PROPOSAL units</span>
+        <span class="n">low</span> <span class="o">=</span> <span class="n">low_nu</span> <span class="o">*</span> <span class="n">pp_eV</span>
+        <span class="n">propagation_length</span> <span class="o">=</span> <span class="n">propagation_length_nu</span> <span class="o">*</span> <span class="n">pp_m</span>
+        <span class="n">energy_leptons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">energy_leptons_nu</span><span class="p">)</span> <span class="o">*</span> <span class="n">pp_eV</span>
+
+        <span class="k">if</span> <span class="n">lepton_positions_nu</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lepton_positions</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">energy_leptons</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lepton_positions</span> <span class="o">=</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">lepton_position_nu</span><span class="p">)</span> <span class="o">*</span> <span class="n">pp_m</span> <span class="k">for</span> <span class="n">lepton_position_nu</span> <span class="ow">in</span> <span class="n">lepton_positions_nu</span> <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">lepton_directions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lepton_directions</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">energy_leptons</span><span class="p">)</span>
+
+        <span class="n">decays_array</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">energy_lepton</span><span class="p">,</span> <span class="n">lepton_code</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">,</span> <span class="n">lepton_direction</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">energy_leptons</span><span class="p">,</span>
+            <span class="n">lepton_codes</span><span class="p">,</span> <span class="n">lepton_positions</span><span class="p">,</span> <span class="n">lepton_directions</span><span class="p">):</span>
+
+            <span class="n">decay_prop</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="k">while</span><span class="p">(</span><span class="n">decay_prop</span> <span class="o">==</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)):</span>
+
+                <span class="n">secondaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__propagate_particle</span><span class="p">(</span><span class="n">energy_lepton</span><span class="p">,</span> <span class="n">lepton_code</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">,</span> <span class="n">lepton_direction</span><span class="p">,</span>
+                                                        <span class="n">propagation_length</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="n">low</span><span class="p">)</span>
+
+                <span class="n">decay_particles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">secondaries</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">proposal_interaction_codes</span><span class="p">])</span>
+                <span class="n">decay_energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">energy</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">decay_particles</span><span class="p">])</span>
+                <span class="n">decay_energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">decay_energies</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># If Proposal fails and there is no decay (sometimes it happens),</span>
+                    <span class="c1"># the particle is propagated again</span>
+                    <span class="n">decay_distance</span> <span class="o">=</span> <span class="p">((</span><span class="n">decay_particles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">lepton_position</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+                    <span class="n">decay_distance</span> <span class="o">+=</span> <span class="p">((</span><span class="n">decay_particles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">lepton_position</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+                    <span class="n">decay_distance</span> <span class="o">+=</span> <span class="p">((</span><span class="n">decay_particles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">z</span> <span class="o">-</span> <span class="n">lepton_position</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+                    <span class="n">decay_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">decay_distance</span><span class="p">)</span>
+
+                    <span class="n">decay_prop</span> <span class="o">=</span> <span class="p">(</span><span class="n">decay_distance</span><span class="p">,</span> <span class="n">decay_energy</span><span class="p">)</span>
+                    <span class="n">decays_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">decay_prop</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="n">decay_prop</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">decays_array</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, The NuRadio Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

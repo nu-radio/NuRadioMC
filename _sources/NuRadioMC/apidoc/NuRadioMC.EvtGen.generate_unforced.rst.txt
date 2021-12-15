@@ -1,0 +1,7 @@
+NuRadioMC.EvtGen.generate\_unforced module
+==========================================
+
+.. automodule:: NuRadioMC.EvtGen.generate_unforced
+   :members:
+   :undoc-members:
+   :show-inheritance:

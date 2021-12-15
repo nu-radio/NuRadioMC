@@ -1,0 +1,7 @@
+NuRadioReco.detector.sql\_to\_json module
+=========================================
+
+.. automodule:: NuRadioReco.detector.sql_to_json
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,7 @@
+NuRadioMC.utilities.fluxes module
+=================================
+
+.. automodule:: NuRadioMC.utilities.fluxes
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,7 @@
+NuRadioMC.SignalGen.parametrizations module
+===========================================
+
+.. automodule:: NuRadioMC.SignalGen.parametrizations
+   :members:
+   :undoc-members:
+   :show-inheritance:

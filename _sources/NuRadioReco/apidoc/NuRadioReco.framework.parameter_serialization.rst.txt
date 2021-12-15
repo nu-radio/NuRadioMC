@@ -1,0 +1,7 @@
+NuRadioReco.framework.parameter\_serialization module
+=====================================================
+
+.. automodule:: NuRadioReco.framework.parameter_serialization
+   :members:
+   :undoc-members:
+   :show-inheritance:

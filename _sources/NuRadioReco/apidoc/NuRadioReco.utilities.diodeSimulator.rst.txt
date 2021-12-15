@@ -1,0 +1,7 @@
+NuRadioReco.utilities.diodeSimulator module
+===========================================
+
+.. automodule:: NuRadioReco.utilities.diodeSimulator
+   :members:
+   :undoc-members:
+   :show-inheritance:

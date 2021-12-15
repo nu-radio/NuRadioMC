@@ -1,0 +1,19 @@
+NuRadioMC.SignalProp package
+============================
+
+.. automodule:: NuRadioMC.SignalProp
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioMC.SignalProp.analyticraytracing
+   NuRadioMC.SignalProp.directRayTracing
+   NuRadioMC.SignalProp.propagation
+   NuRadioMC.SignalProp.propagation_base_class
+   NuRadioMC.SignalProp.radioproparaytracing

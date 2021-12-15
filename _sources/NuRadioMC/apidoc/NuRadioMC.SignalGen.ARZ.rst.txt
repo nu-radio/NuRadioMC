@@ -1,0 +1,15 @@
+NuRadioMC.SignalGen.ARZ package
+===============================
+
+.. automodule:: NuRadioMC.SignalGen.ARZ
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioMC.SignalGen.ARZ.ARZ

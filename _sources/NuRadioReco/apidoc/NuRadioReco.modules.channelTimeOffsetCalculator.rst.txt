@@ -1,0 +1,7 @@
+NuRadioReco.modules.channelTimeOffsetCalculator module
+======================================================
+
+.. automodule:: NuRadioReco.modules.channelTimeOffsetCalculator
+   :members:
+   :undoc-members:
+   :show-inheritance:

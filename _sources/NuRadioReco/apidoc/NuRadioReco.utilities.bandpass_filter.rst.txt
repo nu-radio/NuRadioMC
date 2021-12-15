@@ -1,0 +1,7 @@
+NuRadioReco.utilities.bandpass\_filter module
+=============================================
+
+.. automodule:: NuRadioReco.utilities.bandpass_filter
+   :members:
+   :undoc-members:
+   :show-inheritance:

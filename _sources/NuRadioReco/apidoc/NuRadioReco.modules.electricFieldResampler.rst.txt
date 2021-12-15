@@ -1,0 +1,7 @@
+NuRadioReco.modules.electricFieldResampler module
+=================================================
+
+.. automodule:: NuRadioReco.modules.electricFieldResampler
+   :members:
+   :undoc-members:
+   :show-inheritance:

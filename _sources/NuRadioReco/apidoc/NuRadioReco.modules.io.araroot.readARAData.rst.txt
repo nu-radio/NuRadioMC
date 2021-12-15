@@ -1,0 +1,7 @@
+NuRadioReco.modules.io.araroot.readARAData module
+=================================================
+
+.. automodule:: NuRadioReco.modules.io.araroot.readARAData
+   :members:
+   :undoc-members:
+   :show-inheritance:

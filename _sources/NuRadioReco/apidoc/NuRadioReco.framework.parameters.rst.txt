@@ -1,0 +1,7 @@
+NuRadioReco.framework.parameters module
+=======================================
+
+.. automodule:: NuRadioReco.framework.parameters
+   :members:
+   :undoc-members:
+   :show-inheritance:

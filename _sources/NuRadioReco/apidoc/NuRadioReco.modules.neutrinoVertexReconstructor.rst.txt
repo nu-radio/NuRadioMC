@@ -1,0 +1,17 @@
+NuRadioReco.modules.neutrinoVertexReconstructor package
+=======================================================
+
+.. automodule:: NuRadioReco.modules.neutrinoVertexReconstructor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.neutrinoVertexReconstructor.create_lookup_table
+   NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor
+   NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor

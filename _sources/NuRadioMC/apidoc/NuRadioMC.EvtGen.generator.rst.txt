@@ -1,0 +1,7 @@
+NuRadioMC.EvtGen.generator module
+=================================
+
+.. automodule:: NuRadioMC.EvtGen.generator
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,7 @@
+NuRadioReco.framework.base\_station module
+==========================================
+
+.. automodule:: NuRadioReco.framework.base_station
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,15 @@
+NuRadioReco.modules.phasedarray package
+=======================================
+
+.. automodule:: NuRadioReco.modules.phasedarray
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.phasedarray.triggerSimulator

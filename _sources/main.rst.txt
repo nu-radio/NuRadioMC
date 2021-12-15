@@ -10,6 +10,7 @@ Welcome to NuRadio's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   Introduction/pages/welcome_page.rst
    NuRadioReco/pages/welcome_page.rst
    NuRadioMC/pages/welcome_page.rst
 

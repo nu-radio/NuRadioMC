@@ -1,0 +1,7 @@
+NuRadioReco.modules.channelGenericNoiseAdder module
+===================================================
+
+.. automodule:: NuRadioReco.modules.channelGenericNoiseAdder
+   :members:
+   :undoc-members:
+   :show-inheritance:

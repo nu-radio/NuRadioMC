@@ -1,0 +1,7 @@
+NuRadioMC.SignalProp.directRayTracing module
+============================================
+
+.. automodule:: NuRadioMC.SignalProp.directRayTracing
+   :members:
+   :undoc-members:
+   :show-inheritance:

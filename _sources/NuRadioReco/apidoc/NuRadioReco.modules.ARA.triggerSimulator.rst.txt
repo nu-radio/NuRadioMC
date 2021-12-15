@@ -1,0 +1,7 @@
+NuRadioReco.modules.ARA.triggerSimulator module
+===============================================
+
+.. automodule:: NuRadioReco.modules.ARA.triggerSimulator
+   :members:
+   :undoc-members:
+   :show-inheritance:

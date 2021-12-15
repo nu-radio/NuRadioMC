@@ -1,0 +1,7 @@
+NuRadioMC.EvtGen.generator\_skeleton module
+===========================================
+
+.. automodule:: NuRadioMC.EvtGen.generator_skeleton
+   :members:
+   :undoc-members:
+   :show-inheritance:

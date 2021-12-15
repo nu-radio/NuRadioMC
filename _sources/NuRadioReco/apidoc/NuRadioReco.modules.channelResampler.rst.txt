@@ -1,0 +1,7 @@
+NuRadioReco.modules.channelResampler module
+===========================================
+
+.. automodule:: NuRadioReco.modules.channelResampler
+   :members:
+   :undoc-members:
+   :show-inheritance:

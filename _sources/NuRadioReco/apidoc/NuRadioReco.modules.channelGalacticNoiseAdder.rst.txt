@@ -1,0 +1,7 @@
+NuRadioReco.modules.channelGalacticNoiseAdder module
+====================================================
+
+.. automodule:: NuRadioReco.modules.channelGalacticNoiseAdder
+   :members:
+   :undoc-members:
+   :show-inheritance:

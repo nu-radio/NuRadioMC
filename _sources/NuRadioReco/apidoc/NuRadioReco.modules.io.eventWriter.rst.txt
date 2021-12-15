@@ -1,0 +1,7 @@
+NuRadioReco.modules.io.eventWriter module
+=========================================
+
+.. automodule:: NuRadioReco.modules.io.eventWriter
+   :members:
+   :undoc-members:
+   :show-inheritance:

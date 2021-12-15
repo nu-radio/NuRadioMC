@@ -1,0 +1,7 @@
+NuRadioReco.modules.channelTemplateCorrelation module
+=====================================================
+
+.. automodule:: NuRadioReco.modules.channelTemplateCorrelation
+   :members:
+   :undoc-members:
+   :show-inheritance:

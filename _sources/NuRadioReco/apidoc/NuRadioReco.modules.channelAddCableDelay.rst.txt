@@ -1,0 +1,7 @@
+NuRadioReco.modules.channelAddCableDelay module
+===============================================
+
+.. automodule:: NuRadioReco.modules.channelAddCableDelay
+   :members:
+   :undoc-members:
+   :show-inheritance:

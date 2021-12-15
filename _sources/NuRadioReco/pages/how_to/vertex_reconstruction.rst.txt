@@ -46,7 +46,7 @@ directly.
     if the antenna has a group delay that depends on the receiving angle.
 
 The template is an object of the class
-`BaseTrace <../../NuRadioReco.framework.html#module-NuRadioReco.framework.base_trace>`_
+:class:`BaseTrace <NuRadioReco.framework.base_trace>`
 that contains an (three-dimensional) electric field that can be used by the vertex reconstruction
 modules to fold it with the antenna response to create a voltage template. Such a template can
 be created, for example, with this code snippet:

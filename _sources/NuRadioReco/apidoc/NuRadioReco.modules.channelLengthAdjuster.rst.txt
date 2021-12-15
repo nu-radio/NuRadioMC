@@ -1,0 +1,7 @@
+NuRadioReco.modules.channelLengthAdjuster module
+================================================
+
+.. automodule:: NuRadioReco.modules.channelLengthAdjuster
+   :members:
+   :undoc-members:
+   :show-inheritance:

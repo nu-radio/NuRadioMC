@@ -1,0 +1,34 @@
+NuRadioReco.detector package
+============================
+
+.. automodule:: NuRadioReco.detector
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.detector.ARA
+   NuRadioReco.detector.ARIANNA
+   NuRadioReco.detector.RNO_G
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.detector.amp
+   NuRadioReco.detector.antennapattern
+   NuRadioReco.detector.detector
+   NuRadioReco.detector.detector_sql
+   NuRadioReco.detector.detector_sys_uncertainties
+   NuRadioReco.detector.filterresponse
+   NuRadioReco.detector.generic_detector
+   NuRadioReco.detector.sql_to_json
+   NuRadioReco.detector.test_detector_db
+   NuRadioReco.detector.visualize_detector

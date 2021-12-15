@@ -1,0 +1,7 @@
+NuRadioReco.utilities.noise module
+==================================
+
+.. automodule:: NuRadioReco.utilities.noise
+   :members:
+   :undoc-members:
+   :show-inheritance:

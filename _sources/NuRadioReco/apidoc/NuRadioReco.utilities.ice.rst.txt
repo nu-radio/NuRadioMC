@@ -1,0 +1,7 @@
+NuRadioReco.utilities.ice module
+================================
+
+.. automodule:: NuRadioReco.utilities.ice
+   :members:
+   :undoc-members:
+   :show-inheritance:

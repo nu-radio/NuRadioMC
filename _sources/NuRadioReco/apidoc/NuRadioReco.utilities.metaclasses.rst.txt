@@ -1,0 +1,7 @@
+NuRadioReco.utilities.metaclasses module
+========================================
+
+.. automodule:: NuRadioReco.utilities.metaclasses
+   :members:
+   :undoc-members:
+   :show-inheritance:

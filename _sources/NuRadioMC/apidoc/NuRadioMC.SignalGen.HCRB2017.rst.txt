@@ -1,0 +1,7 @@
+NuRadioMC.SignalGen.HCRB2017 module
+===================================
+
+.. automodule:: NuRadioMC.SignalGen.HCRB2017
+   :members:
+   :undoc-members:
+   :show-inheritance:

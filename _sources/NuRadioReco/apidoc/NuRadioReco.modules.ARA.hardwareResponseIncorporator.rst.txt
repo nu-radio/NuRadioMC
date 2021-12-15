@@ -1,0 +1,7 @@
+NuRadioReco.modules.ARA.hardwareResponseIncorporator module
+===========================================================
+
+.. automodule:: NuRadioReco.modules.ARA.hardwareResponseIncorporator
+   :members:
+   :undoc-members:
+   :show-inheritance:

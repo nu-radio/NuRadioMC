@@ -1,0 +1,7 @@
+NuRadioMC.utilities.attenuation module
+======================================
+
+.. automodule:: NuRadioMC.utilities.attenuation
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,7 @@
+NuRadioReco.modules.io.rno\_g.readRNOGData module
+=================================================
+
+.. automodule:: NuRadioReco.modules.io.rno_g.readRNOGData
+   :members:
+   :undoc-members:
+   :show-inheritance:

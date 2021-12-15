@@ -1,0 +1,7 @@
+NuRadioReco.detector.visualize\_detector module
+===============================================
+
+.. automodule:: NuRadioReco.detector.visualize_detector
+   :members:
+   :undoc-members:
+   :show-inheritance:

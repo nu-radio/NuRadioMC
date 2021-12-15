@@ -1,0 +1,15 @@
+NuRadioMC.simulation package
+============================
+
+.. automodule:: NuRadioMC.simulation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioMC.simulation.simulation

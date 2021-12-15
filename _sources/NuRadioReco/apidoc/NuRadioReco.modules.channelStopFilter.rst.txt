@@ -1,0 +1,7 @@
+NuRadioReco.modules.channelStopFilter module
+============================================
+
+.. automodule:: NuRadioReco.modules.channelStopFilter
+   :members:
+   :undoc-members:
+   :show-inheritance:

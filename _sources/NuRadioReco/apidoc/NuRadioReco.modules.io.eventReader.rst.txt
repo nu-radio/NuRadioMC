@@ -1,0 +1,7 @@
+NuRadioReco.modules.io.eventReader module
+=========================================
+
+.. automodule:: NuRadioReco.modules.io.eventReader
+   :members:
+   :undoc-members:
+   :show-inheritance:

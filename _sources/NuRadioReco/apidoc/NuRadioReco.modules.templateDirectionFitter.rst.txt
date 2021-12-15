@@ -1,0 +1,7 @@
+NuRadioReco.modules.templateDirectionFitter module
+==================================================
+
+.. automodule:: NuRadioReco.modules.templateDirectionFitter
+   :members:
+   :undoc-members:
+   :show-inheritance:

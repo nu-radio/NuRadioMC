@@ -1,0 +1,20 @@
+NuRadioReco.modules.io.coreas package
+=====================================
+
+.. automodule:: NuRadioReco.modules.io.coreas
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.io.coreas.coreas
+   NuRadioReco.modules.io.coreas.readCoREAS
+   NuRadioReco.modules.io.coreas.readCoREASShower
+   NuRadioReco.modules.io.coreas.readCoREASStation
+   NuRadioReco.modules.io.coreas.readCoREASStationGrid
+   NuRadioReco.modules.io.coreas.simulationSelector

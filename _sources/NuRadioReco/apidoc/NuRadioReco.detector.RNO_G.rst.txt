@@ -1,0 +1,15 @@
+NuRadioReco.detector.RNO\_G package
+===================================
+
+.. automodule:: NuRadioReco.detector.RNO_G
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.detector.RNO_G.analog_components

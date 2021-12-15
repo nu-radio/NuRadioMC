@@ -1,0 +1,7 @@
+NuRadioReco.modules.electricFieldSignalReconstructor module
+===========================================================
+
+.. automodule:: NuRadioReco.modules.electricFieldSignalReconstructor
+   :members:
+   :undoc-members:
+   :show-inheritance:

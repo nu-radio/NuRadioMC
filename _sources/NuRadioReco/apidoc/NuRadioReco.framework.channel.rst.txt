@@ -1,0 +1,7 @@
+NuRadioReco.framework.channel module
+====================================
+
+.. automodule:: NuRadioReco.framework.channel
+   :members:
+   :undoc-members:
+   :show-inheritance:

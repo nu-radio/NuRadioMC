@@ -1,0 +1,7 @@
+NuRadioMC.utilities.Veff module
+===============================
+
+.. automodule:: NuRadioMC.utilities.Veff
+   :members:
+   :undoc-members:
+   :show-inheritance:

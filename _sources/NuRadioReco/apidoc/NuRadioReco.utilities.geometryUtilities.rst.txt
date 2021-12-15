@@ -1,0 +1,7 @@
+NuRadioReco.utilities.geometryUtilities module
+==============================================
+
+.. automodule:: NuRadioReco.utilities.geometryUtilities
+   :members:
+   :undoc-members:
+   :show-inheritance:

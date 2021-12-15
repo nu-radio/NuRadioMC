@@ -1,0 +1,7 @@
+NuRadioMC.simulation.simulation module
+======================================
+
+.. automodule:: NuRadioMC.simulation.simulation
+   :members:
+   :undoc-members:
+   :show-inheritance:

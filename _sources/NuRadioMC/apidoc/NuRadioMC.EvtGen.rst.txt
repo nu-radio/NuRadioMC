@@ -1,0 +1,25 @@
+NuRadioMC.EvtGen package
+========================
+
+.. automodule:: NuRadioMC.EvtGen
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioMC.EvtGen.NuRadioMCtoAraSim
+   NuRadioMC.EvtGen.NuRadioProposal
+   NuRadioMC.EvtGen.create_tau_tab
+   NuRadioMC.EvtGen.generate_cylinder
+   NuRadioMC.EvtGen.generate_unforced
+   NuRadioMC.EvtGen.generator
+   NuRadioMC.EvtGen.generator_ASCII
+   NuRadioMC.EvtGen.generator_skeleton
+   NuRadioMC.EvtGen.hdf5_to_ASCII
+   NuRadioMC.EvtGen.readARAEventList
+   NuRadioMC.EvtGen.readEventList_ASCII
