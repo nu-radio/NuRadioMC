@@ -11,6 +11,7 @@ new features:
 - add sphericalWaveFitter module
 - add directory RNO_data with an example reconstruction for RNO data and the
 calculation of the cable delays
+- add Genie HEDIS (BGR18) cross section as an optional cross sec model
 
 bugfixes:
 - correct volume extension depending on zenith angle range when running with

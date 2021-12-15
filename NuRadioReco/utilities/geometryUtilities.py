@@ -11,7 +11,7 @@ def get_time_delay_from_direction(zenith, azimuth, positions, n=1.000293):
     Calculate the time delay between given positions for an arrival direction
 
     Parameters
-    ---------
+    ----------
 
     zenith: float [rad]
         Zenith angle in convention up = 0

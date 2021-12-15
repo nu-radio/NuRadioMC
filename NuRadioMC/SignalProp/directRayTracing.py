@@ -48,8 +48,8 @@ class directRayTracing():
                   all all the neseccary keyword arguments for the function in the
                   form of key=argument and separated by a comma
 
-        Example
-        -------
+        Examples
+        --------
         use_optional_function('set_shower_axis',np.array([0,0,1]))
         use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
         """

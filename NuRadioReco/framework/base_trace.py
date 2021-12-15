@@ -42,8 +42,8 @@ class BaseTrace:
         """
         Returns the trace after applying a filter to it. This does not change the stored trace.
 
-        Parameters:
-        --------------
+        Parameters
+        ----------
         passband: list of floats
             lower and upper bound of the filter passband
         filter_type: string
@@ -152,8 +152,8 @@ class BaseTrace:
         Note that this is a cyclic shift, which means the trace will wrap
         around, which might lead to problems, especially for large time shifts.
 
-        Parameters:
-        --------------------
+        Parameters
+        ----------
         delta_t: float
             Time by which the trace should be shifted
         silent: boolean (default:False)

@@ -165,10 +165,14 @@ class radiopropa_ray_tracing:
                   all all the neseccary keyword arguments for the function in the
                   form of key=argument and separated by a comma
 
-        Example
-        -------
-        use_optional_function('set_shower_axis',np.array([0,0,1]))
-        use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
+        Examples
+        --------
+        
+        .. code-block::
+        
+            use_optional_function('set_shower_axis',np.array([0,0,1]))
+            use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
+        
         """
         if not hasattr(self,function_name):
             pass
@@ -410,8 +414,8 @@ class radiopropa_ray_tracing:
         """
         Read an already calculated raytracing solution from the input array
 
-        Parameters:
-        -------------
+        Parameters
+        ----------
         raytracing_results: dict
             The dictionary containing the raytracing solution.
         """
@@ -855,6 +859,7 @@ class radiopropa_ray_tracing:
     def get_focusing(self, iS, dz=-1. * units.cm, limit=2.):
         """
         calculate the focusing effect in the medium
+        
         Parameters
         ----------
         iS: int
@@ -862,10 +867,11 @@ class radiopropa_ray_tracing:
             starts at zero
         dz: float
             the infinitesimal change of the depth of the receiver, 1cm by default
+        
         Returns
         -------
         focusing: a float
-            gain of the signal at the receiver due to the focusing effect:
+            gain of the signal at the receiver due to the focusing effect
         """
         recVec = self.get_receive_vector(iS)
         recVec = -1.0 * recVec
@@ -909,8 +915,8 @@ class radiopropa_ray_tracing:
         Apply propagation effects to the electric field
         Note that the 1/r weakening of the electric field is already accounted for in the signal generation
 
-        Parameters:
-        ----------------
+        Parameters
+        ----------
         efield: ElectricField object
             The electric field that the effects should be applied to
         i_solution: int
@@ -983,8 +989,8 @@ class radiopropa_ray_tracing:
 
         ! be sure that the first entry is specific to your raytracer !
 
-        Returns:
-        -----------------
+        Returns
+        -------
         list with entries of form [{'name': str, 'ndim': int}]
             ! be sure that the first entry is specific to your raytracer !
             'name': Name of the new parameter to include in the data structure
@@ -1003,13 +1009,13 @@ class radiopropa_ray_tracing:
         """
         Write parameters that are specific to this raytracer into the output data.
 
-        Parameters:
-        ---------------
+        Parameters
+        ----------
         i_solution: int
             The index of the raytracing solution
 
-        Returns:
-        ---------------
+        Returns
+        -------
         dictionary with the keys matching the parameter names specified in get_output_parameters and the values being
         the results from the raytracing
         """
@@ -1045,8 +1051,8 @@ class radiopropa_ray_tracing:
         """
         Function to change the configuration file used by the raytracer
 
-        Parameters:
-        ----------------
+        Parameters
+        ----------
         config: dict
             The new configuration settings
         """

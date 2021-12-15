@@ -19,8 +19,8 @@ def interpolate_linear(x, x0, x1, y0, y1, interpolation_method='complex'):
     """
     helper function to linearly interpolate between two complex numbers
 
-    Parameters:
-    ------
+    Parameters
+    ----------
     x: float
         the requested position
     x0, y0: float, complex float
@@ -85,7 +85,7 @@ def get_group_delay(vector_effective_length, df):
     """
     helper function to calculate the group delay from the vector effecitve length
 
-    Parameters:
+    Parameters
     ----------
     vector_effective_length: complex float
         the vector effective length of an antenna
@@ -103,15 +103,15 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases, encoding = None):
     """"
     reads in XFDTD data
 
-    Paramters:
+    Parameters
     ----------
     path_gain: string
         path to gain file
     path_phases:
         path to phases file
 
-    Returns:
-    ----------
+    Returns
+    -------
     all paramters of the file
     """""
 
@@ -159,7 +159,7 @@ def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74, 
     This conversion function ASSUMES THAT THE XFDTD SIMULATION IS DONE IN AIR! HERE WE DO A FIRST ORDER RESCALING
     TO A DIFFERENT INDEX OF REFRACTION by just rescaling the frequencies by f -> f/n.
 
-    Parameters:
+    Parameters
     ----------
     path_gain: string
         path to gain file
@@ -520,7 +520,7 @@ def get_pickle_antenna_response(path):
     the file will be downloaded from a central data server
 
 
-    Parameters:
+    Parameters
     ----------
     path: string
         the path to the pickle file
@@ -693,12 +693,12 @@ def parse_ARA_file(ara):
     """
     Helper function that parses the ARAsim ASCII files containig antenna responses
 
-    Parameters:
+    Parameters
     ----------
     ara: string
         path to the file
 
-    Returns:
+    Returns
         * ff: array of floats
             frequencies
         * thetas: array of floats
@@ -755,7 +755,7 @@ def preprocess_ARA(path):
     preprocess an antenna pattern in the ARASim ASCII file format. The vector effective length is calculated and
     the output is saved to the NuRadioReco pickle format.
 
-    Parameters:
+    Parameters
     ----------
     path: string
         the path to the file
@@ -784,12 +784,12 @@ def parse_HFSS_file(hfss):
     """
     Helper function that parses the HFSS files containig antenna responses
 
-    Parameters:
+    Parameters
     ----------
     hfss: string
         path to the file
 
-    Returns:
+    Returns
         * ff: array of floats
             frequencies
         * thetas: array of floats
@@ -854,7 +854,7 @@ def preprocess_HFSS(path):
     The frequencies, theta, phi, magnitude theta, magnitude phi, phase theta and phase phi are read from the csv file and than ordered according to the NuRadioReco format.
 
 
-    Parameters:
+    Parameters
     ----------
     path: string
         the path to the file
@@ -898,7 +898,7 @@ def preprocess_XFDTD(path):
     preprocess an antenna pattern in the XFDTD file format. The vector effective length is calculated and
     the output is saved to the NuRadioReco pickle format.
 
-    Parameters:
+    Parameters
     ----------
     path: string
         the path to the file
@@ -946,7 +946,7 @@ class AntennaPatternBase:
     def _get_antenna_rotation(self, orientation_theta, orientation_phi, rotation_theta, rotation_phi):
         """
 
-        Parameters:
+        Parameters
         ----------
 
         """
@@ -976,7 +976,7 @@ class AntennaPatternBase:
         transform zenith and azimuth angle in ARIANNA coordinate system to the WIPLD coordinate system.
         In addition the orientation of the antenna as deployed in the field is taken into account.
 
-        Parameters:
+        Parameters
         ----------
         """
 
@@ -1416,7 +1416,7 @@ class AntennaPatternProvider(object):
         """
         loads an antenna pattern and returns the antenna pattern class
 
-        Paramters
+        Parameters
         ----------
         name: string
             the name of the antenna pattern

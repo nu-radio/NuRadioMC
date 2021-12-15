@@ -11,8 +11,8 @@ class Singleton(type):
         Overwrites the __call__ method to check if an instance of the class already exists
         and returns that instance instead of creating a new one.
 
-        Parameters:
-        --------------
+        Parameters
+        ----------
         create_new: bool (default:False)
             If set to true, a new instance will always be created, event if one already exists.
         """
