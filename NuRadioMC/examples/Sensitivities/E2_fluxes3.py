@@ -256,7 +256,7 @@ i3_glashow_y_upper = 3. * i3_glashow_data['y_upper'] * (units.GeV * units.cm ** 
 
 '''
 Regarding ANITA Limits
-====================================================
+# ====================================================
 
 ANITA uses a *super* unusual differential limit bin width.
 
@@ -277,6 +277,7 @@ See eq D1 of the ANITA-III paper.
 This means that the ANITA limit is a factor of LN(10)/4 too strong
 when naively compared to other experiments, e.g. IceCube.
 So, below, we multply by by 4/LN(10) to fix the bin width.
+
 '''
 
 # ANITA I - III
@@ -318,7 +319,7 @@ anita_i_iv_limit[:, 1] *= energyBinsPerDecade
 
 '''
 Regarding Auger Limits
-====================================================
+# ====================================================
 
 Auger publishes a limit that only applies to a single flavor.
 So, to make it an all-flavor limit, the limit must be multiplied by 3.
@@ -326,6 +327,7 @@ Because this is a limit, multiplying by 3 makes the limit *weaker*.
 Also, Auger uses half decade bins, so that must be corrected to a single decade.
 The net factor of 3/2, on a log-log plot, leaves the limit's position (relative
 to other experiments) essentially unchanged.
+
 '''
 
 # Auger neutrino limit (2019, 14.7 years)

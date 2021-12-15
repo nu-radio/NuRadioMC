@@ -41,7 +41,7 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
         sets a systematic offset for the antenna orientation
 
         Parameters
-        ---------
+        ----------
         ori_theta: float
             orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
         ori_phi: float
@@ -74,7 +74,7 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
         returns the orientation of a specific antenna + a systematic offset
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -106,7 +106,7 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
         sets a systematic offset for the antenna position
 
         Parameters
-        ---------
+        ----------
         x: float
             x-position of antenna
         y: float
@@ -137,7 +137,7 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
         returns the orientation of a specific antenna + a systematic offset
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int

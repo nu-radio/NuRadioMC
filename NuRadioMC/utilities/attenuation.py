@@ -59,11 +59,13 @@ def get_attenuation_length(z, frequency, model):
     frequency: float
         frequency of signal in default units
     model: string
-        Ice model for attenuation length
-        SP1: South Pole model, see various compilation
-        GL1: Greenland model, see https://arxiv.org/abs/1409.5413
-        MB1: Moore's Bay Model, from 10.3189/2015JoG14J214 and
+        Ice model for attenuation length. Options:
+        
+        * SP1: South Pole model, see various compilation
+        * GL1: Greenland model, see https://arxiv.org/abs/1409.5413
+        * MB1: Moore's Bay Model, from 10.3189/2015JoG14J214 and
             Phd Thesis C. Persichilli (depth dependence)
+        
     """
     if(model == "SP1"):
         t = get_temperature(z)
