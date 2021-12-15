@@ -5,6 +5,7 @@ import subprocess
 import logging
 import tempfile
 import argparse
+logging.basicConfig()
 
 logger = logging.getLogger('NuRadioMC-install-dev')
 logger.setLevel(logging.INFO)
@@ -76,7 +77,7 @@ def convert_poetry_to_pip(reqs):
 
 if __name__ == "__main__":
     # By default, this script will run interactively. One can also run parts 
-    # non-interactively by using the followin command line arguments
+    # non-interactively by using the following command line arguments
     argparser = argparse.ArgumentParser(
         prog = "NuRadioMC.install_dev.py", 
         description="Script to install NuRadioMC dependencies for developers"
@@ -101,6 +102,10 @@ if __name__ == "__main__":
     argparser.add_argument("--no-git-hook", action="store_false", dest="git_hook")
 
     argparser.add_argument(
+        "-U", "--user", help="Append '--user' to pip installs (relevant only if not installing to a virtual env)",
+        action="store_true")
+
+    argparser.add_argument(
         "--interactive", action="store_true", default=True,
         help="Use interactive installer if no command line options are given (this is true by default).")
     argparser.add_argument("--no-interactive", action="store_false", dest="interactive")
@@ -113,12 +118,16 @@ if __name__ == "__main__":
 
     if '.git' in os.listdir(top_dir): # check that we are in a git repository
         ### Install dependencies
+        if args["user"]:
+            pip_install_as_user = ["--user"]
+        else:
+            pip_install_as_user = []
         install_dependencies = yesno_input("Install NuRadioMC dependencies? (Warning: this may take several minutes)", skip=args['install'])
         if install_dependencies:
             # print("Installing poetry...")
             # subprocess.call([sys.executable, "-m", "pip", "install", "poetry"])
             # subprocess.call(["poetry", "install", "--no-root"])
-            subprocess.call([sys.executable, '-m', 'pip', 'install', 'toml']) # we need toml to read pyproject.toml
+            subprocess.call([sys.executable, '-m', 'pip', 'install', 'toml']+ pip_install_as_user) # we need toml to read pyproject.toml
             import toml
             toml_dict = toml.load(os.path.join(top_dir, 'pyproject.toml'))
             reqs = toml_dict['tool']['poetry']['dependencies']
@@ -128,7 +137,7 @@ if __name__ == "__main__":
             with tempfile.NamedTemporaryFile(mode='w+t') as req_txt: # make a temporary requirements.txt
                 req_txt.writelines('\n'.join(reqs_pip))
                 req_txt.seek(0)
-                subprocess.call([sys.executable, '-m', 'pip', 'install', '-r', req_txt.name])
+                subprocess.call([sys.executable, '-m', 'pip', 'install', '-r', req_txt.name] + pip_install_as_user)
         
         ### Install optional / dev dependencies
         install_dev_dependencies = yesno_input("Install optional/dev dependencies?", skip=args['dev'])
@@ -136,7 +145,7 @@ if __name__ == "__main__":
             try:
                 import toml
             except ImportError:
-                subprocess.call([sys.executable, '-m', 'pip', 'install', 'toml']) # we need toml to read pyproject.toml
+                subprocess.call([sys.executable, '-m', 'pip', 'install', 'toml'] + pip_install_as_user) # we need toml to read pyproject.toml
                 import toml
             toml_dict = toml.load(os.path.join(top_dir, 'pyproject.toml'))
             reqs = toml_dict['tool']['poetry']['dev-dependencies']
@@ -195,7 +204,7 @@ if __name__ == "__main__":
             with tempfile.NamedTemporaryFile(mode='w+t') as req_txt: # make a temporary requirements.txt
                 req_txt.writelines('\n'.join(reqs_pip))
                 req_txt.seek(0)
-                subprocess.call([sys.executable, '-m', 'pip', 'install', '-r', req_txt.name])
+                subprocess.call([sys.executable, '-m', 'pip', 'install', '-r', req_txt.name] + pip_install_as_user)
 
         ### Add NuRadioMC to PYTHONPATH in .bashrc, if not already available
         try:
@@ -223,7 +232,11 @@ if __name__ == "__main__":
                     print("Failed to add {} to .bashrc. Please manually add it to your PYTHONPATH.".format(top_dir))
 
         ### Write pre-commit hook
-        write_pre_commit_hook = yesno_input("Install pre-commit hook (recommended for developers)?", skip=args['git_hook'])
+        write_pre_commit_hook = yesno_input(
+            (
+                "Install pre-commit hook (recommended for developers)?\n"
+                "This prevents large files being accidentally committed to the repository."
+            ), skip=args['git_hook'])
         if write_pre_commit_hook:
             old_file = os.path.join(top_dir,'.github/git_hooks/pre-commit')
             new_file = os.path.join(top_dir,'.git/hooks/pre-commit')
@@ -233,12 +246,10 @@ if __name__ == "__main__":
             shutil.copy(old_file, new_file)
             subprocess.call(['chmod', '+x', new_file])
             print('Successfully installed pre-commit hook at {}'.format(new_file))
-        # else:
-        #     print('Pre-commit hook installation aborted. No hooks installed.')
     else:
         msg = (
             'No git repository detected. If this is incorrect, and you are using '
             'the developer version please follow the manual installation '
-            'instructions at (...)'
+            'instructions at https://nu-radio.github.io/NuRadioMC/Introduction/pages/installation.html#manual-installation'
         )
         print(msg)
