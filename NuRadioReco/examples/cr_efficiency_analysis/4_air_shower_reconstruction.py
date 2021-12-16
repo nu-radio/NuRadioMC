@@ -36,35 +36,26 @@ the trigger parameters calculated before'''
 
 parser = argparse.ArgumentParser(description='Run air shower Reconstruction')
 
-parser.add_argument('detector_file', type=str, nargs='?',
-                    default='/Users/lilly/Software/gen2/gen2-radio-arrays/Gen2_baseline_array.json',
+parser.add_argument('--detector_file', type=str, nargs='?',
+                    default='example_data/arianna_station_32.json',
                     help='choose detector for air shower simulation')
-parser.add_argument('default_station', type=int, nargs='?',
+parser.add_argument('--default_station', type=int, nargs='?', default=32,
                     help='define default station for detector')
-parser.add_argument('triggered_channels', type=list, nargs='?',
-                    default=[1, 2, 3], help='define channels with trigger')
-parser.add_argument('config_file', type=str, nargs='?',
+parser.add_argument('--triggered_channels', type=list, nargs='?',
+                    default=[0, 1, 2, 3], help='define channels with trigger')
+parser.add_argument('--config_file', type=str, nargs='?',
                     default='config/air_shower/final_config_power_integration_trigger_0Hz_2of3_3.00mV.json',
                     help='settings from the ntr results')
-parser.add_argument('eventlist', type=str, nargs='?',
-                    default='/Users/lilly/Software/gen2/southpole_sim/SIM001041.hdf5', help='list with event files')
-parser.add_argument('number', type=int, nargs='?',
-                    default=1, help='number of element in eventlist')
-parser.add_argument('output_filename', type=str, nargs='?',
+parser.add_argument('--eventlist', type=str, nargs='?',
+                    default=['example_data/example_data.hdf5'], help='list with event files')
+parser.add_argument('--number', type=int, nargs='?',
+                    default=0, help='number of element in eventlist')
+parser.add_argument('--output_filename', type=str, nargs='?',
                     default='output_air_shower_reco/air_shower_reco_', help='begin of output filename')
 
 args = parser.parse_args()
+input_file = eventlist[args.number]
 
-if '.p' in args.eventlist:
-    eventlist = pickle.load(open(args.eventlist, 'br'))
-    eventlist = np.array(eventlist)
-    eventlist = eventlist[:, 0]
-
-else:
-    eventlist = args.eventlist
-
-#input_file = eventlist[args.number]
-input_file = args.eventlist
 os.makedirs(args.output_filename, exist_ok=True)
 
 config_file = glob.glob('{}*'.format(args.config_file))[0]
