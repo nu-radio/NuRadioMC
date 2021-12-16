@@ -29,7 +29,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         export GSLDIR=$(gsl-config --prefix)
-        python install_dev.py --install --dev proposal --no-interactive
+        python install_dev.py --install --no-interactive
         pip uninstall numba -y # easiest way to test ARZ without numba
         export PYTHONPATH=$(pwd):$PYTHONPATH
         
@@ -76,6 +76,7 @@ jobs:
       run: |
         export GSLDIR=$(gsl-config --prefix)
         export PYTHONPATH=$(pwd):$PYTHONPATH
+        python install_dev.py --dev proposal --no-interactive
         NuRadioMC/test/examples/test_veff_example.sh
     - name: "Test calibration pulser example"
       run: |

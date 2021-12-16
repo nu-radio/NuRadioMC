@@ -10,8 +10,24 @@ logging.basicConfig()
 logger = logging.getLogger('NuRadioMC-install-dev')
 logger.setLevel(logging.INFO)
 
-top_dir = os.path.dirname(os.path.realpath(__file__))
-os.chdir(top_dir) # change CWD to repository root
+__doc__ = """
+An interactive script to install NuRadioMC for developers.
+
+It can be used to install all core and most optional dependencies,
+add the NuRadioMC path to your PYTHONPATH, and install a git hook
+to prevent accidental commits of large files to the NuRadioMC repository.
+
+Invoking ``python install_dev.py`` without options will launch the 
+installer in interactive mode - the user will be prompted before every
+potential modification. If you want to run the script non-interactively
+in the command line, ``python install_dev.py --help`` gives an overview
+of the different options; 
+``python install_dev.py [--options] --no-interactive`` will run only
+the options specified by --options and skip everything else without 
+prompts.
+
+"""
+
 
 def yesno_input(msg='', skip=None):
     """Interactive yes/no input
@@ -89,7 +105,12 @@ if __name__ == "__main__":
 
     argparser.add_argument(
         "--dev", default=None, nargs='*',
-        help="Install NuRadioMC optional / dev dependencies.")
+        help=(
+            "Install NuRadioMC optional / dev dependencies. " 
+            "A list of optional features, as defined in pyproject.toml"
+            " under [tool.poetry.extras], separated by spaces. To "
+            "install all dev dependencies, use \"--dev all\" ")
+    )
     argparser.add_argument("--no-dev", action="store_false", dest="dev")
 
     argparser.add_argument("--pythonpath", action="store_true", default=None, 
@@ -116,6 +137,9 @@ if __name__ == "__main__":
            if args[key] == None:
                args[key] = False
 
+    top_dir = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(top_dir) # change CWD to repository root
+
     if '.git' in os.listdir(top_dir): # check that we are in a git repository
         ### Install dependencies
         if args["user"]:
@@ -140,7 +164,9 @@ if __name__ == "__main__":
                 subprocess.call([sys.executable, '-m', 'pip', 'install', '-r', req_txt.name] + pip_install_as_user)
         
         ### Install optional / dev dependencies
-        install_dev_dependencies = yesno_input("Install optional/dev dependencies?", skip=args['dev'])
+        install_dev_dependencies = yesno_input(
+            "Install optional/dev dependencies?\n(If yes, shows an interactive list of available dependencies that can be installed)",
+             skip=args['dev'])
         if install_dev_dependencies:
             try:
                 import toml
