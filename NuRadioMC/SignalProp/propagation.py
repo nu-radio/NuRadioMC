@@ -23,12 +23,14 @@ def get_propagation_module(name=None):
     ----------
     name: string
         Which ray tracing module to use. Options are:
+
         * "analytic" : analytic ray tracer. Requires that the index of refraction
-            is of an exponential form.
+          is of an exponential form.
         * "radiopropa" : the RadioPropa numerical ray tracer. Supports an arbitrary 
-            index of refraction, but requires that RadioPropa is installed.
+          index of refraction, but requires that RadioPropa is installed.
         * "direct_ray" : a dummy ray tracer that draws straight lines and 
-            ignores refraction. Useful for debugging.
+          ignores refraction. Useful for debugging.
+
     """
     if name is None:
         from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
