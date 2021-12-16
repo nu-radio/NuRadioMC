@@ -1242,7 +1242,7 @@ class simulation():
         nS = self._raytracer.get_number_of_raytracing_solutions()  # number of possible ray-tracing solutions
         sg = {}
         sg['triggered'] = np.zeros(n_showers, dtype=np.bool)
-        sg['shower_id'] = np.zeros(n_showers, dtype=np.int) * -1  # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
+        sg['shower_id'] = np.zeros(n_showers, dtype=int) * -1  # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
         sg['launch_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
         sg['receive_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
         sg['polarization'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
