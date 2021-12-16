@@ -1,0 +1,7 @@
+NuRadioMC.SignalGen.emitter module
+==================================
+
+.. automodule:: NuRadioMC.SignalGen.emitter
+   :members:
+   :undoc-members:
+   :show-inheritance:

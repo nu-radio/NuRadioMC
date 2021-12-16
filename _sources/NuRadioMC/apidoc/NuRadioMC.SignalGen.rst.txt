@@ -22,4 +22,5 @@ Submodules
 
    NuRadioMC.SignalGen.HCRB2017
    NuRadioMC.SignalGen.askaryan
+   NuRadioMC.SignalGen.emitter
    NuRadioMC.SignalGen.parametrizations

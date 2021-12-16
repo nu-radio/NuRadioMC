@@ -362,6 +362,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.HCRB2017.html">NuRadioMC.SignalGen.HCRB2017 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.askaryan.html">NuRadioMC.SignalGen.askaryan module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.emitter.html">NuRadioMC.SignalGen.emitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.parametrizations.html">NuRadioMC.SignalGen.parametrizations module</a></li>
 </ul>
 </li>
@@ -586,6 +587,7 @@
     <span class="c1"># give each shower a unique id (we can also have multiple showers for a single event by just giving several showers</span>
     <span class="c1"># the same event_group_id)</span>
     <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;event_group_ids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
+    <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;shower_ids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
 
     <span class="c1"># there are a couple of additional parameters that are required to run a NuRadioMC simulations. These parameters</span>
     <span class="c1"># don&#39;t influence the simulated radio signals but are required for other post analysis tasks. If these parameters</span>
