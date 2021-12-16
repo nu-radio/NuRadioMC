@@ -56,10 +56,12 @@ class radiopropa_ray_tracing(ray_tracing_base):
             signal attenuation model
         log_level: logging object
             specify the log level of the ray tracing class
+
             * logging.ERROR
             * logging.WARNING
             * logging.INFO
             * logging.DEBUG
+
             default is WARNING
         n_frequencies_integration: int
             the number of frequencies for which the frequency dependent attenuation
@@ -131,7 +133,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         Parameters
         ----------
         shower_axis: np.array of shape (3,), default unit
-                     the direction of the shower in cartesian coordinates
+            the direction of the shower in cartesian coordinates
         """ 
         self._shower_axis = shower_axis / np.linalg.norm(shower_axis)
 
@@ -142,8 +144,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
         Parameters
         ----------
         sphere_sizes: np.array of size (n,), default unit
-                      the sphere size used by the iterative ray tracer
-                      iteration from big to small observer around channel
+            the sphere size used by the iterative ray tracer
+            iteration from big to small observer around channel
         """
         if (sphere_sizes.ndim == 1):
             self._sphere_sizes = sphere_sizes
@@ -158,14 +160,14 @@ class radiopropa_ray_tracing(ray_tracing_base):
         Parameters
         ----------
         sphere_sizes: np.array of size (n,), default unit
-                      the sphere size used by the iterative ray tracer
-                      iteration from big to small observer around channel
+            the sphere size used by the iterative ray tracer
+            iteration from big to small observer around channel
         step_sizes: np.array size (n,), default unit
-                    the step size for theta used by the iterative ray tracer
-                    corresponding to the sphere size, should have same lenght as _sphere_sizes
+            the step size for theta used by the iterative ray tracer
+            corresponding to the sphere size, should have same lenght as _sphere_sizes
         auto_step:  boolean
-                    defines whether or not an automatic step_size should be calculated for each
-                    sphere_size depending on the horizontal distance of the event
+            defines whether or not an automatic step_size should be calculated for each
+            sphere_size depending on the horizontal distance of the event
         """         
         if self._auto_step:
             if (self._X1 != None) and (self._X2 != None):
@@ -359,8 +361,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         Read an already calculated raytracing solution from the input array
 
-        Parameters:
-        -------------
+        Parameters
+        ----------
         raytracing_results: dict
             The dictionary containing the raytracing solution.
         """
@@ -493,7 +495,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         Returns
         -------
         solution_type: int
-                       integer corresponding to the types in the dictionary solution_types
+            integer corresponding to the types in the dictionary solution_types
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
@@ -523,7 +525,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         Returns
         -------
         launch_vector: np.array of shape (3,)
-                       the launch vector
+            the launch vector
 
         """
         n = self.get_number_of_solutions()
@@ -549,7 +551,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         Returns
         -------
         receive_vector: np.array of shape (3,)
-                        the receive vector
+            the receive vector
 
         """
         n = self.get_number_of_solutions()
@@ -780,6 +782,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
     def get_focusing(self, iS, dz=-1. * units.cm, limit=2.):
         """
         calculate the focusing effect in the medium
+        
         Parameters
         ----------
         iS: int
@@ -787,10 +790,11 @@ class radiopropa_ray_tracing(ray_tracing_base):
             starts at zero
         dz: float
             the infinitesimal change of the depth of the receiver, 1cm by default
+        
         Returns
         -------
         focusing: a float
-            gain of the signal at the receiver due to the focusing effect:
+            gain of the signal at the receiver due to the focusing effect
         """
         recVec = self.get_receive_vector(iS)
         recVec = -1.0 * recVec
@@ -834,8 +838,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
         Apply propagation effects to the electric field
         Note that the 1/r weakening of the electric field is already accounted for in the signal generation
 
-        Parameters:
-        ----------------
+        Parameters
+        ----------
         efield: ElectricField object
             The electric field that the effects should be applied to
         i_solution: int
@@ -905,8 +909,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
         ! be sure that the first entry is specific to your raytracer !
 
-        Returns:
-        -----------------
+        Returns
+        -------
         list with entries of form [{'name': str, 'ndim': int}]
             ! be sure that the first entry is specific to your raytracer !
             'name': Name of the new parameter to include in the data structure
@@ -925,13 +929,13 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         Write parameters that are specific to this raytracer into the output data.
 
-        Parameters:
-        ---------------
+        Parameters
+        ----------
         i_solution: int
             The index of the raytracing solution
 
-        Returns:
-        ---------------
+        Returns
+        -------
         dictionary with the keys matching the parameter names specified in get_output_parameters and the values being
         the results from the raytracing
         """
@@ -953,8 +957,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         Function to change the configuration file used by the raytracer
 
-        Parameters:
-        ----------------
+        Parameters
+        ----------
         config: dict
             The new configuration settings
         """
