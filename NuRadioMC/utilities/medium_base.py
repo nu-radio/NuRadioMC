@@ -33,6 +33,9 @@ class IceModel():
         """
         self.z_air_boundary = z_air_boundary
         self.z_bottom = z_bottom
+        self.reflection = None
+        self.reflection_coefficient = None
+        self.reflection_phase_shift = None
 
     def add_reflective_bottom(self, refl_z, refl_coef, refl_phase_shift):
         """
@@ -333,15 +336,14 @@ if radiopropa_is_imported:
             bottom_observer.add(boundary_bottom)
             self.__modules["bottom observer"] = bottom_observer
             
-            if hasattr(self.__ice_model_nuradio, 'reflection'):
-                if self.__ice_model_nuradio.reflection != None:
-                    reflection_pos = np.array([0, 0, self.__ice_model_nuradio.reflection])
-                    bottom_reflection = RP.ReflectiveLayer(RP.Plane(RP.Vector3d(*(reflection_pos*(RP.meter/units.meter))),
-                                                                    RP.Vector3d(0,0,1),
-                                                                    ),
-                                                        self.__ice_model_nuradio.reflection_coefficient,
-                                                        )
-                    self.__modules["bottom reflection"]=bottom_reflection
+            if hasattr(self.__ice_model_nuradio, 'reflection') and self.__ice_model_nuradio.reflection is not None:
+                reflection_pos = np.array([0, 0, self.__ice_model_nuradio.reflection])
+                bottom_reflection = RP.ReflectiveLayer(RP.Plane(RP.Vector3d(*(reflection_pos*(RP.meter/units.meter))),
+                                                                RP.Vector3d(0,0,1),
+                                                                ),
+                                                       self.__ice_model_nuradio.reflection_coefficient,
+                                                      )
+                self.__modules["bottom reflection"]=bottom_reflection
 
         def get_modules(self):
             """
