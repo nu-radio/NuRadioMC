@@ -8,7 +8,7 @@ import scipy.interpolate as interpolate
 from scipy.integrate import quad
 from scipy.integrate import dblquad
 
-plot_flux = True
+plot_flux = False
 
 def get_flux(energy, file_surface_mu_flux='data/muon_flux_E_SIBYLL23c_GSF.pickle'):
     '''
@@ -62,7 +62,7 @@ def get_flux_per_energy_bin(energy_bin_edge_low, energy_bin_edge_high):
 
     return int_flux[0]
 
-def get_flux_per_zenith_and_energy(energy, zenith, file_surface_mu_flux='data/muon_flux_E_theta_SIBYLL23c_GSF.pickle'):
+def get_flux_per_energy_and_zenith(energy, zenith, file_surface_mu_flux='data/muon_flux_E_theta_SIBYLL23c_GSF.pickle'):
     '''
     provides muon flux at a certain energy and zenith angle as calculated with MCEq at a given energy. The CR model used
     is the GlobalSplineFit and the hadronic interaction model is Sibyll 2.3c.
@@ -92,7 +92,7 @@ def get_flux_per_zenith_and_energy(energy, zenith, file_surface_mu_flux='data/mu
 
     return get_flux_norm(energy, zenith)
 
-def get_flux_per_zenith_energy_bin(energy_bin_edge_low, energy_bin_edge_high, zenith_bin_edge_low, zenith_bin_edge_high):
+def get_flux_per_energy_and_zenith_bin(energy_bin_edge_low, energy_bin_edge_high, zenith_bin_edge_low, zenith_bin_edge_high):
     '''
     integrates the flux over a certain energy and zenith bin.
     The flux is defined in get_flux_per_zenith_and_energy.
@@ -113,7 +113,7 @@ def get_flux_per_zenith_energy_bin(energy_bin_edge_low, energy_bin_edge_high, ze
     integrated flux of muon in NuRadio units.
     '''
     def flux(E, theta):
-        return get_flux_per_zenith_and_energy(E, theta)
+        return get_flux_per_energy_and_zenith(E, theta)
 
     int_flux = dblquad(flux, np.cos(zenith_bin_edge_high), np.cos(zenith_bin_edge_low), lambda x: energy_bin_edge_low, lambda x: energy_bin_edge_high)
     return int_flux[0]
@@ -137,7 +137,9 @@ if plot_flux == True:
     #plt.close()
 
     plt.style.use({'figure.facecolor':'white'})
-    plt.plot(1e19, get_flux_per_zenith_energy_bin(1e18, 1e19, 50*units.deg, 60*units.deg), marker='x', color='k', label='test')
+    plt.plot(1e18, get_flux_per_energy_and_zenith_bin(1e18, 1e19, 0*units.deg, 90*units.deg), marker='x', color='k', label='test 2d')
+    plt.plot(1e18, get_flux_per_energy_bin(1e18, 1e19), marker='+', color='k', label='test 1d')
+
     plt.legend()
     plt.xscale('log')
     plt.yscale('log')
