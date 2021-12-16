@@ -77,8 +77,9 @@ class readCoREAS:
         detector: Detector object
             Detector description of the detector that shall be simulated
         output_mode: integer (default 0)
-            0: only the event object is returned
-            1: the function reuturns the event object, the current inputfilename, the distance between the choosen station and the requested core position,
+            
+            * 0: only the event object is returned
+            * 1: the function reuturns the event object, the current inputfilename, the distance between the choosen station and the requested core position,
                and the area in which the core positions are randomly distributed
 
 

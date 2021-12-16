@@ -12,21 +12,21 @@ def deserialize(triggers_pkl):
         trigger_type = pickle.loads(data_pkl)['_trigger_type']
         if(trigger_type == 'default'):
             trigger = Trigger(None)
-            trigger.deserialize(data_pkl)
         elif(trigger_type == 'simple_threshold'):
             trigger = SimpleThresholdTrigger(None, None)
-            trigger.deserialize(data_pkl)
         elif(trigger_type == 'high_low'):
             trigger = HighLowTrigger(None, None, None, None, None)
-            trigger.deserialize(data_pkl)
         elif(trigger_type == 'simple_phased'):
             trigger = SimplePhasedTrigger(None, None)
-            trigger.deserialize(data_pkl)
         elif(trigger_type == 'envelope_trigger'):
             trigger = EnvelopeTrigger(None, None, None, None)
-            trigger.deserialize(data_pkl)
+        elif trigger_type == 'int_power':
+            trigger = IntegratedPowerTrigger(None, None, None)
+        elif trigger_type == 'envelope_phased':
+            trigger  = EnvelopePhasedTrigger(None, None, None, None)
         else:
             raise ValueError("unknown trigger type")
+        trigger.deserialize(data_pkl)
         triggers[trigger.get_name()] = trigger
     return triggers
 

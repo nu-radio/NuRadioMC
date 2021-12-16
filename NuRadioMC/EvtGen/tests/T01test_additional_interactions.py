@@ -4,7 +4,7 @@ import h5py
 from NuRadioMC.EvtGen import generator
 
 datasets = {}
-datasets['event_ids'] = np.arange(100, dtype=np.int)
+datasets['event_ids'] = np.arange(100, dtype=int)
 datasets['zeniths'] = np.random.uniform(size=100)
 
 additional_datasets = {}

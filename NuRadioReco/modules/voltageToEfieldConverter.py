@@ -124,7 +124,7 @@ class voltageToEfieldConverter:
         run method. This function is executed for each event
 
         Parameters
-        ---------
+        ----------
         evt
         station
         det

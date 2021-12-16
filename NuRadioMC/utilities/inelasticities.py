@@ -19,14 +19,14 @@ def get_neutrino_inelasticity(n_events, rnd=None):
     Standard inelasticity for deep inelastic scattering used so far.
     Ported from ShelfMC
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     n_events: int
         Number of events to be returned
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
-    Returns:
-    --------
+    Returns
+    -------
     inelasticies: array
         Array with the inelasticities
     """
@@ -44,15 +44,15 @@ def get_ccnc(n_events, rnd=None):
     Get the nature of the interaction current: cc or nc
     Ported from Shelf MC
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     n_events: int
         Number of events to be returned
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
         
-    Returns:
-    --------
+    Returns
+    -------
     ccnc: array
         Array with 'cc' or 'nc'
     """
