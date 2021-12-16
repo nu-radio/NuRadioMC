@@ -1,9 +1,5 @@
-import scipy.constants
 import numpy as np
-import json
-import scipy.signal
 from NuRadioReco.utilities import units, io_utilities
-import astropy
 import scipy.interpolate as interpolate
 from scipy.integrate import quad
 from scipy.integrate import dblquad
