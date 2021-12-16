@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units, io_utilities
 import argparse
 
-'''This script plots the results from the analysis in step 5-6. It makes only sense if you want to compare 
+'''This script plots the results from the analysis for different passbands. It makes only sense if you want to compare
 different trigger settings such as passband which are stored in different dict. You can adjust the binning accordingly.'''
 
 parser = argparse.ArgumentParser(description='plot')

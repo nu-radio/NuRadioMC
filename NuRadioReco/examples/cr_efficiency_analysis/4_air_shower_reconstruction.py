@@ -11,6 +11,8 @@ import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.channelGalacticNoiseAdder
 import NuRadioReco.modules.trigger.envelopeTrigger
+import NuRadioReco.modules.trigger.powerIntegration
+import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.eventTypeIdentifier
 import NuRadioReco.modules.channelStopFilter
@@ -35,14 +37,14 @@ the trigger parameters calculated before'''
 parser = argparse.ArgumentParser(description='Run air shower Reconstruction')
 
 parser.add_argument('detector_file', type=str, nargs='?',
-                    default='Gen2/gen2_upward_LPDAs.json',
+                    default='/Users/lilly/Software/gen2/gen2-radio-arrays/Gen2_baseline_array.json',
                     help='choose detector for air shower simulation')
 parser.add_argument('default_station', type=int, nargs='?',
-                    default=101, help='define default station for detector')
+                    help='define default station for detector')
 parser.add_argument('triggered_channels', type=list, nargs='?',
                     default=[1, 2, 3], help='define channels with trigger')
 parser.add_argument('config_file', type=str, nargs='?',
-                    default='config/air_shower/final_config_envelope_trigger_1Hz_2of3_22.46mV.json',
+                    default='config/air_shower/final_config_power_integration_trigger_0Hz_2of3_3.00mV.json',
                     help='settings from the ntr results')
 parser.add_argument('eventlist', type=str, nargs='?',
                     default='/Users/lilly/Software/gen2/southpole_sim/SIM001041.hdf5', help='list with event files')
@@ -103,6 +105,10 @@ if cfg['trigger_name'] == 'envelope':
     triggerSimulator = NuRadioReco.modules.trigger.envelopeTrigger.triggerSimulator()
     triggerSimulator.begin()
 
+if cfg['trigger_name'] == 'power_integration':
+    triggerSimulator = NuRadioReco.modules.trigger.power_integration.triggerSimulator()
+    triggerSimulator.begin()
+
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelBandPassFilter.begin()
 eventTypeIdentifier = NuRadioReco.modules.eventTypeIdentifier.eventTypeIdentifier()
@@ -151,7 +157,7 @@ for evt in readCoREASStation.run(detector=det):
             hardwareResponseIncorporator.run(evt, sta, det, sim_to_data=True)
 
         # The bandpass for the envelope trigger is included in the trigger module,
-        # in the high low the filter is applied externally
+        # in the high_low and power_integration the filter is applied externally
         if cfg['trigger_name'] == 'high_low':
             channelBandPassFilter.run(evt, sta, det, passband=cfg['passband_trigger'],
                                       filter_type='butter', order=cfg['order_trigger'])
@@ -176,6 +182,22 @@ for evt in readCoREASStation.run(detector=det):
                                  threshold=cfg['final_threshold'],
                                  coinc_window=cfg['coinc_window'],
                                  triggered_channels=args.triggered_channels,
+                                 trigger_name='{}_pb_{:.0f}_{:.0f}_tt_{:.2f}'.format(
+                                     cfg['trigger_name'],
+                                     cfg['passband_trigger'][0] / units.MHz,
+                                     cfg['passband_trigger'][1] / units.MHz,
+                                     cfg['final_threshold'] / units.mV))
+
+        if cfg['trigger_name'] == 'power_integration':
+            channelBandPassFilter.run(evt, sta, det, passband=cfg['passband_trigger'],
+                              filter_type='butter', order=cfg['order_trigger'])
+
+            triggerSimulator.run(evt, sta, det,
+                                 threshold=cfg['final_threshold'],
+                                 integration_window=cfg['int_window'],
+                                 number_concidences=cfg['number_coincidences'],
+                                 triggered_channels=args.triggered_channels,
+                                 coinc_window=cfg['coinc_window'],
                                  trigger_name='{}_pb_{:.0f}_{:.0f}_tt_{:.2f}'.format(
                                      cfg['trigger_name'],
                                      cfg['passband_trigger'][0] / units.MHz,
