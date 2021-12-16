@@ -24,12 +24,12 @@ if __name__ == "__main__":
     sampling_rate = 5 * units.GHz
     dt = 1. / sampling_rate
     T2 = 50 * units.ns
-    N2 = np.int(np.round(T2 / dt))
+    N2 = int(np.round(T2 / dt))
     n_index = 1.78
     theta = np.arccos(1. / n_index)
     R = 5 * units.km
     T = 600 * units.ns
-    N = np.int(np.round(T / dt))
+    N = int(np.round(T / dt))
     tt = np.arange(0, dt * N, dt)
 
     dCs = np.append(np.arange(-20, -5, 1), np.append(np.arange(-5,-1,0.2), np.arange(-1, 0, .05)))
