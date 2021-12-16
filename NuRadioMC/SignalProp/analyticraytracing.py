@@ -1559,6 +1559,14 @@ class ray_tracing(ray_tracing_base):
                 self._config['propagation']['focusing'] = False
         detector: detector object
         """
+        self.__logger = logging.getLogger('ray_tracing_analytic')
+        self.__logger.setLevel(log_level)
+
+        from NuRadioMC.utilities.medium_base import IceModelSimple
+        if not isinstance(medium,IceModelSimple):
+            self.__logger.error("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
+            raise TypeError("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
+
         super().__init__(medium=medium, 
                          attenuation_model=attenuation_model,
                          log_level=log_level,
@@ -1606,7 +1614,7 @@ class ray_tracing(ray_tracing_base):
         self._swap = False
         if(self._X2[2] < self._X1[2]):
             self._swap = True
-            self._logger.debug('swap = True')
+            self.__logger.debug('swap = True')
             self._X2 = np.array(x1, dtype =np.float)
             self._X1 = np.array(x2, dtype =np.float)
 
@@ -1616,12 +1624,12 @@ class ray_tracing(ray_tracing_base):
         self._R = np.array(((c, -s, 0), (s, c, 0), (0, 0, 1)))
         X1r = self._X1
         X2r = np.dot(self._R, self._X2 - self._X1) + self._X1
-        self._logger.debug("X1 = {}, X2 = {}".format(self._X1, self._X2))
-        self._logger.debug('dphi = {:.1f}'.format(self._dPhi / units.deg))
-        self._logger.debug("X2 - X1 = {}, X1r = {}, X2r = {}".format(self._X2 - self._X1, X1r, X2r))
+        self.__logger.debug("X1 = {}, X2 = {}".format(self._X1, self._X2))
+        self.__logger.debug('dphi = {:.1f}'.format(self._dPhi / units.deg))
+        self.__logger.debug("X2 - X1 = {}, X1r = {}, X2r = {}".format(self._X2 - self._X1, X1r, X2r))
         self._x1 = np.array([X1r[0], X1r[2]])
         self._x2 = np.array([X2r[0], X2r[2]])
-        self._logger.debug("2D points {} {}".format(self._x1, self._x2))
+        self.__logger.debug("2D points {} {}".format(self._x1, self._x2))
         
     def set_solution(self, raytracing_results):
         """
@@ -1660,7 +1668,7 @@ class ray_tracing(ray_tracing_base):
 
         # check if not too many solutions were found (the same solution can potentially found twice because of numerical imprecision)
         if(self.get_number_of_solutions() > self.get_number_of_raytracing_solutions()):
-            self._logger.error(f"{self.get_number_of_solutions()} were found but only {self.get_number_of_raytracing_solutions()} are allowed! Returning zero solutions")
+            self.__logger.error(f"{self.get_number_of_solutions()} were found but only {self.get_number_of_raytracing_solutions()} are allowed! Returning zero solutions")
             self._results = []
 
     def get_solution_type(self, iS):
@@ -1682,7 +1690,7 @@ class ray_tracing(ray_tracing_base):
     def get_path(self, iS, n_points=1000):
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
         result = self._results[iS]
         xx, zz = self._r2d.get_path_reflections(self._x1, self._x2, result['C0'], n_points=n_points,
@@ -1711,7 +1719,7 @@ class ray_tracing(ray_tracing_base):
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         result = self._results[iS]
@@ -1723,7 +1731,7 @@ class ray_tracing(ray_tracing_base):
                                                  reflection=result['reflection'],
                                                  reflection_case=result['reflection_case'])
             launch_vector_2d = np.array([-np.sin(alpha), 0, np.cos(alpha)])
-        self._logger.debug(self._R.T)
+        self.__logger.debug(self._R.T)
         launch_vector = np.dot(self._R.T, launch_vector_2d)
         return launch_vector
 
@@ -1744,7 +1752,7 @@ class ray_tracing(ray_tracing_base):
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         result = self._results[iS]
@@ -1777,7 +1785,7 @@ class ray_tracing(ray_tracing_base):
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         result = self._results[iS]
@@ -1804,7 +1812,7 @@ class ray_tracing(ray_tracing_base):
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         result = self._results[iS]
@@ -1816,7 +1824,7 @@ class ray_tracing(ray_tracing_base):
                 if (analytic_length != None):
                     return analytic_length
             except:
-                self._logger.warning("analytic calculation of travel time failed, switching to numerical integration")
+                self.__logger.warning("analytic calculation of travel time failed, switching to numerical integration")
                 return self._r2d.get_path_length(self._x1, self._x2, result['C0'],
                                                   reflection=result['reflection'],
                                                   reflection_case=result['reflection_case'])
@@ -1845,7 +1853,7 @@ class ray_tracing(ray_tracing_base):
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         result = self._results[iS]
@@ -1857,7 +1865,7 @@ class ray_tracing(ray_tracing_base):
                 if (analytic_time != None):
                     return analytic_time
             except:
-                self._logger.warning("analytic calculation of travel time failed, switching to numerical integration")
+                self.__logger.warning("analytic calculation of travel time failed, switching to numerical integration")
                 return self._r2d.get_travel_time(self._x1, self._x2, result['C0'],
                                                   reflection=result['reflection'],
                                                   reflection_case=result['reflection_case'])
@@ -1892,7 +1900,7 @@ class ray_tracing(ray_tracing_base):
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         result = self._results[iS]
@@ -1946,13 +1954,13 @@ class ray_tracing(ray_tracing_base):
             lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
             focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
             if(self.get_solution_type(iS) != self._r1.get_solution_type(iS)):
-                self._logger.error("solution types are not the same")
+                self.__logger.error("solution types are not the same")
         else:
             focusing = 1.0
-            self._logger.info("too few ray tracing solutions, setting focusing factor to 1")
-        self._logger.debug(f'amplification due to focusing of solution {iS:d} = {focusing:.3f}')
+            self.__logger.info("too few ray tracing solutions, setting focusing factor to 1")
+        self.__logger.debug(f'amplification due to focusing of solution {iS:d} = {focusing:.3f}')
         if(focusing > limit):
-            self._logger.info(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to {limit:.1f}x")
+            self.__logger.info(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to {limit:.1f}x")
             focusing = limit
 
         # now also correct for differences in refractive index between emitter and receiver position
@@ -2034,7 +2042,7 @@ class ray_tracing(ray_tracing_base):
 
             spec[1] *= r_theta
             spec[2] *= r_phi
-            self._logger.debug(
+            self.__logger.debug(
                 "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
                     zenith_reflection / units.deg,
                     r_theta, r_phi))
@@ -2046,7 +2054,7 @@ class ray_tracing(ray_tracing_base):
             # we assume that both efield components are equally affected
             spec[1] *= reflection_coefficient * np.exp(1j * phase_shift)
             spec[2] *= reflection_coefficient * np.exp(1j * phase_shift)
-            self._logger.debug(
+            self.__logger.debug(
                 f"ray is reflecting {i_reflections:d} times at the bottom -> reducing the signal by a factor of {reflection_coefficient:.2f}")
 
         # apply the focusing effect

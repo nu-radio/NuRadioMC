@@ -77,6 +77,17 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 config['speedup']['delta_C_cut'] = 40 * units.degree
         detector: detector object
         """
+        self.__logger = logging.getLogger('radiopropa_ray_tracing')
+        self.__logger.setLevel(log_level)
+
+        try:
+            import radiopropa
+        except ImportError:
+            self.__logger.error('ImportError: This raytracer depends on radiopropa which could not be imported. '+
+                               'Check wether all dependencies are installed correctly. More information on '+
+                               'https://github.com/nu-radio/RadioPropa')
+            raise ImportError('This raytracer depends on radiopropa which could not be imported. Check wether all dependencies are installed correctly. More information on https://github.com/nu-radio/RadioPropa')
+
         super().__init__(medium=medium, 
                          attenuation_model=attenuation_model,
                          log_level=log_level,
@@ -85,11 +96,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
                          config=config, 
                          detector=detector)
 
-        try:
-            import radiopropa
-        except ImportError:
-            self._logger.error('ImportError: This raytracer depends on radiopropa which could not be imported. Check wether all dependencies are installed correctly. More information on https://github.com/nu-radio/RadioPropa')
-            raise ImportError('This raytracer depends on radiopropa which could not be imported. Check wether all dependencies are installed correctly. More information on https://github.com/nu-radio/RadioPropa')
         self.set_config(config=config)
         self._ice_model = self._medium.get_ice_model_radiopropa()
 
@@ -150,7 +156,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         if (sphere_sizes.ndim == 1):
             self._sphere_sizes = sphere_sizes
         else:
-            self._logger.error('sphere_sizes array should be 1 dimensional')
+            self.__logger.error('sphere_sizes array should be 1 dimensional')
             raise ValueError('sphere_sizes array should be 1 dimensional')
 
     def set_iterative_step_sizes(self, step_sizes=np.array([.5, .05, .005])*units.degree):
@@ -180,7 +186,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             if (self._sphere_sizes.shape == step_sizes.shape):      
                 self._step_sizes = step_sizes
             else:
-                self._logger.error('sphere_sizes array and step_sizes array should have the same dimensions')
+                self.__logger.error('sphere_sizes array and step_sizes array should have the same dimensions')
                 raise ValueError('sphere_sizes array and step_sizes array should have the same dimensions')
 
     def activate_auto_step_size(self):
@@ -224,7 +230,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             X1 = self._X1 * (radiopropa.meter/units.meter)
             X2 = self._X2 * (radiopropa.meter/units.meter)
         except TypeError: 
-            self._logger.error('NoneType: start or endpoint not initialized')
+            self.__logger.error('NoneType: start or endpoint not initialized')
             raise TypeError('NoneType: start or endpoint not initialized')
 
       
@@ -240,7 +246,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
         if n_reflections > 0:
             if self.medium.reflection is None:
-                self._logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested,"
+                self.__logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested,"
                                     +"but ice model does not specify a reflective layer".format(n_reflections))
                 raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested,"
                                     +"but ice model does not specify a reflective layer".format(n_reflections))
@@ -420,7 +426,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         self._rays = rays_results
         self._results = results
         if(self.get_number_of_solutions() > self.get_number_of_raytracing_solutions()):
-            self._logger.error(f"{self.get_number_of_solutions()} were found but only {self.get_number_of_raytracing_solutions()} are allowed!")
+            self.__logger.error(f"{self.get_number_of_solutions()} were found but only {self.get_number_of_raytracing_solutions()} are allowed!")
 
     def get_path_candidate(self, candidate):
         """
@@ -459,7 +465,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         path = self.get_path_candidate(self._rays[iS])
@@ -499,7 +505,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         pathz = self.get_path(iS)[:, 2]
@@ -530,7 +536,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         launch_vector = np.array([self._rays[iS].getLaunchVector().x, 
@@ -556,7 +562,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         receive_vector = np.array([self._rays[iS].getReceiveVector().x, 
@@ -581,7 +587,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         reflection_angles = np.array([ra * (units.degree/radiopropa.deg) for ra in self._rays[iS].getReflectionAngles()])
@@ -608,7 +614,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         end_of_path = self.get_path_candidate(self._rays[iS])[-1] #position of the receive vector on the sphere around the channel in detector coordinates
@@ -645,7 +651,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         refrac_index = self._medium.get_index_of_refraction(self._X2)
@@ -669,7 +675,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         path_length = self._rays[iS].getTrajectoryLength() * (units.meter/radiopropa.meter)
@@ -692,7 +698,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         travel_time = self._rays[iS].getPropagationTime() * (units.second/radiopropa.second)
@@ -756,7 +762,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self._logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
         path = self.get_path(iS)
@@ -816,13 +822,13 @@ class radiopropa_ray_tracing(ray_tracing_base):
             lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
             focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
             if(self.get_solution_type(iS) != self._r1.get_solution_type(iS)):
-                self._logger.error("solution types are not the same")
+                self.__logger.error("solution types are not the same")
         else:
             focusing = 1.0
-            self._logger.info("too few ray tracing solutions, setting focusing factor to 1")
-        self._logger.debug(f'amplification due to focusing of solution {iS:d} = {focusing:.3f}')
+            self.__logger.info("too few ray tracing solutions, setting focusing factor to 1")
+        self.__logger.debug(f'amplification due to focusing of solution {iS:d} = {focusing:.3f}')
         if(focusing > limit):
-            self._logger.info(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to {limit:.1f}x")
+            self.__logger.info(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to {limit:.1f}x")
             focusing = limit
 
         # now also correct for differences in refractive index between emitter and receiver position
@@ -877,7 +883,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
             spec[1] *= r_theta
             spec[2] *= r_phi
-            self._logger.debug(
+            self.__logger.debug(
                 "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
                     zenith_reflection / units.deg, r_theta, r_phi))
 
@@ -889,7 +895,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             # we assume that both efield components are equally affected
             spec[1] *= reflection_coefficient * np.exp(1j * phase_shift)
             spec[2] *= reflection_coefficient * np.exp(1j * phase_shift)
-            self._logger.debug(
+            self.__logger.debug(
                 f"ray is reflecting {i_reflections:d} times at the bottom -> reducing the signal by a factor of {reflection_coefficient:.2f}")
 
 
@@ -998,7 +1004,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         ice_thickness = self._medium.z_air_boundary - self._medium.z_bottom
         if n_bottom_reflections > 0:
             if self.medium.reflection is None:
-                self._logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested,"
+                self.__logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested,"
                                     +"but ice model does not specify a reflective layer".format(n_bottom_reflections))
                 raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested,"
                                     +"but ice model does not specify a reflective layer".format(n_bottom_reflections))
