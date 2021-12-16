@@ -26,6 +26,7 @@ def get_flux(energy, file_surface_mu_flux='data/muon_flux_E_SIBYLL23c_GSF.pickle
     -------
     flux of muon in NuRadio units. (GeV**-1 * m**-2 * ns**-1 sr**-1)
     '''
+
     data_surface_mu_flux = io_utilities.read_pickle(file_surface_mu_flux, encoding='latin1')
     J_e3 = np.array(data_surface_mu_flux['mu_total']) * units.GeV**2 * units.cm**-2 * units.s**-1 *units.sr**-1
     E_data = np.array(data_surface_mu_flux['e_grid']) * units.GeV
@@ -55,6 +56,7 @@ def get_flux_per_energy_bin(energy_bin_edge_low, energy_bin_edge_high):
     -------
     integrated flux of muon in NuRadio units.
     '''
+
     def flux(E):
         return get_flux(E)
 
@@ -80,6 +82,7 @@ def get_flux_per_energy_and_zenith(energy, zenith, file_surface_mu_flux='data/mu
     -------
     flux of muon in NuRadio units
     '''
+
     data_surface_mu_flux = io_utilities.read_pickle(file_surface_mu_flux, encoding='latin1')
     J_e3 = np.array(data_surface_mu_flux['mu_total']) * units.GeV**2 * units.cm**-2 * units.s**-1
     E_data = np.array(data_surface_mu_flux['e_grid']) * units.GeV
@@ -105,13 +108,14 @@ def get_flux_per_energy_and_zenith_bin(energy_bin_edge_low, energy_bin_edge_high
         higher edge of energy bin over which the flux is integrated (in eV)
     zenith_bin_edge_low: float
          lower edge of zenith bin over which flux is integrated (in rad)
-     zenith_bin_edge_high: float
+    zenith_bin_edge_high: float
          higher edge of zenith bin over which flux is integrated (in rad)
 
     Returns
     -------
     integrated flux of muon in NuRadio units.
     '''
+
     def flux(E, theta):
         return get_flux_per_energy_and_zenith(E, theta)
 
