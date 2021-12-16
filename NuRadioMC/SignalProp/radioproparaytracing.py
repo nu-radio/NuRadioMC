@@ -116,8 +116,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         Set the start and end points of the raytracing
 
-        Parameters:
-        ----------------------
+        Parameters
+        ----------
         x1: 3dim np.array
             start point of the ray
         x2: 3dim np.array
@@ -210,7 +210,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         Parameters
         ----------
         max_traj_length: float, default units
-                         maxmimal length to trace a ray. tracing aborted when reached
+            maxmimal length to trace a ray. tracing aborted when reached
         """
         self._max_traj_length = max_traj_length
 
