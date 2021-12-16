@@ -33,7 +33,9 @@ def remove_duplicate_triggers(triggered, gids):
     gids: array of ints
         the event group ids
 
-    Returns: array of bools
+    Returns
+    -------
+    array of bools
         the corrected triggered array
     """
     gids = np.array(gids)
@@ -141,7 +143,9 @@ def get_Veff_water_equivalent(Veff, density_medium=0.917 * units.g / units.cm **
     density water: float (optional)
         the density of water
 
-    Returns: water equivalen effective volume
+    Returns
+    -------
+    water equivalen effective volume
     """
     return Veff * density_medium / density_water
 
@@ -162,35 +166,44 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
         map from trigger name to index
     trigger_combinations: dict, optional
         keys are the names of triggers to calculate. Values are dicts again:
-            * 'triggers': list of strings
-                name of individual triggers that are combined with an OR
-            the following additional options are optional
-            * 'efficiency': dict
-                allows to apply an (analysis) efficiency cut for calculating effective volumes
-                * 'func': function
-                    a function that paramaterized the efficiency as a function of SNR (=Vmax/Vrms)
-                * 'channel_ids': array on ints
-                    the channels for which the maximum signal amplitude should be determined
-                * 'scale': float
-                    rescaling of the efficiency curve by SNR' = SNR * scale
-            * 'n_reflections': int
-                the number of bottom reflections of the ray tracing solution that likely triggered
-                assuming that the solution with the shortest travel time caused the trigger, only considering channel 0
+
+        * 'triggers': list of strings
+            name of individual triggers that are combined with an OR
+
+        the following additional options are optional
+
+        * 'efficiency': dict
+            allows to apply an (analysis) efficiency cut for calculating effective volumes
+            
+            * 'func': function
+                a function that paramaterized the efficiency as a function of SNR (=Vmax/Vrms)
+            * 'channel_ids': array on ints
+                the channels for which the maximum signal amplitude should be determined
+            * 'scale': float
+                rescaling of the efficiency curve by SNR' = SNR * scale
+
+        * 'n_reflections': int
+            the number of bottom reflections of the ray tracing solution that likely triggered
+            assuming that the solution with the shortest travel time caused the trigger, only considering channel 0
 
     station: int
         the station that should be considered
     veff_aeff: string
         specifiy if the effective volume or the effective area for surface muons is calculated
-        can be 
+        can be
+
         * "veff" (default)
         * "aeff_surface_muons"
+
     bounds_theta: list of floats
         restrict theta to sub-range wrt. the simulated range in the file
         Note: assumes events were simulated uniformly in cos(theta)
         bounds_theta should be a (two-item) list, but will care only about the min/max values
+    
     Returns
     ----------
-    list of dictionary. Each file is one entry. The dictionary keys store all relevant properties
+    list of dictionaries
+        Each file is one entry. The dictionary keys store all relevant properties
     """
     if(veff_aeff not in ["veff", "aeff_surface_muons"]):
         raise AttributeError(f"the paramter `veff_aeff` needs to be one of either `veff` or `aeff_surface_muons`")
@@ -456,26 +469,31 @@ def get_Veff_Aeff(folder,
         folder conaining the hdf5 files, one per energy OR filename
     trigger_combinations: dict, optional
         keys are the names of triggers to calculate. Values are dicts again:
-            * 'triggers': list of strings
-                name of individual triggers that are combined with an OR
-            the following additional options are optional
-            * 'efficiency': dict
-                allows to apply an (analysis) efficiency cut for calculating effective volumes
-                * 'func': function
-                    a function that paramaterized the efficiency as a function of SNR (=Vmax/Vrms)
-                * 'channel_ids': array on ints
-                    the channels for which the maximum signal amplitude should be determined
-                * 'scale': float
-                    rescaling of the efficiency curve by SNR' = SNR * scale
-            * 'n_reflections': int
-                the number of bottom reflections of the ray tracing solution that likely triggered
-                assuming that the solution with the shortest travel time caused the trigger, only considering channel 0
+            
+        * 'triggers': list of strings
+            name of individual triggers that are combined with an OR
+
+        the following additional options are optional
+        
+        * 'efficiency': dict
+            allows to apply an (analysis) efficiency cut for calculating effective volumes
+
+            * 'func': function
+                a function that paramaterized the efficiency as a function of SNR (=Vmax/Vrms)
+            * 'channel_ids': array on ints
+                the channels for which the maximum signal amplitude should be determined
+            * 'scale': float
+                rescaling of the efficiency curve by SNR' = SNR * scale
+        * 'n_reflections': int
+            the number of bottom reflections of the ray tracing solution that likely triggered
+            assuming that the solution with the shortest travel time caused the trigger, only considering channel 0
 
     station: int
         the station that should be considered
     veff_aeff: string
         specifiy if the effective volume or the effective area for surface muons is calculated
-        can be 
+        can be
+
         * "veff" (default)
         * "aeff_surface_muons"
         
@@ -484,12 +502,16 @@ def get_Veff_Aeff(folder,
 
     oversampling_theta: int
         calculate the effective volume for finer binning (<oversampling_theta> data points per file):
+        
         * 1: no oversampling
         * >1: oversampling with <oversampling_theta> equal-size cos(theta) bins within thetamin/max of the input file
-        Note: oversampling assumes that events were simulated uniformly in cos(theta)
+        
+        .. Note:: oversampling assumes that events were simulated uniformly in cos(theta)
+    
     Returns
-    ----------
-    list of dictionary. Each file is one entry. The dictionary keys store all relevant properties
+    -------
+    list of dictionaries.
+        Each file is one entry. The dictionary keys store all relevant properties
     """
     trigger_combinations = copy.copy(trigger_combinations)
     trigger_names = None
@@ -577,67 +599,68 @@ def get_Veff_Aeff_array(data):
 
     Returns
     --------
-     * (n_energy, n_zenith_bins, n_triggernames, 5) dimensional array of floats
-     * array of unique mean energies (the mean is calculated in the logarithm of the energy)
-     * array of unique lower bin edges of energies
-     * array of unique upper bin edges of energies
-     * array of unique zenith bins
-     * array of unique trigger names
-
+    
+    * (n_energy, n_zenith_bins, n_triggernames, 5) dimensional array of floats
+    * array of unique mean energies (the mean is calculated in the logarithm of the energy)
+    * array of unique lower bin edges of energies
+    * array of unique upper bin edges of energies
+    * array of unique zenith bins
+    * array of unique trigger names
 
     Examples
     ---------
 
     To plot the full sky effective volume for 'all_triggers' do
 
-    ```
-    output, uenergies, uzenith_bins, utrigger_names, zenith_weights = get_Veff_array(data)
+    .. code-block::
+
+        output, uenergies, uzenith_bins, utrigger_names, zenith_weights = get_Veff_array(data)
 
 
-    fig, ax = plt.subplots(1, 1)
-    tname = "all_triggers"
-    Veff = np.average(output[:,:,get_index(tname, utrigger_names),0], axis=1, weights=zenith_weights)
-    Vefferror = Veff / np.sum(output[:,:,get_index(tname, utrigger_names),2], axis=1)**0.5
-    ax.errorbar(uenergies/units.eV, Veff/units.km**3 * 4 * np.pi, yerr=Vefferror/units.km**3 * 4 * np.pi, fmt='-o', label=tname)
+        fig, ax = plt.subplots(1, 1)
+        tname = "all_triggers"
+        Veff = np.average(output[:,:,get_index(tname, utrigger_names),0], axis=1, weights=zenith_weights)
+        Vefferror = Veff / np.sum(output[:,:,get_index(tname, utrigger_names),2], axis=1)**0.5
+        ax.errorbar(uenergies/units.eV, Veff/units.km**3 * 4 * np.pi, yerr=Vefferror/units.km**3 * 4 * np.pi, fmt='-o', label=tname)
 
-    ax.legend()
-    ax.semilogy(True)
-    ax.semilogx(True)
-    fig.tight_layout()
-    plt.show()
-    ```
-
+        ax.legend()
+        ax.semilogy(True)
+        ax.semilogx(True)
+        fig.tight_layout()
+        plt.show()
+    
 
     To plot the effective volume for different declination bands do
 
-    ```
-    fig, ax = plt.subplots(1, 1)
-    tname = "LPDA_2of4_100Hz"
-    iZ = 9
-    Veff = output[:,iZ,get_index(tname, utrigger_names)]
-    ax.errorbar(uenergies/units.eV, Veff[:,0]/units.km**3, yerr=Veff[:,1]/units.km**3,
-                label=f"zenith bin {uzenith_bins[iZ][0]/units.deg:.0f} - {uzenith_bins[iZ][1]/units.deg:.0f}")
+    .. code-block:: python
+    
+        fig, ax = plt.subplots(1, 1)
+        tname = "LPDA_2of4_100Hz"
+        iZ = 9
+        Veff = output[:,iZ,get_index(tname, utrigger_names)]
+        ax.errorbar(uenergies/units.eV, Veff[:,0]/units.km**3, yerr=Veff[:,1]/units.km**3,
+                    label=f"zenith bin {uzenith_bins[iZ][0]/units.deg:.0f} - {uzenith_bins[iZ][1]/units.deg:.0f}")
 
-    iZ = 8
-    Veff = output[:,iZ,get_index(tname, utrigger_names)]
-    ax.errorbar(uenergies/units.eV, Veff[:,0]/units.km**3, yerr=Veff[:,1]/units.km**3,
-                label=f"zenith bin {uzenith_bins[iZ][0]/units.deg:.0f} - {uzenith_bins[iZ][1]/units.deg:.0f}")
-    iZ = 7
-    Veff = output[:,iZ,get_index(tname, utrigger_names)]
-    ax.errorbar(uenergies/units.eV, Veff[:,0]/units.km**3, yerr=Veff[:,1]/units.km**3,
-                label=f"zenith bin {uzenith_bins[iZ][0]/units.deg:.0f} - {uzenith_bins[iZ][1]/units.deg:.0f}")
-    iZ = 10
-    Veff = output[:,iZ,get_index(tname, utrigger_names)]
-    ax.errorbar(uenergies/units.eV, Veff[:,0]/units.km**3, yerr=Veff[:,1]/units.km**3,
-                label=f"zenith bin {uzenith_bins[iZ][0]/units.deg:.0f} - {uzenith_bins[iZ][1]/units.deg:.0f}")
+        iZ = 8
+        Veff = output[:,iZ,get_index(tname, utrigger_names)]
+        ax.errorbar(uenergies/units.eV, Veff[:,0]/units.km**3, yerr=Veff[:,1]/units.km**3,
+                    label=f"zenith bin {uzenith_bins[iZ][0]/units.deg:.0f} - {uzenith_bins[iZ][1]/units.deg:.0f}")
+        iZ = 7
+        Veff = output[:,iZ,get_index(tname, utrigger_names)]
+        ax.errorbar(uenergies/units.eV, Veff[:,0]/units.km**3, yerr=Veff[:,1]/units.km**3,
+                    label=f"zenith bin {uzenith_bins[iZ][0]/units.deg:.0f} - {uzenith_bins[iZ][1]/units.deg:.0f}")
+        iZ = 10
+        Veff = output[:,iZ,get_index(tname, utrigger_names)]
+        ax.errorbar(uenergies/units.eV, Veff[:,0]/units.km**3, yerr=Veff[:,1]/units.km**3,
+                    label=f"zenith bin {uzenith_bins[iZ][0]/units.deg:.0f} - {uzenith_bins[iZ][1]/units.deg:.0f}")
 
 
-    ax.legend()
-    ax.semilogy(True)
-    ax.semilogx(True)
-    fig.tight_layout()
-    plt.show()
-    ```
+        ax.legend()
+        ax.semilogy(True)
+        ax.semilogx(True)
+        fig.tight_layout()
+        plt.show()
+    
 
     """
     energies = []
@@ -711,8 +734,10 @@ def export(filename, data, trigger_names=None, export_format='yaml'):
         save only specific trigger names, if None all triggers are exported
     export_format: string (default "yaml")
         specify output format, choose
+
         * "yaml"
         * "json"
+
     """
     output = []
     for i in range(len(data)):
