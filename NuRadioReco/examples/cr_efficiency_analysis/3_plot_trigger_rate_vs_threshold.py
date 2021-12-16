@@ -11,9 +11,9 @@ as given by the final config files for the air shower calculations.
 '''
 
 parser = argparse.ArgumentParser(description='Noise Trigger Rate')
-parser.add_argument('config_directory', type=str, nargs='?', default='config/air_shower/',
+parser.add_argument('--config_directory', type=str, nargs='?', default='config/air_shower/',
                     help='directory with final config files')
-parser.add_argument('save_plot', type=bool, nargs='?', default=True, help='decide if you want to save the plot')
+parser.add_argument('--save_plot', type=bool, nargs='?', default=True, help='decide if you want to save the plot')
 
 args = parser.parse_args()
 
@@ -23,7 +23,11 @@ for config_file in os.listdir(args.config_directory):
     from scipy.interpolate import interp1d
 
     thresholds = np.array(cfg['thresholds'])
+
+    #  choose between a single antenna and global trigger rate
     trigger_rate = np.array(cfg['trigger_rate'])
+    #trigger_rate = np.array(cfg['estimated_global_trigger_rate'])
+
 
     if cfg['hardware_response']:
         x = thresholds / units.millivolt

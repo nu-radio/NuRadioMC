@@ -151,11 +151,15 @@ for n_it in range(n_iterations_total):
                     has_triggered = bool(0)
 
             if cfg['trigger_name'] == 'power_integration':
-                triggered_samples = powerIntegration.get_power_int_triggers(trace, threshold, cfg['int_window'], dt=dt, full_output=False)
+                trace_1 = station.get_channel(1).get_trace()
+                triggered_samples, int_power = powerIntegration.get_power_int_triggers(trace, threshold, cfg['int_window'], dt=dt, full_output=True)
                 if True in triggered_samples:
                     has_triggered = bool(1)
                 else:
                     has_triggered = bool(0)
+                print('threshold', threshold)
+                print('int_power', np.max(int_power))
+                print(has_triggered)
 
             trigger_status_all_thresholds.append(has_triggered)
         trigger_status.append(trigger_status_all_thresholds)

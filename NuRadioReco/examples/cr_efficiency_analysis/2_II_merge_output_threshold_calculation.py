@@ -55,6 +55,8 @@ for i_file, filename in enumerate(file_list):
 trigger_efficiency_all = np.sum(trigger_efficiency, axis=0) / n_files
 trigger_rate_all = np.sum(trigger_rate, axis=0) / n_files
 iterations = cfg['n_iterations_total'] * cfg['n_random_phase'] * n_files
+estimated_global_rate = hcr.get_global_trigger_rate(trigger_rate_all, cfg['total_number_triggered_channels'],
+                                                            cfg['number_coincidences'], cfg['coinc_window'])
 
 dic = {}
 for key in cfg:
@@ -62,6 +64,7 @@ for key in cfg:
 dic['iteration'] = iterations
 dic['efficiency'] = trigger_efficiency_all
 dic['trigger_rate'] = trigger_rate_all
+dic['estimated_global_trigger_rate'] = estimated_global_rate
 
 nearest = hcr.find_nearest(trigger_rate_all, cfg['target_single_trigger_rate'])
 index = np.where(trigger_rate_all == nearest)

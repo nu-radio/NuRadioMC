@@ -190,6 +190,7 @@ while sum_trigger > cfg['number_of_allowed_trigger']:
         dic = {'thresholds': thresholds,
                'efficiency': trigger_efficiency,
                'trigger_rate': trigger_rate,
+               'estimated_global_trigger_rate': estimated_global_rate,
                'final_threshold': thresholds[-1],
                'T_noise': cfg['T_noise'],
                'Vrms_thermal_noise': cfg['Vrms_thermal_noise'],
