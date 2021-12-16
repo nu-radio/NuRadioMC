@@ -39,8 +39,8 @@ class noiseImporter:
             the folder containing the noise files
         station_id: int
             the station id, specifies from which station the forced triggers are used
-            as a noise sample. The data must have the naming convention 'forced_station_??.nur'
-            where ?? is replaced with the station id. If station_id is None, the noiseImporter
+            as a noise sample. The data must have the naming convention 'forced_station_<station_id>.nur'
+            where <station_id> is replaced with the station id. If station_id is None, the noiseImporter
             will try to find the station with the same iD as the one passed to the run
             function in the noise file
         noise_files: list of strings (default: None)

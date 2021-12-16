@@ -140,6 +140,7 @@ class Detector(object):
         is returned. To force the creation of a new detector instance, pass the additional keyword parameter
         `create_new=True` to this function. For more details, check the documentation for the
         `Singleton metaclass <NuRadioReco.utilities.html#NuRadioReco.utilities.metaclasses.Singleton>`_.
+        
         Parameters
         ----------
         source : str
@@ -438,14 +439,14 @@ class Detector(object):
         returns a dictionary of all channel parameters
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
             the channel id
 
-        Return
-        -------------
+        Returns
+        -------
         dict of channel parameters
         """
         return self.__get_channel(station_id, channel_id)
@@ -456,14 +457,14 @@ class Detector(object):
         returns a dictionary of all device parameters
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         device_id: int
             the device id
 
-        Return
-        -------------
+        Returns
+        -------
         dict of device parameters
         """
         return self.__get_device(station_id, device_id)
@@ -473,7 +474,7 @@ class Detector(object):
         get the absolute position of a specific station
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
 
@@ -500,7 +501,7 @@ class Detector(object):
         get the absolute position of a specific station
 
         Parameters
-        ---------
+        ----------
         site: string
             the position identifier e.g. "G"
 
@@ -527,7 +528,7 @@ class Detector(object):
         get the relative position of a specific channels/antennas with respect to the station center
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -551,7 +552,7 @@ class Detector(object):
         get the site where the station is deployed (e.g. MooresBay or South Pole)
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
 
@@ -567,7 +568,7 @@ class Detector(object):
         detector site.
 
         Parameters
-        -------------
+        ----------
         station_id: int
             the station ID
         """
@@ -587,7 +588,7 @@ class Detector(object):
         Get the number of channels per station
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
 
@@ -601,7 +602,7 @@ class Detector(object):
         get the channel ids of a station
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
 
@@ -617,7 +618,7 @@ class Detector(object):
         get a list of parallel antennas
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
 
@@ -657,7 +658,7 @@ class Detector(object):
         Get the number of devices per station
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
 
@@ -671,7 +672,7 @@ class Detector(object):
         get the device ids of a station
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
 
@@ -687,7 +688,7 @@ class Detector(object):
         returns the cable delay of a channel
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -709,7 +710,7 @@ class Detector(object):
         returns the cable type (e.g. LMR240) and its length
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -725,7 +726,7 @@ class Detector(object):
         returns the antenna type
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -741,7 +742,7 @@ class Detector(object):
         returns the time of antenna deployment
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -757,7 +758,7 @@ class Detector(object):
         returns the orientation of a specific antenna
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -780,7 +781,7 @@ class Detector(object):
         returns the type of the amplifier
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -796,7 +797,7 @@ class Detector(object):
         returns a unique reference to the amplifier measurement
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -811,8 +812,8 @@ class Detector(object):
         """
         Returns the amplifier response for the amplifier of a given channel
 
-        Parameters:
-        ---------------
+        Parameters
+        ----------
         station_id: int
             The ID of the station
         channel_id: int
@@ -848,7 +849,7 @@ class Detector(object):
         returns the sampling frequency
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -864,7 +865,7 @@ class Detector(object):
         returns the number of samples of a channel
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -882,7 +883,7 @@ class Detector(object):
         so far only infinite firn and infinite air cases are differentiated
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -930,6 +931,7 @@ class Detector(object):
         stage: string (default 'amp')
             specifies the stage of reconstruction you want the noise RMS for,
             `stage` can be one of
+            
              * 'raw' (raw measured trace)
              * 'amp' (after the amp was deconvolved)
              * 'filt' (after the trace was highpass with 100MHz
