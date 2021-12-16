@@ -54,7 +54,7 @@ parser.add_argument('--output_filename', type=str, nargs='?',
                     default='output_air_shower_reco/air_shower_reco_', help='begin of output filename')
 
 args = parser.parse_args()
-input_file = eventlist[args.number]
+input_file = args.eventlist[args.number]
 
 os.makedirs(args.output_filename, exist_ok=True)
 
