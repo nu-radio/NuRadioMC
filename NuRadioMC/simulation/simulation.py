@@ -2,7 +2,8 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from radiotools import helper as hp
 from radiotools import coordinatesystems as cstrans
-from NuRadioMC.SignalGen import askaryan as signalgen
+from NuRadioMC.SignalGen import askaryan
+from NuRadioMC.SignalGen import emitter
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import fft
@@ -28,6 +29,7 @@ import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.particle
 import NuRadioReco.framework.event
+from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
@@ -195,6 +197,8 @@ class simulation():
         logger.status("setting event time to {}".format(evt_time))
         self._event_group_list = event_list
 
+        self._antenna_pattern_provider = antennapattern.AntennaPatternProvider()
+
         # initialize propagation module
         self._prop = propagation.get_propagation_module(self._cfg['propagation']['module'])
 
@@ -263,8 +267,6 @@ class simulation():
             self._shower_index = 0
             self._primary_index = 0
             self._evt = NuRadioReco.framework.event.Event(0, self._primary_index)
-            # read all quantities from hdf5 file and store them in local variables
-            self._read_input_particle_properties()
 
             self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
 #                 logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
@@ -402,7 +404,6 @@ class simulation():
             config=self._cfg,
             detector=self._det
         )
-        r = self._raytracer
         for shower_index, shower_id in enumerate(self._shower_ids):
             self._shower_index_array[shower_id] = shower_index
 
@@ -448,26 +449,30 @@ class simulation():
             t1 = time.time()
 
             self._primary_index = event_indices[0]
-            self._read_input_particle_properties(self._primary_index) # this sets the self.input_particle for self._primary_index
-            # calculate the weight for the primary particle
-            self.primary = self.input_particle
-            if(self._cfg['weights']['weight_mode'] == "existing"):
-                if("weights" in self._fin):
-                    self._mout['weights'] = self._fin["weights"]
+            # determine if a particle (neutrinos, or a secondary interaction of a neutrino, or surfaec muons) is simulated
+            particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
+            self._mout['weights'][event_indices] = np.ones(len(event_indices))  # for a pulser simulation, every event has the same weight
+            if particle_mode:
+                self._read_input_particle_properties(self._primary_index)  # this sets the self.input_particle for self._primary_index
+                # calculate the weight for the primary particle
+                self.primary = self.input_particle
+                if(self._cfg['weights']['weight_mode'] == "existing"):
+                    if("weights" in self._fin):
+                        self._mout['weights'] = self._fin["weights"]
+                    else:
+                        logger.error("config file specifies to use weights from the input hdf5 file but the input file does not contain this information.")
+                elif(self._cfg['weights']['weight_mode'] is None):
+                    self.primary[simp.weight] = 1.
                 else:
-                    logger.error("config file specifies to use weights from the input hdf5 file but the input file does not contain this information.")
-            elif(self._cfg['weights']['weight_mode'] is None):
-                self.primary[simp.weight] = 1.
-            else:
-                self.primary[simp.weight] = get_weight(self.primary[simp.zenith],
-                                                   self.primary[simp.energy],
-                                                   self.primary[simp.flavor],
-                                                   mode=self._cfg['weights']['weight_mode'],
-                                                   cross_section_type=self._cfg['weights']['cross_section_type'],
-                                                   vertex_position=self.primary[simp.vertex],
-                                                   phi_nu=self.primary[simp.azimuth])
-            # all entries for the event for this primary get the calculated primary's weight
-            self._mout['weights'][event_indices] = self.primary[simp.weight]
+                    self.primary[simp.weight] = get_weight(self.primary[simp.zenith],
+                                                           self.primary[simp.energy],
+                                                           self.primary[simp.flavor],
+                                                           mode=self._cfg['weights']['weight_mode'],
+                                                           cross_section_type=self._cfg['weights']['cross_section_type'],
+                                                           vertex_position=self.primary[simp.vertex],
+                                                           phi_nu=self.primary[simp.azimuth])
+                # all entries for the event for this primary get the calculated primary's weight
+                self._mout['weights'][event_indices] = self.primary[simp.weight]
 
             weightTime += time.time() - t1
             # skip all events where neutrino weights is zero, i.e., do not
@@ -486,7 +491,6 @@ class simulation():
                                              np.array(self._fin['zz'])[event_indices]]).T
                 vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
                 distance_cut_time += time.time() - t_tmp
-
 
             triggered_showers = {}  # this variable tracks which showers triggered a particular station
 
@@ -520,8 +524,10 @@ class simulation():
                 if('station_{:d}'.format(self._station_id) in self._fin_stations):
                     ray_tracing_performed = (self._raytracer.get_output_parameters()[0]['name'] in self._fin_stations['station_{:d}'.format(self._station_id)]) and (self._was_pre_simulated)
                 self._evt_tmp = NuRadioReco.framework.event.Event(0, 0)
-                # add the primary particle to the temporary event
-                self._evt_tmp.add_particle(self.primary)
+
+                if particle_mode:
+                    # add the primary particle to the temporary event
+                    self._evt_tmp.add_particle(self.primary)
 
                 self._create_sim_station()
                 # loop over all showers in event group
@@ -556,7 +562,8 @@ class simulation():
                                     100 * (total_time - total_time_sum) / total_time))
 
                     self._read_input_shower_properties()
-                    logger.debug(f"simulating shower {self._shower_index}: {self._shower_type} with E = {self._shower_energy/units.eV:.2g}eV")
+                    if particle_mode:
+                        logger.debug(f"simulating shower {self._shower_index}: {self._fin['shower_type'][self._shower_index]} with E = {self._fin['shower_energies'][self._shower_index]/units.eV:.2g}eV")
                     x1 = self._shower_vertex  # the interaction point
 
                     if self._cfg['speedup']['distance_cut']:
@@ -567,9 +574,9 @@ class simulation():
                         # quick speedup cut using barycenter of station as position
                         distance_to_station = np.linalg.norm(x1 - self._station_barycenter[iSt])
                         distance_cut = self._get_distance_cut(shower_energy_sum) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
-                        logger.debug(f"calculating distance cut. Current event has energy {self._shower_energy:.4g}, it is event number {iSh} and {np.sum(mask_shower_sum)} are within {self._cfg['speedup']['distance_cut_sum_length']/units.m:.1f}m -> {shower_energy_sum:.4g}")
+                        logger.debug(f"calculating distance cut. Current event has energy {self._fin['shower_energies'][self._shower_index]:.4g}, it is event number {iSh} and {np.sum(mask_shower_sum)} are within {self._cfg['speedup']['distance_cut_sum_length']/units.m:.1f}m -> {shower_energy_sum:.4g}")
                         if distance_to_station > distance_cut:
-                            logger.debug(f"skipping station {self._station_id} because distance {distance_to_station/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {self._shower_energy:.2g}eV) between vertex {x1} and bary center of station {self._station_barycenter[iSt]}")
+                            logger.debug(f"skipping station {self._station_id} because distance {distance_to_station/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {self._fin['shower_energies'][self._shower_index]:.2g}eV) between vertex {x1} and bary center of station {self._station_barycenter[iSt]}")
                             distance_cut_time += time.time() - t_tmp
                             continue
                         distance_cut_time += time.time() - t_tmp
@@ -577,19 +584,20 @@ class simulation():
                     # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
                     # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
                     if not self._is_in_fiducial_volume():
-                        logger.debug(f"event is not in fiducial volume, skipping simulation {self._x}, {self._y}, {self._z}")
+                        logger.debug(f"event is not in fiducial volume, skipping simulation {self._fin['xx'][self._shower_index]}, {self._fin['yy'][self._shower_index]}, {self._fin['zz'][self._shower_index]}")
                         continue
 
                     # for special cases where only EM or HAD showers are simulated, skip all events that don't fulfill this criterion
                     if(self._cfg['signal']['shower_type'] == "em"):
-                        if(self._shower_type != "em"):
+                        if(self._fin['shower_type'][self._shower_index] != "em"):
                             continue
                     if(self._cfg['signal']['shower_type'] == "had"):
-                        if(self._shower_type != "had"):
+                        if(self._fin['shower_type'][self._shower_index] != "had"):
                             continue
 
-                    self._create_sim_shower()  # create sim shower
-                    self._evt_tmp.add_sim_shower(self._sim_shower)
+                    if particle_mode:
+                        self._create_sim_shower()  # create sim shower
+                        self._evt_tmp.add_sim_shower(self._sim_shower)
 
                     # generate unique and increasing event id per station
                     self._event_ids_counter[self._station_id] += 1
@@ -598,7 +606,10 @@ class simulation():
                     # be careful, zenith/azimuth angle always refer to where the neutrino came from,
                     # i.e., opposite to the direction of propagation. We need the propagation direction here,
                     # so we multiply the shower axis with '-1'
-                    self._shower_axis = -1 * hp.spherical_to_cartesian(self._zenith_shower, self._azimuth_shower)
+                    if 'zeniths' in self._fin:
+                        self._shower_axis = -1 * hp.spherical_to_cartesian(self._fin['zeniths'][self._shower_index], self._fin['azimuths'][self._shower_index])
+                    else:
+                        self._shower_axis = np.array([0, 0, 1])
 
                     # calculate correct Cherenkov angle for ice density at vertex position
                     n_index = self._ice.get_index_of_refraction(x1)
@@ -619,7 +630,7 @@ class simulation():
 
                             if distance > distance_cut:
                                 logger.debug('A distance speed up cut has been applied')
-                                logger.debug('Shower energy: {:.2e} eV'.format(self._shower_energy / units.eV))
+                                logger.debug('Shower energy: {:.2e} eV'.format(self._fin['shower_energies'][self._shower_index] / units.eV))
                                 logger.debug('Distance cut: {:.2f} m'.format(distance_cut / units.m))
                                 logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
                                 distance_cut_time += time.time() - t_tmp
@@ -691,53 +702,88 @@ class simulation():
 
                             # get neutrino pulse from Askaryan module
                             t_ask = time.time()
-                            kwargs = {}
-                            # if the input file specifies a specific shower realization, use that realization
-                            if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"] and "shower_realization_ARZ" in self._fin):
-                                kwargs['iN'] = self._fin['shower_realization_ARZ'][self._shower_index]
-                                logger.debug(f"reusing shower {kwargs['iN']} ARZ shower library")
-                            elif(self._cfg['signal']['model'] == "Alvarez2009" and "shower_realization_Alvarez2009" in self._fin):
-                                kwargs['k_L'] = self._fin['shower_realization_Alvarez2009'][self._shower_index]
-                                logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
-                            else:
-                                # check if the shower was already simulated (e.g. for a different channel or ray tracing solution)
+
+                            if("simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] == "neutrino"):
+                                # first consider in-ice showers
+                                kwargs = {}
+                                # if the input file specifies a specific shower realization, use that realization
+                                if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"] and "shower_realization_ARZ" in self._fin):
+                                    kwargs['iN'] = self._fin['shower_realization_ARZ'][self._shower_index]
+                                    logger.debug(f"reusing shower {kwargs['iN']} ARZ shower library")
+                                elif(self._cfg['signal']['model'] == "Alvarez2009" and "shower_realization_Alvarez2009" in self._fin):
+                                    kwargs['k_L'] = self._fin['shower_realization_Alvarez2009'][self._shower_index]
+                                    logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
+                                else:
+                                    # check if the shower was already simulated (e.g. for a different channel or ray tracing solution)
+                                    if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]):
+                                        if(self._sim_shower.has_parameter(shp.charge_excess_profile_id)):
+                                            kwargs = {'iN': self._sim_shower.get_parameter(shp.charge_excess_profile_id)}
+                                    if(self._cfg['signal']['model'] == "Alvarez2009"):
+                                        if(self._sim_shower.has_parameter(shp.k_L)):
+                                            kwargs = {'k_L': self._sim_shower.get_parameter(shp.k_L)}
+                                            logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
+
+                                spectrum, additional_output = askaryan.get_frequency_spectrum(self._fin['shower_energies'][self._shower_index], viewing_angles[iS],
+                                                self._n_samples, self._dt, self._fin['shower_type'][self._shower_index], n_index, R,
+                                                self._cfg['signal']['model'], seed=self._cfg['seed'], full_output=True, **kwargs)
+                                # save shower realization to SimShower and hdf5 file
                                 if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]):
-                                    if(self._sim_shower.has_parameter(shp.charge_excess_profile_id)):
-                                        kwargs = {'iN': self._sim_shower.get_parameter(shp.charge_excess_profile_id)}
+                                    if('shower_realization_ARZ' not in self._mout):
+                                        self._mout['shower_realization_ARZ'] = np.zeros(self._n_showers)
+                                    if(not self._sim_shower.has_parameter(shp.charge_excess_profile_id)):
+                                        self._sim_shower.set_parameter(shp.charge_excess_profile_id, additional_output['iN'])
+                                        self._mout['shower_realization_ARZ'][self._shower_index] = additional_output['iN']
+                                        logger.debug(f"setting shower profile for ARZ shower library to i = {additional_output['iN']}")
                                 if(self._cfg['signal']['model'] == "Alvarez2009"):
-                                    if(self._sim_shower.has_parameter(shp.k_L)):
-                                        kwargs = {'k_L': self._sim_shower.get_parameter(shp.k_L)}
-                                        logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
+                                    if('shower_realization_Alvarez2009' not in self._mout):
+                                        self._mout['shower_realization_Alvarez2009'] = np.zeros(self._n_showers)
+                                    if(not self._sim_shower.has_parameter(shp.k_L)):
+                                        self._sim_shower.set_parameter(shp.k_L, additional_output['k_L'])
+                                        self._mout['shower_realization_Alvarez2009'][self._shower_index] = additional_output['k_L']
+                                        logger.debug(f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
+                                askaryan_time += (time.time() - t_ask)
 
-                            spectrum, additional_output = signalgen.get_frequency_spectrum(self._shower_energy, viewing_angles[iS],
-                                            self._n_samples, self._dt, self._shower_type, n_index, R,
-                                            self._cfg['signal']['model'], seed=self._cfg['seed'], full_output=True, **kwargs)
-                            # save shower realization to SimShower and hdf5 file
-                            if(self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]):
-                                if('shower_realization_ARZ' not in self._mout):
-                                    self._mout['shower_realization_ARZ'] = np.zeros(self._n_showers)
-                                if(not self._sim_shower.has_parameter(shp.charge_excess_profile_id)):
-                                    self._sim_shower.set_parameter(shp.charge_excess_profile_id, additional_output['iN'])
-                                    self._mout['shower_realization_ARZ'][self._shower_index] = additional_output['iN']
-                                    logger.debug(f"setting shower profile for ARZ shower library to i = {additional_output['iN']}")
-                            if(self._cfg['signal']['model'] == "Alvarez2009"):
-                                if('shower_realization_Alvarez2009' not in self._mout):
-                                    self._mout['shower_realization_Alvarez2009'] = np.zeros(self._n_showers)
-                                if(not self._sim_shower.has_parameter(shp.k_L)):
-                                    self._sim_shower.set_parameter(shp.k_L, additional_output['k_L'])
-                                    self._mout['shower_realization_Alvarez2009'][self._shower_index] = additional_output['k_L']
-                                    logger.debug(f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
-                            askaryan_time += (time.time() - t_ask)
+                                polarization_direction_onsky = self._calculate_polarization_vector()
+                                cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
+                                polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
+                                logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
+                                    zenith / units.deg, azimuth / units.deg, polarization_direction_onsky[0],
+                                    polarization_direction_onsky[1], polarization_direction_onsky[2],
+                                    *polarization_direction_at_antenna))
+                                sg['polarization'][iSh, channel_id, iS] = polarization_direction_at_antenna
+                                eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
 
-                            polarization_direction_onsky = self._calculate_polarization_vector()
-                            cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
-                            polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
-                            logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
-                                zenith / units.deg, azimuth / units.deg, polarization_direction_onsky[0],
-                                polarization_direction_onsky[1], polarization_direction_onsky[2],
-                                *polarization_direction_at_antenna))
-                            sg['polarization'][iSh, channel_id, iS] = polarization_direction_at_antenna
-                            eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
+                            elif(self._fin_attrs['simulation_mode'] == "emitter"):
+                                # NuRadioMC also supports the simulation of emitters. In this case, the signal model specifies the electric field polarization
+                                amplitude = self._fin['emitter_amplitudes'][self._shower_index]
+                                # following two lines used only for few models( not for all)
+                                emitter_frequency = self._fin['emitter_frequency'][self._shower_index]  # the frequency of cw and tone_burst signal
+                                half_width = self._fin['emitter_half_width'][self._shower_index]  # defines width of square and tone_burst signals
+                                # get emitting antenna properties
+                                antenna_model = self._fin['emitter_antenna_type'][self._shower_index]
+                                antenna_pattern = self._antenna_pattern_provider.load_antenna_pattern(antenna_model)
+                                ori = [self._fin['emitter_orientation_theta'][self._shower_index], self._fin['emitter_orientation_phi'][self._shower_index],
+                                       self._fin['emitter_rotation_theta'][self._shower_index], self._fin['emitter_rotation_phi'][self._shower_index]]
+
+                                # source voltage given to the emitter
+                                voltage_spectrum_emitter = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
+                                                                                          self._fin['emitter_model'][self._shower_index], half_width=half_width, emitter_frequency=emitter_frequency)
+                                # convolve voltage output with antenna response to obtain emitted electric field
+                                frequencies = np.fft.rfftfreq(self._n_samples, d=self._dt)
+                                zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*self._launch_vector)
+                                VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
+                                c = constants.c * units.m / units.s
+                                k = 2 * np.pi * frequencies * n_index / c
+                                eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c) * np.exp(-1j * k * R)
+                                ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c) * np.exp(-1j * k * R)
+                                eR = np.zeros_like(eTheta)
+                                # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
+                                eTheta *= 1 / R
+                                ePhi *= 1 / R
+
+                            else:
+                                logger.error(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
+                                raise AttributeError(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
 
                             if(self._debug):
                                 from matplotlib import pyplot as plt
@@ -747,7 +793,7 @@ class simulation():
                                 ax2.set_ylabel("amplitude [$\mu$V/m]")
                                 fig.tight_layout()
                                 fig.suptitle("$E_C$ = {:.1g}eV $\Delta \Omega$ = {:.1f}deg, R = {:.0f}m".format(
-                                    self._shower_energy, viewing_angles[iS], R))
+                                    self._fin['shower_energies'][self._shower_index], viewing_angles[iS], R))
                                 fig.subplots_adjust(top=0.9)
                                 plt.show()
 
@@ -851,12 +897,12 @@ class simulation():
                         logger.info(f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
                     self._evt = NuRadioReco.framework.event.Event(self._event_group_id, iEvent)  # create new event
 
-                    # add MC particles that belong to this (sub) event to event structure
-                    # add only primary for now, since full interaction chain is not typically in the input hdf5s
-                    self._evt.add_particle(self.primary)
+                    if particle_mode:
+                        # add MC particles that belong to this (sub) event to event structure
+                        # add only primary for now, since full interaction chain is not typically in the input hdf5s
+                        self._evt.add_particle(self.primary)
                     # copy over generator information from temporary event to event
                     self._evt._generator_info = self._generator_info
-
 
                     self._station = NuRadioReco.framework.station.Station(self._station_id)
                     sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
@@ -873,9 +919,11 @@ class simulation():
                         for efield in tmp_sim_station.get_electric_fields():
                             if(efield.get_unique_identifier() == efield_uid):
                                 sim_station.add_electric_field(efield)
-                    # add showers that contribute to this (sub) event to event structure
-                    for shower_id in self._shower_ids_of_sub_event:
-                        self._evt.add_sim_shower(self._evt_tmp.get_sim_shower(shower_id))
+
+                    if particle_mode:
+                        # add showers that contribute to this (sub) event to event structure
+                        for shower_id in self._shower_ids_of_sub_event:
+                            self._evt.add_sim_shower(self._evt_tmp.get_sim_shower(shower_id))
                     self._station.set_sim_station(sim_station)
                     self._station.set_station_time(self._evt_time)
                     self._evt.set_station(self._station)
@@ -1017,6 +1065,9 @@ class simulation():
         n_triggered = np.sum(triggered)
         return n_triggered
 
+    def _calculate_emitter_output(self):
+        pass
+
     def _get_shower_index(self, shower_id):
         if(hasattr(shower_id, "__len__")):
             return np.array([self._shower_index_array[x] for x in shower_id])
@@ -1044,7 +1095,7 @@ class simulation():
         if(not has_fiducial):
             return True
 
-        r = (self._shower_vertex[0]** 2 + self._shower_vertex[1] ** 2) ** 0.5
+        r = (self._shower_vertex[0] ** 2 + self._shower_vertex[1] ** 2) ** 0.5
         if(r >= self._fin_attrs['fiducial_rmin'] and r <= self._fin_attrs['fiducial_rmax']):
             if(self._shower_vertex[2] >= self._fin_attrs['fiducial_zmin'] and self._shower_vertex[2] <= self._fin_attrs['fiducial_zmax']):
                 return True
@@ -1095,7 +1146,7 @@ class simulation():
         for enum_entry in genattrs:
             if enum_entry.name in self._fin_attrs:
                 self._generator_info[enum_entry] = self._fin_attrs[enum_entry.name]
-            
+
         fin.close()
 
     def _check_vertex_times(self):
@@ -1261,7 +1312,7 @@ class simulation():
     def _read_input_particle_properties(self, idx=None):
         if idx is None:
             idx = self._primary_index
-        self._n_interaction = self._fin['n_interaction'][idx]
+        self._fin['n_interaction'][self._shower_index] = self._fin['n_interaction'][idx]
         self._event_group_id = self._fin['event_group_ids'][idx]
 
         self.input_particle = NuRadioReco.framework.particle.Particle(0)
@@ -1276,31 +1327,19 @@ class simulation():
         self.input_particle[simp.azimuth] = self._fin['azimuths'][idx]
         self.input_particle[simp.inelasticity] = self._fin['inelasticity'][idx]
         self.input_particle[simp.n_interaction] = self._fin['n_interaction'][idx]
-        if self._n_interaction <= 1:
+        if self._fin['n_interaction'][self._shower_index] <= 1:
             # parents before the neutrino and outgoing daughters without shower are currently not
             # simulated. The parent_id is therefore at the moment only rudimentarily populated.
-            self.input_particle[simp.parent_id] = None # primary does not have a parent
+            self.input_particle[simp.parent_id] = None  # primary does not have a parent
 
-        
         self.input_particle[simp.vertex_time] = 0
         if 'vertex_times' in self._fin:
             self.input_particle[simp.vertex_time] = self._fin['vertex_times'][idx]
 
     def _read_input_shower_properties(self):
         """ read in the properties of the shower with index _shower_index from input """
-        self._n_interaction = self._fin['n_interaction'][self._shower_index]
         self._event_group_id = self._fin['event_group_ids'][self._shower_index]
 
-        if 'flavors' in self._fin:
-            self._flavor = self._fin['flavors'][self._shower_index]
-        else:
-            self._flavor = None
-        self._inttype = self._fin['interaction_type'][self._shower_index]
-        self._x = self._fin['xx'][self._shower_index]
-        self._y = self._fin['yy'][self._shower_index]
-        self._z = self._fin['zz'][self._shower_index]
-        self._shower_type = self._fin['shower_type'][self._shower_index]
-        self._shower_energy = self._fin['shower_energies'][self._shower_index]
         self._shower_vertex = np.array([self._fin['xx'][self._shower_index],
                                         self._fin['yy'][self._shower_index],
                                         self._fin['zz'][self._shower_index]])
@@ -1308,9 +1347,6 @@ class simulation():
         self._vertex_time = 0
         if 'vertex_times' in self._fin:
             self._vertex_time = self._fin['vertex_times'][self._shower_index]
-
-        self._zenith_shower = self._fin['zeniths'][self._shower_index]
-        self._azimuth_shower = self._fin['azimuths'][self._shower_index]
 
     def _create_sim_station(self):
         """
@@ -1329,13 +1365,13 @@ class simulation():
         # save relevant neutrino properties
         self._sim_shower[shp.zenith] = self.input_particle[simp.zenith]
         self._sim_shower[shp.azimuth] = self.input_particle[simp.azimuth]
-        self._sim_shower[shp.energy] = self._shower_energy
+        self._sim_shower[shp.energy] = self._fin['shower_energies'][self._shower_index]
         self._sim_shower[shp.flavor] = self.input_particle[simp.flavor]
         self._sim_shower[shp.interaction_type] = self.input_particle[simp.interaction_type]
         self._sim_shower[shp.vertex] = self.input_particle[simp.vertex]
         self._sim_shower[shp.vertex_time] = self._vertex_time
-        self._sim_shower[shp.type] = self._shower_type
-        #TODO direct parent does not necessarily need to be the primary in general, but full
+        self._sim_shower[shp.type] = self._fin['shower_type'][self._shower_index]
+        # TODO direct parent does not necessarily need to be the primary in general, but full
         # interaction chain is currently not populated in the input files.
         self._sim_shower[shp.parent_id] = self.primary.get_id()
 
@@ -1354,11 +1390,12 @@ class simulation():
             # a reference! saved indicates the interactions to be saved, while
             # triggered should indicate if an interaction has produced a trigger
             saved = np.copy(self._mout['triggered'])
-            parent_mask = self._fin['n_interaction'] == 1
-            for event_id in np.unique(self._fin['event_group_ids']):
-                event_mask = self._fin['event_group_ids'] == event_id
-                if (True in self._mout['triggered'][event_mask]):
-                    saved[parent_mask & event_mask] = True
+            if('n_interactions' in self._fin):  # if n_interactions is not specified, there are not parents
+                parent_mask = self._fin['n_interaction'] == 1
+                for event_id in np.unique(self._fin['event_group_ids']):
+                    event_mask = self._fin['event_group_ids'] == event_id
+                    if (True in self._mout['triggered'][event_mask]):
+                        saved[parent_mask & event_mask] = True
 
             logger.status("start saving events")
             # save data sets
