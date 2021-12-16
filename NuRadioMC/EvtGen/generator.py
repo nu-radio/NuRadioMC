@@ -265,7 +265,7 @@ def get_GZK_1(energy):
     and a proton fraction of 10% at E = 10^19.6 eV
     """
     E, J = np.loadtxt(os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                                     '../examples/Sensitivities/ReasonableNeutrinos1.txt'))
+                                     '../examples/Sensitivities/data/ReasonableNeutrinos1.txt'))
     E *= units.GeV
     J *= units.GeV * units.cm ** -2 * units.s ** -1 * units.sr ** -1 / E ** 2
     get_flux = interpolate.interp1d(E, J, fill_value=0, bounds_error=False)
