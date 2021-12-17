@@ -29,8 +29,8 @@ class channelMeasuredNoiseAdder:
         """
         Set up module parameters
 
-        Parameters:
-        ------------------
+        Parameters
+        ----------
         filenames: list of strings
             List of .nur files containing the measured noise
         random_seed: int, default: None
@@ -59,8 +59,8 @@ class channelMeasuredNoiseAdder:
         """
         Add measured noise to station channels
 
-        Parameters:
-        --------------
+        Parameters
+        ----------
         event: event object
         station: station object
         det: detector description
@@ -91,13 +91,15 @@ class channelMeasuredNoiseAdder:
         The function selects a random event from the noise files and checks if it is suitable.
         If it is, the station is returned, otherwise None is returned. The event is suitable if it
         fulfills these criteria:
-            - It contains a station with the same station ID as the one to which the noise shall be added
-            - The station does not have a trigger that has triggered.
-            - The every channel in the station to which the noise shall be added is also present in the station
+    
+        * It contains a station with the same station ID as the one to which the noise shall be added
+        * The station does not have a trigger that has triggered.
+        * The every channel in the station to which the noise shall be added is also present in the station
 
-        Parameters:
-        ------------
-        station: The station to which the noise shall be added
+        Parameters
+        ----------
+        station: Station class
+            The station to which the noise shall be added
         """
         event_i = self.__random_state.randint(self.__io.get_n_events())
         noise_event = self.__io.get_event_i(event_i)

@@ -18,7 +18,7 @@ class channelGenericNoiseAdder:
         Adding random phase information to given amplitude spectrum.
 
         Parameters
-        ---------
+        ----------
 
         amps: array of floats
             Data that random phase is added to.
@@ -38,7 +38,7 @@ class channelGenericNoiseAdder:
         Adding random phase information to given amplitude spectrum.
 
         Parameters
-        ---------
+        ----------
 
         f: array of floats
             Data that random phase is added to.
@@ -70,7 +70,7 @@ class channelGenericNoiseAdder:
         Generating noise of n_samples in a bandwidth [min_freq,max_freq].
 
         Parameters
-        ---------
+        ----------
 
         min_freq: float
             Minimum frequency of passband for noise generation
@@ -98,8 +98,8 @@ class channelGenericNoiseAdder:
             Otherwise the amplitude is interpreted for the bandwidth of min(max_freq, 0.5 * sampling rate) - min_freq
             If `bandwidth` is larger then (min(max_freq, 0.5 * sampling rate) - min_freq) it has the same effect as `None`
 
-        Comments
-        --------
+        Notes
+        -----
         *   Note that by design the max frequency is the Nyquist frequency, even if a bigger max_freq
             is implemented (RL 17-Sept-2018)
 
@@ -180,7 +180,7 @@ class channelGenericNoiseAdder:
         Add noise to given event.
 
         Parameters
-        ---------
+        ----------
 
         event
 

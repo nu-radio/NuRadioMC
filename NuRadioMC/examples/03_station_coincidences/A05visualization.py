@@ -67,7 +67,7 @@ theta  = np.arccos(1. / 1.78)
 
 n_events = len(triggered_near_surface)
 dTs = []
-for iE in np.arange(n_events, dtype=np.int)[np.any(triggered_deep[:, mask], axis=1) & triggered_near_deep]:
+for iE in np.arange(n_events, dtype=int)[np.any(triggered_deep[:, mask], axis=1) & triggered_near_deep]:
     if(iE % 100 == 0):
         print(iE)
     if(plot):

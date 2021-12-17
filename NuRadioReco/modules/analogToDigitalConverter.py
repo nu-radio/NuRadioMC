@@ -25,9 +25,11 @@ def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output=
         ADC: 2**adc_n_bits - 1
     mode: string
         'floor' or 'ceiling'
-    output: string
-        - 'voltage' to store the ADC output as discretised voltage trace
-        - 'counts' to store the ADC output in ADC counts
+    output: {'voltage', 'counts'}, default 'voltage'
+        Options:
+
+        * 'voltage' to store the ADC output as discretised voltage trace
+        * 'counts' to store the ADC output in ADC counts
 
     Returns
     -------
@@ -122,37 +124,41 @@ class analogToDigitalConverter:
     """
     This class simulates an analog to digital converter. The steps followed
     by this module to achieve the conversion are:
-    1) The following properties of the channel are read. They must be in the
-    detector configuration file:
-        - "adc_nbits", the number of bits of the ADC
-        - "adc_reference_voltage", the reference voltage in volts, that is, the
-        maximum voltage the ADC can convert without saturating
-        - "adc_sampling_frequency", the sampling frequency in GHz
-    2) A random clock offset (jitter) can be added, as it would happen in
-    a real experiment. Choose random_clock_offset = True to do so. A time
-    delay can also be fixed if the field "adc_time_delay" is specified in ns.
-    The channel trace is interpolated to get the trace values at the clock
-    times displaced from the channel times. This is fine as long as the input
-    channel traces have been simulated with a sampling rate greater than the
-    ADC sampling rate, which should be the case. Upsampling is also possible,
-    and recommended for phased array simulations.
 
-    IMPORTANT: Upsampling after digitisation is performed by the FPGA, which
-    means that the digitised trace is no longer discretised after being upsampled.
-    The FPGA uses fixed point arithmetic, which in practice can be approximated
-    as floats for our simulation purposes.
+    1) The following properties of the channel are read. They must be in the
+        detector configuration file:
+
+        * "adc_nbits", the number of bits of the ADC
+        * "adc_reference_voltage", the reference voltage in volts, that is, the
+            maximum voltage the ADC can convert without saturating
+        * "adc_sampling_frequency", the sampling frequency in GHz
+
+    2) A random clock offset (jitter) can be added, as it would happen in
+        a real experiment. Choose random_clock_offset = True to do so. A time
+        delay can also be fixed if the field "adc_time_delay" is specified in ns.
+        The channel trace is interpolated to get the trace values at the clock
+        times displaced from the channel times. This is fine as long as the input
+        channel traces have been simulated with a sampling rate greater than the
+        ADC sampling rate, which should be the case. Upsampling is also possible,
+        and recommended for phased array simulations.
+
+        .. Important:: Upsampling after digitisation is performed by the FPGA, which
+            means that the digitised trace is no longer discretised after being upsampled.
+            The FPGA uses fixed point arithmetic, which in practice can be approximated
+            as floats for our simulation purposes.
 
     3) A type of ADC converter is chosen, which transforms the trace in ADC
-    counts (discrete values). The available types are listed in the list
-    _adc_types, which are (see functions with the same names for documentation):
-        - 'perfect_floor_comparator'
-        - 'perfect_ceiling_comparator'
+        counts (discrete values). The available types are listed in the list
+        _adc_types, which are (see functions with the same names for documentation):
+        
+        * 'perfect_floor_comparator'
+        * 'perfect_ceiling_comparator'
 
-    IMPORTANT: Since this module already performs a downsampling, there is no
-    need to use the channelResampler in those channels that possess an ADC. The
-    chosen method for resampling is interpolation, since filtering only the
-    spectrum below half the sampling frequency would eliminate the higher Nyquist
-    zones.
+    .. Important:: Since this module already performs a downsampling, there is no
+        need to use the channelResampler in those channels that possess an ADC. The
+        chosen method for resampling is interpolation, since filtering only the
+        spectrum below half the sampling frequency would eliminate the higher Nyquist
+        zones.
 
     Note that after this module the traces are still expressed in voltage units,
     only the possible values are discretised.
@@ -160,9 +166,10 @@ class analogToDigitalConverter:
     If the ADC is used for triggering and the user does not want to modify the
     trace, the function get_digital_trace can be used. If there are two different
     ADCs for the same channel, one for triggering and another one for storing,
-    one can define a trigger ADC adding "trigger_" to every relevant ADC field
-    in the detector configuration, and use them setting trigger_adc to True in
-    get_digital_trace.
+    one can define a trigger ADC adding `"trigger_"` to every relevant ADC field
+    in the detector configuration, and use them setting `trigger_adc` to True in
+    `get_digital_trace`.
+
     """
 
     def __init__(self):
@@ -197,19 +204,24 @@ class analogToDigitalConverter:
             If supplied, overrides adc_reference_voltage as supplied in the detector description file
         trigger_adc: bool
             If True, the relevant ADC parameters in the config file are the ones
-            that start with 'trigger_'
+            that start with `'trigger_'`
         random_clock_offset: bool
             If True, a random clock offset between -1 and 1 clock cycles is added
         adc_type: string
             The type of ADC used. The following are available:
-            - perfect_floor_comparator
-            - perfect_ceiling_comparator
+
+            * perfect_floor_comparator
+            * perfect_ceiling_comparator
+
             See functions with the same name on this module for documentation
         return_sampling_frequency: bool
             If True, returns the trace and the ADC sampling frequency
         adc_output: string
-            - 'voltage' to store the ADC output as discretised voltage trace
-            - 'counts' to store the ADC output in ADC counts
+            Options:
+
+            * 'voltage' to store the ADC output as discretised voltage trace
+            * 'counts' to store the ADC output in ADC counts
+        
         trigger_filter: array floats
             Freq. domain of the response to be applied to post-ADC traces
             Must be length for "MC freq"
@@ -290,7 +302,7 @@ class analogToDigitalConverter:
             trace = np.fft.irfft(trace_fft * trigger_filter)
 
         # Random clock offset
-        delayed_samples = len(trace) - np.int(np.round(MC_sampling_frequency / adc_sampling_frequency)) - 1
+        delayed_samples = len(trace) - int(np.round(MC_sampling_frequency / adc_sampling_frequency)) - 1
         trace = delay_trace(trace, MC_sampling_frequency, adc_time_delay, delayed_samples)
 
         times = times + 1.0 / adc_sampling_frequency
@@ -353,11 +365,16 @@ class analogToDigitalConverter:
 
         adc_type: string
             The type of ADC used. The following are available:
-            - perfect_floor_comparator
+            
+            * 'perfect_floor_comparator'
+            
             See functions with the same name on this module for documentation
         adc_output: string
-            - 'voltage' to store the ADC output as discretised voltage trace
-            - 'counts' to store the ADC output in ADC counts
+            Options:
+            
+            * 'voltage' to store the ADC output as discretised voltage trace
+            * 'counts' to store the ADC output in ADC counts
+
         upsampling_factor: integer
             Upsampling factor. The digital trace will be a upsampled to a
             sampling frequency int_factor times higher than the original one
