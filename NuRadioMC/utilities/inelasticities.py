@@ -1,6 +1,8 @@
 import numpy as np
 from NuRadioReco.utilities import units
 from scipy import constants
+from scipy import interpolate as intp
+import pickle, lzma
 
 e_mass = constants.physical_constants['electron mass energy equivalent in MeV'][0] * units.MeV
 mu_mass = constants.physical_constants['muon mass energy equivalent in MeV'][0] * units.MeV
@@ -13,8 +15,11 @@ a1_mass = 1230 * units.MeV
 cspeed = constants.c * units.m / units.s
 G_F = constants.physical_constants['Fermi coupling constant'][0] * units.GeV ** (-2)
 
+EE, yy, flavors, ncccs, dsigma_dy = pickle.load(lzma.open("BGR18_dsigma_dy.xz", "br"))
 
-def get_neutrino_inelasticity(n_events, rnd=None):
+
+def get_neutrino_inelasticity(n_events, model="CTW", rnd=None,
+                              nu_energy, flavor=12, nccc="CC"):
     """
     Standard inelasticity for deep inelastic scattering used so far.
     Ported from ShelfMC
@@ -23,6 +28,8 @@ def get_neutrino_inelasticity(n_events, rnd=None):
     ----------
     n_events: int
         Number of events to be returned
+    model: string
+        the inelasticity model to use
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
     Returns
@@ -32,17 +39,28 @@ def get_neutrino_inelasticity(n_events, rnd=None):
     """
     if(rnd is None):
         rnd = np.random.default_rng()
-    R1 = 0.36787944
-    R2 = 0.63212056
-    inelasticities = (-np.log(R1 + rnd.uniform(0., 1., n_events) * R2)) ** 2.5
+    if model == "CTW":
+        R1 = 0.36787944
+        R2 = 0.63212056
+        return (-np.log(R1 + rnd.uniform(0., 1., n_events) * R2)) ** 2.5
+    elif model == "BGR18":
+        iF = flavors[flavor]
+        inccc = ncccs[nccc]
+        iE = np.argmin(np.abs(nu_energy - EE))[0]
+        get_y = intp.interp1d(np.log10(yy), np.log10(dsigma_dy[iF, inccc, iE]), fill_value="extrapolate", kind="cubic")
+        yyy = np.linspace(0, 1, 1000)
+        yyy = 0.5 * (yyy[:-1] + yyy[1:])
+        dsigma_dyy = 10 ** get_y(np.log10(yyy))
 
-    return inelasticities
+        return rnd.choice(yyy, size=n_events, p=dsigma_dyy / np.sum(dsigma_dyy))
 
 
 def get_ccnc(n_events, rnd=None):
     """
     Get the nature of the interaction current: cc or nc
     Ported from Shelf MC
+    https://github.com/persic/ShelfMC/blob/daf56916d85de019e848f415c2e9f4643a744674/functions.cc#L1055-L1064
+    based on CTW cross sections https://link.aps.org/doi/10.1103/PhysRevD.83.113009
 
     Parameters
     ----------
@@ -50,7 +68,7 @@ def get_ccnc(n_events, rnd=None):
         Number of events to be returned
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
-        
+
     Returns
     -------
     ccnc: array
