@@ -295,7 +295,7 @@ class channelGenericNoiseAdder:
 
         noise = self.add_random_phases(ampl, self.precalculated_parameters["n_samples"]) / self.precalculated_parameters["sampling_rate"]
         if(time_domain):
-            return fft.freq2time(noise, sampling_rate, n=self.precalculated_parameters["n_samples"])
+            return fft.freq2time(noise, self.precalculated_parameters["sampling_rate"], n=self.precalculated_parameters["n_samples"])
         else:
             return noise
 
