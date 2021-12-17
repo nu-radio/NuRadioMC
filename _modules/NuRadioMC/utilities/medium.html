@@ -512,6 +512,8 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
 
+<span class="n">logger</span> <span class="o">=</span> <span class="n">medium_base</span><span class="o">.</span><span class="n">logger</span>
+
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">radiopropa</span> <span class="k">as</span> <span class="nn">RP</span>
     <span class="n">radiopropa_is_imported</span> <span class="o">=</span> <span class="kc">True</span>
@@ -674,8 +676,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">medium_base</span><span class="o">.</span><span class="n">radiopropa_is_imported</span><span class="p">:</span>
-            <span class="n">medium_base</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;This ice model depends fully on RadioPropa, which was not import, and can therefore not be used.&#39;</span><span class="o">+</span>
-                                     <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">More info on https://github.com/nu-radio/RadioPropa&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;This ice model depends fully on RadioPropa, which was not import, and can therefore not be used.&#39;</span><span class="o">+</span>
+                         <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">More info on https://github.com/nu-radio/RadioPropa&#39;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;This ice model depends fully on RadioPropa, which could not be imported&#39;</span><span class="p">)</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">3000</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">)</span>
@@ -789,7 +791,7 @@
 <span class="sd">               object of the class with the name of the requested model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">name</span><span class="p">]()</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">medium_base</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.&#39;</span><span class="p">)</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">name</span><span class="p">]()</span></div>

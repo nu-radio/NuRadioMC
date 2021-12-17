@@ -515,15 +515,21 @@
 <span id="nuradiomc-signalprop-propagation-module"></span><h1>NuRadioMC.SignalProp.propagation module<a class="headerlink" href="#module-NuRadioMC.SignalProp.propagation" title="Permalink to this headline"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.propagation.get_propagation_module">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.propagation.</span></span><span class="sig-name descname"><span class="pre">get_propagation_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'analytic'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/propagation.html#get_propagation_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation.get_propagation_module" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.propagation.</span></span><span class="sig-name descname"><span class="pre">get_propagation_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/propagation.html#get_propagation_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation.get_propagation_module" title="Permalink to this definition"></a></dt>
 <dd><p>wrapper around all propagation modules</p>
 <p>The function returns the python class of the 
 respective propagation module</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>name: string</strong></dt><dd><ul class="simple">
-<li><p>analytic: analytic ray tracer</p></li>
+<dt><strong>name: string</strong></dt><dd><p>Which ray tracing module to use. Options are:</p>
+<ul class="simple">
+<li><p>“analytic” : analytic ray tracer. Requires that the index of refraction
+is of an exponential form.</p></li>
+<li><p>“radiopropa” : the RadioPropa numerical ray tracer. Supports an arbitrary 
+index of refraction, but requires that RadioPropa is installed.</p></li>
+<li><p>“direct_ray” : a dummy ray tracer that draws straight lines and 
+ignores refraction. Useful for debugging.</p></li>
 </ul>
 </dd>
 </dl>

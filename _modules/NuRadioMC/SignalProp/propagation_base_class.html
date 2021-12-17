@@ -507,6 +507,9 @@
              
   <h1>Source code for NuRadioMC.SignalProp.propagation_base_class</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp.propagation</span> <span class="kn">import</span> <span class="n">solution_types</span><span class="p">,</span> <span class="n">solution_types_revert</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
 
@@ -514,21 +517,15 @@
 <span class="sd">Structure of a ray-tracing module. For documentation and development purposes.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="n">solution_types</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;direct&#39;</span><span class="p">,</span>
-                  <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;refracted&#39;</span><span class="p">,</span>
-                  <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;reflected&#39;</span><span class="p">}</span>
-
-<span class="n">reflection_case</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;upwards launch vector&#39;</span><span class="p">,</span>
-                  <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;downward launch vector&#39;</span><span class="p">}</span>
-
-
 <div class="viewcode-block" id="ray_tracing_base"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base">[docs]</a><span class="k">class</span> <span class="nc">ray_tracing_base</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    base class of ray tracer. All ray tracing modules need to prodide the following functions</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation_model</span><span class="o">=</span><span class="s2">&quot;SP1&quot;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span>
-                 <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span> 
+                 <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_reflections</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">detector</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        class initilization</span>
 
@@ -551,9 +548,41 @@
 <span class="sd">            the number of frequencies for which the frequency dependent attenuation</span>
 <span class="sd">            length is being calculated. The attenuation length for all other frequencies</span>
 <span class="sd">            is obtained via linear interpolation.</span>
-
+<span class="sd">        n_reflections: int (default 0)</span>
+<span class="sd">            in case of a medium with a reflective layer at the bottom, how many reflections should be considered</span>
+<span class="sd">        config: nested dictionary</span>
+<span class="sd">            loaded yaml config file</span>
+<span class="sd">        detector: detector object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ray_tracing_base&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span> <span class="o">=</span> <span class="n">medium</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attenuation_model</span> <span class="o">=</span> <span class="n">attenuation_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_frequencies_integration</span> <span class="o">=</span> <span class="n">n_frequencies_integration</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">n_reflections</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="p">,</span> <span class="s2">&quot;reflection&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">reflection</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;ray paths with bottom reflections requested medium does not have any reflective layer, setting number of reflections to zero.&quot;</span><span class="p">)</span>
+                <span class="n">n_reflections</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_reflections</span> <span class="o">=</span> <span class="n">n_reflections</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_detector</span> <span class="o">=</span> <span class="n">detector</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_detector_frequency</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detector</span><span class="o">.</span><span class="n">get_station_ids</span><span class="p">():</span>
+                <span class="n">sampling_frequency</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detector</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_detector_frequency</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">sampling_frequency</span> <span class="o">*</span> <span class="mf">.5</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_detector_frequency</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_max_detector_frequency</span> <span class="o">=</span> <span class="n">sampling_frequency</span> <span class="o">*</span> <span class="mf">.5</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="ray_tracing_base.reset_solutions"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.reset_solutions">[docs]</a>    <span class="k">def</span> <span class="nf">reset_solutions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.set_start_and_end_point"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.set_start_and_end_point">[docs]</a>    <span class="k">def</span> <span class="nf">set_start_and_end_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -563,12 +592,20 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        x1: 3D array</span>
-<span class="sd">            Start point of the ray</span>
-<span class="sd">        x2: 3D array</span>
-<span class="sd">            End point of the ray</span>
+<span class="sd">        x1: np.array of shape (3,), default unit</span>
+<span class="sd">            start point of the ray</span>
+<span class="sd">        x2: np.array of shape (3,), default unit </span>
+<span class="sd">            stop point of the ray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_solutions</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_reflections</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">reflection</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">reflection</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;start or stop point is below the reflective bottom layer at </span><span class="si">{:.1f}</span><span class="s2">m&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">reflection</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">))</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;start or stop point is below the reflective bottom layer at </span><span class="si">{:.1f}</span><span class="s2">m&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">reflection</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.use_optional_function"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.use_optional_function">[docs]</a>    <span class="k">def</span> <span class="nf">use_optional_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">function_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -602,25 +639,26 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        find all solutions between x1 and x2</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.has_solution"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.has_solution">[docs]</a>    <span class="k">def</span> <span class="nf">has_solution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        checks if ray tracing solution exists</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span></div>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.get_number_of_solutions"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_number_of_solutions">[docs]</a>    <span class="k">def</span> <span class="nf">get_number_of_solutions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the number of solutions</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__results</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.get_results"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__results</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.get_solution_type"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_solution_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_solution_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; returns the type of the solution</span>
@@ -634,13 +672,10 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        solution_type: int</span>
-
-<span class="sd">            * 1: &#39;direct&#39;</span>
-<span class="sd">            * 2: &#39;refracted&#39;</span>
-<span class="sd">            * 3: &#39;reflected</span>
-<span class="sd">            </span>
+<span class="sd">            integer corresponding to the types in the dictionary solution_types</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.get_path"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">,</span> <span class="n">n_points</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -653,7 +688,8 @@
 <span class="sd">        n_points: int</span>
 <span class="sd">            number of points of path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.get_launch_vector"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_launch_vector">[docs]</a>    <span class="k">def</span> <span class="nf">get_launch_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -670,7 +706,8 @@
 <span class="sd">        launch_vector: 3dim np.array</span>
 <span class="sd">            the launch vector</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.get_receive_vector"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_receive_vector">[docs]</a>    <span class="k">def</span> <span class="nf">get_receive_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -687,7 +724,8 @@
 <span class="sd">        receive_vector: 3dim np.array</span>
 <span class="sd">            the receive vector</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.get_reflection_angle"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_reflection_angle">[docs]</a>    <span class="k">def</span> <span class="nf">get_reflection_angle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -704,7 +742,8 @@
 <span class="sd">        reflection_angle: float or None</span>
 <span class="sd">            the reflection angle (for reflected rays) or None for direct and refracted rays</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.get_path_length"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_path_length">[docs]</a>    <span class="k">def</span> <span class="nf">get_path_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">,</span> <span class="n">analytic</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -724,7 +763,8 @@
 <span class="sd">        distance: float</span>
 <span class="sd">            distance from x1 to x2 along the ray path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.get_travel_time"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_travel_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_travel_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">,</span> <span class="n">analytic</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -744,7 +784,8 @@
 <span class="sd">        time: float</span>
 <span class="sd">            travel time</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.get_attenuation"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_attenuation">[docs]</a>    <span class="k">def</span> <span class="nf">get_attenuation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">,</span> <span class="n">frequency</span><span class="p">,</span> <span class="n">max_detector_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -770,7 +811,8 @@
 <span class="sd">            the fraction of the signal that reaches the observer</span>
 <span class="sd">            (only ice attenuation, the 1/R signal falloff not considered here)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.apply_propagation_effects"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.apply_propagation_effects">[docs]</a>    <span class="k">def</span> <span class="nf">apply_propagation_effects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">efield</span><span class="p">,</span> <span class="n">i_solution</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -789,7 +831,8 @@
 <span class="sd">        efield: ElectricField object</span>
 <span class="sd">            The modified ElectricField object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.get_output_parameters"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_output_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">get_output_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -805,7 +848,8 @@
 <span class="sd">            &#39;name&#39;: Name of the new parameter to include in the data structure</span>
 <span class="sd">            &#39;ndim&#39;: Dimension of the data structure for the parameter</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.get_raytracing_output"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_raytracing_output">[docs]</a>    <span class="k">def</span> <span class="nf">get_raytracing_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_solution</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -821,20 +865,21 @@
 <span class="sd">        dictionary with the keys matching the parameter names specified in get_output_parameters and the values being</span>
 <span class="sd">        the results from the raytracing</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.get_number_of_raytracing_solutions"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_number_of_raytracing_solutions">[docs]</a>    <span class="k">def</span> <span class="nf">get_number_of_raytracing_solutions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function that returns the maximum number of raytracing solutions that can exist between each given</span>
 <span class="sd">        pair of start and end points</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="k">return</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_reflections</span> <span class="c1"># number of possible ray-tracing solutions</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.get_config"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_config">[docs]</a>    <span class="k">def</span> <span class="nf">get_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function that returns the configuration currently used by the raytracer</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span></div>
 
 <div class="viewcode-block" id="ray_tracing_base.set_config"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.set_config">[docs]</a>    <span class="k">def</span> <span class="nf">set_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -844,7 +889,8 @@
 <span class="sd">        ----------</span>
 <span class="sd">        config: dict</span>
 <span class="sd">            The new configuration settings</span>
-<span class="sd">        &quot;&quot;&quot;</span></div></div>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">config</span></div></div>
 </pre></div>
 
            </div>

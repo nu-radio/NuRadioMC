@@ -515,7 +515,7 @@
 <span id="nuradiomc-signalprop-propagation-base-class-module"></span><h1>NuRadioMC.SignalProp.propagation_base_class module<a class="headerlink" href="#module-NuRadioMC.SignalProp.propagation_base_class" title="Permalink to this headline"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.propagation_base_class.</span></span><span class="sig-name descname"><span class="pre">ray_tracing_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SP1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frequencies_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.propagation_base_class.</span></span><span class="sig-name descname"><span class="pre">ray_tracing_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frequencies_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_reflections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>base class of ray tracer. All ray tracing modules need to prodide the following functions</p>
 <p class="rubric">Methods</p>
@@ -586,11 +586,14 @@
 </table>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 60%" />
-<col style="width: 40%" />
+<col style="width: 66%" />
+<col style="width: 34%" />
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><strong>get_results</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>reset_solutions</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -830,11 +833,7 @@ starts at zero</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
-<dt>solution_type: int</dt><dd><ul class="simple">
-<li><p>1: ‘direct’</p></li>
-<li><p>2: ‘refracted’</p></li>
-<li><p>3: ‘reflected</p></li>
-</ul>
+<dt>solution_type: int</dt><dd><p>integer corresponding to the types in the dictionary solution_types</p>
 </dd>
 </dl>
 </dd>
@@ -871,6 +870,11 @@ starts at zero</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.reset_solutions">
+<span class="sig-name descname"><span class="pre">reset_solutions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.reset_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.reset_solutions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.set_config">
 <span class="sig-name descname"><span class="pre">set_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/propagation_base_class.html#ray_tracing_base.set_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.set_config" title="Permalink to this definition"></a></dt>
 <dd><p>Function to change the configuration file used by the raytracer</p>
@@ -893,9 +897,9 @@ confusing them with the current solution</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>x1: 3D array</strong></dt><dd><p>Start point of the ray</p>
+<dt><strong>x1: np.array of shape (3,), default unit</strong></dt><dd><p>start point of the ray</p>
 </dd>
-<dt><strong>x2: 3D array</strong></dt><dd><p>End point of the ray</p>
+<dt><strong>x2: np.array of shape (3,), default unit</strong></dt><dd><p>stop point of the ray</p>
 </dd>
 </dl>
 </dd>

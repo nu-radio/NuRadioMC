@@ -508,7 +508,19 @@
   <h1>Source code for NuRadioMC.SignalProp.propagation</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 
-<div class="viewcode-block" id="get_propagation_module"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation.html#NuRadioMC.SignalProp.propagation.get_propagation_module">[docs]</a><span class="k">def</span> <span class="nf">get_propagation_module</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;analytic&#39;</span><span class="p">):</span>
+<span class="n">solution_types</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;direct&#39;</span><span class="p">,</span>
+                      <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;refracted&#39;</span><span class="p">,</span>
+                      <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;reflected&#39;</span><span class="p">}</span>
+<span class="n">solution_types_revert</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">solution_types</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+<span class="n">available_modules</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;analytic&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;radiopropa&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;direct_ray&#39;</span><span class="p">]</span>
+
+<span class="n">reflection_case</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;upwards launch vector&#39;</span><span class="p">,</span>
+                   <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;downward launch vector&#39;</span><span class="p">}</span>
+
+<div class="viewcode-block" id="get_propagation_module"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation.html#NuRadioMC.SignalProp.propagation.get_propagation_module">[docs]</a><span class="k">def</span> <span class="nf">get_propagation_module</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    wrapper around all propagation modules</span>
 <span class="sd">    </span>
@@ -518,20 +530,33 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    name: string</span>
-<span class="sd">        * analytic: analytic ray tracer</span>
+<span class="sd">        Which ray tracing module to use. Options are:</span>
+
+<span class="sd">        * &quot;analytic&quot; : analytic ray tracer. Requires that the index of refraction</span>
+<span class="sd">          is of an exponential form.</span>
+<span class="sd">        * &quot;radiopropa&quot; : the RadioPropa numerical ray tracer. Supports an arbitrary </span>
+<span class="sd">          index of refraction, but requires that RadioPropa is installed.</span>
+<span class="sd">        * &quot;direct_ray&quot; : a dummy ray tracer that draws straight lines and </span>
+<span class="sd">          ignores refraction. Useful for debugging.</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">name</span><span class="o">==</span><span class="s1">&#39;analytic&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp.propagation_base_class</span> <span class="kn">import</span> <span class="n">ray_tracing_base</span>
+        <span class="k">return</span> <span class="n">ray_tracing_base</span>
+    <span class="k">elif</span><span class="p">(</span><span class="n">name</span><span class="o">==</span><span class="n">available_modules</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
         <span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp.analyticraytracing</span> <span class="kn">import</span> <span class="n">ray_tracing</span>
         <span class="k">return</span> <span class="n">ray_tracing</span>
-    <span class="k">elif</span><span class="p">(</span><span class="n">name</span><span class="o">==</span><span class="s1">&#39;direct_ray&#39;</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp.directRayTracing</span> <span class="kn">import</span> <span class="n">directRayTracing</span>
-        <span class="k">return</span> <span class="n">directRayTracing</span>
-    <span class="k">elif</span><span class="p">(</span><span class="n">name</span><span class="o">==</span><span class="s1">&#39;radiopropa&#39;</span><span class="p">):</span>
+    <span class="k">elif</span><span class="p">(</span><span class="n">name</span><span class="o">==</span><span class="n">available_modules</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+        <span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp.directRayTracing</span> <span class="kn">import</span> <span class="n">direct_ray_tracing</span>
+        <span class="k">return</span> <span class="n">direct_ray_tracing</span>
+    <span class="k">elif</span><span class="p">(</span><span class="n">name</span><span class="o">==</span><span class="n">available_modules</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
         <span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp.radioproparaytracing</span> <span class="kn">import</span> <span class="n">radiopropa_ray_tracing</span>
         <span class="k">return</span> <span class="n">radiopropa_ray_tracing</span>
         
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;module </span><span class="si">{}</span><span class="s2"> not implemented&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span></div>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Module </span><span class="se">\&#39;</span><span class="si">{}</span><span class="se">\&#39;</span><span class="s2"> not implemented. Available modules: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">available_modules</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

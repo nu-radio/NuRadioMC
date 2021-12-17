@@ -541,6 +541,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span> <span class="o">=</span> <span class="n">z_air_boundary</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">z_bottom</span> <span class="o">=</span> <span class="n">z_bottom</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reflection</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reflection_coefficient</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reflection_phase_shift</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="IceModel.add_reflective_bottom"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.add_reflective_bottom">[docs]</a>    <span class="k">def</span> <span class="nf">add_reflective_bottom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">refl_z</span><span class="p">,</span> <span class="n">refl_coef</span><span class="p">,</span> <span class="n">refl_phase_shift</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -628,6 +631,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">radiopropa_is_imported</span><span class="p">:</span>
             <span class="c1"># when implementing a new ice_model this part of the function should be ice model specific</span>
+            <span class="c1"># if the new ice_model cannot be used in RadioPropa, this function should throw an error</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -841,7 +845,7 @@
             <span class="n">bottom_observer</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">boundary_bottom</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span><span class="p">[</span><span class="s2">&quot;bottom observer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bottom_observer</span>
             
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="p">,</span> <span class="s1">&#39;reflection&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="p">,</span> <span class="s1">&#39;reflection&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">reflection</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">reflection_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">reflection</span><span class="p">])</span>
                 <span class="n">bottom_reflection</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">ReflectiveLayer</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">Plane</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">reflection_pos</span><span class="o">*</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">))),</span>
                                                                 <span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
