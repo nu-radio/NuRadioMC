@@ -22,7 +22,7 @@ class channelResampler:
         Begin the channelResampler
 
         Parameters
-        ---------
+        ----------
 
         __debug: bool
             Debug switch
@@ -35,7 +35,7 @@ class channelResampler:
         Run the channelResampler
 
         Parameters
-        ---------
+        ----------
 
         evt, station, det
             Event, Station, Detector

@@ -31,8 +31,8 @@ class voltageToEfieldConverterPerChannel:
 
         Will provide a deconvoluted (electric field) trace for each channel from the stations input voltage traces
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         evt: event data structure
             the event data structure
         station: station data structure
