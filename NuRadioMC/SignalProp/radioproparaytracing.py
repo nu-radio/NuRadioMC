@@ -370,14 +370,14 @@ class radiopropa_ray_tracing(ray_tracing_base):
         Tracer does not work for reflective bottoms or secondary creation at the moment.
         """
         try:
-            x1 = self.__x1  * (radiopropa.meter/units.meter)
-            x2 = self.__x2  * (radiopropa.meter/units.meter)
+            x1 = self._x1  * (radiopropa.meter/units.meter)
+            x2 = self._x2  * (radiopropa.meter/units.meter)
         except TypeError: 
             self.__logger.error('NoneType: start or endpoint not initialized')
             raise TypeError('NoneType: start or endpoint not initialized')
 
       
-        v = (self.__x2-self.__x1)
+        v = (self._x2-self._x1)
         u = copy.deepcopy(v)
         u[2] = 0
         theta_direct, phi_direct = hp.cartesian_to_spherical(*v) ## zenith and azimuth for the direct linear ray solution (radians)
@@ -388,9 +388,9 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
         ##define module list for simulation
         sim = radiopropa.ModuleList()
-        sim.add(radiopropa.PropagationCK(self.__ice_model.get_scalar_field(), 1E-8, .001, 1.)) ## add propagation to module list
-        for module in self.__ice_model.get_modules().values(): sim.add(module)
-        sim.add(radiopropa.MaximumTrajectoryLength(self.__max_traj_length*(radiopropa.meter/units.meter)))
+        sim.add(radiopropa.PropagationCK(self._ice_model.get_scalar_field(), 1E-8, .001, 1.)) ## add propagation to module list
+        for module in self._ice_model.get_modules().values(): sim.add(module)
+        sim.add(radiopropa.MaximumTrajectoryLength(self._max_traj_length*(radiopropa.meter/units.meter)))
 
         ## define observer
         obs2 = radiopropa.Observer()
@@ -422,7 +422,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         def delta_z(theta):
             ray = shoot_ray(theta)
             ray_endpoint = self.get_path_candidate(ray)[-1]
-            return (ray_endpoint-self.__x2)[2]
+            return (ray_endpoint-self._x2)[2]
 
         def delta_z_squared(theta):
             return delta_z(theta)**2
@@ -454,8 +454,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
             elif np.sign(delta_z_plus) != np.sign(delta_z_direct):
                 find_second_root(theta_a = theta_plus, theta_b = theta_direct)
         
-        self.__rays = detected_rays
-        self.__results = [{'reflection':0,'reflection_case':1} for ray in detected_rays]
+        self._rays = detected_rays
+        self._results = [{'reflection':0,'reflection_case':1} for ray in detected_rays]
         self.__used_method = 'minimizer'
 
 
@@ -490,14 +490,14 @@ class radiopropa_ray_tracing(ray_tracing_base):
         results = []
         rays_results = []
         
-        if isinstance(self.__medium, medium_base.IceModelSimple):
-            self.raytracer_minimizer(n_reflections=self.__n_reflections)
+        if isinstance(self._medium, medium_base.IceModelSimple):
+            self.raytracer_minimizer(n_reflections=self._n_reflections)
             results = []
-            for iS in range(len(self.__rays)):
+            for iS in range(len(self._rays)):
                 results.append({'type':self.get_solution_type(iS), 
                                 'reflection':0,
                                 'reflection_case':1})
-            self.__results = results
+            self._results = results
 
         else:
             launch_bundles = self.raytracer_iterative(self._n_reflections)
@@ -786,7 +786,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        path_length = self.__rays[iS].getTrajectoryLength() * (units.meter/radiopropa.meter)
+        path_length = self._rays[iS].getTrajectoryLength() * (units.meter/radiopropa.meter)
         if self.__used_method == 'iterator':
             path_length += self.get_correction_path_length(iS)
         return path_length
@@ -811,7 +811,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        travel_time = self.__rays[iS].getPropagationTime() * (units.second/radiopropa.second)
+        travel_time = self._rays[iS].getPropagationTime() * (units.second/radiopropa.second)
         if self.__used_method == 'iterator':
             travel_time += self.get_correction_travel_time(iS)
         return travel_time
