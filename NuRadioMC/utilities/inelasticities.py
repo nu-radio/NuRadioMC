@@ -4,6 +4,10 @@ from scipy import constants
 from scipy import interpolate as intp
 import pickle
 import lzma
+import logging
+logging.basicConfig()
+logger = logging.getLogger('inelasticities')
+
 
 e_mass = constants.physical_constants['electron mass energy equivalent in MeV'][0] * units.MeV
 mu_mass = constants.physical_constants['muon mass energy equivalent in MeV'][0] * units.MeV
@@ -52,6 +56,8 @@ def get_neutrino_inelasticity(n_events, model="CTW", rnd=None,
         uFlavor = np.unique(flavors)
         uNCCC = np.unique(ncccs)
         for E in uEE:
+            if(E > 10 * units.EeV):
+                logger.warning(f"You are requesting inelasticities for energies outside of the validity of the BGR18 model. You requested {E/units.eV:.2g}eV. Largest available energy is 10EeV, returning result for 10EeV.")
             for flavor in uFlavor:
                 for nccc in uNCCC:
                     mask = (nu_energies == E) & (flavor == flavors) & (nccc == ncccs)
