@@ -4,6 +4,8 @@ from NuRadioReco.utilities import units
 import logging
 logging.basicConfig()
 
+logger = medium_base.logger
+
 try:
     import radiopropa as RP
     radiopropa_is_imported = True
@@ -166,8 +168,8 @@ class greenland_firn(medium_base.IceModel):
         """
 
         if not medium_base.radiopropa_is_imported:
-            medium_base.logger.error('This ice model depends fully on RadioPropa, which was not import, and can therefore not be used.'+
-                                     '\nMore info on https://github.com/nu-radio/RadioPropa')
+            logger.error('This ice model depends fully on RadioPropa, which was not import, and can therefore not be used.'+
+                         '\nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('This ice model depends fully on RadioPropa, which could not be imported')
 
         super().__init__(z_bottom = -3000*units.meter)
@@ -281,7 +283,7 @@ def get_ice_model(name):
                object of the class with the name of the requested model
     """
     if globals()[name]() == None:
-        medium_base.logger.error('The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.')
+        logger.error('The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.')
         raise NotImplementedError('The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.')
     else:
         return globals()[name]()

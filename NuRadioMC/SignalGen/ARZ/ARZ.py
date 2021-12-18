@@ -1191,7 +1191,7 @@ class ARZ_tabulated(object):
         trace2 = np.zeros(N)
         tcenter = N // 2 * dt
         tstart = t0 + tcenter
-        i0 = np.int(np.round(tstart / dt))
+        i0 = int(np.round(tstart / dt))
         trace2[i0:(i0 + len(trace))] = trace
 
         trace2 *= self._library['meta']['R'] / R * rescaling_factor
