@@ -1173,10 +1173,10 @@ class AntennaPattern(AntennaPatternBase):
         else:
             iTheta_lower = np.array(np.floor(
                 (theta - self.theta_lower_bound) / (self.theta_upper_bound - self.theta_lower_bound) * (
-                    self.n_theta - 1)), dtype=np.int)
+                    self.n_theta - 1)), dtype=int)
             iTheta_upper = np.array(np.ceil(
                 (theta - self.theta_lower_bound) / (self.theta_upper_bound - self.theta_lower_bound) * (
-                    self.n_theta - 1)), dtype=np.int)
+                    self.n_theta - 1)), dtype=int)
         theta_lower = self.theta_angles[iTheta_lower]
         theta_upper = self.theta_angles[iTheta_upper]
         if self.phi_upper_bound == self.phi_lower_bound:
@@ -1185,19 +1185,19 @@ class AntennaPattern(AntennaPatternBase):
         else:
             iPhi_lower = np.array(np.floor(
                 (phi - self.phi_lower_bound) / (self.phi_upper_bound - self.phi_lower_bound) * (self.n_phi - 1)),
-                dtype=np.int)
+                dtype=int)
             iPhi_upper = np.array(np.ceil(
                 (phi - self.phi_lower_bound) / (self.phi_upper_bound - self.phi_lower_bound) * (self.n_phi - 1)),
-                dtype=np.int)
+                dtype=int)
         phi_lower = self.phi_angles[iPhi_lower]
         phi_upper = self.phi_angles[iPhi_upper]
 
         iFrequency_lower = np.array(np.floor(
             (freq - self.frequency_lower_bound) / (self.frequency_upper_bound - self.frequency_lower_bound) * (
-                self.n_freqs - 1)), dtype=np.int)
+                self.n_freqs - 1)), dtype=int)
         iFrequency_upper = np.array(np.ceil(
             (freq - self.frequency_lower_bound) / (self.frequency_upper_bound - self.frequency_lower_bound) * (
-                self.n_freqs - 1)), dtype=np.int)
+                self.n_freqs - 1)), dtype=int)
         # handling frequency out of bound cases properly
         out_of_bound_freqs_low = freq < self.frequency_lower_bound
         out_of_bound_freqs_high = freq > self.frequency_upper_bound

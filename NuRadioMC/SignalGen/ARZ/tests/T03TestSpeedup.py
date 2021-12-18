@@ -21,7 +21,7 @@ rho = 0.924 * units.g / units.cm ** 3  # density g cm^-3
 if __name__ == "__main__":
     T=100 * units.ns
     dt = 0.1*units.ns
-    N = np.int(np.round(T/dt))
+    N = int(np.round(T/dt))
     tt = np.arange(0, dt*N, dt)
     n_index = 1.78
     theta = np.arccos(1./n_index)

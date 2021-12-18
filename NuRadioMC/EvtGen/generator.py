@@ -594,7 +594,7 @@ def intersection_box_ray(bounds, ray):
     orig = np.array(ray[0])
     direction = np.array(ray[1])
     invdir = 1 / direction
-    sign = np.zeros(3, dtype=np.int)
+    sign = np.zeros(3, dtype=int)
     sign[0] = (invdir[0] < 0)
     sign[1] = (invdir[1] < 0)
     sign[2] = (invdir[2] < 0)
@@ -885,8 +885,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         # zenith directions are distruted as sin(theta) (to make the distribution istotropic) * cos(theta) (to account for the projection onto the surface)
         data_sets["zeniths"] = np.arcsin(rnd.uniform(np.sin(thetamin) ** 2, np.sin(thetamax) ** 2, n_events_batch) ** 0.5)
 
-        data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch, dtype=np.int) + start_event_id
-        data_sets["n_interaction"] = np.ones(n_events_batch, dtype=np.int)
+        data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch, dtype=int) + start_event_id
+        data_sets["n_interaction"] = np.ones(n_events_batch, dtype=int)
         data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=np.float)
 
         # generate neutrino flavors randomly
@@ -997,7 +997,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         data_sets_fiducial['flavors'] = np.array([14])
         data_sets_fiducial['shower_energies'] = np.array([0])
 
-    data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=np.int)
+    data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=int)
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
     logger.status(f"finished in {pretty_time_delta(time.time() - t_start)}")
     return None
@@ -1216,7 +1216,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         logger.debug("generating event ids")
         data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch) + start_event_id
         logger.debug("generating number of interactions")
-        data_sets["n_interaction"] = np.ones(n_events_batch, dtype=np.int)
+        data_sets["n_interaction"] = np.ones(n_events_batch, dtype=int)
         data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=np.float)
 
         # generate neutrino flavors randomly
@@ -1260,7 +1260,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         for key in data_sets:  # transform datatype to list so that inserting elements is faster
             data_sets[key] = list(data_sets[key])
         n_inserted = 0
-        for i in np.arange(n_events_batch, dtype=np.int)[em_shower_mask]:  # loop over all events where an EM shower needs to be inserted
+        for i in np.arange(n_events_batch, dtype=int)[em_shower_mask]:  # loop over all events where an EM shower needs to be inserted
             for key in data_sets:
                 data_sets[key].insert(i + 1 + n_inserted, data_sets[key][i + n_inserted])  # copy event
             data_sets['shower_energies'][i + 1 + n_inserted] = (1 - data_sets['inelasticity'][i + 1 + n_inserted]) * data_sets['energies'][i + 1 + n_inserted]
@@ -1383,7 +1383,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     logger.info(f"number of fiducial showers {len(data_sets_fiducial['xx'])}")
 
     # assign every shower a unique id
-    data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=np.int)
+    data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=int)
     # make the event group ids consecutive, this is useful if secondary interactions are simulated where many of the
     # initially generated neutrinos don't end up in the fiducial volume
     data_sets_fiducial['event_group_ids'] = np.asarray(data_sets_fiducial['event_group_ids'])
