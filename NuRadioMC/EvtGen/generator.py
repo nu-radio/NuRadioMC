@@ -1236,7 +1236,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
         # generate inelasticity
         logger.debug("generating inelasticities")
-        data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(n_events_batch, rnd=rnd)
+        data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(n_events_batch, rnd=rnd,
+                                                                             model="BGR18",
+                                                                             nu_energies=data_sets["energies"],
+                                                                             flavors=data_sets["flavors"],
+                                                                             ncccs=data_sets["interaction_type"])
 
         if deposited:
             data_sets["energies"] = [primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity) \
