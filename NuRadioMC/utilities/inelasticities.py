@@ -3,6 +3,7 @@ from NuRadioReco.utilities import units
 from scipy import constants
 from scipy import interpolate as intp
 import pickle
+import os
 import lzma
 import logging
 logging.basicConfig()
@@ -20,7 +21,7 @@ a1_mass = 1230 * units.MeV
 cspeed = constants.c * units.m / units.s
 G_F = constants.physical_constants['Fermi coupling constant'][0] * units.GeV ** (-2)
 
-nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = pickle.load(lzma.open("BGR18_dsigma_dy.xz"))
+nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = pickle.load(lzma.open(os.path.join(os.path.dirname(__file__), "data", "BGR18_dsigma_dy.xz")))
 ncccs_ref = np.array(ncccs_ref)
 
 
