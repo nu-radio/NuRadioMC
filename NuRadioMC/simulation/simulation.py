@@ -249,6 +249,10 @@ class simulation():
             self._fin = inputfilename[0]
             self._fin_attrs = inputfilename[1]
             self._fin_stations = {}
+            self._generator_info = {}
+            for enum_entry in genattrs:
+                if enum_entry.name in self._fin_attrs:
+                    self._generator_info[enum_entry] = self._fin_attrs[enum_entry.name]
 
         # check if the input file contains events, if not save empty output file (for book keeping) and terminate simulation
         if(len(self._fin['xx']) == 0):
