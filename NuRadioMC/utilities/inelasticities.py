@@ -2,7 +2,8 @@ import numpy as np
 from NuRadioReco.utilities import units
 from scipy import constants
 from scipy import interpolate as intp
-import pickle, lzma
+import pickle
+import lzma
 
 e_mass = constants.physical_constants['electron mass energy equivalent in MeV'][0] * units.MeV
 mu_mass = constants.physical_constants['muon mass energy equivalent in MeV'][0] * units.MeV
@@ -15,11 +16,12 @@ a1_mass = 1230 * units.MeV
 cspeed = constants.c * units.m / units.s
 G_F = constants.physical_constants['Fermi coupling constant'][0] * units.GeV ** (-2)
 
-EE, yy, flavors, ncccs, dsigma_dy = pickle.load(lzma.open("BGR18_dsigma_dy.xz", "br"))
+nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = pickle.load(lzma.open("BGR18_dsigma_dy.xz"))
+ncccs_ref = np.array(ncccs_ref)
 
 
 def get_neutrino_inelasticity(n_events, model="CTW", rnd=None,
-                              nu_energy, flavor=12, nccc="CC"):
+                              nu_energies=1 * units.EeV, flavors=12, ncccs="CC"):
     """
     Standard inelasticity for deep inelastic scattering used so far.
     Ported from ShelfMC
@@ -43,16 +45,30 @@ def get_neutrino_inelasticity(n_events, model="CTW", rnd=None,
         R1 = 0.36787944
         R2 = 0.63212056
         return (-np.log(R1 + rnd.uniform(0., 1., n_events) * R2)) ** 2.5
-    elif model == "BGR18":
-        iF = flavors[flavor]
-        inccc = ncccs[nccc]
-        iE = np.argmin(np.abs(nu_energy - EE))[0]
-        get_y = intp.interp1d(np.log10(yy), np.log10(dsigma_dy[iF, inccc, iE]), fill_value="extrapolate", kind="cubic")
-        yyy = np.linspace(0, 1, 1000)
-        yyy = 0.5 * (yyy[:-1] + yyy[1:])
-        dsigma_dyy = 10 ** get_y(np.log10(yyy))
 
-        return rnd.choice(yyy, size=n_events, p=dsigma_dyy / np.sum(dsigma_dyy))
+    if model == "BGR18":
+        yy = np.zeros(n_events)
+        uEE = np.unique(nu_energies)
+        uFlavor = np.unique(flavors)
+        uNCCC = np.unique(ncccs)
+        for E in uEE:
+            for flavor in uFlavor:
+                for nccc in uNCCC:
+                    mask = (nu_energies == E) & (flavor == flavors) & (nccc == ncccs)
+                    nccc = nccc.upper()
+                    iF = np.argwhere(flavors_ref == flavor)[0][0]
+                    inccc = np.argwhere(ncccs_ref == nccc)[0][0]
+                    iE = np.argmin(np.abs(E - nu_energies_ref))
+                    print(f"{iF} {flavor}, {iE} {E}, {inccc} {nccc}")
+                    get_y = intp.interp1d(np.log10(yy_ref), np.log10(dsigma_dy_ref[iF, inccc, iE]), fill_value="extrapolate", kind="cubic")
+                    yyy = np.linspace(0, 1, 1000)
+                    yyy = 0.5 * (yyy[:-1] + yyy[1:])
+                    dsigma_dyy = 10 ** get_y(np.log10(yyy))
+
+                    yy[mask] = rnd.choice(yyy, size=np.sum(mask), p=dsigma_dyy / np.sum(dsigma_dyy))
+        return yy
+    else:
+        raise AttributeError(f"inelasticity model {model} is not implemented.")
 
 
 def get_ccnc(n_events, rnd=None):
