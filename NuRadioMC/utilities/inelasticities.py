@@ -46,6 +46,7 @@ def get_neutrino_inelasticity(n_events, model="CTW", rnd=None,
     if(rnd is None):
         rnd = np.random.default_rng()
     if model == "CTW":
+        # based on shelfmc
         R1 = 0.36787944
         R2 = 0.63212056
         return (-np.log(R1 + rnd.uniform(0., 1., n_events) * R2)) ** 2.5
