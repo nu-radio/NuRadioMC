@@ -18,17 +18,17 @@ trigger_effective_area = np.array(data['trigger_effective_area'])
 trigger_effective_area_err = np.array(data['trigger_effective_area_err'])
 trigger_weight = np.array(data['triggered_trigger_weight'])
 
-### chose only some energy and zenith bins for plotting
-choosen_energy_bins = [0, -1]
-choosen_zenith_bins = [0, 8]
+### choose only some energy and zenith bins for plotting
+chosen_energy_bins = [0, -1]
+chosen_zenith_bins = [0, 8]
 
-trigger_effective_area = trigger_effective_area[choosen_energy_bins[0]:choosen_energy_bins[1],choosen_zenith_bins[0]:choosen_zenith_bins[1]]
-trigger_effective_area_err = trigger_effective_area_err[choosen_energy_bins[0]:choosen_energy_bins[1],choosen_zenith_bins[0]:choosen_zenith_bins[1]]
-trigger_weight = trigger_weight[choosen_energy_bins[0]:choosen_energy_bins[1],choosen_zenith_bins[0]:choosen_zenith_bins[1]]
-energy_bins_low = energy_bins_low[choosen_energy_bins[0]:choosen_energy_bins[1]]
-energy_bins_high = energy_bins_high[choosen_energy_bins[0]:choosen_energy_bins[1]]
-zenith_bins_low = zenith_bins_low[choosen_zenith_bins[0]:choosen_zenith_bins[1]]
-zenith_bins_high = zenith_bins_high[choosen_zenith_bins[0]:choosen_zenith_bins[1]]
+trigger_effective_area = trigger_effective_area[chosen_energy_bins[0]:chosen_energy_bins[1],chosen_zenith_bins[0]:chosen_zenith_bins[1]]
+trigger_effective_area_err = trigger_effective_area_err[chosen_energy_bins[0]:chosen_energy_bins[1],chosen_zenith_bins[0]:chosen_zenith_bins[1]]
+trigger_weight = trigger_weight[chosen_energy_bins[0]:chosen_energy_bins[1],chosen_zenith_bins[0]:chosen_zenith_bins[1]]
+energy_bins_low = energy_bins_low[chosen_energy_bins[0]:chosen_energy_bins[1]]
+energy_bins_high = energy_bins_high[chosen_energy_bins[0]:chosen_energy_bins[1]]
+zenith_bins_low = zenith_bins_low[chosen_zenith_bins[0]:chosen_zenith_bins[1]]
+zenith_bins_high = zenith_bins_high[chosen_zenith_bins[0]:chosen_zenith_bins[1]]
 
 steradian = []
 weight_det = []
@@ -43,21 +43,21 @@ for zenith_start, zenith_stop in zip(zenith_bins_low, zenith_bins_high):
 # effective area of det for zenith intervals
 aeff_det_zenith = trigger_effective_area * weight_det # sum over all zenith bins to get number of cr for each energy bin
 total_aeff_det = np.nansum(aeff_det_zenith, axis=1)
-aeff_det_zenith_err = np.sqrt(trigger_effective_area_err**2 * (np.array(weight_det))**2)
-total_aeff_det_err = np.sqrt(np.nansum(np.array(aeff_det_zenith_err**2), axis=1))
+aeff_det_zenith_err = trigger_effective_area_err * np.array(weight_det))
+total_aeff_det_err = np.sqrt(np.nansum(aeff_det_zenith_err**2, axis=1))
 
 # effective area of det for zenith intervals * sr
 aeff_det_zenith_sr = trigger_effective_area * weight_det * steradian
 total_aeff_det_sr = np.nansum(aeff_det_zenith_sr, axis=1)
-aeff_det_zenith_sr_err = np.sqrt(trigger_effective_area_err**2 * (np.array(weight_det) * np.array(steradian))**2)
+aeff_det_zenith_sr_err = trigger_effective_area_err * np.array(weight_det) * np.array(steradian)
 total_aeff_det_sr_err = np.sqrt(np.nansum(np.array(aeff_det_zenith_sr_err**2), axis=1))
 
 zen = zenith_bins_high - zenith_bins_low
 
 # plot effective area as function of zenith
 fig1, (ax1, ax2) = plt.subplots(1, 2)
+ax1.errorbar(energy_bins_low, total_aeff_det/units.km**2, yerr=total_aeff_det_err/units.km**2, marker='x')
 for it in range(len(energy_bins_low)):
-    ax1.errorbar(energy_bins_low, total_aeff_det/units.km**2, yerr=total_aeff_det_err/units.km**2, marker='x')
     ax2.errorbar(zen, ((aeff_det_zenith[it,:])/units.km**2), yerr=((aeff_det_zenith_err[it,:]))/units.km**2, marker= 'x', label=r'Energy {:.2e}, total = ({:.2f} $\pm$ {:.2f}) $km^2$'.format(energy_bins_low[it], float(total_aeff_det[it]/units.km**2), float(total_aeff_det_err[it]/units.km**2)))
 ax1.set_xlabel('Energy [eV]', fontsize=18)
 ax1.set_ylabel(r'Effective area $[km^2]$', fontsize=18)

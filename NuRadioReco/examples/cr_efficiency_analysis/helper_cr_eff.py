@@ -21,25 +21,6 @@ class NumpyEncoder(json.JSONEncoder):
             return obj.tolist()
         return json.JSONEncoder.default(self, obj)
 
-
-def find_nearest(array, value):
-    """ function to find the nearest value in an array to a given value
-    Parameters
-    ----------
-    array: array
-        array in which a certain value needs to be found
-    value: float
-        value to which the closest value should be calulcated
-
-    Returns
-    -------
-    closest value in array to given value
-    """
-    array = np.asarray(array)
-    idx = (np.abs(array - value)).argmin()
-    return array[idx]
-
-
 def calculate_thermal_noise_Vrms(T_noise, T_noise_max_freq, T_noise_min_freq):
     """ calculates thermal noise amplitude for a given temperature and frequency range.
     Parameters
