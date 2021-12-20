@@ -86,14 +86,37 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             logger.warning("DeprecationWarning: replace default_station by setting a\
                             'reference_station' for each station in the detector descriptopin.\
                             This allows to define multiple default station types")
+            # fill default station info into 'reference_station' field for all stations in detector
+            for sta in self._stations.all():
+                if 'reference_station' in sta.keys():
+                    logger.warning(f"station already has a reference station {sta['reference_station']}. Ignoring 'default_station'")
+                else:
+                    logger.warning(f"Setting deprecated 'default_station' as reference station ({sta['reference_station']}) as requested")
+                    sta["reference_station"] = default_station
+
         if default_channel is not None:
             logger.warning("DeprecationWarning: replace default_channel by setting a\
                             'reference_channel' for each channel in the detector description..\
                             This allows to define multiple default channel types")
+            # fill default channel info into 'reference_channel' field for all channels in detector
+            for chan in self._channels.all():
+                if 'reference_channel' in chan.keys():
+                    logger.warning(f"channel already has a reference channel {chan['reference_channel']}. Ignoring 'default_channel'")
+                else:
+                    logger.warning(f"Setting deprecated 'default_channel' as reference channel ({chan['reference_channel']}) as requested")
+                    chan["reference_channel"] = default_channel
+
         if default_device is not None:
             logger.warning("DeprecationWarning: replace default_device by setting a\
                             'reference_device' for each device in the detector description.\
                             This allows to define multiple default device types")
+            # fill default device info into 'reference_device' field for all devices in detector
+            for dev in self._devices.all():
+                if 'reference_device' in dev.keys():
+                    logger.warning(f"device already has a reference device {dev['reference_device']}. Ignoring 'default_device'")
+                else:
+                    logger.warning(f"Setting deprecated 'default_device' as reference device ({dev['reference_device']}) as requested")
+                    dev["reference_device"] = default_device
 
         self.__default_station_id = default_station #the generic default station if it is set
         self.__default_channel_id = default_channel
