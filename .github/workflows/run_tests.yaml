@@ -29,8 +29,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         export GSLDIR=$(gsl-config --prefix)
-        if [ -f NuRadioMC/test/requirements.txt ]; then pip install -r NuRadioMC/test/requirements.txt; fi
-        export PYTHONPATH=$PWD:$PYTHONPATH
+        python install_dev.py --install --no-interactive
+        pip uninstall numba -y # easiest way to test ARZ without numba
+        export PYTHONPATH=$(pwd):$PYTHONPATH
         
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
@@ -42,30 +43,30 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: "Single event test (South Pole)"
       run: |
-        export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
+        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/SingleEvents/test_build.sh
     - name: Single event test (Moore's Bay)
       run: |
-        export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
+        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/SingleEvents/validate_MB.sh
     - name: Single event test (ARZ)
       run: |
-        export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
+        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/SingleEvents/validate_ARZ.sh
     - name: Test Numba version of ARZ
       run: |
-        export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
+        export PYTHONPATH=$(pwd):$PYTHONPATH
         pip install numba
         NuRadioMC/test/SingleEvents/validate_ARZ.sh
     - name: Signal generation test
       run : |
-          export PYTHONPATH=$PWD:$PYTHONPATH
-          export GSLDIR=$(gsl-config --prefix)
-          NuRadioMC/test/SignalGen/test_build.sh
+        export GSLDIR=$(gsl-config --prefix)
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        NuRadioMC/test/SignalGen/test_build.sh
     - name: "Signal propagation tests"
       run: |
          export PYTHONPATH=$PWD:$PYTHONPATH
@@ -78,15 +79,14 @@ jobs:
          python NuRadioMC/SignalProp/examples/ray_tracing_modules.py
     - name: "Test Veff example"
       run: |
-        export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
-        pip install proposal==6.1.6
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        python install_dev.py --dev proposal --no-interactive
         NuRadioMC/test/examples/test_veff_example.sh
     - name: "Test calibration pulser example"
       run: |
-        export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
-        pip install proposal==6.1.6
+        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/examples/test_emitter_example.sh
     - name: "Test radio emitter pulser example"
       run: |
@@ -95,38 +95,36 @@ jobs:
         NuRadioMC/test/examples/test_radio_emitting_pulser_example.sh
     - name: "Test webinar examples"
       run: |
-        export PYTHONPATH=$PWD:$PYTHONPATH
-        export GSLDIR=$(gsl-config --prefix)
-        pip install proposal==6.1.6
+        export GSLDIR=$(gsl-config --prefix) 
+        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/examples/test_webinar.sh
     - name: "Veff test"
       run: |
-        export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
+        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/Veff/1e18eV/test_build.sh
     - name: "Veff test with noise and phased array"
       run: |
-        export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
+        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/Veff/1e18eV/test_build_noise.sh
     - name: "Atmospheric Aeff test" 
       run: |
-        pip install proposal==6.1.6
-        export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
+        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/atmospheric_Aeff/1e18eV/test_build.sh
     - name: "Tiny reconstrucution"
       run: |
-        export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
+        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioReco/test/tiny_reconstruction/testTinyReconstruction.sh
     - name: "Trigger tests"
       run: |
-        export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
+        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioReco/test/trigger_tests/run_trigger_test.sh
     - name: "Test all examples"
       run: |
-        export PYTHONPATH=$PWD:$PYTHONPATH
         export GSLDIR=$(gsl-config --prefix)
+        export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioReco/test/test_examples.sh

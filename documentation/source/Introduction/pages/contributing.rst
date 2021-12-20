@@ -13,13 +13,6 @@ Workflow
 --------------
 If you find an issue or bug in NuRadioMC, please `create an issue on GitHub <https://github.com/nu-radio/NuRadioMC/issues>`_.
 If you want to contribute to NuRadioMC, please provide your code addition in a new branch and `make a pull request <https://github.com/nu-radio/NuRadioMC/pulls>`_. 
-Your pull request may only be merged if
-
-* It succesfully completes the tests. These are implemented to make sure that previous working code does not break,
-  the new code is correctly documented, and NuRadioMC can still be built.
-* One of the core developers has approved your pull request. **Please wait at least 24 hours to merge your pull request,
-  even if it has been approved, so that other developers may also have a look - they might find something the first reviewer
-  missed!**
 
 We loosely follow the git flow model. A detailed tutorial is given  `here <https://jeffkreeftmeijer.com/git-flow/>`_.
 A short summary is provided below.
@@ -33,15 +26,18 @@ A short summary is provided below.
     
     When merging hotfixes into both develop and master, make sure the changelog & version number are correct for both!
 
-Example workflow
-----------------
 To start developing a new feature or hotfix, first create a new branch:
 
 .. code-block:: Python
 
-  git checkout develop # for a hotfix that should be merged into master also, 
-  git pull             # create the new branch from 'master' instead
+  git checkout develop 
+  git pull             
   git checkout -b feature/my_new_feature # creates a new branch
+
+.. Note::
+
+  If you are writing a **hotfix**, which should also be merged into ``master``,
+  replace the first line by ``git checkout master``
 
 Now code can be written, fixed, committed and pushed to git as normally (**exception**: for your first
 push to the git repository, you need to include ``--set-upstream``, as the branch initially only exists
@@ -50,12 +46,21 @@ on your local machine). Once you are ready for your code to be merged into ``dev
 
 Before you make a pull request, make that your code:
 
-* is correct - it fixes bugs, not introduces more of them!
-* is clearly documented - functions should have correctly written docstrings, and comments where appropriate.
-* is reflected both in the **changelog** and by an appropriate update of the **version number**.
+* is correct - it should fix bugs, not introduce more of them!
+* is clearly documented - functions should have 
+  :ref:`correctly written docstrings <Introduction/pages/contributing:Writing docstrings>`
+  , and comments where appropriate.
+* is reflected both in the **changelog** and by an appropriate update of the
+  :ref:`version number <Introduction/pages/contributing:Update the version number / dependencies>`.
 
-As mentioned above, your code can only be merged once one of the core developers has **approved your pull request**. 
-Please allow 24 hours between approval and merging to allow for additional comments.
+You will only be able to merge your pull request once:
+
+* It succesfully completes the `tests <https://github.com/nu-radio/NuRadioMC/actions/workflows/run_tests.yaml>`_. 
+  These will run automatically each time you push to the repository, and are implemented to check that your code
+  does not break anything, the new code is correctly documented, and NuRadioMC can still be built.
+* One of the core developers has approved your pull request. **Please wait at least 24 hours to merge your pull request,
+  even if it has been approved, so that other developers may also have a look - they might find something the first reviewer
+  missed!**
 
 Coding conventions
 ------------------
@@ -126,15 +131,24 @@ Briefly, this means a docstring should look like this:
 
 Please only use docstrings sections allowed by `numpydoc <https://numpydoc.readthedocs.io/en/latest/format.html>`_. The most useful ones are 
 the short + (optional) extended summary, ``Parameters``, ``Returns``, ``Yields``,  ``See Also``, ``Notes``, ``Examples``. 
-Section titles should always be underlined with (at least) the same number of hyphens ``-`` as characters, as in the above example.
+Section titles should always be underlined with (at least) the same number of hyphens ``-``
+as the length of the section title, as in the above example.
 
 Docstrings, as well as the rest of the documentation, are written in `reStructuredText <https://docutils.sourceforge.io/rst.html>`_. 
-Please consult this link for correct syntax. 
+Please consult this link for correct syntax. Some of the basics are also summarized in the 
+:ref:`Writing additional documentation <Introduction/pages/contributing:Writing additional documentation>` section below.
 
 Update the version number / dependencies
 ________________________________________
 ``NuRadioMC`` is built and published using `poetry <https://python-poetry.org/docs/pyproject/>`_. To update the current version number, 
-open the ``pyproject.toml`` file in the top directory, and update ``version`` under ``[tool.poetry]``. 
+open the ``pyproject.toml`` file in the NuRadioMC root directory, and update ``version`` under ``[tool.poetry]``:
+
+.. code-block::
+
+  [tool.poetry]
+  name = "NuRadioMC"
+  version = "2.1.0"
+
 We use `semantic versioning <https://semver.org/>`_, i.e. MAJOR.MINOR.PATCH.
 Dependencies are also maintained in ``pyproject.toml``. To update the dependencies:
 
@@ -142,7 +156,8 @@ Dependencies are also maintained in ``pyproject.toml``. To update the dependenci
   Then add your dependency (e.g. ``numpy``)
   
   .. code-block::
-
+    
+    [tool.poetry.dependencies]
     numpy = "1.21.1"
   
   under ``[tool.poetry.dependencies]``. Acceptable version specifications are ``"4.1.1"`` (4.1.1 only), 
@@ -239,10 +254,12 @@ For internal links (e.g. to other parts of the documentation), we prefer
 instead. These depend on what is being linked to:
 
 * For another page in the documentation, use ``:doc:``. E.g. ``:doc:`introduction </Introduction/pages/introduction>``` renders as
-  :doc:`introduction </Introduction/pages/introduction>`. 
+  :doc:`introduction </Introduction/pages/introduction>`. Use a leading ``/`` to use paths starting from 
+  the root ``documentation/source`` directory.
 * One can reference a specific subsection instead by using ``:ref:`` and appending ``:Section title``. E.g.
-  ``:ref:`Lists </Introduction/pages/contributing:Lists>``` links to the previous paragraph: 
-  :ref:`Lists <Introduction/pages/contributing:Lists>`.
+  ``:ref:`this paragraph <Introduction/pages/contributing:Links and cross-references>``` links to
+  :ref:`this paragraph <Introduction/pages/contributing:Links and cross-references>`. Note that there is **no**
+  leading ``/`` in this case!
 * Finally, one can refer to python modules, classes, functions etc. by using ``:mod:``, ``:class:``, ``:func:``
   respectively. The name of the function follows the same logic as in Python, e.g.
   ``:class:`base trace class <NuRadioReco.framework.base_trace>``` refers to the NuRadioReco 

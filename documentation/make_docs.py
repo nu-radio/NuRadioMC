@@ -184,9 +184,12 @@ if __name__ == "__main__":
     elif len(other_errs):
         logger.warning((
             "make_docs found some errors but doesn't know what to do with them.\n"
-            "The documentation will not be rejected, but consider fixing the following anyway:"
+            "The documentation may not be rejected, but consider fixing the following anyway:"
             ))
         print('\n'.join(other_errs))
+
+    if sphinx_log.returncode:
+        logger.error("The documentation failed to build, make_docs will raise an error.")
 
     if parsed_args.debug:
         logger.info('Logging output under {}'.format(logfile))
@@ -202,5 +205,5 @@ if __name__ == "__main__":
             file.write('[other]\n')
             file.write('\n'.join(other_errs))
     
-    if fixable_errors:
+    if fixable_errors or sphinx_log.returncode:
         sys.exit(1)
