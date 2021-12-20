@@ -19,6 +19,7 @@
 #
 import os
 import sys
+import fnmatch
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../..'))
 
@@ -36,7 +37,7 @@ extensions = [
     # 'autoapi.extension',
     'numpydoc',
     'sphinx.ext.intersphinx',
-    'sphinx.ext.coverage',
+    # 'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
@@ -217,6 +218,25 @@ autosectionlabel_prefix_document = True
 # Don't make toctrees for class methods (doesn't seem to work with apidoc)
 numpydoc_class_members_toctree = False
 
-autodoc_mock_imports = ['ROOT', 'mysql-python', 'pygdsm', 'MySQLdb']
+# 
+# coverage_ignore_modules
+
+
+autodoc_mock_imports = [
+    'ROOT', 'mysql-python', 'pygdsm', 'MySQLdb', 'healpy', 'scripts',
+    'uproot', 'proposal', 'radiopropa', 'plotly', 'past'
+    ]
 # Raise warnings if any cross-references are broken
 nitpicky = True
+
+# def skip_modules(app, what, name, obj, skip, options):
+#     if skip: # we ignore anything autodoc is configured to ignore
+#         return skip
+#     exclusions = [
+#         '[/\]setup', '[ET][0-9][0-9]*'
+#     ]
+#     # print(name, what)
+#     return any([fnmatch.fnmatch(name, pat) for pat in exclusions])
+
+# def setup(app):
+#     app.connect('autodoc-skip-member', skip_modules)
