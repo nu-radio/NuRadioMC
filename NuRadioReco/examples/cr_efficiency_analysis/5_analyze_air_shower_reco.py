@@ -39,9 +39,9 @@ parser.add_argument('--number_of_sta_in_evt', type=int, nargs='?',
                     default=72, help='number of stations in one event')
 
 args = parser.parse_args()
-energy_bins = args.energy_bins
-zenith_bins = args.zenith_bins
-distance_bins = args.distance_bins
+energy_binning = args.energy_binning
+zenith_binning = args.zenith_binning
+distance_binning = args.distance_binning
 number_of_sta_in_evt = args.number_of_sta_in_evt
 
 # the entries of this list are defined in the input argument energy_bins.
