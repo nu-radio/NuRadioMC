@@ -247,22 +247,22 @@ class greenland_firn(medium_base.IceModel):
         return self._scalarfield.getGradient(pos) * (1 / (units.meter/RP.meter))
 
     
-    def get_ice_model_radiopropa(self):
+    def compute_default_ice_model_radiopropa(self):
         """
-        Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
-        that define the medium in radiopropa. It uses the parameters of the medium object to 
-        contruct some modules, like a discontinuity object for the air boundary. Additional modules
-        can be added in this function
+        Computes a default object holding the radiopropa scalarfield and necessary radiopropa 
+        moduldes that define the medium in radiopropa. It uses the parameters of the medium 
+        object to contruct some modules, like a discontinuity object for the air boundary. 
+        Additional modules can be added in this function
         
         Overwrites function of the mother class
 
         Returns
         -------
-        ice:    RadioPropaIceWrapper
-                object holding the radiopropa scalarfield and modules
+        ice_model_radiopropa:   RadioPropaIceWrapper
+                                object holding the radiopropa scalarfield and modules
         """
-        ice = medium_base.RadioPropaIceWrapper(self, self._scalarfield)
-        return ice
+        self._ice_model_radiopropa = medium_base.RadioPropaIceWrapper(self, self._scalarfield)
+        return self._ice_model_radiopropa
 
 class greenland_perturbation(greenland_firn):
     def __init__(self):
@@ -287,7 +287,6 @@ class uniform_ice(medium_base.IceModelSimple):
             z_0 = 1*units.meter, 
             delta_n = 0,
             )
-
 
 def get_ice_model(name):
     """
