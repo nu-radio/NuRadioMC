@@ -535,7 +535,9 @@
     <span class="n">ndf_efield_time_direction_fit</span> <span class="o">=</span> <span class="mi">27</span>  <span class="c1"># the number of degrees of freedom of the direction fitter that used the maximum pulse times of the efields</span>
     <span class="n">cr_xmax</span> <span class="o">=</span> <span class="mi">28</span>  <span class="c1"># Depth of shower maximum of the air shower</span>
     <span class="n">vertex_2D_fit</span> <span class="o">=</span> <span class="mi">29</span>  <span class="c1"># horizontal distance and z coordinate of the reconstructed vertex of the neutrino</span>
-    <span class="n">distance_correlations</span> <span class="o">=</span> <span class="mi">30</span></div>
+    <span class="n">distance_correlations</span> <span class="o">=</span> <span class="mi">30</span>
+    <span class="n">shower_energy</span> <span class="o">=</span> <span class="mi">31</span> <span class="c1"># the energy of the shower </span>
+    <span class="n">viewing_angles</span> <span class="o">=</span> <span class="mi">32</span> <span class="c1"># reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float</span></div>
 
 
 <div class="viewcode-block" id="channelParameters"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.channelParameters">[docs]</a><span class="k">class</span> <span class="nc">channelParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
