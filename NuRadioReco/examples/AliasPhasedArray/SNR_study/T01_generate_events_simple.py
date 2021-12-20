@@ -58,12 +58,12 @@ data_sets["zeniths"] = np.arccos(np.random.uniform(np.cos(thetamax), np.cos(thet
 data_sets["azimuths"] = np.random.uniform(phimin, phimax, n_events)
 data_sets["event_group_ids"] = np.arange(n_events)
 data_sets["shower_ids"] = np.arange(n_events)
-data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
+data_sets["n_interaction"] = np.ones(n_events, dtype=int)
 data_sets["vertex_times"] = np.zeros(n_events, dtype=np.float)
-data_sets["flavors"] = np.ones(n_events, dtype=np.int) * flavor
-data_sets["energies"] = np.ones(n_events, dtype=np.int) * energy
+data_sets["flavors"] = np.ones(n_events, dtype=int) * flavor
+data_sets["energies"] = np.ones(n_events, dtype=int) * energy
 data_sets["interaction_type"] = ['cc'] * n_events
-data_sets["inelasticity"] = np.ones(n_events, dtype=np.int) * inelasticity
+data_sets["inelasticity"] = np.ones(n_events, dtype=int) * inelasticity
 data_sets["shower_type"] = ['had'] * n_events
 data_sets["shower_energies"] = data_sets['energies'] * data_sets["inelasticity"]
 

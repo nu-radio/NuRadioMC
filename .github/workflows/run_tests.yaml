@@ -69,9 +69,14 @@ jobs:
         NuRadioMC/test/SignalGen/test_build.sh
     - name: "Signal propagation tests"
       run: |
-        export GSLDIR=$(gsl-config --prefix)
-        export PYTHONPATH=$(pwd):$PYTHONPATH
-        NuRadioMC/test/SignalProp/run_signal_test.sh
+         export PYTHONPATH=$PWD:$PYTHONPATH
+         export GSLDIR=$(gsl-config --prefix)
+         NuRadioMC/test/SignalProp/run_signal_test.sh
+    - name: "Test ray tracing modules"
+      run: |
+         export PYTHONPATH=$PWD:$PYTHONPATH
+         export GSLDIR=$(gsl-config --prefix)
+         python NuRadioMC/SignalProp/examples/ray_tracing_modules.py
     - name: "Test Veff example"
       run: |
         export GSLDIR=$(gsl-config --prefix)
@@ -82,7 +87,12 @@ jobs:
       run: |
         export GSLDIR=$(gsl-config --prefix)
         export PYTHONPATH=$(pwd):$PYTHONPATH
-        NuRadioMC/test/examples/test_cal_pulser_example.sh
+        NuRadioMC/test/examples/test_emitter_example.sh
+    - name: "Test radio emitter pulser example"
+      run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
+        export GSLDIR=$(gsl-config --prefix)
+        NuRadioMC/test/examples/test_radio_emitting_pulser_example.sh
     - name: "Test webinar examples"
       run: |
         export GSLDIR=$(gsl-config --prefix) 
