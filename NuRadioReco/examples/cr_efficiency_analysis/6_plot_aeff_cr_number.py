@@ -2,7 +2,7 @@ import numpy as np
 import json
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units
-import helper_cr_eff as hcr
+import NuRadioReco.utilities.cr_flux as hcr
 
 filename = 'results/air_shower/dict_air_shower_pb_80_180_e7_z9_d2_4000.json'
 
@@ -43,7 +43,7 @@ for zenith_start, zenith_stop in zip(zenith_bins_low, zenith_bins_high):
 # effective area of det for zenith intervals
 aeff_det_zenith = trigger_effective_area * weight_det # sum over all zenith bins to get number of cr for each energy bin
 total_aeff_det = np.nansum(aeff_det_zenith, axis=1)
-aeff_det_zenith_err = trigger_effective_area_err * np.array(weight_det))
+aeff_det_zenith_err = trigger_effective_area_err * np.array(weight_det)
 total_aeff_det_err = np.sqrt(np.nansum(aeff_det_zenith_err**2, axis=1))
 
 # effective area of det for zenith intervals * sr
@@ -77,7 +77,7 @@ plt.close()
 # plot number of cr as function of zenith
 fig2, (ax3, ax4) = plt.subplots(1, 2)
 for it in range(len(energy_bins_low)):
-    auger_flux_int = hcr.get_auger_flux_per_energy_bin(energy_bins_low[it], energy_bins_high[it])
+    auger_flux_int = hcr.get_flux_per_energy_bin(np.log10(energy_bins_low[it]), np.log10(energy_bins_high[it]))
     num_cr = np.array(aeff_det_zenith_sr[it, :]) * auger_flux_int/units.second * 86400
     num_cr_err = np.sqrt((np.array(aeff_det_zenith_sr_err[it, :]) ** 2 * (auger_flux_int/units.second * 86400) ** 2))
 

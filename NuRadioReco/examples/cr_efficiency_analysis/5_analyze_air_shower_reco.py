@@ -53,7 +53,7 @@ logger.info(f"Use energy bins {energy_bins} eV")
 
 # the entries of this list are defined in the input argument zenith_bins.
 # [0] is the start value, [1] is the stop value, [2] is step size
-zenith_bins = np.arange(zenith_binning[0], zenith_binning[1], zenith_binning[2]) * zenith_binning.deg
+zenith_bins = np.arange(zenith_binning[0], zenith_binning[1], zenith_binning[2]) * units.deg
 zenith_bins_low = zenith_bins[0:-1]
 zenith_bins_high = zenith_bins[1:]
 logger.info(f"Use zenith bins {zenith_bins/units.deg} deg")
@@ -251,7 +251,7 @@ output_file = 'dict_air_shower_e{}_z{}_d{}_{}.json'.format(
         len(energy_bins_low),
         len(zenith_bins_low),
         len(distance_bins_low),
-        max(distance_bins))
+        max(distance_binning))
 
 with open(os.path.join(out_dir, output_file), 'w') as outfile:
     json.dump(dic, outfile, cls=hcr.NumpyEncoder, indent=4)
