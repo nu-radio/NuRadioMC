@@ -11,7 +11,7 @@ def get_time_delay_from_direction(zenith, azimuth, positions, n=1.000293):
     Calculate the time delay between given positions for an arrival direction
 
     Parameters
-    ---------
+    ----------
 
     zenith: float [rad]
         Zenith angle in convention up = 0
@@ -118,6 +118,8 @@ def get_fresnel_t_p(zenith_incoming, n_2=1.3, n_1=1.):
     of the incoming radiation."
     """
     zenith_outgoing = get_fresnel_angle(zenith_incoming, n_2, n_1)
+    if(zenith_outgoing is None):    #check for total internal reflection
+        return 0
     t = 2 * n_1 * np.cos(zenith_incoming) / (n_1 * np.cos(zenith_outgoing) + n_2 * np.cos(zenith_incoming))
     return t
 
@@ -133,6 +135,8 @@ def get_fresnel_t_s(zenith_incoming, n_2=1.3, n_1=1.):
     of the incoming radiation."
     """
     zenith_outgoing = get_fresnel_angle(zenith_incoming, n_2, n_1)
+    if(zenith_outgoing is None):    #check for total internal reflection
+        return 0
     t = 2 * n_1 * np.cos(zenith_incoming) / (n_1 * np.cos(zenith_incoming) + n_2 * np.cos(zenith_outgoing))
     return t
 

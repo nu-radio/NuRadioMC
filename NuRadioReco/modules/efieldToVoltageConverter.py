@@ -21,6 +21,7 @@ class efieldToVoltageConverter():
     convolve the electric field with the corresponding antenna response for the
     incoming direction specified in the channel object.
     The station id, defines antenna location and antenna type.
+
     """
 
     def __init__(self, log_level=logging.WARNING):
@@ -50,13 +51,15 @@ class efieldToVoltageConverter():
             enable/disable debug mode (default: False -> no debug output)
         uncertainty: dictionary (default: {})
             optional argument to specify systematic uncertainties. currently supported keys
+             
              * 'sys_dx': systematic uncertainty of x position of antenna
              * 'sys_dy': systematic uncertainty of y position of antenna
              * 'sys_dz': systematic uncertainty of z position of antenna
-            * 'sys_amp': systematic uncertainty of the amplifier aplification,
-                         specify value as relative difference of linear gain
-            * 'amp': statistical uncertainty of the amplifier aplification,
-                     specify value as relative difference of linear gain
+             * 'sys_amp': systematic uncertainty of the amplifier aplification,
+                specify value as relative difference of linear gain
+             * 'amp': statistical uncertainty of the amplifier aplification,
+                specify value as relative difference of linear gain
+
         time_resolution: float
             time resolution of shifting pulse times
         pre_pulse_time: float
