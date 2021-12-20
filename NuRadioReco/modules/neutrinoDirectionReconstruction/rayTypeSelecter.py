@@ -83,7 +83,7 @@ class rayTypeSelecter:
                     if (len(template) < len(station.get_channel(0).get_trace())): template = np.pad(template, (0, abs(len(station.get_channel(0).get_trace()) - len(template))))
             corr_total = np.zeros(len(scipy.signal.correlate(station.get_channel(0).get_trace(), template)))
             for channel in station.iter_channels():
-                if channel.get_id() in use_channels: # if channel in phased array
+                   # channel = station.get_channel(channelid) # if channel in phased array
                     channel_id = channel.get_id()
                     x2 = det.get_relative_position(station_id, channel_id) + det.get_absolute_position(station_id)
                     r = prop( ice, 'GL1')
@@ -97,8 +97,8 @@ class rayTypeSelecter:
                            if channel_id == use_channels[0]: T_ref[iS] = T
       #
                            dt = T - T_ref[iS]
-                           dn_samples = dt * sampling_rate
-                           dn_samples = math.ceil(-1*dn_samples)
+                           dn_samples = -1*dt * sampling_rate
+                           dn_samples = math.ceil(dn_samples)
                            cp_trace = np.copy(channel.get_trace())
                            cp_times= np.copy(channel.get_times())
                     
@@ -117,13 +117,14 @@ class rayTypeSelecter:
                            corr_total += abs(corr)
                            dt = np.argmax(corr) - (len(corr)/2) +1
                            template_roll = np.roll(template, int(dt))
-                           pos_max[raytype-1] = np.argmax(template_roll) ## position of pulse
+                           #pos_max[raytype-1] = np.argmax(abs(template_roll) )## position of pulse
                            if channel_id == use_channels[0]: ## position for reference pulse
                                 position_max_totaltrace = np.argmax(template_roll)
                            cp_trace[np.arange(len(cp_trace)) < (position_max_totaltrace - 20 * sampling_rate)] = 0
                            cp_trace[np.arange(len(cp_trace)) > (position_max_totaltrace + 30 * sampling_rate)] = 0
                            trace = np.roll(cp_trace, dn_samples)
                            total_trace += trace
+                           pos_max[raytype-1] = np.argmax(abs(total_trace))
                            if debug_plots: axs[iax].plot(trace, color = 'darkgrey', lw =2)
                            if debug_plots: 
                                if channel_id == use_channels[-1]:
@@ -165,8 +166,12 @@ class rayTypeSelecter:
         reconstructed_raytype = ['direct', 'refracted', 'reflected'][np.argmax(max_totalcorr)]
         print("reconstructed raytype:", reconstructed_raytype)
         station.set_parameter(stnp.raytype, reconstructed_raytype)
-       
+      
+        print("max_totalcorr", max_totalcorr)
+        print("pos_mas", pos_max)
         position_pulse = pos_max[np.argmax(max_totalcorr)]
+        print("position pulse", position_pulse)
+        #print("time position pulse", station.get_channel(use_channels[0]).get_times()[position_pulse]) 
         station.set_parameter(stnp.pulse_position, position_pulse)
 
 
@@ -186,6 +191,7 @@ class rayTypeSelecter:
                 T_reference = r.get_travel_time(iS) 
                 
         for ich, channel in enumerate(station.iter_channels()):
+           # channel = station.get_channel(channelid)
             channel_id = channel.get_id()
             x2 = det.get_relative_position(station_id, channel_id) + det.get_absolute_position(station_id)
             r = prop( ice, 'GL1')
@@ -207,8 +213,8 @@ class rayTypeSelecter:
                         receive_vector = r.get_receive_vector(iS)
                         receive_zenith, receive_azimuth = hp.cartesian_to_spherical(*receive_vector)
                         channel.set_parameter(chp.signal_receiving_zenith, receive_zenith)
-                        channel.set_parameter(chp.signal_receiving_azimuth, receive_azimuth)	
-
+                        channel.set_parameter(chp.signal_receiving_azimuth, receive_azimuth)
+                        #print("zenith", channel[chp.signal_receiving_zenith])#print("channel id", channel_id)
                 ### figuring out the time offset for specfic trace
                 k = int(position_pulse + delta_toffset )
                 pulse_window = channel.get_trace()[k-300: k + 500]

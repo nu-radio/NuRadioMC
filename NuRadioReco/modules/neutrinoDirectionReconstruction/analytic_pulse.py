@@ -88,9 +88,10 @@ class simulation():
 					pickle.dump(self._templates, f)
 		return 
 	
-	def begin(self, det, station, use_channels, raytypesolution = False, ch_Vpol = None):
+	def begin(self, det, station, use_channels, raytypesolution = False, ch_Vpol = None, ch_Hpol = None):
 		""" initialize filter and amplifier """
 		self._ch_Vpol = ch_Vpol
+		self._ch_Hpol = ch_Hpol
 		sim_to_data = True
 		self._raytypesolution= raytypesolution
 		channl = station.get_channel(use_channels[0])
@@ -140,7 +141,7 @@ class simulation():
 		cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["launch vector"]))
 		return cs.transform_from_ground_to_onsky(polarization_direction)
 	
-	def simulation(self, det, station, vertex_x, vertex_y, vertex_z, nu_zenith, nu_azimuth, energy, use_channels, fit = 'seperate', first_iter = False, model = 'Alvarez2009', starting_values = False):
+	def simulation(self, det, station, vertex_x, vertex_y, vertex_z, nu_zenith, nu_azimuth, energy, use_channels, fit = 'seperate', first_iter = False, model = 'Alvarez2009', starting_values = False, pol_angle = None):
 		ice = medium.get_ice_model('greenland_simple')
 		prop = propagation.get_propagation_module('analytic')
 		attenuate_ice = True
@@ -185,7 +186,7 @@ class simulation():
 			x1 = vertex
 
 			for channel_id in use_channels:
-                                
+				#print("channel id", channel_id)                                 
 				raytracing[channel_id] = {}
 				x2 = det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id())
 				r = prop( ice, 'GL1')
@@ -268,6 +269,7 @@ class simulation():
 
 				# apply frequency dependent attenuation
 				viewingangles[ich,i_s] = viewing_angle
+			#	print("channel id {} viewing angle {}".format(channel_id, viewingangles[ich,i_s]))
 				if attenuate_ice:
 					spectrum *= raytracing[channel_id][iS]["attenuation"]
 					
@@ -277,11 +279,23 @@ class simulation():
 				
 					cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["receive vector"]))
 					polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
+					#print("polarization direction at antenna", hp.cartesian_to_spherical(*polarization_direction_at_antenna))
 					logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
 						raytracing[channel_id][iS]["zenith"] / units.deg, raytracing[channel_id][iS]["azimuth"] / units.deg, polarization_direction_onsky[0],
 						polarization_direction_onsky[1], polarization_direction_onsky[2],
 						*polarization_direction_at_antenna))
-				eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
+				#eR, eTheta, ePhi = [0,0,0]
+				if not starting_values:
+					eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
+				if starting_values:
+					if 0:#channel_id == self._ch_Vpol:
+						eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
+						#ePhi =             
+					if 1:#channel_id == self._ch_Hpol:
+			#			print("A", np.tan(pol_angle))
+						eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
+						ePhi = np.sqrt(np.tan(pol_angle)) * ePhi              
+				#print('max E {}, channel id {}'.format( [np.max(abs(eTheta)), np.max(abs(ePhi))], channel_id))
 			
 		
 				if channel_id == self._ch_Vpol:
@@ -311,7 +325,14 @@ class simulation():
 				
                 #### get antenna respons for direction
 				
-				efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, self._ff, [channel_id], det, raytracing[channel_id][iS]["zenith"],  raytracing[channel_id][iS]["azimuth"], self.antenna_provider)
+				if starting_values:
+					zen = raytracing[channel_id][iS]["zenith"]
+					az = raytracing[channel_id][iS]["azimuth"]
+				else:
+					zen = raytracing[channel_id][iS]["zenith"]
+					az = raytracing[channel_id][iS]["azimuth"]
+			#	print("zen = ", raytracing[channel_id][iS]["zenith"])
+				efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, self._ff, [channel_id], det, zen,  az, self.antenna_provider)
 				
                 ### convolve efield with antenna reponse
 				if starting_values: analytic_trace_fft = np.sum(efield_antenna_factor[0] * np.array([spectrum,np.zeros(len(spectrum))]), axis = 0)
@@ -326,13 +347,35 @@ class simulation():
 				analytic_trace_fft *= self._amp[channel_id]
 
 				analytic_trace_fft[0] = 0
+				#self._A = 1
+
+                                
+				#if starting_values:
+					#print("starting values", starting_values)
+				#	if channel_id == self._ch_Hpol:
+				#		pol_angle  = pol_angle# at antenna
+				#		self._A = np.tan(pol_angle) #A_theta / A_phi
+				#		print("A", self._A) 
+                                               
+				#		traces[channel_id][iS] = (np.max(abs(traces[self._ch_Vpol][iS]))  /self._A)*  np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), -500)
+#(np.max(abs(traces[self._ch_Vpol][iS]))  /self._A)
+				#	else:
+
+				#		traces[channel_id][iS] =  np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), -500)
+				if 1:#not starting_values:
+                                       # fig = plt.figure()
+                                       
+					traces[channel_id][iS] =  np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), -500)
+                                                
+						#eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
                          
 		#### filter becuase of amplifier response
 				#analytic_trace_fft *= self._f
 #				analytic_trace_fft *= self._h
                 ### store traces
 				## rotate trace such that 
-				traces[channel_id][iS] = np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), -500)
+				#print("trace", traces[self._ch_Vpol][iS])
+			#	if not starting_values: traces[channel_id][iS] =  np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), -500)
                 ### store timing
 				timing[channel_id][iS] =raytracing[channel_id][iS]["travel time"]
 				raytype[channel_id][iS] = raytracing[channel_id][iS]["raytype"]

@@ -40,6 +40,9 @@ class stationParameters(Enum):
     area_sim = 40
     area_rec = 41
     channels_pulses = 42
+    planewave_zenith = 43
+    planewave_azimuth = 44
+  
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
     azimuth = 2  # azimuth angle of the incoming signal direction

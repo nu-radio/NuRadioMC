@@ -164,7 +164,7 @@ class planeWaveFitterRNOG:
 
         if debug: print("Likelihood simulation", likelihood([signal_zenith, signal_azimuth], sim = True))
   
-        ll = opt.brute(likelihood, ranges=(slice(zen_start, zen_end, 0.01), slice(az_start, az_end, 0.01)), finish = opt.fmin)
+        ll = opt.brute(likelihood, ranges=(slice(zen_start, zen_end, 0.005), slice(az_start, az_end, 0.005)), finish = opt.fmin)
         rec_zenith = ll[0]
         rec_azimuth = ll[1]
 
@@ -195,8 +195,8 @@ class planeWaveFitterRNOG:
         print("simulated zenith {} and reconstructed zenith {}".format(np.rad2deg(signal_zenith), np.rad2deg(rec_zenith)))
         print("simulated azimuth {} and reconstructed azimuth {}".format(np.rad2deg(signal_azimuth), np.rad2deg(rec_azimuth)))
 
-        station[stnp.nu_zenith] = signal_zenith
-        station[stnp.nu_azimuth] = signal_azimuth
+        station[stnp.planewave_zenith] = rec_zenith
+        station[stnp.planewave_azimuth] = rec_azimuth
    
 
 
