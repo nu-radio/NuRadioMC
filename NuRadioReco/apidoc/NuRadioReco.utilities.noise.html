@@ -512,6 +512,88 @@
              
   <section id="module-NuRadioReco.utilities.noise">
 <span id="nuradioreco-utilities-noise-module"></span><h1>NuRadioReco.utilities.noise module<a class="headerlink" href="#module-NuRadioReco.utilities.noise" title="Permalink to this headline"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.noise.rolled_sum_roll">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.noise.</span></span><span class="sig-name descname"><span class="pre">rolled_sum_roll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rolling</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#rolled_sum_roll"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.rolled_sum_roll" title="Permalink to this definition"></a></dt>
+<dd><p>calculates rolled sum via np.roll</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>traces: list</strong></dt><dd><p>list containing 1D traces</p>
+</dd>
+<dt><strong>rolling: list</strong></dt><dd><p>list of offsets per trace for rolling</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>sumtr: np.array</dt><dd><p>1D array of summed traces</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.noise.rolled_sum_slicing">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.noise.</span></span><span class="sig-name descname"><span class="pre">rolled_sum_slicing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rolling</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#rolled_sum_slicing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.rolled_sum_slicing" title="Permalink to this definition"></a></dt>
+<dd><p>calculates rolled sum via slicing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>traces: list</strong></dt><dd><p>list containing 1D traces</p>
+</dd>
+<dt><strong>rolling: list</strong></dt><dd><p>list of offsets per trace for rolling</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>sumtr: np.array</dt><dd><p>1D array of summed traces</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.noise.rolled_sum_take">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.noise.</span></span><span class="sig-name descname"><span class="pre">rolled_sum_take</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rolling_indices</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#rolled_sum_take"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.rolled_sum_take" title="Permalink to this definition"></a></dt>
+<dd><p>calculates rolled sum via np.take</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>traces: list</strong></dt><dd><p>list containing 1D traces</p>
+</dd>
+<dt><strong>rolling_indices: list</strong></dt><dd><p>list of pre-calculated 1D index arrays for rolled sum</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>sumtr: np.array</dt><dd><p>1D array of summed traces</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.noise.rolling_indices">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.noise.</span></span><span class="sig-name descname"><span class="pre">rolling_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rolling</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#rolling_indices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.rolling_indices" title="Permalink to this definition"></a></dt>
+<dd><p>pre calculates rolling index array for rolled sum via take</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>traces: list</strong></dt><dd><p>list containing (at least one) 1D trace</p>
+</dd>
+<dt><strong>rolling: list</strong></dt><dd><p>list of offsets per trace for rolling</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.noise.thermalNoiseGenerator">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.noise.</span></span><span class="sig-name descname"><span class="pre">thermalNoiseGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_coincidence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_majority</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_coincidence_majority</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rayleigh'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#thermalNoiseGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.thermalNoiseGenerator" title="Permalink to this definition"></a></dt>
@@ -531,6 +613,51 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.noise.thermalNoiseGenerator.generate_noise">
 <span class="sig-name descname"><span class="pre">generate_noise</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#thermalNoiseGenerator.generate_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.thermalNoiseGenerator.generate_noise" title="Permalink to this definition"></a></dt>
+<dd><p>generates noise traces for all channels that will cause a high/low majority logic trigger</p>
+<p>Returns np.array of shape (n_channels, n_samples)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.noise.</span></span><span class="sig-name descname"><span class="pre">thermalNoiseGeneratorPhasedArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">detector_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rayleigh'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#thermalNoiseGeneratorPhasedArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p class="rubric">Methods</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise" title="NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_noise</span></code></a>([debug])</p></td>
+<td><p>generates noise traces for all channels that will cause a high/low majority logic trigger</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise2" title="NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_noise2</span></code></a>([debug])</p></td>
+<td><p>generates noise traces for all channels that will cause a high/low majority logic trigger</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise_optimised" title="NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise_optimised"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_noise_optimised</span></code></a>([debug])</p></td>
+<td><p>generates noise traces for all channels that will cause a high/low majority logic trigger</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise">
+<span class="sig-name descname"><span class="pre">generate_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#thermalNoiseGeneratorPhasedArray.generate_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise" title="Permalink to this definition"></a></dt>
+<dd><p>generates noise traces for all channels that will cause a high/low majority logic trigger</p>
+<p>Returns np.array of shape (n_channels, n_samples)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise2">
+<span class="sig-name descname"><span class="pre">generate_noise2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#thermalNoiseGeneratorPhasedArray.generate_noise2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise2" title="Permalink to this definition"></a></dt>
+<dd><p>generates noise traces for all channels that will cause a high/low majority logic trigger</p>
+<p>Returns np.array of shape (n_channels, n_samples)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise_optimised">
+<span class="sig-name descname"><span class="pre">generate_noise_optimised</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#thermalNoiseGeneratorPhasedArray.generate_noise_optimised"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise_optimised" title="Permalink to this definition"></a></dt>
 <dd><p>generates noise traces for all channels that will cause a high/low majority logic trigger</p>
 <p>Returns np.array of shape (n_channels, n_samples)</p>
 </dd></dl>

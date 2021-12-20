@@ -509,6 +509,109 @@
 <span class="kn">from</span> <span class="nn">NuRadioReco.modules</span> <span class="kn">import</span> <span class="n">channelGenericNoiseAdder</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.modules.trigger.highLowThreshold</span> <span class="kn">import</span> <span class="n">get_high_low_triggers</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.detector</span> <span class="kn">import</span> <span class="n">detector</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+
+<div class="viewcode-block" id="rolled_sum_roll"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolled_sum_roll">[docs]</a><span class="k">def</span> <span class="nf">rolled_sum_roll</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    calculates rolled sum via np.roll</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    traces: list</span>
+<span class="sd">        list containing 1D traces</span>
+<span class="sd">    rolling: list</span>
+<span class="sd">        list of offsets per trace for rolling</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sumtr: np.array</span>
+<span class="sd">        1D array of summed traces</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># assume first trace always has no rolling</span>
+    <span class="n">sumtr</span> <span class="o">=</span> <span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">traces</span><span class="p">)):</span>
+        <span class="n">sumtr</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">traces</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">rolling</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">sumtr</span></div>
+
+<div class="viewcode-block" id="rolling_indices"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolling_indices">[docs]</a><span class="k">def</span> <span class="nf">rolling_indices</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    pre calculates rolling index array for rolled sum via take</span>
+<span class="sd">  </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    traces: list</span>
+<span class="sd">        list containing (at least one) 1D trace</span>
+<span class="sd">    rolling: list</span>
+<span class="sd">        list of offsets per trace for rolling</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">rolling_indices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="k">for</span> <span class="n">roll</span> <span class="ow">in</span> <span class="n">rolling</span><span class="p">:</span>
+        <span class="n">rolling_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">roll</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rolling_indices</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="rolled_sum_take"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolled_sum_take">[docs]</a><span class="k">def</span> <span class="nf">rolled_sum_take</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling_indices</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    calculates rolled sum via np.take</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    traces: list</span>
+<span class="sd">        list containing 1D traces</span>
+<span class="sd">    rolling_indices: list</span>
+<span class="sd">        list of pre-calculated 1D index arrays for rolled sum</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sumtr: np.array</span>
+<span class="sd">        1D array of summed traces</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># assume first trace always has no rolling</span>
+    <span class="n">sumtr</span> <span class="o">=</span> <span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">traces</span><span class="p">)):</span>
+        <span class="n">sumtr</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">traces</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">rolling_indices</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">sumtr</span></div>
+
+<div class="viewcode-block" id="rolled_sum_slicing"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolled_sum_slicing">[docs]</a><span class="k">def</span> <span class="nf">rolled_sum_slicing</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    calculates rolled sum via slicing</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    traces: list</span>
+<span class="sd">        list containing 1D traces</span>
+<span class="sd">    rolling: list</span>
+<span class="sd">        list of offsets per trace for rolling</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sumtr: np.array</span>
+<span class="sd">        1D array of summed traces</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># assume first trace always has no rolling</span>
+    <span class="n">sumtr</span> <span class="o">=</span> <span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">traces</span><span class="p">)):</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">rolling</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sumtr</span><span class="p">[:</span><span class="o">-</span><span class="n">r</span><span class="p">]</span> <span class="o">+=</span> <span class="n">traces</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">r</span><span class="p">:]</span>
+            <span class="n">sumtr</span><span class="p">[</span><span class="o">-</span><span class="n">r</span><span class="p">:]</span> <span class="o">+=</span> <span class="n">traces</span><span class="p">[</span><span class="n">i</span><span class="p">][:</span><span class="n">r</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sumtr</span><span class="p">[:</span><span class="n">r</span><span class="p">]</span> <span class="o">+=</span> <span class="n">traces</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="n">r</span><span class="p">:]</span>
+            <span class="n">sumtr</span><span class="p">[</span><span class="n">r</span><span class="p">:]</span> <span class="o">+=</span> <span class="n">traces</span><span class="p">[</span><span class="n">i</span><span class="p">][:</span><span class="o">-</span><span class="n">r</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sumtr</span> <span class="o">+=</span> <span class="n">traces</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">sumtr</span></div>
+
+
 
 
 <div class="viewcode-block" id="thermalNoiseGenerator"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGenerator">[docs]</a><span class="k">class</span> <span class="nc">thermalNoiseGenerator</span><span class="p">():</span>
@@ -568,7 +671,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">trigger_bin_low</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">trigger_time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_coincidence_majority</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapz</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filt</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_freq</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_freq</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="o">**</span><span class="mf">0.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_freq</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_freq</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">**</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">noise</span> <span class="o">=</span> <span class="n">channelGenericNoiseAdder</span><span class="o">.</span><span class="n">channelGenericNoiseAdder</span><span class="p">()</span>
 
@@ -607,6 +710,394 @@
                 <span class="n">spec</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filt</span>
                 <span class="n">traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">traces</span></div></div>
+
+
+<span class="kn">from</span> <span class="nn">NuRadioReco.modules.analogToDigitalConverter</span> <span class="kn">import</span> <span class="n">perfect_floor_comparator</span>
+
+
+<div class="viewcode-block" id="thermalNoiseGeneratorPhasedArray"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray">[docs]</a><span class="k">class</span> <span class="nc">thermalNoiseGeneratorPhasedArray</span><span class="p">():</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detector_filename</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">,</span>
+                 <span class="n">Vrms</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">ref_index</span><span class="p">,</span>
+                 <span class="n">noise_type</span><span class="o">=</span><span class="s2">&quot;rayleigh&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Efficient algorithms to generate thermal noise fluctuations that fulfill a phased array trigger</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        detector_filename: string</span>
+<span class="sd">            the filename to the detector description</span>
+<span class="sd">        station_id: int</span>
+<span class="sd">            the station id of the station from the detector file</span>
+<span class="sd">        triggered_channels: array of ints</span>
+<span class="sd">            list of channel ids that are part of the trigger</span>
+<span class="sd">        Vrms: float</span>
+<span class="sd">            the RMS noise</span>
+<span class="sd">        threshold: float</span>
+<span class="sd">            the trigger threshold (assuming a symmetric high and low threshold)</span>
+<span class="sd">        trigger_time: float</span>
+<span class="sd">            the trigger time (time when the trigger completes)</span>
+<span class="sd">        filt: array of floats</span>
+<span class="sd">            the filter that should be applied after noise generation (needs to match frequency binning)</span>
+<span class="sd">        noise_type: string</span>
+<span class="sd">            the type of the noise, can be</span>
+<span class="sd">            * &quot;rayleigh&quot; (default)</span>
+<span class="sd">            * &quot;noise&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">det</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="n">json_filename</span><span class="o">=</span><span class="n">detector_filename</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2018</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># assuming same settings for all channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">det_channel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adc_n_bits</span> <span class="o">=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">&quot;adc_nbits&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adc_noise_n_bits</span> <span class="o">=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">&quot;adc_noise_nbits&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">triggered_channels</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">triggered_channels</span> <span class="o">=</span> <span class="n">triggered_channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ant_z</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">triggered_channels</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ant_z</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">ref_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fromiter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ant_z</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+        <span class="c1"># Need to add in delay for trigger delay</span>
+        <span class="n">cable_delays</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">triggered_channels</span><span class="p">:</span>
+            <span class="n">cable_delays</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="o">.</span><span class="n">get_cable_delay</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
+
+        <span class="n">main_low_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="o">-</span><span class="mf">59.54968597864437</span><span class="p">)</span>
+        <span class="n">main_high_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mf">59.54968597864437</span><span class="p">)</span>
+        <span class="n">phasing_angles_4ant</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">main_low_angle</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">main_high_angle</span><span class="p">),</span> <span class="mi">11</span><span class="p">))</span>
+        <span class="n">cspeed</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">phasing_angles_4ant</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">iBeam</span><span class="p">,</span> <span class="n">angle</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phasing_angles_4ant</span><span class="p">):</span>
+
+            <span class="n">delays</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ant_z</span><span class="p">:</span>
+                <span class="n">delays</span> <span class="o">+=</span> <span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ant_z</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">-</span> <span class="n">ref_z</span><span class="p">)</span> <span class="o">/</span> <span class="n">cspeed</span> <span class="o">*</span> <span class="n">ref_index</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span> <span class="o">-</span> <span class="n">cable_delays</span><span class="p">[</span><span class="n">key</span><span class="p">]]</span>
+
+            <span class="n">delays</span> <span class="o">-=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">delays</span><span class="p">)</span>
+
+            <span class="n">roll</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">delays</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">[</span><span class="n">iBeam</span><span class="p">]</span> <span class="o">=</span> <span class="n">roll</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span> <span class="o">=</span> <span class="n">Vrms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">noise_type</span> <span class="o">=</span> <span class="n">noise_type</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_freq</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_freq</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span>
+        <span class="kn">import</span> <span class="nn">NuRadioReco.modules.channelBandPassFilter</span>
+        <span class="n">channelBandPassFilter</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">channelBandPassFilter</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filt</span> <span class="o">=</span> <span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">get_filter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="p">,</span>
+                          <span class="n">passband</span><span class="o">=</span><span class="p">[</span><span class="mi">96</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">],</span> <span class="n">filter_type</span><span class="o">=</span><span class="s1">&#39;cheby1&#39;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filt</span> <span class="o">*=</span> <span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">get_filter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="p">,</span>
+                          <span class="n">passband</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">220</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">],</span> <span class="n">filter_type</span><span class="o">=</span><span class="s1">&#39;cheby1&#39;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapz</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filt</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_freq</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_freq</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">**</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Vrms = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, noise amplitude = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, bandwidth = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">MHz&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;frequency range </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min_freq</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">}</span><span class="s2">MHz - </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_freq</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">}</span><span class="s2">MHz&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">adc_ref_voltage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">adc_n_bits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">adc_noise_n_bits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">16</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">8</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">noise</span> <span class="o">=</span> <span class="n">channelGenericNoiseAdder</span><span class="o">.</span><span class="n">channelGenericNoiseAdder</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="o">.</span><span class="n">precalculate_bandlimited_noise_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">,</span>
+                                                  <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">,</span>
+                                                  <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_type</span><span class="p">)</span>        
+
+<div class="viewcode-block" id="thermalNoiseGeneratorPhasedArray.generate_noise"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise">[docs]</a>    <span class="k">def</span> <span class="nf">generate_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        generates noise traces for all channels that will cause a high/low majority logic trigger</span>
+
+<span class="sd">        Returns np.array of shape (n_channels, n_samples)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># some variables for profiling code</span>
+        <span class="n">dt_generation</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">dt_phasing</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">dt_triggering</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_traces</span> <span class="o">=</span> <span class="n">traces</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">counter</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">counter</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, threshold = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="c1"># some printout for profiling</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GENERATION: </span><span class="si">{</span><span class="n">dt_generation</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, PHASING: </span><span class="si">{</span><span class="n">dt_phasing</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, TRIGGER: </span><span class="si">{</span><span class="n">dt_triggering</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__generation</span><span class="p">()</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            for iCh in range(self.n_channels):</span>
+<span class="sd">                spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples * self.upsampling,</span>
+<span class="sd">                                                    self.sampling_rate * self.upsampling,</span>
+<span class="sd">                                                    self.amplitude, self.noise_type, time_domain=False)</span>
+<span class="sd">                spec *= self.filt</span>
+<span class="sd">                trace = fft.freq2time(spec, self.sampling_rate * self.upsampling)</span>
+
+<span class="sd">                traces[iCh] = perfect_floor_comparator(trace, self.adc_n_bits, self.adc_ref_voltage)</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="c1"># profiling generation</span>
+            <span class="n">dt_generation</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
+            <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">__phasing_roll</span><span class="p">()</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            phased_traces = np.zeros((len(self.beam_time_delays), self.n_samples * self.upsampling))</span>
+
+<span class="sd">            for iBeam, beam_time_delay in enumerate(self.beam_time_delays):</span>
+<span class="sd">                for iCh in range(self.n_channels):</span>
+<span class="sd">                    trace = traces[iCh]</span>
+<span class="sd">                    phased_traces[iBeam] += np.roll(traces[iCh], beam_time_delay[iCh])</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">dt_phasing</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
+            <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span>
+            <span class="n">is_triggered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__triggering_strided</span><span class="p">()</span>
+            <span class="c1">### for comparison</span>
+            <span class="c1">#print(self.max_amp, &quot;AMP1&quot;)</span>
+            <span class="c1">#is_triggered2 = self.__triggering()</span>
+            <span class="c1">#print(self.max_amp, &quot;AMP2&quot;)</span>
+            <span class="k">if</span> <span class="n">is_triggered</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            for iBeam, phased_trace in enumerate(phased_traces):</span>
+<span class="sd">                # Create a sliding window</span>
+<span class="sd">                coh_sum_squared = phased_trace ** 2</span>
+<span class="sd">                num_frames = int(np.floor((len(phased_trace) - self.window) / self.step))</span>
+<span class="sd">                coh_sum_windowed = np.lib.stride_tricks.as_strided(coh_sum_squared, (num_frames, self.window),</span>
+<span class="sd">                                                           (coh_sum_squared.strides[0] * self.step, coh_sum_squared.strides[0]))</span>
+<span class="sd">                squared_mean = np.sum(coh_sum_windowed, axis=1) / self.window</span>
+<span class="sd">                max_amp = max(squared_mean.max(), max_amp)</span>
+
+<span class="sd">                if True in (squared_mean &gt; self.threshold):</span>
+<span class="sd">                    print(f&quot;triggered at beam {iBeam}&quot;)</span>
+<span class="sd">                    if(debug):</span>
+<span class="sd">                        import matplotlib.pyplot as plt</span>
+<span class="sd">                        fig, ax = plt.subplots(5, 1, sharex=True)</span>
+<span class="sd">                        for iCh in range(self.n_channels):</span>
+<span class="sd">                            ax[iCh].plot(traces[iCh])</span>
+<span class="sd">                            print(f&quot;{traces[iCh].std():.2f}&quot;)</span>
+<span class="sd">                        ax[4].plot(phased_traces[iBeam])</span>
+<span class="sd">                        fig.tight_layout()</span>
+<span class="sd">                        plt.show()</span>
+<span class="sd">                    return traces, phased_traces</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">dt_triggering</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span></div>
+
+
+    <span class="k">def</span> <span class="nf">__generation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; separated trace generation part for PA noise trigger &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
+            <span class="c1">#spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples * self.upsampling,</span>
+            <span class="c1">#                                    self.sampling_rate * self.upsampling,</span>
+            <span class="c1">#                                    self.amplitude, self.noise_type, time_domain=False)</span>
+            
+            <span class="c1"># function that does not re-calculate parameters in each simulated trace</span>
+            <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="o">.</span><span class="n">bandlimited_noise_from_precalculated_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noise_type</span><span class="p">,</span> <span class="n">time_domain</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">spec</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filt</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">perfect_floor_comparator</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">adc_n_bits</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">adc_ref_voltage</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__phasing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; separated phasing part for PA noise trigger &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">iBeam</span><span class="p">,</span> <span class="n">beam_time_delay</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="p">[</span><span class="n">iBeam</span><span class="p">]</span> <span class="o">+=</span> <span class="n">rolled_sum_slicing</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">,</span> <span class="n">beam_time_delay</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__phasing_roll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; separated phasing part for PA noise trigger via np.roll &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">iBeam</span><span class="p">,</span> <span class="n">beam_time_delay</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="p">[</span><span class="n">iBeam</span><span class="p">]</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">],</span> <span class="n">beam_time_delay</span><span class="p">[</span><span class="n">iCh</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">__triggering</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; separated trigger part for PA noise trigger &quot;&quot;&quot;</span>
+
+        <span class="c1"># take square over entire array</span>
+        <span class="n">coh_sum_squared</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="o">**</span><span class="mi">2</span>
+        <span class="c1"># bin the data into windows of length self.step and normalise to step length</span>
+        <span class="n">reduced_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="o">.</span><span class="n">reduceat</span><span class="p">(</span><span class="n">coh_sum_squared</span><span class="o">.</span><span class="n">T</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">coh_sum_squared</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">))</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span>
+
+        <span class="n">sliding_windows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># self.window can extend over multiple steps,</span>
+        <span class="c1"># assuming self.window being an integer multiple of self.step the reduction sums over subsequent steps</span>
+        <span class="n">steps_per_window</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">//</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span>
+        <span class="c1"># better extend the array in order to also trigger on sum of last/first (matching a previous implementation)</span>
+        <span class="n">extended_reduced_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">reduced_array</span><span class="p">,</span> <span class="n">reduced_array</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="n">steps_per_window</span><span class="p">]])</span>
+        <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps_per_window</span><span class="p">):</span>
+            <span class="c1"># sum over steps_per_window adjacent steps</span>
+            <span class="n">window_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="o">.</span><span class="n">reduceat</span><span class="p">(</span><span class="n">extended_reduced_array</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">extended_reduced_array</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">steps_per_window</span><span class="p">))</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">steps_per_window</span>
+            <span class="n">sliding_windows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">window_sum</span><span class="p">)</span>
+        <span class="c1">#self.max_amp = max(np.array(sliding_windows).max(), self.max_amp)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sliding_windows</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+        <span class="c1"># check if trigger condition is fulfilled anywhere</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">:</span>
+            <span class="c1"># check in which beam the trigger condition was fulfilled</span>
+            <span class="n">sliding_windows</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">sliding_windows</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">triggered_beams</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">sliding_windows</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span>
+            <span class="k">for</span> <span class="n">iBeam</span><span class="p">,</span> <span class="n">is_triggered</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">triggered_beams</span><span class="p">):</span>
+                <span class="c1"># print out each beam that has triggered</span>
+                <span class="k">if</span> <span class="n">is_triggered</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;triggered at beam </span><span class="si">{</span><span class="n">iBeam</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">):</span>
+                <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+                <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
+                    <span class="n">ax</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">])</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="p">[</span><span class="n">iBeam</span><span class="p">])</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">__triggering_strided</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; separated trigger part for PA noise trigger using np.lib.stride_tricks.as_strided &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">iBeam</span><span class="p">,</span> <span class="n">phased_trace</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="p">):</span>
+            <span class="c1"># Create a sliding window</span>
+            <span class="n">coh_sum_squared</span> <span class="o">=</span> <span class="n">phased_trace</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="n">num_frames</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">phased_trace</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">))</span>
+            <span class="n">coh_sum_windowed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">stride_tricks</span><span class="o">.</span><span class="n">as_strided</span><span class="p">(</span><span class="n">coh_sum_squared</span><span class="p">,</span> <span class="p">(</span><span class="n">num_frames</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">),</span>
+                                                       <span class="p">(</span><span class="n">coh_sum_squared</span><span class="o">.</span><span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="n">coh_sum_squared</span><span class="o">.</span><span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="n">squared_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">coh_sum_windowed</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span>
+            <span class="c1">#self.max_amp = max(squared_mean.max(), self.max_amp)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">squared_mean</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span><span class="p">)</span>
+            <span class="k">if</span> <span class="kc">True</span> <span class="ow">in</span> <span class="p">(</span><span class="n">squared_mean</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;triggered at beam </span><span class="si">{</span><span class="n">iBeam</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">):</span>
+                    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+                    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
+                        <span class="n">ax</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">])</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">ax</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="p">[</span><span class="n">iBeam</span><span class="p">])</span>
+                    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="thermalNoiseGeneratorPhasedArray.generate_noise_optimised"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise_optimised">[docs]</a>    <span class="k">def</span> <span class="nf">generate_noise_optimised</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        generates noise traces for all channels that will cause a high/low majority logic trigger</span>
+
+<span class="sd">        Returns np.array of shape (n_channels, n_samples)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># some variables for profiling code</span>
+        <span class="n">dt_generation</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">dt_phasing</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">dt_triggering</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># generate empty trace array</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1">#print(&quot;noise trace length:&quot;, self.n_samples * self.upsampling)</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">counter</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">counter</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, threshold = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="c1"># some printout for profiling</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GENERATION: </span><span class="si">{</span><span class="n">dt_generation</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, PHASING: </span><span class="si">{</span><span class="n">dt_phasing</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, TRIGGER: </span><span class="si">{</span><span class="n">dt_triggering</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">tstart</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__generation</span><span class="p">()</span>
+            <span class="n">dt_generation</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tstart</span>
+
+            <span class="n">tstart</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__phasing</span><span class="p">()</span>
+            <span class="n">dt_phasing</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tstart</span>
+
+            <span class="n">tstart</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span>
+            <span class="n">is_triggered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__triggering</span><span class="p">()</span>
+            <span class="n">dt_triggering</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tstart</span>
+            <span class="k">if</span> <span class="n">is_triggered</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span></div>
+
+
+<div class="viewcode-block" id="thermalNoiseGeneratorPhasedArray.generate_noise2"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise2">[docs]</a>    <span class="k">def</span> <span class="nf">generate_noise2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        generates noise traces for all channels that will cause a high/low majority logic trigger</span>
+
+<span class="sd">        Returns np.array of shape (n_channels, n_samples)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">counter</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">counter</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">max_amp</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, threshold = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
+                <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="o">.</span><span class="n">bandlimited_noise</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">,</span>
+                                                    <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">,</span>
+                                                    <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_type</span><span class="p">,</span> <span class="n">time_domain</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">spec</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filt</span>
+                <span class="n">trace</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">)</span>
+
+                <span class="n">traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">perfect_floor_comparator</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">adc_n_bits</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">adc_ref_voltage</span><span class="p">)</span>
+
+            <span class="n">phased_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span>
+
+<span class="c1">#             for iBeam, beam_time_delay in enumerate(self.beam_time_delays):</span>
+<span class="c1">#                 for iCh in range(self.n_channels):</span>
+<span class="c1">#                     trace = traces[iCh]</span>
+<span class="c1">#                     phased_traces[iBeam] += np.roll(traces[iCh], beam_time_delay[iCh])</span>
+
+            <span class="n">shifts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+            <span class="n">shifted_traces</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">traces</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">shift1</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">):</span>
+                <span class="n">shifted_traces</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">traces</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">shift1</span><span class="p">)</span>
+                <span class="n">shifts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">shift1</span>
+                <span class="k">for</span> <span class="n">shift2</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">):</span>
+                    <span class="n">shifts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">shift2</span>
+                    <span class="n">shifted_traces</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">traces</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">shift2</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">shift3</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">):</span>
+                        <span class="n">shifts</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">shift3</span>
+                        <span class="n">shifted_traces</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">traces</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">shift3</span><span class="p">)</span>
+                        <span class="n">phased_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
+                            <span class="n">phased_trace</span> <span class="o">+=</span> <span class="n">shifted_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span>
+
+                        <span class="c1"># Create a sliding window</span>
+                        <span class="n">coh_sum_squared</span> <span class="o">=</span> <span class="n">phased_trace</span> <span class="o">**</span> <span class="mi">2</span>
+                        <span class="n">num_frames</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">phased_trace</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">))</span>
+                        <span class="n">coh_sum_windowed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">stride_tricks</span><span class="o">.</span><span class="n">as_strided</span><span class="p">(</span><span class="n">coh_sum_squared</span><span class="p">,</span> <span class="p">(</span><span class="n">num_frames</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">),</span>
+                                                                   <span class="p">(</span><span class="n">coh_sum_squared</span><span class="o">.</span><span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="n">coh_sum_squared</span><span class="o">.</span><span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                        <span class="n">squared_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">coh_sum_windowed</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span>
+                        <span class="n">max_amp</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">squared_mean</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">max_amp</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="kc">True</span> <span class="ow">in</span> <span class="p">(</span><span class="n">squared_mean</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">):</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;triggered at beam </span><span class="si">{</span><span class="n">shifts</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="k">if</span><span class="p">(</span><span class="n">debug</span><span class="p">):</span>
+                                <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+                                <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
+                                    <span class="n">ax</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">])</span>
+                                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                                <span class="n">ax</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">phased_trace</span><span class="p">)</span>
+                                <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+                                <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+                            <span class="k">return</span> <span class="n">traces</span><span class="p">,</span> <span class="n">phased_trace</span></div></div>
 </pre></div>
 
            </div>
