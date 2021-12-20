@@ -3,6 +3,7 @@ from NuRadioReco.utilities import units, io_utilities
 import scipy.interpolate as interpolate
 from scipy.integrate import quad
 from scipy.integrate import dblquad
+import os
 
 def get_flux(energy, file_surface_mu_flux='data/muon_flux_E_SIBYLL23c_GSF.pickle'):
     '''
@@ -20,8 +21,9 @@ def get_flux(energy, file_surface_mu_flux='data/muon_flux_E_SIBYLL23c_GSF.pickle
     -------
     flux of muon in NuRadio units. (GeV**-1 * m**-2 * ns**-1 sr**-1)
     '''
+    abspath = os.path.dirname(os.path.abspath(__file__))
 
-    data_surface_mu_flux = io_utilities.read_pickle(file_surface_mu_flux, encoding='latin1')
+    data_surface_mu_flux = io_utilities.read_pickle(os.path.join(abspath,file_surface_mu_flux), encoding='latin1')
     J_e3 = np.array(data_surface_mu_flux['mu_total']) * units.GeV**2 * units.cm**-2 * units.s**-1 *units.sr**-1
     E_data = np.array(data_surface_mu_flux['e_grid']) * units.GeV
 
@@ -76,8 +78,8 @@ def get_flux_per_energy_and_zenith(energy, zenith, file_surface_mu_flux='data/mu
     -------
     flux of muon in NuRadio units
     '''
-
-    data_surface_mu_flux = io_utilities.read_pickle(file_surface_mu_flux, encoding='latin1')
+    abspath = os.path.dirname(os.path.abspath(__file__))
+    data_surface_mu_flux = io_utilities.read_pickle(os.path.join(abspath,file_surface_mu_flux), encoding='latin1')
     J_e3 = np.array(data_surface_mu_flux['mu_total']) * units.GeV**2 * units.cm**-2 * units.s**-1
     E_data = np.array(data_surface_mu_flux['e_grid']) * units.GeV
     zen = np.array(data_surface_mu_flux['zen_grid']) * units.deg
