@@ -196,13 +196,13 @@ for signal_scaling in np.linspace(1, 100, NN):
             tstop = 50 * units.ns
             maximum = 0
             for t in np.arange(tstart, tstop, dt):
-                n_bins = np.int(np.ceil(coincidence_window / dt))
-                bin_start = np.int(np.ceil(t / dt))
+                n_bins = int(np.ceil(coincidence_window / dt))
+                bin_start = int(np.ceil(t / dt))
                 maximum = max(maximum, np.max(trace[bin_start:(bin_start + n_bins)]) - np.min(trace[bin_start:(bin_start + n_bins)]))
             return maximum
 #             return np.max(trace) - np.min(trace)
 #             index = np.argmax(np.abs(trace))
-#             n_bins = np.int(np.ceil(coincidence_window / dt))
+#             n_bins = int(np.ceil(coincidence_window / dt))
 #             maximum = trace[index]
 #             sign = np.sign(maximum)
 #             minimum = np.max(-1 * sign * trace[max(0, (index - n_bins)):min((index + n_bins), len(trace))])

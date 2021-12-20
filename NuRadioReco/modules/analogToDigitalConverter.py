@@ -302,7 +302,7 @@ class analogToDigitalConverter:
             trace = np.fft.irfft(trace_fft * trigger_filter)
 
         # Random clock offset
-        delayed_samples = len(trace) - np.int(np.round(MC_sampling_frequency / adc_sampling_frequency)) - 1
+        delayed_samples = len(trace) - int(np.round(MC_sampling_frequency / adc_sampling_frequency)) - 1
         trace = delay_trace(trace, MC_sampling_frequency, adc_time_delay, delayed_samples)
 
         times = times + 1.0 / adc_sampling_frequency
