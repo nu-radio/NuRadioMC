@@ -5,7 +5,6 @@ import helper_cr_eff as hcr
 from NuRadioReco.utilities import units
 from NuRadioReco.detector.generic_detector import GenericDetector
 import NuRadioReco.modules.io.coreas.readCoREASStation
-import NuRadioReco.modules.io.coreas.simulationSelector
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 import NuRadioReco.modules.channelGenericNoiseAdder
@@ -15,12 +14,6 @@ import NuRadioReco.modules.trigger.powerIntegration
 import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.eventTypeIdentifier
-import NuRadioReco.modules.channelStopFilter
-import NuRadioReco.modules.channelSignalReconstructor
-import NuRadioReco.modules.correlationDirectionFitter
-import NuRadioReco.modules.voltageToEfieldConverter
-import NuRadioReco.modules.electricFieldSignalReconstructor
-import NuRadioReco.modules.voltageToAnalyticEfieldConverter
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.electricFieldResampler
 import NuRadioReco.modules.io.eventWriter
@@ -75,8 +68,6 @@ channel_ids = det.get_channel_ids(station_id)
 # provide input parameters that are to remain constant during processing
 readCoREASStation = NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation()
 readCoREASStation.begin([input_file], args.default_station, debug=False)
-simulationSelector = NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector()
-simulationSelector.begin()
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efieldToVoltageConverter.begin(debug=False)
 hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
@@ -103,15 +94,6 @@ if cfg['trigger_name'] == 'power_integration':
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelBandPassFilter.begin()
 eventTypeIdentifier = NuRadioReco.modules.eventTypeIdentifier.eventTypeIdentifier()
-channelStopFilter = NuRadioReco.modules.channelStopFilter.channelStopFilter()
-channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
-channelSignalReconstructor.begin()
-correlationDirectionFitter = NuRadioReco.modules.correlationDirectionFitter.correlationDirectionFitter()
-voltageToEfieldConverter = NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter()
-electricFieldSignalReconstructor = NuRadioReco.modules.electricFieldSignalReconstructor.electricFieldSignalReconstructor()
-electricFieldSignalReconstructor.begin()
-voltageToAnalyticEfieldConverter = NuRadioReco.modules.voltageToAnalyticEfieldConverter.voltageToAnalyticEfieldConverter()
-voltageToAnalyticEfieldConverter.begin()
 electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
 electricFieldResampler.begin()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
@@ -147,7 +129,7 @@ for evt in readCoREASStation.run(detector=det):
         if cfg['hardware_response']:
             hardwareResponseIncorporator.run(evt, sta, det, sim_to_data=True)
 
-        # The bandpass for the envelope trigger is included in the trigger module,
+
         # in the high_low and power_integration the filter is applied externally
         if cfg['trigger_name'] == 'high_low':
             channelBandPassFilter.run(evt, sta, det, passband=cfg['passband_trigger'],
@@ -166,6 +148,7 @@ for evt in readCoREASStation.run(detector=det):
                                      cfg['final_threshold'] / units.mV))
 
         if cfg['trigger_name'] == 'envelope':
+            # The bandpass for the envelope trigger is included in the trigger module,
             triggerSimulator.run(evt, sta, det,
                                  passband=cfg['passband_trigger'],
                                  order=cfg['order_trigger'],

@@ -29,11 +29,11 @@ parser.add_argument('--directory', type=str, nargs='?',
                     help='path were results from air shower analysis are stored')
 parser.add_argument('--condition', type=str, nargs='?', default='envelope_trigger_0Hz_3of4',
                     help='string which should be in dict name')
-parser.add_argument('--energy_bins', type=list, nargs='?',
+parser.add_argument('--energy_binning', type=list, nargs='?',
                     default=[16.5, 20, 8], help='energy bins as log() with start, stop, number of bins (np.logspace)')
-parser.add_argument('--zenith_bins', type=list, nargs='?',
+parser.add_argument('--zenith_binning', type=list, nargs='?',
                     default=[0, 100, 10], help='zenith bins in deg with start, stop, step (np.arange)')
-parser.add_argument('--distance_bins', type=int, nargs='?',
+parser.add_argument('--distance_binning', type=int, nargs='?',
                     default=[0, 700, 4000], help='distance bin edges as list')
 parser.add_argument('--number_of_sta_in_evt', type=int, nargs='?',
                     default=72, help='number of stations in one event')
@@ -46,22 +46,22 @@ number_of_sta_in_evt = args.number_of_sta_in_evt
 
 # the entries of this list are defined in the input argument energy_bins.
 # [0] is the start value, [1] is the stop value, [2] is the number of samples generated
-energy_bins = np.logspace(energy_bins[0], energy_bins[1], energy_bins[2])
+energy_bins = np.logspace(energy_binning[0], energy_binning[1], energy_binning[2])
 energy_bins_low = energy_bins[0:-1]
 energy_bins_high = energy_bins[1:]
 logger.info(f"Use energy bins {energy_bins} eV")
 
 # the entries of this list are defined in the input argument zenith_bins.
 # [0] is the start value, [1] is the stop value, [2] is step size
-zenith_bins = np.arange(zenith_bins[0], zenith_bins[1], zenith_bins[2]) * units.deg
+zenith_bins = np.arange(zenith_binning[0], zenith_binning[1], zenith_binning[2]) * zenith_binning.deg
 zenith_bins_low = zenith_bins[0:-1]
 zenith_bins_high = zenith_bins[1:]
 logger.info(f"Use zenith bins {zenith_bins/units.deg} deg")
 
 # the entries of this list are defined in the input argument distance_bins.
-distance_bins_low = np.array(distance_bins[0:-1])
-distance_bins_high = np.array(distance_bins[1:])
-logger.info(f"Use distance bins {distance_bins} m")
+distance_bins_low = np.array(distance_binning[0:-1])
+distance_bins_high = np.array(distance_binning[1:])
+logger.info(f"Use distance bins low:{distance_bins_low} to high:{distance_bins_high} m")
 
 nur_file_list = []  # get non corrupted input files with specified passband
 i = 0

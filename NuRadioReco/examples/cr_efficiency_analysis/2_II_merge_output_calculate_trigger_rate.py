@@ -23,15 +23,14 @@ parser.add_argument('--condition', type=str, nargs='?',
                     default='envelope_trigger_0Hz_3of4', help='string which should be in dict name')
 args = parser.parse_args()
 
-logger.info(f"Checking {args.directory} for string {args.condition}")
+logger.info(f"Checking {args.directory} for condition: {args.condition}")
 
 file_list = []  # get non corrupted files from threshold calculations with specified passband
 i = 0
-for file in glob.glob('{}*.json'.format(args.directory)):
-    if os.path.isfile(file) and str(args.condition) in file:
-        i = i+1
-        if os.path.getsize(file) > 0:
-            file_list.append(file)
+for file in glob.glob(args.directory + '*' + args.condition + '*.json'):
+    if os.path.isfile(file) and os.path.getsize(file) > 0:
+        file_list.append(file)
+        i += 1
 
 n_files = len(file_list)
 
@@ -59,16 +58,13 @@ estimated_global_rate = hcr.get_global_trigger_rate(trigger_rate_all, cfg['total
                                                             cfg['number_coincidences'], cfg['coinc_window'])
 
 dic = {}
-for key in cfg:
-    dic[key] = cfg[key]
+dic = cfg
 dic['iteration'] = iterations
 dic['efficiency'] = trigger_efficiency_all
 dic['trigger_rate'] = trigger_rate_all
 dic['estimated_global_trigger_rate'] = estimated_global_rate
 
-nearest = hcr.find_nearest(trigger_rate_all, cfg['target_single_trigger_rate'])
-index = np.where(trigger_rate_all == nearest)
-final_threshold = thresholds[index[0][0]]
+final_threshold = thresholds[np.argmin(trigger_rate_all - cfg['target_single_trigger_rate'])]
 
 dic['final_threshold'] = final_threshold
 

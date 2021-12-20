@@ -20,10 +20,11 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 '''
-This script calculates a the trigger threshold for a given global trigger rate. 
+This script calculates the trigger threshold for a given global trigger rate.
 The trigger rate for a single antenna is calculated in the crate_config_file.py
 Afterwards the threshold is increased incrementally until the target trigger rate is achieved.
-This script is slower than to calculate the trigger rate for a given array of thresholds
+This script is slower than 2_I_calculate_trigger_rate_for_threshold, where the trigger rate
+is calculated for a given array of thresholds.
 
 For the galactic noise, the sky maps from PyGDSM are used. You can install it with 
 pip install git+https://github.com/telegraphic/pygdsm .
@@ -85,16 +86,15 @@ iterations = []
 channel_rms = []
 channel_sigma = []
 
-# with each iteration the threshold increases one step
 n_thres = 0
 sum_trigger = cfg['number_of_allowed_trigger'] + 1
 while sum_trigger > cfg['number_of_allowed_trigger']:
+    # with each iteration the threshold increases one step
     threshold = cfg['threshold_start'] + (n_thres * cfg['threshold_step'])
     thresholds.append(threshold)
     logger.info("Processing threshold {:.2e} V".format(threshold))
     trigger_status_per_all_it = []
-    # here is number of iteration you want to check on (iteration is just a proxy for the time interval
-    # on which you allow a certain number of trigger. In this case is every iteration 1024 ns (trace length)
+
     for n_it in range(cfg['n_iterations_total']):
         station = event.get_station(cfg['default_station'])
         eventTypeIdentifier.run(event, station, "forced", 'cosmic_ray')
@@ -112,6 +112,9 @@ while sum_trigger > cfg['number_of_allowed_trigger']:
         if cfg['hardware_response']:
             hardwareResponseIncorporator.run(event, station, det, sim_to_data=True)
 
+        channelBandPassFilter.run(event, station, det, passband=cfg['passband_trigger'],
+                                      filter_type='butter', order=cfg['order_trigger'])
+
         # This loop changes the phase of a trace with rand_phase, this is because the GalacticNoiseAdder
         # needs some time and one amplitude is good enough for several traces.
         # The current number of iteration can be calculated with i_phase + n_it*n_random_phase
@@ -119,8 +122,6 @@ while sum_trigger > cfg['number_of_allowed_trigger']:
             trigger_status_one_it = []
             channel = hcr.add_random_phase(station, sampling_rate)
 
-            channelBandPassFilter.run(event, station, det, passband=cfg['passband_trigger'],
-                                      filter_type='butter', order=cfg['order_trigger'])
             trace = station.get_channel(station.get_channel_ids()[0]).get_trace()
 
             if cfg['trigger_name'] == 'high_low':
@@ -166,7 +167,6 @@ while sum_trigger > cfg['number_of_allowed_trigger']:
                     .format(cfg['target_single_trigger_rate'] / units.Hz, cfg['target_global_trigger_rate'] / units.Hz))
         logger.info("continue".format(cfg['trigger_name']))
         n_thres += 1
-        continue
 
     elif n_it == (cfg['n_iterations_total'] - 1):
         number_of_trigger = np.sum(trigger_status_per_all_it)

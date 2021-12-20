@@ -21,17 +21,16 @@ triggered_trigger = np.array(data['triggered_trigger'])
 masked_events = np.array(data['trigger_masked_events'])
 
 
-### chose only some bins
+### choose only some bins
 trigger_efficiency = np.nan_to_num(trigger_efficiency[:,0:8,:])
 zenith_bins_low = zenith_bins_low[0:8]
 zenith_bins_high = zenith_bins_high[0:8]
-#triggered_trigger = np.nan_to_num(triggered_trigger[1:3,0:8,:])
-#masked_events = np.nan_to_num(masked_events[1:3,0:8,:])
+triggered_trigger = np.nan_to_num(triggered_trigger[1:3,0:8,:])
+masked_events = np.nan_to_num(masked_events[1:3,0:8,:])
 
-# not correct vor incl data
-#triggered_trigger_ez = np.sum(triggered_trigger, axis=2)
-#masked_events_ez = np.sum(masked_events, axis=2)
-#trigger_efficiency_ez = triggered_trigger_ez / masked_events_ez
+triggered_trigger_ez = np.sum(triggered_trigger, axis=2)
+masked_events_ez = np.sum(masked_events, axis=2)
+trigger_efficiency_ez = triggered_trigger_ez / masked_events_ez
 
 plt.plot(energy_center[:5], trigger_efficiency[:5, 0, 0], marker='x')
 plt.hist(energy_center[:5], bins=np.logspace(15, 19, 9), weights=trigger_efficiency[:5, 0, 0], edgecolor='k', color='lightgrey')
@@ -48,7 +47,7 @@ energy = energy_bins_low
 
 int = np.linspace(0, 1, len(distance_bins_low)+1)
 for i_energy in range(len(energy)):
-    #plt.plot(zen, trigger_efficiency_ez[i_energy, :], marker='x', label=r'Energy {}, all distances'.format(energy[i_energy]), color='k', linestyle='dashed' )
+    plt.plot(zen, trigger_efficiency_ez[i_energy, :], marker='x', label=r'Energy {}, all distances'.format(energy[i_energy]), color='k', linestyle='dashed' )
     for i_dist in range(len(distance_bins_low)):
         if i_dist == len(distance_bins_low) - 1:
             label = r'd < {} m'.format(distance_bins_high[i_dist])

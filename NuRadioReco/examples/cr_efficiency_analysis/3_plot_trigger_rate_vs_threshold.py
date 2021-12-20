@@ -25,8 +25,7 @@ for config_file in os.listdir(args.config_directory):
     thresholds = np.array(cfg['thresholds'])
 
     #  choose between a single antenna and global trigger rate
-    trigger_rate = np.array(cfg['trigger_rate'])
-    #trigger_rate = np.array(cfg['estimated_global_trigger_rate'])
+    trigger_rate = np.array(cfg['estimated_global_trigger_rate'])
 
 
     if cfg['hardware_response']:
@@ -50,9 +49,8 @@ for config_file in os.listdir(args.config_directory):
         target_trigger_rate = cfg['target_single_trigger_rate'] / units.Hz
 
     ynew = f1(xnew)
-    nearest = hcr.find_nearest(ynew, target_trigger_rate)
-    index = np.where(ynew == nearest)
-    thresh = xnew[index[0][0]]
+    thresh = xnew[np.argmin(ynew - target_trigger_rate)]
+
 
     plt.plot(x, y, marker='x', label='Noise trigger rate',
              linestyle='none')

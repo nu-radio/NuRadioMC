@@ -11,9 +11,9 @@ parser.add_argument('--output_path', type=str, nargs='?', default=os.path.dirnam
 parser.add_argument('--detector_file', type=str, nargs='?',
                     default='LPDA_Southpole.json',
                     help='file with one antenna at and the geographic location, change triggered channels accordingly')
-parser.add_argument('--target_global_trigger_rate', type=float, nargs='?', default=0.001,
+parser.add_argument('--target_global_trigger_rate', type=float, nargs='?', default=100,
                     help='trigger rate for all channels in Hz')
-parser.add_argument('--trigger_name', type=str, nargs='?', default='power_integration',
+parser.add_argument('--trigger_name', type=str, nargs='?', default='high_low',
                     help='name of the trigger, high_low, envelope or power_integration')
 parser.add_argument('--default_station', type=int, nargs='?', default=101,
                     help='default station id')

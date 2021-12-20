@@ -92,8 +92,6 @@ y_edges = np.arange(y_min-5, y_max+15, binLength)
 for count_energy, energy_bin in enumerate(energy_bins_low):
     x = passband_trigger[:, 0] / units.megahertz
     y = passband_trigger[:, 1] / units.megahertz
-    # for count_zenith, zenith_b in enumerate(zenith_bin):
-    # z = aeff_zenith
     z = total_aeff[:,count_energy]/units.km**2
 
     counts, xbins, ybins, image = plt.hist2d(x, y,
@@ -105,9 +103,9 @@ for count_energy, energy_bin in enumerate(energy_bins_low):
     plt.ylim(y_min - 5, y_max + 5)
     plt.xlabel('Lower cutoff frequency [MHz]')
     plt.ylabel('Upper cutoff frequency [MHz]')
-    # plt.legend()
+    plt.legend()
     plt.tight_layout()
-    # plt.show()
+    plt.show()
     plt.savefig('results/air_shower/fig_pb_thresh_signal_area_energy_{:.2e}_{}_{}.png'.format(
         energy_bin, zenith_start*10, zenith_stop*10))
     plt.close()
