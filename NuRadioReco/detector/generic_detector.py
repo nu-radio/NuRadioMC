@@ -41,14 +41,26 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             path relative to the current working directory of the user)
             default value is 'ARIANNA/arianna_detector_db.json'
         default_station:
-            In case no reference station is set in the station parameters of the detector description,
-            the ID of the station that should be used as the default station should be inserted.
+            This option is deprecated.
+            ONLY in case no 'reference_station' is set in the station parameters of the detector description,
+            the 'default_station' is used as reference for the time being.
+            ID of the station that should be used as the default station.
             The default station needs to have a complete detector description. If a property is missing in any of the
-            other stations, the value from the default station will be used instead
+            other stations, the value from the default station will be used instead.
         default_channel:
-            ID of the channel that should be used as the default channel. This channel has to be part of the default
+            This option is deprecated.
+            ONLY in case no 'reference_channel' is set in the channel parameters of the detector description,
+            the 'default_channel' is used as reference for the time being.
+            ID of the channel that should be used as the default channel. This channel has to be part of the reference
             station and have a complete detector description. If a property is missing in any of the other channels,
             the value from the default channel will be used instead.
+        default_device:
+            This option is deprecated.
+            ONLY in case no 'reference_device' is set in the device parameters of the detector description,
+            the 'default_device' is used as reference for the time being.
+            ID of the device that should be used as the default device. This channel has to be part of the reference
+            station and have a complete detector description. If a property is missing in any of the other devices,
+            the value from the default device will be used instead.
         source: str
             'json' or 'dictionary'
             default value is 'json'
@@ -72,8 +84,17 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
                                               antenna_by_depth=antenna_by_depth)
         if default_station is not None:
             logger.warning("DeprecationWarning: replace default_station by setting a\
-                            'reference_station' per station in the json.\
+                            'reference_station' for each station in the detector descriptopin.\
                             This allows to define multiple default station types")
+        if default_channel is not None:
+            logger.warning("DeprecationWarning: replace default_channel by setting a\
+                            'reference_channel' for each channel in the detector description..\
+                            This allows to define multiple default channel types")
+        if default_device is not None:
+            logger.warning("DeprecationWarning: replace default_device by setting a\
+                            'reference_device' for each device in the detector description.\
+                            This allows to define multiple default device types")
+
         self.__default_station_id = default_station #the generic default station if it is set
         self.__default_channel_id = default_channel
         self.__default_device_id = default_device
