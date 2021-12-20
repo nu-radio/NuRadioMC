@@ -61,8 +61,8 @@ class electricFieldSignalReconstructor:
             electric_field[efp.signal_time] = signal_time
 
     #
-            low_pos = np.int(130 * units.ns * electric_field.get_sampling_rate())
-            up_pos = np.int(210 * units.ns * electric_field.get_sampling_rate())
+            low_pos = int(130 * units.ns * electric_field.get_sampling_rate())
+            up_pos = int(210 * units.ns * electric_field.get_sampling_rate())
             if(debug):
                 fig, ax = plt.subplots(1, 1)
                 sc = ax.scatter(trace_copy[1, low_pos:up_pos], trace_copy[2, low_pos:up_pos], c=electric_field.get_times()[low_pos:up_pos], s=5)
@@ -100,7 +100,7 @@ class electricFieldSignalReconstructor:
             mask_signal_window = (times > (signal_time - self.__signal_window_pre)) & (times < (signal_time + self.__signal_window_post))
             mask_noise_window = np.zeros_like(mask_signal_window, dtype=np.bool)
             if(self.__noise_window > 0):
-                mask_noise_window[np.int(np.round((-self.__noise_window - 141.) * electric_field.get_sampling_rate())):np.int(np.round(-141. * electric_field.get_sampling_rate()))] = np.ones(np.int(np.round(self.__noise_window * electric_field.get_sampling_rate())), dtype=np.bool)  # the last n bins
+                mask_noise_window[int(np.round((-self.__noise_window - 141.) * electric_field.get_sampling_rate())):int(np.round(-141. * electric_field.get_sampling_rate()))] = np.ones(int(np.round(self.__noise_window * electric_field.get_sampling_rate())), dtype=np.bool)  # the last n bins
 
             signal_energy_fluence = trace_utilities.get_electric_field_energy_fluence(trace, times, mask_signal_window, mask_noise_window)
             dt = times[1] - times[0]

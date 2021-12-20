@@ -22,8 +22,8 @@ class triggerTimeAdjuster:
 
     def begin(self, trigger_name=None, pre_trigger_time=55. * units.ns):
         """
-        Setup
-        ----
+        Parameters
+        ----------
         trigger_name: string or None
             name of the trigger that should be used.
             If trigger_name is None, the trigger with the smalles trigger_time will be used.
