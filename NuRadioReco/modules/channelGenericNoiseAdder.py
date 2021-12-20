@@ -189,8 +189,8 @@ class channelGenericNoiseAdder:
             Otherwise the amplitude is interpreted for the bandwidth of min(max_freq, 0.5 * sampling rate) - min_freq
             If `bandwidth` is larger then (min(max_freq, 0.5 * sampling rate) - min_freq) it has the same effect as `None`
 
-        Comments
-        --------
+        Notes
+        -----
         *   Note that by design the max frequency is the Nyquist frequency, even if a bigger max_freq
             is implemented (RL 17-Sept-2018)
 
@@ -272,8 +272,8 @@ class channelGenericNoiseAdder:
             Otherwise the amplitude is interpreted for the bandwidth of min(max_freq, 0.5 * sampling rate) - min_freq
             If `bandwidth` is larger then (min(max_freq, 0.5 * sampling rate) - min_freq) it has the same effect as `None`
 
-        Comments
-        --------
+        Notes
+        -----
         *   Note that by design the max frequency is the Nyquist frequency, even if a bigger max_freq
             is implemented (RL 17-Sept-2018)
 
