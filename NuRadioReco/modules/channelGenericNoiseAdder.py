@@ -161,7 +161,7 @@ class channelGenericNoiseAdder:
         Generating noise of n_samples in a bandwidth [min_freq,max_freq].
 
         Parameters
-        ---------
+        ----------
 
         min_freq: float
             Minimum frequency of passband for noise generation
@@ -244,7 +244,7 @@ class channelGenericNoiseAdder:
         Generating noise of n_samples in a bandwidth [min_freq,max_freq].
 
         Parameters
-        ---------
+        ----------
 
         min_freq: float
             Minimum frequency of passband for noise generation
