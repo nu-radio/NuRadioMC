@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Event Generation &mdash; NuRadio 2.0.0 documentation</title>
+  <title>Event Generation &mdash; NuRadio 2.1.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
@@ -33,7 +33,7 @@
             <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                2.0.0
+                2.1.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -67,7 +67,6 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../Introduction/pages/contributing.html">Contributing to NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/contributing.html#workflow">Workflow</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/contributing.html#example-workflow">Example workflow</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/contributing.html#coding-conventions">Coding conventions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/contributing.html#how-to">How to</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
@@ -952,7 +951,29 @@ file can be simulated in parallel using a cluster. Due to the Poissonian distrib
 <h2>Atmospheric muons generated on a flat surface<a class="headerlink" href="#atmospheric-muons-generated-on-a-flat-surface" title="Permalink to this headline"></a></h2>
 <p>The function <code class="docutils literal notranslate"><span class="pre">generate_surface_muons</span></code> generates muons (leptons, NOT muon neutrinos) at <code class="docutils literal notranslate"><span class="pre">z=0</span></code> and propagates them using PROPOSAL. Please be aware that a functioning installation of PROPOSAL is needed for using this function.</p>
 <blockquote>
-<div></div></blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_surface_muons</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span>
+                           <span class="n">fiducial_rmin</span><span class="p">,</span> <span class="n">fiducial_rmax</span><span class="p">,</span>
+                           <span class="n">fiducial_zmin</span><span class="p">,</span> <span class="n">fiducial_zmax</span><span class="p">,</span>
+                           <span class="n">full_rmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">full_rmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">full_zmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">full_zmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">thetamin</span><span class="o">=</span><span class="mf">0.</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span> <span class="n">thetamax</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span>
+                           <span class="n">phimin</span><span class="o">=</span><span class="mf">0.</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span> <span class="n">phimax</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span>
+                           <span class="n">start_event_id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                           <span class="n">plus_minus</span><span class="o">=</span><span class="s1">&#39;mix&#39;</span><span class="p">,</span>
+                           <span class="n">n_events_per_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">spectrum</span><span class="o">=</span><span class="s1">&#39;log_uniform&#39;</span><span class="p">,</span>
+                           <span class="n">start_file_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                           <span class="n">config_file</span><span class="o">=</span><span class="s1">&#39;SouthPole&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Event generator for surface muons</span>
+
+
+<span class="sd">    Generates muons at the surface for the atmospheric muon acceptance studies.</span>
+<span class="sd">    All events are saved in an hdf5 file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
 <p>Most of the arguments are the same as the ones used for <code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder</span></code>, although there are fewer and <code class="docutils literal notranslate"><span class="pre">spectrum</span></code> can only be <code class="docutils literal notranslate"><span class="pre">&quot;log-uniform&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;E-X&quot;</span></code>. The only additional option for <code class="docutils literal notranslate"><span class="pre">generate_surface_muons</span></code> is <code class="docutils literal notranslate"><span class="pre">plus_minus</span></code>.</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>

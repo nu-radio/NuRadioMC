@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contributing to NuRadioReco &mdash; NuRadio 2.0.0 documentation</title>
+  <title>Contributing to NuRadioReco &mdash; NuRadio 2.1.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
@@ -32,7 +32,7 @@
             <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                2.0.0
+                2.1.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -66,7 +66,6 @@
 </li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Contributing to NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#workflow">Workflow</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#example-workflow">Example workflow</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#coding-conventions">Coding conventions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#how-to">How to</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#writing-docstrings">Writing docstrings</a></li>
@@ -521,15 +520,7 @@ activities. Both will also be able to provide commit access to the repository.</
 <section id="workflow">
 <h2>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline"></a></h2>
 <p>If you find an issue or bug in NuRadioMC, please <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/issues">create an issue on GitHub</a>.
-If you want to contribute to NuRadioMC, please provide your code addition in a new branch and <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/pulls">make a pull request</a>.
-Your pull request may only be merged if</p>
-<ul class="simple">
-<li><p>It succesfully completes the tests. These are implemented to make sure that previous working code does not break,
-the new code is correctly documented, and NuRadioMC can still be built.</p></li>
-<li><p>One of the core developers has approved your pull request. <strong>Please wait at least 24 hours to merge your pull request,
-even if it has been approved, so that other developers may also have a look - they might find something the first reviewer
-missed!</strong></p></li>
-</ul>
+If you want to contribute to NuRadioMC, please provide your code addition in a new branch and <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/pulls">make a pull request</a>.</p>
 <p>We loosely follow the git flow model. A detailed tutorial is given  <a class="reference external" href="https://jeffkreeftmeijer.com/git-flow/">here</a>.
 A short summary is provided below.</p>
 <ul>
@@ -543,14 +534,16 @@ Make sure to specify that you want to merge into <code class="docutils literal n
 </div>
 </li>
 </ul>
-</section>
-<section id="example-workflow">
-<h2>Example workflow<a class="headerlink" href="#example-workflow" title="Permalink to this headline"></a></h2>
 <p>To start developing a new feature or hotfix, first create a new branch:</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">checkout</span> <span class="n">develop</span> <span class="c1"># for a hotfix that should be merged into master also,</span>
-<span class="n">git</span> <span class="n">pull</span>             <span class="c1"># create the new branch from &#39;master&#39; instead</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">checkout</span> <span class="n">develop</span>
+<span class="n">git</span> <span class="n">pull</span>
 <span class="n">git</span> <span class="n">checkout</span> <span class="o">-</span><span class="n">b</span> <span class="n">feature</span><span class="o">/</span><span class="n">my_new_feature</span> <span class="c1"># creates a new branch</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are writing a <strong>hotfix</strong>, which should also be merged into <code class="docutils literal notranslate"><span class="pre">master</span></code>,
+replace the first line by <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">master</span></code></p>
 </div>
 <p>Now code can be written, fixed, committed and pushed to git as normally (<strong>exception</strong>: for your first
 push to the git repository, you need to include <code class="docutils literal notranslate"><span class="pre">--set-upstream</span></code>, as the branch initially only exists
@@ -558,12 +551,22 @@ on your local machine). Once you are ready for your code to be merged into <code
 <code class="docutils literal notranslate"><span class="pre">master</span></code> (for hotfixes only), you should <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/pulls">create a pull request</a>.</p>
 <p>Before you make a pull request, make that your code:</p>
 <ul class="simple">
-<li><p>is correct - it fixes bugs, not introduces more of them!</p></li>
-<li><p>is clearly documented - functions should have correctly written docstrings, and comments where appropriate.</p></li>
-<li><p>is reflected both in the <strong>changelog</strong> and by an appropriate update of the <strong>version number</strong>.</p></li>
+<li><p>is correct - it should fix bugs, not introduce more of them!</p></li>
+<li><p>is clearly documented - functions should have
+<a class="reference internal" href="#writing-docstrings"><span class="std std-ref">correctly written docstrings</span></a>
+, and comments where appropriate.</p></li>
+<li><p>is reflected both in the <strong>changelog</strong> and by an appropriate update of the
+<a class="reference internal" href="#update-the-version-number-dependencies"><span class="std std-ref">version number</span></a>.</p></li>
 </ul>
-<p>As mentioned above, your code can only be merged once one of the core developers has <strong>approved your pull request</strong>.
-Please allow 24 hours between approval and merging to allow for additional comments.</p>
+<p>You will only be able to merge your pull request once:</p>
+<ul class="simple">
+<li><p>It succesfully completes the <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/actions/workflows/run_tests.yaml">tests</a>.
+These will run automatically each time you push to the repository, and are implemented to check that your code
+does not break anything, the new code is correctly documented, and NuRadioMC can still be built.</p></li>
+<li><p>One of the core developers has approved your pull request. <strong>Please wait at least 24 hours to merge your pull request,
+even if it has been approved, so that other developers may also have a look - they might find something the first reviewer
+missed!</strong></p></li>
+</ul>
 </section>
 <section id="coding-conventions">
 <h2>Coding conventions<a class="headerlink" href="#coding-conventions" title="Permalink to this headline"></a></h2>
@@ -630,20 +633,28 @@ Briefly, this means a docstring should look like this:</p>
 </div>
 <p>Please only use docstrings sections allowed by <a class="reference external" href="https://numpydoc.readthedocs.io/en/latest/format.html">numpydoc</a>. The most useful ones are
 the short + (optional) extended summary, <code class="docutils literal notranslate"><span class="pre">Parameters</span></code>, <code class="docutils literal notranslate"><span class="pre">Returns</span></code>, <code class="docutils literal notranslate"><span class="pre">Yields</span></code>,  <code class="docutils literal notranslate"><span class="pre">See</span> <span class="pre">Also</span></code>, <code class="docutils literal notranslate"><span class="pre">Notes</span></code>, <code class="docutils literal notranslate"><span class="pre">Examples</span></code>.
-Section titles should always be underlined with (at least) the same number of hyphens <code class="docutils literal notranslate"><span class="pre">-</span></code> as characters, as in the above example.</p>
+Section titles should always be underlined with (at least) the same number of hyphens <code class="docutils literal notranslate"><span class="pre">-</span></code>
+as the length of the section title, as in the above example.</p>
 <p>Docstrings, as well as the rest of the documentation, are written in <a class="reference external" href="https://docutils.sourceforge.io/rst.html">reStructuredText</a>.
-Please consult this link for correct syntax.</p>
+Please consult this link for correct syntax. Some of the basics are also summarized in the
+<a class="reference internal" href="#writing-additional-documentation"><span class="std std-ref">Writing additional documentation</span></a> section below.</p>
 </section>
 <section id="update-the-version-number-dependencies">
 <h3>Update the version number / dependencies<a class="headerlink" href="#update-the-version-number-dependencies" title="Permalink to this headline"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> is built and published using <a class="reference external" href="https://python-poetry.org/docs/pyproject/">poetry</a>. To update the current version number,
-open the <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> file in the top directory, and update <code class="docutils literal notranslate"><span class="pre">version</span></code> under <code class="docutils literal notranslate"><span class="pre">[tool.poetry]</span></code>.
-We use <a class="reference external" href="https://semver.org/">semantic versioning</a>, i.e. MAJOR.MINOR.PATCH.
+open the <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> file in the NuRadioMC root directory, and update <code class="docutils literal notranslate"><span class="pre">version</span></code> under <code class="docutils literal notranslate"><span class="pre">[tool.poetry]</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">tool</span><span class="o">.</span><span class="n">poetry</span><span class="p">]</span>
+<span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;NuRadioMC&quot;</span>
+<span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;2.1.0&quot;</span>
+</pre></div>
+</div>
+<p>We use <a class="reference external" href="https://semver.org/">semantic versioning</a>, i.e. MAJOR.MINOR.PATCH.
 Dependencies are also maintained in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>. To update the dependencies:</p>
 <ul>
 <li><p>If you are adding a <strong>core</strong> dependency, first ensure that the core developers agree!
 Then add your dependency (e.g. <code class="docutils literal notranslate"><span class="pre">numpy</span></code>)</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">numpy</span> <span class="o">=</span> <span class="s2">&quot;1.21.1&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">tool</span><span class="o">.</span><span class="n">poetry</span><span class="o">.</span><span class="n">dependencies</span><span class="p">]</span>
+<span class="n">numpy</span> <span class="o">=</span> <span class="s2">&quot;1.21.1&quot;</span>
 </pre></div>
 </div>
 <p>under <code class="docutils literal notranslate"><span class="pre">[tool.poetry.dependencies]</span></code>. Acceptable version specifications are <code class="docutils literal notranslate"><span class="pre">&quot;4.1.1&quot;</span></code> (4.1.1 only),
@@ -740,10 +751,12 @@ For internal links (e.g. to other parts of the documentation), we prefer
 instead. These depend on what is being linked to:</p>
 <ul class="simple">
 <li><p>For another page in the documentation, use <code class="docutils literal notranslate"><span class="pre">:doc:</span></code>. E.g. <code class="docutils literal notranslate"><span class="pre">:doc:`introduction</span> <span class="pre">&lt;/Introduction/pages/introduction&gt;`</span></code> renders as
-<a class="reference internal" href="introduction.html"><span class="doc">introduction</span></a>.</p></li>
+<a class="reference internal" href="introduction.html"><span class="doc">introduction</span></a>. Use a leading <code class="docutils literal notranslate"><span class="pre">/</span></code> to use paths starting from
+the root <code class="docutils literal notranslate"><span class="pre">documentation/source</span></code> directory.</p></li>
 <li><p>One can reference a specific subsection instead by using <code class="docutils literal notranslate"><span class="pre">:ref:</span></code> and appending <code class="docutils literal notranslate"><span class="pre">:Section</span> <span class="pre">title</span></code>. E.g.
-<code class="docutils literal notranslate"><span class="pre">:ref:`Lists</span> <span class="pre">&lt;/Introduction/pages/contributing:Lists&gt;`</span></code> links to the previous paragraph:
-<a class="reference internal" href="#lists"><span class="std std-ref">Lists</span></a>.</p></li>
+<code class="docutils literal notranslate"><span class="pre">:ref:`this</span> <span class="pre">paragraph</span> <span class="pre">&lt;Introduction/pages/contributing:Links</span> <span class="pre">and</span> <span class="pre">cross-references&gt;`</span></code> links to
+<a class="reference internal" href="#links-and-cross-references"><span class="std std-ref">this paragraph</span></a>. Note that there is <strong>no</strong>
+leading <code class="docutils literal notranslate"><span class="pre">/</span></code> in this case!</p></li>
 <li><p>Finally, one can refer to python modules, classes, functions etc. by using <code class="docutils literal notranslate"><span class="pre">:mod:</span></code>, <code class="docutils literal notranslate"><span class="pre">:class:</span></code>, <code class="docutils literal notranslate"><span class="pre">:func:</span></code>
 respectively. The name of the function follows the same logic as in Python, e.g.
 <code class="docutils literal notranslate"><span class="pre">:class:`base</span> <span class="pre">trace</span> <span class="pre">class</span> <span class="pre">&lt;NuRadioReco.framework.base_trace&gt;`</span></code> refers to the NuRadioReco

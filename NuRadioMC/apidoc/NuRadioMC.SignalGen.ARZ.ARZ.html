@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioMC.SignalGen.ARZ.ARZ module &mdash; NuRadio 2.0.0 documentation</title>
+  <title>NuRadioMC.SignalGen.ARZ.ARZ module &mdash; NuRadio 2.1.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
@@ -32,7 +32,7 @@
             <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                2.0.0
+                2.1.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -66,7 +66,6 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/contributing.html">Contributing to NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/contributing.html#workflow">Workflow</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/contributing.html#example-workflow">Example workflow</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/contributing.html#coding-conventions">Coding conventions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/contributing.html#how-to">How to</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
@@ -767,6 +766,65 @@ signal for both ray tracing solutions from the same shower.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.SignalGen.ARZ.ARZ.get_vector_potential">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.ARZ.ARZ.</span></span><span class="sig-name descname"><span class="pre">get_vector_potential</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shower_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile_depth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile_ce</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Af</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_neg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_neg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t0_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t0_neg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'HAD'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.78</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interp_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interp_factor2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_for_xmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">em_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/ARZ/ARZ.html#get_vector_potential"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.ARZ.ARZ.get_vector_potential" title="Permalink to this definition"></a></dt>
+<dd><p>fast interpolation of time-domain calculation of vector potential of the
+Askaryan pulse from a charge-excess profile</p>
+<p>Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples.</p>
+<p>The numerical integration was replaces by a sum using the trapezoid rule using vectorized numpy operations</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shower_energy: float</strong></dt><dd><p>the energy of the shower</p>
+</dd>
+<dt><strong>theta: float</strong></dt><dd><p>viewing angle, i.e., the angle between shower axis and launch angle of the signal (the ray path)</p>
+</dd>
+<dt><strong>N: int</strong></dt><dd><p>number of samples in the time domain</p>
+</dd>
+<dt><strong>dt: float</strong></dt><dd><p>size of one time bin in units of time</p>
+</dd>
+<dt><strong>profile_depth: array of floats</strong></dt><dd><p>shower depth values of the charge excess profile</p>
+</dd>
+<dt><strong>profile_ce: array of floats</strong></dt><dd><p>charge-excess values of the charge excess profile</p>
+</dd>
+<dt><strong>shower_type: string (default “HAD”)</strong></dt><dd><p>type of shower, either “HAD” (hadronic), “EM” (electromagnetic) or “TAU” (tau lepton induced)</p>
+</dd>
+<dt><strong>n_index: float (default 1.78)</strong></dt><dd><p>index of refraction where the shower development takes place</p>
+</dd>
+<dt><strong>distance: float (default 1km)</strong></dt><dd><p>observation distance, the signal amplitude will be scaled according to 1/R</p>
+</dd>
+<dt><strong>interp_factor: int (default 1)</strong></dt><dd><p>interpolation factor of charge-excess profile. Results in a more precise numerical integration which might be beneficial
+for small vertex distances but also slows down the calculation proportional to the interpolation factor.
+if None, the interpolation factor will be calculated from the distance</p>
+</dd>
+<dt><strong>interp_factor2: int (default 100)</strong></dt><dd><p>interpolation just around the peak of the form factor</p>
+</dd>
+<dt><strong>shift_for_xmax: bool (default False)</strong></dt><dd><p>if True the observer position is placed relative to the position of the shower maximum, if False it is placed
+with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined
+as the position of the maximum of the charge excess profile</p>
+</dd>
+<dt><strong>Af: float</strong></dt><dd><p>ARZ model parameter</p>
+</dd>
+<dt><strong>freq_pos: float</strong></dt><dd><p>ARZ model parameter</p>
+</dd>
+<dt><strong>freq_neg: float</strong></dt><dd><p>ARZ model parameter</p>
+</dd>
+<dt><strong>exp_pos: float</strong></dt><dd><p>ARZ model parameter</p>
+</dd>
+<dt><strong>exp_neg: float</strong></dt><dd><p>ARZ model parameter</p>
+</dd>
+<dt><strong>t0_pos: float</strong></dt><dd><p>ARZ model parameter</p>
+</dd>
+<dt><strong>t0_neg: float</strong></dt><dd><p>ARZ model parameter</p>
+</dd>
+<dt><strong>em_factor: float</strong></dt><dd><p>Energy fraction of the electromagnetic component of the shower. Used only for hadronic showers.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalGen.ARZ.ARZ.get_vector_potential_numba">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.ARZ.ARZ.</span></span><span class="sig-name descname"><span class="pre">get_vector_potential_numba</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shower_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile_depth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile_ce</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Af</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_neg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_neg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t0_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t0_neg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'HAD'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.78</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interp_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interp_factor2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_for_xmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">em_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalGen.ARZ.ARZ.get_vector_potential_numba" title="Permalink to this definition"></a></dt>
 <dd><p>fast interpolation of time-domain calculation of vector potential of the
 Askaryan pulse from a charge-excess profile</p>
 <p>Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples.</p>

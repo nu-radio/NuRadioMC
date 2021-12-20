@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installing NuRadioMC / NuRadioReco &mdash; NuRadio 2.0.0 documentation</title>
+  <title>Installing NuRadioMC / NuRadioReco &mdash; NuRadio 2.1.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
@@ -32,7 +32,7 @@
             <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                2.0.0
+                2.1.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -66,7 +66,6 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="contributing.html">Contributing to NuRadioReco</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="contributing.html#workflow">Workflow</a></li>
-<li class="toctree-l3"><a class="reference internal" href="contributing.html#example-workflow">Example workflow</a></li>
 <li class="toctree-l3"><a class="reference internal" href="contributing.html#coding-conventions">Coding conventions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="contributing.html#how-to">How to</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="contributing.html#writing-docstrings">Writing docstrings</a></li>
@@ -511,10 +510,6 @@
              
   <section id="installing-nuradiomc-nuradioreco">
 <h1>Installing NuRadioMC / NuRadioReco<a class="headerlink" href="#installing-nuradiomc-nuradioreco" title="Permalink to this headline"></a></h1>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
-<p>This will change slightly with the next release of NuRadioMC, which will switch to poetry</p>
-</div>
 <section id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline"></a></h2>
 <p>In order to use <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> / <code class="docutils literal notranslate"><span class="pre">NuRadioReco</span></code>, please ensure you are using a version of Python <code class="docutils literal notranslate"><span class="pre">&gt;=3.6</span></code>, and a UNIX operating system (linux or MacOS).
@@ -530,17 +525,21 @@ using <code class="docutils literal notranslate"><span class="pre">pip</span></c
 </div>
 </div></blockquote>
 <p>NuRadioMC/NuRadioReco will then be available from Python using <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">NuRadioMC</span></code> and <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">NuRadioReco</span></code>, respectively.
-The pip installation will also install all core dependencies. However, <a class="reference internal" href="#manual-installation"><span class="std std-ref">some optional dependencies may still have to be installed manually</span></a>.</p>
-<blockquote>
-<div><div class="admonition important">
+The pip installation will also install all core dependencies.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>Some optional dependencies cannot be installed using pip and
+<a class="reference internal" href="#not-pip-installable-packages"><span class="std std-ref">have to be installed manually</span></a>.</p>
+</div>
+<div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>If you want the current version or you want to contribute to NuRadioReco, you need to install it manually.</p>
 </div>
-</div></blockquote>
 </section>
 <section id="development-version">
 <h2>Development version<a class="headerlink" href="#development-version" title="Permalink to this headline"></a></h2>
-<p>The most recent version of <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> is available on <a class="reference external" href="github.com">github</a> It can be downloaded manually from the <a class="reference external" href="https://github.com/nu-radio/NuRadioMC.git">repository website</a>,
+<p>The most recent version of <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> is available on <a class="reference external" href="github.com">github</a>.
+It can be downloaded manually from the <a class="reference external" href="https://github.com/nu-radio/NuRadioMC.git">repository website</a>,
 or cloned using <code class="docutils literal notranslate"><span class="pre">git</span></code></p>
 <div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/nu-radio/NuRadioMC.git
 </pre></div>
@@ -552,8 +551,11 @@ python3 install_dev.py
 </pre></div>
 </div>
 <p>This will launch an interactive installer that allows you to install all core and some optional dependencies, as well as setting up some git settings
-in case you want to contribute to NuRadioMC. <strong>We highly recommend installing NuRadioMC inside a</strong> <a class="reference external" href="https://docs.python.org/3/tutorial/venv.html">virtual environment</a>. You can either use <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">venv</span> <span class="pre">name_of_venv</span></code>
-or use a virtual environment manager like <a class="reference external" href="https://anaconda.org/anaconda/python">conda</a>.</p>
+in case you want to contribute to NuRadioMC. <strong>We highly recommend installing NuRadioMC inside a</strong> <a class="reference external" href="https://docs.python.org/3/tutorial/venv.html">virtual environment</a>.
+You can either use <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">venv</span> <span class="pre">name_of_venv</span></code>
+or use a virtual environment manager like <a class="reference external" href="https://anaconda.org/anaconda/python">conda</a>.
+If you for some reason do not want to use a virtual environment, you can install the dependencies for the current user only by appending
+<code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">install_dev.py</span> <span class="pre">--user</span></code>.</p>
 <p>If the installer above does not work, or you want/need to install additional dependencies,
 please follow the <a class="reference internal" href="#manual-installation"><span class="std std-ref">manual installation instructions</span></a> below.</p>
 <section id="pythonpath">
@@ -689,7 +691,7 @@ to be installed, and <code class="docutils literal notranslate"><span class="pre
 </div>
 </li>
 <li><p>To use the <a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.SignalProp.radioproparaytracing.html#module-NuRadioMC.SignalProp.radioproparaytracing" title="NuRadioMC.SignalProp.radioproparaytracing"><code class="xref py py-mod docutils literal notranslate"><span class="pre">RadioPropa</span> <span class="pre">numerical</span> <span class="pre">ray</span> <span class="pre">tracing</span></code></a> module, <code class="docutils literal notranslate"><span class="pre">radiopropa</span></code> needs to be installed.
-The radiopropa github, with installation instructions, can be found <a class="reference external" href="https://github.com/nu-radio/RadioPropa">here</a></p></li>
+The radiopropa github, with installation instructions, can be found <a class="reference external" href="https://github.com/nu-radio/RadioPropa">here</a>.</p></li>
 </ul>
 </section>
 </section>
