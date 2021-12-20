@@ -11,7 +11,7 @@ as given by the final config files for the air shower calculations.
 '''
 
 parser = argparse.ArgumentParser(description='Noise Trigger Rate')
-parser.add_argument('--config_directory', type=str, nargs='?', default='config/air_shower/',
+parser.add_argument('--config_directory', type=str, nargs='?', default='config/air_shower_envelope_trigger_1Hz_2of3_22.46mV/',
                     help='directory with final config files')
 parser.add_argument('--save_plot', type=bool, nargs='?', default=True, help='decide if you want to save the plot')
 
