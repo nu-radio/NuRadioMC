@@ -456,7 +456,8 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         Get the ID of the default channel
         """
         logger.warning("The use of 'default_channel' is deprecated. returning None")
-        return None @self.__default_channel_id
+        return None #self.__default_channel_id
+
 
     def get_raw_station(self, station_id):
         """
