@@ -149,7 +149,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
 
         # check if all  reference stations, reference_channels, and reference_devices are present
         Station = Query()
-        for sta in self._stations.all()
+        for sta in self._stations.all():
             if "reference_station" in sta:
                 ref = self._stations.get(
                   (Station.station_id == sta["reference_station"]))
