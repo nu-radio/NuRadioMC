@@ -115,6 +115,10 @@ class showerParameters(Enum):
     interferometric_shower_axis = 121  # shower axis (direction) derived from beam-formed signal
     interferometric_core = 122  # core (intersection of shower axis with obs plane) derived from beam-formed signal
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> Fix. remove renmants from merge
 class particleParameters(Enum):
     parent_id = 1 # the entry number of the parent particle, None if primary.
     zenith = 2  # the zenith angle of the incoming neutrino direction
