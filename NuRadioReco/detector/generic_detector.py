@@ -404,6 +404,14 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         self.__run_number = run_number
         self.__event_id = event_id
 
+    def get_reference_station(self, station_id):
+        """
+        Get the properties of the reference station
+        """
+        return self.__reference_stations[station_id]
+
+
+
     def get_default_stations(self):
         """
         Get the properties of the default stations
@@ -416,7 +424,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         """
         return self.__reference_stations[self.get_default_station_id()]
 
-    def get_default_station_ids(self):
+    def get_reference_station_ids(self):
         """
         Get the ID of the default station
         """
