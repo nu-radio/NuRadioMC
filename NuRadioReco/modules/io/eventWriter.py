@@ -5,6 +5,7 @@ from NuRadioReco.modules.io.NuRadioRecoio import VERSION, VERSION_MINOR
 import logging
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.detector import generic_detector
+from NuRadioReco.detector.detector import DateTimeSerializer
 logger = logging.getLogger("eventWriter")
 
 
@@ -253,7 +254,8 @@ class eventWriter:
                 if 'commission_time' not in entry.keys() or 'decommission_time' not in entry.keys() or station_time is None:
                     return True
                 # it's a normal detector and we have to check commission/decommission times
-                if entry['commission_time'] < station_time < entry['decommission_time']:
+                # the comission decomission times are stored as TinyDB string, so we need to decode if first into datetime
+                if DateTimeSerializer().decode(entry['commission_time'][11:]) < station_time < DateTimeSerializer().decode(entry['decommission_time'][11:]):
                     return True
         return False
 
@@ -262,7 +264,8 @@ class eventWriter:
             if entry['station_id'] == station_id and entry['channel_id'] == channel_id:
                 if 'commission_time' not in entry.keys() or 'decommission_time' not in entry.keys() or station_time is None:
                     return True
-                if entry['commission_time'] < station_time < entry['decommission_time']:
+                # the comission decomission times are stored as TinyDB string, so we need to decode if first into datetime
+                if DateTimeSerializer().decode(entry['commission_time'][11:]) < station_time < DateTimeSerializer().decode(entry['decommission_time'][11:]):
                     return True
         return False
 
