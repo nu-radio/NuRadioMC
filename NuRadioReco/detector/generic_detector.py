@@ -197,63 +197,79 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             logger.error("query for station {} returned no results".format(station_id))
             raise LookupError("query for station {} returned no results".format(station_id))
         if not raw:
-            reference_id = self.__lookuptable_reference_station[station_id]
-            for key in self.__reference_stations[reference_id].keys():
-                if key not in res.keys():
-                    # if a property is missing, we use the value from the default station instead
-                    res[key] = self.__reference_stations[reference_id][key]
+            if "reference_station" in res.keys():
+                ref = self._stations.get((Station.station_id == res["reference_station"]))
+                for key in ref.keys():
+                    if key not in res.keys():
+                        # if a property is missing, we use the value from the reference station instead
+                        res[key] = ref[key]
         return res
 
     def _query_channels(self, station_id, raw=False):
+        Station = Query()
+        sta = self._stations.get((Station.station_id == station_id))
+        reference_station_id = station_id
+        if "reference_station" in sta:
+            reference_station_id = sta["reference_station"]
+
         Channel = Query()
         res = self._channels.search((Channel.station_id == station_id))
+
         if not raw:
-            reference_id = self.__lookuptable_reference_station[station_id]
+            # if there are NO channels in this station defined, look up devices from the reference station
             if len(res) == 0:
-                default_channels = self._channels.search((Channel.station_id == reference_id))
+                reference_channels = self._channels.search((Channel.station_id == reference_station_id))
                 res = []
-                for channel in default_channels:
+                for channel in reference_channels:
                     new_channel = copy.copy(channel)
                     new_channel['station_id'] = station_id
                     res.append(new_channel)
-            # already copied once, but now we look if there are references to fill
+
+            # now we look if there are reference fields to fill. Will use reference_station_id, which is either the station or the reference
             for channel in res:
                 if 'reference_channel' in channel:
                     # add to dictionary to keep track of reference channels
                     self.__reference_channel_ids[(station_id, channel['channel_id'])] = device['reference_channel']
                     # there is a reference, so we have to get it
                     ref_chan = self._channels.get(
-                            (Channel.station_id == reference_id) & (Channel.channel_id == channel['reference_channel']))
-                    print(f"found reference channel, ref_chan {ref_chan}")
+                            (Channel.station_id == reference_station_id) & (Channel.channel_id == channel['reference_channel']))
                     for key in ref_chan.keys():
                         if key not in channel.keys() and key != 'station_id' and key != 'channel_id':
                             channel[key] = ref_chan[key]
         return res
 
     def _query_devices(self, station_id, raw=False):
+        # if the station has a reference, take this one to take the devices from
+        Station = Query()
+        sta = self._stations.get((Station.station_id == station_id))
+        reference_station_id = station_id
+        if "reference_station" in sta:
+            reference_station_id = sta["reference_station"]
+
         Device = Query()
         res = self._devices.search((Device.station_id == station_id))
+
         if not raw:
-            reference_id = self.__lookuptable_reference_station[station_id]
+            # if there are NO devices in this station defined, look up devices from the reference station
             if len(res) == 0:
-                default_devices = self._devices.search((Device.station_id == reference_id))
+                reference_devices = self._devices.search((Device.station_id == reference_station_id))
                 res = []
-                for device in default_devices:
+                for device in reference_devices:
                     new_device = copy.copy(device)
                     new_device['station_id'] = station_id
                     res.append(new_device)
-            # already copied once, but now we look if there are references to fill
+
+            # now we look if there are reference fields to fill. Will use reference_station_id, which is either the station or the reference
             for device in res:
                 if 'reference_device' in device:
                     # add to dictionary to keep track of reference devices
                     self.__reference_device_ids[(station_id, device['device_id'])] = device['reference_device']
                     # there is a reference, so we have to get it
                     ref_dev = self._devices.get(
-                            (Device.station_id == reference_id) & (Device.device_id == device['reference_device']))
-                    print(f"found reference device, ref_dev {ref_dev}")
+                            (Device.station_id == reference_station_id) & (Device.device_id == device['reference_device']))
                     for key in ref_dev.keys():
-                          if key not in device.keys() and key != 'station_id' and key != 'device_id':
-                              device[key] = ref_dev[key]
+                        if key not in device.keys() and key != 'station_id' and key != 'device_id':
+                            device[key] = ref_dev[key]
         return res
 
     def _buffer(self, station_id):
@@ -301,17 +317,17 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         if station_dict['station_id'] not in self.__lookuptable_reference_station:
             self._update_reference_station_lookup(station_dict)
 
-        reference_id = self.__lookuptable_reference_station[station_dict['station_id']]
-        for key in self.__reference_stations[reference_id].keys():
+        reference_station_id = self.__lookuptable_reference_station[station_dict['station_id']]
+        for key in self.__reference_stations[reference_station_id].keys():
             if key not in station_dict.keys():
-                station_dict[key] = self.__reference_stations[reference_id][key]
+                station_dict[key] = self.__reference_stations[reference_station_id][key]
         self._buffered_stations[station_dict['station_id']] = station_dict
 
-        if reference_id not in self._buffered_channels.keys():
-            self._buffer(reference_id)
+        if reference_station_id not in self._buffered_channels.keys():
+            self._buffer(reference_station_id)
 
         self._buffered_channels[station_dict['station_id']] = {}
-        for i_channel, channel in self._buffered_channels[reference_id].items():
+        for i_channel, channel in self._buffered_channels[reference_station_id].items():
             new_channel = copy.copy(channel)
             new_channel['station_id'] = station_dict['station_id']
             self._buffered_channels[station_dict['station_id']][channel['channel_id']] = new_channel
