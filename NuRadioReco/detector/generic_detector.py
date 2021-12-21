@@ -1,4 +1,5 @@
 import logging
+import json
 from tinydb import Query
 from tinydb_serialization import SerializationMiddleware
 import NuRadioReco.detector.detector
@@ -79,39 +80,53 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             This is done by appending e.g. '_InfFirn' to the antenna model name.
             if False, the antenna model as specified in the database is used.
         """
-        super(GenericDetector, self).__init__(source=source, json_filename=json_filename,
+
+        if source=="dictionary" or ((default_station is None) and (default_channel is None) and (default_device is None)):
+            # load detector
+            super(GenericDetector, self).__init__(source=source, json_filename=json_filename,
                                               dictionary=dictionary, assume_inf=assume_inf,
                                               antenna_by_depth=antenna_by_depth)
-        if default_station is not None:
-            logger.warning("DeprecationWarning: replace default_station by setting a 'reference_station' for each station in the detector description. This allows to define multiple default station types")
-            # fill default station info into 'reference_station' field for all stations in detector
-            for sta in self._stations.all():
-                if 'reference_station' in sta.keys():
-                    logger.warning(f"station already has a reference station {sta['reference_station']}. Ignoring 'default_station'")
-                else:
-                    logger.warning(f"Setting deprecated 'default_station' as reference station ({default_station}) as requested")
-                    sta["reference_station"] = default_station
+        else:
+            # load json as dictionary and pass that to the detector, this is needed in order to not overwrite the json
+            # when updating the table to include reference_station/channel/device
+            with open(json_filename, "r") as json_input:
+                dictionary = json.load(json_input)
+            super(GenericDetector, self).__init__(source="dictionary", json_filename=None,
+                                              dictionary=dictionary, assume_inf=assume_inf,
+                                              antenna_by_depth=antenna_by_depth)
 
-        if default_channel is not None:
-            logger.warning("DeprecationWarning: replace default_channel by setting a 'reference_channel' for each channel in the detector description. This allows to define multiple default channel types")
-            # fill default channel info into 'reference_channel' field for all channels in detector
-            for chan in self._channels.all():
-                if 'reference_channel' in chan.keys():
-                    logger.warning(f"channel already has a reference channel {chan['reference_channel']}. Ignoring 'default_channel'")
-                else:
-                    logger.warning(f"Setting deprecated 'default_channel' as reference channel ({default_channel}) as requested")
-                    chan["reference_channel"] = default_channel
+            if default_station is not None:
+                logger.warning("DeprecationWarning: replace default_station by setting a 'reference_station' for each station in the detector description. This allows to define multiple default station types")
+                # fill default station info into 'reference_station' field for all stations in detector
+                for sta in self._buffered_stations:
+                    if 'reference_station' in sta.keys():
+                        logger.warning(f"Station already has a reference station {sta['reference_station']}. Ignoring deprecated 'default_station'")
+                    else:
+                        logger.warning(f"Setting deprecated 'default_station' as reference station ({default_station}) as requested")
+                        Station = Query()
+                        self._stations.update({'reference_station': default_station}, (Station.station_id == sta["station_id"]))
 
-        if default_device is not None:
-            logger.warning("DeprecationWarning: replace default_device by setting a 'reference_device' for each device in the detector description. This allows to define multiple default device types")
-            # fill default device info into 'reference_device' field for all devices in detector
-            for dev in self._devices.all():
-                print(dev)
-                if 'reference_device' in dev.keys():
-                    logger.warning(f"device already has a reference device {dev['reference_device']}. Ignoring 'default_device'")
-                else:
-                    logger.warning(f"Setting deprecated 'default_device' as reference device ({default_device}) as requested")
-                    dev["reference_device"] = default_device
+            if default_channel is not None:
+                logger.warning("DeprecationWarning: replace default_channel by setting a 'reference_channel' for each channel in the detector description. This allows to define multiple default channel types")
+                # fill default channel info into 'reference_channel' field for all channels in detector
+                for chan in self._channels:
+                    if 'reference_channel' in chan.keys():
+                        logger.warning(f"Channel already has a reference channel {chan['reference_channel']}. Ignoring deprecated 'default_channel'")
+                    else:
+                        logger.warning(f"Setting deprecated 'default_channel' as reference channel ({default_channel}) as requested")
+                        Channel = Query()
+                        self._channels.update({'reference_channel': default_channel}, (Channel.station_id == chan["station_id"]) & (Channel.channel_id == chan["channel_id"]))
+
+            if default_device is not None:
+                logger.warning("DeprecationWarning: replace default_device by setting a 'reference_device' for each device in the detector description. This allows to define multiple default device types")
+                # fill default device info into 'reference_device' field for all devices in detector
+                for dev in self._buffered_devices:
+                    if 'reference_device' in dev.keys():
+                        logger.warning(f"Device already has a reference device {dev['reference_device']}. Ignoring deprecated 'default_device'")
+                    else:
+                        logger.warning(f"Setting deprecated 'default_device' as reference device ({default_device}) as requested")
+                        Device = Query()
+                        self._devices.update({'reference_device': default_device}, (Device.station_id == dev["station_id"]) & (Device.device_id == dev["device_id"]))
 
         # a lookup with one reference station for each station in the detector description
         self.__lookuptable_reference_station = {}
@@ -128,49 +143,39 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         self.__run_number = None
         self.__event_id = None
 
-        # get all reference stations
-
+        # check if all reference stations are there
         for reference_station_id in self.__reference_station_ids:
             if not self.has_station(reference_station_id):
                 raise ValueError(
                     'The reference station {} was not found in the detector description'.format(reference_station_id))
 
+        # get all referene stations to dict
         Station = Query()
         self.__reference_stations = {}
         for reference_station_id in self.__reference_station_ids:
             self.__reference_stations[reference_station_id] = self._stations.get((Station.station_id == reference_station_id))
 
-        # get all reference channels
-        """    
-        if default_channel is not None:
-            Channel = Query()
-            self.__default_channel = self._channels.get(
-                (Channel.station_id == default_station) & (Channel.channel_id == default_channel))
-            logger.warning(
-                f'Channel parameters of default channel {default_channel} of default station {default_station}\
-                 are used, not from reference station')
-            if self.__default_channel is None:
-                raise ValueError(
-                    'The default channel {} of station {} was not found in the detector description'.format(
-                        default_channel, self.__default_station_id))
-        else:
-            self.__default_channel = None
+        # check if all reference_channels and reference_devices are present
+        Channel = Query()
+        for chan in self._channels.all():
+            if "reference_channel" in chan:
+                ref = self._channels.get(
+                  (Channel.station_id == chan["station_id"]) & (Channel.channel_id == chan["reference_channel"]))
+                if ref is None:
+                    raise ValueError(
+                        'The reference channel {} of station {} was not found in the detector description'.format(
+                            ref["reference_channel"], ref["station_id"]))
 
-        if default_device is not None:
-            Device = Query()
-            self.__default_device = self._devices.get(
-                (Device.station_id == default_station) & (Device.device_id == default_device))
-            logger.warning(
-                f'Device parameters of default device {default_device} of default station {default_station} are \
-                used, not from reference station')
+        Device = Query()
+        for dev in self._devices.all():
+              if "reference_device" in dev:
+                  ref = self._devices.get(
+                    (Device.station_id == dev["station_id"]) & (Device.channel_id == dev["reference_device"]))
+                  if ref is None:
+                      raise ValueError(
+                          'The reference device {} of station {} was not found in the detector description'.format(
+                              ref["reference_device"], ref["station_id"]))
 
-            if self.__default_device is None:
-                raise ValueError(
-                    'The default device {} of station {} was not found in the detector description'.format(
-                        default_device, self.__default_station_id))
-        else:
-            self.__default_device = None
-        """
 
     def _get_station(self, station_id):
         if station_id not in self._buffered_stations.keys():
@@ -410,13 +415,15 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         """
         Get the properties of the default channel
         """
-        return self.__default_channel
+        logger.warning("The use of 'default_channel' is deprecated. returning None")
+        return None #self.__default_channel
 
     def get_default_channel_id(self):
         """
         Get the ID of the default channel
         """
-        return self.__default_channel_id
+        logger.warning("The use of 'default_channel' is deprecated. returning None")
+        return None @self.__default_channel_id
 
     def get_raw_station(self, station_id):
         """
