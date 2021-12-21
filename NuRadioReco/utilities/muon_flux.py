@@ -144,18 +144,18 @@ if __name__ == "__main__":
 
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
     ax1.set_title('Scaled muon flux from MCEq')
-    ax1.plot(E_data_1D, (J_e3_1D/E_data_1D**3) * E_data_1D**3.7 / units_flux, color='k', label='total')
     ax2.set_title('Unscaled muon flux from MCEq')
-    ax2.plot(E_data_1D, J_e3_1D/E_data_1D**3, color='k', label='total')
-
     for i_zen, zen in enumerate(zen_grid_2D):
         ax1.plot(E_data_2D, (J_e3_2D[i_zen]/E_data_2D**3) * E_data_1D**3.7 / units_flux, label=f'{zen/units.deg:.2f}$\degree$')
         ax2.plot(E_data_2D, J_e3_2D[i_zen]/E_data_2D**3, label=f'{zen/units.deg:.2f}$\degree$')
 
+    ax1.plot(E_data_1D, (J_e3_1D/E_data_1D**3) * E_data_1D**3.7 / units_flux, color='k', label='total')
+    ax2.plot(E_data_1D, J_e3_1D/E_data_1D**3, color='k', label='total')
     ax2.plot(1e16, get_flux(1e16), marker='x', label='test 1D')
     ax2.plot(1e17, get_flux_per_energy_and_zenith(1e17, 60*units.deg), marker='x', label='test 2D')
     ax3.step(energy_bins_center, flux_1d, label=r'Integrated flux 0$\degree$ - 90$\degree$')
     ax4.step(energy_bins_center, flux_2d, label=r'Integrated flux 50$\degree$ - 70$\degree$')
+
     ax1.set_ylabel(r'$E^{3.7}$ J [$GeV^{2.7}$ $cm^{-2}$ $s^{-1}$ $sr^{-1}$]')
     ax2.set_ylabel(r'J [$GeV^{-1}$ $cm^{-2}$ $s^{-1}$ $sr^{-1}$]')
     ax3.set_ylabel(r'J [$GeV^{-1}$ $cm^{-2}$ $s^{-1}$ $sr^{-1}$]')
