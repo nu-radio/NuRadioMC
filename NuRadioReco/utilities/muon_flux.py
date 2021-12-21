@@ -5,7 +5,9 @@ from scipy.integrate import quad
 from scipy.integrate import dblquad
 import os
 
-def get_flux(energy, file_surface_mu_flux='data/muon_flux_E_SIBYLL23c_GSF.pickle'):
+abspath = os.path.dirname(os.path.abspath(__file__))
+
+def get_flux(energy, file_surface_mu_flux=os.path.join(abspath, 'data/muon_flux_E_SIBYLL23c_GSF.pickle')):
     '''
     provides muon flux over the full zenith band as calculated with MCEq at a given energy. The CR model used
     is the GlobalSplineFit and the hadronic interaction model is Sibyll 2.3c.
@@ -21,9 +23,7 @@ def get_flux(energy, file_surface_mu_flux='data/muon_flux_E_SIBYLL23c_GSF.pickle
     -------
     flux of muon in NuRadio units. (GeV**-1 * m**-2 * ns**-1 sr**-1)
     '''
-    abspath = os.path.dirname(os.path.abspath(__file__))
-
-    data_surface_mu_flux = io_utilities.read_pickle(os.path.join(abspath,file_surface_mu_flux), encoding='latin1')
+    data_surface_mu_flux = io_utilities.read_pickle(file_surface_mu_flux, encoding='latin1')
     J_e3 = np.array(data_surface_mu_flux['mu_total']) * units.GeV**2 * units.cm**-2 * units.s**-1 *units.sr**-1
     E_data = np.array(data_surface_mu_flux['e_grid']) * units.GeV
 
@@ -60,7 +60,7 @@ def get_flux_per_energy_bin(energy_bin_edge_low, energy_bin_edge_high):
 
     return int_flux[0]
 
-def get_flux_per_energy_and_zenith(energy, zenith, file_surface_mu_flux='data/muon_flux_E_theta_SIBYLL23c_GSF.pickle'):
+def get_flux_per_energy_and_zenith(energy, zenith, file_surface_mu_flux=os.path.join(abspath, 'data/muon_flux_E_theta_SIBYLL23c_GSF.pickle')):
     '''
     provides muon flux at a certain energy and zenith angle as calculated with MCEq at a given energy. The CR model used
     is the GlobalSplineFit and the hadronic interaction model is Sibyll 2.3c.
@@ -78,8 +78,7 @@ def get_flux_per_energy_and_zenith(energy, zenith, file_surface_mu_flux='data/mu
     -------
     flux of muon in NuRadio units
     '''
-    abspath = os.path.dirname(os.path.abspath(__file__))
-    data_surface_mu_flux = io_utilities.read_pickle(os.path.join(abspath,file_surface_mu_flux), encoding='latin1')
+    data_surface_mu_flux = io_utilities.read_pickle(file_surface_mu_flux, encoding='latin1')
     J_e3 = np.array(data_surface_mu_flux['mu_total']) * units.GeV**2 * units.cm**-2 * units.s**-1
     E_data = np.array(data_surface_mu_flux['e_grid']) * units.GeV
     zen = np.array(data_surface_mu_flux['zen_grid']) * units.deg
@@ -123,10 +122,14 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     plt.style.use({'figure.facecolor':'white'})
 
-    file_surface_mu_flux='data/muon_flux_E_SIBYLL23c_GSF.pickle'
-    data_surface_mu_flux = io_utilities.read_pickle(file_surface_mu_flux, encoding='latin1')
-    J_e3 = np.array(data_surface_mu_flux['mu_total']) * units.GeV**2 * units.cm**-2 * units.s**-1 *units.sr**-1
-    E_data = np.array(data_surface_mu_flux['e_grid']) * units.GeV
+    data_surface_mu_flux_1D = io_utilities.read_pickle(os.path.join(abspath,'data/muon_flux_E_SIBYLL23c_GSF.pickle') , encoding='latin1')
+    J_e3_1D = np.array(data_surface_mu_flux_1D['mu_total']) * units.GeV**2 * units.cm**-2 * units.s**-1 *units.sr**-1
+    E_data_1D = np.array(data_surface_mu_flux_1D['e_grid']) * units.GeV
+
+    data_surface_mu_flux_2D = io_utilities.read_pickle(os.path.join(abspath,'data/muon_flux_E_theta_SIBYLL23c_GSF.pickle') , encoding='latin1')
+    J_e3_2D = np.array(data_surface_mu_flux_2D['mu_total']) * units.GeV**2 * units.cm**-2 * units.s**-1 *units.sr**-1
+    E_data_2D = np.array(data_surface_mu_flux_2D['e_grid']) * units.GeV
+    zen_grid_2D = np.array(data_surface_mu_flux_2D['zen_grid']) * units.deg
 
     energy_bins = np.logspace(14, 19.5, 24)
     energy_bins_low = energy_bins[0:-1]
@@ -137,14 +140,22 @@ if __name__ == "__main__":
     flux_2d = []
     for i in np.arange(len(energy_bins_low)):
        flux_1d.append(get_flux_per_energy_bin(energy_bins_low[i], energy_bins_high[i]))
-       flux_2d.append(get_flux_per_energy_and_zenith_bin(energy_bins_low[i], energy_bins_high[i], 0*units.deg, 90*units.deg))
+       flux_2d.append(get_flux_per_energy_and_zenith_bin(energy_bins_low[i], energy_bins_high[i], 50*units.deg, 70*units.deg))
 
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
-    ax1.plot(E_data, (J_e3/E_data**3) * E_data**3.7 / units_flux, label='Scaled muon flux from MCEq')
-    ax2.plot(E_data, J_e3/E_data**3, label='Unscaled muon flux from MCEq')
-    ax2.plot(1e16, get_flux(1e16), marker='x', label='test')
-    ax3.step(energy_bins_center, flux_1d, label='integrated flux 1D')
-    ax4.step(energy_bins_center, flux_2d, label='integrated flux 2D')
+    ax1.set_title('Scaled muon flux from MCEq')
+    ax1.plot(E_data_1D, (J_e3_1D/E_data_1D**3) * E_data_1D**3.7 / units_flux, color='k', label='total')
+    ax2.set_title('Unscaled muon flux from MCEq')
+    ax2.plot(E_data_1D, J_e3_1D/E_data_1D**3, color='k', label='total')
+
+    for i_zen, zen in enumerate(zen_grid_2D):
+        ax1.plot(E_data_2D, (J_e3_2D[i_zen]/E_data_2D**3) * E_data_1D**3.7 / units_flux, label=f'{zen/units.deg:.2f}$\degree$')
+        ax2.plot(E_data_2D, J_e3_2D[i_zen]/E_data_2D**3, label=f'{zen/units.deg:.2f}$\degree$')
+
+    ax2.plot(1e16, get_flux(1e16), marker='x', label='test 1D')
+    ax2.plot(1e17, get_flux_per_energy_and_zenith(1e17, 60*units.deg), marker='x', label='test 2D')
+    ax3.step(energy_bins_center, flux_1d, label=r'Integrated flux 0$\degree$ - 90$\degree$')
+    ax4.step(energy_bins_center, flux_2d, label=r'Integrated flux 50$\degree$ - 70$\degree$')
     ax1.set_ylabel(r'$E^{3.7}$ J [$GeV^{2.7}$ $cm^{-2}$ $s^{-1}$ $sr^{-1}$]')
     ax2.set_ylabel(r'J [$GeV^{-1}$ $cm^{-2}$ $s^{-1}$ $sr^{-1}$]')
     ax3.set_ylabel(r'J [$GeV^{-1}$ $cm^{-2}$ $s^{-1}$ $sr^{-1}$]')
