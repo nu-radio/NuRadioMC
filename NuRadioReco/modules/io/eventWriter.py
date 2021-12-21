@@ -255,7 +255,7 @@ class eventWriter:
                     return True
                 # it's a normal detector and we have to check commission/decommission times
                 # the comission decomission times are stored as TinyDB string, so we need to decode if first into datetime
-                if DateTimeSerializer().decode(entry['commission_time'][11:]) < station_time < DateTimeSerializer().decode(entry['decommission_time'][11:]):
+                if entry['commission_time'] < station_time < entry['decommission_time']:
                     return True
         return False
 
