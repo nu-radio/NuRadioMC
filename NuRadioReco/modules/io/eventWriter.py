@@ -207,27 +207,28 @@ class eventWriter:
                         'decommission_time': channel_description['decommission_time']
                     })
                     i_channel += 1
-        # If we have a genericDetector, the default station may not be in the event.
-        # In that case, we have to add it manually to make sure it ends up in the file
-        if is_generic_detector:
-            for reference_station_id in det.get_reference_station_ids():
-                if not self.__is_station_already_in_file(reference_station_id, None):
-                    station_description = det.get_raw_station(reference_station_id)
-                    self.__stored_stations.append({
-                        'station_id': station.get_id()
-                    })
-                    det_dict['stations'][str(i_station)] = station_description
-                    for channel_id in det.get_channel_ids(reference_station_id):
-                        if not self.__is_channel_already_in_file(reference_station_id, channel_id, None):
-                            channel_description = det.get_raw_channel(reference_station_id, channel_id)
-                            det_dict['channels'][str(i_channel)] = channel_description
-                            self.__stored_channels.append({
-                                'station_id': reference_station_id,
-                                'channel_id': channel_id,
-                                'commission_time': channel_description['commission_time'],
-                                'decommission_time': channel_description['decommission_time']
-                            })
-                            i_channel += 1
+            # If we have a genericDetector, the default station may not be in the event.
+            # In that case, we have to add it manually to make sure it ends up in the file
+            if is_generic_detector:
+                for reference_station_id in det.get_reference_station_ids():
+                    if not self.__is_station_already_in_file(reference_station_id, None):
+                        station_description = det.get_raw_station(reference_station_id)
+                        self.__stored_stations.append({
+                            'station_id': reference_station_id
+                        })
+                        det_dict['stations'][str(i_station)] = station_description
+                        i_station += 1
+                        for channel_id in det.get_channel_ids(reference_station_id):
+                            if not self.__is_channel_already_in_file(reference_station_id, channel_id, None):
+                                channel_description = det.get_raw_channel(reference_station_id, channel_id)
+                                det_dict['channels'][str(i_channel)] = channel_description
+                                self.__stored_channels.append({
+                                    'station_id': reference_station_id,
+                                    'channel_id': channel_id,
+                                    'commission_time': channel_description['commission_time'],
+                                    'decommission_time': channel_description['decommission_time']
+                                })
+                                i_channel += 1
         if i_station == 0 and i_channel == 0:  # All stations and channels have already been saved
             return None
         else:
