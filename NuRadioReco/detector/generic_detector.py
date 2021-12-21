@@ -81,16 +81,17 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             if False, the antenna model as specified in the database is used.
         """
 
-        if source=="dictionary" or ((default_station is None) and (default_channel is None) and (default_device is None)):
+        if (default_station is None) and (default_channel is None) and (default_device is None):
             # load detector
             super(GenericDetector, self).__init__(source=source, json_filename=json_filename,
                                               dictionary=dictionary, assume_inf=assume_inf,
                                               antenna_by_depth=antenna_by_depth)
         else:
-            # load json as dictionary and pass that to the detector, this is needed in order to not overwrite the json
-            # when updating the table to include reference_station/channel/device
-            with open(json_filename, "r") as json_input:
-                dictionary = json.load(json_input)
+            if source == "json":
+                # load json as dictionary and pass that to the detector, this is needed in order to not overwrite the json
+                # when updating the table to include reference_station/channel/device
+                with open(json_filename, "r") as json_input:
+                    dictionary = json.load(json_input)
             super(GenericDetector, self).__init__(source="dictionary", json_filename=None,
                                               dictionary=dictionary, assume_inf=assume_inf,
                                               antenna_by_depth=antenna_by_depth)
@@ -98,7 +99,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             if default_station is not None:
                 logger.warning("DeprecationWarning: replace default_station by setting a 'reference_station' for each station in the detector description. This allows to define multiple default station types")
                 # fill default station info into 'reference_station' field for all stations in detector
-                for sta in self._buffered_stations:
+                for sta in self._stations:
                     if 'reference_station' in sta.keys():
                         logger.warning(f"Station already has a reference station {sta['reference_station']}. Ignoring deprecated 'default_station'")
                     else:
@@ -128,34 +129,35 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
                         Device = Query()
                         self._devices.update({'reference_device': default_device}, (Device.station_id == dev["station_id"]) & (Device.device_id == dev["device_id"]))
 
+        # TODO maybe these dicts/lists can be omitted
         # a lookup with one reference station for each station in the detector description
         self.__lookuptable_reference_station = {}
         self.__reference_station_ids = []
-
         self.__reference_device_ids = {}
         self.__reference_channel_ids = {}
-
+        # TODO maybe these dicts.lists can be omitted
         # add all stations to the lookup
         for sta in self._stations.all():
             self._update_reference_station_lookup(sta)
+        self.__reference_stations = {}
+        for reference_station_id in self.__reference_station_ids:
+            self.__reference_stations[reference_station_id] = self._stations.get((Station.station_id == reference_station_id))
 
         self.__station_changes_for_event = []
         self.__run_number = None
         self.__event_id = None
 
-        # check if all reference stations are there
-        for reference_station_id in self.__reference_station_ids:
-            if not self.has_station(reference_station_id):
-                raise ValueError(
-                    'The reference station {} was not found in the detector description'.format(reference_station_id))
-
-        # get all referene stations to dict
+        # check if all  reference stations, reference_channels, and reference_devices are present
         Station = Query()
-        self.__reference_stations = {}
-        for reference_station_id in self.__reference_station_ids:
-            self.__reference_stations[reference_station_id] = self._stations.get((Station.station_id == reference_station_id))
+        for sta in self._stations.all()
+            if "reference_station" in sta:
+                ref = self._stations.get(
+                  (Station.station_id == sta["reference_station"]))
+                if ref is None:
+                    raise ValueError(
+                        'The reference station {} was not found in the detector description'.format(
+                            ref["reference_station"]))
 
-        # check if all reference_channels and reference_devices are present
         Channel = Query()
         for chan in self._channels.all():
             if "reference_channel" in chan:
