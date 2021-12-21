@@ -174,9 +174,6 @@ class eventWriter:
             "channels": {},
             "stations": {}
         }
-        #if is_generic_detector:
-        #    det_dict['default_station'] = det.get_default_station_id()
-        #    det_dict['default_channel'] = det.get_default_channel_id()
         i_station = 0
         i_channel = 0
         for station in event.get_stations():
