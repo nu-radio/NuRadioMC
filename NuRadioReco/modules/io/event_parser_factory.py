@@ -93,6 +93,10 @@ def scan_files_function(version_major, version_minor):
                     'stations': {}
                 }
             if is_generic_detector:
+                if 'default_station' not in detector_dict:
+                    detector_dict['default_station'] = None
+                if 'default_channel' not in detector_dict:
+                    detector_dict['default_channel'] = None                    
                 self._detector_dicts[iF]['default_station'] = detector_dict['default_station']
                 self._detector_dicts[iF]['default_channel'] = detector_dict['default_channel']
             for station in detector_dict['stations'].values():
