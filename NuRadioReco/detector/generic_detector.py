@@ -228,7 +228,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             # now we look if there are reference fields to fill. Will use reference_station_id, which is either the station or the reference
             for channel in res:
                 if 'reference_channel' in channel:
-                    # add to dictionary to keep track of reference channels
+                    # add to dictionary to keep track of reference channels TODO this is not really needed?
                     self.__reference_channel_ids[(station_id, channel['channel_id'])] = device['reference_channel']
                     # there is a reference, so we have to get it
                     ref_chan = self._channels.get(
@@ -262,7 +262,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             # now we look if there are reference fields to fill. Will use reference_station_id, which is either the station or the reference
             for device in res:
                 if 'reference_device' in device:
-                    # add to dictionary to keep track of reference devices
+                    # add to dictionary to keep track of reference devices TODO this is not really needed?
                     self.__reference_device_ids[(station_id, device['device_id'])] = device['reference_device']
                     # there is a reference, so we have to get it
                     ref_dev = self._devices.get(
@@ -299,7 +299,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         """
         Add a generic station to the detector. The station is treated like a
         generic station in the original detector description file, i.e. all missing
-        properties and all channels will be taken from the default station.
+        properties and all channels will be taken from the reference station.
         If a station with the same ID already exists, this function does nothing.
 
         Parameters
@@ -307,7 +307,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         station_dict: dictionary
             dictionary containing the station properties. Needs to at least include
             a station_id, any other missing parameters will be taken from the
-            default station
+            reference station
         """
         if station_dict['station_id'] in self._buffered_stations.keys():
             logger.warning('Station with ID {} already exists in buffer. Cannot add station with same ID'.format(
@@ -331,6 +331,13 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             new_channel = copy.copy(channel)
             new_channel['station_id'] = station_dict['station_id']
             self._buffered_channels[station_dict['station_id']][channel['channel_id']] = new_channel
+
+        self._buffered_devices[station_dict['station_id']] = {}
+        for i_device, device in self._buffered_devices[reference_station_id].items():
+            new_device = copy.copy(device)
+            new_device['station_id'] = station_dict['station_id']
+            self._buffered_devices[station_dict['station_id']][device['device_id']] = new_device
+
 
     def add_station_properties_for_event(self, properties, station_id, run_number, event_id):
         """
