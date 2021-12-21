@@ -2030,11 +2030,11 @@ class ray_tracing:
 
         r = ray_tracing(southpole_2015())
 
-        time_delay_short = r.get_birefringence_time_delay(source, antenna, path_type=path_type, acc=1000)
-        time_delay_long = r.get_birefringence_time_delay(source, antenna, path_type=path_type, acc=1000)
+        time_delay_short = r.get_birefringence_time_delay(source, antenna, path_type=path_type, acc=acc)
+        time_delay_long = r.get_birefringence_time_delay(source, antenna, path_type=path_type, acc=acc)
 
-        polar_short = r.get_path_polarization(source, antenna, path_type=path_type, acc=1000)
-        polar_long = r.get_path_polarization(source, antenna, path_type=path_type, acc=1000)
+        polar_short = r.get_path_polarization(source, antenna, path_type=path_type, acc=acc)
+        polar_long = r.get_path_polarization(source, antenna, path_type=path_type, acc=acc)
 
         polar_theta = polar_short[1][:,1]
         polar_phi = polar_short[1][:,2]
@@ -2044,6 +2044,7 @@ class ray_tracing:
 
         diff =  time_delay_short[2] - time_delay_short[1]
         T_theta = np.abs(3 * time_delay_short[0])
+        #T_theta = 100
 
         dt = t * units.ns
         n_samples = int(T_theta / dt)
@@ -2056,6 +2057,7 @@ class ray_tracing:
         t_slow = base_trace.BaseTrace()
         t_fast = base_trace.BaseTrace()
 
+        
         delta_pulse_theta = np.zeros(n_samples)
         delta_pulse_phi = np.zeros(n_samples)
         delta_pulse_theta[int(n_samples/2)] = 1 
@@ -2084,6 +2086,9 @@ class ray_tracing:
         start_phi = t_phi.get_trace()        
 
         for i in range(len(diff)):
+            
+            #if i == 0:
+            #    break
     
             a = polar_theta[i]
             b = polar_phi[i]
@@ -2099,12 +2104,81 @@ class ray_tracing:
             t_phi.set_trace(t_slow.get_trace() * Rinv[1, 0] + t_fast.get_trace() * Rinv[1, 1], sampling_rate=t_fast.get_sampling_rate())
     
             print(i)
+            #if i == 0:
+            #    break
     
         end_theta = t_theta.get_trace()
         end_phi = t_phi.get_trace()
         
         return(start_theta, start_phi, end_theta, end_phi, dt)
-
+    
+    def get_pulse_trace_fast(self, source, antenna, pulse, path_type=0, acc=1000):
+        
+        data = np.load(pulse)
+        
+        time = data[0]
+        etheta = data[1]
+        ephi = data[2]    
+      
+        r = ray_tracing(southpole_2015())   
+        time_delay_short = r.get_birefringence_time_delay(source, antenna, path_type=path_type, acc=acc)
+        polar_short = r.get_path_polarization(source, antenna, path_type=path_type, acc=acc)
+    
+        polar_theta = polar_short[1][:,1]
+        polar_phi = polar_short[1][:,2]
+    
+        diff =  time_delay_short[2] - time_delay_short[1]
+        dt =  time[-1] / len(etheta) * units.ns  
+         
+        t_theta = base_trace.BaseTrace()
+        t_phi = base_trace.BaseTrace()
+    
+        t_slow = base_trace.BaseTrace()
+        t_fast = base_trace.BaseTrace()    
+    
+        t_theta.set_trace(etheta, sampling_rate= 1/ dt)
+        t_phi.set_trace(ephi, sampling_rate=1/dt)    
+        
+    
+        TT = t_theta.get_times()
+    
+        shift = TT[t_theta.get_trace() == max(t_theta.get_trace())]   
+         
+        t_theta.set_trace_start_time(-shift)
+        t_phi.set_trace_start_time(-shift)
+    
+        TT = t_theta.get_times()
+    
+        start_theta = t_theta.get_trace()
+        start_phi = t_phi.get_trace()        
+    
+        for i in range(len(diff)):
+            
+            a = polar_theta[i]
+            b = polar_phi[i]
+            
+            R = np.matrix([[a, -b],[b, a]])    
+            
+            th = t_theta.get_frequency_spectrum()
+            ph = t_phi.get_frequency_spectrum()        
+            t_slow.set_frequency_spectrum(th * R[0, 0] + ph * R[0, 1], sampling_rate=1 / dt)
+            t_fast.set_frequency_spectrum(th * R[1, 0] + ph * R[1, 1], sampling_rate=1 / dt)
+    
+            t_fast.apply_time_shift(diff[i])
+    
+            Rinv = np.linalg.inv(R)
+                   
+            fa = t_fast.get_frequency_spectrum()
+            sl = t_slow.get_frequency_spectrum()           
+            t_theta.set_frequency_spectrum(sl * Rinv[0, 0] + fa * Rinv[0, 1], sampling_rate=1 / dt)
+            t_phi.set_frequency_spectrum(sl * Rinv[1, 0] + fa * Rinv[1, 1], sampling_rate=1 / dt)
+    
+        end_theta = t_theta.get_trace()
+        end_phi = t_phi.get_trace()
+        
+        print('test')
+    
+        return(start_theta, start_phi, end_theta, end_phi, TT)
 
     def get_launch_vector(self, iS):
         """
