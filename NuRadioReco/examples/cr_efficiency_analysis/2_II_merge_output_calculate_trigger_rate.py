@@ -25,12 +25,12 @@ args = parser.parse_args()
 
 logger.info(f"Checking {args.directory} for condition: {args.condition}")
 
-file_list = []  # get non corrupted files from threshold calculations with specified passband
-i = 0
+file_list = []
+# get non corrupted files from threshold calculations with specified passband
 for file in glob.glob(args.directory + '*' + args.condition + '*.json'):
     if os.path.isfile(file) and os.path.getsize(file) > 0:
         file_list.append(file)
-        i += 1
+
 
 n_files = len(file_list)
 
@@ -58,7 +58,7 @@ estimated_global_rate = hcr.get_global_trigger_rate(trigger_rate_all, cfg['total
                                                             cfg['number_coincidences'], cfg['coinc_window'])
 
 dic = {}
-dic = cfg
+dic = cfg.copy()
 dic['iteration'] = iterations
 dic['efficiency'] = trigger_efficiency_all
 dic['trigger_rate'] = trigger_rate_all
