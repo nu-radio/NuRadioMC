@@ -229,7 +229,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             for channel in res:
                 if 'reference_channel' in channel:
                     # add to dictionary to keep track of reference channels TODO this is not really needed?
-                    self.__reference_channel_ids[(station_id, channel['channel_id'])] = device['reference_channel']
+                    self.__reference_channel_ids[(station_id, channel['channel_id'])] = channel['reference_channel']
                     # there is a reference, so we have to get it
                     ref_chan = self._channels.get(
                             (Channel.station_id == reference_station_id) & (Channel.channel_id == channel['reference_channel']))
