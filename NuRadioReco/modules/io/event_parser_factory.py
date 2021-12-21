@@ -93,6 +93,7 @@ def scan_files_function(version_major, version_minor):
                     'stations': {}
                 }
             if is_generic_detector:
+                # add default_station and default_channel to the dict to support older files using these
                 if 'default_station' not in detector_dict:
                     detector_dict['default_station'] = None
                 if 'default_channel' not in detector_dict:
