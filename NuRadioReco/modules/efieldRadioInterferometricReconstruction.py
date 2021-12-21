@@ -25,7 +25,7 @@ The radio-interferometric reconstruction (RIT) was proposed in [1].
 The implementation here is based on work published in [2].
 
 [1]: H. Schoorlemmer, W. R. Carvalho Jr., arXiv:2006.10348
-[2]: F. Schlueter, T. Huege, arXiv:2102.13577
+[2]: F. Schlueter, T. Huege, doi:10.1088/1748-0221/16/07/P07048
 
 """
 
@@ -50,6 +50,21 @@ class efieldInterferometricDepthReco:
         pass
 
     def begin(self, interpolation=True, signal_kind="power", debug=False):
+        """
+        Parameters:
+        -----------
+
+        interpolation: bool
+            If true, use a linear interpolation to match sampling of the beamformed signal trace and the individual time-shifted antenna traces.
+            Default is True, False is not yet implemented
+
+        signal_kind: str
+            Define which signal "metric" is used on the beamformed traces. Default "power": sum over the squared amplitudes in a 100 ns window around the peak.
+            Other options are "amplitude" or "hilbert_sum" 
+
+        debug: bool
+            If true, show some debug plots (Default: False).
+        """
         self._debug = debug
         self._interpolation = interpolation
         self._signal_kind = signal_kind
@@ -61,6 +76,37 @@ class efieldInterferometricDepthReco:
     def sample_longitudinal_profile(
             self, traces, times, station_positions,
             shower_axis, core, depths=None, distances=None):
+        """
+        Returns the longitudinal profile of the interferometic signal sampled along the shower axis. 
+
+        Paramters:
+        ----------
+
+        traces: array(number_of_antennas, samples)
+            Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.
+
+        times: array(number_of_antennas, samples)
+            Time vectors corresponding to the electric field traces.
+
+        station_positions: array(number_of_antennas, 3)
+            Position of each antenna.
+
+        shower_axis: array(3,)
+            Axis/direction along which the interferometric signal is sampled. Anchor is "core".
+
+        core: array(3,)
+            Shower core. Keep in mind that the altitudes (z-coordinate) matters.
+
+        depths: array (optinal)
+            Define the positions (slant depth along the axis) at which the interferometric signal is sampled. 
+            Instead of "depths" you can provide "distances".
+
+        distances: array (optinal)
+            Define the positions (geometrical distance from core along the axis) at which the interferometric signal is sampled.
+            Instead of "distances" you can provide "depths".
+
+        Returns array
+        """
 
         zenith = hp.get_angle(np.array([0, 0, 1]), shower_axis)
         tstep = times[0, 1] - times[0, 0]
@@ -108,10 +154,74 @@ class efieldInterferometricDepthReco:
 
         return signals
 
+
     def reconstruct_interferometric_depth(
             self, traces, times, station_positions, shower_axis, core,
             lower_depth=400, upper_depth=800, bin_size=100, return_profile=False):
+        """
+        Returns parameter of a Gauss fitted to the "peak" of the interferometic longitudinal profile along the shower axis.
+        A initial samping range and size in defined by "lower_depth", "upper_depth", "bin_size". However if the "peak", i.e.,
+        maximum signal is found at an edge the sampling range in continually increased (with a min/max depth of 0/2000 g/cm^2).
+        The Gauss is fitted around the found peak with a refined sampling (use 20 samples in this narrow range).
+
+        Paramters:
+        ----------
+
+        traces: array(number_of_antennas, samples)
+            Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.
+
+        times: array(number_of_antennas, samples)
+            Time vectors corresponding to the electric field traces.
+
+        station_positions: array(number_of_antennas, 3)
+            Position of each antenna.
+
+        shower_axis: array(3,)
+            Axis/direction along which the interferometric signal is sampled. Anchor is "core".
+
+        core: array(3,)
+            Shower core. Keep in mind that the altitudes (z-coordinate) matters.
+
+        lower_depth: float
+            Define the lower edge for the inital sampling (default: 400 g/cm2).
+
+        upper_depth: float
+            Define the upper edge for the inital sampling (default: 800 g/cm2).
+
+        bin_size: float
+            Define the step size pf the inital sampling (default: 100 g/cm2).
+            The refined sampling around the peak region is / 10 this value.
+
+        return_profile: bool 
+            If true return the sampled profile in addition to the Gauss parameter (default: False).
+
+        Returns:
+        --------
         
+        If return_profile is True
+            
+            depths_corse: np.array
+                Depths along shower axis coarsely sampled
+            
+            depths_fine: np.array
+                Depths along shower axis finely sampled (used in fitting)
+            
+            signals_corese: np.array
+                Beamformed signals along shower axis coarsely sampled
+            
+            signals_fine: np.array
+                Beamformed signals along shower axis finely sampled (used in fitting)
+                    
+            popt: list
+                List of fitted Gauss parameters (amplitude, position, width)
+
+        If return_profile is False:
+
+            popt: list
+                List of fitted Gauss parameters (amplitude, position, width)
+        
+        """
+
         depths = np.arange(lower_depth, upper_depth, bin_size)
         signals_tmp = self.sample_longitudinal_profile(
             traces, times, station_positions, shower_axis, core, depths=depths)
@@ -148,15 +258,12 @@ class efieldInterferometricDepthReco:
 
         popt, pkov = curve_fit(interferometry.gaus, depths_final, signals_final, p0=[np.amax(
             signals_final), depths_final[np.argmax(signals_final)], 100], maxfev=1000)
-        chi2_mean = np.mean(
-            ((interferometry.gaus(depths_final, *popt) - signals_final) / signals_final) ** 2)
-
-        popt = [*popt, chi2_mean]
 
         if return_profile:
             return depths, depths_final, signals_tmp, signals_final, popt
 
         return popt
+
 
     def update_atmospheric_model_and_refractivity_table(self, shower):
         """ 
@@ -266,7 +373,9 @@ class efieldInterferometricDepthReco:
 
 
 class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
-
+    """
+    Class to reconstruct the shower axis with beamforming.     
+    """
     def __init__(self):
         super().__init__()
 
@@ -291,12 +400,68 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
     def sample_lateral_cross_section(
             self,
-            station_positions, traces, times,
+            traces, times, station_positions,
             shower_axis_inital, core, depth, cs,
             shower_axis_mc, core_mc,
             relative=False, initial_grid_spacing=100, centered_around_truth=True,
             cross_section_size=1000, deg_resolution=np.deg2rad(0.005)):
+        """
+        Sampling the "cross section", i.e., 2d-lateral distribution of the beam formed signal for a slice in the atmosphere. 
+        It is looking for the maximum in the lateral distribution with an (stupid) iterative grid search. 
+        
+        Returns the position and the strenght of the maximum signal.
 
+        Paramters:
+        ----------
+
+        traces: array(number_of_antennas, samples)
+            Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.
+
+        times: array(number_of_antennas, samples)
+            Time vectors corresponding to the electric field traces.
+
+        station_positions: array(number_of_antennas, 3)
+            Position of each antenna.
+
+        shower_axis_inital: array(3,)
+            Axis/direction which is used as initial guess for the true shower axis, Around this axis we sample the 2d-lateral distributions
+
+        core: array(3,)
+            Shower core which is used as initial guess. Keep in mind that the altitudes (z-coordinate) matters.
+
+        depth: np.array
+
+        cs: radiotools.coordinatesytem.cstrafo
+
+        shower_axis_mc: np.array(3,)
+        
+        core_mc: : np.array(3,)
+
+        relative: bool
+            False
+            
+        initial_grid_spacing: int
+            100
+        
+        centered_around_truth: bool
+            True
+
+        cross_section_size: int
+            1000
+            
+        deg_resolution: float
+            np.deg2rad(0.005))
+        
+        Returns:
+        --------
+        
+        point_found: np.array(3,)
+            Position of the found maximum
+
+        weight: float
+            Amplitude/Strengt of the maximum
+        
+        """
 
         zenith_inital, _ = hp.cartesian_to_spherical(
             *np.split(shower_axis_inital, 3))
@@ -429,7 +594,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
         def sample_lateral_cross_section_placeholder(dep):
             return self.sample_lateral_cross_section(
-                station_positions, traces, times,
+                traces, times, station_positions,
                 shower_axis_inital, core_inital, dep, cs,
                 shower_axis, core,
                 relative=relative, initial_grid_spacing=initial_grid_spacing,
@@ -556,13 +721,6 @@ def get_geometry_and_transformation(shower):
 
 def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
     """ 
-    Returns 
-        - the electric field traces in the vxB polarisation (takes first electric field stored in a station)
-        - traces time series
-        - positions    
-    for all stations/observers. 
-
-
     Parameter:
     ----------
 
@@ -577,6 +735,18 @@ def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
 
     n_sampling: int
         if not None clip trace with n_sampling // 2 around np.argmax(np.abs(trace))
+
+    Returns:
+    --------
+    
+    traces_vxB: np.array
+        The electric field traces in the vxB polarisation (takes first electric field stored in a station) for all stations/observers.
+
+    times: mp.array  
+        The electric field traces time series for all stations/observers.
+        
+    pos: np.array
+        Positions for all stations/observers. 
     """
 
 
@@ -621,6 +791,31 @@ def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
 
 
 def plot_lateral_cross_section(xs, ys, signals, mc_pos=None, fname=None, title=None):
+    """ 
+    Plot the lateral distribution of the beamformed singal (in the vxB, vxvxB directions).
+
+    Parameters:
+    -----------
+
+    xs: np.array
+        Positions on x-axis (vxB) at which the signal is sampled (on a 2d grid)
+
+    ys: np.array
+        Positions on y-axis (vxvxB) at which the signal is sampled (on a 2d grid)   
+
+    signals: np.array
+        Signals sampled on the 2d grid defined by xs and ys.
+
+    mc_pos: np.array(2,)
+        Intersection of the (MC-)axis with the "slice" of the lateral distribution plotted.
+
+    fname: str
+        Name of the figure. If given the figure is saved, if fname is None the fiture is shown.
+
+    title: str
+        Title of the figure (Default: None)
+    """
+
     yy, xx = np.meshgrid(ys, xs)
 
     fig, ax = plt.subplots(1)
