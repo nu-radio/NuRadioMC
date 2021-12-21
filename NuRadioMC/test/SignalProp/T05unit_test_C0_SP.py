@@ -7,7 +7,6 @@ from NuRadioReco.utilities import io_utilities
 import logging
 import pickle
 from numpy import testing
-from keras.utils import io_utils
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('test_raytracing')
 
