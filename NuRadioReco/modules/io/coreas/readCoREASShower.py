@@ -109,7 +109,7 @@ class readCoREASShower:
                 if self.__det is None:
                     sim_station = coreas.make_sim_station(station_id, corsika, observer, channel_ids=[0, 1, 2])
                 else:
-                    sim_station = coreas.make_sim_station(station_id, corsika, observer, channel_ids=self.__det.get_channel_ids(station_id))
+                    sim_station = coreas.make_sim_station(station_id, corsika, observer, channel_ids=self.__det.get_channel_ids(self.__det.get_default_station_id()))
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
                 if self.__det is not None:

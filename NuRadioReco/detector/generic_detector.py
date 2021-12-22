@@ -128,7 +128,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
                         logger.warning(f"Setting deprecated 'default_device' as reference device ({default_device}) as requested")
                         Device = Query()
                         self._devices.update({'reference_device': default_device}, (Device.station_id == dev["station_id"]) & (Device.device_id == dev["device_id"]))
-
+            self.__default_station = default_station
         # TODO maybe these dicts/lists can be omitted
         # a lookup with one reference station for each station in the detector description
         self.__lookuptable_reference_station = {}
@@ -309,6 +309,12 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             a station_id, any other missing parameters will be taken from the
             reference station
         """
+        if "reference_station" not in station_dict and self.__default_station is not None:
+            logger.warning('DeprecationWarning: Generating a station via `add_generic_station` that has no "reference_station" specified.')
+            logger.warning(f'DeprecationWarning: Taking the deprecated "default_station" ({self.__default_station}) as "reference_station".')
+            station_dict["reference_station"] = self.__default_station
+
+
         if station_dict['station_id'] in self._buffered_stations.keys():
             logger.warning('Station with ID {} already exists in buffer. Cannot add station with same ID'.format(
                 station_dict['station_id']))
@@ -416,9 +422,9 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         """
         return self.__reference_station_ids[station_id] 
 
-    def get_default_stations(self):
+    def get_reference_stations(self):
         """
-        Get the properties of the default stations
+        Get the properties of the reference stations
         """
         return self.__reference_stations
 
