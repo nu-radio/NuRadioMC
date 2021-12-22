@@ -234,7 +234,6 @@
           "pos_site": "simulation",
           "position": "",
           "station_id": 102,
-          "reference_station": 101,
           "station_type": null
       }
     }
