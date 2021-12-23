@@ -506,6 +506,7 @@
              
   <h1>Source code for NuRadioReco.detector.generic_detector</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">from</span> <span class="nn">tinydb</span> <span class="kn">import</span> <span class="n">Query</span>
 <span class="kn">from</span> <span class="nn">tinydb_serialization</span> <span class="kn">import</span> <span class="n">SerializationMiddleware</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.detector.detector</span>
@@ -535,8 +536,9 @@
 <span class="sd">    This detector only accepts json detector descriptions or dictionary.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_filename</span><span class="p">,</span> <span class="n">default_station</span><span class="p">,</span> <span class="n">default_channel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default_device</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">,</span> <span class="n">dictionary</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">assume_inf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">antenna_by_depth</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_filename</span><span class="p">,</span> <span class="n">default_station</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default_channel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default_device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">,</span>
+                 <span class="n">dictionary</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">assume_inf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">antenna_by_depth</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the stations detector properties.</span>
 
@@ -547,12 +549,26 @@
 <span class="sd">            path relative to the current working directory of the user)</span>
 <span class="sd">            default value is &#39;ARIANNA/arianna_detector_db.json&#39;</span>
 <span class="sd">        default_station:</span>
-<span class="sd">            ID of the station that should be used as the default station. The default station needs to have a complete detector</span>
-<span class="sd">            description. If a property is missing in any of the other stations, the value from the default station will be used instead</span>
+<span class="sd">            This option is deprecated.</span>
+<span class="sd">            ONLY in case no &#39;reference_station&#39; is set in the station parameters of the detector description,</span>
+<span class="sd">            the &#39;default_station&#39; is used as reference for the time being.</span>
+<span class="sd">            ID of the station that should be used as the default station.</span>
+<span class="sd">            The default station needs to have a complete detector description. If a property is missing in any of the</span>
+<span class="sd">            other stations, the value from the default station will be used instead.</span>
 <span class="sd">        default_channel:</span>
-<span class="sd">            ID of the channel that should be used as the default channel. This channel has to be part of the default station and have a</span>
-<span class="sd">            complete detector description. If a property is missing in any of the other channels, the value from the default channel</span>
-<span class="sd">            will be used instead.</span>
+<span class="sd">            This option is deprecated.</span>
+<span class="sd">            ONLY in case no &#39;reference_channel&#39; is set in the channel parameters of the detector description,</span>
+<span class="sd">            the &#39;default_channel&#39; is used as reference for the time being.</span>
+<span class="sd">            ID of the channel that should be used as the default channel. This channel has to be part of the reference</span>
+<span class="sd">            station and have a complete detector description. If a property is missing in any of the other channels,</span>
+<span class="sd">            the value from the default channel will be used instead.</span>
+<span class="sd">        default_device:</span>
+<span class="sd">            This option is deprecated.</span>
+<span class="sd">            ONLY in case no &#39;reference_device&#39; is set in the device parameters of the detector description,</span>
+<span class="sd">            the &#39;default_device&#39; is used as reference for the time being.</span>
+<span class="sd">            ID of the device that should be used as the default device. This channel has to be part of the reference</span>
+<span class="sd">            station and have a complete detector description. If a property is missing in any of the other devices,</span>
+<span class="sd">            the value from the default device will be used instead.</span>
 <span class="sd">        source: str</span>
 <span class="sd">            &#39;json&#39; or &#39;dictionary&#39;</span>
 <span class="sd">            default value is &#39;json&#39;</span>
@@ -564,53 +580,111 @@
 <span class="sd">            If &#39;dictionary&#39; is passed to the parameter source, the dictionary</span>
 <span class="sd">            passed to this parameter will be used for the detector description.</span>
 <span class="sd">        assume_inf : Bool</span>
-<span class="sd">            Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.</span>
+<span class="sd">            Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna</span>
+<span class="sd">            madel will be determined by the station geometry.</span>
 <span class="sd">        antenna_by_depth: bool (default True)</span>
-<span class="sd">            if True the antenna model is determined automatically depending on the depth of the antenna. This is done by</span>
-<span class="sd">            appending e.g. &#39;_InfFirn&#39; to the antenna model name.</span>
+<span class="sd">            if True the antenna model is determined automatically depending on the depth of the antenna.</span>
+<span class="sd">            This is done by appending e.g. &#39;_InfFirn&#39; to the antenna model name.</span>
 <span class="sd">            if False, the antenna model as specified in the database is used.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">GenericDetector</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">json_filename</span><span class="o">=</span><span class="n">json_filename</span><span class="p">,</span> <span class="n">dictionary</span><span class="o">=</span><span class="n">dictionary</span><span class="p">,</span>
-                                              <span class="n">assume_inf</span><span class="o">=</span><span class="n">assume_inf</span><span class="p">,</span> <span class="n">antenna_by_depth</span><span class="o">=</span><span class="n">antenna_by_depth</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__default_station_id</span> <span class="o">=</span> <span class="n">default_station</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__default_channel_id</span> <span class="o">=</span> <span class="n">default_channel</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_default_device_id</span> <span class="o">=</span> <span class="n">default_device</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">default_station</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">default_channel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">default_device</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="c1"># load detector</span>
+            <span class="nb">super</span><span class="p">(</span><span class="n">GenericDetector</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">json_filename</span><span class="o">=</span><span class="n">json_filename</span><span class="p">,</span>
+                                              <span class="n">dictionary</span><span class="o">=</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">assume_inf</span><span class="o">=</span><span class="n">assume_inf</span><span class="p">,</span>
+                                              <span class="n">antenna_by_depth</span><span class="o">=</span><span class="n">antenna_by_depth</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">source</span> <span class="o">==</span> <span class="s2">&quot;json&quot;</span><span class="p">:</span>
+                <span class="c1"># load json as dictionary and pass that to the detector, this is needed in order to not overwrite the json</span>
+                <span class="c1"># when updating the table to include reference_station/channel/device</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_input</span><span class="p">:</span>
+                    <span class="n">dictionary</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">json_input</span><span class="p">)</span>
+            <span class="nb">super</span><span class="p">(</span><span class="n">GenericDetector</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;dictionary&quot;</span><span class="p">,</span> <span class="n">json_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                              <span class="n">dictionary</span><span class="o">=</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">assume_inf</span><span class="o">=</span><span class="n">assume_inf</span><span class="p">,</span>
+                                              <span class="n">antenna_by_depth</span><span class="o">=</span><span class="n">antenna_by_depth</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">default_station</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;DeprecationWarning: replace default_station by setting a &#39;reference_station&#39; for each station in the detector description. This allows to define multiple default station types&quot;</span><span class="p">)</span>
+                <span class="c1"># fill default station info into &#39;reference_station&#39; field for all stations in detector</span>
+                <span class="k">for</span> <span class="n">sta</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;reference_station&#39;</span> <span class="ow">in</span> <span class="n">sta</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Station already has a reference station </span><span class="si">{</span><span class="n">sta</span><span class="p">[</span><span class="s1">&#39;reference_station&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">. Ignoring deprecated &#39;default_station&#39;&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Setting deprecated &#39;default_station&#39; as reference station (</span><span class="si">{</span><span class="n">default_station</span><span class="si">}</span><span class="s2">) as requested&quot;</span><span class="p">)</span>
+                        <span class="n">Station</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;reference_station&#39;</span><span class="p">:</span> <span class="n">default_station</span><span class="p">},</span> <span class="p">(</span><span class="n">Station</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">sta</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">]))</span>
+
+            <span class="k">if</span> <span class="n">default_channel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;DeprecationWarning: replace default_channel by setting a &#39;reference_channel&#39; for each channel in the detector description. This allows to define multiple default channel types&quot;</span><span class="p">)</span>
+                <span class="c1"># fill default channel info into &#39;reference_channel&#39; field for all channels in detector</span>
+                <span class="k">for</span> <span class="n">chan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;reference_channel&#39;</span> <span class="ow">in</span> <span class="n">chan</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Channel already has a reference channel </span><span class="si">{</span><span class="n">chan</span><span class="p">[</span><span class="s1">&#39;reference_channel&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">. Ignoring deprecated &#39;default_channel&#39;&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Setting deprecated &#39;default_channel&#39; as reference channel (</span><span class="si">{</span><span class="n">default_channel</span><span class="si">}</span><span class="s2">) as requested&quot;</span><span class="p">)</span>
+                        <span class="n">Channel</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;reference_channel&#39;</span><span class="p">:</span> <span class="n">default_channel</span><span class="p">},</span> <span class="p">(</span><span class="n">Channel</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">chan</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">Channel</span><span class="o">.</span><span class="n">channel_id</span> <span class="o">==</span> <span class="n">chan</span><span class="p">[</span><span class="s2">&quot;channel_id&quot;</span><span class="p">]))</span>
+
+            <span class="k">if</span> <span class="n">default_device</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;DeprecationWarning: replace default_device by setting a &#39;reference_device&#39; for each device in the detector description. This allows to define multiple default device types&quot;</span><span class="p">)</span>
+                <span class="c1"># fill default device info into &#39;reference_device&#39; field for all devices in detector</span>
+                <span class="k">for</span> <span class="n">dev</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_devices</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;reference_device&#39;</span> <span class="ow">in</span> <span class="n">dev</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Device already has a reference device </span><span class="si">{</span><span class="n">dev</span><span class="p">[</span><span class="s1">&#39;reference_device&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">. Ignoring deprecated &#39;default_device&#39;&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Setting deprecated &#39;default_device&#39; as reference device (</span><span class="si">{</span><span class="n">default_device</span><span class="si">}</span><span class="s2">) as requested&quot;</span><span class="p">)</span>
+                        <span class="n">Device</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_devices</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;reference_device&#39;</span><span class="p">:</span> <span class="n">default_device</span><span class="p">},</span> <span class="p">(</span><span class="n">Device</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">dev</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">Device</span><span class="o">.</span><span class="n">device_id</span> <span class="o">==</span> <span class="n">dev</span><span class="p">[</span><span class="s2">&quot;device_id&quot;</span><span class="p">]))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__default_station</span> <span class="o">=</span> <span class="n">default_station</span>
+        <span class="c1"># TODO maybe these dicts/lists can be omitted</span>
+        <span class="c1"># a lookup with one reference station for each station in the detector description</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__lookuptable_reference_station</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__reference_station_ids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__reference_device_ids</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__reference_channel_ids</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># TODO maybe these dicts.lists can be omitted</span>
+        <span class="c1"># add all stations to the lookup</span>
+        <span class="k">for</span> <span class="n">sta</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_reference_station_lookup</span><span class="p">(</span><span class="n">sta</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__reference_stations</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">reference_station_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_station_ids</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__reference_stations</span><span class="p">[</span><span class="n">reference_station_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">Station</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">reference_station_id</span><span class="p">))</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">__station_changes_for_event</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__run_number</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__event_id</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_station</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__default_station_id</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s1">&#39;The default station </span><span class="si">{}</span><span class="s1"> was not found in the detector description&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__default_station_id</span><span class="p">))</span>
 
+        <span class="c1"># check if all  reference stations, reference_channels, and reference_devices are present</span>
         <span class="n">Station</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__default_station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">Station</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_station_id</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">sta</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s2">&quot;reference_station&quot;</span> <span class="ow">in</span> <span class="n">sta</span><span class="p">:</span>
+                <span class="n">ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                  <span class="p">(</span><span class="n">Station</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">sta</span><span class="p">[</span><span class="s2">&quot;reference_station&quot;</span><span class="p">]))</span>
+                <span class="k">if</span> <span class="n">ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s1">&#39;The reference station </span><span class="si">{}</span><span class="s1"> was not found in the detector description&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">ref</span><span class="p">[</span><span class="s2">&quot;reference_station&quot;</span><span class="p">]))</span>
 
+        <span class="n">Channel</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">chan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s2">&quot;reference_channel&quot;</span> <span class="ow">in</span> <span class="n">chan</span><span class="p">:</span>
+                <span class="n">ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                  <span class="p">(</span><span class="n">Channel</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">chan</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">Channel</span><span class="o">.</span><span class="n">channel_id</span> <span class="o">==</span> <span class="n">chan</span><span class="p">[</span><span class="s2">&quot;reference_channel&quot;</span><span class="p">]))</span>
+                <span class="k">if</span> <span class="n">ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s1">&#39;The reference channel </span><span class="si">{}</span><span class="s1"> of station </span><span class="si">{}</span><span class="s1"> was not found in the detector description&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">ref</span><span class="p">[</span><span class="s2">&quot;reference_channel&quot;</span><span class="p">],</span> <span class="n">ref</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">]))</span>
 
-        <span class="k">if</span> <span class="n">default_channel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">Channel</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__default_channel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">Channel</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">default_station</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">Channel</span><span class="o">.</span><span class="n">channel_id</span> <span class="o">==</span> <span class="n">default_channel</span><span class="p">))</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_channel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s1">&#39;The default channel </span><span class="si">{}</span><span class="s1"> of station </span><span class="si">{}</span><span class="s1"> was not found in the detector description&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="n">default_channel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_station_id</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__default_channel</span> <span class="o">=</span> <span class="kc">None</span>
-            
-            
-        <span class="k">if</span> <span class="n">default_device</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">Device</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__default_device</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_devices</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">Device</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">default_station</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">Device</span><span class="o">.</span><span class="n">device_id</span> <span class="o">==</span> <span class="n">default_device</span><span class="p">))</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_device</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s1">&#39;The default device </span><span class="si">{}</span><span class="s1"> of station </span><span class="si">{}</span><span class="s1"> was not found in the detector description&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="n">default_device</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_station_id</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__default_device</span> <span class="o">=</span> <span class="kc">None</span>
-            
-            
-            
+        <span class="n">Device</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">dev</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_devices</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+              <span class="k">if</span> <span class="s2">&quot;reference_device&quot;</span> <span class="ow">in</span> <span class="n">dev</span><span class="p">:</span>
+                  <span class="n">ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_devices</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">Device</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">dev</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">Device</span><span class="o">.</span><span class="n">channel_id</span> <span class="o">==</span> <span class="n">dev</span><span class="p">[</span><span class="s2">&quot;reference_device&quot;</span><span class="p">]))</span>
+                  <span class="k">if</span> <span class="n">ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                          <span class="s1">&#39;The reference device </span><span class="si">{}</span><span class="s1"> of station </span><span class="si">{}</span><span class="s1"> was not found in the detector description&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                              <span class="n">ref</span><span class="p">[</span><span class="s2">&quot;reference_device&quot;</span><span class="p">],</span> <span class="n">ref</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">]))</span>
+
 
     <span class="k">def</span> <span class="nf">_get_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_stations</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -630,47 +704,79 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;query for station </span><span class="si">{}</span><span class="s2"> returned no results&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
             <span class="k">raise</span> <span class="ne">LookupError</span><span class="p">(</span><span class="s2">&quot;query for station </span><span class="si">{}</span><span class="s2"> returned no results&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">raw</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_station</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">res</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                    <span class="c1">#   if a property is missing, we use the value from the default station instead</span>
-                    <span class="n">res</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_station</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;reference_station&quot;</span> <span class="ow">in</span> <span class="n">res</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">Station</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;reference_station&quot;</span><span class="p">]))</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">ref</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">res</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="c1"># if a property is missing, we use the value from the reference station instead</span>
+                        <span class="n">res</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ref</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">res</span>
 
     <span class="k">def</span> <span class="nf">_query_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">Station</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">Station</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">station_id</span><span class="p">))</span>
+        <span class="n">reference_station_id</span> <span class="o">=</span> <span class="n">station_id</span>
+        <span class="k">if</span> <span class="s2">&quot;reference_station&quot;</span> <span class="ow">in</span> <span class="n">sta</span><span class="p">:</span>
+            <span class="n">reference_station_id</span> <span class="o">=</span> <span class="n">sta</span><span class="p">[</span><span class="s2">&quot;reference_station&quot;</span><span class="p">]</span>
+
         <span class="n">Channel</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="o">.</span><span class="n">search</span><span class="p">((</span><span class="n">Channel</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">station_id</span><span class="p">))</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="n">raw</span><span class="p">:</span>
+            <span class="c1"># if there are NO channels in this station defined, look up devices from the reference station</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">default_channels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="o">.</span><span class="n">search</span><span class="p">((</span><span class="n">Channel</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_station_id</span><span class="p">))</span>
+                <span class="n">reference_channels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="o">.</span><span class="n">search</span><span class="p">((</span><span class="n">Channel</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">reference_station_id</span><span class="p">))</span>
                 <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">default_channels</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">reference_channels</span><span class="p">:</span>
                     <span class="n">new_channel</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
                     <span class="n">new_channel</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">station_id</span>
                     <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_channel</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_channel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">res</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_channel</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">channel</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;station_id&#39;</span><span class="p">:</span>
-                            <span class="n">channel</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_channel</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+            <span class="c1"># now we look if there are reference fields to fill. Will use reference_station_id, which is either the station or the reference</span>
+            <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">res</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;reference_channel&#39;</span> <span class="ow">in</span> <span class="n">channel</span><span class="p">:</span>
+                    <span class="c1"># add to dictionary to keep track of reference channels TODO this is not really needed?</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__reference_channel_ids</span><span class="p">[(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel</span><span class="p">[</span><span class="s1">&#39;channel_id&#39;</span><span class="p">])]</span> <span class="o">=</span> <span class="n">channel</span><span class="p">[</span><span class="s1">&#39;reference_channel&#39;</span><span class="p">]</span>
+                    <span class="c1"># there is a reference, so we have to get it</span>
+                    <span class="n">ref_chan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                            <span class="p">(</span><span class="n">Channel</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">reference_station_id</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">Channel</span><span class="o">.</span><span class="n">channel_id</span> <span class="o">==</span> <span class="n">channel</span><span class="p">[</span><span class="s1">&#39;reference_channel&#39;</span><span class="p">]))</span>
+                    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">ref_chan</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">channel</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;station_id&#39;</span> <span class="ow">and</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;channel_id&#39;</span><span class="p">:</span>
+                            <span class="n">channel</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ref_chan</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">res</span>
-        
-        
+
     <span class="k">def</span> <span class="nf">_query_devices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># if the station has a reference, take this one to take the devices from</span>
+        <span class="n">Station</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">Station</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">station_id</span><span class="p">))</span>
+        <span class="n">reference_station_id</span> <span class="o">=</span> <span class="n">station_id</span>
+        <span class="k">if</span> <span class="s2">&quot;reference_station&quot;</span> <span class="ow">in</span> <span class="n">sta</span><span class="p">:</span>
+            <span class="n">reference_station_id</span> <span class="o">=</span> <span class="n">sta</span><span class="p">[</span><span class="s2">&quot;reference_station&quot;</span><span class="p">]</span>
+
         <span class="n">Device</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_devices</span><span class="o">.</span><span class="n">search</span><span class="p">((</span><span class="n">Device</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">station_id</span><span class="p">))</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="n">raw</span><span class="p">:</span>
+            <span class="c1"># if there are NO devices in this station defined, look up devices from the reference station</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">default_devices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_devices</span><span class="o">.</span><span class="n">search</span><span class="p">((</span><span class="n">Device</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_station_id</span><span class="p">))</span>
+                <span class="n">reference_devices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_devices</span><span class="o">.</span><span class="n">search</span><span class="p">((</span><span class="n">Device</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">reference_station_id</span><span class="p">))</span>
                 <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="n">default_devices</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="n">reference_devices</span><span class="p">:</span>
                     <span class="n">new_device</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
                     <span class="n">new_device</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">station_id</span>
                     <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_device</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_device</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="n">res</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_device</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">device</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;station_id&#39;</span><span class="p">:</span>
-                            <span class="n">device</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_device</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+            <span class="c1"># now we look if there are reference fields to fill. Will use reference_station_id, which is either the station or the reference</span>
+            <span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="n">res</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;reference_device&#39;</span> <span class="ow">in</span> <span class="n">device</span><span class="p">:</span>
+                    <span class="c1"># add to dictionary to keep track of reference devices TODO this is not really needed?</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__reference_device_ids</span><span class="p">[(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">device</span><span class="p">[</span><span class="s1">&#39;device_id&#39;</span><span class="p">])]</span> <span class="o">=</span> <span class="n">device</span><span class="p">[</span><span class="s1">&#39;reference_device&#39;</span><span class="p">]</span>
+                    <span class="c1"># there is a reference, so we have to get it</span>
+                    <span class="n">ref_dev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_devices</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                            <span class="p">(</span><span class="n">Device</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">reference_station_id</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">Device</span><span class="o">.</span><span class="n">device_id</span> <span class="o">==</span> <span class="n">device</span><span class="p">[</span><span class="s1">&#39;reference_device&#39;</span><span class="p">]))</span>
+                    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">ref_dev</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">device</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;station_id&#39;</span> <span class="ow">and</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;device_id&#39;</span><span class="p">:</span>
+                            <span class="n">device</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ref_dev</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">res</span>
 
     <span class="k">def</span> <span class="nf">_buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
@@ -683,13 +789,24 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_devices</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="n">devices</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_devices</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">device</span><span class="p">[</span><span class="s1">&#39;device_id&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">device</span>
-            
+
+    <span class="k">def</span> <span class="nf">_update_reference_station_lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; add a station to the lookup of reference stations and update the list of default station ids &quot;&quot;&quot;</span>
+        <span class="n">default_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_station_ids</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;reference_station&#39;</span> <span class="ow">in</span> <span class="n">station_dict</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__lookuptable_reference_station</span><span class="p">[</span><span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;reference_station&#39;</span><span class="p">]</span>
+            <span class="n">default_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;reference_station&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__lookuptable_reference_station</span><span class="p">[</span><span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__reference_station_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">default_ids</span><span class="p">)</span>
 
 <div class="viewcode-block" id="GenericDetector.add_generic_station"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.add_generic_station">[docs]</a>    <span class="k">def</span> <span class="nf">add_generic_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_dict</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a generic station to the detector. The station is treated like a</span>
 <span class="sd">        generic station in the original detector description file, i.e. all missing</span>
-<span class="sd">        properties and all channels will be taken from the default station.</span>
+<span class="sd">        properties and all channels will be taken from the reference station.</span>
 <span class="sd">        If a station with the same ID already exists, this function does nothing.</span>
 
 <span class="sd">        Parameters</span>
@@ -697,26 +814,43 @@
 <span class="sd">        station_dict: dictionary</span>
 <span class="sd">            dictionary containing the station properties. Needs to at least include</span>
 <span class="sd">            a station_id, any other missing parameters will be taken from the</span>
-<span class="sd">            default station</span>
+<span class="sd">            reference station</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;reference_station&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">station_dict</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_station</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;DeprecationWarning: Generating a station via `add_generic_station` that has no &quot;reference_station&quot; specified.&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;DeprecationWarning: Taking the deprecated &quot;default_station&quot; (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__default_station</span><span class="si">}</span><span class="s1">) as &quot;reference_station&quot;.&#39;</span><span class="p">)</span>
+            <span class="n">station_dict</span><span class="p">[</span><span class="s2">&quot;reference_station&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_station</span>
+
+
         <span class="k">if</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_stations</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Station with ID </span><span class="si">{}</span><span class="s1"> already exists in buffer. Cannot add station with same ID&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]))</span>
             <span class="k">return</span>
 
-        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_station</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__lookuptable_reference_station</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_reference_station_lookup</span><span class="p">(</span><span class="n">station_dict</span><span class="p">)</span>
+
+        <span class="n">reference_station_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__lookuptable_reference_station</span><span class="p">[</span><span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_stations</span><span class="p">[</span><span class="n">reference_station_id</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">station_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">station_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_station</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="n">station_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_stations</span><span class="p">[</span><span class="n">reference_station_id</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_stations</span><span class="p">[</span><span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">station_dict</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_channels</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__default_station_id</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_channels</span><span class="p">[</span><span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">reference_station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_channels</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">(</span><span class="n">reference_station_id</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">i_channel</span><span class="p">,</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_channels</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__default_station_id</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_channels</span><span class="p">[</span><span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i_channel</span><span class="p">,</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_channels</span><span class="p">[</span><span class="n">reference_station_id</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">new_channel</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
             <span class="n">new_channel</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_channels</span><span class="p">[</span><span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]][</span><span class="n">channel</span><span class="p">[</span><span class="s1">&#39;channel_id&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">new_channel</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_channels</span><span class="p">[</span><span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]][</span><span class="n">channel</span><span class="p">[</span><span class="s1">&#39;channel_id&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">new_channel</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_devices</span><span class="p">[</span><span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i_device</span><span class="p">,</span> <span class="n">device</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_devices</span><span class="p">[</span><span class="n">reference_station_id</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">new_device</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">new_device</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_devices</span><span class="p">[</span><span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]][</span><span class="n">device</span><span class="p">[</span><span class="s1">&#39;device_id&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">new_device</span></div>
+
 
 <div class="viewcode-block" id="GenericDetector.add_station_properties_for_event"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.add_station_properties_for_event">[docs]</a>    <span class="k">def</span> <span class="nf">add_station_properties_for_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">run_number</span><span class="p">,</span> <span class="n">event_id</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -760,7 +894,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">changes</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">change</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__station_changes_for_event</span><span class="p">:</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">change</span><span class="p">[</span><span class="s1">&#39;run_number&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">run_number</span> <span class="ow">and</span> <span class="n">change</span><span class="p">[</span><span class="s1">&#39;event_id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">event_id</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">change</span><span class="p">[</span><span class="s1">&#39;run_number&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">run_number</span> <span class="ow">and</span> <span class="n">change</span><span class="p">[</span><span class="s1">&#39;event_id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">event_id</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">station_id</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">change</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">station_id</span><span class="p">:</span>
                     <span class="n">changes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">change</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">changes</span></div>
@@ -783,29 +917,64 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__run_number</span> <span class="o">=</span> <span class="n">run_number</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__event_id</span> <span class="o">=</span> <span class="n">event_id</span></div>
 
+<div class="viewcode-block" id="GenericDetector.get_reference_station"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_reference_station">[docs]</a>    <span class="k">def</span> <span class="nf">get_reference_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the properties of the reference station</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="GenericDetector.get_reference_station_id"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_reference_station_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_reference_station_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the properties of the reference station</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_station_ids</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> </div>
+
+<div class="viewcode-block" id="GenericDetector.get_reference_stations"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_reference_stations">[docs]</a>    <span class="k">def</span> <span class="nf">get_reference_stations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the properties of the reference stations</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_stations</span></div>
+
 <div class="viewcode-block" id="GenericDetector.get_default_station"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_default_station">[docs]</a>    <span class="k">def</span> <span class="nf">get_default_station</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the properties of the default station</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_station</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_stations</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_default_station_id</span><span class="p">()]</span></div>
+
+<div class="viewcode-block" id="GenericDetector.get_reference_station_ids"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_reference_station_ids">[docs]</a>    <span class="k">def</span> <span class="nf">get_reference_station_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the whole diectionary of reference stations</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_station_ids</span></div>
 
 <div class="viewcode-block" id="GenericDetector.get_default_station_id"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_default_station_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_default_station_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the ID of the default station</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_station_id</span></div>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_station_ids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># only one default station, either passed as &quot;reference_station&quot; in detector description or in the ini</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__reference_station_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># more than one &quot;reference_station&quot; passed in the detector description, return the first one</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;more than one station id set as &quot;reference station&quot;: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_station_ids</span><span class="si">}</span><span class="s1">,</span><span class="se">\</span>
+<span class="s1">                continue with first entry: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__reference_station_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">return</span>  <span class="bp">self</span><span class="o">.</span><span class="n">__reference_station_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="GenericDetector.get_default_channel"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_default_channel">[docs]</a>    <span class="k">def</span> <span class="nf">get_default_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the properties of the default channel</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_channel</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The use of &#39;default_channel&#39; is deprecated. returning None&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span> <span class="c1">#self.__default_channel</span></div>
 
 <div class="viewcode-block" id="GenericDetector.get_default_channel_id"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_default_channel_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_default_channel_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the ID of the default channel</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__default_channel_id</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The use of &#39;default_channel&#39; is deprecated. returning None&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span> <span class="c1">#self.__default_channel_id</span></div>
+
 
 <div class="viewcode-block" id="GenericDetector.get_raw_station"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector.get_raw_station">[docs]</a>    <span class="k">def</span> <span class="nf">get_raw_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
