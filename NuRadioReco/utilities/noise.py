@@ -419,7 +419,19 @@ class thermalNoiseGeneratorPhasedArray():
         """
         generates noise traces for all channels that will cause a high/low majority logic trigger
 
-        Returns np.array of shape (n_channels, n_samples)
+        Parameters
+        ----------
+        phasing_mode: string (default: "slice")
+            "slice" or "roll", two implementations for phasing by either slicing the array or using
+            np.roll. The default shows better performance, but "roll" is kept as an alternative
+        trigger_mode: string (default: "binned_sum")
+            "binned_sum" or "stride", two implementations for triggering
+            The default shows better performance, but "stride" is kept as an alternative
+        debug:
+            generate debug plot
+        Returns
+        -------
+        np.array of shape (n_channels, n_samples)
         """
         self.debug = debug
 
