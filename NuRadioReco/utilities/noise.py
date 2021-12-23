@@ -8,6 +8,9 @@ import datetime
 import copy
 import time
 
+import logging
+logger = logging.getLogger('noiseTriggerSimulation')
+
 
 def rolled_sum_roll(traces, rolling):
     """
@@ -303,89 +306,11 @@ class thermalNoiseGeneratorPhasedArray():
         self.step = int(8 * units.ns * self.sampling_rate * 2.0)
 
         self.noise = channelGenericNoiseAdder.channelGenericNoiseAdder()
+
+        # pre-calculate all parameters which will be used to simulate each triggered noise event to avoid re-calculation
         self.noise.precalculate_bandlimited_noise_parameters(self.min_freq, self.max_freq, self.n_samples * self.upsampling,
                                                   self.sampling_rate * self.upsampling,
-                                                  self.amplitude, self.noise_type)        
-
-    def generate_noise(self, debug=False):
-        """
-        generates noise traces for all channels that will cause a high/low majority logic trigger
-
-        Returns np.array of shape (n_channels, n_samples)
-        """
-        # some variables for profiling code
-        dt_generation = 0
-        dt_phasing = 0
-        dt_triggering = 0
-
-        traces = np.zeros((self.n_channels, self.n_samples * self.upsampling))
-        self._traces = traces
-        counter = 0
-        max_amp = 0
-        while True:
-            counter += 1
-            if(counter % 1000 == 0):
-                print(f"{counter:d}, {self.max_amp:.2f}, threshold = {self.threshold:.2f}")
-                # some printout for profiling
-                print(f"GENERATION: {dt_generation:.4f}, PHASING: {dt_phasing:.4f}, TRIGGER: {dt_triggering:.4f}")
-            t0 = time.process_time()
-            self.__generation()
-            """
-            for iCh in range(self.n_channels):
-                spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples * self.upsampling,
-                                                    self.sampling_rate * self.upsampling,
-                                                    self.amplitude, self.noise_type, time_domain=False)
-                spec *= self.filt
-                trace = fft.freq2time(spec, self.sampling_rate * self.upsampling)
-
-                traces[iCh] = perfect_floor_comparator(trace, self.adc_n_bits, self.adc_ref_voltage)
-            """
-            # profiling generation
-            dt_generation += time.process_time() - t0
-            t0 = time.process_time()
-
-            self.__phasing_roll()
-            """
-            phased_traces = np.zeros((len(self.beam_time_delays), self.n_samples * self.upsampling))
-
-            for iBeam, beam_time_delay in enumerate(self.beam_time_delays):
-                for iCh in range(self.n_channels):
-                    trace = traces[iCh]
-                    phased_traces[iBeam] += np.roll(traces[iCh], beam_time_delay[iCh])
-            """
-            dt_phasing += time.process_time() - t0
-            t0 = time.process_time()
-            is_triggered = self.__triggering_strided()
-            ### for comparison
-            #print(self.max_amp, "AMP1")
-            #is_triggered2 = self.__triggering()
-            #print(self.max_amp, "AMP2")
-            if is_triggered:
-                return self._traces, self._phased_traces
-            """
-            for iBeam, phased_trace in enumerate(phased_traces):
-                # Create a sliding window
-                coh_sum_squared = phased_trace ** 2
-                num_frames = int(np.floor((len(phased_trace) - self.window) / self.step))
-                coh_sum_windowed = np.lib.stride_tricks.as_strided(coh_sum_squared, (num_frames, self.window),
-                                                           (coh_sum_squared.strides[0] * self.step, coh_sum_squared.strides[0]))
-                squared_mean = np.sum(coh_sum_windowed, axis=1) / self.window
-                max_amp = max(squared_mean.max(), max_amp)
-
-                if True in (squared_mean > self.threshold):
-                    print(f"triggered at beam {iBeam}")
-                    if(debug):
-                        import matplotlib.pyplot as plt
-                        fig, ax = plt.subplots(5, 1, sharex=True)
-                        for iCh in range(self.n_channels):
-                            ax[iCh].plot(traces[iCh])
-                            print(f"{traces[iCh].std():.2f}")
-                        ax[4].plot(phased_traces[iBeam])
-                        fig.tight_layout()
-                        plt.show()
-                    return traces, phased_traces
-            """
-            dt_triggering += time.process_time() - t0
+                                                  self.amplitude, self.noise_type)
 
 
     def __generation(self):
@@ -422,6 +347,7 @@ class thermalNoiseGeneratorPhasedArray():
     def __triggering(self):
         """ separated trigger part for PA noise trigger """
 
+        self.max_amp = 0
         # take square over entire array
         coh_sum_squared = self._phased_traces**2
         # bin the data into windows of length self.step and normalise to step length
@@ -448,13 +374,13 @@ class thermalNoiseGeneratorPhasedArray():
             for iBeam, is_triggered in enumerate(triggered_beams):
                 # print out each beam that has triggered
                 if is_triggered:
-                    print(f"triggered at beam {iBeam}")
+                    logger.info(f"triggered at beam {iBeam}")
             if(self.debug):
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots(5, 1, sharex=True)
                 for iCh in range(self.n_channels):
                     ax[iCh].plot(self._traces[iCh])
-                    print(f"{self._traces[iCh].std():.2f}")
+                    logger.info(f"{self._traces[iCh].std():.2f}")
                 ax[4].plot(self._phased_traces[iBeam])
                 fig.tight_layout()
                 plt.show()
@@ -463,6 +389,7 @@ class thermalNoiseGeneratorPhasedArray():
 
     def __triggering_strided(self):
         """ separated trigger part for PA noise trigger using np.lib.stride_tricks.as_strided """
+
         self.max_amp = 0
         for iBeam, phased_trace in enumerate(self._phased_traces):
             # Create a sliding window
@@ -474,27 +401,40 @@ class thermalNoiseGeneratorPhasedArray():
             #self.max_amp = max(squared_mean.max(), self.max_amp)
             self.max_amp = max(squared_mean.max(), self.max_amp)
             if True in (squared_mean > self.threshold):
-                print(f"triggered at beam {iBeam}")
+                logger.info(f"triggered at beam {iBeam}")
                 if(self.debug):
                     import matplotlib.pyplot as plt
                     fig, ax = plt.subplots(5, 1, sharex=True)
                     for iCh in range(self.n_channels):
                         ax[iCh].plot(self._traces[iCh])
-                        print(f"{self._traces[iCh].std():.2f}")
+                        logger.info(f"{self._traces[iCh].std():.2f}")
                     ax[4].plot(self._phased_traces[iBeam])
                     fig.tight_layout()
                     plt.show()
                 return True
         return False
 
-    def generate_noise_optimised(self, debug=False):
+
+    def generate_noise(self, phasing_mode="slice", trigger_mode="binned_sum", debug=False):
         """
         generates noise traces for all channels that will cause a high/low majority logic trigger
 
-        Returns np.array of shape (n_channels, n_samples)
+        Parameters
+        ----------
+        phasing_mode: string (default: "slice")
+            "slice" or "roll", two implementations for phasing by either slicing the array or using
+            np.roll. The default shows better performance, but "roll" is kept as an alternative
+        trigger_mode: string (default: "binned_sum")
+            "binned_sum" or "stride", two implementations for triggering
+            The default shows better performance, but "stride" is kept as an alternative
+        debug:
+            generate debug plot
+        Returns
+        -------
+        np.array of shape (n_channels, n_samples)
         """
         self.debug = debug
-        self.max_amp = 0
+
         # some variables for profiling code
         dt_generation = 0
         dt_phasing = 0
@@ -503,32 +443,53 @@ class thermalNoiseGeneratorPhasedArray():
         # generate empty trace array
         self._traces = np.zeros((self.n_channels, self.n_samples * self.upsampling))
         counter = 0
-        max_amp = 0
-        #print("noise trace length:", self.n_samples * self.upsampling)
+
         while True:
             counter += 1
             if(counter % 1000 == 0):
-                print(f"{counter:d}, {self.max_amp:.2f}, threshold = {self.threshold:.2f}")
+                logger.info(f"{counter:d}, {self.max_amp:.2f}, threshold = {self.threshold:.2f}")
                 # some printout for profiling
-                print(f"GENERATION: {dt_generation:.4f}, PHASING: {dt_phasing:.4f}, TRIGGER: {dt_triggering:.4f}")
+                logger.info(f"Time consumption: GENERATION: {dt_generation:.4f}, PHASING: {dt_phasing:.4f}, TRIGGER: {dt_triggering:.4f}")
             tstart = time.process_time()
+
             self.__generation()
+
+            # time profiling generation
             dt_generation += time.process_time() - tstart
-
             tstart = time.process_time()
-            self.__phasing()
+
+            if phasing_mode == "slice":
+                self.__phasing()
+            elif phasing_mode == "roll":
+                # more time consuming attempt to do phasing compared to slicing the array
+                self.__phasing_roll()
+            else:
+                logger.error(f"Requested phasing_mode {phasing_mode}. Only 'slice' and 'roll' are allowed")
+                raise NotImplementedError(f"Requested phasing_mode {phasing_mode}. Only 'slice' and 'roll' are allowed")
+
+            # time profiling phasing            
             dt_phasing += time.process_time() - tstart
-
             tstart = time.process_time()
-            is_triggered = self.__triggering()
+
+            if trigger_mode == "binned_sum":
+                is_triggered = self.__triggering()
+            elif trigger_mode == "stride":
+                # more time consuming attempt to do triggering compared to taking binned sums
+                is_triggered = self.__triggering_strided()
+            else:
+                logger.error(f"Requested trigger_mode {trigger_mode}. Only 'binned_sum' and 'stride' are allowed")
+                raise NotImplementedError(f"Requested trigger_mode {trigger_mode}. Only 'binned_sum'  and 'stride' are supported")
+
+            # time profiling trigger
             dt_triggering += time.process_time() - tstart
+
             if is_triggered:
                 return self._traces, self._phased_traces
-
 
     def generate_noise2(self, debug=False):
         """
         generates noise traces for all channels that will cause a high/low majority logic trigger
+        This implementation is slow due to nested python loops each rolling the trace over and over again
 
         Returns np.array of shape (n_channels, n_samples)
         """
@@ -547,13 +508,6 @@ class thermalNoiseGeneratorPhasedArray():
                 trace = fft.freq2time(spec, self.sampling_rate * self.upsampling)
 
                 traces[iCh] = perfect_floor_comparator(trace, self.adc_n_bits, self.adc_ref_voltage)
-
-            phased_traces = np.zeros((len(self.beam_time_delays), self.n_samples * self.upsampling))
-
-#             for iBeam, beam_time_delay in enumerate(self.beam_time_delays):
-#                 for iCh in range(self.n_channels):
-#                     trace = traces[iCh]
-#                     phased_traces[iBeam] += np.roll(traces[iCh], beam_time_delay[iCh])
 
             shifts = np.zeros(self.n_channels, dtype=np.int)
             shifted_traces = copy.copy(traces)
@@ -580,13 +534,13 @@ class thermalNoiseGeneratorPhasedArray():
                         max_amp = max(squared_mean.max(), max_amp)
 
                         if True in (squared_mean > self.threshold):
-                            print(f"triggered at beam {shifts}")
+                            logger.info(f"triggered at beam {shifts}")
                             if(debug):
                                 import matplotlib.pyplot as plt
                                 fig, ax = plt.subplots(5, 1, sharex=True)
                                 for iCh in range(self.n_channels):
                                     ax[iCh].plot(traces[iCh])
-                                    print(f"{traces[iCh].std():.2f}")
+                                    logger.info(f"{traces[iCh].std():.2f}")
                                 ax[4].plot(phased_trace)
                                 fig.tight_layout()
                                 plt.show()
