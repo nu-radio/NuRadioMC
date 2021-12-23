@@ -630,35 +630,42 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise" title="NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_noise</span></code></a>([debug])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise" title="NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_noise</span></code></a>([phasing_mode, trigger_mode, ...])</p></td>
 <td><p>generates noise traces for all channels that will cause a high/low majority logic trigger</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise2" title="NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_noise2</span></code></a>([debug])</p></td>
-<td><p>generates noise traces for all channels that will cause a high/low majority logic trigger</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise_optimised" title="NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise_optimised"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_noise_optimised</span></code></a>([debug])</p></td>
-<td><p>generates noise traces for all channels that will cause a high/low majority logic trigger</p></td>
+<td><p>generates noise traces for all channels that will cause a high/low majority logic trigger This implementation is slow due to nested python loops each rolling the trace over and over again</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise">
-<span class="sig-name descname"><span class="pre">generate_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#thermalNoiseGeneratorPhasedArray.generate_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">generate_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phasing_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'slice'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'binned_sum'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#thermalNoiseGeneratorPhasedArray.generate_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise" title="Permalink to this definition"></a></dt>
 <dd><p>generates noise traces for all channels that will cause a high/low majority logic trigger</p>
-<p>Returns np.array of shape (n_channels, n_samples)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>phasing_mode: string (default: “slice”)</strong></dt><dd><p>“slice” or “roll”, two implementations for phasing by either slicing the array or using
+np.roll. The default shows better performance, but “roll” is kept as an alternative</p>
+</dd>
+<dt><strong>trigger_mode: string (default: “binned_sum”)</strong></dt><dd><p>“binned_sum” or “stride”, two implementations for triggering
+The default shows better performance, but “stride” is kept as an alternative</p>
+</dd>
+<dt><strong>debug:</strong></dt><dd><p>generate debug plot</p>
+</dd>
+<dt><strong>Returns</strong></dt><dd></dd>
+<dt><strong>——-</strong></dt><dd></dd>
+<dt><strong>np.array of shape (n_channels, n_samples)</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise2">
 <span class="sig-name descname"><span class="pre">generate_noise2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#thermalNoiseGeneratorPhasedArray.generate_noise2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise2" title="Permalink to this definition"></a></dt>
-<dd><p>generates noise traces for all channels that will cause a high/low majority logic trigger</p>
-<p>Returns np.array of shape (n_channels, n_samples)</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise_optimised">
-<span class="sig-name descname"><span class="pre">generate_noise_optimised</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#thermalNoiseGeneratorPhasedArray.generate_noise_optimised"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise_optimised" title="Permalink to this definition"></a></dt>
-<dd><p>generates noise traces for all channels that will cause a high/low majority logic trigger</p>
+<dd><p>generates noise traces for all channels that will cause a high/low majority logic trigger
+This implementation is slow due to nested python loops each rolling the trace over and over again</p>
 <p>Returns np.array of shape (n_channels, n_samples)</p>
 </dd></dl>
 

@@ -515,6 +515,9 @@
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;noiseTriggerSimulation&#39;</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="rolled_sum_roll"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolled_sum_roll">[docs]</a><span class="k">def</span> <span class="nf">rolled_sum_roll</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -810,89 +813,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">8</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">noise</span> <span class="o">=</span> <span class="n">channelGenericNoiseAdder</span><span class="o">.</span><span class="n">channelGenericNoiseAdder</span><span class="p">()</span>
+
+        <span class="c1"># pre-calculate all parameters which will be used to simulate each triggered noise event to avoid re-calculation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="o">.</span><span class="n">precalculate_bandlimited_noise_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">,</span>
                                                   <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">,</span>
-                                                  <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_type</span><span class="p">)</span>        
-
-<div class="viewcode-block" id="thermalNoiseGeneratorPhasedArray.generate_noise"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise">[docs]</a>    <span class="k">def</span> <span class="nf">generate_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        generates noise traces for all channels that will cause a high/low majority logic trigger</span>
-
-<span class="sd">        Returns np.array of shape (n_channels, n_samples)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># some variables for profiling code</span>
-        <span class="n">dt_generation</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">dt_phasing</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">dt_triggering</span> <span class="o">=</span> <span class="mi">0</span>
-
-        <span class="n">traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_traces</span> <span class="o">=</span> <span class="n">traces</span>
-        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">counter</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">counter</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, threshold = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="c1"># some printout for profiling</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GENERATION: </span><span class="si">{</span><span class="n">dt_generation</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, PHASING: </span><span class="si">{</span><span class="n">dt_phasing</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, TRIGGER: </span><span class="si">{</span><span class="n">dt_triggering</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__generation</span><span class="p">()</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            for iCh in range(self.n_channels):</span>
-<span class="sd">                spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples * self.upsampling,</span>
-<span class="sd">                                                    self.sampling_rate * self.upsampling,</span>
-<span class="sd">                                                    self.amplitude, self.noise_type, time_domain=False)</span>
-<span class="sd">                spec *= self.filt</span>
-<span class="sd">                trace = fft.freq2time(spec, self.sampling_rate * self.upsampling)</span>
-
-<span class="sd">                traces[iCh] = perfect_floor_comparator(trace, self.adc_n_bits, self.adc_ref_voltage)</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="c1"># profiling generation</span>
-            <span class="n">dt_generation</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
-            <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">__phasing_roll</span><span class="p">()</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            phased_traces = np.zeros((len(self.beam_time_delays), self.n_samples * self.upsampling))</span>
-
-<span class="sd">            for iBeam, beam_time_delay in enumerate(self.beam_time_delays):</span>
-<span class="sd">                for iCh in range(self.n_channels):</span>
-<span class="sd">                    trace = traces[iCh]</span>
-<span class="sd">                    phased_traces[iBeam] += np.roll(traces[iCh], beam_time_delay[iCh])</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">dt_phasing</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
-            <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span>
-            <span class="n">is_triggered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__triggering_strided</span><span class="p">()</span>
-            <span class="c1">### for comparison</span>
-            <span class="c1">#print(self.max_amp, &quot;AMP1&quot;)</span>
-            <span class="c1">#is_triggered2 = self.__triggering()</span>
-            <span class="c1">#print(self.max_amp, &quot;AMP2&quot;)</span>
-            <span class="k">if</span> <span class="n">is_triggered</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            for iBeam, phased_trace in enumerate(phased_traces):</span>
-<span class="sd">                # Create a sliding window</span>
-<span class="sd">                coh_sum_squared = phased_trace ** 2</span>
-<span class="sd">                num_frames = int(np.floor((len(phased_trace) - self.window) / self.step))</span>
-<span class="sd">                coh_sum_windowed = np.lib.stride_tricks.as_strided(coh_sum_squared, (num_frames, self.window),</span>
-<span class="sd">                                                           (coh_sum_squared.strides[0] * self.step, coh_sum_squared.strides[0]))</span>
-<span class="sd">                squared_mean = np.sum(coh_sum_windowed, axis=1) / self.window</span>
-<span class="sd">                max_amp = max(squared_mean.max(), max_amp)</span>
-
-<span class="sd">                if True in (squared_mean &gt; self.threshold):</span>
-<span class="sd">                    print(f&quot;triggered at beam {iBeam}&quot;)</span>
-<span class="sd">                    if(debug):</span>
-<span class="sd">                        import matplotlib.pyplot as plt</span>
-<span class="sd">                        fig, ax = plt.subplots(5, 1, sharex=True)</span>
-<span class="sd">                        for iCh in range(self.n_channels):</span>
-<span class="sd">                            ax[iCh].plot(traces[iCh])</span>
-<span class="sd">                            print(f&quot;{traces[iCh].std():.2f}&quot;)</span>
-<span class="sd">                        ax[4].plot(phased_traces[iBeam])</span>
-<span class="sd">                        fig.tight_layout()</span>
-<span class="sd">                        plt.show()</span>
-<span class="sd">                    return traces, phased_traces</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">dt_triggering</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span></div>
+                                                  <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_type</span><span class="p">)</span>
 
 
     <span class="k">def</span> <span class="nf">__generation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -929,6 +854,7 @@
     <span class="k">def</span> <span class="nf">__triggering</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; separated trigger part for PA noise trigger &quot;&quot;&quot;</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="c1"># take square over entire array</span>
         <span class="n">coh_sum_squared</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="o">**</span><span class="mi">2</span>
         <span class="c1"># bin the data into windows of length self.step and normalise to step length</span>
@@ -955,13 +881,13 @@
             <span class="k">for</span> <span class="n">iBeam</span><span class="p">,</span> <span class="n">is_triggered</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">triggered_beams</span><span class="p">):</span>
                 <span class="c1"># print out each beam that has triggered</span>
                 <span class="k">if</span> <span class="n">is_triggered</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;triggered at beam </span><span class="si">{</span><span class="n">iBeam</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;triggered at beam </span><span class="si">{</span><span class="n">iBeam</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">):</span>
                 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
                 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
                     <span class="n">ax</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">])</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">ax</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="p">[</span><span class="n">iBeam</span><span class="p">])</span>
                 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -970,6 +896,7 @@
 
     <span class="k">def</span> <span class="nf">__triggering_strided</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; separated trigger part for PA noise trigger using np.lib.stride_tricks.as_strided &quot;&quot;&quot;</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">iBeam</span><span class="p">,</span> <span class="n">phased_trace</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="p">):</span>
             <span class="c1"># Create a sliding window</span>
@@ -981,27 +908,40 @@
             <span class="c1">#self.max_amp = max(squared_mean.max(), self.max_amp)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">squared_mean</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span><span class="p">)</span>
             <span class="k">if</span> <span class="kc">True</span> <span class="ow">in</span> <span class="p">(</span><span class="n">squared_mean</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;triggered at beam </span><span class="si">{</span><span class="n">iBeam</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;triggered at beam </span><span class="si">{</span><span class="n">iBeam</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">):</span>
                     <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
                     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                     <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
                         <span class="n">ax</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">])</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                     <span class="n">ax</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="p">[</span><span class="n">iBeam</span><span class="p">])</span>
                     <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
                     <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
                 <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="kc">False</span>
 
-<div class="viewcode-block" id="thermalNoiseGeneratorPhasedArray.generate_noise_optimised"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise_optimised">[docs]</a>    <span class="k">def</span> <span class="nf">generate_noise_optimised</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="thermalNoiseGeneratorPhasedArray.generate_noise"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise">[docs]</a>    <span class="k">def</span> <span class="nf">generate_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phasing_mode</span><span class="o">=</span><span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="n">trigger_mode</span><span class="o">=</span><span class="s2">&quot;binned_sum&quot;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        generates noise traces for all channels that will cause a high/low majority logic trigger</span>
 
-<span class="sd">        Returns np.array of shape (n_channels, n_samples)</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        phasing_mode: string (default: &quot;slice&quot;)</span>
+<span class="sd">            &quot;slice&quot; or &quot;roll&quot;, two implementations for phasing by either slicing the array or using</span>
+<span class="sd">            np.roll. The default shows better performance, but &quot;roll&quot; is kept as an alternative</span>
+<span class="sd">        trigger_mode: string (default: &quot;binned_sum&quot;)</span>
+<span class="sd">            &quot;binned_sum&quot; or &quot;stride&quot;, two implementations for triggering</span>
+<span class="sd">            The default shows better performance, but &quot;stride&quot; is kept as an alternative</span>
+<span class="sd">        debug:</span>
+<span class="sd">            generate debug plot</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.array of shape (n_channels, n_samples)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
+
         <span class="c1"># some variables for profiling code</span>
         <span class="n">dt_generation</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">dt_phasing</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1010,32 +950,53 @@
         <span class="c1"># generate empty trace array</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span>
         <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="c1">#print(&quot;noise trace length:&quot;, self.n_samples * self.upsampling)</span>
+
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">if</span><span class="p">(</span><span class="n">counter</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">counter</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, threshold = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">counter</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, threshold = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="c1"># some printout for profiling</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GENERATION: </span><span class="si">{</span><span class="n">dt_generation</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, PHASING: </span><span class="si">{</span><span class="n">dt_phasing</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, TRIGGER: </span><span class="si">{</span><span class="n">dt_triggering</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time consumption: GENERATION: </span><span class="si">{</span><span class="n">dt_generation</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, PHASING: </span><span class="si">{</span><span class="n">dt_phasing</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, TRIGGER: </span><span class="si">{</span><span class="n">dt_triggering</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">tstart</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">__generation</span><span class="p">()</span>
+
+            <span class="c1"># time profiling generation</span>
             <span class="n">dt_generation</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tstart</span>
-
             <span class="n">tstart</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__phasing</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">phasing_mode</span> <span class="o">==</span> <span class="s2">&quot;slice&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__phasing</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">phasing_mode</span> <span class="o">==</span> <span class="s2">&quot;roll&quot;</span><span class="p">:</span>
+                <span class="c1"># more time consuming attempt to do phasing compared to slicing the array</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__phasing_roll</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Requested phasing_mode </span><span class="si">{</span><span class="n">phasing_mode</span><span class="si">}</span><span class="s2">. Only &#39;slice&#39; and &#39;roll&#39; are allowed&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Requested phasing_mode </span><span class="si">{</span><span class="n">phasing_mode</span><span class="si">}</span><span class="s2">. Only &#39;slice&#39; and &#39;roll&#39; are allowed&quot;</span><span class="p">)</span>
+
+            <span class="c1"># time profiling phasing            </span>
             <span class="n">dt_phasing</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tstart</span>
-
             <span class="n">tstart</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span>
-            <span class="n">is_triggered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__triggering</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">trigger_mode</span> <span class="o">==</span> <span class="s2">&quot;binned_sum&quot;</span><span class="p">:</span>
+                <span class="n">is_triggered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__triggering</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">trigger_mode</span> <span class="o">==</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span>
+                <span class="c1"># more time consuming attempt to do triggering compared to taking binned sums</span>
+                <span class="n">is_triggered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__triggering_strided</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Requested trigger_mode </span><span class="si">{</span><span class="n">trigger_mode</span><span class="si">}</span><span class="s2">. Only &#39;binned_sum&#39; and &#39;stride&#39; are allowed&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Requested trigger_mode </span><span class="si">{</span><span class="n">trigger_mode</span><span class="si">}</span><span class="s2">. Only &#39;binned_sum&#39;  and &#39;stride&#39; are supported&quot;</span><span class="p">)</span>
+
+            <span class="c1"># time profiling trigger</span>
             <span class="n">dt_triggering</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tstart</span>
+
             <span class="k">if</span> <span class="n">is_triggered</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span></div>
-
 
 <div class="viewcode-block" id="thermalNoiseGeneratorPhasedArray.generate_noise2"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise2">[docs]</a>    <span class="k">def</span> <span class="nf">generate_noise2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        generates noise traces for all channels that will cause a high/low majority logic trigger</span>
+<span class="sd">        This implementation is slow due to nested python loops each rolling the trace over and over again</span>
 
 <span class="sd">        Returns np.array of shape (n_channels, n_samples)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1054,13 +1015,6 @@
                 <span class="n">trace</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">)</span>
 
                 <span class="n">traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">perfect_floor_comparator</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">adc_n_bits</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">adc_ref_voltage</span><span class="p">)</span>
-
-            <span class="n">phased_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span>
-
-<span class="c1">#             for iBeam, beam_time_delay in enumerate(self.beam_time_delays):</span>
-<span class="c1">#                 for iCh in range(self.n_channels):</span>
-<span class="c1">#                     trace = traces[iCh]</span>
-<span class="c1">#                     phased_traces[iBeam] += np.roll(traces[iCh], beam_time_delay[iCh])</span>
 
             <span class="n">shifts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
             <span class="n">shifted_traces</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">traces</span><span class="p">)</span>
@@ -1087,13 +1041,13 @@
                         <span class="n">max_amp</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">squared_mean</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">max_amp</span><span class="p">)</span>
 
                         <span class="k">if</span> <span class="kc">True</span> <span class="ow">in</span> <span class="p">(</span><span class="n">squared_mean</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">):</span>
-                            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;triggered at beam </span><span class="si">{</span><span class="n">shifts</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;triggered at beam </span><span class="si">{</span><span class="n">shifts</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                             <span class="k">if</span><span class="p">(</span><span class="n">debug</span><span class="p">):</span>
                                 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
                                 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                                 <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
                                     <span class="n">ax</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">])</span>
-                                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                                 <span class="n">ax</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">phased_trace</span><span class="p">)</span>
                                 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
                                 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
