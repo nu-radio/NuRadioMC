@@ -140,6 +140,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         for sta in self._stations.all():
             self._update_reference_station_lookup(sta)
         self.__reference_stations = {}
+        Station = Query()
         for reference_station_id in self.__reference_station_ids:
             self.__reference_stations[reference_station_id] = self._stations.get((Station.station_id == reference_station_id))
 
