@@ -140,6 +140,7 @@ class Detector(object):
         is returned. To force the creation of a new detector instance, pass the additional keyword parameter
         `create_new=True` to this function. For more details, check the documentation for the
         `Singleton metaclass <NuRadioReco.utilities.html#NuRadioReco.utilities.metaclasses.Singleton>`_.
+        
         Parameters
         ----------
         source : str
@@ -196,6 +197,7 @@ class Detector(object):
 
         self._stations = self._db.table('stations', cache_size=1000)
         self._channels = self._db.table('channels', cache_size=1000)
+        self._devices = self._db.table('devices', cache_size=1000)
         self.__positions = self._db.table('positions', cache_size=1000)
 
         logger.info("database initialized")
@@ -203,6 +205,7 @@ class Detector(object):
         self._buffered_stations = {}
         self.__buffered_positions = {}
         self._buffered_channels = {}
+        self._buffered_devices = {}
         self.__valid_t0 = astropy.time.Time('2100-1-1')
         self.__valid_t1 = astropy.time.Time('1970-1-1')
 
@@ -238,6 +241,15 @@ class Detector(object):
         return self._channels.search((Channel.station_id == station_id)
                                      & (Channel.commission_time <= self.__current_time.datetime)
                                      & (Channel.decommission_time > self.__current_time.datetime))
+                                     
+    def _query_devices(self, station_id):
+        Device = Query()
+        if self.__current_time is None:
+            raise ValueError(
+                "Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
+        return self._devices.search((Device.station_id == station_id)
+                                     & (Device.commission_time <= self.__current_time.datetime)
+                                     & (Device.decommission_time > self.__current_time.datetime))
 
     def _query_station(self, station_id):
         Station = Query()
@@ -303,6 +315,17 @@ class Detector(object):
         if station_id not in self._buffered_stations.keys():
             self._buffer(station_id)
         return self._buffered_channels[station_id][channel_id]
+        
+        
+    def __get_devices(self, station_id):
+        if station_id not in self._buffered_stations.keys():
+            self._buffer(station_id)
+        return self._buffered_devices[station_id]
+        
+    def __get_device(self, station_id, device_id):
+        if station_id not in self._buffered_stations.keys():
+            self._buffer(station_id)
+        return self._buffered_devices[station_id][device_id]
 
     def _buffer(self, station_id):
         self._buffered_stations[station_id] = self._query_station(station_id)
@@ -314,6 +337,13 @@ class Detector(object):
             self._buffered_channels[station_id][channel['channel_id']] = channel
             self.__valid_t0 = max(self.__valid_t0, astropy.time.Time(channel['commission_time']))
             self.__valid_t1 = min(self.__valid_t1, astropy.time.Time(channel['decommission_time']))
+        devices = self._query_devices(station_id)
+        self._buffered_devices[station_id] = {}
+        for device in devices:
+            self._buffered_devices[station_id][device['device_id']] = device
+            self.__valid_t0 = max(self.__valid_t0, astropy.time.Time(channel['commission_time']))
+            self.__valid_t1 = min(self.__valid_t1, astropy.time.Time(channel['decommission_time']))
+        
 
     def __buffer_position(self, position_id):
         self.__buffered_positions[position_id] = self.__query_position(position_id)
@@ -409,24 +439,42 @@ class Detector(object):
         returns a dictionary of all channel parameters
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
             the channel id
 
-        Return
-        -------------
+        Returns
+        -------
         dict of channel parameters
         """
         return self.__get_channel(station_id, channel_id)
+        
+        
+    def get_device(self, station_id, device_id):
+        """
+        returns a dictionary of all device parameters
+
+        Parameters
+        ----------
+        station_id: int
+            the station id
+        device_id: int
+            the device id
+
+        Returns
+        -------
+        dict of device parameters
+        """
+        return self.__get_device(station_id, device_id)
 
     def get_absolute_position(self, station_id):
         """
         get the absolute position of a specific station
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
 
@@ -453,7 +501,7 @@ class Detector(object):
         get the absolute position of a specific station
 
         Parameters
-        ---------
+        ----------
         site: string
             the position identifier e.g. "G"
 
@@ -475,22 +523,28 @@ class Detector(object):
             altitude = res['pos_altitude'] * units.m
         return np.array([easting, northing, altitude])
 
-    def get_relative_position(self, station_id, channel_id):
+    def get_relative_position(self, station_id, channel_id, mode = 'channel'):
         """
         get the relative position of a specific channels/antennas with respect to the station center
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
             the channel id
+        mode_id: str
+            specify if relative position of a channel or a device is asked for
 
         Returns
         ---------------
         3-dim array of relative station position
         """
-        res = self.__get_channel(station_id, channel_id)
+        if mode == 'channel': res = self.__get_channel(station_id, channel_id)
+        elif mode == 'device': res = self.__get_device(station_id, channel_id)
+        else: 
+            logger.error("Mode {} does not exist. Use 'channel' or 'device'".format(mode))
+            raise NameError
         return np.array([res['ant_position_x'], res['ant_position_y'], res['ant_position_z']])
 
     def get_site(self, station_id):
@@ -498,7 +552,7 @@ class Detector(object):
         get the site where the station is deployed (e.g. MooresBay or South Pole)
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
 
@@ -514,7 +568,7 @@ class Detector(object):
         detector site.
 
         Parameters
-        -------------
+        ----------
         station_id: int
             the station ID
         """
@@ -534,7 +588,7 @@ class Detector(object):
         Get the number of channels per station
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
 
@@ -548,7 +602,7 @@ class Detector(object):
         get the channel ids of a station
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
 
@@ -564,7 +618,7 @@ class Detector(object):
         get a list of parallel antennas
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
 
@@ -595,13 +649,46 @@ class Detector(object):
                             if np.sum(mask):
                                 parallel_antennas.append(channel_ids[mask])
         return np.array(parallel_antennas)
+        
+        
+        
+        
+    def get_number_of_devices(self, station_id):
+        """
+        Get the number of devices per station
+
+        Parameters
+        ----------
+        station_id: int
+            the station id
+
+        Returns int
+        """
+        res = self.__get_devices(station_id)
+        return len(res)
+
+    def get_device_ids(self, station_id):
+        """
+        get the device ids of a station
+
+        Parameters
+        ----------
+        station_id: int
+            the station id
+
+        Returns list of ints
+        """
+        device_ids = []
+        for device in self.__get_devices(station_id).values():
+            device_ids.append(device['device_id'])
+        return sorted(device_ids)
 
     def get_cable_delay(self, station_id, channel_id):
         """
         returns the cable delay of a channel
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -610,14 +697,20 @@ class Detector(object):
         Returns float (delay time)
         """
         res = self.__get_channel(station_id, channel_id)
-        return res['cab_time_delay']
+        if 'cab_time_delay' not in res.keys():
+            logger.warning(
+                'Cable delay not set for channel {} in station {}, assuming cable delay is zero'.format(
+                    channel_id, station_id))
+            return 0
+        else:
+            return res['cab_time_delay']
 
     def get_cable_type_and_length(self, station_id, channel_id):
         """
         returns the cable type (e.g. LMR240) and its length
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -633,7 +726,7 @@ class Detector(object):
         returns the antenna type
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -649,7 +742,7 @@ class Detector(object):
         returns the time of antenna deployment
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -665,7 +758,7 @@ class Detector(object):
         returns the orientation of a specific antenna
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -688,7 +781,7 @@ class Detector(object):
         returns the type of the amplifier
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -704,7 +797,7 @@ class Detector(object):
         returns a unique reference to the amplifier measurement
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -719,8 +812,8 @@ class Detector(object):
         """
         Returns the amplifier response for the amplifier of a given channel
 
-        Parameters:
-        ---------------
+        Parameters
+        ----------
         station_id: int
             The ID of the station
         channel_id: int
@@ -756,7 +849,7 @@ class Detector(object):
         returns the sampling frequency
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -772,7 +865,7 @@ class Detector(object):
         returns the number of samples of a channel
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -790,7 +883,7 @@ class Detector(object):
         so far only infinite firn and infinite air cases are differentiated
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the station id
         channel_id: int
@@ -838,6 +931,7 @@ class Detector(object):
         stage: string (default 'amp')
             specifies the stage of reconstruction you want the noise RMS for,
             `stage` can be one of
+            
              * 'raw' (raw measured trace)
              * 'amp' (after the amp was deconvolved)
              * 'filt' (after the trace was highpass with 100MHz

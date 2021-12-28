@@ -353,8 +353,8 @@ class neutrino2DVertexReconstructor:
         from the station center and then calling
         self.get_correlation_for_pos, which does the actual work.
 
-        Parameters:
-        --------------
+        Parameters
+        ----------
         x, z: array
             Coordinates of the points for which calculations are
             to be calculated. Correspond to the (r, z) pair
@@ -372,8 +372,8 @@ class neutrino2DVertexReconstructor:
         Returns the correlations corresponding to the different
         signal travel times between channels for the given positions.
 
-        Parameters:
-        --------------
+        Parameters
+        ----------
         d_hor, z: array
             Coordinates of the points for which calculations are
             to be calculated. Correspond to the (r, z) pair
@@ -396,8 +396,8 @@ class neutrino2DVertexReconstructor:
         Calculate the signal travel time between a position and the
         channel
 
-        Parameters:
-        ------------
+        Parameters
+        ----------
         d_hor, z: numbers or arrays of numbers
             Coordinates of the point from which to calculate the
             signal travel times. Correspond to (r, z) coordinates
@@ -438,8 +438,8 @@ class neutrino2DVertexReconstructor:
         checking for which ray type scenario the correlation
         between channels is largest.
 
-        Parameters:
-        --------------
+        Parameters
+        ----------
         station: station object
             The station on which this reconstruction was run
         ch1: channel object
