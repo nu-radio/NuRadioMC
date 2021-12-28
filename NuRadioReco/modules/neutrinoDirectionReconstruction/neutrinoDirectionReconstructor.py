@@ -56,7 +56,7 @@ class neutrinoDirectionReconstructor:
         return self._launch_vector_sim
     
     def run(self, event, station, det, shower_ids = None,
-            use_channels=[6, 14], filenumber = 1, PA_channels = [0,1,2,3], single_pulse = False, debug_plots = False, template = False, sim_vertex = True, Vrms_Vpol = 0.0114, Vrms_Hpol = 0.0114, only_simulation = False, ch_Vpol = 6, ch_Hpol = 13, full_station = True, brute_force = True, fixed_timing = False, restricted_input = True, starting_values = False, debugplots_path = None, PA_cluster_channels = [0,1,2,3, 7,8], Hpol_channels = [7,8], window_Hpol = [10, +40], window_Vpol = [-10, +50], single_pulse_fit = False):
+            use_channels=[6, 14], filenumber = 1, PA_channels = [0,1,2,3], single_pulse = False, debug_plots = False, template = False, sim_vertex = True, Vrms_Vpol = 0.0114, Vrms_Hpol = 0.0114, only_simulation = False, ch_Vpol = 6, ch_Hpol = 13, full_station = True, brute_force = True, fixed_timing = False, restricted_input = True, starting_values = False, debugplots_path = None, PA_cluster_channels = [0,1,2,3, 7,8], Hpol_channels = [7,8], window_Hpol = [10, +40], window_Vpol = [-10, +50], single_pulse_fit = False, Hpol_lower_band = 50,  Hpol_upper_band = 1150):
 
         """
         Module to reconstruct the direction of the event.
@@ -139,7 +139,7 @@ class neutrinoDirectionReconstructor:
       
         simulation = analytic_pulse.simulation(template, reconstructed_vertex) ### if the templates are used, than the templates for the correct distance are loaded
         rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1 ## raytype from the triggered pulse
-        simulation.begin(det, station, use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol)
+        simulation.begin(det, station, use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, Hpol_lower_band = Hpol_lower_band, Hpol_upper_band = Hpol_upper_band)
         self._simulation = simulation
 
         if self._station.has_sim_station():
@@ -160,7 +160,7 @@ class neutrinoDirectionReconstructor:
        
             ## check SNR of channels
             SNR = []
-            for ich, channel in enumerate(station.iter_channels()):
+            for ich, channel in enumerate(station.get_sim_station().iter_channels()):
                 print("channel {}, SNR {}".format(channel.get_id(),(abs(min(channel.get_trace())) + max(channel.get_trace())) / (2*self._Vrms) ))
                 if channel.get_id() in use_channels:
                     SNR.append((abs(abs(min(channel.get_trace()))) + max(channel.get_trace())) / (2*self._Vrms))
@@ -259,7 +259,7 @@ class neutrinoDirectionReconstructor:
         
                 print("L", L)
                 print("min L", min(L))
-                check_starting_values =True  #
+                check_starting_values =False  #
                 if check_starting_values:
                     station.set_parameter(stnp.viewing_angle, [viewangles[np.argmin(L)], viewingangles_sim])
                     station.set_parameter(stnp.nu_energy, 10**energies[np.argmin(L)])
@@ -273,14 +273,14 @@ class neutrinoDirectionReconstructor:
 
                     print("debug plots...")
                     timingsim = self.minimizer([simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], first_iter = True, minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[2]
-                    tracrec = self.minimizer([station[stnp.polarization]], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = False, starting_values = True, banana = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = False, single_pulse = True)[0]
+                    tracrec = self.minimizer([viewangles[np.argmin(L)], energies[np.argmin(L)]], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = False, starting_values = True, banana = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = False, single_pulse = True)[0]
                     #exit()
                     timingdata = self.minimizer([viewangles[np.argmin(L)], energies[np.argmin(L)]], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = False, banana = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = False, single_pulse = True)[2]
                     L_sim = self.minimizer([simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], first_iter = True, minimize = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = False, single_pulse = True, starting_values = True)
                     print("L for simulated:", L_sim)
                     L_rec = self.minimizer([viewangles[np.argmin(L)], energies[np.argmin(L)]], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = True, banana = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = False, single_pulse = True, starting_values = True)
                     print("L for rec:", L_rec)
-                    debug_figure = True
+                    debug_figure =True 
                     if debug_figure:
                          linewidth = 1
                          fig, ax = plt.subplots(4, 1, sharex = True)
@@ -293,10 +293,11 @@ class neutrinoDirectionReconstructor:
                                  ax[ich].plot(timingsim[channel.get_id()][0], tracsim[channel.get_id()][0],'--', label = 'simulation', color = 'orange', lw = linewidth)
                                  ax[ich].legend(loc = 1)
                                  ax[ich].grid()
-                                 ax[ich].set_xlim((9920, 9980))#timingsim[channel.get_id()][0][0], timingsim[channel.get_id()][0][-1])
+                                 ax[ich].set_xlim((9750, 1250))
+                    #             ax[ich].set_xlim((channel.get_times()[np.argmax(channel.get_trace())] - 50, channel.get_times()[np.argmax(channel.get_trace())]+50))#timingsim[channel.get_id()][0][0], timingsim[channel.get_id()][0][-1])
                                  ich += 1
                          fig.savefig("{}/startingvalues.pdf".format(debugplots_path))
-                         exit()          	
+                              	
                
 
             if 1:#
@@ -414,7 +415,7 @@ class neutrinoDirectionReconstructor:
                 print("FMIN RECONSTRUCTED VALUE FIT", fminfit)
                 
 
-               # print("debug plots")
+                print("debug plots")
                 if debug_plots:
                     linewidth = 5
                     tracdata = self.minimizer([rec_zenith, rec_azimuth, np.log10(rec_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[1]
@@ -736,7 +737,7 @@ class neutrinoDirectionReconstructor:
                     if (((max(channel.get_trace()) - min(channel.get_trace())) / (2*self._Vrms)) < 4):
                         dict_dt[channel_id][trace_ref] = dict_dt[ch_Vpol][trace_ref]
         
-            fixed_timing = True
+            fixed_timing = False
             if fixed_timing:
                 for i_ch in self._use_channels:
                     dict_dt[i_ch][0] = dict_dt[ch_Vpol][trace_ref]

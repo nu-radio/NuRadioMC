@@ -212,9 +212,16 @@ class rayTypeSelecter:
                      #   print("get receive vector...............>>")
                         receive_vector = r.get_receive_vector(iS)
                         receive_zenith, receive_azimuth = hp.cartesian_to_spherical(*receive_vector)
-                        channel.set_parameter(chp.signal_receiving_zenith, receive_zenith)
-                        channel.set_parameter(chp.signal_receiving_azimuth, receive_azimuth)
-                        #print("zenith", channel[chp.signal_receiving_zenith])#print("channel id", channel_id)
+                        if sim == True: 
+                            channel.set_parameter(chp.signal_receiving_zenith, receive_zenith)
+                            channel.set_parameter(chp.signal_receiving_azimuth, receive_azimuth)
+                            print("receive zenith vertex, simulated vertex:", np.rad2deg(receive_zenith))
+                        if not sim: 
+                            channel.set_parameter(chp.receive_zenith_vertex, receive_zenith)
+                            print("receive zenith vertex, reconstructed vertex:", np.rad2deg(receive_zenith))
+                            channel.set_parameter(chp.receive_azimuth_vertex, receive_azimuth)
+                                 
+                    #print("zenith", channel[chp.signal_receiving_zenith])#print("channel id", channel_id)
                 ### figuring out the time offset for specfic trace
                 k = int(position_pulse + delta_toffset )
                 pulse_window = channel.get_trace()[k-300: k + 500]

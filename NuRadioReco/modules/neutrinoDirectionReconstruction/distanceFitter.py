@@ -112,10 +112,10 @@ class distanceFitter:
             travel_times_2 = self.__lookup_table[channel_type][ray_type][(i_x_2, i_z)]
             slopes = np.zeros_like(travel_times_1)
             slopes[i_x_2 > i_x_1] = (travel_times_1 - travel_times_2)[i_x_2 > i_x_1] / (cell_dist_1 - cell_dist_2)[i_x_2 > i_x_1]
-            print("travel times_1", travel_times_1)
-            print("celll dist", self.__header[channel_type]['d_x'])
+#            print("travel times_1", travel_times_1)
+#            print("celll dist", self.__header[channel_type]['d_x'])
             travel_times = (d_hor - cell_dist_1) * slopes + travel_times_1
-            print('travel times', travel_times)
+ #           print('travel times', travel_times)
       #      print('mask', ~mask)
             
             if travel_times_1 == False: 
@@ -143,7 +143,7 @@ class distanceFitter:
                         #i_ray = r.get_solution_type(iS)
                         #ray_type = [None, 'direct', 'refracted', 'reflected'][i_ray]
                       #  print("ray_type", ray_type)
-                        timings[i_ch, i_type] = r.get_travel_time(iS)#get_signal_travel_time(d_hor, vertex[2], ray_type, channel_id)#r.get_travel_time(iS)
+                        timings[i_ch, i_type] = get_signal_travel_time(d_hor, vertex[2], ray_type, channel_id)#r.get_travel_time(iS)
        #                 print("timings", timings[i_ch, iS])
  #                       print(stop)
                        # solutiontype[i_ch, iS] = r.get_solution_type(iS)#if r.get_solution_type(iS) == self._raytypesolution:
@@ -247,7 +247,7 @@ class distanceFitter:
 
 
         #### get receive zenith from planewave
-        receive_zenith = station[stnp.nu_zenith]
+        receive_zenith = station[stnp.planewave_zenith]#station[stnp.nu_zenith]
 	#### translate receive zenith to launch vector
         #receive_zenith = np.deg2rad(78.9695)
         zenith_vertex = zenith_vertex_pickle[np.argmin(abs(np.rad2deg(receive_pickle) - np.rad2deg(receive_zenith)))] ## deze aanpassen aan diepte #full distance inladen. 
@@ -265,7 +265,7 @@ class distanceFitter:
         print("len simulated corrs", len(likelihood(evt.get_sim_shower(shower_id)[shp.vertex], minimize = False)))
         print("simulated value", likelihood(evt.get_sim_shower(shower_id)[shp.vertex], sim = True))
         print("simulated vertex", evt.get_sim_shower(shower_id)[shp.vertex])
-        print("reconstructed azimuth", np.rad2deg(station[stnp.nu_azimuth]))
+        print("reconstructed planewave azimuth", np.rad2deg(station[stnp.planewave_azimuth]))
         print("vertex azimuht simulated", np.rad2deg(hp.cartesian_to_spherical(*evt.get_sim_shower(shower_id)[shp.vertex])[1]))
         print("vertex zenith simulared", np.rad2deg(hp.cartesian_to_spherical(*evt.get_sim_shower(shower_id)[shp.vertex])[0]))
        
@@ -274,7 +274,7 @@ class distanceFitter:
         print("zenith vertex from pickle", zenith_vertex)
       
         range_vertices = []
-        depths = np.arange(300, 4000, 20)#[680]#np.arange(100,2500, 10)# range(100, 1000, 10)
+        depths = np.arange(500, 4000, 20)#[680]#np.arange(100,2500, 10)# range(100, 1000, 10)
         if fixed_distance:
             depths = [fixed_distance]
         for depth in depths:#range(200, 400, 10): ## change such that it check 10 degrees for first 1000
@@ -288,7 +288,7 @@ class distanceFitter:
                 delta = .2
         
             for zen in np.arange(zenith_vertex -diff, zenith_vertex + diff, delta):
-                azimuth_tmp = station[stnp.nu_azimuth]#hp.cartesian_to_spherical(*evt.get_sim_shower(shower_id)[shp.vertex])[1]#station[stnp.nu_azimuth]
+                azimuth_tmp = station[stnp.planewave_azimuth]#hp.cartesian_to_spherical(*evt.get_sim_shower(shower_id)[shp.vertex])[1]#station[stnp.nu_azimuth]
                 for az in np.arange(np.rad2deg(azimuth_tmp) - diff, np.rad2deg(azimuth_tmp) + diff, delta):
                     if 0:
                         cart_tmp = hp.spherical_to_cartesian(np.deg2rad(zen), np.deg2rad(az))
@@ -297,10 +297,10 @@ class distanceFitter:
                         x1_tmp = cart_tmp * R_tmp
                         #       print('x1', x1_tmp)
 
-                       
+                                          
                         x1_tmp = [x1_tmp[0],x1_tmp[1],x1_tmp[2]]
                         x2 = [0,0,-97]
-    
+                    #    print("vertex", x1_tmp)
                         ice = medium.get_ice_model('greenland_simple')
                         prop = propagation.get_propagation_module('analytic')
                         r = prop( ice, 'GL1')
@@ -340,21 +340,21 @@ class distanceFitter:
         if debug:
             likelihood_values = []
             for vertex in range_vertices:
-             #   print("reconstruction for vertex", vertex)
+        #        print("reconstruction for vertex", vertex)
                 likelihood_values.append(likelihood(vertex))
      
-            fig1 =  plt.figure()
-            ax1 = fig1.add_subplot(111)
-            ax1.plot(np.array(range_vertices)[:,2], likelihood_values, 'o', markersize = 3, color = 'blue')
+           # fig1 =  plt.figure()
+           # ax1 = fig1.add_subplot(111)
+           # ax1.plot(np.array(range_vertices)[:,2], likelihood_values, 'o', markersize = 3, color = 'blue')
             #ax1.plot(np.array(range_vertices)[:,2], likelihood_values, color = 'blue')
-            ax1.set_xlabel("vertex z [m]")
-            ax1.set_ylabel("minimization value")
-            ax1.axvline(evt.get_sim_shower(shower_id)[shp.vertex][2], label = 'simulated', color = 'green')
-            ax1.axvline(range_vertices[np.argmin(likelihood_values)][2], label = 'reconstructed depth', color = 'red')
-            ax1.axhline(likelihood(evt.get_sim_shower(shower_id)[shp.vertex]), color = 'green')
-            ax1.legend()
-            fig1.tight_layout()
-            fig1.savefig("{}/vertex_likelihood.pdf".format(debugplots_path))
+           # ax1.set_xlabel("vertex z [m]")
+           # ax1.set_ylabel("minimization value")
+           # ax1.axvline(evt.get_sim_shower(shower_id)[shp.vertex][2], label = 'simulated', color = 'green')
+           # ax1.axvline(range_vertices[np.argmin(likelihood_values)][2], label = 'reconstructed depth', color = 'red')
+           # ax1.axhline(likelihood(evt.get_sim_shower(shower_id)[shp.vertex]), color = 'green')
+           # ax1.legend()
+           # fig1.tight_layout()
+           # fig1.savefig("{}/vertex_likelihood.pdf".format(debugplots_path))
      
         if 0:#debug:
             fig1 =  plt.figure()

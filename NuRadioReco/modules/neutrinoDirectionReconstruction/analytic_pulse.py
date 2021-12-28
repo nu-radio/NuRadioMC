@@ -88,7 +88,7 @@ class simulation():
 					pickle.dump(self._templates, f)
 		return 
 	
-	def begin(self, det, station, use_channels, raytypesolution = False, ch_Vpol = None, ch_Hpol = None):
+	def begin(self, det, station, use_channels, raytypesolution = False, ch_Vpol = None, ch_Hpol = None, Hpol_lower_band = 50, Hpol_upper_band = 700):
 		""" initialize filter and amplifier """
 		self._ch_Vpol = ch_Vpol
 		self._ch_Hpol = ch_Hpol
@@ -118,7 +118,37 @@ class simulation():
 		fa[mask] = ha
 		fb = np.zeros_like(self._ff, dtype = np.complex)
 		fb[mask] = hb
-		self._h = fb*fa
+		h = fb*fa
+
+
+		order = 8
+		passband = [Hpol_lower_band* units.MHz, 1150 * units.MHz]
+		b, a = signal.butter(order, passband, 'bandpass', analog=True)
+		w, ha = signal.freqs(b, a, self._ff[mask])
+		order = 10
+		passband = [0* units.MHz, Hpol_upper_band * units.MHz]
+		b, a = signal.butter(order, passband, 'bandpass', analog=True)
+		w, hb = signal.freqs(b, a, self._ff[mask])
+		fa = np.zeros_like(self._ff, dtype=np.complex)
+		fa[mask] = ha
+		fb = np.zeros_like(self._ff, dtype = np.complex)
+		fb[mask] = hb
+		h_Hpol = fb*fa
+
+
+
+        
+		self._h = {}
+		for channel_id in use_channels:
+			if channel_id == ch_Hpol:
+				#print("channel id Hpol", channel_id) 
+				self._h[channel_id] = {}
+				self._h[channel_id] = h_Hpol
+			else:
+				#print("channel id", channel_id)
+				self._h[channel_id] = {}
+				self._h[channel_id] = h
+  
 
 		self._amp = {}
 		for channel_id in use_channels:
@@ -225,6 +255,7 @@ class simulation():
 					zenith_reflections = np.atleast_1d(r.get_reflection_angle(soltype))
 					raytracing[channel_id][iS]["reflection angle"] = zenith_reflections
 					viewing_angle = hp.get_angle(self._shower_axis,raytracing[channel_id][iS]["launch vector"])
+				
 					if channel_id == self._ch_Vpol:
 						launch_vectors.append( self._launch_vector)
 						viewing_angles.append(viewing_angle)
@@ -340,7 +371,7 @@ class simulation():
 				
                 ### filter the trace
 
-				analytic_trace_fft *=self._h
+				analytic_trace_fft *=self._h[channel_id]
 				
 		#### add amplifier
 
