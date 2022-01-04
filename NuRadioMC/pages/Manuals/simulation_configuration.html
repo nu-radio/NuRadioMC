@@ -563,20 +563,20 @@
 <h2>Config files<a class="headerlink" href="#config-files" title="Permalink to this headline"></a></h2>
 <p>The default configuration (or config) file used is the <code class="docutils literal notranslate"><span class="pre">config_default.yaml</span></code> file in the simulation folder. If the user wants to use different parameters, it suffices to specify ONLY the parameters they want to be overriden in their own config file. For instance, if the user wants to change only the emission model to ARZ2020, a short file like the following is enough:</p>
 <blockquote>
-<div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">signal</span><span class="p">:</span>
-  <span class="nt">model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ARZ2020</span>
+<div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">signal</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ARZ2020</span><span class="w"></span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>The following is a description of the default configuration file and what can be changed therein.</p>
 <blockquote>
-<div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">weights</span><span class="p">:</span>
-    <span class="nt">weight_mode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">core_mantle_crust</span> <span class="c1"># core_mantle_crust: use the three layer earth model,</span>
-    <span class="c1"># which considers the different densities of the core, mantle and crust.</span>
-    <span class="nt">cross_section_type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ctw</span>
-    <span class="c1"># neutrino cross section: ghandi : according to Ghandi et al. Phys.Rev.D58:093009,1998,</span>
-    <span class="c1"># ctw : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).</span>
-    <span class="c1"># csms: A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042</span>
+<div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">weights</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">weight_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">core_mantle_crust</span><span class="w"> </span><span class="c1"># core_mantle_crust: use the three layer earth model,</span><span class="w"></span>
+<span class="w">    </span><span class="c1"># which considers the different densities of the core, mantle and crust.</span><span class="w"></span>
+<span class="w">    </span><span class="nt">cross_section_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ctw</span><span class="w"></span>
+<span class="w">    </span><span class="c1"># neutrino cross section: ghandi : according to Ghandi et al. Phys.Rev.D58:093009,1998,</span><span class="w"></span>
+<span class="w">    </span><span class="c1"># ctw : A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).</span><span class="w"></span>
+<span class="w">    </span><span class="c1"># csms: A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042</span><span class="w"></span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -589,81 +589,81 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">PREM</span></code>: density of Earth is parameterised as a function of radius, path through Earth to interaction vertex is considered</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">None</span></code>: all weights are set to 1.</p></li>
 </ul>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">noise</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">False</span>  <span class="c1"># specify if simulation should be run with or without noise</span>
-<span class="c1"># The user must add noise manually in the detector description</span>
-<span class="nt">sampling_rate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5.</span>  <span class="c1"># sampling rate in GHz used internally in the simulation.</span>
-<span class="c1"># At the end the waveforms will be downsampled to the sampling rate specified in the</span>
-<span class="c1"># detector description.</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">noise</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w">  </span><span class="c1"># specify if simulation should be run with or without noise</span><span class="w"></span>
+<span class="c1"># The user must add noise manually in the detector description</span><span class="w"></span>
+<span class="nt">sampling_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.</span><span class="w">  </span><span class="c1"># sampling rate in GHz used internally in the simulation.</span><span class="w"></span>
+<span class="c1"># At the end the waveforms will be downsampled to the sampling rate specified in the</span><span class="w"></span>
+<span class="c1"># detector description.</span><span class="w"></span>
 
-<span class="nt">seed</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1235</span> <span class="c1"># This seed is used for the first call to the random library</span>
+<span class="nt">seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1235</span><span class="w"> </span><span class="c1"># This seed is used for the first call to the random library</span><span class="w"></span>
 
-<span class="c1"># The following parameters are used to filter events that we</span>
-<span class="l l-Scalar l-Scalar-Plain">know that</span>
-<span class="c1"># they will not trigger, gaining time in the process.</span>
-<span class="nt">speedup</span><span class="p">:</span>
-  <span class="nt">minimum_weight_cut</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1.e-5</span> <span class="c1"># If the assigned weight is less than this one,</span>
-  <span class="c1"># the event is skipped</span>
-  <span class="nt">delta_C_cut</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.698</span>  <span class="c1"># 40 degree. If the difference between viewing angle</span>
-  <span class="c1"># and Cherenkov angle (corrected by ray tracing) is larger, the event is skipped</span>
-  <span class="nt">redo_raytracing</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">False</span>  <span class="c1"># redo ray tracing even if previous calculated ray</span>
-  <span class="c1"># tracing solutions are present</span>
-  <span class="nt">min_efield_amplitude</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>  <span class="c1"># the minimum signal amplitude of the efield as a factor</span>
-  <span class="c1"># of the noise RMS. If the value is smaller, no detector simulation is</span>
-  <span class="c1"># performed. As the vector effective length of antennas is typically less</span>
-  <span class="c1"># than 1, this cut does not introduce any bias as long as the value is smaller</span>
-  <span class="c1"># than the trigger threshold.</span>
-  <span class="nt">amp_per_ray_solution</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">True</span>  <span class="c1"># if False, the maximum amplitude for each ray tracing</span>
-  <span class="c1"># solution is not calculated</span>
-  <span class="nt">distance_cut</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">False</span> <span class="c1"># if True, a cut for the vertex-observer distance as a function</span>
-  <span class="c1"># of shower energy is applied</span>
-  <span class="c1"># (log10(max_dist / m) = intercept + slope * log10(shower_energy / eV))</span>
-  <span class="c1"># The intercept and the slope below have been obtained from distance</span>
-  <span class="c1"># histograms for several shower energy bins. A 10x10 array of 1.5 sigma dipoles</span>
-  <span class="c1"># in Greenland was used. The distance cut is a linear fit of the maximum distances</span>
-  <span class="c1"># at shower energies around 1~10 PeV with a cover factor of 1.5, or 50%.</span>
-  <span class="nt">distance_cut_intercept</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">-12.14</span> <span class="c1"># intercept for the maximum distance cut</span>
-  <span class="nt">distance_cut_slope</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.9542</span> <span class="c1"># slope for the maximum distance cut</span>
-  <span class="c1"># This distance cut is really important when simulating large arrays and</span>
-  <span class="c1"># secondary interactions</span>
+<span class="c1"># The following parameters are used to filter events that we</span><span class="w"></span>
+<span class="l l-Scalar l-Scalar-Plain">know that</span><span class="w"></span>
+<span class="c1"># they will not trigger, gaining time in the process.</span><span class="w"></span>
+<span class="nt">speedup</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">minimum_weight_cut</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.e-5</span><span class="w"> </span><span class="c1"># If the assigned weight is less than this one,</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># the event is skipped</span><span class="w"></span>
+<span class="w">  </span><span class="nt">delta_C_cut</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.698</span><span class="w">  </span><span class="c1"># 40 degree. If the difference between viewing angle</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># and Cherenkov angle (corrected by ray tracing) is larger, the event is skipped</span><span class="w"></span>
+<span class="w">  </span><span class="nt">redo_raytracing</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w">  </span><span class="c1"># redo ray tracing even if previous calculated ray</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># tracing solutions are present</span><span class="w"></span>
+<span class="w">  </span><span class="nt">min_efield_amplitude</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w">  </span><span class="c1"># the minimum signal amplitude of the efield as a factor</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># of the noise RMS. If the value is smaller, no detector simulation is</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># performed. As the vector effective length of antennas is typically less</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># than 1, this cut does not introduce any bias as long as the value is smaller</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># than the trigger threshold.</span><span class="w"></span>
+<span class="w">  </span><span class="nt">amp_per_ray_solution</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span><span class="w">  </span><span class="c1"># if False, the maximum amplitude for each ray tracing</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># solution is not calculated</span><span class="w"></span>
+<span class="w">  </span><span class="nt">distance_cut</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w"> </span><span class="c1"># if True, a cut for the vertex-observer distance as a function</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># of shower energy is applied</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># (log10(max_dist / m) = intercept + slope * log10(shower_energy / eV))</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># The intercept and the slope below have been obtained from distance</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># histograms for several shower energy bins. A 10x10 array of 1.5 sigma dipoles</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># in Greenland was used. The distance cut is a linear fit of the maximum distances</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># at shower energies around 1~10 PeV with a cover factor of 1.5, or 50%.</span><span class="w"></span>
+<span class="w">  </span><span class="nt">distance_cut_intercept</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-12.14</span><span class="w"> </span><span class="c1"># intercept for the maximum distance cut</span><span class="w"></span>
+<span class="w">  </span><span class="nt">distance_cut_slope</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.9542</span><span class="w"> </span><span class="c1"># slope for the maximum distance cut</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># This distance cut is really important when simulating large arrays and</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># secondary interactions</span><span class="w"></span>
 
-<span class="c1"># The following block specifies the options for ray tracing</span>
-<span class="nt">propagation</span><span class="p">:</span>
-  <span class="nt">module</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">analytic</span>
-  <span class="nt">ice_model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">southpole_2015</span> <span class="c1"># There&#39;s a range of available models:</span>
-  <span class="c1"># greenland_simple, mooresbay_simple, southpole_2015, southpole_simple, ARASim_southpole</span>
-  <span class="nt">attenuation_model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">SP1</span> <span class="c1"># SP1 for South Pole, GL1 for Greenland, and</span>
-  <span class="c1"># MB1 for Moore&#39;s Bay</span>
-  <span class="nt">attenuate_ice</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">True</span> <span class="c1"># if True apply the frequency dependent attenuation due to</span>
-  <span class="c1"># propagating through ice. (Note: The 1/R amplitude scaling will be applied in either case.)</span>
-  <span class="nt">n_freq</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">25</span>  <span class="c1"># the number of frequencies where the attenuation length is</span>
-  <span class="c1"># calculated for. The remaining frequencies will be determined from a linear</span>
-  <span class="c1"># interpolation between the reference frequencies. The reference frequencies are</span>
-  <span class="c1"># equally spaced over the complet frequency range.</span>
-  <span class="nt">focusing</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">False</span>  <span class="c1"># if True apply the focusing effect.</span>
-  <span class="nt">focusing_limit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>  <span class="c1"># the maximum amplification factor of the focusing correction</span>
-  <span class="nt">n_reflections</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0</span>  <span class="c1"># the maximum number of reflections off a reflective layer</span>
-  <span class="c1"># at the bottom of the ice layer</span>
+<span class="c1"># The following block specifies the options for ray tracing</span><span class="w"></span>
+<span class="nt">propagation</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">analytic</span><span class="w"></span>
+<span class="w">  </span><span class="nt">ice_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">southpole_2015</span><span class="w"> </span><span class="c1"># There&#39;s a range of available models:</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># greenland_simple, mooresbay_simple, southpole_2015, southpole_simple, ARASim_southpole</span><span class="w"></span>
+<span class="w">  </span><span class="nt">attenuation_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SP1</span><span class="w"> </span><span class="c1"># SP1 for South Pole, GL1 for Greenland, and</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># MB1 for Moore&#39;s Bay</span><span class="w"></span>
+<span class="w">  </span><span class="nt">attenuate_ice</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span><span class="w"> </span><span class="c1"># if True apply the frequency dependent attenuation due to</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># propagating through ice. (Note: The 1/R amplitude scaling will be applied in either case.)</span><span class="w"></span>
+<span class="w">  </span><span class="nt">n_freq</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25</span><span class="w">  </span><span class="c1"># the number of frequencies where the attenuation length is</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># calculated for. The remaining frequencies will be determined from a linear</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># interpolation between the reference frequencies. The reference frequencies are</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># equally spaced over the complet frequency range.</span><span class="w"></span>
+<span class="w">  </span><span class="nt">focusing</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w">  </span><span class="c1"># if True apply the focusing effect.</span><span class="w"></span>
+<span class="w">  </span><span class="nt">focusing_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w">  </span><span class="c1"># the maximum amplification factor of the focusing correction</span><span class="w"></span>
+<span class="w">  </span><span class="nt">n_reflections</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w">  </span><span class="c1"># the maximum number of reflections off a reflective layer</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># at the bottom of the ice layer</span><span class="w"></span>
 
-<span class="c1"># This block specifies the emission model</span>
-<span class="nt">signal</span><span class="p">:</span>
-  <span class="nt">model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Alvarez2009</span> <span class="c1"># Alvarez2000, Alvarez2009, ARZ2019, or ARZ2020</span>
-  <span class="nt">zerosignal</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">False</span>  <span class="c1"># if True, the signal is set to zero. This is useful to</span>
-  <span class="c1"># study &#39;noise&#39; only simulations, which inform about the noise trigger rate</span>
-  <span class="nt">polarization</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">auto</span> <span class="c1"># can be either &#39;auto&#39; or &#39;custom&#39;</span>
-  <span class="nt">ePhi</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.</span>  <span class="c1"># only used if &#39;polarization = custom&#39;, fraction of ePhi component,</span>
-  <span class="c1"># the eTheta component is eTheta = (1 - ePhi**2)**0.5</span>
-  <span class="nt">shower_type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span> <span class="c1"># optional argument to only simulate certain shower types.</span>
-  <span class="c1"># Arguments can be &quot;had&quot; or &quot;em&quot;.</span>
+<span class="c1"># This block specifies the emission model</span><span class="w"></span>
+<span class="nt">signal</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Alvarez2009</span><span class="w"> </span><span class="c1"># Alvarez2000, Alvarez2009, ARZ2019, or ARZ2020</span><span class="w"></span>
+<span class="w">  </span><span class="nt">zerosignal</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w">  </span><span class="c1"># if True, the signal is set to zero. This is useful to</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># study &#39;noise&#39; only simulations, which inform about the noise trigger rate</span><span class="w"></span>
+<span class="w">  </span><span class="nt">polarization</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">auto</span><span class="w"> </span><span class="c1"># can be either &#39;auto&#39; or &#39;custom&#39;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">ePhi</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.</span><span class="w">  </span><span class="c1"># only used if &#39;polarization = custom&#39;, fraction of ePhi component,</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># the eTheta component is eTheta = (1 - ePhi**2)**0.5</span><span class="w"></span>
+<span class="w">  </span><span class="nt">shower_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span><span class="w"> </span><span class="c1"># optional argument to only simulate certain shower types.</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># Arguments can be &quot;had&quot; or &quot;em&quot;.</span><span class="w"></span>
 
-<span class="c1"># The last block specifies noise properties important for the trigger</span>
-<span class="nt">trigger</span><span class="p">:</span>
-  <span class="nt">noise_temperature</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">300</span>  <span class="c1"># in Kelvin</span>
-  <span class="c1"># This noise temperature is then used to calculate the noise RMS</span>
-  <span class="nt">Vrms</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>  <span class="c1"># the RMS noise value in volts. Not compatible with &#39;noise_temperature&#39;,</span>
-  <span class="c1"># if Vrms is set, &#39;noise_temperature&#39; must be None</span>
+<span class="c1"># The last block specifies noise properties important for the trigger</span><span class="w"></span>
+<span class="nt">trigger</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">noise_temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">300</span><span class="w">  </span><span class="c1"># in Kelvin</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># This noise temperature is then used to calculate the noise RMS</span><span class="w"></span>
+<span class="w">  </span><span class="nt">Vrms</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span><span class="w">  </span><span class="c1"># the RMS noise value in volts. Not compatible with &#39;noise_temperature&#39;,</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># if Vrms is set, &#39;noise_temperature&#39; must be None</span><span class="w"></span>
 
-<span class="nt">save_all</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">False</span> <span class="c1"># if True, save all events. Otherwise, NuRadioMC will only</span>
-<span class="c1"># save triggering events</span>
+<span class="nt">save_all</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w"> </span><span class="c1"># if True, save all events. Otherwise, NuRadioMC will only</span><span class="w"></span>
+<span class="c1"># save triggering events</span><span class="w"></span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -707,134 +707,134 @@
 <p>One of the advantages of the default_detector_station option given by NuRadioReco is that, if we want to create another station 102 that has a channel setup identical to station 101, we can just define station 102 without any channel associated and then run our simulation using <code class="docutils literal notranslate"><span class="pre">default_detector_station=101</span></code>. The channels from station 101 will be copied to station 102, and their coordinates will be read as relative to the easting, northing, and altitude of station 102.</p>
 <p>We show in the following an example of a JSON detector file.</p>
 <blockquote>
-<div><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="nt">&quot;_default&quot;</span><span class="p">:</span> <span class="p">{},</span>
-    <span class="nt">&quot;channels&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="nt">&quot;1&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="nt">&quot;adc_id&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;adc_n_samples&quot;</span><span class="p">:</span> <span class="mi">256</span><span class="p">,</span>
-            <span class="nt">&quot;adc_nbits&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;adc_sampling_frequency&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
-            <span class="nt">&quot;adc_time_delay&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;amp_reference_measurement&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;amp_type&quot;</span><span class="p">:</span> <span class="s2">&quot;100&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;ant_orientation_phi&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_orientation_theta&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_position_x&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_position_y&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_position_z&quot;</span><span class="p">:</span> <span class="mi">-90</span><span class="p">,</span>
-            <span class="nt">&quot;ant_rotation_phi&quot;</span><span class="p">:</span> <span class="mf">90.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_rotation_theta&quot;</span><span class="p">:</span> <span class="mf">90.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_type&quot;</span><span class="p">:</span> <span class="s2">&quot;vpol_prototype_50cm_n1.74&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;cab_id&quot;</span><span class="p">:</span> <span class="s2">&quot;17-09&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;cab_length&quot;</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span>
-            <span class="nt">&quot;cab_reference_measurement&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;cab_time_delay&quot;</span><span class="p">:</span> <span class="mf">19.8</span><span class="p">,</span>
-            <span class="nt">&quot;cab_type&quot;</span><span class="p">:</span> <span class="s2">&quot;LMR_400&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;channel_id&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="nt">&quot;commission_time&quot;</span><span class="p">:</span> <span class="s2">&quot;{TinyDate}:2017-11-01T00:00:00&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;decommission_time&quot;</span><span class="p">:</span> <span class="s2">&quot;{TinyDate}:2038-01-01T00:00:00&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;station_id&quot;</span><span class="p">:</span> <span class="mi">101</span>
-        <span class="p">},</span>
-        <span class="nt">&quot;2&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="nt">&quot;adc_id&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;adc_n_samples&quot;</span><span class="p">:</span> <span class="mi">256</span><span class="p">,</span>
-            <span class="nt">&quot;adc_nbits&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;adc_sampling_frequency&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
-            <span class="nt">&quot;adc_time_delay&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;amp_reference_measurement&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;amp_type&quot;</span><span class="p">:</span> <span class="s2">&quot;100&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;ant_orientation_phi&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_orientation_theta&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_position_x&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_position_y&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_position_z&quot;</span><span class="p">:</span> <span class="mf">-92.5</span><span class="p">,</span>
-            <span class="nt">&quot;ant_rotation_phi&quot;</span><span class="p">:</span> <span class="mf">90.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_rotation_theta&quot;</span><span class="p">:</span> <span class="mf">90.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_type&quot;</span><span class="p">:</span> <span class="s2">&quot;bicone_v8_inf_n1.78&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;cab_id&quot;</span><span class="p">:</span> <span class="s2">&quot;17-09&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;cab_length&quot;</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span>
-            <span class="nt">&quot;cab_reference_measurement&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;cab_time_delay&quot;</span><span class="p">:</span> <span class="mf">19.8</span><span class="p">,</span>
-            <span class="nt">&quot;cab_type&quot;</span><span class="p">:</span> <span class="s2">&quot;LMR_400&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;channel_id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-            <span class="nt">&quot;commission_time&quot;</span><span class="p">:</span> <span class="s2">&quot;{TinyDate}:2017-11-01T00:00:00&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;decommission_time&quot;</span><span class="p">:</span> <span class="s2">&quot;{TinyDate}:2038-01-01T00:00:00&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;station_id&quot;</span><span class="p">:</span> <span class="mi">101</span>
-        <span class="p">},</span>
-        <span class="nt">&quot;3&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="nt">&quot;adc_id&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;adc_n_samples&quot;</span><span class="p">:</span> <span class="mi">256</span><span class="p">,</span>
-            <span class="nt">&quot;adc_nbits&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;adc_sampling_frequency&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
-            <span class="nt">&quot;adc_time_delay&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;amp_reference_measurement&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;amp_type&quot;</span><span class="p">:</span> <span class="s2">&quot;100&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;ant_orientation_phi&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_orientation_theta&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_position_x&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_position_y&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_position_z&quot;</span><span class="p">:</span> <span class="mi">-95</span><span class="p">,</span>
-            <span class="nt">&quot;ant_rotation_phi&quot;</span><span class="p">:</span> <span class="mf">90.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_rotation_theta&quot;</span><span class="p">:</span> <span class="mf">90.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_type&quot;</span><span class="p">:</span> <span class="s2">&quot;bicone_v8_inf_n1.78&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;cab_id&quot;</span><span class="p">:</span> <span class="s2">&quot;17-09&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;cab_length&quot;</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span>
-            <span class="nt">&quot;cab_reference_measurement&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;cab_time_delay&quot;</span><span class="p">:</span> <span class="mf">19.8</span><span class="p">,</span>
-            <span class="nt">&quot;cab_type&quot;</span><span class="p">:</span> <span class="s2">&quot;LMR_400&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;channel_id&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-            <span class="nt">&quot;commission_time&quot;</span><span class="p">:</span> <span class="s2">&quot;{TinyDate}:2017-11-01T00:00:00&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;decommission_time&quot;</span><span class="p">:</span> <span class="s2">&quot;{TinyDate}:2038-01-01T00:00:00&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;station_id&quot;</span><span class="p">:</span> <span class="mi">101</span>
-        <span class="p">},</span>
-        <span class="nt">&quot;4&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="nt">&quot;adc_id&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;adc_n_samples&quot;</span><span class="p">:</span> <span class="mi">256</span><span class="p">,</span>
-            <span class="nt">&quot;adc_nbits&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;adc_sampling_frequency&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
-            <span class="nt">&quot;adc_time_delay&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;amp_reference_measurement&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;amp_type&quot;</span><span class="p">:</span> <span class="s2">&quot;100&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;ant_orientation_phi&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_orientation_theta&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_position_x&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_position_y&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_position_z&quot;</span><span class="p">:</span> <span class="mf">-97.5</span><span class="p">,</span>
-            <span class="nt">&quot;ant_rotation_phi&quot;</span><span class="p">:</span> <span class="mf">90.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_rotation_theta&quot;</span><span class="p">:</span> <span class="mf">90.0</span><span class="p">,</span>
-            <span class="nt">&quot;ant_type&quot;</span><span class="p">:</span> <span class="s2">&quot;bicone_v8_inf_n1.78&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;cab_id&quot;</span><span class="p">:</span> <span class="s2">&quot;17-09&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;cab_length&quot;</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span>
-            <span class="nt">&quot;cab_reference_measurement&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;cab_time_delay&quot;</span><span class="p">:</span> <span class="mf">19.8</span><span class="p">,</span>
-            <span class="nt">&quot;cab_type&quot;</span><span class="p">:</span> <span class="s2">&quot;LMR_400&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;channel_id&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-            <span class="nt">&quot;commission_time&quot;</span><span class="p">:</span> <span class="s2">&quot;{TinyDate}:2017-11-01T00:00:00&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;decommission_time&quot;</span><span class="p">:</span> <span class="s2">&quot;{TinyDate}:2038-01-01T00:00:00&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;station_id&quot;</span><span class="p">:</span> <span class="mi">101</span>
-        <span class="p">}</span>
-    <span class="p">},</span>
-    <span class="nt">&quot;positions&quot;</span><span class="p">:</span> <span class="p">{},</span>
-    <span class="nt">&quot;stations&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="nt">&quot;1&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="nt">&quot;MAC_address&quot;</span><span class="p">:</span> <span class="s2">&quot;0002F7F2E7B9&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;MBED_type&quot;</span><span class="p">:</span> <span class="s2">&quot;v1&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;board_number&quot;</span><span class="p">:</span> <span class="mi">203</span><span class="p">,</span>
-            <span class="nt">&quot;commission_time&quot;</span><span class="p">:</span> <span class="s2">&quot;{TinyDate}:2017-11-04T00:00:00&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;decommission_time&quot;</span><span class="p">:</span> <span class="s2">&quot;{TinyDate}:2038-01-01T00:00:00&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;pos_altitude&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="nt">&quot;pos_easting&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="nt">&quot;pos_measurement_time&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-            <span class="nt">&quot;pos_northing&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="nt">&quot;pos_position&quot;</span><span class="p">:</span> <span class="s2">&quot;MB1&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;pos_site&quot;</span><span class="p">:</span> <span class="s2">&quot;mooresbay&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;position&quot;</span><span class="p">:</span> <span class="s2">&quot;MB1&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;station_id&quot;</span><span class="p">:</span> <span class="mi">101</span><span class="p">,</span>
-            <span class="nt">&quot;station_type&quot;</span><span class="p">:</span> <span class="kc">null</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-<span class="p">}</span>
+<div><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;_default&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;channels&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;1&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_n_samples&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">256</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_nbits&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_sampling_frequency&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_time_delay&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;amp_reference_measurement&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;amp_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_orientation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_orientation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_position_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_position_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_position_z&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">-90</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_rotation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_rotation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vpol_prototype_50cm_n1.74&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;17-09&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_length&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_reference_measurement&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_time_delay&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">19.8</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;LMR_400&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;channel_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;commission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2017-11-01T00:00:00&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;decommission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2038-01-01T00:00:00&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;station_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">101</span><span class="w"></span>
+<span class="w">        </span><span class="p">},</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;2&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_n_samples&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">256</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_nbits&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_sampling_frequency&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_time_delay&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;amp_reference_measurement&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;amp_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_orientation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_orientation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_position_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_position_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_position_z&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-92.5</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_rotation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_rotation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bicone_v8_inf_n1.78&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;17-09&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_length&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_reference_measurement&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_time_delay&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">19.8</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;LMR_400&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;channel_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;commission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2017-11-01T00:00:00&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;decommission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2038-01-01T00:00:00&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;station_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">101</span><span class="w"></span>
+<span class="w">        </span><span class="p">},</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;3&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_n_samples&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">256</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_nbits&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_sampling_frequency&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_time_delay&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;amp_reference_measurement&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;amp_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_orientation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_orientation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_position_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_position_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_position_z&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">-95</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_rotation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_rotation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bicone_v8_inf_n1.78&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;17-09&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_length&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_reference_measurement&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_time_delay&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">19.8</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;LMR_400&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;channel_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;commission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2017-11-01T00:00:00&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;decommission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2038-01-01T00:00:00&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;station_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">101</span><span class="w"></span>
+<span class="w">        </span><span class="p">},</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;4&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_n_samples&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">256</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_nbits&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_sampling_frequency&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;adc_time_delay&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;amp_reference_measurement&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;amp_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_orientation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_orientation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_position_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_position_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_position_z&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-97.5</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_rotation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_rotation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ant_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bicone_v8_inf_n1.78&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;17-09&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_length&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_reference_measurement&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_time_delay&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">19.8</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;cab_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;LMR_400&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;channel_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;commission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2017-11-01T00:00:00&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;decommission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2038-01-01T00:00:00&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;station_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">101</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;positions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;stations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;1&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;MAC_address&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0002F7F2E7B9&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;MBED_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;v1&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;board_number&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">203</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;commission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2017-11-04T00:00:00&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;decommission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2038-01-01T00:00:00&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;pos_altitude&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;pos_easting&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;pos_measurement_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;pos_northing&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;pos_position&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;MB1&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;pos_site&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;mooresbay&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;position&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;MB1&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;station_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">101</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;station_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 </div></blockquote>

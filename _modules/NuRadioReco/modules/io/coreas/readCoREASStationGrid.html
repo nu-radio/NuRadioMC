@@ -511,6 +511,7 @@
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.station</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.radio_shower</span>
 <span class="kn">from</span> <span class="nn">radiotools</span> <span class="kn">import</span> <span class="n">coordinatesystems</span> <span class="k">as</span> <span class="n">cstrafo</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">showerParameters</span> <span class="k">as</span> <span class="n">shp</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.modules.io.coreas</span> <span class="kn">import</span> <span class="n">coreas</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -638,10 +639,10 @@
                 <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
                 <span class="n">evt</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_input_file</span><span class="p">,</span> <span class="n">iCore</span><span class="p">)</span>  <span class="c1"># create empty event</span>
                 <span class="n">sim_shower</span> <span class="o">=</span> <span class="n">coreas</span><span class="o">.</span><span class="n">make_sim_shower</span><span class="p">(</span><span class="n">corsika</span><span class="p">)</span>
+                <span class="n">sim_shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">core</span><span class="p">,</span> <span class="n">core</span><span class="p">)</span>
                 <span class="n">evt</span><span class="o">.</span><span class="n">add_sim_shower</span><span class="p">(</span><span class="n">sim_shower</span><span class="p">)</span>
                 <span class="n">rd_shower</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">radio_shower</span><span class="o">.</span><span class="n">RadioShower</span><span class="p">(</span><span class="n">station_ids</span><span class="o">=</span><span class="n">station_ids</span><span class="p">)</span>
                 <span class="n">evt</span><span class="o">.</span><span class="n">add_shower</span><span class="p">(</span><span class="n">rd_shower</span><span class="p">)</span>
-
                 <span class="k">for</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="n">station_ids</span><span class="p">:</span>
                     <span class="c1"># convert into vxvxB frame to calculate closests simulated station to detecor station</span>
                     <span class="n">det_station_position</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_absolute_position</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>

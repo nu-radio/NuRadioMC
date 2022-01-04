@@ -526,15 +526,15 @@ The configuration of the raytracing and propagation effects are specified in the
 * n_reflections: [int] the maximum number of reflections off a reflective layer at the bottom of the ice layer</p>
 <p>Below you find the <strong>default settings</strong> of the <strong>config file</strong>.</p>
 <blockquote>
-<div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">propagation</span><span class="p">:</span>
-  <span class="nt">module</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">analytic</span>
-  <span class="nt">ice_model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">southpole_2015</span>
-  <span class="nt">attenuation_model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">SP1</span>
-  <span class="nt">attenuate_ice</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">True</span>
-  <span class="nt">n_freq</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">25</span>
-  <span class="nt">focusing</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">False</span>
-  <span class="nt">focusing_limit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-  <span class="nt">n_reflections</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0</span>
+<div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">propagation</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">analytic</span><span class="w"></span>
+<span class="w">  </span><span class="nt">ice_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">southpole_2015</span><span class="w"></span>
+<span class="w">  </span><span class="nt">attenuation_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SP1</span><span class="w"></span>
+<span class="w">  </span><span class="nt">attenuate_ice</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span><span class="w"></span>
+<span class="w">  </span><span class="nt">n_freq</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25</span><span class="w"></span>
+<span class="w">  </span><span class="nt">focusing</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w"></span>
+<span class="w">  </span><span class="nt">focusing_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w"></span>
+<span class="w">  </span><span class="nt">n_reflections</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w"></span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -544,8 +544,8 @@ The configuration of the raytracing and propagation effects are specified in the
 <h2>Ray tracing<a class="headerlink" href="#ray-tracing" title="Permalink to this headline"></a></h2>
 <p>Ray tracing is the module to calculate the trajectory of the emitted radiaton. Depending on the ice model one wants to use, the user can specify which ray tracer method should be used by NuRadioMC. This can be done in the <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file by setting the propagation module to the desired module name.</p>
 <blockquote>
-<div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">propagation</span><span class="p">:</span>
-  <span class="nt">module</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">module name</span><span class="p p-Indicator">]</span>
+<div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">propagation</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">module name</span><span class="p p-Indicator">]</span><span class="w"></span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -583,8 +583,8 @@ with an exponential refractive index can be calculated analytically using the op
 <h3>RadioPropa numerical ray tracer (in development)<a class="headerlink" href="#radiopropa-numerical-ray-tracer-in-development" title="Permalink to this headline"></a></h3>
 <p>For ice models other then the simple ones, one need a numerical ray tracer which is provided by the RadioPropa method. This method uses the RadioPropa package which is written in c++. Information on the installation of RadioPropa can found on <a class="reference external" href="https://github.com/nu-radio/RadioPropa">https://github.com/nu-radio/RadioPropa</a>. The module name for this method is <code class="docutils literal notranslate"><span class="pre">radiopropa</span></code>.</p>
 <blockquote>
-<div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">propagation</span><span class="p">:</span>
-  <span class="nt">module</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">radiopropa</span>
+<div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">propagation</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">radiopropa</span><span class="w"></span>
 </pre></div>
 </div>
 </div></blockquote>
