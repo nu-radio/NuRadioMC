@@ -6,7 +6,7 @@ version 2.1.2-beta
 new features:
 
 bugfixes:
-
+- PROPOSAL energy cut (min_energy_cut_nu) assumed wrong units (before: 1e-6*units.eV)
 
 version 2.1.1
 new features:
