@@ -404,10 +404,10 @@ class ProposalFunctions(object):
         # Checking if the secondary type is greater than 1000000000, which means
         # that the secondary is an interaction particle.
         if (sec.type > 1000000000):
-            energy = (sec.parent_particle_energy - sec.energy) * units.MeV
+            energy = (sec.parent_particle_energy - sec.energy) * pp_MeV
         # Else, the secondary is a particle issued upon decay.
         else:
-            energy = sec.energy * units.MeV
+            energy = sec.energy * pp_MeV
 
         return energy
 
@@ -534,7 +534,7 @@ class ProposalFunctions(object):
                 distance += ((sec.position.z - lepton_position[2]) * units.cm) ** 2
                 distance = np.sqrt(distance)
 
-                energy = self.__secondary_energy(sec)
+                energy = self.__secondary_energy(sec) * units.MeV
 
                 shower_type, code, name = self.__shower_properties(sec)
 
