@@ -16,18 +16,22 @@ import scipy.ndimage
 class channelTimeOffsetCalculator:
     """
     Determines the difference in signal arrival times between channels, the ray types and the signal
-     arrival direction from the vertex position.
+    arrival direction from the vertex position.
+
     The module uses either the vertex position stored in one of the sim showers or it assumes that
     some vertex reconstruction module was already run and stored the vertex position either in the
     vertex_2D_fit (for the neutrino2DVertexReconstructor module) of the nu_vertex station parameter.
+    
     The module then calculates the expected difference in travel times between channels for this
     vertex position, shifts the channel voltages by that time difference and calculates the correlation
     with a template. By adding up the correlations for all channels, we can determine the correct
     raytracing solution: If the solution is correctd, the correlations will have their maxima at the same
     position, resulting in a larger maximum of their sum. Thus, we can determine the correct raytracing
     solutions and store the corresponding properties in the channel parameters.
+    
     This module assumes that the ray path type for all channels is the same, e.g. each channel sees a direct
     ray. Therefore it should only be used for channels that are relatively close to each other.
+    
     """
     def __init__(self):
         self.__use_sim = False
@@ -40,8 +44,8 @@ class channelTimeOffsetCalculator:
         """
         Setup method for the module
 
-        Parameters:
-        ________________
+        Parameters
+        ----------
         electric_field_template: NuRadioReco.framework.base_trace.BaseTrace object (or child of BaseTrace class)
             An electric field waveform to be used as a template. It will be folded with the antenna and amplifier
             response to get a voltage template, which is then used to estimate timing differences between channels.
@@ -60,8 +64,8 @@ class channelTimeOffsetCalculator:
         """
         Run the module on a station
 
-        Parameters:
-        _________________
+        Parameters
+        ----------
         event: NuRadioReco.framework.event.Event object
             The event the module should be run on
         station: NuRadioReco.framework.station.Station object
