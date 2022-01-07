@@ -104,5 +104,5 @@ if __name__ == "__main__":
             'reflected': travel_times_reflected
         }
 
-with open('{}/lookup_table_{:.0f}.p'.format(args.output_path, args.antenna_depth), 'wb') as f:
-    pickle.dump(lookup_table, f)
+    with open('{}/lookup_table_{:.0f}.p'.format(args.output_path, args.antenna_depth), 'wb') as f:
+        pickle.dump(lookup_table, f)
