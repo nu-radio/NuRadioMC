@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioMC.simulation.simulation &mdash; NuRadio 2.1.4-beta documentation</title>
+  <title>NuRadioMC.simulation.simulation &mdash; NuRadio 2.1.5-dev documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
@@ -29,7 +29,7 @@
             <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                2.1.4-beta
+                2.1.5-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -756,6 +756,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_fin</span> <span class="o">=</span> <span class="n">inputfilename</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span> <span class="o">=</span> <span class="n">inputfilename</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_fin_stations</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># store all relevant attributes of the input file in a dictionary</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_generator_info</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">enum_entry</span> <span class="ow">in</span> <span class="n">genattrs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">enum_entry</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_generator_info</span><span class="p">[</span><span class="n">enum_entry</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span><span class="p">[</span><span class="n">enum_entry</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
 
         <span class="c1"># check if the input file contains events, if not save empty output file (for book keeping) and terminate simulation</span>
         <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fin</span><span class="p">[</span><span class="s1">&#39;xx&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
@@ -1647,12 +1652,6 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_fin</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">fin</span><span class="o">.</span><span class="n">attrs</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-
-        <span class="c1"># store all relevant attributes of the input file in a dictionary</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_generator_info</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">enum_entry</span> <span class="ow">in</span> <span class="n">genattrs</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">enum_entry</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_generator_info</span><span class="p">[</span><span class="n">enum_entry</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fin_attrs</span><span class="p">[</span><span class="n">enum_entry</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
 
         <span class="n">fin</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
