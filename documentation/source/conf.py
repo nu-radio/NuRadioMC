@@ -61,7 +61,7 @@ master_doc = 'main'
 
 # General information about the project.
 project = 'NuRadio'
-copyright = '2021, The NuRadio Group'
+copyright = '2022, The NuRadio Group'
 author = 'The NuRadio Group'
 
 # The version info for the project you're documenting, acts as replacement for
