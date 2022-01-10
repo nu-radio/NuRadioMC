@@ -249,6 +249,11 @@ class simulation():
             self._fin = inputfilename[0]
             self._fin_attrs = inputfilename[1]
             self._fin_stations = {}
+        # store all relevant attributes of the input file in a dictionary
+        self._generator_info = {}
+        for enum_entry in genattrs:
+            if enum_entry.name in self._fin_attrs:
+                self._generator_info[enum_entry] = self._fin_attrs[enum_entry.name]
 
         # check if the input file contains events, if not save empty output file (for book keeping) and terminate simulation
         if(len(self._fin['xx']) == 0):
@@ -1140,12 +1145,6 @@ class simulation():
                     self._fin[key] = np.array(value)
         for key, value in iteritems(fin.attrs):
             self._fin_attrs[key] = value
-
-        # store all relevant attributes of the input file in a dictionary
-        self._generator_info = {}
-        for enum_entry in genattrs:
-            if enum_entry.name in self._fin_attrs:
-                self._generator_info[enum_entry] = self._fin_attrs[enum_entry.name]
 
         fin.close()
 
