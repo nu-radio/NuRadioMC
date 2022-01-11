@@ -89,14 +89,15 @@ if __name__ == "__main__":
         travel_times_reflected = np.zeros((len(x_pos), len(z_pos)))
         for i_x, xx in enumerate(x_pos):
             for i_z, zz in enumerate(z_pos):
-                solutions = ray_tracing.find_solutions([xx, zz], [0, channel_type['z']])
+                z_coords = sorted([zz, channel_type['z']]) # ensures that x2 is always higher up than x1
+                solutions = ray_tracing.find_solutions([-xx, z_coords[0]], [0, z_coords[1]])
                 for solution in solutions:
                     if solution['type'] == 1:
-                        travel_times_direct[i_x][i_z] = ray_tracing.get_travel_time([xx, zz], [0, channel_type['z']], solution['C0'])
+                        travel_times_direct[i_x][i_z] = ray_tracing.get_travel_time_analytic([-xx, z_coords[0]], [0, z_coords[1]], solution['C0'])
                     if solution['type'] == 2:
-                        travel_times_refracted[i_x][i_z] = ray_tracing.get_travel_time([xx, zz], [0, channel_type['z']], solution['C0'])
+                        travel_times_refracted[i_x][i_z] = ray_tracing.get_travel_time_analytic([-xx, z_coords[0]], [0, z_coords[1]], solution['C0'])
                     if solution['type'] == 3:
-                        travel_times_reflected[i_x][i_z] = ray_tracing.get_travel_time([xx, zz], [0, channel_type['z']], solution['C0'])
+                        travel_times_reflected[i_x][i_z] = ray_tracing.get_travel_time_analytic([-xx, z_coords[0]], [0, z_coords[1]], solution['C0'])
         lookup_table[channel_type['name']] = {
             'direct': travel_times_direct,
             'refracted': travel_times_refracted,

@@ -9,6 +9,8 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.utilities import trace_utilities, fft, bandpass_filter
 import radiotools.helper as hp
+import scipy.optimize
+import scipy.ndimage
 
 
 class neutrino3DVertexReconstructor:
@@ -178,7 +180,7 @@ class neutrino3DVertexReconstructor:
 
         if debug:
             plt.close('all')
-            fig1 = plt.figure(figsize=(12, (len(self.__channel_pairs) // 2 + len(self.__channel_pairs) % 2)))
+            fig1 = plt.figure(figsize=(12, (len(self.__channel_pairs) + len(self.__channel_pairs) % 2)))
         self.__pair_correlations = np.zeros((len(self.__channel_pairs), station.get_channel(self.__channel_ids[0]).get_number_of_samples() + self.__electric_field_template.get_number_of_samples() - 1))
         for i_pair, channel_pair in enumerate(self.__channel_pairs):
             channel_1 = station.get_channel(channel_pair[0])
@@ -216,6 +218,9 @@ class neutrino3DVertexReconstructor:
                                          i_pair + 1)
                 ax1_1.grid()
                 ax1_1.plot(toffset, correlation_product)
+                ax1_1.set_title('Ch.{} & Ch.{}'.format(channel_pair[0], channel_pair[1]))
+                ax1_1.set_xlabel(r'$\Delta t$ [ns]')
+                ax1_1.set_ylabel('correlation')
         if debug:
             fig1.tight_layout()
             fig1.savefig('{}/{}_{}_correlation.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
@@ -240,42 +245,43 @@ class neutrino3DVertexReconstructor:
         flattened_corr = np.max(full_correlations, axis=2).T
         i_max_d = np.argmax(flattened_corr, axis=0)
         corr_mask_d = np.max(flattened_corr, axis=0) > corr_fit_threshold
-        line_fit_d = np.polyfit(
-            self.__distances_2d[corr_mask_d],
-            self.__z_coordinates_2d[i_max_d][corr_mask_d],
-            1
-        )
+
+        def lin_func(par, x, y):
+            return (par[0] * x + par[1] - y)**2
+
+        least_squares_d = scipy.optimize.least_squares(lin_func, np.zeros(2), args=(self.__distances_2d[corr_mask_d], self.__z_coordinates_2d[i_max_d][corr_mask_d]), loss='cauchy')
+        line_fit_d = least_squares_d.x
         residuals_d = np.sum((self.__z_coordinates_2d[i_max_d][corr_mask_d] - self.__distances_2d[corr_mask_d] * line_fit_d[0] - line_fit_d[1])**2) / np.sum(corr_mask_d.astype(int))
         i_max_z = np.argmax(flattened_corr, axis=1)
         corr_mask_z = np.max(flattened_corr, axis=1) > corr_fit_threshold
-        line_fit_z = np.polyfit(
-            self.__distances_2d[i_max_z][corr_mask_z],
-            self.__z_coordinates_2d[corr_mask_z],
-            1
-        )
+        least_squares_z = scipy.optimize.least_squares(lin_func, np.zeros(2), args=(self.__distances_2d[i_max_z][corr_mask_z], self.__z_coordinates_2d[corr_mask_z],), loss='cauchy')
+        line_fit_z = least_squares_z.x
+
         residuals_z = np.sum((self.__z_coordinates_2d[corr_mask_z] - self.__distances_2d[i_max_z][corr_mask_z] * line_fit_z[0] - line_fit_z[1])**2) / np.sum(corr_mask_z.astype(int))
         if residuals_d <= residuals_z:
             slope = line_fit_d[0]
             offset = line_fit_d[1]
-            max_z_offset = np.max([50, np.min([200, np.max(self.__z_coordinates_2d[i_max_d][corr_mask_d] - self.__distances_2d[corr_mask_d] * slope - offset)])])
-            min_z_offset = np.max([50, np.min([200, np.max(-self.__z_coordinates_2d[i_max_d][corr_mask_d] + self.__distances_2d[corr_mask_d] * slope + offset)])])
+            max_z_offset = 1.25 * np.max([50, np.min([200, np.max(self.__z_coordinates_2d[i_max_d][corr_mask_d] - self.__distances_2d[corr_mask_d] * slope - offset)])])
+            min_z_offset = 1.25 * np.max([50, np.min([200, np.max(-self.__z_coordinates_2d[i_max_d][corr_mask_d] + self.__distances_2d[corr_mask_d] * slope + offset)])])
             flattened_corr_theta = np.max(full_correlations, axis=1)
             theta_corr_mask = np.max(flattened_corr_theta, axis=1) >= corr_fit_threshold
             i_max_theta = np.argmax(flattened_corr_theta, axis=1)
-            median_theta = np.median(self.__azimuths_2d[i_max_theta][theta_corr_mask])
+            median_theta = self.__azimuths_2d[np.argmax(np.max(np.sum(full_correlations, axis=0), axis=0))]
+            # median_theta = np.median(self.__azimuths_2d[i_max_theta][theta_corr_mask])
             z_fit = False
         else:
             slope = line_fit_z[0]
             offset = line_fit_z[1]
-            max_z_offset = np.max([50, np.min([200, np.max(self.__z_coordinates_2d[corr_mask_z] - self.__distances_2d[i_max_z][corr_mask_z] * slope - offset)])])
-            min_z_offset = np.max([50, np.min([200, np.max(-self.__z_coordinates_2d[corr_mask_z] + self.__distances_2d[i_max_z][corr_mask_z] * slope + offset)])])
+            max_z_offset = 1.25 * np.max([50, np.min([200, np.max(self.__z_coordinates_2d[corr_mask_z] - self.__distances_2d[i_max_z][corr_mask_z] * slope - offset)])])
+            min_z_offset = 1.25 * np.max([50, np.min([200, np.max(-self.__z_coordinates_2d[corr_mask_z] + self.__distances_2d[i_max_z][corr_mask_z] * slope + offset)])])
             flattened_corr_theta = np.max(full_correlations, axis=0)
             theta_corr_mask = np.max(flattened_corr_theta, axis=1) >= corr_fit_threshold
             i_max_theta = np.argmax(flattened_corr_theta, axis=1)
-            median_theta = np.median(self.__azimuths_2d[i_max_theta][theta_corr_mask])
+            median_theta = self.__azimuths_2d[np.argmax(np.sum(np.max(full_correlations, axis=0), axis=0))]
+            # median_theta = np.median(self.__azimuths_2d[i_max_theta][theta_corr_mask])
             z_fit = True
         if debug:
-            self.__draw_2d_correlation_map(event, full_correlations)
+            self.__draw_2d_correlation_map(event, full_correlations, slope, offset, max_z_offset, min_z_offset)
             self.__draw_search_zones(
                 event,
                 slope,
@@ -291,7 +297,8 @@ class neutrino3DVertexReconstructor:
                 z_fit,
                 i_max_theta,
                 theta_corr_mask,
-                median_theta
+                median_theta,
+                full_correlations
             )
 
         # <--- 3D Fit ---> #
@@ -378,12 +385,18 @@ class neutrino3DVertexReconstructor:
                     self.__current_ray_types = self.__ray_types[i_ray]
                     correlation_map = np.maximum(self.get_correlation_array_3d(x_coords, y_coords, z_coords), correlation_map)
             self_correlation_sum += correlation_map
-        combined_correlations = correlation_sum / len(self.__channel_pairs) + self_correlation_sum / len(self.__channel_ids)
+        combined_correlations = correlation_sum + self_correlation_sum
         i_max_dnr = np.unravel_index(np.argmax(combined_correlations), combined_correlations.shape)
         vertex_x = x_coords[i_max_dnr]
         vertex_y = y_coords[i_max_dnr]
         vertex_z = z_coords[i_max_dnr]
         station.set_parameter(stnp.nu_vertex, np.array([vertex_x, vertex_y, vertex_z]))
+        for sim_shower in event.get_sim_showers():
+            sim_vertex = sim_shower.get_parameter(shp.vertex)
+            break
+        dist_corrs = np.max(np.max(combined_correlations, axis=0), axis=1)
+        station.set_parameter(stnp.distance_correlations, dist_corrs)
+        station.set_parameter(stnp.vertex_search_path, [slope, offset, median_theta])
         if debug:
             self.__draw_dnr_reco(
                 event,
@@ -424,13 +437,13 @@ class neutrino3DVertexReconstructor:
         res = self.get_correlation_for_pos(np.array([d_hor1, d_hor2]), z)
         return res
 
-    def get_correlation_array_3d(self, x, y, z):
+    def get_correlation_array_3d(self, x, y, z, d_r=0, d_z=0):
         channel_pos1 = self.__channel_positions[0]
         channel_pos2 = self.__channel_positions[1]
         d_hor1 = np.sqrt((x - channel_pos1[0])**2 + (y - channel_pos1[1])**2)
         d_hor2 = np.sqrt((x - channel_pos2[0])**2 + (y - channel_pos2[1])**2)
         res = self.get_correlation_for_pos(np.array([d_hor1, d_hor2]), z)
-        res[np.abs(res) < .8 * np.max(np.abs(res))] = 0
+        # res[np.abs(res) < .8 * np.max(np.abs(res))] = 0
         return res
 
     def get_correlation_for_pos(self, d_hor, z):
@@ -445,16 +458,73 @@ class neutrino3DVertexReconstructor:
             to be calculated. Correspond to the (r, z) pair
             of cylindrical coordinates.
         """
-        t1 = self.get_signal_travel_time(d_hor[0], z, self.__current_ray_types[0], self.__channel_pair[0])
-        t2 = self.get_signal_travel_time(d_hor[1], z, self.__current_ray_types[1], self.__channel_pair[1])
-        delta_t = t1 - t2
+
+        t_1 = self.get_signal_travel_time(d_hor[0], z, self.__current_ray_types[0], self.__channel_pair[0])
+        t_2 = self.get_signal_travel_time(d_hor[1], z, self.__current_ray_types[1], self.__channel_pair[1])
+        delta_t = t_1 - t_2
         delta_t = delta_t.astype(float)
+
+        t_offset_1 = self.get_signal_travel_time(d_hor[0] - self.__distance_step_3d / 2., z, self.__current_ray_types[0], self.__channel_pair[0])
+        t_offset_2 = self.get_signal_travel_time(d_hor[1] - self.__distance_step_3d / 2., z, self.__current_ray_types[1], self.__channel_pair[1])
+        delta_t_offset = t_offset_1 - t_offset_2
+        delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
+        delta_t_offset = delta_t_offset.astype(float)
+        time_deviations = np.abs(delta_t - delta_t_offset)
+
+        t_offset_1 = self.get_signal_travel_time(d_hor[0] + self.__distance_step_3d / 2., z, self.__current_ray_types[0], self.__channel_pair[0])
+        t_offset_2 = self.get_signal_travel_time(d_hor[1] + self.__distance_step_3d / 2., z, self.__current_ray_types[1], self.__channel_pair[1])
+        delta_t_offset = t_offset_1 - t_offset_2
+        delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
+        delta_t_offset = delta_t_offset.astype(float)
+        time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
+
+        t_offset_1 = self.get_signal_travel_time(d_hor[0] + self.__distance_step_3d / 2., z, self.__current_ray_types[0], self.__channel_pair[0])
+        t_offset_2 = self.get_signal_travel_time(d_hor[1] + self.__distance_step_3d / 2., z, self.__current_ray_types[1], self.__channel_pair[1])
+        delta_t_offset = t_offset_1 - t_offset_2
+        delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
+        delta_t_offset = delta_t_offset.astype(float)
+        time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
+
+        t_offset_1 = self.get_signal_travel_time(d_hor[0], z + self.__z_step_3d / 2., self.__current_ray_types[0], self.__channel_pair[0])
+        t_offset_2 = self.get_signal_travel_time(d_hor[1], z + self.__z_step_3d / 2., self.__current_ray_types[1], self.__channel_pair[1])
+        delta_t_offset = t_offset_1 - t_offset_2
+        delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
+        delta_t_offset = delta_t_offset.astype(float)
+        time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
+
+        t_offset_1 = self.get_signal_travel_time(d_hor[0], z - self.__z_step_3d / 2., self.__current_ray_types[0], self.__channel_pair[0])
+        t_offset_2 = self.get_signal_travel_time(d_hor[1], z - self.__z_step_3d / 2., self.__current_ray_types[1], self.__channel_pair[1])
+        delta_t_offset = t_offset_1 - t_offset_2
+        delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
+        delta_t_offset = delta_t_offset.astype(float)
+        time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
+
+        corr_index = self.__correlation.shape[0] / 2 + np.round(delta_t * self.__sampling_rate)
+        corr_index[np.isnan(delta_t)] = 0
+        mask = (corr_index > 0) & (corr_index < self.__correlation.shape[0]) & (~np.isinf(delta_t))
+        corr_index[~mask] = 0
+
+        res = np.zeros_like(corr_index)
+        for i_x in range(10):
+            for i_y in range(10):
+                i_x_0 = i_x * (res.shape[0] // 10)
+                i_x_1 = min(i_x_0 + res.shape[0] // 10, res.shape[0])
+                i_y_0 = i_y * (res.shape[1] // 10)
+                i_y_1 = min(i_y_0 + res.shape[1] // 10, res.shape[1])
+                maximized_correlation = scipy.ndimage.maximum_filter(
+                            np.abs(self.__correlation),
+                            size=np.median(np.abs(time_deviations[i_x_0:i_x_1, i_y_0:i_y_1])) * self.__sampling_rate / 2.
+                        )
+                res[i_x_0:i_x_1, i_y_0:i_y_1] = np.take(maximized_correlation, corr_index[i_x_0:i_x_1, i_y_0:i_y_1].astype(int))
+        res[~mask] = 0
+        """
         corr_index = self.__correlation.shape[0] / 2 + np.round(delta_t * self.__sampling_rate)
         corr_index[np.isnan(delta_t)] = 0
         mask = (corr_index > 0) & (corr_index < self.__correlation.shape[0]) & (~np.isinf(delta_t))
         corr_index[~mask] = 0
         res = np.take(self.__correlation, corr_index.astype(int))
         res[~mask] = 0
+        """
         return res
 
     def get_signal_travel_time(self, d_hor, z, ray_type, channel_id):
@@ -478,81 +548,87 @@ class neutrino3DVertexReconstructor:
         channel_type = int(abs(channel_pos[2]))
         travel_times = np.zeros_like(d_hor)
         mask = np.ones_like(travel_times).astype(bool)
-        i_z = np.array(np.round((z - self.__header[channel_type]['z_min']) / self.__header[channel_type]['d_z'])).astype(int)
+        i_z_1 = np.array(np.floor((z - self.__header[channel_type]['z_min']) / self.__header[channel_type]['d_z'])).astype(int)
+        z_dist_1 = i_z_1 * self.__header[channel_type]['d_z'] + self.__header[channel_type]['z_min']
+        i_z_2 = np.array(np.ceil((z - self.__header[channel_type]['z_min']) / self.__header[channel_type]['d_z'])).astype(int)
+        z_dist_2 = i_z_2 * self.__header[channel_type]['d_z'] + self.__header[channel_type]['z_min']
         i_x_1 = np.array(np.floor((d_hor - self.__header[channel_type]['x_min']) / self.__header[channel_type]['d_x'])).astype(int)
         cell_dist_1 = i_x_1 * self.__header[channel_type]['d_x'] + self.__header[channel_type]['x_min']
         mask[i_x_1 > self.__lookup_table[channel_type][ray_type].shape[0] - 1] = False
-        mask[i_z > self.__lookup_table[channel_type][ray_type].shape[1] - 1] = False
+        mask[i_z_1 > self.__lookup_table[channel_type][ray_type].shape[1] - 1] = False
+        mask[i_z_2 > self.__lookup_table[channel_type][ray_type].shape[1] - 1] = False
         i_x_1[~mask] = 0
-        i_z[~mask] = 0
-        travel_times_1 = self.__lookup_table[channel_type][ray_type][(i_x_1, i_z)]
+        i_z_1[~mask] = 0
+        i_z_2[~mask] = 0
+        travel_times_1_1 = self.__lookup_table[channel_type][ray_type][(i_x_1, i_z_1)]
+        travel_times_1_2 = self.__lookup_table[channel_type][ray_type][(i_x_1, i_z_2)]
         i_x_2 = np.array(np.ceil((d_hor - self.__header[channel_type]['x_min']) / self.__header[channel_type]['d_x'])).astype(int)
         cell_dist_2 = i_x_2 * self.__header[channel_type]['d_x'] + self.__header[channel_type]['x_min']
         i_x_2[~mask] = 0
-        travel_times_2 = self.__lookup_table[channel_type][ray_type][(i_x_2, i_z)]
-        slopes = np.zeros_like(travel_times_1)
-        slopes[i_x_2 > i_x_1] = (travel_times_1 - travel_times_2)[i_x_2 > i_x_1] / (cell_dist_1 - cell_dist_2)[i_x_2 > i_x_1]
-        travel_times = (d_hor - cell_dist_1) * slopes + travel_times_1
+        travel_times_2_1 = self.__lookup_table[channel_type][ray_type][(i_x_2, i_z_1)]
+        travel_times_2_2 = self.__lookup_table[channel_type][ray_type][(i_x_2, i_z_2)]
+        z_slopes_1 = np.zeros_like(travel_times_1_1)
+        z_slopes_2 = np.zeros_like(travel_times_1_1)
+        z_slopes_1[i_z_1 < i_z_2] = (travel_times_1_1 - travel_times_1_2)[i_z_1 < i_z_2] / (z_dist_1 - z_dist_2)[i_z_1 < i_z_2]
+        z_slopes_2[i_z_1 < i_z_2] = (travel_times_2_1 - travel_times_2_2)[i_z_1 < i_z_2] / (z_dist_1 - z_dist_2)[i_z_1 < i_z_2]
+        travel_times_1 = (z - z_dist_1) * z_slopes_1 + travel_times_1_1
+        travel_times_2 = (z - z_dist_1) * z_slopes_2 + travel_times_2_1
+        d_slope = np.zeros_like(z)
+        d_slope[i_x_2 > i_x_1] = (travel_times_1 - travel_times_2)[i_x_2 > i_x_1] / (cell_dist_1 - cell_dist_2)[i_x_2 > i_x_1]
+        travel_times = (d_hor - cell_dist_1) * d_slope + travel_times_1
         travel_times[~mask] = np.nan
         return travel_times
 
-    def __draw_2d_correlation_map(self, event, correlation_map):
-        fig4 = plt.figure(figsize=(4, 12))
-        ax4_1 = fig4.add_subplot(311)
+    def __draw_2d_correlation_map(self, event, correlation_map, slope, offset, max_z_offset, min_z_offset):
+        fig4 = plt.figure(figsize=(6, 3.5))
+        ax4_1 = fig4.add_subplot(111)
         d_0, z_0 = np.meshgrid(self.__distances_2d, self.__z_coordinates_2d)
-        ax4_1.pcolor(
+        cplot = ax4_1.pcolor(
             d_0,
             z_0,
-            np.max(correlation_map, axis=2).T
+            np.max(correlation_map, axis=2).T / np.max(correlation_map),
+            vmin=.5,
+            vmax=1,
+            shading='auto'
         )
+        plt.colorbar(cplot, ax=ax4_1).set_label('correlation sum', fontsize=14)
+        ax4_1.plot(
+            self.__distances_2d,
+            self.__distances_2d * slope + offset + max_z_offset,
+            color='k',
+            alpha=1.
+        )
+        ax4_1.plot(
+            self.__distances_2d,
+            self.__distances_2d * slope + offset - min_z_offset,
+            color='k',
+            alpha=1.
+        )
+        ax4_1.fill_between(
+            self.__distances_2d,
+            self.__distances_2d * slope + offset + max_z_offset,
+            self.__distances_2d * slope + offset - min_z_offset,
+            color='k',
+            alpha=.2
+        )
+        ax4_1.set_xlim([np.min(self.__distances_2d), np.max(self.__distances_2d)])
+        ax4_1.set_ylim([np.min(self.__z_coordinates_2d), np.max(self.__z_coordinates_2d)])
+        ax4_1.set_aspect('equal')
         ax4_1.grid()
-        theta_0, d_0 = np.meshgrid(self.__azimuths_2d, self.__distances_2d)
-        ax4_2 = fig4.add_subplot(312, projection='polar')
-        ax4_2.pcolor(
-            theta_0,
-            d_0,
-            np.max(correlation_map, axis=1)
-        )
-        ax4_2.grid()
-        ax4_3 = fig4.add_subplot(313)
-        theta_0, z_0 = np.meshgrid(self.__azimuths_2d, self.__z_coordinates_2d)
-        ax4_3.pcolor(
-            theta_0 / units.deg,
-            z_0,
-            np.max(correlation_map, axis=0)
-        )
-        ax4_3.grid()
         sim_vertex = None
         for sim_shower in event.get_sim_showers():
             sim_vertex = sim_shower.get_parameter(shp.vertex)
             break
-        if sim_vertex is not None:
-            ax4_1.scatter(
-                [np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)],
-                [sim_vertex[2]],
-                c='r',
-                alpha=.5,
-                marker='+'
-            )
-            ax4_2.scatter(
-                [hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]],
-                [np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)],
-                c='r',
-                alpha=.5,
-                marker='+'
-            )
-            ax4_3.scatter(
-                [hp.get_normalized_angle(
-                    hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]) / units.deg],
-                [(sim_vertex[2])],
-                c='r',
-                alpha=.5,
-                marker='+'
-            )
-        ax4_1.set_xlabel('d [m]')
-        ax4_1.set_ylabel('z [m]')
-        ax4_3.set_xlabel(r'$\phi [^\circ]$')
-        ax4_3.set_ylabel('z [m]')
+        ax4_1.scatter(
+            [np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)],
+            [sim_vertex[2]],
+            c='r',
+            alpha=1.,
+            marker='o',
+            s=50
+        )
+        ax4_1.set_xlabel('d [m]', fontsize=14)
+        ax4_1.set_ylabel('z [m]', fontsize=14)
         fig4.tight_layout()
         fig4.savefig('{}/{}_{}_2D_correlation_maps.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
 
@@ -572,7 +648,8 @@ class neutrino3DVertexReconstructor:
             z_fit,
             i_max_theta,
             theta_corr_mask,
-            median_theta
+            median_theta,
+            full_correlations
     ):
         fig5 = plt.figure(figsize=(8, 8))
         ax5_1_1 = fig5.add_subplot(221)
@@ -665,45 +742,19 @@ class neutrino3DVertexReconstructor:
             alpha=.2
         )
 
-        if z_fit:
-            ax5_2 = fig5.add_subplot(2, 2, (3, 4))
-            ax5_2.grid()
-        else:
-            ax5_2 = fig5.add_subplot(2, 2, (3, 4), projection='polar')
-        if z_fit:
-            ax5_2.scatter(
-                self.__azimuths_2d[i_max_theta][theta_corr_mask],
-                np.abs(self.__z_coordinates_2d)[theta_corr_mask]
-            )
-            ax5_2.scatter(
-                self.__azimuths_2d[i_max_theta][~theta_corr_mask],
-                np.abs(self.__z_coordinates_2d)[~theta_corr_mask],
-                c='k',
-                alpha=.5
-            )
-            ax5_2.plot(
-                [median_theta, median_theta],
-                [np.abs(self.__z_coordinates_2d[0]), np.abs(self.__z_coordinates_2d[-1])],
-                color='k',
-                linestyle=':'
-            )
-        else:
-            ax5_2.scatter(
-                self.__azimuths_2d[i_max_theta][theta_corr_mask],
-                self.__distances_2d[theta_corr_mask]
-            )
-            ax5_2.scatter(
-                self.__azimuths_2d[i_max_theta][~theta_corr_mask],
-                self.__distances_2d[~theta_corr_mask],
-                c='k',
-                alpha=.5
-            )
-            ax5_2.plot(
-                [median_theta, median_theta],
-                [self.__distances_2d[0], self.__distances_2d[-1]],
-                color='k',
-                linestyle=':'
-            )
+        ax5_2 = fig5.add_subplot(2, 2, 3)
+        ax5_2.grid()
+        ax5_2.plot(
+            self.__azimuths_2d / units.deg,
+            np.sum(np.max(full_correlations, axis=0), axis=0)
+        )
+        ax5_3 = fig5.add_subplot(2, 2, 4)
+        ax5_3.grid()
+        ax5_3.plot(
+            self.__azimuths_2d / units.deg,
+            np.max(np.sum(full_correlations, axis=0), axis=0)
+        )
+
         sim_vertex = None
         for sim_shower in event.get_sim_showers():
             sim_vertex = sim_shower.get_parameter(shp.vertex)
@@ -713,13 +764,26 @@ class neutrino3DVertexReconstructor:
             ax5_1_1.axvline(np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2), color='r', linestyle='--', alpha=.5)
             ax5_1_2.axhline(sim_vertex[2], color='r', linestyle='--', alpha=.5)
             ax5_1_2.axvline(np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2), color='r', linestyle='--', alpha=.5)
-            ax5_2.scatter(
-                [hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]],
-                [np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)],
-                c='r',
+            ax5_2.axvline(
+                hp.get_normalized_angle(hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]) / units.deg,
+                color='r',
                 alpha=.5,
-                marker='+'
+                linestyle='--'
             )
+            ax5_3.axvline(
+                hp.get_normalized_angle(hp.cartesian_to_spherical(sim_vertex[0], sim_vertex[1], sim_vertex[2])[1]) / units.deg,
+                color='r',
+                alpha=.5,
+                linestyle='--'
+            )
+        ax5_2.axvline(
+            median_theta / units.deg,
+            color='k'
+        )
+        ax5_3.axvline(
+            median_theta / units.deg,
+            color='k'
+        )
         ax5_1_1.set_xlabel('d [m]')
         ax5_1_2.set_xlabel('d [m]')
         ax5_1_1.set_ylabel('z [m]')
@@ -745,11 +809,11 @@ class neutrino3DVertexReconstructor:
             median_theta,
             i_max
     ):
-        fig6 = plt.figure(figsize=(8, 16))
-        ax6_1 = fig6.add_subplot(411)
-        vmin = .6
+        fig6 = plt.figure(figsize=(6, 6))
+        ax6_1 = fig6.add_subplot(222)
+        vmin = .5
         vmax = 1.
-        colormap = cm.get_cmap('viridis', 16)
+        colormap = cm.get_cmap('viridis')
         sim_vertex = None
         for sim_shower in event.get_sim_showers():
             sim_vertex = sim_shower.get_parameter(shp.vertex)
@@ -760,100 +824,117 @@ class neutrino3DVertexReconstructor:
             np.max(correlation_sum, axis=0),
             cmap=colormap,
             vmin=vmin,
-            vmax=vmax
+            vmax=vmax,
+            shading='auto'
         )
-        plt.colorbar(cplot1, ax=ax6_1)
-        ax6_2 = fig6.add_subplot(412)
+        ax6_2 = fig6.add_subplot(224)
         cplot2 = ax6_2.pcolor(
             x_0[:, :, 0],
             y_0[:, :, 0],
             np.max(correlation_sum, axis=2),
             cmap=colormap,
             vmin=vmin,
-            vmax=vmax
+            vmax=vmax,
+            shading='auto'
         )
-        plt.colorbar(cplot2, ax=ax6_2)
 
-        ax6_3 = fig6.add_subplot(413)
+        ax6_3 = fig6.add_subplot(221)
         cplot3 = ax6_3.pcolor(
             x_0[0],
             z_coords[0],
             np.max(correlation_sum, axis=0),
             cmap=colormap,
             vmin=vmin,
-            vmax=vmax
+            vmax=vmax,
+            shading='auto'
         )
-        plt.colorbar(cplot3, ax=ax6_3)
+        ax6_3.set_xlim([np.min(self.__distances_2d), np.max(self.__distances_2d)])
+        ax6_3.set_ylim([np.min(self.__z_coordinates_2d), np.max(self.__z_coordinates_2d)])
         ax6_3.set_aspect('equal')
-        ax6_4 = fig6.add_subplot(414)
+        ax6_4 = fig6.add_subplot(223)
         cplot4 = ax6_4.pcolor(
             x_coords[:, :, 0],
             y_coords[:, :, 0],
             np.max(correlation_sum, axis=2),
             cmap=colormap,
             vmin=vmin,
-            vmax=vmax
+            vmax=vmax,
+            shading='auto'
         )
-        plt.colorbar(cplot4, ax=ax6_4)
         ax6_4.set_aspect('equal')
+        ax6_4.set_xlim([-np.max(self.__distances_2d), np.max(self.__distances_2d)])
+        ax6_4.set_ylim([-np.max(self.__distances_2d), np.max(self.__distances_2d)])
         if sim_vertex is not None:
             sim_vertex_dhor = np.sqrt(sim_vertex[0] ** 2 + sim_vertex[1] ** 2)
             ax6_1.scatter(
                 [sim_vertex_dhor],
                 [sim_vertex[2] - sim_vertex_dhor * slope - offset],
                 c='r',
-                marker='+'
+                marker='o',
+                s=20
             )
             ax6_2.scatter(
                 [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
                 [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
                 c='r',
-                marker='+'
+                marker='o',
+                s=20
             )
             ax6_3.scatter(
                 [sim_vertex_dhor],
                 [sim_vertex[2]],
                 c='r',
-                marker='+'
+                marker='o',
+                s=20
             )
             ax6_4.scatter(
                 [sim_vertex[0]],
                 [sim_vertex[1]],
                 c='r',
-                marker='+'
+                marker='o',
+                s=20
             )
         ax6_1.scatter(
             [x_0[i_max]],
             [z_0[i_max]],
             c='k',
-            marker='+'
+            marker='o',
+            s=20
         )
         ax6_2.scatter(
             [x_0[i_max]],
             [y_0[i_max]],
             c='k',
-            marker='+'
+            marker='o',
+            s=20
         )
         ax6_3.scatter(
             [x_0[i_max]],
             [z_coords[i_max]],
             c='k',
-            marker='+'
+            marker='o',
+            s=20
         )
         ax6_4.scatter(
             [x_coords[i_max]],
             [y_coords[i_max]],
             c='k',
-            marker='+'
+            marker='o',
+            s=20
         )
-        ax6_1.set_xlabel('r [m]')
-        ax6_1.set_ylabel(r'$\Delta z$ [m]')
-        ax6_2.set_xlabel(r'$\Delta x$ [m]')
-        ax6_2.set_ylabel(r'$\Delta y$ [m]')
-        ax6_3.set_xlabel('r [m]')
-        ax6_3.set_ylabel('z [m]')
-        ax6_4.set_xlabel('x [m]')
-        ax6_4.set_ylabel('y [m]')
+        fontsize = 12
+        ax6_1.set_xlabel('r [m]', fontsize=fontsize)
+        ax6_1.set_ylabel(r'$\Delta z$ [m]', fontsize=fontsize)
+        ax6_2.set_xlabel('r [m]', fontsize=fontsize)
+        ax6_2.set_ylabel(r'$\Delta y$ [m]', fontsize=fontsize)
+        ax6_3.set_xlabel('r [m]', fontsize=fontsize)
+        ax6_3.set_ylabel('z [m]', fontsize=fontsize)
+        ax6_4.set_xlabel('x [m]', fontsize=fontsize)
+        ax6_4.set_ylabel('y [m]', fontsize=fontsize)
+        ax6_1.grid()
+        ax6_2.grid()
+        ax6_3.grid()
+        ax6_4.grid()
         fig6.tight_layout()
         fig6.savefig('{}/{}_{}_slices.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
 
@@ -872,15 +953,16 @@ class neutrino3DVertexReconstructor:
             i_max,
             i_max_dnr
     ):
-        fig8 = plt.figure(figsize=(12, 8))
-        ax8_1 = fig8.add_subplot(232)
-        ax8_2 = fig8.add_subplot(235)
-        ax8_3 = fig8.add_subplot(233)
-        ax8_4 = fig8.add_subplot(236)
-        ax8_5 = fig8.add_subplot(231)
-        ax8_6 = fig8.add_subplot(234)
-        colormap = cm.get_cmap('viridis', 16)
-        vmin = .6
+        fig8 = plt.figure(figsize=(6, 8))
+        ax8_1 = fig8.add_subplot(312)
+        # ax8_2 = fig8.add_subplot(235)
+        ax8_3 = fig8.add_subplot(313)
+        # ax8_4 = fig8.add_subplot(236)
+        ax8_5 = fig8.add_subplot(311)
+        # ax8_6 = fig8.add_subplot(234)
+        colormap = cm.get_cmap('viridis')
+        fontsize = 14
+        vmin = .5
         vmax = 1.
         cplot1 = ax8_1.pcolor(
             x_0[0],
@@ -888,67 +970,44 @@ class neutrino3DVertexReconstructor:
             np.max(self_correlation_sum, axis=0),
             cmap=colormap,
             vmin=vmin,
-            vmax=vmax
+            vmax=vmax,
+            shading='auto'
         )
-        plt.colorbar(cplot1, ax=ax8_1)
-        cplot2 = ax8_2.pcolor(
-            x_0[:, :, 0],
-            y_0[:, :, 0],
-            np.max(self_correlation_sum, axis=2),
-            cmap=colormap,
-            vmin=vmin,
-            vmax=vmax
-        )
-        plt.colorbar(cplot2, ax=ax8_2)
-
+        plt.colorbar(cplot1, ax=ax8_1).set_label('correlation sum', fontsize=fontsize)
         cplot3 = ax8_3.pcolor(
             x_0[0],
             z_0[0],
             np.max(combined_correlations, axis=0),
             cmap=colormap,
             vmin=vmin,
-            vmax=vmax
+            vmax=vmax,
+            shading='auto'
         )
-        plt.colorbar(cplot3, ax=ax8_3)
-        cplot4 = ax8_4.pcolor(
-            x_0[:, :, 0],
-            y_0[:, :, 0],
-            np.max(combined_correlations, axis=2),
-            cmap=colormap,
-            vmin=vmin,
-            vmax=vmax
-        )
-        plt.colorbar(cplot4, ax=ax8_4)
+        plt.colorbar(cplot3, ax=ax8_3).set_label('correlation sum', fontsize=fontsize)
         cplot5 = ax8_5.pcolor(
             x_0[0],
             z_0[0],
             np.max(correlation_sum, axis=0),
             cmap=colormap,
             vmin=vmin,
-            vmax=vmax
+            vmax=vmax,
+            shading='auto'
         )
-        plt.colorbar(cplot5, ax=ax8_5)
-        cplot6 = ax8_6.pcolor(
-            x_0[:, :, 0],
-            y_0[:, :, 0],
-            np.max(correlation_sum, axis=2),
-            cmap=colormap,
-            vmin=vmin,
-            vmax=vmax
-        )
+        plt.colorbar(cplot5, ax=ax8_5).set_label('correlation sum', fontsize=fontsize)
         ax8_5.scatter(
             [x_0[i_max]],
             [z_0[i_max]],
             c='k',
-            marker='+'
+            marker='o',
+            s=20
         )
         ax8_3.scatter(
             [x_0[i_max_dnr]],
             [z_0[i_max_dnr]],
             c='k',
-            marker='+'
+            marker='o',
+            s=20
         )
-        plt.colorbar(cplot6, ax=ax8_6)
         sim_vertex = None
         for sim_shower in event.get_sim_showers():
             sim_vertex = sim_shower.get_parameter(shp.vertex)
@@ -959,39 +1018,35 @@ class neutrino3DVertexReconstructor:
                 [sim_vertex_dhor],
                 [sim_vertex[2] - sim_vertex_dhor * slope - offset],
                 c='r',
-                marker='+'
-            )
-            ax8_2.scatter(
-                [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
-                [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
-                c='r',
-                marker='+'
+                marker='o',
+                s=20
             )
             ax8_3.scatter(
                 [sim_vertex_dhor],
                 [sim_vertex[2] - sim_vertex_dhor * slope - offset],
                 c='r',
-                marker='+'
-            )
-            ax8_4.scatter(
-                [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
-                [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
-                c='r',
-                marker='+'
+                marker='o',
+                s=20
             )
             ax8_5.scatter(
                 [sim_vertex_dhor],
                 [sim_vertex[2] - sim_vertex_dhor * slope - offset],
                 c='r',
-                marker='+'
-            )
-            ax8_6.scatter(
-                [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
-                [-np.sin(median_theta) * sim_vertex[0] + np.cos(median_theta) * sim_vertex[1]],
-                c='r',
-                marker='+'
+                marker='o',
+                s=20
             )
         ax8_1.grid()
-        ax8_2.grid()
+        ax8_3.grid()
+        ax8_5.grid()
+        ax8_5.set_title('channel correlation', fontsize=fontsize)
+        ax8_1.set_title('DnR correlation', fontsize=fontsize)
+        ax8_3.set_title('channel + DnR correlation', fontsize=fontsize)
+        ax8_1.set_xlabel('r [m]', fontsize=fontsize)
+        ax8_1.set_ylabel(r'$\Delta z$ [m]', fontsize=fontsize)
+        ax8_3.set_xlabel('r [m]', fontsize=fontsize)
+        ax8_3.set_ylabel(r'$\Delta z$ [m]', fontsize=fontsize)
+        ax8_5.set_xlabel('r [m]', fontsize=fontsize)
+        ax8_5.set_ylabel(r'$\Delta z$ [m]', fontsize=fontsize)
+        # ax8_2.grid()
         fig8.tight_layout()
         fig8.savefig('{}/{}_{}_dnr_reco.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
