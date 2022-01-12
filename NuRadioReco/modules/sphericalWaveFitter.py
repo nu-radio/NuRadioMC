@@ -23,8 +23,40 @@ class sphericalWaveFitter:
         pass
 
 
-    def run(self, evt, station, det, start_pulser_position, n_index = None, debug = True):
-       
+    def run(
+        self, evt, station, det, start_pulser_position, n_index = None, 
+        grid_size = 2, step_size = .1, mode='add', debug = True, debugplots_path=''):
+        """
+        Find the source position that maximizes the channel-channel correlations
+
+        Parameters
+        ----------
+        evt: Event
+        station: Station
+            station to be used in the reconstruction
+        det: Detector object
+            detector that specifies the channel positions
+        start_pulser_position: float or np.array
+            the start position for the brute force optimization
+        n_index: float
+            the index of refraction to be used
+        grid_size: float
+            The maximum distance (in x/y/z) around the start_pulser_position
+            to explore in the fit
+        step_size: float
+            The step size to use in the fit
+        mode: str
+            How to maximize the correlations. Options:
+
+            * 'add' - Maximize the sum of the correlations
+            * 'add_normalize_correlation' - same as 'add', but normalize 
+              the maximum correlation for each channel pair
+
+        debug: bool, default True
+            if True, create additional debug plots (slow!)
+        debugplots_path: str
+            where to save the debug plots
+        """
         print("channels used for this reconstruction:", self.__channel_ids)
 
         
@@ -40,12 +72,17 @@ class sphericalWaveFitter:
 
         self.__channel_pairs = []
         self.__relative_positions = []
+        self.__relative_delays = []
         station_id = station.get_id()
         for i in range(len(self.__channel_ids) - 1):
             for j in range(i + 1, len(self.__channel_ids)):
-                relative_positions = det.get_relative_position(station_id, self.__channel_ids[i]) - det.get_relative_position(station_id, self.__channel_ids[j])
+                id1, id2 = self.__channel_ids[i], self.__channel_ids[j]
+                relative_positions = det.get_relative_position(station_id, id1) - det.get_relative_position(station_id, id2)
                 self.__relative_positions.append(relative_positions)
-                
+                self.__relative_delays.append(
+                    station.get_channel(id1).get_trace_start_time()
+                    - station.get_channel(id2).get_trace_start_time()
+                )
                 self.__channel_pairs.append([self.__channel_ids[i], self.__channel_ids[j]])
                 
        
@@ -64,6 +101,7 @@ class sphericalWaveFitter:
                 positions = self.__relative_positions[ich]
                 times = []
                 tmp = -1*get_time_delay_spherical_wave(pulser_position, ch_pair, n=n_index)
+                tmp -= self.__relative_delays[ich]
                 n_samples = -1*tmp * self.__sampling_rate
                 pos = int(len(self.__correlation[ich]) / 2 - n_samples)
                 corr += self.__correlation[ich, pos]
@@ -78,7 +116,7 @@ class sphericalWaveFitter:
  
             if debug_corr:
                 fig.tight_layout()
-                fig.savefig("debug.pdf")
+                fig.savefig("{}/debug.pdf".format(debugplots_path))
 
             return -1*corr
             
@@ -101,6 +139,8 @@ class sphericalWaveFitter:
             else:
                 trace2[np.abs(station.get_channel(self.__channel_pairs[ich][1]).get_times() - t_max2) > corr_range] = 0
             self.__correlation[ich] = np.abs(scipy.signal.correlate(trace1, trace2))
+            if mode == 'add_normalize_correlation':
+                self.__correlation[ich] /= np.max(self.__correlation[ich])
           
 
 
@@ -117,11 +157,47 @@ class sphericalWaveFitter:
 
         #method = 'Nelder-Mead'
         x_start, y_start, z_start = start_pulser_position
-        dx, dy, dz = [.1, .1, .1]
+        if len(np.atleast_1d(step_size)) == 3:
+            dx, dy, dz = step_size
+        else:
+            dx, dy, dz = [step_size, step_size, step_size]
         #ll = opt.minimize(likelihood, x0 = (start_pulser_position[0]-10, start_pulser_position[1], start_pulser_position[2]),method = method)#
-        ll = opt.brute(likelihood, ranges=(slice(x_start - 2, x_start + 2, dx), slice(y_start - 2, y_start + 2, dy), slice(z_start - 2, z_start + 2,dz)), finish = opt.fmin)
+        res = opt.brute(
+            likelihood, 
+            ranges=(
+                slice(x_start - grid_size, x_start + grid_size, dx), 
+                slice(y_start - grid_size, y_start + grid_size, dy), 
+                slice(z_start - grid_size, z_start + grid_size,dz)
+            ), finish = opt.fmin, full_output=debug
+        )
+        if debug:
+            ll, fval, grid, jout = res
+        else:
+            ll = res
         print("start position: {}".format(start_pulser_position))
         print("reconstructed position: {}".format([ll[0], ll[1], ll[2]]))
+
+        if debug:
+            fig, ax = plt.subplots(1,1, subplot_kw=dict(projection='3d'))
+            jout_abs = np.abs(jout)
+            vmin, vmax = np.min(jout_abs), np.max(jout_abs)
+            vcut = vmin + 2/3 * (vmax-vmin)
+            mask = jout_abs > vcut
+            for channel_id in self.__channel_ids:
+                ax.scatter(*det.get_relative_position(station_id, channel_id), s=100, marker='s', label="Ch. {}".format(channel_id))
+            im = ax.scatter(
+                grid[0][mask], grid[1][mask], grid[2][mask], jout[mask], 
+                s= 50 * (jout_abs[mask]-vcut) / (vmax-vcut), c=jout_abs[mask],
+                cmap='plasma', alpha=.5, label='correlations')
+            ax.scatter(*ll, marker='*', color='red', s=100, label='best fit ({:.2f}, {:.2f}, {:.2f})'.format(*ll))
+            ax.set_xlabel('x (m)')
+            ax.set_ylabel('y (m)')
+            ax.set_zlabel('z (m)')
+            ax.set_xlim(start_pulser_position[0]-1.2*grid_size, start_pulser_position[0]+1.2*grid_size)
+            ax.set_ylim(start_pulser_position[1]-1.2*grid_size, start_pulser_position[1]+1.2*grid_size)
+            ax.set_zlim(start_pulser_position[2]-1.2*grid_size, start_pulser_position[2]+1.2*grid_size)
+            ax.legend()
+            plt.show()
 
         if debug:
             
@@ -165,7 +241,7 @@ class sphericalWaveFitter:
             cbar = plt.colorbar(pax2, cax = cax)
             cbar.set_label("best fitting depth [m]", rotation = 270, labelpad = 15)
             fig.tight_layout()
-            fig.savefig("minimization_map.pdf")
+            fig.savefig("{}/minimization_map.pdf".format(debugplots_path))
 
 
     def end(self):

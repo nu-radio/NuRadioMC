@@ -24,7 +24,7 @@ import NuRadioMC
 
 
 
-receive_pickle, launch_pickle, solution_pickle, zenith_vertex_pickle = pickle.load(open('/lustre/fs22/group/radio/plaisier/software/simulations/planeWaveFit/receive_launch.pkl', 'rb')) ## i used this to play around with a four parameter fit (R, E, theta, phi)
+# receive_pickle, launch_pickle, solution_pickle, zenith_vertex_pickle = pickle.load(open('/lustre/fs22/group/radio/plaisier/software/simulations/planeWaveFit/receive_launch.pkl', 'rb')) ## i used this to play around with a four parameter fit (R, E, theta, phi)
 #(librabry = '/lustre/fs22/group/radio/plaisier/software/NuRadioMC/NuRadioMC/SignalGen/ARZ/average.pkl') ## average ARZ model. In practice this is way too slow.
 
 logger = logging.getLogger("sim")
