@@ -23,12 +23,12 @@ class rayTypeSelecter:
     def begin(self):
         pass
 
-    def run(self, event, station, det, use_channels=[9, 14], noise_rms = 10, template = None, shower_id = None, icemodel = 'greenland_simple', raytracing_method = 'analytic', sim = False, debug_plots = True, debugplots_path = None):
+    def run(self, event, station, det, use_channels=[9, 14], noise_rms = 10, template = None, shower_id = None, icemodel = 'greenland_simple', raytracing_method = 'analytic', sim = False, debug_plots = False, debugplots_path = None):
         """
         Finds the pulse position of the triggered pulse in the phased array and returns the raytype of the pulse
         
-        Paramters
-        __________
+        Parameters
+        ----------
         evt: Event
             The event to run the module on
         station: Station

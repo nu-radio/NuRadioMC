@@ -76,7 +76,7 @@ class BaseTrace:
         sampling_rate: float
             the sampling rage of the trace, i.e., the inverse of the bin width
         """
-        if trace is not None:
+        if np.any(trace!=None):
             if trace.shape[trace.ndim - 1] % 2 != 0:
                 raise ValueError('Attempted to set trace with an uneven number ({}) of samples. Only traces with an even number of samples are allowed.'.format(trace.shape[trace.ndim - 1]))
         self.__time_domain_up_to_date = True
