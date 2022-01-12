@@ -44,6 +44,8 @@ class stationParameters(Enum):
     planewave_azimuth = 44
     shower_energy = 45 # the energy of the shower 
     viewing_angles = 46 # reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float
+    raytype_sim = 47 
+    pulse_position_sim = 48
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
@@ -62,7 +64,8 @@ class channelParameters(Enum):
     signal_receiving_zenith = 15    # the zenith angle of direction at which the radio signal arrived at the antenna
     signal_ray_type = 16        # type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted
     signal_receiving_azimuth = 17   # the azimuth angle of direction at which the radio signal arrived at the antenna
-
+    receive_zenith_vertex = 18
+    receive_azimuth_vertex = 19
 
 class electricFieldParameters(Enum):
     ray_path_type = 1  # the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
@@ -124,8 +127,6 @@ class showerParameters(Enum):
     k_L = 110  # the k_L parameter of the Alvarez2009 parameter that controls the longitudional width of the charge excess profile
     flavor = 111  # the flavor of the particle initiating the shower
 
-<<<<<<< HEAD
-=======
 class particleParameters(Enum):
     parent_id = 1 # the entry number of the parent particle, None if primary.
     zenith = 2  # the zenith angle of the incoming neutrino direction
@@ -199,7 +200,6 @@ class generatorAttributes(Enum):
     NuRadioMC_version = 202
     NuRadioMC_version_hash = 203
 
->>>>>>> bd19e7f87a80d79032a9d720171892921b51067d
 class eventParameters(Enum):
     sim_config = 1  # contents of the config file that the NuRadioMC simulation was run with
     hash_NuRadioReco = 2    # deprecated, since NuRadioReco is no longer its own repository

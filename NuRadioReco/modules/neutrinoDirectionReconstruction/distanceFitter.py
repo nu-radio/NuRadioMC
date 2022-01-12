@@ -30,7 +30,7 @@ class distanceFitter:
         pass
 
 
-    def run(self, evt, station, det, template = None, debug = True, debugplots_path = None, fixed_distance = None ):
+    def run(self, evt, station, det, template = None, debug = True, debugplots_path = None, fixed_distance = None, method = 'analytic' ):
         
         for channel in station.get_sim_station().iter_channels():
             if channel.get_id() == self.__channel_ids[0]:
@@ -69,8 +69,7 @@ class distanceFitter:
         self.__template = template
 
 
-    #    print("channel pairs", self.__channel_pairs)
-        debug = True
+        
         if debug:
             fig, axs = plt.subplots( len(self.__channel_pairs), 2, figsize = (10, len(self.__channel_pairs)*2))
             
@@ -112,12 +111,9 @@ class distanceFitter:
             travel_times_2 = self.__lookup_table[channel_type][ray_type][(i_x_2, i_z)]
             slopes = np.zeros_like(travel_times_1)
             slopes[i_x_2 > i_x_1] = (travel_times_1 - travel_times_2)[i_x_2 > i_x_1] / (cell_dist_1 - cell_dist_2)[i_x_2 > i_x_1]
-#            print("travel times_1", travel_times_1)
-#            print("celll dist", self.__header[channel_type]['d_x'])
+
             travel_times = (d_hor - cell_dist_1) * slopes + travel_times_1
- #           print('travel times', travel_times)
-      #      print('mask', ~mask)
-            
+
             if travel_times_1 == False: 
                 travel_times = False
            
@@ -125,28 +121,29 @@ class distanceFitter:
         
 
         def likelihood(vertex, sim = False, rec = False, minimize = True):#, debug = False):#, station):
-           # print("self.__correlation", self.__correlation)
-            print("vertex", vertex)
+
             timings = np.zeros((len(self.__channel_ids), 3))
             solutiontype = np.zeros((len(self.__channel_ids), 2))
             for i_ch, channel_id in enumerate(self.__channel_ids):
-                     #channel = station.get_channel(channel_id):
        
                     x2 = det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id())
-                 #   r = prop( ice, 'GL1')
-                 #   r.set_start_and_end_point(vertex, x2)
+                    if method == 'look-up':
+                        for i_type, ray_type in enumerate(['direct', 'refracted', 'reflected']):
+                            d_hor = np.sqrt((vertex[0] - x2[0])**2 + (vertex[1] - x2[1])**2)
+                            timings[i_ch, i_type] = get_signal_travel_time(d_hor, vertex[2], ray_type, channel_id)
 
-                  #  r.find_solutions()
-                   # for iS in range(r.get_number_of_solutions()):
-                    for i_type, ray_type in enumerate(['direct', 'refracted', 'reflected']):
-                        d_hor = np.sqrt((vertex[0] - x2[0])**2 + (vertex[1] - x2[1])**2)
-                        #i_ray = r.get_solution_type(iS)
-                        #ray_type = [None, 'direct', 'refracted', 'reflected'][i_ray]
-                      #  print("ray_type", ray_type)
-                        timings[i_ch, i_type] = get_signal_travel_time(d_hor, vertex[2], ray_type, channel_id)#r.get_travel_time(iS)
-       #                 print("timings", timings[i_ch, iS])
- #                       print(stop)
-                       # solutiontype[i_ch, iS] = r.get_solution_type(iS)#if r.get_solution_type(iS) == self._raytypesolution:
+
+                    if method == 'analytic':
+                        r = prop( ice, 'GL1')
+                        r.set_start_and_end_point(vertex, x2)
+
+                        r.find_solutions()
+                        for iS in range(r.get_number_of_solutions()):
+                            d_hor = np.sqrt((vertex[0] - x2[0])**2 + (vertex[1] - x2[1])**2)
+                            i_ray = r.get_solution_type(iS)
+                            i_type = i_ray - 1
+
+                            timings[i_ch, i_type] = r.get_travel_time(iS)
                             
             corr = 0
             corrs = []
@@ -157,49 +154,40 @@ class distanceFitter:
                 index_2 = self.__channel_ids.index(ch_pair[1])
                
                 k = 0
-                for t1 in [0,1,2]:# for each ray type # t2 in zip([0,0,1,1], [0,1,0,1]):#range(len(timings[index_1][np.array(timings[index_1] != 0)])), range(len(timings[index_2][np.array(timings[index_1] != 0)]))):
+                for t1 in [0,1,2]:# for each ray type #
                     for t2 in [0,1,2]:# for each ray type ##### both solutiontypes are not the same as raytype trigger
-                   
+                
                         if timings[index_1,t1]:#if solution type exist
                             if timings[index_2,t2]: #if solution type exist
-                          #      print("timings", [timings[index_2, t2], timings[index_1, t1]])
                                 tmp = timings[index_2,t2 ] - timings[index_1, t1 ]## calculate timing
-                               
-                                 #print("TMP", tmp)
-                          #      print(stop)
-             
+       
                                 n_samples = tmp * self.__sampling_rate
                  
                                 pos = int(len(self.__correlation[ich]) / 2 - n_samples)
-                  
                                 corr += self.__correlation[ich, pos]
                                 corrs.append(self.__correlation[ich, pos])
-                           #     aantal += 1
                                 if sim:
-                                    #print("ich", ich)
-                                    #print("AX", ax)
+                                
                                     if not k:
+                                        axs[ich, 1].plot(station.get_channel(ch_pair[0]).get_times(), station.get_channel(ch_pair[0]).get_trace())
+                                        axs[ich, 1].plot(station.get_channel(ch_pair[1]).get_times(), station.get_channel(ch_pair[1]).get_trace())
                                         axs[ich,1].title.set_text("channel pair {}".format( ch_pair))
                                         axs[ ich, 0].plot(self.__correlation[ich], color = 'blue')
-                                     #   axs[ich, 0].axvline(pos, color = 'green', lw = 1, label = 'simulation')
                                         axs[ich, 0].axvline(pos, color = 'green', lw = 1, label = 'simulation')
                                         axs[ich, 0].axvline(int(len(self.__correlation[ich]) / 2), lw = 2, color = 'black', label = 'len(corr)/2')
                                     axs[ich, 0].legend()
-                                        #axs[ich, 0].set_xlim((7000, 10000))
                     
-                                    axs[ich, 0].axvline(pos, color = 'green', lw = 1)#self.__correlation[ich, pos])
-                                    #axs[ich,0].legend()
+                                    axs[ich, 0].axvline(pos, color = 'green', lw = 1)
                                 if rec:
+                                    print("REC")
                    
                                     axs[ich, 0].set_ylim((0, max(self.__correlation[ich])))
          
-                                    axs[ich, 0].axvline(pos, linestyle = '--',color = 'red', lw = 1)#self.__correlation[ich, pos])
+                                    axs[ich, 0].axvline(pos, linestyle = '--',color = 'red', lw = 1)
          
                                     if not k:#ich == 0:
-                                        axs[ich, 1].plot(station.get_channel(ch_pair[0]).get_times(), station.get_channel(ch_pair[0]).get_trace())
-                                        axs[ich, 1].plot(station.get_channel(ch_pair[1]).get_times(), station.get_channel(ch_pair[1]).get_trace())
+                                      
                                         axs[ich, 0].axvline(pos, ls = '--',color = 'red', lw = 1, label = 'reconstruction')
-                                        #axs[ich,1].set_xlim((1600, 2100))
                                         axs[ich, 0].legend()
                                         axs[ich, 0].grid()
                                         axs[ich, 1].grid()
@@ -228,7 +216,6 @@ class distanceFitter:
  
         
             corr_1 = hp.get_normalized_xcorr(trace1, self.__template)
-            #print("corr 1", corr_1)
             corr_2 = hp.get_normalized_xcorr(trace2, self.__template)
            
           
@@ -253,13 +240,7 @@ class distanceFitter:
         zenith_vertex = zenith_vertex_pickle[np.argmin(abs(np.rad2deg(receive_pickle) - np.rad2deg(receive_zenith)))] ## deze aanpassen aan diepte #full distance inladen. 
         
         print("simulated corrs", likelihood(evt.get_sim_shower(shower_id)[shp.vertex], minimize = False))
-        print("##################################")#
 
-
-
-
-
-##################################")
 
 
         print("len simulated corrs", len(likelihood(evt.get_sim_shower(shower_id)[shp.vertex], minimize = False)))
@@ -274,10 +255,10 @@ class distanceFitter:
         print("zenith vertex from pickle", zenith_vertex)
       
         range_vertices = []
-        depths = np.arange(500, 4000, 20)#[680]#np.arange(100,2500, 10)# range(100, 1000, 10)
+        depths = np.arange(200, 2500, 10)#
         if fixed_distance:
             depths = [fixed_distance]
-        for depth in depths:#range(200, 400, 10): ## change such that it check 10 degrees for first 1000
+        for depth in depths:
             diff_tmp = np.inf
             if depth > 390:
                 delta = .2
@@ -288,54 +269,19 @@ class distanceFitter:
                 delta = .2
         
             for zen in np.arange(zenith_vertex -diff, zenith_vertex + diff, delta):
-                azimuth_tmp = station[stnp.planewave_azimuth]#hp.cartesian_to_spherical(*evt.get_sim_shower(shower_id)[shp.vertex])[1]#station[stnp.nu_azimuth]
+                azimuth_tmp = station[stnp.planewave_azimuth]
                 for az in np.arange(np.rad2deg(azimuth_tmp) - diff, np.rad2deg(azimuth_tmp) + diff, delta):
-                    if 0:
-                        cart_tmp = hp.spherical_to_cartesian(np.deg2rad(zen), np.deg2rad(az))
             
-                        R_tmp = -1*depth/ cart_tmp[2]
-                        x1_tmp = cart_tmp * R_tmp
-                        #       print('x1', x1_tmp)
-
-                                          
-                        x1_tmp = [x1_tmp[0],x1_tmp[1],x1_tmp[2]]
-                        x2 = [0,0,-97]
-                    #    print("vertex", x1_tmp)
-                        ice = medium.get_ice_model('greenland_simple')
-                        prop = propagation.get_propagation_module('analytic')
-                        r = prop( ice, 'GL1')
-                        r.set_start_and_end_point(x1_tmp, x2)
-            #    print("x1_tmp", x1_tmp)
-                        r.find_solutions()
-                        if(not r.has_solution()):
-        #            print("warning: no solutions")
-                            continue
-
-                        else:
-                            for iS in range(r.get_number_of_solutions()):
-                                if abs(np.rad2deg(hp.cartesian_to_spherical(*r.get_receive_vector(iS))[0]) - np.rad2deg(receive_zenith)) < diff_tmp:
-                                    diff_tmp = abs(np.rad2deg(hp.cartesian_to_spherical(*r.get_receive_vector(iS))[0]) - np.rad2deg(receive_zenith))
-                    #        print("Diff tmp", diff_tmp)
-                                    zen_tmp = zen
-                   # print("depth", depth)
-        #            print("vertex", x1_tmp)
-          
                 
                     cart = hp.spherical_to_cartesian(np.deg2rad(zen), np.deg2rad(az))
                     R = -1*depth/cart[2]
                     x1 = cart * R
                     if (np.sqrt(x1[0]**2 + x1[1]**2 + x1[2]**2) < 4000):
-                    #R = -1*depth/ cart[2]
-                    #x1 = cart * R 
-        #                print("Used vertex", x1)
-        #                print("azimuth used vertex", np.rad2deg(hp.cartesian_to_spherical(*x1)[1]))
+                
                         range_vertices.append(x1)
 
 
-        #print("range of vertices for reco:", range_vertices)
         print("simulated vertex:", evt.get_sim_shower(shower_id)[shp.vertex])
-        print("try", np.array(range_vertices)[:,2])
-        #print(stop)
  	#### get for a series of depth the vertex position that corresopnds to receive zenith
         if debug:
             likelihood_values = []
@@ -356,7 +302,7 @@ class distanceFitter:
            # fig1.tight_layout()
            # fig1.savefig("{}/vertex_likelihood.pdf".format(debugplots_path))
      
-        if 0:#debug:
+        if 0:
             fig1 =  plt.figure()
             ax1 = fig1.add_subplot(111)
             ax1.plot(np.array(range_vertices)[:,2], likelihood_values, 'o', markersize = 3, color = 'blue')
@@ -382,16 +328,7 @@ class distanceFitter:
         print("len reconstructed corrs", len(likelihood(station[stnp.nu_vertex], minimize = False)))
         print("simulated vertex", evt.get_sim_shower(shower_id)[shp.vertex])
         ### for each vertex position calculate the likelihood
-        
-        
-        
-        
-
-            
-            
-        
-        
-        
+  
     def end(self):
             pass
 

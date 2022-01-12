@@ -140,7 +140,7 @@ class simulation():
         
 		self._h = {}
 		for channel_id in use_channels:
-			if channel_id == ch_Hpol:
+			if 0:#channel_id == ch_Hpol:
 				#print("channel id Hpol", channel_id) 
 				self._h[channel_id] = {}
 				self._h[channel_id] = h_Hpol
@@ -216,15 +216,13 @@ class simulation():
 			x1 = vertex
 
 			for channel_id in use_channels:
-				#print("channel id", channel_id)                                 
 				raytracing[channel_id] = {}
 				x2 = det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id())
 				r = prop( ice, 'GL1')
 				r.set_start_and_end_point(x1, x2)
-
 				r.find_solutions()
 				if(not r.has_solution()):
-					print("warning: no solutions")
+					print("warning: no solutions", channel_id)
 					continue
                                
 				# loop through all ray tracing solution
@@ -240,7 +238,7 @@ class simulation():
 					raytracing[channel_id][iS]["trajectory length"] = R
 					T = r.get_travel_time(soltype)  # calculate travel time
 					if (R == None or T == None):
-						ontinue
+						continue
 					raytracing[channel_id][iS]["travel time"] = T
 					receive_vector = r.get_receive_vector(soltype)
 					zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
@@ -255,7 +253,6 @@ class simulation():
 					zenith_reflections = np.atleast_1d(r.get_reflection_angle(soltype))
 					raytracing[channel_id][iS]["reflection angle"] = zenith_reflections
 					viewing_angle = hp.get_angle(self._shower_axis,raytracing[channel_id][iS]["launch vector"])
-				
 					if channel_id == self._ch_Vpol:
 						launch_vectors.append( self._launch_vector)
 						viewing_angles.append(viewing_angle)
@@ -300,7 +297,6 @@ class simulation():
 
 				# apply frequency dependent attenuation
 				viewingangles[ich,i_s] = viewing_angle
-			#	print("channel id {} viewing angle {}".format(channel_id, viewingangles[ich,i_s]))
 				if attenuate_ice:
 					spectrum *= raytracing[channel_id][iS]["attenuation"]
 					
@@ -315,18 +311,15 @@ class simulation():
 						raytracing[channel_id][iS]["zenith"] / units.deg, raytracing[channel_id][iS]["azimuth"] / units.deg, polarization_direction_onsky[0],
 						polarization_direction_onsky[1], polarization_direction_onsky[2],
 						*polarization_direction_at_antenna))
-				#eR, eTheta, ePhi = [0,0,0]
 				if not starting_values:
 					eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
 				if starting_values:
 					if 0:#channel_id == self._ch_Vpol:
 						eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
 						#ePhi =             
-					if 1:#channel_id == self._ch_Hpol:
-			#			print("A", np.tan(pol_angle))
+					if 1:
 						eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
-						ePhi = np.sqrt(np.tan(pol_angle)) * ePhi              
-				#print('max E {}, channel id {}'.format( [np.max(abs(eTheta)), np.max(abs(ePhi))], channel_id))
+						#ePhi = np.sqrt(np.tan(pol_angle)) * ePhi
 			
 		
 				if channel_id == self._ch_Vpol:
@@ -362,7 +355,6 @@ class simulation():
 				else:
 					zen = raytracing[channel_id][iS]["zenith"]
 					az = raytracing[channel_id][iS]["azimuth"]
-			#	print("zen = ", raytracing[channel_id][iS]["zenith"])
 				efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, self._ff, [channel_id], det, zen,  az, self.antenna_provider)
 				
                 ### convolve efield with antenna reponse
@@ -378,46 +370,21 @@ class simulation():
 				analytic_trace_fft *= self._amp[channel_id]
 
 				analytic_trace_fft[0] = 0
-				#self._A = 1
-
-                                
-				#if starting_values:
-					#print("starting values", starting_values)
-				#	if channel_id == self._ch_Hpol:
-				#		pol_angle  = pol_angle# at antenna
-				#		self._A = np.tan(pol_angle) #A_theta / A_phi
-				#		print("A", self._A) 
-                                               
-				#		traces[channel_id][iS] = (np.max(abs(traces[self._ch_Vpol][iS]))  /self._A)*  np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), -500)
-#(np.max(abs(traces[self._ch_Vpol][iS]))  /self._A)
-				#	else:
-
-				#		traces[channel_id][iS] =  np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), -500)
-				if 1:#not starting_values:
-                                       # fig = plt.figure()
+				
+			
                                        
-					traces[channel_id][iS] =  np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), -500)
+				traces[channel_id][iS] =  np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), -500)
                                                 
-						#eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
-                         
-		#### filter becuase of amplifier response
-				#analytic_trace_fft *= self._f
-#				analytic_trace_fft *= self._h
-                ### store traces
-				## rotate trace such that 
-				#print("trace", traces[self._ch_Vpol][iS])
-			#	if not starting_values: traces[channel_id][iS] =  np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), -500)
-                ### store timing
+						
 				timing[channel_id][iS] =raytracing[channel_id][iS]["travel time"]
 				raytype[channel_id][iS] = raytracing[channel_id][iS]["raytype"]
-                     
 			
 		if(first_iter): ## seelct viewing angle due to channel with largest amplitude 
 		     
 			maximum_channel = 0
 			
 			for i, iS in enumerate(raytracing[self._ch_Vpol]):
-				maximum_trace = max(abs(traces[self._ch_Vpol][iS])) ## maximum due to channel 6 (phased array)
+				maximum_trace = max(abs(traces[self._ch_Vpol][iS])) ## maximum due to channel 6 (phased array
 			
 				if raytype[self._ch_Vpol][iS] == self._raytypesolution:
 					launch_vector = launch_vectors[i]

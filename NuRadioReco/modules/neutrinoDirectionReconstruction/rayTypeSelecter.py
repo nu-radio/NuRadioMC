@@ -63,7 +63,7 @@ class rayTypeSelecter:
         else:
             vertex = station[stnp.nu_vertex]
     
-       
+        #print("vertex sim", event.get_sim_shower(shower_id)[shp.vertex])
        
         if debug_plots: fig, axs = plt.subplots(3, figsize = (10, 10))
         if debug_plots: iax = 0
@@ -83,16 +83,20 @@ class rayTypeSelecter:
                     if (len(template) < len(station.get_channel(0).get_trace())): template = np.pad(template, (0, abs(len(station.get_channel(0).get_trace()) - len(template))))
             corr_total = np.zeros(len(scipy.signal.correlate(station.get_channel(0).get_trace(), template)))
             for channel in station.iter_channels():
+                if channel.get_id() in use_channels:##[0,1,2,3]:
                    # channel = station.get_channel(channelid) # if channel in phased array
                     channel_id = channel.get_id()
                     x2 = det.get_relative_position(station_id, channel_id) + det.get_absolute_position(station_id)
                     r = prop( ice, 'GL1')
                     r.set_start_and_end_point(vertex, x2)
                     simchannel = []
+                    #print("vertex raytypeselecter", vertex)
                     r.find_solutions()
                     for iS in range(r.get_number_of_solutions()):
+         #               print("raytype raytypeseelecter", r.get_solution_type(iS))
                         if r.get_solution_type(iS) == raytype:
                            type_exist= 1
+                #           print("RAYTYPE", raytype)
                            T = r.get_travel_time(iS)
                            if channel_id == use_channels[0]: T_ref[iS] = T
       #
@@ -160,20 +164,20 @@ class rayTypeSelecter:
             
         if debug_plots:
             fig.tight_layout()
-            fig.savefig("{}/pulse_selection.png".format(debugplots_path))
+            fig.savefig("{}/pulse_selection.pdf".format(debugplots_path))
         
         ### store parameters
         reconstructed_raytype = ['direct', 'refracted', 'reflected'][np.argmax(max_totalcorr)]
         print("reconstructed raytype:", reconstructed_raytype)
-        station.set_parameter(stnp.raytype, reconstructed_raytype)
-      
+        if not sim: station.set_parameter(stnp.raytype, reconstructed_raytype)
+        if sim: station.set_parameter(stnp.raytype_sim, reconstructed_raytype)
         print("max_totalcorr", max_totalcorr)
         print("pos_mas", pos_max)
         position_pulse = pos_max[np.argmax(max_totalcorr)]
         print("position pulse", position_pulse)
         #print("time position pulse", station.get_channel(use_channels[0]).get_times()[position_pulse]) 
-        station.set_parameter(stnp.pulse_position, position_pulse)
-
+        if not sim: station.set_parameter(stnp.pulse_position, position_pulse)
+        if sim: station.set_parameter(stnp.pulse_position_sim, position_pulse)
 
         if debug_plots:
             fig, axs = plt.subplots(16, sharex = True, figsize = (5, 20))
@@ -181,7 +185,7 @@ class rayTypeSelecter:
         #### use pulse position to find places in traces of the other channels to determine which traces have a SNR > 3.5
         channels_pulses = []
 
-        x2 = det.get_relative_position(station_id, use_channels[-1]) + det.get_absolute_position(station_id)
+        x2 = det.get_relative_position(station_id, use_channels[0]) + det.get_absolute_position(station_id)
         r = prop(ice, 'GL1')
         r.set_start_and_end_point(vertex, x2)
         r.find_solutions()
