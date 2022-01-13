@@ -196,13 +196,13 @@ nu_mu_data[:, 0] = 10 ** nu_mu_data[:, 0] * units.GeV
 # nu_mu_show_data_points = False
 
 
-# 9.5 years analysis 2.37+0.08-0.09, offset 1.36 + 0.24 - 0.25, Astrophysical normalization @ 100TeV: 1.36 × 10−8GeV−1cm−2s−1sr−1
+# 9.5 years analysis 2.37+0.09−0.09, offset 1.44 + 0.25 - 0.26, Astrophysical normalization @ 100TeV: 1.44+0.25−0.26 × 10−18 GeV−1cm−2s−1 sr−1
 nu_mu_slope = -2.37
-nu_mu_slope_up = -(2.28 + 0.08)
-nu_mu_slope_down = -(2.28 - 0.09)
-nu_mu_offset = 1.36
-nu_mu_offset_up = 1.36 + 0.24
-nu_mu_offset_down = 1.36 - 0.25
+nu_mu_slope_up = -(2.37 + 0.09)
+nu_mu_slope_down = -(2.37 - 0.09)
+nu_mu_offset = 1.44
+nu_mu_offset_up = 1.44 + 0.25
+nu_mu_offset_down = 1.44 - 0.26
 nu_mu_show_data_points = True
 
 
