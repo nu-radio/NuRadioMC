@@ -45,14 +45,14 @@ def remove_duplicate_triggers(triggered, gids):
     gids_shifted = gids + 0.5
 
     # triggered gids, 0 where not triggered
-    triggered_gids = triggered*gids_shifted
+    triggered_gids = triggered * gids_shifted
 
     unique_values, unique_indices = np.unique(triggered_gids, return_index=True)
     # create output boolean array and set True for first triggered indices
     first_occurences = np.zeros_like(triggered, dtype=bool)
     np.put(first_occurences, unique_indices, True)
     # the line above will also put the first untriggered, hence need to require "& triggered"
-    return first_occurences&triggered
+    return first_occurences & triggered
 
 
 def FC_limits(counts):
