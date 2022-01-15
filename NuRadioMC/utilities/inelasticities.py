@@ -9,7 +9,6 @@ import logging
 logging.basicConfig()
 logger = logging.getLogger('inelasticities')
 
-
 e_mass = constants.physical_constants['electron mass energy equivalent in MeV'][0] * units.MeV
 mu_mass = constants.physical_constants['muon mass energy equivalent in MeV'][0] * units.MeV
 # Mass energy equivalent of the tau lepton
@@ -63,17 +62,19 @@ def get_neutrino_inelasticity(n_events, model="CTW", rnd=None,
             for flavor in uFlavor:
                 for nccc in uNCCC:
                     mask = (nu_energies == E) & (flavor == flavors) & (nccc == ncccs)
+                    size = n_events
+                    if(isinstance(mask, np.ndarray)):
+                        size = np.sum(mask)
                     nccc = nccc.upper()
                     iF = np.argwhere(flavors_ref == flavor)[0][0]
                     inccc = np.argwhere(ncccs_ref == nccc)[0][0]
                     iE = np.argmin(np.abs(E - nu_energies_ref))
-                    print(f"{iF} {flavor}, {iE} {E}, {inccc} {nccc}")
                     get_y = intp.interp1d(np.log10(yy_ref), np.log10(dsigma_dy_ref[iF, inccc, iE]), fill_value="extrapolate", kind="cubic")
                     yyy = np.linspace(0, 1, 1000)
                     yyy = 0.5 * (yyy[:-1] + yyy[1:])
                     dsigma_dyy = 10 ** get_y(np.log10(yyy))
 
-                    yy[mask] = rnd.choice(yyy, size=np.sum(mask), p=dsigma_dyy / np.sum(dsigma_dyy))
+                    yy[mask] = rnd.choice(yyy, size=size, p=dsigma_dyy / np.sum(dsigma_dyy))
         return yy
     else:
         raise AttributeError(f"inelasticity model {model} is not implemented.")
