@@ -1,0 +1,30 @@
+{
+    "_default": {},
+    "channels": {
+        "1": {
+          "amp_type": "rno_surface",
+          "ant_comment": "upward facing LPDA",
+          "ant_orientation_phi": 0.0,
+          "ant_orientation_theta": 0.0,
+          "ant_position_x": 0.0,
+          "ant_position_y": 0.0,
+          "ant_position_z": -3.0,
+          "ant_rotation_phi": 180.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz",
+          "channel_id": 1,
+          "station_id": 101
+        }
+    },
+    "positions": {},
+    "stations": {
+        "1": {
+        "pos_altitude": 0.0,
+        "pos_easting": 0.0,
+        "pos_northing": 0,
+        "pos_site": "southpole",
+        "station_id": 101,
+        "station_type": null
+      }
+    }
+}
