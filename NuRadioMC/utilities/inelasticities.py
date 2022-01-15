@@ -1,6 +1,13 @@
 import numpy as np
 from NuRadioReco.utilities import units
 from scipy import constants
+from scipy import interpolate as intp
+import pickle
+import os
+import lzma
+import logging
+logging.basicConfig()
+logger = logging.getLogger('inelasticities')
 
 e_mass = constants.physical_constants['electron mass energy equivalent in MeV'][0] * units.MeV
 mu_mass = constants.physical_constants['muon mass energy equivalent in MeV'][0] * units.MeV
@@ -13,8 +20,12 @@ a1_mass = 1230 * units.MeV
 cspeed = constants.c * units.m / units.s
 G_F = constants.physical_constants['Fermi coupling constant'][0] * units.GeV ** (-2)
 
+nu_energies_ref, yy_ref, flavors_ref, ncccs_ref, dsigma_dy_ref = pickle.load(lzma.open(os.path.join(os.path.dirname(__file__), "data", "BGR18_dsigma_dy.xz")))
+ncccs_ref = np.array(ncccs_ref)
 
-def get_neutrino_inelasticity(n_events, rnd=None):
+
+def get_neutrino_inelasticity(n_events, model="CTW", rnd=None,
+                              nu_energies=1 * units.EeV, flavors=12, ncccs="CC"):
     """
     Standard inelasticity for deep inelastic scattering used so far.
     Ported from ShelfMC
@@ -23,6 +34,8 @@ def get_neutrino_inelasticity(n_events, rnd=None):
     ----------
     n_events: int
         Number of events to be returned
+    model: string
+        the inelasticity model to use
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
     Returns
@@ -32,17 +45,47 @@ def get_neutrino_inelasticity(n_events, rnd=None):
     """
     if(rnd is None):
         rnd = np.random.default_rng()
-    R1 = 0.36787944
-    R2 = 0.63212056
-    inelasticities = (-np.log(R1 + rnd.uniform(0., 1., n_events) * R2)) ** 2.5
+    if model == "CTW":
+        # based on shelfmc
+        R1 = 0.36787944
+        R2 = 0.63212056
+        return (-np.log(R1 + rnd.uniform(0., 1., n_events) * R2)) ** 2.5
 
-    return inelasticities
+    if model == "BGR18":
+        yy = np.zeros(n_events)
+        uEE = np.unique(nu_energies)
+        uFlavor = np.unique(flavors)
+        uNCCC = np.unique(ncccs)
+        for E in uEE:
+            if(E > 10 * units.EeV):
+                logger.warning(f"You are requesting inelasticities for energies outside of the validity of the BGR18 model. You requested {E/units.eV:.2g}eV. Largest available energy is 10EeV, returning result for 10EeV.")
+            for flavor in uFlavor:
+                for nccc in uNCCC:
+                    mask = (nu_energies == E) & (flavor == flavors) & (nccc == ncccs)
+                    size = n_events
+                    if(isinstance(mask, np.ndarray)):
+                        size = np.sum(mask)
+                    nccc = nccc.upper()
+                    iF = np.argwhere(flavors_ref == flavor)[0][0]
+                    inccc = np.argwhere(ncccs_ref == nccc)[0][0]
+                    iE = np.argmin(np.abs(E - nu_energies_ref))
+                    get_y = intp.interp1d(np.log10(yy_ref), np.log10(dsigma_dy_ref[iF, inccc, iE]), fill_value="extrapolate", kind="cubic")
+                    yyy = np.linspace(0, 1, 1000)
+                    yyy = 0.5 * (yyy[:-1] + yyy[1:])
+                    dsigma_dyy = 10 ** get_y(np.log10(yyy))
+
+                    yy[mask] = rnd.choice(yyy, size=size, p=dsigma_dyy / np.sum(dsigma_dyy))
+        return yy
+    else:
+        raise AttributeError(f"inelasticity model {model} is not implemented.")
 
 
 def get_ccnc(n_events, rnd=None):
     """
     Get the nature of the interaction current: cc or nc
     Ported from Shelf MC
+    https://github.com/persic/ShelfMC/blob/daf56916d85de019e848f415c2e9f4643a744674/functions.cc#L1055-L1064
+    based on CTW cross sections https://link.aps.org/doi/10.1103/PhysRevD.83.113009
 
     Parameters
     ----------
@@ -50,7 +93,7 @@ def get_ccnc(n_events, rnd=None):
         Number of events to be returned
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
-        
+
     Returns
     -------
     ccnc: array
