@@ -15,7 +15,6 @@ jobs:
         with:
           python-version: 3.7
 
-      ##TODO: replace the below with the poetry installation, once it is merged
       - name: Cache pip
         uses: actions/cache@v2
         with:
@@ -32,24 +31,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8 pytest
           export GSLDIR=$(gsl-config --prefix)
-          if [ -f NuRadioMC/test/requirements.txt ]; then pip install -r NuRadioMC/test/requirements.txt; fi
-          #wget https://github.com/nu-radio/radiotools/archive/master.zip -O /tmp/radiotools.zip
-          #unzip /tmp/radiotools.zip
-          #mv radiotools-master radiotools
-          #export PYTHONPATH=$PWD/radiotools
-          #wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/createLPDA_100MHz_InfFirn/createLPDA_100MHz_InfFirn.pkl
-          #mkdir -p $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn
-          #mv createLPDA_100MHz_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/createLPDA_100MHz_InfFirn/
-          #wget http://arianna.ps.uci.edu/~arianna/data/AntennaModels/bicone_v8_InfFirn/bicone_v8_InfFirn.pkl
-          #mkdir -p $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn
-          #mv bicone_v8_InfFirn.pkl $PWD/NuRadioReco/detector/AntennaModels/bicone_v8_InfFirn/
+          python install_dev.py --install --dev documentation --no-interactive
           export PYTHONPATH=$PWD:$PYTHONPATH
           echo $PYTHONPATH
-      ### end TODO
-
-      - name: Install documentation dependencies
-        run: |
-          pip install sphinx sphinx_rtd_theme numpydoc --user
 
       - name: Debugging
         run: |
@@ -70,6 +54,7 @@ jobs:
 
       - name: Build Documentation
         run: |
+          export PYTHONPATH=$(pwd):$PYTHONPATH
           cd documentation/
           python make_docs.py
 
