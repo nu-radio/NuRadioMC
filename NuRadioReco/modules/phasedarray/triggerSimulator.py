@@ -26,10 +26,11 @@ class triggerSimulator:
     See https://arxiv.org/pdf/1809.04573.pdf
     """
 
-    def __init__(self):
+    def __init__(self, log_level=logging.WARNING):
         self.__t = 0
         self.__pre_trigger_time = None
         self.__debug = None
+        logger.setLevel(log_level)
         self.begin()
 
     def begin(self, debug=False, pre_trigger_time=100 * units.ns):
@@ -123,8 +124,8 @@ class triggerSimulator:
 
             subbeam_rolls = dict(zip(triggered_channels, roll))
 
-            logger.debug("angle:", angle / units.deg)
-            logger.debug(subbeam_rolls)
+            # logger.debug("angle:", angle / units.deg)
+            # logger.debug(subbeam_rolls)
 
             beam_rolls.append(subbeam_rolls)
 
@@ -341,7 +342,7 @@ class triggerSimulator:
         is_triggered = False
         trigger_delays = {}
 
-        logger.debug("trigger channels:", triggered_channels)
+        logger.debug(f"trigger channels: {triggered_channels}")
 
         traces = {}
         for channel in station.iter_channels(use_channels=triggered_channels):
@@ -410,6 +411,9 @@ class triggerSimulator:
 
         phased_traces = self.phase_signals(traces, beam_rolls)
 
+        trigger_time = None
+        channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
+
         for iTrace, phased_trace in enumerate(phased_traces):
 
             # Create a sliding window
@@ -422,10 +426,16 @@ class triggerSimulator:
                 for channel_id in beam_rolls[iTrace]:
                     trigger_delays[channel_id] = beam_rolls[iTrace][channel_id] * time_step
 
-                logger.debug("Station has triggered")
+                logger.debug(f"Station has triggered, at bins {np.argwhere(squared_mean > threshold)}")
+                logger.debug(trigger_delays)
+                logger.debug(f"trigger_delays {trigger_delays[triggered_channels[0]]}")
+                triggered_bin = np.atleast_1d(np.squeeze(np.argwhere(squared_mean > threshold)))[0]
                 is_triggered = True
+                trigger_time = trigger_delays[triggered_channels[0]] + triggered_bin * step * time_step + channel_trace_start_time
+                logger.debug(f"trigger time  = {trigger_time:.1f}ns")
+                break  # break the for look here. One trigger is sufficient, we don't need to go through all beams
 
-        return is_triggered, trigger_delays
+        return is_triggered, trigger_delays, trigger_time
 
     @register_run()
     def run(self, evt, station, det,
@@ -515,26 +525,24 @@ class triggerSimulator:
         is_triggered = False
         trigger_delays = {}
 
-        channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
-
         if(set_not_triggered):
             is_triggered = False
             trigger_delays = {}
         else:
-            is_triggered, trigger_delays = self.phased_trigger(station=station,
-                                                               det=det,
-                                                               Vrms=Vrms,
-                                                               threshold=threshold,
-                                                               triggered_channels=triggered_channels,
-                                                               phasing_angles=phasing_angles,
-                                                               ref_index=ref_index,
-                                                               trigger_adc=trigger_adc,
-                                                               clock_offset=clock_offset,
-                                                               adc_output=adc_output,
-                                                               trigger_filter=trigger_filter,
-                                                               upsampling_factor=upsampling_factor,
-                                                               window=window,
-                                                               step=step)
+            is_triggered, trigger_delays, trigger_time = self.phased_trigger(station=station,
+                                                                             det=det,
+                                                                             Vrms=Vrms,
+                                                                             threshold=threshold,
+                                                                             triggered_channels=triggered_channels,
+                                                                             phasing_angles=phasing_angles,
+                                                                             ref_index=ref_index,
+                                                                             trigger_adc=trigger_adc,
+                                                                             clock_offset=clock_offset,
+                                                                             adc_output=adc_output,
+                                                                             trigger_filter=trigger_filter,
+                                                                             upsampling_factor=upsampling_factor,
+                                                                             window=window,
+                                                                             step=step)
 
         # Create a trigger object to be returned to the station
         trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, phasing_angles, trigger_delays)
@@ -542,7 +550,7 @@ class triggerSimulator:
         trigger.set_triggered(is_triggered)
 
         if is_triggered:
-            trigger.set_trigger_time(channel_trace_start_time)
+            trigger.set_trigger_time(trigger_time)
         else:
             trigger.set_trigger_time(None)
 
