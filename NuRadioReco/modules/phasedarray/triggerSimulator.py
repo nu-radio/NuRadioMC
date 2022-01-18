@@ -553,7 +553,8 @@ class triggerSimulator:
                                                                              step=step)
 
         # Create a trigger object to be returned to the station
-        trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, phasing_angles, trigger_delays)
+        trigger = SimplePhasedTrigger(trigger_name, threshold, channels=triggered_channels,
+                                      primary_angle=phasing_angles, trigger_delays=trigger_delays)
 
         trigger.set_triggered(is_triggered)
 
