@@ -47,7 +47,6 @@ class triggerTimeAdjuster:
                 if(trig.has_triggered()):
                     if min_trigger_time is None or trig.get_trigger_time() < min_trigger_time:
                         min_trigger_time = trig.get_trigger_time()
-                        logger.debug(f"{trig.get_name()}: {trig.get_trigger_time()}")
                         trigger = trig
             if(min_trigger_time is not None):
                 logger.info(f"minimum trigger time is {min_trigger_time/units.ns:.2f}ns")
@@ -69,7 +68,7 @@ class triggerTimeAdjuster:
                 else:
                     sampling_rate = channel.get_sampling_rate()
                     trigger_time_sample = int(np.round(trigger_time_channel * sampling_rate))
-                    logger.debug(f"channel {channel.get_id()}: trace_start_time = {channel.get_trace_start_time():.1f}ns, trigger time channel {trigger_time_channel/units.ns:.1f}ns,  trigger time sample = {trigger_time_sample}")
+                    # logger.debug(f"channel {channel.get_id()}: trace_start_time = {channel.get_trace_start_time():.1f}ns, trigger time channel {trigger_time_channel/units.ns:.1f}ns,  trigger time sample = {trigger_time_sample}")
                     samples_before_trigger = int(self.__pre_trigger_time * sampling_rate)
                     rel_station_time_samples = 0
                     cut_samples_beginning = 0
@@ -92,10 +91,10 @@ class triggerTimeAdjuster:
                         rel_station_time_samples = -roll_by
 
                     # shift trace to be in the correct location for cutting
-                    logger.debug(f"cutting trace to {cut_samples_beginning}-{number_of_samples + cut_samples_beginning} samples")
+                    # logger.debug(f"cutting trace to {cut_samples_beginning}-{number_of_samples + cut_samples_beginning} samples")
                     trace = trace[cut_samples_beginning:(number_of_samples + cut_samples_beginning)]
                     channel.set_trace(trace, channel.get_sampling_rate())
                     channel.set_trace_start_time(channel.get_trace_start_time() + rel_station_time_samples / channel.get_sampling_rate())
-                    logger.debug(f"setting trace start time to {channel.get_trace_start_time() + rel_station_time_samples / channel.get_sampling_rate():.0f} = {channel.get_trace_start_time():.0f} + {rel_station_time_samples / channel.get_sampling_rate():.0f}")
+                    # logger.debug(f"setting trace start time to {channel.get_trace_start_time() + rel_station_time_samples / channel.get_sampling_rate():.0f} = {channel.get_trace_start_time():.0f} + {rel_station_time_samples / channel.get_sampling_rate():.0f}")
         else:
             logger.debug('Trigger {} has not triggered. Channel timings will not be changed.'.format(self.__trigger_name))
