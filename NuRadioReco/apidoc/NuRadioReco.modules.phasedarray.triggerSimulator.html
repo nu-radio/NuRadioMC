@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.modules.phasedarray.triggerSimulator module &mdash; NuRadio 2.1.5-dev documentation</title>
+  <title>NuRadioReco.modules.phasedarray.triggerSimulator module &mdash; NuRadio 2.1.6-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
@@ -32,7 +32,7 @@
             <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                2.1.5-dev
+                2.1.6-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -515,7 +515,7 @@
 <span id="nuradioreco-modules-phasedarray-triggersimulator-module"></span><h1>NuRadioReco.modules.phasedarray.triggerSimulator module<a class="headerlink" href="#module-NuRadioReco.modules.phasedarray.triggerSimulator" title="Permalink to this headline"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.phasedarray.triggerSimulator.</span></span><span class="sig-name descname"><span class="pre">triggerSimulator</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.phasedarray.triggerSimulator.</span></span><span class="sig-name descname"><span class="pre">triggerSimulator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Calculates the trigger for a phased array with a primary beam.
 The channels that participate in both beams and the pointing angle for each
@@ -746,12 +746,18 @@ Units of ADC time ticks</p>
 in between neighboring integration windows.
 Units of ADC time ticks</p>
 </dd>
-<dt><strong>Returns</strong></dt><dd></dd>
-<dt><strong>——-</strong></dt><dd></dd>
-<dt><strong>is_triggered: bool</strong></dt><dd><p>True if the triggering condition is met</p>
+</dl>
 </dd>
-<dt><strong>trigger_delays: dictionary</strong></dt><dd><p>the delays for the primary channels that have caused a trigger.
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>is_triggered: bool</dt><dd><p>True if the triggering condition is met</p>
+</dd>
+<dt>trigger_delays: dictionary</dt><dd><p>the delays for the primary channels that have caused a trigger.
 If there is no trigger, it’s an empty dictionary</p>
+</dd>
+<dt>trigger_time: float</dt><dd><p>the earliest trigger time</p>
+</dd>
+<dt>trigger_times: dictionary</dt><dd><p>all time bins that fulfil the trigger condition per beam. The key is the beam number.</p>
 </dd>
 </dl>
 </dd>

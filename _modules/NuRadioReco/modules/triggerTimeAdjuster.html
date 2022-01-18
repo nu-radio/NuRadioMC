@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.modules.triggerTimeAdjuster &mdash; NuRadio 2.1.5-dev documentation</title>
+  <title>NuRadioReco.modules.triggerTimeAdjuster &mdash; NuRadio 2.1.6-dev documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
@@ -29,7 +29,7 @@
             <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                2.1.5-dev
+                2.1.6-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -575,6 +575,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
                     <span class="n">trigger_time_sample</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">trigger_time_channel</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">))</span>
+                    <span class="c1"># logger.debug(f&quot;channel {channel.get_id()}: trace_start_time = {channel.get_trace_start_time():.1f}ns, trigger time channel {trigger_time_channel/units.ns:.1f}ns,  trigger time sample = {trigger_time_sample}&quot;)</span>
                     <span class="n">samples_before_trigger</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__pre_trigger_time</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">)</span>
                     <span class="n">rel_station_time_samples</span> <span class="o">=</span> <span class="mi">0</span>
                     <span class="n">cut_samples_beginning</span> <span class="o">=</span> <span class="mi">0</span>
@@ -597,11 +598,11 @@
                         <span class="n">rel_station_time_samples</span> <span class="o">=</span> <span class="o">-</span><span class="n">roll_by</span>
 
                     <span class="c1"># shift trace to be in the correct location for cutting</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cutting trace to </span><span class="si">{</span><span class="n">cut_samples_beginning</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">number_of_samples</span> <span class="o">+</span> <span class="n">cut_samples_beginning</span><span class="si">}</span><span class="s2"> samples&quot;</span><span class="p">)</span>
+                    <span class="c1"># logger.debug(f&quot;cutting trace to {cut_samples_beginning}-{number_of_samples + cut_samples_beginning} samples&quot;)</span>
                     <span class="n">trace</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">cut_samples_beginning</span><span class="p">:(</span><span class="n">number_of_samples</span> <span class="o">+</span> <span class="n">cut_samples_beginning</span><span class="p">)]</span>
                     <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
                     <span class="n">channel</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">+</span> <span class="n">rel_station_time_samples</span> <span class="o">/</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
-            <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__pre_trigger_time</span><span class="p">)</span>
+                    <span class="c1"># logger.debug(f&quot;setting trace start time to {channel.get_trace_start_time() + rel_station_time_samples / channel.get_sampling_rate():.0f} = {channel.get_trace_start_time():.0f} + {rel_station_time_samples / channel.get_sampling_rate():.0f}&quot;)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Trigger </span><span class="si">{}</span><span class="s1"> has not triggered. Channel timings will not be changed.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__trigger_name</span><span class="p">))</span></div></div>
 </pre></div>
