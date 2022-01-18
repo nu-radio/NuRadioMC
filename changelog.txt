@@ -4,7 +4,7 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 
 version 2.1.5
-bugfixes: - the phased array trigger module did not calcualte the trigger time. This got fixed in this version. 
+bugfixes: - the phased array trigger module did not calcualte the trigger time. The trigger time was always set to the trace start time. This got fixed in this version. 
 
 version 2.1.4
 
