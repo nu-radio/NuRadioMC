@@ -328,6 +328,10 @@ class triggerSimulator:
         trigger_delays: dictionary
             the delays for the primary channels that have caused a trigger.
             If there is no trigger, it's an empty dictionary
+        trigger_time: float
+            the earliest trigger time
+        trigger_times: dictionary
+            all time bins that fulfil the trigger condition per beam. The key is the beam number.
         """
 
         if(triggered_channels is None):
@@ -412,30 +416,34 @@ class triggerSimulator:
         phased_traces = self.phase_signals(traces, beam_rolls)
 
         trigger_time = None
+        trigger_times = {}
         channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
 
+        trigger_delays = {}
         for iTrace, phased_trace in enumerate(phased_traces):
 
             # Create a sliding window
             squared_mean, num_frames = self.power_sum(coh_sum=phased_trace, window=window, step=step, adc_output=adc_output)
 
             if True in (squared_mean > threshold):
-
-                trigger_delays = {}
+                trigger_delays[iTrace] = {}
 
                 for channel_id in beam_rolls[iTrace]:
-                    trigger_delays[channel_id] = beam_rolls[iTrace][channel_id] * time_step
+                    trigger_delays[iTrace][channel_id] = beam_rolls[iTrace][channel_id] * time_step
 
-                logger.debug(f"Station has triggered, at bins {np.argwhere(squared_mean > threshold)}")
+                triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(squared_mean > threshold)))
+                logger.debug(f"Station has triggered, at bins {triggered_bins}")
                 logger.debug(trigger_delays)
-                logger.debug(f"trigger_delays {trigger_delays[triggered_channels[0]]}")
-                triggered_bin = np.atleast_1d(np.squeeze(np.argwhere(squared_mean > threshold)))[0]
+                logger.debug(f"trigger_delays {trigger_delays[iTrace][triggered_channels[0]]}")
                 is_triggered = True
-                trigger_time = trigger_delays[triggered_channels[0]] + triggered_bin * step * time_step + channel_trace_start_time
-                logger.debug(f"trigger time  = {trigger_time:.1f}ns")
-                break  # break the for look here. One trigger is sufficient, we don't need to go through all beams
+                trigger_times[iTrace] = trigger_delays[iTrace][triggered_channels[0]] + triggered_bins * step * time_step + channel_trace_start_time
+                logger.debug(f"trigger times  = {trigger_times[iTrace]}")
+        if is_triggered:
+            logger.debug(trigger_times)
+            trigger_time = min([x.min() for x in trigger_times.values()])
+            logger.debug(f"minimum trigger time is {trigger_time:.0f}ns")
 
-        return is_triggered, trigger_delays, trigger_time
+        return is_triggered, trigger_delays, trigger_time, trigger_times
 
     @register_run()
     def run(self, evt, station, det,
@@ -529,7 +537,7 @@ class triggerSimulator:
             is_triggered = False
             trigger_delays = {}
         else:
-            is_triggered, trigger_delays, trigger_time = self.phased_trigger(station=station,
+            is_triggered, trigger_delays, trigger_time, trigger_times = self.phased_trigger(station=station,
                                                                              det=det,
                                                                              Vrms=Vrms,
                                                                              threshold=threshold,
@@ -551,6 +559,7 @@ class triggerSimulator:
 
         if is_triggered:
             trigger.set_trigger_time(trigger_time)
+            trigger.set_trigger_times(trigger_times)
         else:
             trigger.set_trigger_time(None)
 
