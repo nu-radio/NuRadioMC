@@ -2,6 +2,10 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+
+version 2.1.5
+bugfixes: - the phased array trigger module did not calcualte the trigger time. This got fixed in this version. 
+
 version 2.1.4
 
 bugfixes:
