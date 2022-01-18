@@ -96,6 +96,6 @@ class triggerTimeAdjuster:
                     trace = trace[cut_samples_beginning:(number_of_samples + cut_samples_beginning)]
                     channel.set_trace(trace, channel.get_sampling_rate())
                     channel.set_trace_start_time(channel.get_trace_start_time() + rel_station_time_samples / channel.get_sampling_rate())
-            trigger.set_trigger_time(self.__pre_trigger_time)
+                    logger.debug(f"setting trace start time to {channel.get_trace_start_time() + rel_station_time_samples / channel.get_sampling_rate():.0f} = {channel.get_trace_start_time():.0f} + {rel_station_time_samples / channel.get_sampling_rate():.0f}")
         else:
             logger.debug('Trigger {} has not triggered. Channel timings will not be changed.'.format(self.__trigger_name))
