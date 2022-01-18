@@ -200,6 +200,7 @@ class triggerSimulator:
             in between neighboring integration windows
             Units of ADC time ticks.
         adc_output: string
+
             - 'voltage' to store the ADC output as discretised voltage trace
             - 'counts' to store the ADC output in ADC counts
 
@@ -321,6 +322,7 @@ class triggerSimulator:
             Time step in power integral. If equal to window, there is no time overlap
             in between neighboring integration windows.
             Units of ADC time ticks
+
         Returns
         -------
         is_triggered: bool
@@ -501,8 +503,10 @@ class triggerSimulator:
         clock_offset: float
             Overall clock offset, for adc clock jitter reasons
         adc_output: string
+
             - 'voltage' to store the ADC output as discretised voltage trace
             - 'counts' to store the ADC output in ADC counts
+
         trigger_filter: array floats
             Freq. domain of the response to be applied to post-ADC traces
             Must be length for "MC freq"
