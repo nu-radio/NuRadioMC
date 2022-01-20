@@ -2,6 +2,9 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 2.1.6-dev
+features:
+- calculate trigger time and cut trace accordingly in the phased array noise generation utility class. 
 
 version 2.1.5
 bugfixes:
