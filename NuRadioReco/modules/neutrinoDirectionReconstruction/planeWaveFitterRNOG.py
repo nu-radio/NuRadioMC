@@ -224,12 +224,9 @@ class planeWaveFitterRNOG:
                 "Likelihood simulation", 
                 likelihood([signal_zenith, signal_azimuth], sim = True, mode=mode)
             )
-  
-<<<<<<< HEAD
-        ll = opt.brute(likelihood, ranges=(slice(zen_start, zen_end, 0.005), slice(az_start, az_end, 0.005)), finish = opt.fmin)
-=======
+ 
         ll = opt.brute(likelihood, ranges=(slice(zen_start, zen_end, 0.01), slice(az_start, az_end, 0.01)), args=(mode,), finish = opt.fmin)
->>>>>>> b189aba4d382ae03f509fb67b75de8b223af47f1
+
         rec_zenith = ll[0]
         rec_azimuth = ll[1]
 
