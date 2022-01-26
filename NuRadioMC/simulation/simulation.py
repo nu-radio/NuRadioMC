@@ -1311,7 +1311,6 @@ class simulation():
     def _read_input_particle_properties(self, idx=None):
         if idx is None:
             idx = self._primary_index
-        self._fin['n_interaction'][self._shower_index] = self._fin['n_interaction'][idx]
         self._event_group_id = self._fin['event_group_ids'][idx]
 
         self.input_particle = NuRadioReco.framework.particle.Particle(0)
