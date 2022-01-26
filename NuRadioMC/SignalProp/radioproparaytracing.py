@@ -471,7 +471,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         path: 1D np.array of shape (n_points,)
               mask of the original path for the horizontal perturbed segment
         """
-        path = self.get_path_original(iS)*radiopropa.meter/units.meter
+        path = self.get_path_candidate(self._rays[iS])*radiopropa.meter/units.meter
         n_points = path.shape[0]
         mask_horizontal = (np.arange(0,n_points) < 0)
         if self.get_solution_type(iS) == 4:
@@ -506,7 +506,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         path: 1D np.array of shape (n_points,)
               mask of the original path for the surface segment
         """
-        path = self.get_path_original(iS)*radiopropa.meter/units.meter
+        path = self.get_path_candidate(self._rays[iS])*radiopropa.meter/units.meter
         n_points = path.shape[0]
         mask_surface = (np.arange(0,n_points) < 0)
         if self.get_solution_type(iS) == 5:
