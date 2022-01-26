@@ -331,7 +331,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     mask_int = np.zeros_like(mask, dtype=np.bool)
     t0 = time.perf_counter()
     n_cylinder = 0
-    for j, i in enumerate(np.arange(n_events, dtype=np.int)[mask]):
+    for j, i in enumerate(np.arange(n_events, dtype=int)[mask]):
         if(j % 1000 == 0 and i > 0):
             eta = (time.perf_counter() - t0) * (n_events - i) / i
             logger.info(f"{i}/{n_events} interacting = {np.sum(mask_int)}, failed = {failed}, n_cylinder = {n_cylinder}, eta = {pretty_time_delta(eta)}")
@@ -585,7 +585,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets['event_ids'] = range(np.sum(mask_int))
     data_sets['flavors'] = np.ones(np.sum(mask_int))
     data_sets["event_ids"] = np.arange(np.sum(mask_int)) + start_event_id
-    data_sets["n_interaction"] = np.ones(np.sum(mask_int), dtype=np.int)
+    data_sets["n_interaction"] = np.ones(np.sum(mask_int), dtype=int)
     data_sets["vertex_times"] = np.zeros(np.sum(mask_int), dtype=np.float)
 
     data_sets["interaction_type"] = inelasticities.get_ccnc(np.sum(mask_int))

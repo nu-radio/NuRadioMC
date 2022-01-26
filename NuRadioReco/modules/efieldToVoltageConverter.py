@@ -21,6 +21,7 @@ class efieldToVoltageConverter():
     convolve the electric field with the corresponding antenna response for the
     incoming direction specified in the channel object.
     The station id, defines antenna location and antenna type.
+
     """
 
     def __init__(self, log_level=logging.WARNING):
@@ -50,13 +51,15 @@ class efieldToVoltageConverter():
             enable/disable debug mode (default: False -> no debug output)
         uncertainty: dictionary (default: {})
             optional argument to specify systematic uncertainties. currently supported keys
+             
              * 'sys_dx': systematic uncertainty of x position of antenna
              * 'sys_dy': systematic uncertainty of y position of antenna
              * 'sys_dz': systematic uncertainty of z position of antenna
-            * 'sys_amp': systematic uncertainty of the amplifier aplification,
-                         specify value as relative difference of linear gain
-            * 'amp': statistical uncertainty of the amplifier aplification,
-                     specify value as relative difference of linear gain
+             * 'sys_amp': systematic uncertainty of the amplifier aplification,
+                specify value as relative difference of linear gain
+             * 'amp': statistical uncertainty of the amplifier aplification,
+                specify value as relative difference of linear gain
+
         time_resolution: float
             time resolution of shifting pulse times
         pre_pulse_time: float
@@ -126,13 +129,11 @@ class efieldToVoltageConverter():
                     times_min.append(t0)
                     times_max.append(t0 + electric_field.get_number_of_samples() / electric_field.get_sampling_rate())
                     self.logger.debug("trace start time {}, cab_delty {}, tracelength {}".format(electric_field.get_trace_start_time(), cab_delay, electric_field.get_number_of_samples() / electric_field.get_sampling_rate()))
-        times_min = np.array(times_min)
-        times_max = np.array(times_max)
-        if times_min.min() < 0:
-            times_min -= times_min.min()
-            times_max -= times_min.min()
+
+        # pad event times by pre/post pulse time
         times_min = np.array(times_min) - self.__pre_pulse_time
         times_max = np.array(times_max) + self.__post_pulse_time
+
         trace_length = times_max.max() - times_min.min()
         trace_length_samples = int(round(trace_length / time_resolution))
         if trace_length_samples % 2 != 0:
@@ -187,10 +188,24 @@ class efieldToVoltageConverter():
                         time_remainder = start_time - start_bin * time_resolution
                     self.logger.debug('channel {}, start time {:.1f} = bin {:d}, ray solution {}'.format(channel_id, electric_field.get_trace_start_time() + cab_delay, start_bin, electric_field[efp.ray_path_type]))
                     new_efield.apply_time_shift(time_remainder)
-                    new_trace[:, start_bin:(start_bin + new_efield.get_number_of_samples())] = new_efield.get_trace()
+
+                    tr = new_efield.get_trace()
+                    stop_bin = start_bin + new_efield.get_number_of_samples()
+
+                    # if checks should never be true...
+                    if stop_bin > np.shape(new_trace)[-1]:
+                        # ensure new efield does not extend beyond end of trace although this should not happen
+                        self.logger.warning("electric field trace extends beyond the end of the trace and will be cut.")
+                        stop_bin = np.shape(new_trace)[-1]
+                        tr = np.atleast_2d(tr)[:,:stop_bin-start_bin]
+                    if start_bin < 0:
+                        # ensure new efield does not extend beyond start of trace although this should not happen
+                        self.logger.warning("electric field trace extends beyond the beginning of the trace and will be cut.")
+                        tr = np.atleast_2d(tr)[:,-start_bin:]
+                        start_bin = 0
+                    new_trace[:, start_bin:stop_bin] = tr
                 trace_object = NuRadioReco.framework.base_trace.BaseTrace()
                 trace_object.set_trace(new_trace, 1. / time_resolution)
-                trace_object.set_trace_start_time(np.min(times_min) - cab_delay)
                 if(self.__debug):
                     axes[0].plot(trace_object.get_times(), new_trace[1], label="eTheta {}".format(electric_field[efp.ray_path_type]), c='C0')
                     axes[0].plot(trace_object.get_times(), new_trace[2], label="ePhi {}".format(electric_field[efp.ray_path_type]), c='C0', linestyle=':')

@@ -15,8 +15,8 @@ class ray_tracing_base:
     """
 
 
-    def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING, 
-                 n_frequencies_integration=100, n_reflections=0, config=None, 
+    def __init__(self, medium, attenuation_model=None, log_level=logging.WARNING, 
+                 n_frequencies_integration=None, n_reflections=None, config=None, 
                  detector = None):
         """
         class initilization
@@ -29,10 +29,12 @@ class ray_tracing_base:
             signal attenuation model (so far only "SP1" is implemented)
         log_level: logging object
             specify the log level of the ray tracing class
+
             * logging.ERROR
             * logging.WARNING
             * logging.INFO
             * logging.DEBUG
+
             default is WARNING
         n_frequencies_integration: int
             the number of frequencies for which the frequency dependent attenuation
@@ -44,15 +46,15 @@ class ray_tracing_base:
             loaded yaml config file
         detector: detector object
         """
-        self._logger = logging.getLogger(self.__class__.__name__)
-        self._logger.setLevel(log_level)
+        self.__logger = logging.getLogger('ray_tracing_base')
+        self.__logger.setLevel(log_level)
 
         self._medium = medium
         self._attenuation_model = attenuation_model
         self._n_frequencies_integration = n_frequencies_integration
         if(n_reflections):
             if(not hasattr(self._medium, "reflection") or self._medium.reflection is None):
-                self._logger.warning("ray paths with bottom reflections requested medium does not have any reflective layer, setting number of reflections to zero.")
+                self.__logger.warning("ray paths with bottom reflections requested medium does not have any reflective layer, setting number of reflections to zero.")
                 n_reflections = 0
         self._n_reflections = n_reflections
 
@@ -92,7 +94,7 @@ class ray_tracing_base:
         self._X2 = np.array(x2, dtype = np.float)
         if (self._n_reflections):
             if (self._X1[2] < self._medium.reflection or self._X2[2] < self._medium.reflection):
-                self._logger.error("start or stop point is below the reflective bottom layer at {:.1f}m".format(
+                self.__logger.error("start or stop point is below the reflective bottom layer at {:.1f}m".format(
                     self._medium.reflection / units.m))
                 raise AttributeError("start or stop point is below the reflective bottom layer at {:.1f}m".format(
                     self._medium.reflection / units.m))
@@ -112,10 +114,13 @@ class ray_tracing_base:
                   all all the neseccary keyword arguments for the function in the
                   form of key=argument and separated by a comma
 
-        Example
-        -------
-        use_optional_function('set_shower_axis',np.array([0,0,1]))
-        use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
+        Examples
+        --------
+        .. code-block::
+        
+            use_optional_function('set_shower_axis',np.array([0,0,1]))
+            use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
+        
         """
         if not hasattr(self,function_name):
             pass
@@ -126,7 +131,7 @@ class ray_tracing_base:
         """
         find all solutions between x1 and x2
         """
-        self._logger.error('function not defined')
+        self.__logger.error('function not defined')
         raise NotImplementedError
 
     def has_solution(self):
@@ -159,9 +164,9 @@ class ray_tracing_base:
         Returns
         -------
         solution_type: int
-                       integer corresponding to the types in the dictionary solution_types
+            integer corresponding to the types in the dictionary solution_types
         """
-        self._logger.error('function not defined')
+        self.__logger.error('function not defined')
         raise NotImplementedError
 
     def get_path(self, iS, n_points=1000):
@@ -175,7 +180,7 @@ class ray_tracing_base:
         n_points: int
             number of points of path
         """
-        self._logger.error('function not defined')
+        self.__logger.error('function not defined')
         raise NotImplementedError
 
     def get_launch_vector(self, iS):
@@ -193,7 +198,7 @@ class ray_tracing_base:
         launch_vector: 3dim np.array
             the launch vector
         """
-        self._logger.error('function not defined')
+        self.__logger.error('function not defined')
         raise NotImplementedError
 
     def get_receive_vector(self, iS):
@@ -211,7 +216,7 @@ class ray_tracing_base:
         receive_vector: 3dim np.array
             the receive vector
         """
-        self._logger.error('function not defined')
+        self.__logger.error('function not defined')
         raise NotImplementedError
 
     def get_reflection_angle(self, iS):
@@ -229,7 +234,7 @@ class ray_tracing_base:
         reflection_angle: float or None
             the reflection angle (for reflected rays) or None for direct and refracted rays
         """
-        self._logger.error('function not defined')
+        self.__logger.error('function not defined')
         raise NotImplementedError
 
     def get_path_length(self, iS, analytic=True):
@@ -250,7 +255,7 @@ class ray_tracing_base:
         distance: float
             distance from x1 to x2 along the ray path
         """
-        self._logger.error('function not defined')
+        self.__logger.error('function not defined')
         raise NotImplementedError
 
     def get_travel_time(self, iS, analytic=True):
@@ -271,7 +276,7 @@ class ray_tracing_base:
         time: float
             travel time
         """
-        self._logger.error('function not defined')
+        self.__logger.error('function not defined')
         raise NotImplementedError
 
     def get_attenuation(self, iS, frequency, max_detector_freq=None):
@@ -298,7 +303,7 @@ class ray_tracing_base:
             the fraction of the signal that reaches the observer
             (only ice attenuation, the 1/R signal falloff not considered here)
         """
-        self._logger.error('function not defined')
+        self.__logger.error('function not defined')
         raise NotImplementedError
 
     def apply_propagation_effects(self, efield, i_solution):
@@ -306,8 +311,8 @@ class ray_tracing_base:
         Apply propagation effects to the electric field
         Note that the 1/r weakening of the electric field is already accounted for in the signal generation
 
-        Parameters:
-        ----------------
+        Parameters
+        ----------
         efield: ElectricField object
             The electric field that the effects should be applied to
         i_solution: int
@@ -318,7 +323,7 @@ class ray_tracing_base:
         efield: ElectricField object
             The modified ElectricField object
         """
-        self._logger.error('function not defined')
+        self.__logger.error('function not defined')
         raise NotImplementedError
 
     def get_output_parameters(self):
@@ -328,31 +333,31 @@ class ray_tracing_base:
 
         ! be sure that the first entry is specific to your raytracer !
 
-        Returns:
-        -----------------
+        Returns
+        -------
         list with entries of form [{'name': str, 'ndim': int}]
             ! be sure that the first entry is specific to your raytracer !
             'name': Name of the new parameter to include in the data structure
             'ndim': Dimension of the data structure for the parameter
         """
-        self._logger.error('function not defined')
+        self.__logger.error('function not defined')
         raise NotImplementedError
 
     def get_raytracing_output(self, i_solution):
         """
         Write parameters that are specific to this raytracer into the output data.
 
-        Parameters:
-        ---------------
+        Parameters
+        ----------
         i_solution: int
             The index of the raytracing solution
 
-        Returns:
-        ---------------
+        Returns
+        -------
         dictionary with the keys matching the parameter names specified in get_output_parameters and the values being
         the results from the raytracing
         """
-        self._logger.error('function not defined')
+        self.__logger.error('function not defined')
         raise NotImplementedError
 
     def get_number_of_raytracing_solutions(self):
@@ -372,8 +377,8 @@ class ray_tracing_base:
         """
         Function to change the configuration file used by the raytracer
 
-        Parameters:
-        ----------------
+        Parameters
+        ----------
         config: dict
             The new configuration settings
         """
