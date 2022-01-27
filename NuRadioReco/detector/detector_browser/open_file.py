@@ -64,8 +64,15 @@ layout = html.Div([
                         options=[{'label': 'specify defaults', 'value': 1}],
                         labelStyle={'margin': '2px 10px'},
                         value=[]
-                    )
-                ], id='need-defaults-input-group')
+                    ),
+                    html.Div([
+                        html.Div([
+                            html.Div('?', className='tooltip-questionmark')
+                        ], className='popup-symbol'),
+                        html.Div(('Normally, default stations and channels are specified in the detector descriptions, '
+                                  'but older detector description may require you to set them manually.'), className='popup-box')
+                    ], className='popup-container', style={'flex': 'none'})
+                ], id='need-defaults-input-group', className='need-defaults-input-group')
             ], className='.input-group'),
             html.Div([
                 dcc.Input(
