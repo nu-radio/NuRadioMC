@@ -3,29 +3,36 @@ import sys
 from scipy import signal, constants
 from radiotools import helper as hp
 from NuRadioReco.utilities import units
+
 # to convert V**2/m**2 * ns -> V**2/m**2 * s -> J/m**2 -> eV/m**2
 conversion_factor_integrated_signal = 1 / units.s * \
     constants.c * constants.epsilon_0 / units.eSI
 
 
 def get_signal(sum_trace, tstep, window_width=100 * units.ns, kind="power"):
-    """ Calculates signal quantity from beam-formed waveform 
+    """ 
+    Calculates signal quantity from beam-formed waveform 
     
-    Parameter:
+    Parameters
     ----------
 
-    sum_trace: np.array (m,)
+    sum_trace : np.array(m,)
         beam-formed waveform with m samples
 
-    tstep: double
+    tstep : double
         Sampling bin size
     
-    window_width: double
+    window_width : double
         Time window size to calculate power 
 
-    kind: str
+    kind : str
         Key-word what to do: "amplitude", "power", or "hilbert_sum"
     
+    Returns
+    -------
+
+    signal : double
+        Signal calculated according to the specified metric
     """
 
     # find signal peak
@@ -67,26 +74,35 @@ def gaus(x, A, x0, sigma):
 
 
 def interfere_traces_interpolation(target_pos, positions, traces, times, tab):
-    """ Calculate sum of time shifted waveforms.
+    """ 
+    Calculate sum of time shifted waveforms.
+
+    Performs a linear interpolation between samples.
     
-    Parameter:
+    Parameters
     ----------
 
-    target_pos: np.array (3,)
+    target_pos : np.array(3,)
         source/traget location
 
-    positions: np.array (n, 3)
+    positions : np.array(n, 3)
         observer positions
 
-    traces: np.array (n, m)
+    traces : np.array(n, m)
         waveforms of n observers with m samples
 
-    traces: times (n, m)
+    times : np.array(n, m)
         time stampes of the waveforms of each observer
 
-    tab: radiotools.atmosphere.refractivity.RefractivityTable
+    tab : radiotools.atmosphere.refractivity.RefractivityTable
         Tabulated table of the avg. refractive index between two points
     
+    Returns
+    -------
+
+    sum_trace : np.array(n, m)
+        Summed trace
+
     """
 
     # positions all have to be in sea level plane coordinates!
@@ -124,20 +140,23 @@ def get_time_shifts(target_pos, positions, tab):
     Calculates the time delay of an electromagnetic wave along a straight trajectories between 
     a source/traget location and several observers.
     
-    Parameter:
+    Parameters
     ----------
 
-    target_pos: np.array (3,)
+    target_pos : np.array(3,)
         source/traget location
 
-    positions: np.array (n, 3)
+    positions : np.array(n, 3)
         observer positions (n observers)
 
-    tab: radiotools.atmosphere.refractivity.RefractivityTable
+    tab : radiotools.atmosphere.refractivity.RefractivityTable
         Tabulated table of the avg. refractive index between two points
 
-    return: np.array (n,)
-        Time delay
+    Returns
+    -------
+
+    tshifts : np.array(n,)
+        Time delay in sec
     
     """
 
@@ -155,10 +174,37 @@ def get_time_shifts(target_pos, positions, tab):
 
 def fit_axis(z, theta, phi, coreX, coreY):
     """ 
-    Can be used to fit a line through a couple of points. 
-    Line is decribed by the 4 (fit) parameters: theta, phi, coreX, coreY
-    Returns the position/intersection of the line with flat horizontal layers with a given height z.
-    Results is flatten.
+    Predicts the intersetction of an axis/line with horizontal layers at different heights.
+
+    Line is described by an anchor on a horizontal plane (coreX, coreY) and a direction
+    in spherical coordinates (theta, phi).
+
+    Returns the position/intersection of the line with flat horizontal layers at 
+    given height(s) z. Resulting array (positions) is flatten.
+
+    Parameters
+    ----------
+
+    z : array
+        The height(s) for which the position on the defined axis should be evaluated.
+
+    theta : double
+        Zenith angle of the axis
+
+    phi : double
+        Azimuth angle of the axis
+
+    coreX : Double
+        x-coordinate of the intersection of the axis with a horizontal plane with z = 0.
+
+    coreY : Double
+        y-coordinate of the intersection of the axis with a horizontal plane with z = 0.
+
+    Returns
+    -------
+
+    points : array
+        The flatten array of the positions on along the defined axis at heights given by "z"
     """
     axis = hp.spherical_to_cartesian(theta, phi)
     norm = z / axis[-1]
@@ -170,26 +216,31 @@ def fit_axis(z, theta, phi, coreX, coreY):
 
 def get_intersection_between_line_and_plane(plane_normal, plane_anchor, line_direction, line_anchor, epsilon=1e-6):
     """
+    Find intersection betweem a line and a plane.
+
     From https://rosettacode.org/wiki/Find_the_intersection_of_a_line_with_a_plane#Python
 
-    Parameters:
-    -----------
-    plane_normal: np.array(3,)
+    Parameters
+    ----------
+    plane_normal : np.array(3,)
         Normal vector of a plane
 
-    plane_anchor: np.array(3,)
+    plane_anchor : np.array(3,)
         Anchor of this plane
 
-    line_direction: np.array(3,)
+    line_direction : np.array(3,)
         Direction of a line
 
-    line_anchor: np.array(3,)
+    line_anchor : np.array(3,)
         Anchor of this line
 
-    epsilon: double
+    epsilon : double
         Numerical precision 
 
-    Returns:
+    Returns
+    -------
+
+    psi : array(3,)
         Position of the intersection between plane and line
 
     """
