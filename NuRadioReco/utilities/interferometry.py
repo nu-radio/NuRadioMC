@@ -69,10 +69,6 @@ def get_signal(sum_trace, tstep, window_width=100 * units.ns, kind="power"):
         sys.exit("get_signal(), kind = '{}' not supported".format(kind))
 
 
-def gaus(x, A, x0, sigma):
-    return A * np.exp(-(x - x0) ** 2 / (2 * sigma ** 2)) / np.sqrt(2 * np.pi * sigma ** 2)
-
-
 def interfere_traces_interpolation(target_pos, positions, traces, times, tab):
     """ 
     Calculate sum of time shifted waveforms.

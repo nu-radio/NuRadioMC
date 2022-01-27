@@ -265,7 +265,11 @@ class efieldInterferometricDepthReco:
         signals_final = self.sample_longitudinal_profile(
             traces, times, station_positions, shower_axis, core, depths=depths_final)
 
-        popt, pkov = curve_fit(interferometry.gaus, depths_final, signals_final, p0=[np.amax(
+        def normal(x, A, x0, sigma):
+            return A / np.sqrt(2 * np.pi * sigma ** 2) \
+                * np.exp(-1 / 2 * ((x - x0) / sigma) ** 2)
+
+        popt, pkov = curve_fit(normal, depths_final, signals_final, p0=[np.amax(
             signals_final), depths_final[np.argmax(signals_final)], 100], maxfev=1000)
 
         if return_profile:
