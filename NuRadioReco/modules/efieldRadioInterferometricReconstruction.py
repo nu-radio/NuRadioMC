@@ -54,7 +54,7 @@ class efieldInterferometricDepthReco:
         Set module config.
 
         Parameters
-        ----------
+        -----------
 
         interpolation : bool
             If true, use a linear interpolation to match sampling of the beamformed signal trace and the individual time-shifted antenna traces.
@@ -81,8 +81,8 @@ class efieldInterferometricDepthReco:
         """
         Returns the longitudinal profile of the interferometic signal sampled along the shower axis. 
 
-        Paramters
-        ---------
+        Parameters
+        ----------
 
         traces : array(number_of_antennas, samples)
             Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.
@@ -173,8 +173,8 @@ class efieldInterferometricDepthReco:
         continually increased (with a min/max depth of 0/2000 g/cm^2). The Gauss is fitted around the
         found peak with a refined sampling (use 20 samples in this narrow range).
 
-        Paramters
-        ---------
+        Parameters
+        ----------
 
         traces : array(number_of_antennas, samples)
             Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.
@@ -282,8 +282,8 @@ class efieldInterferometricDepthReco:
         """ 
         Updates model of the atmosphere and tabulated, integrated refractive index according to shower properties.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
 
         shower : BaseShower
         """
@@ -311,8 +311,8 @@ class efieldInterferometricDepthReco:
         """ 
         Run interferometric reconstruction of depth of coherent signal.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
 
         evt : Event
             Event to run the module on.
@@ -424,8 +424,8 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         
         Returns the position and the strenght of the maximum signal.
 
-        Paramters
-        ---------
+        Parameters
+        ----------
 
         traces : array(number_of_antennas, samples)
             Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.
@@ -662,8 +662,8 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         """ 
         Run interferometric reconstruction of depth of coherent signal.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
 
         evt : Event
             Event to run the module on.
@@ -708,8 +708,8 @@ def get_geometry_and_transformation(shower):
     Returns core (def. as intersection between shower axis and observation plane,
     shower axis, and radiotools.coordinatesytem for given shower.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
 
     shower : BaseShower
     """
@@ -734,8 +734,10 @@ def get_geometry_and_transformation(shower):
 
 def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
     """ 
-    Parameter
-    ---------
+    Returns station data in a proper format
+    
+    Parameters
+    ----------
 
     evt : Event
 
@@ -761,7 +763,6 @@ def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
     pos : np.array
         Positions for all stations/observers. 
     """
-
 
     traces_vxB = []
     times = []
