@@ -51,18 +51,20 @@ class efieldInterferometricDepthReco:
 
     def begin(self, interpolation=True, signal_kind="power", debug=False):
         """
-        Parameters:
-        -----------
+        Set module config.
 
-        interpolation: bool
+        Parameters
+        ----------
+
+        interpolation : bool
             If true, use a linear interpolation to match sampling of the beamformed signal trace and the individual time-shifted antenna traces.
             Default is True, False is not yet implemented
 
-        signal_kind: str
-            Define which signal "metric" is used on the beamformed traces. Default "power": sum over the squared amplitudes in a 100 ns window around the peak.
+        signal_kind : str
+            Define which signal "metric" is used on the beamformed traces. Default "power" : sum over the squared amplitudes in a 100 ns window around the peak.
             Other options are "amplitude" or "hilbert_sum" 
 
-        debug: bool
+        debug : bool
             If true, show some debug plots (Default: False).
         """
         self._debug = debug
@@ -79,33 +81,37 @@ class efieldInterferometricDepthReco:
         """
         Returns the longitudinal profile of the interferometic signal sampled along the shower axis. 
 
-        Paramters:
-        ----------
+        Paramters
+        ---------
 
-        traces: array(number_of_antennas, samples)
+        traces : array(number_of_antennas, samples)
             Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.
 
-        times: array(number_of_antennas, samples)
+        times : array(number_of_antennas, samples)
             Time vectors corresponding to the electric field traces.
 
-        station_positions: array(number_of_antennas, 3)
+        station_positions : array(number_of_antennas, 3)
             Position of each antenna.
 
-        shower_axis: array(3,)
+        shower_axis : array(3,)
             Axis/direction along which the interferometric signal is sampled. Anchor is "core".
 
-        core: array(3,)
+        core : array(3,)
             Shower core. Keep in mind that the altitudes (z-coordinate) matters.
 
-        depths: array (optinal)
+        depths : array (optinal)
             Define the positions (slant depth along the axis) at which the interferometric signal is sampled. 
             Instead of "depths" you can provide "distances".
 
-        distances: array (optinal)
+        distances : array (optinal)
             Define the positions (geometrical distance from core along the axis) at which the interferometric signal is sampled.
             Instead of "distances" you can provide "depths".
 
-        Returns array
+        Returns
+        -------
+ 
+        signals : array
+            Interferometric singals sampled along the given axis
         """
 
         zenith = hp.get_angle(np.array([0, 0, 1]), shower_axis)
@@ -159,65 +165,68 @@ class efieldInterferometricDepthReco:
             self, traces, times, station_positions, shower_axis, core,
             lower_depth=400, upper_depth=800, bin_size=100, return_profile=False):
         """
-        Returns parameter of a Gauss fitted to the "peak" of the interferometic longitudinal profile along the shower axis.
-        A initial samping range and size in defined by "lower_depth", "upper_depth", "bin_size". However if the "peak", i.e.,
-        maximum signal is found at an edge the sampling range in continually increased (with a min/max depth of 0/2000 g/cm^2).
-        The Gauss is fitted around the found peak with a refined sampling (use 20 samples in this narrow range).
+        Returns Gauss-parameters fitted to the "peak" of the interferometic 
+        longitudinal profile along the shower axis.
+        
+        A initial samping range and size in defined by "lower_depth", "upper_depth", "bin_size".
+        However if the "peak", i.e., maximum signal is found at an edge the sampling range in
+        continually increased (with a min/max depth of 0/2000 g/cm^2). The Gauss is fitted around the
+        found peak with a refined sampling (use 20 samples in this narrow range).
 
-        Paramters:
-        ----------
+        Paramters
+        ---------
 
-        traces: array(number_of_antennas, samples)
+        traces : array(number_of_antennas, samples)
             Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.
 
-        times: array(number_of_antennas, samples)
+        times : array(number_of_antennas, samples)
             Time vectors corresponding to the electric field traces.
 
-        station_positions: array(number_of_antennas, 3)
+        station_positions : array(number_of_antennas, 3)
             Position of each antenna.
 
-        shower_axis: array(3,)
+        shower_axis : array(3,)
             Axis/direction along which the interferometric signal is sampled. Anchor is "core".
 
-        core: array(3,)
+        core : array(3,)
             Shower core. Keep in mind that the altitudes (z-coordinate) matters.
 
-        lower_depth: float
+        lower_depth : float
             Define the lower edge for the inital sampling (default: 400 g/cm2).
 
-        upper_depth: float
+        upper_depth : float
             Define the upper edge for the inital sampling (default: 800 g/cm2).
 
-        bin_size: float
+        bin_size : float
             Define the step size pf the inital sampling (default: 100 g/cm2).
             The refined sampling around the peak region is / 10 this value.
 
-        return_profile: bool 
+        return_profile : bool 
             If true return the sampled profile in addition to the Gauss parameter (default: False).
 
-        Returns:
-        --------
+        Returns
+        -------
         
         If return_profile is True
             
-            depths_corse: np.array
+            depths_corse : np.array
                 Depths along shower axis coarsely sampled
             
-            depths_fine: np.array
+            depths_fine : np.array
                 Depths along shower axis finely sampled (used in fitting)
             
-            signals_corese: np.array
+            signals_corese : np.array
                 Beamformed signals along shower axis coarsely sampled
             
-            signals_fine: np.array
+            signals_fine : np.array
                 Beamformed signals along shower axis finely sampled (used in fitting)
                     
-            popt: list
+            popt : list
                 List of fitted Gauss parameters (amplitude, position, width)
 
         If return_profile is False:
 
-            popt: list
+            popt : list
                 List of fitted Gauss parameters (amplitude, position, width)
         
         """
@@ -269,10 +278,10 @@ class efieldInterferometricDepthReco:
         """ 
         Updates model of the atmosphere and tabulated, integrated refractive index according to shower properties.
 
-        Parameter:
-        ----------
+        Parameter
+        ---------
 
-        shower: BaseShower
+        shower : BaseShower
         """
 
         if self._at is None:
@@ -298,19 +307,19 @@ class efieldInterferometricDepthReco:
         """ 
         Run interferometric reconstruction of depth of coherent signal.
 
-        Parameter:
-        ----------
+        Parameter
+        ---------
 
-        evt: Event
+        evt : Event
             Event to run the module on.
         
-        det: Detector
+        det : Detector
             Detector description
 
-        use_MC_geometry: bool
+        use_MC_geometry : bool
             if true, take geometry from sim_shower. Results will than also be stored in sim_shower
 
-        use_MC_pulses: bool
+        use_MC_pulses : bool
             if true, take electric field trace from sim_station
         """
 
@@ -411,54 +420,54 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         
         Returns the position and the strenght of the maximum signal.
 
-        Paramters:
-        ----------
+        Paramters
+        ---------
 
-        traces: array(number_of_antennas, samples)
+        traces : array(number_of_antennas, samples)
             Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.
 
-        times: array(number_of_antennas, samples)
+        times : array(number_of_antennas, samples)
             Time vectors corresponding to the electric field traces.
 
-        station_positions: array(number_of_antennas, 3)
+        station_positions : array(number_of_antennas, 3)
             Position of each antenna.
 
-        shower_axis_inital: array(3,)
+        shower_axis_inital : array(3,)
             Axis/direction which is used as initial guess for the true shower axis, Around this axis we sample the 2d-lateral distributions
 
-        core: array(3,)
+        core : array(3,)
             Shower core which is used as initial guess. Keep in mind that the altitudes (z-coordinate) matters.
 
-        depth: np.array
+        depth : np.array
 
-        cs: radiotools.coordinatesytem.cstrafo
+        cs : radiotools.coordinatesytem.cstrafo
 
-        shower_axis_mc: np.array(3,)
+        shower_axis_mc : np.array(3,)
         
-        core_mc: : np.array(3,)
+        core_mc : np.array(3,)
 
-        relative: bool
+        relative : bool
             False
             
-        initial_grid_spacing: int
+        initial_grid_spacing : int
             100
         
-        centered_around_truth: bool
+        centered_around_truth : bool
             True
 
-        cross_section_size: int
+        cross_section_size : int
             1000
             
-        deg_resolution: float
+        deg_resolution : float
             np.deg2rad(0.005))
         
-        Returns:
-        --------
+        Returns
+        -------
         
-        point_found: np.array(3,)
+        point_found : np.array(3,)
             Position of the found maximum
 
-        weight: float
+        weight : float
             Amplitude/Strengt of the maximum
         
         """
@@ -649,19 +658,19 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         """ 
         Run interferometric reconstruction of depth of coherent signal.
 
-        Parameter:
-        ----------
+        Parameter
+        ---------
 
-        evt: Event
+        evt : Event
             Event to run the module on.
         
-        det: Detector
+        det : Detector
             Detector description
 
-        use_MC_geometry: bool
+        use_MC_geometry : bool
             if true, take geometry from sim_shower. Results will than also be stored in sim_shower
 
-        use_MC_pulses: bool
+        use_MC_pulses : bool
             if true, take electric field trace from sim_station
         """
 
@@ -695,10 +704,10 @@ def get_geometry_and_transformation(shower):
     Returns core (def. as intersection between shower axis and observation plane,
     shower axis, and radiotools.coordinatesytem for given shower.
 
-    Parameter:
-    ----------
+    Parameter
+    ---------
 
-    shower: BaseShower
+    shower : BaseShower
     """
 
     observation_level = shower[shp.observation_level]
@@ -721,31 +730,31 @@ def get_geometry_and_transformation(shower):
 
 def get_station_data(evt, det, cs, use_MC_pulses, n_sampling=None):
     """ 
-    Parameter:
-    ----------
+    Parameter
+    ---------
 
-    evt: Event
+    evt : Event
 
-    det: Detector
+    det : Detector
 
-    cs: radiotools.coordinatesystems.cstrafo
+    cs : radiotools.coordinatesystems.cstrafo
 
-    use_MC_pulses: bool
+    use_MC_pulses : bool
         if true take electric field trace from sim_station
 
-    n_sampling: int
+    n_sampling : int
         if not None clip trace with n_sampling // 2 around np.argmax(np.abs(trace))
 
-    Returns:
-    --------
+    Returns
+    -------
     
-    traces_vxB: np.array
+    traces_vxB : np.array
         The electric field traces in the vxB polarisation (takes first electric field stored in a station) for all stations/observers.
 
-    times: mp.array  
+    times : mp.array  
         The electric field traces time series for all stations/observers.
         
-    pos: np.array
+    pos : np.array
         Positions for all stations/observers. 
     """
 
@@ -794,25 +803,25 @@ def plot_lateral_cross_section(xs, ys, signals, mc_pos=None, fname=None, title=N
     """ 
     Plot the lateral distribution of the beamformed singal (in the vxB, vxvxB directions).
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
 
-    xs: np.array
+    xs : np.array
         Positions on x-axis (vxB) at which the signal is sampled (on a 2d grid)
 
-    ys: np.array
+    ys : np.array
         Positions on y-axis (vxvxB) at which the signal is sampled (on a 2d grid)   
 
-    signals: np.array
+    signals : np.array
         Signals sampled on the 2d grid defined by xs and ys.
 
-    mc_pos: np.array(2,)
+    mc_pos : np.array(2,)
         Intersection of the (MC-)axis with the "slice" of the lateral distribution plotted.
 
-    fname: str
+    fname : str
         Name of the figure. If given the figure is saved, if fname is None the fiture is shown.
 
-    title: str
+    title : str
         Title of the figure (Default: None)
     """
 
