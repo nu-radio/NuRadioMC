@@ -19,7 +19,8 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
     Returns the antenna response to a radio signal coming from a specific direction
 
     Parameters
-    ---------------
+    ----------
+    
     station: Station
     frequencies: array of complex
         frequencies of the radio signal for which the antenna response is needed

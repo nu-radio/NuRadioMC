@@ -43,11 +43,13 @@ class BaseShower:
 
     def get_axis(self):
         """
-        Returns the (shower) axis. The axis is antiparallel to the movement of the shower particla and point
+        Returns the (shower) axis. 
+        
+        The axis is antiparallel to the movement of the shower particla and point
         towards the origin of the shower.
 
-        Returns: 
-        --------
+        Returns
+        -------
 
         np.array(3,)  
             Shower axis
@@ -65,11 +67,14 @@ class BaseShower:
 
     def get_coordinatesystem(self):
         """ 
-        Returns radiotools.coordinatesystem.cstrafo. Can be used to transform the radio pulses or the observer coordiates in the shower frame.
-        Requieres the shower arrival direction (azimuth and zenith angle) and magnetic field vector (parameters.showerParameters).
+        Returns radiotools.coordinatesystem.cstrafo for shower geometry.
+        
+        Can be used to transform the radio pulses or the observer coordiates
+        in the shower frame. Requieres the shower arrival direction 
+        (azimuth and zenith angle) and magnetic field vector (parameters.showerParameters).
 
-        Returns:
-        --------
+        Returns
+        -------
 
         radiotools.coordinatesystem.cstrafo
         
