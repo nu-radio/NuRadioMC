@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.modules.channelAntennaDedispersion &mdash; NuRadio 2.1.6-dev documentation</title>
+  <title>NuRadioReco.modules.channelAntennaDedispersion &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
@@ -29,7 +29,7 @@
             <img src="../../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                2.1.6-dev
+                2.2.0-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -542,10 +542,6 @@
 
 <div class="viewcode-block" id="channelAntennaDedispersion.run"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelAntennaDedispersion.html#NuRadioReco.modules.channelAntennaDedispersion.channelAntennaDedispersion.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
             <span class="n">ff</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
             <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_response</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ff</span><span class="p">))</span>
