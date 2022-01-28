@@ -35,10 +35,6 @@ class channelAntennaDedispersion:
 
     @register_run()
     def run(self, evt, station, det, debug=False):
-        """
-        parameters
-        ----------
-        """
         for channel in station.iter_channels():
             ff = channel.get_frequencies()
             response = self._get_response(det, station.get_id(), channel.get_id(), tuple(ff))
