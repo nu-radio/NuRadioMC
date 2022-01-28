@@ -1,7 +1,7 @@
 import numpy as np
 from NuRadioReco.utilities import units
 
-model_to_int = {"SP1" : 1, "GL1" : 2, "MB1" : 3}
+model_to_int = {"SP1" : 1, "GL1" : 2, "MB1" : 3, "GL2": 4}
 
 
 def fit_GL1(z):
