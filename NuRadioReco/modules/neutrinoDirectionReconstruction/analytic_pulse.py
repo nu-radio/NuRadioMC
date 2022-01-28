@@ -88,10 +88,9 @@ class simulation():
 					pickle.dump(self._templates, f)
 		return 
 	
-	def begin(self, det, station, use_channels, raytypesolution = False, ch_Vpol = None, ch_Hpol = None, Hpol_lower_band = 50, Hpol_upper_band = 700):
+	def begin(self, det, station, use_channels, raytypesolution = False, ch_Vpol = None, Hpol_channels = None, Hpol_lower_band = 50, Hpol_upper_band = 700, att_model = 'GL1'):
 		""" initialize filter and amplifier """
 		self._ch_Vpol = ch_Vpol
-		self._ch_Hpol = ch_Hpol
 		sim_to_data = True
 		self._raytypesolution= raytypesolution
 		channl = station.get_channel(use_channels[0])
@@ -136,16 +135,13 @@ class simulation():
 		h_Hpol = fb*fa
 
 
-
         
 		self._h = {}
 		for channel_id in use_channels:
-			if 0:#channel_id == ch_Hpol:
-				#print("channel id Hpol", channel_id) 
+			if channel_id in Hpol_channels:
 				self._h[channel_id] = {}
 				self._h[channel_id] = h_Hpol
 			else:
-				#print("channel id", channel_id)
 				self._h[channel_id] = {}
 				self._h[channel_id] = h
   
@@ -203,7 +199,7 @@ class simulation():
 			polarization_antenna = []
 			chid = self._ch_Vpol
 			x2 = det.get_relative_position(station.get_id(), chid) + det.get_absolute_position(station.get_id())
-			r = prop( ice, 'GL1')
+			r = prop( ice, att_model)
 			r.set_start_and_end_point(vertex, x2)
 
 			r.find_solutions()
@@ -218,7 +214,7 @@ class simulation():
 			for channel_id in use_channels:
 				raytracing[channel_id] = {}
 				x2 = det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id())
-				r = prop( ice, 'GL1')
+				r = prop( ice, att_model)
 				r.set_start_and_end_point(x1, x2)
 				r.find_solutions()
 				if(not r.has_solution()):
@@ -349,12 +345,9 @@ class simulation():
 				
                 #### get antenna respons for direction
 				
-				if starting_values:
-					zen = raytracing[channel_id][iS]["zenith"]
-					az = raytracing[channel_id][iS]["azimuth"]
-				else:
-					zen = raytracing[channel_id][iS]["zenith"]
-					az = raytracing[channel_id][iS]["azimuth"]
+				
+				zen = raytracing[channel_id][iS]["zenith"]
+				az = raytracing[channel_id][iS]["azimuth"]
 				efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, self._ff, [channel_id], det, zen,  az, self.antenna_provider)
 				
                 ### convolve efield with antenna reponse
@@ -365,7 +358,7 @@ class simulation():
 
 				analytic_trace_fft *=self._h[channel_id]
 				
-		#### add amplifier
+            #### add amplifier
 
 				analytic_trace_fft *= self._amp[channel_id]
 
@@ -379,12 +372,12 @@ class simulation():
 				timing[channel_id][iS] =raytracing[channel_id][iS]["travel time"]
 				raytype[channel_id][iS] = raytracing[channel_id][iS]["raytype"]
 			
-		if(first_iter): ## seelct viewing angle due to channel with largest amplitude 
+		if(first_iter):
 		     
 			maximum_channel = 0
 			
 			for i, iS in enumerate(raytracing[self._ch_Vpol]):
-				maximum_trace = max(abs(traces[self._ch_Vpol][iS])) ## maximum due to channel 6 (phased array
+				maximum_trace = max(abs(traces[self._ch_Vpol][iS]))
 			
 				if raytype[self._ch_Vpol][iS] == self._raytypesolution:
 					launch_vector = launch_vectors[i]
