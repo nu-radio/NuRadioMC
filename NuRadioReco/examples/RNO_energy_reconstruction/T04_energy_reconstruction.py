@@ -21,8 +21,6 @@ parser.add_argument(
     help='JSON file containing the detector description. Here, we assume it is written for the GenericDetector class.'
 
 )
-parser.add_argument('--det_default_station', type=int, default=11, help='Default station ID for the GenericDetector')
-parser.add_argument('--det_default_channel', type=int, default=0, help='Default channel ID for the GenericDetector')
 
 args = parser.parse_args()
 
@@ -34,8 +32,6 @@ energy_reconstructor = NuRadioReco.modules.neutrinoEnergyReconstructor.neutrinoE
 energy_reconstructor.begin([[0, 1, 2, 3, 4, 5]], ice)
 det = NuRadioReco.detector.generic_detector.GenericDetector(
     json_filename=args.detector_file,
-    default_station=args.det_default_station,
-    default_channel=args.det_default_channel,
     antenna_by_depth=False
 )
 

@@ -17,8 +17,6 @@ parser.add_argument('input_file', type=str)
 parser.add_argument('--output_file', type=str, default='simulated_events.nur')
 parser.add_argument('--detector_file', type=str, default='../../detector/RNO_G/RNO_single_station.json')
 parser.add_argument('--config_file', type=str, default='config.yaml')
-parser.add_argument('--det_default_station', type=int, default=11)
-parser.add_argument('--det_default_channel', type=int, default=0)
 parser.add_argument('--noise_level', type=float, default=10.)
 
 args = parser.parse_args()
@@ -54,8 +52,6 @@ sim = mySimulation(
     outputfilenameNuRadioReco=args.output_file,
     config_file=args.config_file,
     file_overwrite=True,
-    write_detector=False,
-    default_detector_channel=args.det_default_channel,
-    default_detector_station=args.det_default_station
+    write_detector=False
 )
 sim.run()

@@ -32,8 +32,6 @@ parser.add_argument(
     help='JSON file containing the detector description. Here, we assume it is written for the GenericDetector class.'
 
 )
-parser.add_argument('--det_default_station', type=int, default=11, help='Default station ID for the GenericDetector')
-parser.add_argument('--det_default_channel', type=int, default=0, help='Default channel ID for the GenericDetector')
 parser.add_argument('--noise_level', type=float, default=10., help='RMS of the noise in the channel traces, in mV.')
 args = parser.parse_args()
 
@@ -49,8 +47,6 @@ event_writer = NuRadioReco.modules.io.eventWriter.eventWriter()
 event_writer.begin(args.output_file)
 det = NuRadioReco.detector.generic_detector.GenericDetector(
     json_filename=args.detector_file,
-    default_station=args.det_default_station,
-    default_channel=args.det_default_channel,
     antenna_by_depth=False
 )
 channel_bandpass_filter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
