@@ -63,6 +63,7 @@ def get_attenuation_length(z, frequency, model):
         
         * SP1: South Pole model, see various compilation
         * GL1: Greenland model, see https://arxiv.org/abs/1409.5413
+        * GL2: 2021 Greenland model, see: https://arxiv.org/abs/2201.07846
         * MB1: Moore's Bay Model, from 10.3189/2015JoG14J214 and
             Phd Thesis C. Persichilli (depth dependence)
         
@@ -105,6 +106,24 @@ def get_attenuation_length(z, frequency, model):
             att_length_f[ att_length_f < min_length ] = min_length
 
         return att_length_f
+    if model == 'GL2':
+
+        fit_values_GL2 = [1.20547286e+00, 1.58815679e-05, -2.58901767e-07, -5.16435542e-10, -2.89124473e-13, -4.58987344e-17]
+        freq_slope = -0.54 * units.m / units.MHz
+        freq_inter = 852.0 * units.m
+
+        bulk_att_length_f = freq_inter + freq_slope * frequency
+        att_length_f = bulk_att_length_f * np.poly1d(np.flip(fit_values_GL2))(z)
+
+        min_length = 100 * units.m
+        if (not hasattr(frequency, '__len__') and not hasattr(z, '__len__')):
+            if att_length_f < min_length:
+                att_length_f = min_length
+        else:
+            att_length_f[att_length_f < min_length] = min_length
+        return att_length_f
+
+
     elif(model == "MB1"):
         # 10.3189/2015JoG14J214 measured the depth-averaged attenuation length as a function of frequency
         # the derived parameterization assumed a reflection coefficient of 1
