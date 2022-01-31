@@ -98,7 +98,7 @@ class simulation():
 		time_trace = 80 #ns
 		self._dt = 1./self._sampling_rate
 		self._n_samples = int(time_trace * self._sampling_rate) ## templates are 800 samples long. The analytic models can be longer.
-
+		self._att_model = att_model
 	
         #### define filters. Now same filter is used for Hpol as Vpol
 		self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
@@ -199,7 +199,7 @@ class simulation():
 			polarization_antenna = []
 			chid = self._ch_Vpol
 			x2 = det.get_relative_position(station.get_id(), chid) + det.get_absolute_position(station.get_id())
-			r = prop( ice, att_model)
+			r = prop( ice, self._att_model)
 			r.set_start_and_end_point(vertex, x2)
 
 			r.find_solutions()
@@ -214,7 +214,7 @@ class simulation():
 			for channel_id in use_channels:
 				raytracing[channel_id] = {}
 				x2 = det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id())
-				r = prop( ice, att_model)
+				r = prop( ice,self._att_model)
 				r.set_start_and_end_point(x1, x2)
 				r.find_solutions()
 				if(not r.has_solution()):

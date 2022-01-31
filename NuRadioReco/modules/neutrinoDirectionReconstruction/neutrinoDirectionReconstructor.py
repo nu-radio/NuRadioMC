@@ -52,7 +52,7 @@ class neutrinoDirectionReconstructor:
             vertex = station[stnp.nu_vertex]
         simulation = analytic_pulse.simulation(False, vertex)
         rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
-        simulation.begin(det, station, use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol, Hpols = Hpol_channels)#[1, 2, 3] [direct, refracted, reflected]
+        simulation.begin(det, station, use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol, Hpol_channels = Hpol_channels)#[1, 2, 3] [direct, refracted, reflected]
         a, b, self._launch_vector_sim, c, d, e =  simulation.simulation(det, station, vertex[0],vertex[1], vertex[2], self._simulated_zenith, self._simulated_azimuth, simulated_energy, use_channels, first_iter = True)
         self._simulation = simulation
         self._single_pulse_fit = single_pulse_fit
@@ -163,7 +163,7 @@ class neutrinoDirectionReconstructor:
             ### values for simulated vertex and simulated direction
             simulation = analytic_pulse.simulation(template, simulated_vertex)
             rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1 
-            simulation.begin(det, station, use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol, Hpols = Hpol_channels, Hpol_lower_band = Hpol_lower_band, Hpol_upper_band = Hpol_upper_band)
+            simulation.begin(det, station, use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol, Hpol_channels = Hpol_channels, Hpol_lower_band = Hpol_lower_band, Hpol_upper_band = Hpol_upper_band)
             tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(det, station, event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], simulated_zenith, simulated_azimuth, simulated_energy, use_channels, first_iter = True) 
        
             ## check SNR of channels
@@ -177,8 +177,8 @@ class neutrinoDirectionReconstructor:
     
         simulation = analytic_pulse.simulation(template, reconstructed_vertex) ### if the templates are used, than the templates for the correct distance are loaded
         if not sim_vertex: rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1 ## raytype from the triggered pulse
-        #print("RAYTYPE", rt)
-        simulation.begin(det, station, use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol, Hpols = Hpol_channels, Hpol_lower_band = Hpol_lower_band, Hpol_upper_band = Hpol_upper_band)
+    
+        simulation.begin(det, station, use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol, Hpol_channels = Hpol_channels, Hpol_lower_band = Hpol_lower_band, Hpol_upper_band = Hpol_upper_band)
         self._simulation = simulation
         if station.has_sim_station():
         
