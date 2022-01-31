@@ -1311,7 +1311,6 @@ class simulation():
     def _read_input_particle_properties(self, idx=None):
         if idx is None:
             idx = self._primary_index
-        self._fin['n_interaction'][self._shower_index] = self._fin['n_interaction'][idx]
         self._event_group_id = self._fin['event_group_ids'][idx]
 
         self.input_particle = NuRadioReco.framework.particle.Particle(0)
@@ -1320,13 +1319,13 @@ class simulation():
         self.input_particle[simp.interaction_type] = self._fin['interaction_type'][idx]
         self.input_particle[simp.inelasticity] = self._fin['inelasticity'][idx]
         self.input_particle[simp.vertex] = np.array([self._fin['xx'][idx],
-                                                  self._fin['yy'][idx],
-                                                  self._fin['zz'][idx]])
+                                                     self._fin['yy'][idx],
+                                                     self._fin['zz'][idx]])
         self.input_particle[simp.zenith] = self._fin['zeniths'][idx]
         self.input_particle[simp.azimuth] = self._fin['azimuths'][idx]
         self.input_particle[simp.inelasticity] = self._fin['inelasticity'][idx]
         self.input_particle[simp.n_interaction] = self._fin['n_interaction'][idx]
-        if self._fin['n_interaction'][self._shower_index] <= 1:
+        if self._fin['n_interaction'][idx] <= 1:
             # parents before the neutrino and outgoing daughters without shower are currently not
             # simulated. The parent_id is therefore at the moment only rudimentarily populated.
             self.input_particle[simp.parent_id] = None  # primary does not have a parent

@@ -2,6 +2,21 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 2.2.0
+new features:
+
+bugfixes:
+
+
+version 2.1.6
+bugfixes:
+- the n_interaction parameter was accidentally overridden. n_interaction counts the number of interactions of taus and 
+muons generated in the corresponding CC interactions. The bug resulted in the following behaviour: The n_interaction value of the primary
+neutrino interaction was overridden with the n_interaction value of the last shower of the previous event group. If the previous event group
+was a CC interaction, the n_interaction value of the primary interaction was set to a value larger than 1. If that happened, and if the primary
+shower did not trigger the detector, this shower is not added to the output hdf5 file. This has consquences for analyzing hdf5 files for 
+secondary interactions. With this bug, the initial interaction needs to be idenfified with np.abs(flavor) == 14 or 16.  
+This bug does not effect any effective volume calculation. 
 
 version 2.1.5
 new features:
