@@ -98,7 +98,7 @@ def get_attenuation_length(z, frequency, model):
         att_length_75 = fit_GL1(z / units.m)
         att_length_f = att_length_75 - 0.55 * units.m * (frequency / units.MHz - 75)
 
-        min_length = 100 * units.m
+        min_length = 1 * units.m
         if(not hasattr(frequency, '__len__') and not hasattr(z, '__len__')):
             if (att_length_f < min_length):
                 att_length_f = min_length
@@ -115,7 +115,7 @@ def get_attenuation_length(z, frequency, model):
         bulk_att_length_f = freq_inter + freq_slope * frequency
         att_length_f = bulk_att_length_f * np.poly1d(np.flip(fit_values_GL2))(z)
 
-        min_length = 100 * units.m
+        min_length = 1 * units.m
         if (not hasattr(frequency, '__len__') and not hasattr(z, '__len__')):
             if att_length_f < min_length:
                 att_length_f = min_length

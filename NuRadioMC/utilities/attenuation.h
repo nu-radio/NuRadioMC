@@ -16,7 +16,7 @@ double fit_GL1(double z, double frequency){
 
 	double att_length_f = att_length - 0.55*utl::m * (frequency/utl::MHz - 75);
 
-	const double min_length = 100 * utl::m;
+	const double min_length = 1 * utl::m;
 	if ( att_length_f < min_length ){ att_length_f = min_length; }
 
 	return att_length_f;
@@ -32,7 +32,7 @@ double fit_GL2(double z, double frequency){
     for (int power = 0; power < 6; power++){
 		att_length_f_GL2 += bulk_att_length_f * fit_values_GL2[power] * pow(z, power);
 	}
-	const double min_length = 100 * utl::m;
+	const double min_length = 1 * utl::m;
 	if ( att_length_f_GL2 < min_length ){ att_length_f_GL2 = min_length; }
 
 	return att_length_f_GL2;
