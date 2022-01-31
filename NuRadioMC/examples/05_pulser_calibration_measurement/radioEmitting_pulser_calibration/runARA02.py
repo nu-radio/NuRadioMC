@@ -1,3 +1,4 @@
+
 from __future__ import absolute_import, division, print_function
 import argparse
 import NuRadioReco.modules.triggerTimeAdjuster
@@ -33,7 +34,7 @@ class mySimulation(simulation.simulation):
 
     def _detector_simulation_filter_amp(self, evt, station, det):
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
-        channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 1000 * units.GHz],
+        channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 300 * units.GHz],
                                   filter_type='butter', order=2)
         channelBandPassFilter.run(evt, station, det, passband=[0, 500 * units.MHz],
                                   filter_type='butter', order=10)

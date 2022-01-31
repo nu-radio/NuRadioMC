@@ -31,12 +31,12 @@ def generate_my_events(filename, n_events):
 
     ########### FOR Emitter ###############
     data_sets = {}
-    data_sets["emitter_antenna_type"] = ["bicone_v8_inf_n1.78"] * n_events
+    data_sets["emitter_antenna_type"] =["bicone_v8_inf_n1.78"] * n_events # ["XFDTD_Vpol_CrossFeed_150mmHole_n1.78"]* n_events #["bicone_v8_inf_n1.78"] * n_events        
     data_sets["emitter_model"] = ["square"] * n_events
     data_sets["emitter_amplitudes"] = np.ones(n_events) * 1 * units.V
 
     # we also have choice for the half width and frequency
-    data_sets["emitter_half_width"]= 1.0 * np.ones(n_events) *units.ns        # this will be the width of square and tone_burst signal  
+    data_sets["emitter_half_width"]= 1.0 * np.ones(n_events) *units.ns        # this will be the half width of square and tone_burst signal  
     data_sets["emitter_frequency"] = 0.3 * np.ones(n_events)  *units.GHz       # this will be frequency of a signal ( for cw and tone_burst model)
     
     #the position of the emitter
@@ -54,23 +54,7 @@ def generate_my_events(filename, n_events):
     # the following informations not particularly useful for radio_emitter models
 
     data_sets["event_group_ids"] = np.arange(n_events)
-    data_sets["shower_ids"] = np.arange(n_events) 
-    
-    
-    ####### For neutrino shower #####
-    # the direction of the shower
-    # data_sets["azimuths"] = np.zeros(n_events)
-    # data_sets["zeniths"] = np.zeros(n_events)
-
-    # everything below this line are required to run NuRadioMC simulation
-
-    # data_sets["shower_type"] = ['had'] * n_events
-    # data_sets["shower_energies"] = np.ones(n_events)
-    # data_sets["interaction_type"] = np.full(n_events, "nc", dtype='U2')    #for neutrino interactions can be either CC or NC.
-    # data_sets["n_interaction"] = np.ones(n_events, dtype=int)
-    # data_sets["flavors"] = 12 * np.ones(n_events, dtype=int)    
-    # data_sets["energies"] = np.ones(n_events) * 1 * units.EeV
-    # data_sets["inelasticity"] = np.ones(n_events)
+    data_sets["shower_ids"] = np.arange(n_events)
 
     
     # write events to file

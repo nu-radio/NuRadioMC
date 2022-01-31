@@ -8,7 +8,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('raytracing')
 
-x1 = [-2 * units.km, -1500. * units.m]  # pulser position
+x1 = [-0. * units.km, -300 * units.m]  # pulser position
 x2 = [0., -200. * units.m]  # ARA antanna
 
 r = ray.ray_tracing_2D(medium.southpole_simple())

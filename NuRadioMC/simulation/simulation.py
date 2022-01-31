@@ -781,6 +781,25 @@ class simulation():
                                 eTheta *= 1 / R
                                 ePhi *= 1 / R
 
+                                import matplotlib.pyplot as plt
+                                import os
+                                plotDir = "./wf11/"
+                                if (not os.path.exists(plotDir)):
+                                   os.makedirs(plotDir)
+                                #time=np.linspace(-int(N*dt/2),int((N-1)*dt/2) , N)
+                                Etime = np.fft.irfft(eTheta)
+                                plt.plot(Etime)
+                                plt.title('E(t)')
+                                plt.savefig(str(plotDir) + "Etime" ".png", bbox_inches = "tight")
+                                plt.close()
+                                plt.plot(frequencies, np.abs(VEL['theta']))
+
+                                plt.title('VEL(f)')
+                                plt.savefig(str(plotDir) + "Efield" ".png", bbox_inches = "tight")
+                                plt.close()
+                                plt.plot(frequencies, np.abs(voltage_spectrum_emitter))
+                                plt.savefig(str(plotDir) + "/vf" ".png", bbox_inches = "tight")
+                                plt.close()                                 
                             else:
                                 logger.error(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
                                 raise AttributeError(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
