@@ -92,7 +92,12 @@ class readCoREAS:
                 self.logger.warning("file {} seems to be corrupt, skipping to next file".format(self.__input_files[self.__current_input_file]))
                 self.__current_input_file += 1
                 continue
-            corsika = h5py.File(self.__input_files[self.__current_input_file], "r")
+            try:
+                corsika = h5py.File(self.__input_files[self.__current_input_file], "r")
+            except OSError as error:
+                self.logger.error(f"error opening file number {self.__current_input_file}: {self.__input_files[self.__current_input_file]}")
+                self.logger.error(error)
+
             self.logger.info(
                 "using coreas simulation {} with E={:2g} theta = {:.0f}".format(
                     self.__input_files[self.__current_input_file],
@@ -154,7 +159,7 @@ class readCoREAS:
                         evt.set_station(station)
                         self.logger.debug(f"station {station_id} is outside of star shape, channel_ids {channel_ids}")
                     else:
-                        distances = np.linalg.norm(core_rel_to_station_vBvvB[:2] - positions_vBvvB[:, :2], axis=1)
+                        distances = np.linalg.norm(core_rel_to_station_vBvvB[:2] - positions_vBvvB[:,:2], axis=1)
                         index = np.argmin(distances)
                         distance = distances[index]
                         key = list(corsika['CoREAS']['observers'].keys())[index]
