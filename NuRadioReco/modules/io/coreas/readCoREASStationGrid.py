@@ -97,6 +97,7 @@ class readCoREAS:
             except OSError as error:
                 self.logger.error(f"error opening file number {self.__current_input_file}: {self.__input_files[self.__current_input_file]}")
                 self.logger.error(error)
+                continue
 
             self.logger.info(
                 "using coreas simulation {} with E={:2g} theta = {:.0f}".format(
