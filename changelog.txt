@@ -4,6 +4,7 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 2.2.0
 new features:
+- add attenuation model from the 2021 measurements taken at Summit Station
 
 bugfixes:
 
@@ -19,6 +20,8 @@ secondary interactions. With this bug, the initial interaction needs to be idenf
 This bug does not effect any effective volume calculation. 
 
 version 2.1.5
+new features:
+
 bugfixes:
 - the phased array trigger module did not calculate the trigger time.
   The trigger time was always set to the trace start time. This got fixed in this version. 
