@@ -77,7 +77,7 @@ class readCoREAS:
         detector: Detector object
             Detector description of the detector that shall be simulated
         output_mode: integer (default 0)
-            
+
             * 0: only the event object is returned
             * 1: the function reuturns the event object, the current inputfilename, the distance between the choosen station and the requested core position,
                and the area in which the core positions are randomly distributed
@@ -97,6 +97,7 @@ class readCoREAS:
             except OSError as error:
                 self.logger.error(f"error opening file number {self.__current_input_file}: {self.__input_files[self.__current_input_file]}")
                 self.logger.error(error)
+                self.__current_input_file += 1
                 continue
 
             self.logger.info(
