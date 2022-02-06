@@ -50,7 +50,7 @@ class distanceFitter:
         
         for channel in station.get_sim_station().iter_channels():
             if channel.get_id() == self.__channel_ids[0]:
-                print("channel id", channel.get_id())
+                print("		channel id", channel.get_id())
                 shower_id = channel.get_shower_id()
 
 
@@ -134,12 +134,14 @@ class distanceFitter:
        
                     x2 = det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id())
                     if method == 'look-up':
+                      
                         for i_type, ray_type in enumerate(['direct', 'refracted', 'reflected']):
                             d_hor = np.sqrt((vertex[0] - x2[0])**2 + (vertex[1] - x2[1])**2)
                             timings[i_ch, i_type] = get_signal_travel_time(d_hor, vertex[2], ray_type, channel_id)
 
 
-                    if method == 'analytic':
+                    if method == 'raytracing':
+                       
                         r = prop( ice, 'GL1')
                         r.set_start_and_end_point(vertex, x2)
 
@@ -232,19 +234,19 @@ class distanceFitter:
         zenith_vertex = zenith_vertex_pickle[np.argmin(abs(np.rad2deg(receive_pickle) - np.rad2deg(receive_zenith)))] ## deze aanpassen aan diepte #full distance inladen.
         
         if station.has_sim_station():
-            print("simulated corrs", likelihood(evt.get_sim_shower(shower_id)[shp.vertex], minimize = False))
+            #print("	simulated corrs", likelihood(evt.get_sim_shower(shower_id)[shp.vertex], minimize = False))
 
-            print("simulated value", likelihood(evt.get_sim_shower(shower_id)[shp.vertex], sim = True))
-            print("simulated vertex", evt.get_sim_shower(shower_id)[shp.vertex])
-            print("vertex azimuth simulated", np.rad2deg(hp.cartesian_to_spherical(*evt.get_sim_shower(shower_id)[shp.vertex])[1]))
-            print("vertex zenith simulared", np.rad2deg(hp.cartesian_to_spherical(*evt.get_sim_shower(shower_id)[shp.vertex])[0]))
-            print("simulated vertex:", evt.get_sim_shower(shower_id)[shp.vertex])
+            print("	minimization value for simulated values:", likelihood(evt.get_sim_shower(shower_id)[shp.vertex], sim = True))
+            print("	simulated vertex:", evt.get_sim_shower(shower_id)[shp.vertex])
+            print("	azimuth angle of sim vertex:", np.rad2deg(hp.cartesian_to_spherical(*evt.get_sim_shower(shower_id)[shp.vertex])[1]))
+            print("	zenith angle of sim vertex:", np.rad2deg(hp.cartesian_to_spherical(*evt.get_sim_shower(shower_id)[shp.vertex])[0]))
+         
        
         
-        print("reconstructed planewave azimuth", np.rad2deg(station[stnp.planewave_azimuth]))
-        print("reconstructed planewave zenith", np.rad2deg(station[stnp.planewave_zenith]))
+        print("		reconstructed planewave azimuth:", np.rad2deg(station[stnp.planewave_azimuth]))
+        print("		reconstructed planewave zenith:", np.rad2deg(station[stnp.planewave_zenith]))
 
-        
+        print("		fixed depth", fixed_depth)
         range_vertices = []
         depths = np.arange(200, 2500, 10)#
         if fixed_depth:
@@ -292,7 +294,7 @@ class distanceFitter:
            # fig1.tight_layout()
            # fig1.savefig("{}/vertex_likelihood.pdf".format(debugplots_path))
      
-        if debug:
+        if 0:#debug:
             fig1 =  plt.figure()
             ax1 = fig1.add_subplot(111)
             ax1.plot(np.array(range_vertices)[:,2], likelihood_values, 'o', markersize = 3, color = 'blue')
@@ -307,10 +309,10 @@ class distanceFitter:
             fig1.savefig("{}/vertex_map.pdf".format(debugplots))
 
         station[stnp.nu_vertex] = range_vertices[np.argmin(likelihood_values)]
-        print("reconstructed vertex", station[stnp.nu_vertex])
-        print("reconstructed value", likelihood(station[stnp.nu_vertex], rec = True))
-        print("reconstructed corrs", likelihood(station[stnp.nu_vertex], minimize = False))
-        print("len reconstructed corrs", len(likelihood(station[stnp.nu_vertex], minimize = False)))
+        print("		reconstructed vertex", station[stnp.nu_vertex])
+        print("		reconstructed value", likelihood(station[stnp.nu_vertex], rec = True))
+        #print("reconstructed corrs", likelihood(station[stnp.nu_vertex], minimize = False))
+        print("		len reconstructed corrs", len(likelihood(station[stnp.nu_vertex], minimize = False)))
   
     def end(self):
             pass
