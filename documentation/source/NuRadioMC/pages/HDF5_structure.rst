@@ -30,66 +30,45 @@ The top-level attributes can be accessed using ``f.attrs``. These contain:
 * ``Emax``, ``Emin``
   
   maximum and minimum energy simulated
-
 * ``NuRadioMC_EvtGen_version``, ``NuRadioMC_EvtGen_version_hash`` 
-
 * ``NuRadioMC_version``, ``NuRadioMC_version_hash``
-
 * ``Tnoise``
   
   (explicit) noise temperature used in simulation
-
 * ``Vrms``
-
 * ``area``
-
 * ``bandwidth``
-
 * ``config``
   
   the (yaml-style) config file used for the simulation
-
 * ``deposited``
-
 * ``detector``
   
   the (json-format) detector description used for the simulation
-
 * ``dt``
   
   the time resolution, i.e. the inverse of the sampling rate used for the simulation.
   This is not necessarily the same as the sampling rate of the simulated channels!
-
 * ``fiducial_rmax``, ``fiducial_rmin``, ``fiducial_zmax``, ``fiducial_zmin``
   
   Specify the simulated fiducial volume
-
 * ``flavors``
   
   a list of particle flavors that were simulated, using the PDG convention.
-
 * ``n_events``
   
   total number of events simulated (including those that did not trigger)
-
 * ``n_samples``
-
 * ``phimax``, ``phimin``
-
 * ``rmax``, ``rmin``
-
 * ``start_event_id``
   
   ``event_id`` of the first event in the file
-
 * ``thetamax``, ``thetamin``
-
 * ``trigger_names``
   
   list of the names of the different triggers simulated
-
 * ``volume``
-
 * ``zmax``, ``zmin``
 
 HDF5 file contents
@@ -110,6 +89,9 @@ is the number of different triggers simulated.
 * ``shower_energies``: (``n_showers``,)
 * ``shower_ids``: (``n_showers``,)
 * ``shower_realization_ARZ``: (``n_showers``,)
+
+  Which realization from the ARZ shower library was used for each shower (only if ARZ
+  was used for signal generation).
 * ``shower_type``: (``n_showers``,)
 * ``triggered``: (``n_events``,)
    
@@ -151,53 +133,39 @@ The station contains more detailed information for each event that triggered it:
   
   a boolean array that specifies if a shower contributed to an event that fulfills a certain trigger. 
   The index of the trigger can be translated to the trigger name via the attribute ``trigger_names``.
-
 * ``multiple_triggers_per_event``: (``n_events``, ``n_triggers``)
   
   a boolean array that specifies if each event fulfilled a certain trigger. 
   The index of the trigger can be translated to the trigger name via the attribute ``trigger_names``.
-
 * ``polarization``: (``n_shower``, ``n_channels``, ``n_ray_tracing_solutions``, 3)
   
   3D (Cartesian) coordinates of the polarization vector
-
 * ``ray_tracing_C0``: (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``)
   
   One of two parameters specifying the **analytic** ray tracing solution. 
   Can be used to retrieve the solutions without having to re-run the ray tracer.
-
 * ``ray_tracing_C1``: (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``)
   
   One of two parameters specifying the **analytic** ray tracing solution. 
   Can be used to retrieve the solutions without having to re-run the ray tracer.
-
 * ``ray_tracing_reflection``: (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``)
-
 * ``ray_tracing_reflection_case``: (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``)
-
 * ``ray_tracing_solution_type``: (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``)
-
 * ``receive_vectors``: (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``, 3)
   
   3D (Cartesian) coordinates of the receive vector of each ray tracing solution,
   per shower and channel.
-
 * ``shower_id``: (``n_showers``,)
-
 * ``time_shower_and_ray``: (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``)
-
 * ``travel_distances``: (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``)
   
   The distance travelled by each ray tracing solution to a specific channel
-
 * ``travel_times``: (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``)
   
   The time travelled by each ray tracing solution to a specific channel
-
 * ``triggered``: (``n_showers``,)
   
   Whether or not each shower contributed to an event that satisfied any trigger condition
-  
 * ``triggered_per_event``: (``n_events``,)
   
   Whether or not each event fulfilled any trigger condition.
