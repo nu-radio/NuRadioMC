@@ -1,5 +1,5 @@
 .input-group {
-  padding: 2px 5px;
+  padding: 2px 0px;
   width: 100%;
   display: flex;
 }
@@ -37,4 +37,17 @@
 .option-select {
   flex: 1;
   padding: 5px;
+}
+.defaults-input-div{
+ padding: 5px 10px;
+}
+.tooltip-questionmark {
+    background: #BFBFBF !important;
+    padding: 1px 5px;
+    border-radius: 10px;
+    font-size: 11px;
+    color: white;
+}
+.need-defaults-input-group {
+    display: flex;
 }
