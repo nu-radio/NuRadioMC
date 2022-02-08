@@ -27,11 +27,12 @@ class neutrinoDirectionReconstructor:
     def __init__(self):
         pass
 
-    def begin(self, station, det, event, shower_ids, use_channels=[6, 14], ch_Vpol = 6, ch_Hpol = 8,sim = True, single_pulse_fit = False, PA_cluster_channels= [0,1,2,3,7,8],  Hpol_channels = [7,8], window_Vpol = [-10, +50], window_Hpol = [10, 40], PA_channels = [0,1,2,3], Vrms_Hpol = 10 * units.mV, Vrms_Vpol = 10 * units.mV):
+    def begin(self, station, det, event, shower_ids, use_channels=[6, 14], ch_Vpol = 6, ch_Hpol = 8,sim = True, single_pulse_fit = False, PA_cluster_channels= [0,1,2,3,7,8],  Hpol_channels = [7,8], window_Vpol = [-10, +50], window_Hpol = [10, 40], PA_channels = [0,1,2,3], Vrms_Hpol = 8.2 * units.mV, Vrms_Vpol = 8.2 * units.mV, template = True):
         """
         begin method. This function is executed before the event loop.
         We do not use this function for the reconsturctions. But only to determining uncertainties.
         """
+        self._sim_vertex = sim
         self._Vrms = Vrms_Vpol
         #print("self Vrms", self._Vrms)
         self._Vrms_Hpol = Vrms_Hpol
@@ -50,10 +51,11 @@ class neutrinoDirectionReconstructor:
             vertex =event.get_sim_shower(shower_id)[shp.vertex]
         else:
             vertex = station[stnp.nu_vertex]
-        simulation = analytic_pulse.simulation(False, vertex)
-        rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
+        simulation = analytic_pulse.simulation(template, vertex)
+        if sim: rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1
+        if not sim: rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
         simulation.begin(det, station, use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol, Hpol_channels = Hpol_channels)#[1, 2, 3] [direct, refracted, reflected]
-        a, b, self._launch_vector_sim, c, d, e =  simulation.simulation(det, station, vertex[0],vertex[1], vertex[2], self._simulated_zenith, self._simulated_azimuth, simulated_energy, use_channels, first_iter = True)
+        a, b, self._launch_vector_sim, view, d, e =  simulation.simulation(det, station, vertex[0],vertex[1], vertex[2], self._simulated_zenith, self._simulated_azimuth, simulated_energy, use_channels, first_iter = True)
         self._simulation = simulation
         self._single_pulse_fit = single_pulse_fit
         self._PA_cluster_channels = PA_cluster_channels
@@ -61,7 +63,7 @@ class neutrinoDirectionReconstructor:
         self._window_Vpol = window_Vpol
         self._window_Hpol = window_Hpol
         self._PA_channels = PA_channels
-        return self._launch_vector_sim
+        return self._launch_vector_sim, view
     
     def run(self, event, station, det, shower_ids = None,
             use_channels=[6, 14], filenumber = 1, PA_channels = [0,1,2,3], single_pulse = False, debug_plots = False, template = False, sim_vertex = True, Vrms_Vpol = 0.01, Vrms_Hpol = 0.01, only_simulation = False, ch_Vpol = 6, ch_Hpol = 13, full_station = True, brute_force = True, fixed_timing = False, restricted_input = True, starting_values = False, debugplots_path = None, PA_cluster_channels = [0,1,2,3, 7,8], Hpol_channels = [7,8], window_Hpol = [10, +40], window_Vpol = [-10, +50], single_pulse_fit = False, Hpol_lower_band = 50,  Hpol_upper_band = 700):
@@ -476,7 +478,7 @@ class neutrinoDirectionReconstructor:
                                 ax[ich][1].plot(timingsim_recvertex[channel.get_id()][1], tracsim_recvertex[channel.get_id()][1], label = 'simulation rec vertex', color = 'lightblue', lw = linewidth, ls = '--')
                                 ax[ich][1].set_xlim((timingsim[channel.get_id()][1][0], timingsim[channel.get_id()][1][-1]))
                                 if 1:#channel.get_id() in [6]:
-                           #          ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel.get_id()][1], sampling_rate)), color = 'green', lw = linewidth, label = 'channel id {}'.format(channel.get_id()))
+                                     ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel.get_id()][1], sampling_rate)), color = 'green', lw = linewidth, label = 'channel id {}'.format(channel.get_id()))
                                      ax[ich][2].legend(fontsize = 30)                      
                             
                             ich += 1
@@ -743,7 +745,7 @@ class neutrinoDirectionReconstructor:
                                 data_timing_timing = data_timing_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)] ## 800 samples, like the simulation
                                 data_trace_timing = data_trace_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)]
                                 
-                                fixed_timing_PA_cluster = False
+                                fixed_timing_PA_cluster = True
                                 if fixed_timing_PA_cluster:
                                     if channel_id in self._PA_cluster_channels:
                                         if i_trace == trace_ref:
