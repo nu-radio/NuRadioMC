@@ -54,7 +54,7 @@ class distanceFitter:
                 shower_id = channel.get_shower_id()
 
 
-        receive_pickle, launch_pickle, solution_pickle, zenith_vertex_pickle = pickle.load(open('/lustre/fs22/group/radio/plaisier/software/simulations/planeWaveFit/receive_launch.pkl', 'rb'))
+        receive_pickle, launch_pickle, solution_pickle, zenith_vertex_pickle = pickle.load(open('/lustre/fs22/group/radio/plaisier/direction_reco/receive_launch.pkl', 'rb'))
 
         ice = medium.get_ice_model('greenland_simple')
         prop = propagation.get_propagation_module('analytic')
