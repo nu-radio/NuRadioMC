@@ -43,6 +43,10 @@ class stationParameters(Enum):
     area_sim = 43
     area_rec = 44
     channels_pulses = 45
+    planewave_zenith = 46
+    planewave_azimuth = 47
+    raytype_sim = 48
+    pulse_position_sim = 49
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
@@ -63,6 +67,8 @@ class channelParameters(Enum):
     signal_receiving_azimuths = 17   # the azimuth angle of direction at which the radio signal arrived at the antenna
     pulse_times = 18            # list of times where the waveform contains radio pulses
     signal_region_snrs = 19
+    receive_zenith_vertex = 20
+    receive_azimuth_vertex = 21
 
 class electricFieldParameters(Enum):
     ray_path_type = 1  # the type of the ray tracing solution ('direct', 'refracted' or 'reflected')

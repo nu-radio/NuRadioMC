@@ -23,7 +23,7 @@ class rayTypeSelecter:
     def begin(self):
         pass
 
-    def run(self, event, station, det, use_channels=[9, 14], noise_rms = 10, template = None, shower_id = None, icemodel = 'greenland_simple', raytracing_method = 'analytic', sim = False, debug_plots = False, debugplots_path = None):
+    def run(self, event, station, det, use_channels=[9, 14], noise_rms = 10, template = None, shower_id = None, icemodel = 'greenland_simple', raytracing_method = 'analytic', att_model = 'GL1', sim = False, debug_plots = True, debugplots_path = None):
         """
         Finds the pulse position of the triggered pulse in the phased array and returns the raytype of the pulse
         
@@ -59,11 +59,11 @@ class rayTypeSelecter:
         
         if sim:
             vertex = event.get_sim_shower(shower_id)[shp.vertex]
-            print("simulated vertex:", vertex)
+            print("	simulated vertex:", vertex)
         else:
             vertex = station[stnp.nu_vertex]
     
-       
+        #print("vertex sim", event.get_sim_shower(shower_id)[shp.vertex])
        
         if debug_plots: fig, axs = plt.subplots(3, figsize = (10, 10))
         if debug_plots: iax = 0
@@ -83,22 +83,26 @@ class rayTypeSelecter:
                     if (len(template) < len(station.get_channel(0).get_trace())): template = np.pad(template, (0, abs(len(station.get_channel(0).get_trace()) - len(template))))
             corr_total = np.zeros(len(scipy.signal.correlate(station.get_channel(0).get_trace(), template)))
             for channel in station.iter_channels():
-                if channel.get_id() in use_channels: # if channel in phased array
+                if channel.get_id() in use_channels:##[0,1,2,3]:
+                   # channel = station.get_channel(channelid) # if channel in phased array
                     channel_id = channel.get_id()
                     x2 = det.get_relative_position(station_id, channel_id) + det.get_absolute_position(station_id)
-                    r = prop( ice, 'GL1')
+                    r = prop( ice, att_model)
                     r.set_start_and_end_point(vertex, x2)
                     simchannel = []
+                    #print("vertex raytypeselecter", vertex)
                     r.find_solutions()
                     for iS in range(r.get_number_of_solutions()):
+         #               print("raytype raytypeseelecter", r.get_solution_type(iS))
                         if r.get_solution_type(iS) == raytype:
                            type_exist= 1
+                #           print("RAYTYPE", raytype)
                            T = r.get_travel_time(iS)
                            if channel_id == use_channels[0]: T_ref[iS] = T
       #
                            dt = T - T_ref[iS]
-                           dn_samples = dt * sampling_rate
-                           dn_samples = math.ceil(-1*dn_samples)
+                           dn_samples = -1*dt * sampling_rate
+                           dn_samples = math.ceil(dn_samples)
                            cp_trace = np.copy(channel.get_trace())
                            cp_times= np.copy(channel.get_times())
                     
@@ -117,13 +121,14 @@ class rayTypeSelecter:
                            corr_total += abs(corr)
                            dt = np.argmax(corr) - (len(corr)/2) +1
                            template_roll = np.roll(template, int(dt))
-                           pos_max[raytype-1] = np.argmax(template_roll) ## position of pulse
+                           #pos_max[raytype-1] = np.argmax(abs(template_roll) )## position of pulse
                            if channel_id == use_channels[0]: ## position for reference pulse
                                 position_max_totaltrace = np.argmax(template_roll)
                            cp_trace[np.arange(len(cp_trace)) < (position_max_totaltrace - 20 * sampling_rate)] = 0
                            cp_trace[np.arange(len(cp_trace)) > (position_max_totaltrace + 30 * sampling_rate)] = 0
                            trace = np.roll(cp_trace, dn_samples)
                            total_trace += trace
+                           pos_max[raytype-1] = np.argmax(abs(total_trace))
                            if debug_plots: axs[iax].plot(trace, color = 'darkgrey', lw =2)
                            if debug_plots: 
                                if channel_id == use_channels[-1]:
@@ -159,16 +164,20 @@ class rayTypeSelecter:
             
         if debug_plots:
             fig.tight_layout()
-            fig.savefig("{}/pulse_selection.png".format(debugplots_path))
+            fig.savefig("{}/pulse_selection.pdf".format(debugplots_path))
         
         ### store parameters
         reconstructed_raytype = ['direct', 'refracted', 'reflected'][np.argmax(max_totalcorr)]
-        print("reconstructed raytype:", reconstructed_raytype)
-        station.set_parameter(stnp.raytype, reconstructed_raytype)
-       
+        print("		reconstructed raytype:", reconstructed_raytype)
+        if not sim: station.set_parameter(stnp.raytype, reconstructed_raytype)
+        if sim: station.set_parameter(stnp.raytype_sim, reconstructed_raytype)
+        print("		max_totalcorr", max_totalcorr)
+        print("		pos_mas", pos_max)
         position_pulse = pos_max[np.argmax(max_totalcorr)]
-        station.set_parameter(stnp.pulse_position, position_pulse)
-
+        print("		position pulse", position_pulse)
+        #print("time position pulse", station.get_channel(use_channels[0]).get_times()[position_pulse]) 
+        if not sim: station.set_parameter(stnp.pulse_position, position_pulse)
+        if sim: station.set_parameter(stnp.pulse_position_sim, position_pulse)
 
         if debug_plots:
             fig, axs = plt.subplots(16, sharex = True, figsize = (5, 20))
@@ -176,8 +185,8 @@ class rayTypeSelecter:
         #### use pulse position to find places in traces of the other channels to determine which traces have a SNR > 3.5
         channels_pulses = []
 
-        x2 = det.get_relative_position(station_id, use_channels[-1]) + det.get_absolute_position(station_id)
-        r = prop(ice, 'GL1')
+        x2 = det.get_relative_position(station_id, use_channels[0]) + det.get_absolute_position(station_id)
+        r = prop(ice, att_model)
         r.set_start_and_end_point(vertex, x2)
         r.find_solutions()
         for iS in range(r.get_number_of_solutions()):
@@ -186,9 +195,10 @@ class rayTypeSelecter:
                 T_reference = r.get_travel_time(iS) 
                 
         for ich, channel in enumerate(station.iter_channels()):
+           # channel = station.get_channel(channelid)
             channel_id = channel.get_id()
             x2 = det.get_relative_position(station_id, channel_id) + det.get_absolute_position(station_id)
-            r = prop( ice, 'GL1')
+            r = prop( ice, att_model)
             r.set_start_and_end_point(vertex, x2)
             simchannel = []
             r.find_solutions()
@@ -200,15 +210,22 @@ class rayTypeSelecter:
                 delta_toffset = delta_T * sampling_rate
                 ### if channel is phased array channel, and pulse is triggered pulse, store signal zenith and azimuth
                 if channel_id == use_channels[0]: # if channel is upper phased array channel
-                  #  print("solution type", r.get_solution_type(iS))
+                   # print("	solution type", r.get_solution_type(iS))
                   #  print("selected type", np.argmax(max_totalcorr)+1)
                     if r.get_solution_type(iS) in [np.argmax(max_totalcorr)+1]: ## if solution type is triggered solution type
-                     #   print("get receive vector...............>>")
+                        #print("		get receive vector...............>>")
                         receive_vector = r.get_receive_vector(iS)
                         receive_zenith, receive_azimuth = hp.cartesian_to_spherical(*receive_vector)
-                        channel.set_parameter(chp.signal_receiving_zenith, receive_zenith)
-                        channel.set_parameter(chp.signal_receiving_azimuth, receive_azimuth)	
-
+                        if sim == True: 
+                            channel.set_parameter(chp.signal_receiving_zenith, receive_zenith)
+                            channel.set_parameter(chp.signal_receiving_azimuth, receive_azimuth)
+                            print("	receive zenith vertex, simulated vertex:", np.rad2deg(receive_zenith))
+                        if not sim: 
+                            channel.set_parameter(chp.receive_zenith_vertex, receive_zenith)
+                            print("	receive zenith vertex, reconstructed vertex:", np.rad2deg(receive_zenith))
+                            channel.set_parameter(chp.receive_azimuth_vertex, receive_azimuth)
+                            print("	receive azimuth vertex, reconstructed vertex:", np.rad2deg(receive_azimuth))     
+                    #print("zenith", channel[chp.signal_receiving_zenith])#print("channel id", channel_id)
                 ### figuring out the time offset for specfic trace
                 k = int(position_pulse + delta_toffset )
                 pulse_window = channel.get_trace()[k-300: k + 500]

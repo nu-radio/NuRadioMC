@@ -88,7 +88,7 @@ class simulation():
 					pickle.dump(self._templates, f)
 		return 
 	
-	def begin(self, det, station, use_channels, raytypesolution = False, ch_Vpol = None):
+	def begin(self, det, station, use_channels, raytypesolution = False, ch_Vpol = None, Hpol_channels = None, Hpol_lower_band = 50, Hpol_upper_band = 700, att_model = 'GL1'):
 		""" initialize filter and amplifier """
 		self._ch_Vpol = ch_Vpol
 		sim_to_data = True
@@ -98,7 +98,7 @@ class simulation():
 		time_trace = 80 #ns
 		self._dt = 1./self._sampling_rate
 		self._n_samples = int(time_trace * self._sampling_rate) ## templates are 800 samples long. The analytic models can be longer.
-
+		self._att_model = att_model
 	
         #### define filters. Now same filter is used for Hpol as Vpol
 		self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
@@ -117,7 +117,34 @@ class simulation():
 		fa[mask] = ha
 		fb = np.zeros_like(self._ff, dtype = np.complex)
 		fb[mask] = hb
-		self._h = fb*fa
+		h = fb*fa
+
+
+		order = 8
+		passband = [Hpol_lower_band* units.MHz, 1150 * units.MHz]
+		b, a = signal.butter(order, passband, 'bandpass', analog=True)
+		w, ha = signal.freqs(b, a, self._ff[mask])
+		order = 10
+		passband = [0* units.MHz, Hpol_upper_band * units.MHz]
+		b, a = signal.butter(order, passband, 'bandpass', analog=True)
+		w, hb = signal.freqs(b, a, self._ff[mask])
+		fa = np.zeros_like(self._ff, dtype=np.complex)
+		fa[mask] = ha
+		fb = np.zeros_like(self._ff, dtype = np.complex)
+		fb[mask] = hb
+		h_Hpol = fb*fa
+
+
+        
+		self._h = {}
+		for channel_id in use_channels:
+			if channel_id in Hpol_channels:
+				self._h[channel_id] = {}
+				self._h[channel_id] = h_Hpol
+			else:
+				self._h[channel_id] = {}
+				self._h[channel_id] = h
+  
 
 		self._amp = {}
 		for channel_id in use_channels:
@@ -140,7 +167,7 @@ class simulation():
 		cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["launch vector"]))
 		return cs.transform_from_ground_to_onsky(polarization_direction)
 	
-	def simulation(self, det, station, vertex_x, vertex_y, vertex_z, nu_zenith, nu_azimuth, energy, use_channels, fit = 'seperate', first_iter = False, model = 'Alvarez2009', starting_values = False):
+	def simulation(self, det, station, vertex_x, vertex_y, vertex_z, nu_zenith, nu_azimuth, energy, use_channels, fit = 'seperate', first_iter = False, model = 'Alvarez2009', starting_values = False, pol_angle = None):
 		ice = medium.get_ice_model('greenland_simple')
 		prop = propagation.get_propagation_module('analytic')
 		attenuate_ice = True
@@ -172,7 +199,7 @@ class simulation():
 			polarization_antenna = []
 			chid = self._ch_Vpol
 			x2 = det.get_relative_position(station.get_id(), chid) + det.get_absolute_position(station.get_id())
-			r = prop( ice, 'GL1')
+			r = prop( ice, self._att_model)
 			r.set_start_and_end_point(vertex, x2)
 
 			r.find_solutions()
@@ -185,15 +212,13 @@ class simulation():
 			x1 = vertex
 
 			for channel_id in use_channels:
-                                
 				raytracing[channel_id] = {}
 				x2 = det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id())
-				r = prop( ice, 'GL1')
+				r = prop( ice,self._att_model)
 				r.set_start_and_end_point(x1, x2)
-
 				r.find_solutions()
 				if(not r.has_solution()):
-					print("warning: no solutions")
+					print("warning: no solutions", channel_id)
 					continue
                                
 				# loop through all ray tracing solution
@@ -277,11 +302,20 @@ class simulation():
 				
 					cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["receive vector"]))
 					polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
+					#print("polarization direction at antenna", hp.cartesian_to_spherical(*polarization_direction_at_antenna))
 					logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
 						raytracing[channel_id][iS]["zenith"] / units.deg, raytracing[channel_id][iS]["azimuth"] / units.deg, polarization_direction_onsky[0],
 						polarization_direction_onsky[1], polarization_direction_onsky[2],
 						*polarization_direction_at_antenna))
-				eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
+				if not starting_values:
+					eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
+				if starting_values:
+					if 0:#channel_id == self._ch_Vpol:
+						eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
+						#ePhi =             
+					if 1:
+						eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
+						#ePhi = np.sqrt(np.tan(pol_angle)) * ePhi
 			
 		
 				if channel_id == self._ch_Vpol:
@@ -311,7 +345,10 @@ class simulation():
 				
                 #### get antenna respons for direction
 				
-				efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, self._ff, [channel_id], det, raytracing[channel_id][iS]["zenith"],  raytracing[channel_id][iS]["azimuth"], self.antenna_provider)
+				
+				zen = raytracing[channel_id][iS]["zenith"]
+				az = raytracing[channel_id][iS]["azimuth"]
+				efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, self._ff, [channel_id], det, zen,  az, self.antenna_provider)
 				
                 ### convolve efield with antenna reponse
 				if starting_values: analytic_trace_fft = np.sum(efield_antenna_factor[0] * np.array([spectrum,np.zeros(len(spectrum))]), axis = 0)
@@ -319,31 +356,28 @@ class simulation():
 				
                 ### filter the trace
 
-				analytic_trace_fft *=self._h
+				analytic_trace_fft *=self._h[channel_id]
 				
-		#### add amplifier
+            #### add amplifier
 
 				analytic_trace_fft *= self._amp[channel_id]
 
 				analytic_trace_fft[0] = 0
-                         
-		#### filter becuase of amplifier response
-				#analytic_trace_fft *= self._f
-#				analytic_trace_fft *= self._h
-                ### store traces
-				## rotate trace such that 
-				traces[channel_id][iS] = np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), -500)
-                ### store timing
+				
+			
+                                       
+				traces[channel_id][iS] =  np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), -500)
+                                                
+						
 				timing[channel_id][iS] =raytracing[channel_id][iS]["travel time"]
 				raytype[channel_id][iS] = raytracing[channel_id][iS]["raytype"]
-                     
 			
-		if(first_iter): ## seelct viewing angle due to channel with largest amplitude 
+		if(first_iter):
 		     
 			maximum_channel = 0
 			
 			for i, iS in enumerate(raytracing[self._ch_Vpol]):
-				maximum_trace = max(abs(traces[self._ch_Vpol][iS])) ## maximum due to channel 6 (phased array)
+				maximum_trace = max(abs(traces[self._ch_Vpol][iS]))
 			
 				if raytype[self._ch_Vpol][iS] == self._raytypesolution:
 					launch_vector = launch_vectors[i]

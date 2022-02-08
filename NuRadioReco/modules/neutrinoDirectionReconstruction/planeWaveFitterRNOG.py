@@ -122,13 +122,15 @@ class planeWaveFitterRNOG:
                 
                 if sim:
                     ax[ ich, 0].plot(self.__correlation[ich], color = 'blue')
-                    ax[ich, 0].axvline(pos, color = 'orange', lw = 1, label = 'sim')#self.__correlation[ich, pos])
+                    ax[ich, 0].axvline(pos, alpha = .5, color = 'orange', lw = 1, label = 'sim')#self.__correlation[ich, pos])
+                    #print("correlation[ich]", self.__correlation[ich, pos])
+                    #ax[ich, 0].set_xlim((5000, 10000)) 
                     #ax[ich,0].legend()
                     #ax[ich, 0].set_title("channel pair {}- {}".format( ch_pair[0], ch_pair[1]))
                 if rec:
                     ax[ ich, 0].plot(self.__correlation[ich])
                     ax[ich, 0].set_ylim((0, max(self.__correlation[ich])))
-                    ax[ich, 0].axvline(pos, color = 'red', lw = 1, label= 'rec')
+                    ax[ich, 0].axvline(pos, alpha = .5, color = 'red', lw = 1, label= 'rec')
                     ax[ich, 1].plot(station.get_channel(ch_pair[0]).get_times(), station.get_channel(ch_pair[0]).get_trace(), color = 'green', label = 'ch {}'.format(ch_pair[0]))
                   #  print("plot cannels", ch_pair)
                     ax[ich, 1].plot(station.get_channel(ch_pair[1]).get_times(), station.get_channel(ch_pair[1]).get_trace(), color = 'red', label = 'ch {}'.format(ch_pair[1]))
@@ -222,15 +224,16 @@ class planeWaveFitterRNOG:
                 "Likelihood simulation", 
                 likelihood([signal_zenith, signal_azimuth], sim = True, mode=mode)
             )
-  
+ 
         ll = opt.brute(likelihood, ranges=(slice(zen_start, zen_end, 0.01), slice(az_start, az_end, 0.01)), args=(mode,), finish = opt.fmin)
+
         rec_zenith = ll[0]
         rec_azimuth = ll[1]
 
         if debug:
             print("creating debug plot for planwavefiter.....")
-            zens = np.arange(0, 180, 1)
-            azs = np.arange(-180, 180, 1)
+            zens = np.arange(np.rad2deg(signal_zenith) - 10, np.rad2deg(signal_zenith) + 10, .5)
+            azs = np.arange(np.rad2deg(signal_azimuth) - 10, np.rad2deg(signal_azimuth) + 10, .5)
             xx, yy = np.meshgrid(zens, azs)
             zz = np.zeros((len(zens), len(azs)))
             for iz, z in enumerate(zens):
@@ -240,23 +243,26 @@ class planeWaveFitterRNOG:
   
             fig1 = plt.figure()
             plt.pcolor(zens, azs,  zz.T)
-            plt.xlabel("zenith [degrees]")
-            plt.ylabel("azimuth [azimuth]")
+            plt.xlabel(r"zenith $[^{\circ}]$")
+            plt.ylabel(r"azimuth $[^{\circ}]$")
             plt.axhline(np.rad2deg(signal_azimuth), color = 'orange')
             plt.axvline(np.rad2deg(signal_zenith), color = 'orange', label = 'simulated values')
             plt.axhline(np.rad2deg(rec_azimuth), color = 'white')
             plt.axvline(np.rad2deg(rec_zenith), color = 'white', label = 'reconstructed values')
+            cbar = plt.colorbar()
+            cbar.set_label('minimization value', rotation=270, labelpad = +20)
+
             plt.legend()
+            fig1.tight_layout()
             if debugplots_path != None:
                 fig1.savefig("{}/planewave_map.pdf".format(debugplots_path))
-     
         ##### run with reconstructed values
         if debug: print("likelihood reconstruction", likelihood(ll, rec = True))
         print("simulated zenith {} and reconstructed zenith {}".format(np.rad2deg(signal_zenith), np.rad2deg(rec_zenith)))
         print("simulated azimuth {} and reconstructed azimuth {}".format(np.rad2deg(signal_azimuth), np.rad2deg(rec_azimuth)))
 
-        station[stnp.nu_zenith] = signal_zenith
-        station[stnp.nu_azimuth] = signal_azimuth
+        station[stnp.planewave_zenith] = rec_zenith
+        station[stnp.planewave_azimuth] = rec_azimuth
    
 
 
