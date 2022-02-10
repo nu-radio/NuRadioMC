@@ -778,33 +778,12 @@ class simulation():
                                 zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*self._launch_vector)
                                 VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
                                 c = constants.c * units.m / units.s
-                                k = 2 * np.pi * frequencies * n_index / c
-                                eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c) * np.exp(-1j * k * R)
-                                ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c) * np.exp(-1j * k * R)
+                                eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c) 
+                                ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c) 
                                 eR = np.zeros_like(eTheta)
                                 # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
                                 eTheta *= 1 / R
                                 ePhi *= 1 / R
-
-                                import matplotlib.pyplot as plt
-                                import os
-                                plotDir = "./wf11/"
-                                if (not os.path.exists(plotDir)):
-                                   os.makedirs(plotDir)
-                                #time=np.linspace(-int(N*dt/2),int((N-1)*dt/2) , N)
-                                Etime = np.fft.irfft(eTheta)
-                                plt.plot(Etime)
-                                plt.title('E(t)')
-                                plt.savefig(str(plotDir) + "Etime" ".png", bbox_inches = "tight")
-                                plt.close()
-                                plt.plot(frequencies, np.abs(VEL['theta']))
-
-                                plt.title('VEL(f)')
-                                plt.savefig(str(plotDir) + "Efield" ".png", bbox_inches = "tight")
-                                plt.close()
-                                plt.plot(frequencies, np.abs(voltage_spectrum_emitter))
-                                plt.savefig(str(plotDir) + "/vf" ".png", bbox_inches = "tight")
-                                plt.close()                                 
                             else:
                                 logger.error(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
                                 raise AttributeError(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
