@@ -2,7 +2,6 @@
 A Monte Carlo simulation package for radio neutrino detectors and reconstruction framework for radio detectors of high-energy neutrinos and cosmic-rays
 
 The documentation can be found at https://nu-radio.github.io/NuRadioMC/main.html
-Please visit the wiki at https://github.com/nu-radio/NuRadioMC/wiki for additional documentation.
 
 If you want to keep up to date, consider signing up to the following email lists:
  * user email list, will be used to announce new versions and major improvements etc. Subscribe via https://lists.uu.se/sympa/subscribe/physics-astro-nuradiomc
@@ -29,7 +28,7 @@ NuRadioMC is continuously improved and new features are being added. The followi
 
 
 If you would like to contribute, please contact @cg-laser or @anelles for permissions to work on NuRadioMC. We work with pull requests only that can be merged after review.
-Also please visit https://github.com/nu-radio/NuRadioMC/blob/master/CONTRIBUTING.md
+Also please visit https://nu-radio.github.io/NuRadioMC/Introduction/pages/contributing.html for details on our workflow and coding conventions.
 
 NuRadioMC is used in an increasing number of studies. To get an overview for what NuRadioMC can be used for, please have a look at the following publications or see [here](https://inspirehep.net/literature?sort=mostrecent&size=25&page=1&q=refersto%3Arecid%3A1738571%20or%20refersto%3Arecid%3A1725583):
 

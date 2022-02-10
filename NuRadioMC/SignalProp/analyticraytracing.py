@@ -1249,9 +1249,12 @@ class ray_tracing_2D(ray_tracing_base):
         emitted to "skim the surface", i.e. arrive horizontally (angle = 90 deg) at the surface;
         This is used to find the refraction zone.
 
-        returns:
-            C0crit: C0 of critical angle
-            thcrit: critical angle
+        Returns
+        -------
+        C0crit: float
+            C0 of critical angle
+        thcrit: float
+            critical angle
         '''
 
         nlaunch = self.n(x1[1])
