@@ -74,14 +74,19 @@ To install all (optional and non-optional) dependencies available in pip at once
 
 .. code-block:: Bash
 
-  pip install numpy scipy matplotlib astropy tinydb tinydb-serialization aenum h5py mysql-python pymongo dash plotly sphinx peakutils
+  pip install numpy scipy matplotlib astropy tinydb tinydb-serialization aenum h5py mysql-python pymongo dash plotly toml peakutils
 
 Note that some optional dependencies are not pip-installable and need to be 
 :ref:`installed manually <Introduction/pages/installation:Not pip-installable packages>`
 
 Core Dependencies
 ^^^^^^^^^^^^^^^^^
+- toml:
+  
+  .. code-block:: bash
 
+    pip install toml
+    
 - radiotools:
 
   .. code-block:: bash
