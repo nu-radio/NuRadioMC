@@ -1,9 +1,6 @@
 Installing NuRadioMC / NuRadioReco
 ==================================
 
-.. Important::
-  This will change slightly with the next release of NuRadioMC, which will switch to poetry
-
 Requirements
 ------------
 In order to use ``NuRadioMC`` / ``NuRadioReco``, please ensure you are using a version of Python ``>=3.6``, and a UNIX operating system (linux or MacOS).
@@ -19,13 +16,19 @@ using ``pip``:
       pip install NuRadioMC
 
 NuRadioMC/NuRadioReco will then be available from Python using ``import NuRadioMC`` and ``import NuRadioReco``, respectively.
-The pip installation will also install all core dependencies. However, :ref:`some optional dependencies may still have to be installed manually <Introduction/pages/installation:Manual installation>`.
+The pip installation will also install all core dependencies. 
 
-  .. Important:: If you want the current version or you want to contribute to NuRadioReco, you need to install it manually.
+.. Important::
+
+  Some optional dependencies cannot be installed using pip and 
+  :ref:`have to be installed manually <Introduction/pages/installation:Not pip-installable packages>`.
+
+.. Important:: If you want the current version or you want to contribute to NuRadioReco, you need to install it manually.
 
 Development version
 ---------------------------
-The most recent version of ``NuRadioMC`` is available on `github <github.com>`_ It can be downloaded manually from the `repository website <https://github.com/nu-radio/NuRadioMC.git>`_,
+The most recent version of ``NuRadioMC`` is available on `github <github.com>`_. 
+It can be downloaded manually from the `repository website <https://github.com/nu-radio/NuRadioMC.git>`_,
 or cloned using ``git``
 
 .. code-block:: Bash
@@ -41,8 +44,11 @@ To set up NuRadioMC and install the required dependencies, navigate to the ``NuR
   python3 install_dev.py
 
 This will launch an interactive installer that allows you to install all core and some optional dependencies, as well as setting up some git settings
-in case you want to contribute to NuRadioMC. **We highly recommend installing NuRadioMC inside a** `virtual environment <https://docs.python.org/3/tutorial/venv.html>`_. You can either use ``python3 -m venv name_of_venv``
-or use a virtual environment manager like `conda <https://anaconda.org/anaconda/python>`_.
+in case you want to contribute to NuRadioMC. **We highly recommend installing NuRadioMC inside a** `virtual environment <https://docs.python.org/3/tutorial/venv.html>`_. 
+You can either use ``python3 -m venv name_of_venv``
+or use a virtual environment manager like `conda <https://anaconda.org/anaconda/python>`_. 
+If you for some reason do not want to use a virtual environment, you can install the dependencies for the current user only by appending 
+``python3 install_dev.py --user``.
 
 If the installer above does not work, or you want/need to install additional dependencies, 
 please follow the :ref:`manual installation instructions <Introduction/pages/installation:Manual installation>` below.
@@ -68,14 +74,19 @@ To install all (optional and non-optional) dependencies available in pip at once
 
 .. code-block:: Bash
 
-  pip install numpy scipy matplotlib astropy tinydb tinydb-serialization aenum h5py mysql-python pymongo dash plotly sphinx peakutils
+  pip install numpy scipy matplotlib astropy tinydb tinydb-serialization aenum h5py mysql-python pymongo dash plotly toml peakutils
 
 Note that some optional dependencies are not pip-installable and need to be 
 :ref:`installed manually <Introduction/pages/installation:Not pip-installable packages>`
 
 Core Dependencies
 ^^^^^^^^^^^^^^^^^
+- toml:
+  
+  .. code-block:: bash
 
+    pip install toml
+    
 - radiotools:
 
   .. code-block:: bash
@@ -199,4 +210,4 @@ ____________________________
     sudo apt-get install libgsl-dev
 
 - To use the :mod:`RadioPropa numerical ray tracing <NuRadioMC.SignalProp.radioproparaytracing>` module, ``radiopropa`` needs to be installed.
-  The radiopropa github, with installation instructions, can be found `here <https://github.com/nu-radio/RadioPropa>`_
+  The radiopropa github, with installation instructions, can be found `here <https://github.com/nu-radio/RadioPropa>`_.

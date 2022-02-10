@@ -123,7 +123,7 @@ class triggerSimulator:
             logger.error("Impossible trigger configuration, high {0} low {1}.".format(threshold_high, threshold_low))
             raise NotImplementedError
 
-        sampling_rate = station.get_channel(0).get_sampling_rate()
+        sampling_rate = station.get_channel(station.get_channel_ids()[0]).get_sampling_rate()
         if not set_not_triggered:
             triggerd_bins_channels = []
             dt = 1. / sampling_rate
