@@ -64,7 +64,19 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/contributing.html">Contributing to NuRadioReco</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/conventions.html">Some notes on conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#coordinates">Coordinates</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#default-coordinate-system">Default coordinate system</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#points">Points</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#angles">Angles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#directions">Directions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/contributing.html">Contributing to NuRadioMC</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/contributing.html#workflow">Workflow</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/contributing.html#coding-conventions">Coding conventions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/contributing.html#how-to">How to</a><ul>
@@ -338,6 +350,13 @@
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="reference internal" href="../pages/welcome_page.html">NuRadioMC Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../pages/HDF5_structure.html">HDF5 output structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 <li class="toctree-l2 current"><a class="reference internal" href="../pages/code_documentation.html">Code Documentation</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#submodules">Submodules</a><ul>
@@ -411,6 +430,23 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../pages/manuals.html">Manuals</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html">Example: Calculating effective volume</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#run-an-effective-volume-simulation">Run an effective volume simulation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#generating-the-input-event-list">Generating the input event list</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#running-the-simulation">Running the simulation</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#visualization-of-results">Visualization of results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/expected_sensitivities_tutorial.html">Example: Calculating expected sensitivities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/example-multi_station_coincidences.html">Example: Multi-station coincidences</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/example-multi_station_coincidences.html#generation-of-detector-layout">1. Generation of detector layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/example-multi_station_coincidences.html#detector-simulation">2. Detector simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/example-multi_station_coincidences.html#running-the-simulation">3. Running the simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/example-multi_station_coincidences.html#analyzing-the-output">4. Analyzing the output</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/event_generation.html">Event Generation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/event_generation.html#events-in-a-cylindrical-volume">Events in a cylindrical volume</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/event_generation.html#input-parameters">Input parameters</a></li>
@@ -467,14 +503,11 @@
 <li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/simulation_configuration.html#detector-simulation">Detector simulation</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html">Calculating effective volume</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#installation">Installation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#run-an-effective-volume-simulation">Run an effective volume simulation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#generating-the-input-event-list">Generating the input event list</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#running-the-simulation">Running the simulation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#more-details-the-detector-description">More details: the detector description</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#more-details-the-config-file">More details: the config file</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#visualization-of-results">Visualization of results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/running_on_a_cluster.html">Running on a cluster</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/running_on_a_cluster.html#generate-input-files">1. Generate input files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/running_on_a_cluster.html#generate-job-sh-scripts">2. Generate job *.sh scripts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/running_on_a_cluster.html#submit-jobs-to-the-cluster">3. Submit jobs to the cluster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/running_on_a_cluster.html#merge-individual-hdf5-output-files">4. Merge individual hdf5 output files</a></li>
 </ul>
 </li>
 </ul>
@@ -710,9 +743,9 @@ Overwrites function of the mother class</p>
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelSimple.get_ice_model_radiopropa">
 <span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelSimple.get_ice_model_radiopropa"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
 <dd><p>If radiopropa is installed this will return an object holding the radiopropa
-scalarfield and necessary radiopropa moduldes that define the medium in radiopropa. 
-It uses the parameters of the medium object to contruct the scalar field using the 
-simple ice model implementation in radiopropa and some modules, like a discontinuity 
+scalarfield and necessary radiopropa moduldes that define the medium in radiopropa.
+It uses the parameters of the medium object to contruct the scalar field using the
+simple ice model implementation in radiopropa and some modules, like a discontinuity
 object for the air boundary</p>
 <p>Overwrites function of the mother class</p>
 <dl class="field-list simple">
@@ -763,30 +796,30 @@ smooth handeling of the radiopropa ice model.</p>
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.add_module" title="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.add_module"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_module</span></code></a>(name, module)</p></td>
-<td><p>add predefined modules (like reflective or transmissive layers,  a discontinuity in refractive index, observers ...) of the ice  to the dictionary</p></td>
+<td><p>add predefined modules (like reflective or transmissive layers, a discontinuity in refractive index, observers ...) of the ice to the dictionary</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_module" title="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_module"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_module</span></code></a>(name)</p></td>
-<td><p>returns the predefined module with that name (like reflective or  transmissive layers, a discontinuity in refractive index, observers  ...) of the ice for to use in the radiopropa tracer</p></td>
+<td><p>returns the predefined module with that name (like reflective or transmissive layers, a discontinuity in refractive index, observers ...) of the ice for to use in the radiopropa tracer</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_modules" title="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_modules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_modules</span></code></a>()</p></td>
-<td><p>returns the predefined modules (like reflective or transmissive layers,  a discontinuity in refractive index, observers ...) of the ice for  to use in the radiopropa tracer</p></td>
+<td><p>returns the predefined modules (like reflective or transmissive layers, a discontinuity in refractive index, observers ...) of the ice for to use in the radiopropa tracer</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_scalar_field" title="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_scalar_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_scalar_field</span></code></a>()</p></td>
-<td><p>add predefined modules (like reflective or transmissive layers,  a discontinuity in refractive index, observers ...) of the ice  to the dictionary</p></td>
+<td><p>add predefined modules (like reflective or transmissive layers, a discontinuity in refractive index, observers ...) of the ice to the dictionary</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.remove_module" title="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.remove_module"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_module</span></code></a>(name)</p></td>
-<td><p>removes predefined modules (like reflective or transmissive layers,  a discontinuity in refractive index, observers ...) of the ice  to the dictionary</p></td>
+<td><p>removes predefined modules (like reflective or transmissive layers, a discontinuity in refractive index, observers ...) of the ice to the dictionary</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.replace_module" title="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.replace_module"><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace_module</span></code></a>(name, new_module)</p></td>
-<td><p>replaces predefined modules (like reflective or transmissive layers,  a discontinuity in refractive index, observers ...) of the ice  to the dictionary</p></td>
+<td><p>replaces predefined modules (like reflective or transmissive layers, a discontinuity in refractive index, observers ...) of the ice to the dictionary</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.add_module">
 <span class="sig-name descname"><span class="pre">add_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.add_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.add_module" title="Permalink to this definition"></a></dt>
-<dd><p>add predefined modules (like reflective or transmissive layers, 
-a discontinuity in refractive index, observers …) of the ice 
+<dd><p>add predefined modules (like reflective or transmissive layers,
+a discontinuity in refractive index, observers …) of the ice
 to the dictionary</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -803,8 +836,8 @@ to the dictionary</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_module">
 <span class="sig-name descname"><span class="pre">get_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.get_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_module" title="Permalink to this definition"></a></dt>
-<dd><p>returns the predefined module with that name (like reflective or 
-transmissive layers, a discontinuity in refractive index, observers 
+<dd><p>returns the predefined module with that name (like reflective or
+transmissive layers, a discontinuity in refractive index, observers
 …) of the ice for to use in the radiopropa tracer</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -819,8 +852,8 @@ transmissive layers, a discontinuity in refractive index, observers
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_modules">
 <span class="sig-name descname"><span class="pre">get_modules</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.get_modules"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_modules" title="Permalink to this definition"></a></dt>
-<dd><p>returns the predefined modules (like reflective or transmissive layers, 
-a discontinuity in refractive index, observers …) of the ice for 
+<dd><p>returns the predefined modules (like reflective or transmissive layers,
+a discontinuity in refractive index, observers …) of the ice for
 to use in the radiopropa tracer</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -835,8 +868,8 @@ to use in the radiopropa tracer</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_scalar_field">
 <span class="sig-name descname"><span class="pre">get_scalar_field</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.get_scalar_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.get_scalar_field" title="Permalink to this definition"></a></dt>
-<dd><p>add predefined modules (like reflective or transmissive layers, 
-a discontinuity in refractive index, observers …) of the ice 
+<dd><p>add predefined modules (like reflective or transmissive layers,
+a discontinuity in refractive index, observers …) of the ice
 to the dictionary</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -851,8 +884,8 @@ to the dictionary</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.remove_module">
 <span class="sig-name descname"><span class="pre">remove_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.remove_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.remove_module" title="Permalink to this definition"></a></dt>
-<dd><p>removes predefined modules (like reflective or transmissive layers, 
-a discontinuity in refractive index, observers …) of the ice 
+<dd><p>removes predefined modules (like reflective or transmissive layers,
+a discontinuity in refractive index, observers …) of the ice
 to the dictionary</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -867,8 +900,8 @@ to the dictionary</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.replace_module">
 <span class="sig-name descname"><span class="pre">replace_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#RadioPropaIceWrapper.replace_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.replace_module" title="Permalink to this definition"></a></dt>
-<dd><p>replaces predefined modules (like reflective or transmissive layers, 
-a discontinuity in refractive index, observers …) of the ice 
+<dd><p>replaces predefined modules (like reflective or transmissive layers,
+a discontinuity in refractive index, observers …) of the ice
 to the dictionary</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -964,7 +997,7 @@ wrapper which is much slower.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2021, The NuRadio Group.</p>
+    <p>&#169; Copyright 2022, The NuRadio Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

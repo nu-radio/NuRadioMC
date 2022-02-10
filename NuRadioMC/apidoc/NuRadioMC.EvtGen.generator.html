@@ -64,7 +64,19 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/contributing.html">Contributing to NuRadioReco</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/conventions.html">Some notes on conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#coordinates">Coordinates</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#default-coordinate-system">Default coordinate system</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#points">Points</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#angles">Angles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#directions">Directions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/contributing.html">Contributing to NuRadioMC</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/contributing.html#workflow">Workflow</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/contributing.html#coding-conventions">Coding conventions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/contributing.html#how-to">How to</a><ul>
@@ -338,6 +350,13 @@
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="reference internal" href="../pages/welcome_page.html">NuRadioMC Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../pages/HDF5_structure.html">HDF5 output structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 <li class="toctree-l2 current"><a class="reference internal" href="../pages/code_documentation.html">Code Documentation</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a><ul class="current">
 <li class="toctree-l4 current"><a class="reference internal" href="NuRadioMC.EvtGen.html#submodules">Submodules</a><ul class="current">
@@ -411,6 +430,23 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../pages/manuals.html">Manuals</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html">Example: Calculating effective volume</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#run-an-effective-volume-simulation">Run an effective volume simulation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#generating-the-input-event-list">Generating the input event list</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#running-the-simulation">Running the simulation</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#visualization-of-results">Visualization of results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/expected_sensitivities_tutorial.html">Example: Calculating expected sensitivities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/example-multi_station_coincidences.html">Example: Multi-station coincidences</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/example-multi_station_coincidences.html#generation-of-detector-layout">1. Generation of detector layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/example-multi_station_coincidences.html#detector-simulation">2. Detector simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/example-multi_station_coincidences.html#running-the-simulation">3. Running the simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/example-multi_station_coincidences.html#analyzing-the-output">4. Analyzing the output</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/event_generation.html">Event Generation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/event_generation.html#events-in-a-cylindrical-volume">Events in a cylindrical volume</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../pages/Manuals/event_generation.html#input-parameters">Input parameters</a></li>
@@ -467,14 +503,11 @@
 <li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/simulation_configuration.html#detector-simulation">Detector simulation</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html">Calculating effective volume</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#installation">Installation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#run-an-effective-volume-simulation">Run an effective volume simulation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#generating-the-input-event-list">Generating the input event list</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#running-the-simulation">Running the simulation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#more-details-the-detector-description">More details: the detector description</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#more-details-the-config-file">More details: the config file</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/veff_tutorial.html#visualization-of-results">Visualization of results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/Manuals/running_on_a_cluster.html">Running on a cluster</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/running_on_a_cluster.html#generate-input-files">1. Generate input files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/running_on_a_cluster.html#generate-job-sh-scripts">2. Generate job *.sh scripts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/running_on_a_cluster.html#submit-jobs-to-the-cluster">3. Submit jobs to the cluster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/Manuals/running_on_a_cluster.html#merge-individual-hdf5-output-files">4. Merge individual hdf5 output files</a></li>
 </ul>
 </li>
 </ul>
@@ -772,7 +805,7 @@ This is useful to split up the computing on multiple cores.</p>
 <li><p>‘E-?’: E to the -? spectrum where ? can be any float</p></li>
 <li><p>‘IceCube-nu-2017’: astrophysical neutrino flux measured with IceCube muon sample (<a class="reference external" href="https://doi.org/10.22323/1.301.1005">https://doi.org/10.22323/1.301.1005</a>)</p></li>
 <li><dl class="simple">
-<dt>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a> </dt><dd><p>for 10% proton fraction (see get_GZK_1 function for details)</p>
+<dt>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a></dt><dd><p>for 10% proton fraction (see get_GZK_1 function for details)</p>
 </dd>
 </dl>
 </li>
@@ -819,7 +852,7 @@ if False the event datasets + atrributes are returned</p>
 </dd>
 <dt><strong>seed: None of int</strong></dt><dd><p>seed of the random state</p>
 </dd>
-<dt><strong>interaction_type: string</strong></dt><dd><p>the interaction type. default is “ccnc” which randomly choses neutral current (NC) or charged-current (CC) interactions. 
+<dt><strong>interaction_type: string</strong></dt><dd><p>the interaction type. default is “ccnc” which randomly choses neutral current (NC) or charged-current (CC) interactions.
 The use can also specify “nc” or “cc” to exclusively simulate NC or CC interactions</p>
 </dd>
 </dl>
@@ -980,7 +1013,7 @@ This is useful to split up the computing on multiple cores.</p>
 <li><p>‘E-?’: E to the -? spectrum where ? can be any float</p></li>
 <li><p>‘IceCube-nu-2017’: astrophysical neutrino flux measured with IceCube muon sample (<a class="reference external" href="https://doi.org/10.22323/1.301.1005">https://doi.org/10.22323/1.301.1005</a>)</p></li>
 <li><dl class="simple">
-<dt>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a> </dt><dd><p>for 10% proton fraction (see get_GZK_1 function for details)</p>
+<dt>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a></dt><dd><p>for 10% proton fraction (see get_GZK_1 function for details)</p>
 </dd>
 </dl>
 </li>
@@ -1038,7 +1071,7 @@ table paths and then copy this file to config_PROPOSAL_xxx.json.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.EvtGen.generator.generate_vertex_positions">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.generator.</span></span><span class="sig-name descname"><span class="pre">generate_vertex_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/generator.html#generate_vertex_positions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.generator.generate_vertex_positions" title="Permalink to this definition"></a></dt>
-<dd><p>helper function that generates the vertex position randomly distributed in simulation volume. 
+<dd><p>helper function that generates the vertex position randomly distributed in simulation volume.
 The relevant quantities are also saved into the hdf5 attributes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1283,7 +1316,7 @@ energy in the medium.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2021, The NuRadio Group.</p>
+    <p>&#169; Copyright 2022, The NuRadio Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

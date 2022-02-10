@@ -19,7 +19,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Event Generation" href="Manuals/event_generation.html" />
+    <link rel="next" title="Example: Calculating effective volume" href="Manuals/veff_tutorial.html" />
     <link rel="prev" title="NuRadioMC.utilities.split_hdf5 module" href="../apidoc/NuRadioMC.utilities.split_hdf5.html" /> 
 </head>
 
@@ -64,7 +64,19 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/contributing.html">Contributing to NuRadioReco</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/conventions.html">Some notes on conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#coordinates">Coordinates</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#default-coordinate-system">Default coordinate system</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#points">Points</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#angles">Angles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/conventions.html#directions">Directions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../Introduction/pages/contributing.html">Contributing to NuRadioMC</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/contributing.html#workflow">Workflow</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/contributing.html#coding-conventions">Coding conventions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/contributing.html#how-to">How to</a><ul>
@@ -338,6 +350,13 @@
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="reference internal" href="welcome_page.html">NuRadioMC Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="HDF5_structure.html">HDF5 output structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="code_documentation.html">Code Documentation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../apidoc/NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../apidoc/NuRadioMC.EvtGen.html#submodules">Submodules</a><ul>
@@ -411,6 +430,23 @@
 </ul>
 </li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Manuals</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Manuals/veff_tutorial.html">Example: Calculating effective volume</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Manuals/veff_tutorial.html#run-an-effective-volume-simulation">Run an effective volume simulation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="Manuals/veff_tutorial.html#generating-the-input-event-list">Generating the input event list</a></li>
+<li class="toctree-l5"><a class="reference internal" href="Manuals/veff_tutorial.html#running-the-simulation">Running the simulation</a></li>
+<li class="toctree-l5"><a class="reference internal" href="Manuals/veff_tutorial.html#visualization-of-results">Visualization of results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Manuals/expected_sensitivities_tutorial.html">Example: Calculating expected sensitivities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Manuals/example-multi_station_coincidences.html">Example: Multi-station coincidences</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Manuals/example-multi_station_coincidences.html#generation-of-detector-layout">1. Generation of detector layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Manuals/example-multi_station_coincidences.html#detector-simulation">2. Detector simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Manuals/example-multi_station_coincidences.html#running-the-simulation">3. Running the simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Manuals/example-multi_station_coincidences.html#analyzing-the-output">4. Analyzing the output</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="Manuals/event_generation.html">Event Generation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="Manuals/event_generation.html#events-in-a-cylindrical-volume">Events in a cylindrical volume</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="Manuals/event_generation.html#input-parameters">Input parameters</a></li>
@@ -467,14 +503,11 @@
 <li class="toctree-l4"><a class="reference internal" href="Manuals/simulation_configuration.html#detector-simulation">Detector simulation</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="Manuals/veff_tutorial.html">Calculating effective volume</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="Manuals/veff_tutorial.html#installation">Installation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="Manuals/veff_tutorial.html#run-an-effective-volume-simulation">Run an effective volume simulation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="Manuals/veff_tutorial.html#generating-the-input-event-list">Generating the input event list</a></li>
-<li class="toctree-l4"><a class="reference internal" href="Manuals/veff_tutorial.html#running-the-simulation">Running the simulation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="Manuals/veff_tutorial.html#more-details-the-detector-description">More details: the detector description</a></li>
-<li class="toctree-l4"><a class="reference internal" href="Manuals/veff_tutorial.html#more-details-the-config-file">More details: the config file</a></li>
-<li class="toctree-l4"><a class="reference internal" href="Manuals/veff_tutorial.html#visualization-of-results">Visualization of results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Manuals/running_on_a_cluster.html">Running on a cluster</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="Manuals/running_on_a_cluster.html#generate-input-files">1. Generate input files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Manuals/running_on_a_cluster.html#generate-job-sh-scripts">2. Generate job *.sh scripts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Manuals/running_on_a_cluster.html#submit-jobs-to-the-cluster">3. Submit jobs to the cluster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Manuals/running_on_a_cluster.html#merge-individual-hdf5-output-files">4. Merge individual hdf5 output files</a></li>
 </ul>
 </li>
 </ul>
@@ -512,50 +545,15 @@
 <h1>Manuals<a class="headerlink" href="#manuals" title="Permalink to this headline"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Manuals/event_generation.html">Event Generation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/event_generation.html#events-in-a-cylindrical-volume">Events in a cylindrical volume</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/event_generation.html#atmospheric-muons-generated-on-a-flat-surface">Atmospheric muons generated on a flat surface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/event_generation.html#nuradioproposal-as-a-standalone-module">NuRadioProposal as a standalone module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Manuals/signal_generation.html">Signal Generation (electric field)</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/signal_generation.html#frequency-domain-parameterisations">Frequency-domain parameterisations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/signal_generation.html#arz-semi-analytical-model">ARZ - semi-analytical model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/signal_generation.html#validity-of-the-parameterisations-and-the-arz-model">Validity of the parameterisations and the ARZ model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/signal_generation.html#timing">Timing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/signal_generation.html#using-the-same-shower-random-seed">Using the same shower. Random seed</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/signal_generation.html#fft-normalisation">FFT normalisation</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Manuals/signal_propagation.html">Signal Propagation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/signal_propagation.html#propagation-module">Propagation module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/signal_propagation.html#ray-tracing">Ray tracing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/signal_propagation.html#example-scripts">Example scripts</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Manuals/icemodels.html">Ice and attenuation models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/icemodels.html#ice-model-implementation">Ice model implementation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/icemodels.html#available-models-in-nuradiomc">Available models in NuRadioMC</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/icemodels.html#example-script">Example script</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Manuals/simulation_configuration.html">Simulation and configuration</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/simulation_configuration.html#steering-files">Steering files</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/simulation_configuration.html#config-files">Config files</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/simulation_configuration.html#detector-description">Detector description</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/simulation_configuration.html#detector-simulation">Detector simulation</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Manuals/veff_tutorial.html">Calculating effective volume</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/veff_tutorial.html#installation">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/veff_tutorial.html#run-an-effective-volume-simulation">Run an effective volume simulation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/veff_tutorial.html#generating-the-input-event-list">Generating the input event list</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/veff_tutorial.html#running-the-simulation">Running the simulation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/veff_tutorial.html#more-details-the-detector-description">More details: the detector description</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/veff_tutorial.html#more-details-the-config-file">More details: the config file</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Manuals/veff_tutorial.html#visualization-of-results">Visualization of results</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="Manuals/veff_tutorial.html">Example: Calculating effective volume</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Manuals/expected_sensitivities_tutorial.html">Example: Calculating expected sensitivities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Manuals/example-multi_station_coincidences.html">Example: Multi-station coincidences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Manuals/event_generation.html">Event Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Manuals/signal_generation.html">Signal Generation (electric field)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Manuals/signal_propagation.html">Signal Propagation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Manuals/icemodels.html">Ice and attenuation models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Manuals/simulation_configuration.html">Simulation and configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Manuals/running_on_a_cluster.html">Running on a cluster</a></li>
 </ul>
 </div>
 </section>
@@ -565,13 +563,13 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../apidoc/NuRadioMC.utilities.split_hdf5.html" class="btn btn-neutral float-left" title="NuRadioMC.utilities.split_hdf5 module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="Manuals/event_generation.html" class="btn btn-neutral float-right" title="Event Generation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="Manuals/veff_tutorial.html" class="btn btn-neutral float-right" title="Example: Calculating effective volume" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2021, The NuRadio Group.</p>
+    <p>&#169; Copyright 2022, The NuRadio Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

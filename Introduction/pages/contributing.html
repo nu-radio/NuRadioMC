@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contributing to NuRadioReco &mdash; NuRadio 2.2.0-dev documentation</title>
+  <title>Contributing to NuRadioMC &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="NuRadioReco Documentation" href="../../NuRadioReco/pages/welcome_page.html" />
-    <link rel="prev" title="Installing NuRadioMC / NuRadioReco" href="installation.html" /> 
+    <link rel="prev" title="Some notes on conventions" href="conventions.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -64,7 +64,19 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Contributing to NuRadioReco</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="conventions.html">Some notes on conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="conventions.html#coordinates">Coordinates</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="conventions.html#default-coordinate-system">Default coordinate system</a></li>
+<li class="toctree-l4"><a class="reference internal" href="conventions.html#points">Points</a></li>
+<li class="toctree-l4"><a class="reference internal" href="conventions.html#angles">Angles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="conventions.html#directions">Directions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="conventions.html#fourier-transformations">Fourier transformations</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Contributing to NuRadioMC</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#workflow">Workflow</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#coding-conventions">Coding conventions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#how-to">How to</a><ul>
@@ -338,6 +350,13 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../NuRadioMC/pages/welcome_page.html">NuRadioMC Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html">HDF5 output structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../../NuRadioMC/pages/code_documentation.html">Code Documentation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.EvtGen.html#submodules">Submodules</a><ul>
@@ -411,6 +430,23 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../NuRadioMC/pages/manuals.html">Manuals</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/veff_tutorial.html">Example: Calculating effective volume</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/veff_tutorial.html#run-an-effective-volume-simulation">Run an effective volume simulation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/veff_tutorial.html#generating-the-input-event-list">Generating the input event list</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/veff_tutorial.html#running-the-simulation">Running the simulation</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/veff_tutorial.html#visualization-of-results">Visualization of results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/expected_sensitivities_tutorial.html">Example: Calculating expected sensitivities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/example-multi_station_coincidences.html">Example: Multi-station coincidences</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/example-multi_station_coincidences.html#generation-of-detector-layout">1. Generation of detector layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/example-multi_station_coincidences.html#detector-simulation">2. Detector simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/example-multi_station_coincidences.html#running-the-simulation">3. Running the simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/example-multi_station_coincidences.html#analyzing-the-output">4. Analyzing the output</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/event_generation.html">Event Generation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/event_generation.html#events-in-a-cylindrical-volume">Events in a cylindrical volume</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/event_generation.html#input-parameters">Input parameters</a></li>
@@ -467,14 +503,11 @@
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/simulation_configuration.html#detector-simulation">Detector simulation</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/veff_tutorial.html">Calculating effective volume</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/veff_tutorial.html#installation">Installation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/veff_tutorial.html#run-an-effective-volume-simulation">Run an effective volume simulation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/veff_tutorial.html#generating-the-input-event-list">Generating the input event list</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/veff_tutorial.html#running-the-simulation">Running the simulation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/veff_tutorial.html#more-details-the-detector-description">More details: the detector description</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/veff_tutorial.html#more-details-the-config-file">More details: the config file</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/veff_tutorial.html#visualization-of-results">Visualization of results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/running_on_a_cluster.html">Running on a cluster</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/running_on_a_cluster.html#generate-input-files">1. Generate input files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/running_on_a_cluster.html#generate-job-sh-scripts">2. Generate job *.sh scripts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/running_on_a_cluster.html#submit-jobs-to-the-cluster">3. Submit jobs to the cluster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/Manuals/running_on_a_cluster.html#merge-individual-hdf5-output-files">4. Merge individual hdf5 output files</a></li>
 </ul>
 </li>
 </ul>
@@ -498,7 +531,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../main.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="welcome_page.html">Introduction</a> &raquo;</li>
-      <li>Contributing to NuRadioReco</li>
+      <li>Contributing to NuRadioMC</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/Introduction/pages/contributing.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -508,13 +541,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="contributing-to-nuradioreco">
-<h1>Contributing to NuRadioReco<a class="headerlink" href="#contributing-to-nuradioreco" title="Permalink to this headline"></a></h1>
-<p>Thank you for considering to contribute to NuRadioReco.
-NuRadioReco is intended as community based reconstruction software for
+  <section id="contributing-to-nuradiomc">
+<h1>Contributing to NuRadioMC<a class="headerlink" href="#contributing-to-nuradiomc" title="Permalink to this headline"></a></h1>
+<p>Thank you for considering to contribute to NuRadioMC.
+NuRadioMC is intended as community based simulation and reconstruction software for
 radio (neutrino) detectors. Everyone is invited to contribute and use the
 software for their experiment.</p>
-<p>If you intend to contribute significantly to NuRadioReco, please contact
+<p>If you intend to contribute significantly to NuRadioMC, please contact
 <a class="reference external" href="https://github.com/anelles">&#64;anelles</a> and <a class="reference external" href="https://github.com/cg-laser">&#64;cg-laser</a> on GitHub so that we are informed about ongoing
 activities. Both will also be able to provide commit access to the repository.</p>
 <section id="workflow">
@@ -794,14 +827,14 @@ Some more text
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="installation.html" class="btn btn-neutral float-left" title="Installing NuRadioMC / NuRadioReco" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="conventions.html" class="btn btn-neutral float-left" title="Some notes on conventions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="../../NuRadioReco/pages/welcome_page.html" class="btn btn-neutral float-right" title="NuRadioReco Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2021, The NuRadio Group.</p>
+    <p>&#169; Copyright 2022, The NuRadio Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

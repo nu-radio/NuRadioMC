@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calculating effective volume &mdash; NuRadio 2.2.0-dev documentation</title>
+  <title>Example: Calculating effective volume &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
@@ -19,7 +19,8 @@
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="prev" title="Simulation and configuration" href="simulation_configuration.html" /> 
+    <link rel="next" title="Example: Calculating expected sensitivities" href="expected_sensitivities_tutorial.html" />
+    <link rel="prev" title="Manuals" href="../manuals.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -63,7 +64,19 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../Introduction/pages/contributing.html">Contributing to NuRadioReco</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../Introduction/pages/conventions.html">Some notes on conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/conventions.html#coordinates">Coordinates</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/conventions.html#default-coordinate-system">Default coordinate system</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/conventions.html#points">Points</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/conventions.html#angles">Angles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/conventions.html#directions">Directions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../Introduction/pages/contributing.html">Contributing to NuRadioMC</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/contributing.html#workflow">Workflow</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/contributing.html#coding-conventions">Coding conventions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/contributing.html#how-to">How to</a><ul>
@@ -337,6 +350,13 @@
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="reference internal" href="../welcome_page.html">NuRadioMC Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../HDF5_structure.html">HDF5 output structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../code_documentation.html">Code Documentation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../apidoc/NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../apidoc/NuRadioMC.EvtGen.html#submodules">Submodules</a><ul>
@@ -410,6 +430,23 @@
 </ul>
 </li>
 <li class="toctree-l2 current"><a class="reference internal" href="../manuals.html">Manuals</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Example: Calculating effective volume</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#run-an-effective-volume-simulation">Run an effective volume simulation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#generating-the-input-event-list">Generating the input event list</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#running-the-simulation">Running the simulation</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#visualization-of-results">Visualization of results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="expected_sensitivities_tutorial.html">Example: Calculating expected sensitivities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example-multi_station_coincidences.html">Example: Multi-station coincidences</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="example-multi_station_coincidences.html#generation-of-detector-layout">1. Generation of detector layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="example-multi_station_coincidences.html#detector-simulation">2. Detector simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="example-multi_station_coincidences.html#running-the-simulation">3. Running the simulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="example-multi_station_coincidences.html#analyzing-the-output">4. Analyzing the output</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="event_generation.html">Event Generation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="event_generation.html#events-in-a-cylindrical-volume">Events in a cylindrical volume</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="event_generation.html#input-parameters">Input parameters</a></li>
@@ -466,14 +503,11 @@
 <li class="toctree-l4"><a class="reference internal" href="simulation_configuration.html#detector-simulation">Detector simulation</a></li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Calculating effective volume</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#installation">Installation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#run-an-effective-volume-simulation">Run an effective volume simulation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#generating-the-input-event-list">Generating the input event list</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#running-the-simulation">Running the simulation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#more-details-the-detector-description">More details: the detector description</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#more-details-the-config-file">More details: the config file</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#visualization-of-results">Visualization of results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="running_on_a_cluster.html">Running on a cluster</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="running_on_a_cluster.html#generate-input-files">1. Generate input files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="running_on_a_cluster.html#generate-job-sh-scripts">2. Generate job *.sh scripts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="running_on_a_cluster.html#submit-jobs-to-the-cluster">3. Submit jobs to the cluster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="running_on_a_cluster.html#merge-individual-hdf5-output-files">4. Merge individual hdf5 output files</a></li>
 </ul>
 </li>
 </ul>
@@ -498,7 +532,7 @@
       <li><a href="../../../main.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../welcome_page.html">NuRadioMC Documentation</a> &raquo;</li>
           <li><a href="../manuals.html">Manuals</a> &raquo;</li>
-      <li>Calculating effective volume</li>
+      <li>Example: Calculating effective volume</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../../_sources/NuRadioMC/pages/Manuals/veff_tutorial.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -508,13 +542,15 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="calculating-effective-volume">
-<h1>Calculating effective volume<a class="headerlink" href="#calculating-effective-volume" title="Permalink to this headline"></a></h1>
-<p>This tutorial gives a full example to simulate the effective volume of a high-energy radio neutrino detector.</p>
-<section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h2>
-<p>See <a class="reference internal" href="../../../Introduction/pages/installation.html"><span class="doc">here</span></a> for installation instructions.</p>
-</section>
+  <section id="example-calculating-effective-volume">
+<h1>Example: Calculating effective volume<a class="headerlink" href="#example-calculating-effective-volume" title="Permalink to this headline"></a></h1>
+<p>This tutorial gives a full example to simulate the effective volume of a high-energy radio neutrino detector.
+.. comment:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Installation
+------------
+See :doc:`here &lt;/Introduction/pages/installation&gt;` for installation instructions.
+</pre></div>
+</div>
 <section id="run-an-effective-volume-simulation">
 <h2>Run an effective volume simulation<a class="headerlink" href="#run-an-effective-volume-simulation" title="Permalink to this headline"></a></h2>
 <p>An effective volume simulation consists of the following steps</p>
@@ -539,9 +575,8 @@ cp -r <span class="nv">$HOME</span>/software/NuRadioMC/NuRadioMC/examples/01_Vef
 <li><p>a NuRadioMC config file that e.g. specifies which Askaryan module and ice model to use</p></li>
 <li><p>a main run script that also defines the details of the detector simulation</p></li>
 </ul>
-</section>
 <section id="generating-the-input-event-list">
-<h2>Generating the input event list<a class="headerlink" href="#generating-the-input-event-list" title="Permalink to this headline"></a></h2>
+<h3>Generating the input event list<a class="headerlink" href="#generating-the-input-event-list" title="Permalink to this headline"></a></h3>
 <p>Generating the input event list is easy using the NuRadioMC event generator. Just execute</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python T01generate_event_list.py
 </pre></div>
@@ -549,7 +584,7 @@ cp -r <span class="nv">$HOME</span>/software/NuRadioMC/NuRadioMC/examples/01_Vef
 <p>The script will generate two event lists. One with 1000 events at 1e19 eV neutrino energy and one with 10,000 events at 1e18 eV neutrino energy.</p>
 </section>
 <section id="running-the-simulation">
-<h2>Running the simulation<a class="headerlink" href="#running-the-simulation" title="Permalink to this headline"></a></h2>
+<h3>Running the simulation<a class="headerlink" href="#running-the-simulation" title="Permalink to this headline"></a></h3>
 <p>To run the simulation execute</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python T02RunSimulation.py 1e19_n1e3.hdf5 surface_station_1GHz.json config.yaml 1e19_n1e3_output.hdf5
 </pre></div>
@@ -572,22 +607,22 @@ If you also want to save the pulse forms just add another command line argument.
 </pre></div>
 </div>
 <p>which takes 71 seconds on my laptop and leads to 29 triggered events.</p>
-</section>
 <section id="more-details-the-detector-description">
-<h2>More details: the detector description<a class="headerlink" href="#more-details-the-detector-description" title="Permalink to this headline"></a></h2>
+<h4>More details: the detector description<a class="headerlink" href="#more-details-the-detector-description" title="Permalink to this headline"></a></h4>
 <p>The detector is defined in a JSON file and allows you to specify every detail of your detector that can have a relevance for the simulation or later reconstruction.
 For our simple example though, it contains many parameters that we don’t need to worry about, e.g. details about the ADC, so just ignore those fields.
 The file <code class="docutils literal notranslate"><span class="pre">surface_station_1GHz.json</span></code> defines a ‘surface station’ consisting of 4 downward pointing LPDAs at -2m depth and 4 bicone antennas at -5m depth.</p>
 <p>More info about detector files can be found <a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html"><span class="doc">here</span></a>.</p>
 </section>
 <section id="more-details-the-config-file">
-<h2>More details: the config file<a class="headerlink" href="#more-details-the-config-file" title="Permalink to this headline"></a></h2>
+<h4>More details: the config file<a class="headerlink" href="#more-details-the-config-file" title="Permalink to this headline"></a></h4>
 <p>An overview of all parameters can be found in the default config file <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/blob/master/NuRadioMC/simulation/config_default.yaml">config_default</a>.
 Everything defined in the local configuration file <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> will override the default parameters. The config file uses the YAML format, an easy to use and human readable format.
 It is similar to JSON but easier to type down.</p>
 </section>
+</section>
 <section id="visualization-of-results">
-<h2>Visualization of results<a class="headerlink" href="#visualization-of-results" title="Permalink to this headline"></a></h2>
+<h3>Visualization of results<a class="headerlink" href="#visualization-of-results" title="Permalink to this headline"></a></h3>
 <p>NuRadioMC includes visualization tools. To produce the typical debugging plots of an effective volume simulation execute</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python <span class="nv">$HOME</span>/software/NuRadioMC/NuRadioMC/simulation/scripts/T05visualize_sim_output.py 1e18_n1e4_output.hdf5
 </pre></div>
@@ -595,18 +630,20 @@ It is similar to JSON but easier to type down.</p>
 <p>Please note that the number of triggered events is so small that some of the plots won’t make a lot of sense.</p>
 </section>
 </section>
+</section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="simulation_configuration.html" class="btn btn-neutral float-left" title="Simulation and configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../manuals.html" class="btn btn-neutral float-left" title="Manuals" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="expected_sensitivities_tutorial.html" class="btn btn-neutral float-right" title="Example: Calculating expected sensitivities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2021, The NuRadio Group.</p>
+    <p>&#169; Copyright 2022, The NuRadio Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
