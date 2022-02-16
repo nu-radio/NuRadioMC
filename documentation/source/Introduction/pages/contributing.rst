@@ -1,11 +1,11 @@
-Contributing to NuRadioReco
-============================
-Thank you for considering to contribute to NuRadioReco.
-NuRadioReco is intended as community based reconstruction software for
+Contributing to NuRadioMC
+=========================
+Thank you for considering to contribute to NuRadioMC.
+NuRadioMC is intended as community based simulation and reconstruction software for
 radio (neutrino) detectors. Everyone is invited to contribute and use the
 software for their experiment.
 
-If you intend to contribute significantly to NuRadioReco, please contact
+If you intend to contribute significantly to NuRadioMC, please contact
 `@anelles <https://github.com/anelles>`_ and `@cg-laser <https://github.com/cg-laser>`_ on GitHub so that we are informed about ongoing
 activities. Both will also be able to provide commit access to the repository.
 
