@@ -1,5 +1,7 @@
 from NuRadioMC.utilities import medium_base
+import itertools
 import numpy as np
+import os
 from NuRadioReco.utilities import units
 from scipy import interpolate
 import logging
@@ -47,76 +49,34 @@ in the a RadioPropaIceWrapper object, you can do this by redefining the
 
 
 
-class birefringence_index:
+class birefringence_index_A:
     
     """
     This class can be used to model the index of refrection in three dimensions at the south pole from 0m to -2500m.
     The interpolation files used were spline fitted to the data from the Jordan et al. paper(https://arxiv.org/abs/1910.01471)
     Different files for the smoothness of the fit can be found in (birefringence_example) as well as an example script on how to us this model
     
+    
+    model a - constant interpolation for shallow depths
     """
     
     def __init__(self):
 
-#-------------------read in interpolation files ------------------------
-        knots1 = []
-        coeffs1 = []
+        model = str(self.__class__.__name__).split('_')[-1]
+       
+        filepath = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/index_model' + model + '.npy'
+        data = np.load(filepath, allow_pickle=True)
 
-        number_of_lines1 = len(open("tckX.txt", 'r').readlines())
-        with open("tckX.txt", 'r') as inputfile:
-            for i in range(number_of_lines1):        
-                line = inputfile.readline()
-                line_s = line.split(';')      
-                knots1.append(float(line_s[0]))
-                coeffs1.append(float(line_s[1]))
-
-
-
-        tck1 = (np.array(knots1), np.array(coeffs1), 3)
-        self.f1_rec = interpolate.UnivariateSpline._from_tck(tck1)
-
-
-        knots2 = []
-        coeffs2 = []
-
-        number_of_lines2 = len(open("tckY.txt", 'r').readlines())
-        with open("tckY.txt", 'r') as inputfile:
-            for i in range(number_of_lines2):        
-                line = inputfile.readline()
-                line_s = line.split(';')      
-                knots2.append(float(line_s[0]))
-                coeffs2.append(float(line_s[1]))
-
-
-
-        tck2 = (np.array(knots2), np.array(coeffs2), 3)
-        self.f2_rec = interpolate.UnivariateSpline._from_tck(tck2)
-
-
-        knots3 = []
-        coeffs3 = []
-
-        number_of_lines3 = len(open("tckZ.txt", 'r').readlines())
-        with open("tckZ.txt", 'r') as inputfile:
-            for i in range(number_of_lines3):        
-                line = inputfile.readline()
-                line_s = line.split(';')      
-                knots3.append(float(line_s[0]))
-                coeffs3.append(float(line_s[1]))
-
-
-
-        tck3 = (np.array(knots3), np.array(coeffs3), 3)
-        self.f3_rec = interpolate.UnivariateSpline._from_tck(tck3)
-        
-#-------------------find the limit of the refractive index
+    
+        self.f1_rec = interpolate.UnivariateSpline._from_tck(data[0])
+        self.f2_rec = interpolate.UnivariateSpline._from_tck(data[1])
+        self.f3_rec = interpolate.UnivariateSpline._from_tck(data[2])
 
         self.m = southpole_2015()  
         self.comp = self.m.get_index_of_refraction(np.array([0, 0, -2500]))
 
 
 
-    
     def get_index_of_refraction(self, z):
         
         """
@@ -132,37 +92,66 @@ class birefringence_index:
         n3:   float, index of refrection in z-direction                
         """
         
-        n1 = self.m.get_index_of_refraction(z) + self.f1_rec(-z[2]) - self.comp
-        n2 = self.m.get_index_of_refraction(z) + self.f2_rec(-z[2]) - self.comp
-        n3 = self.m.get_index_of_refraction(z) + self.f3_rec(-z[2]) - self.comp 
+        nx = self.m.get_index_of_refraction(z) + self.f1_rec(-z[2]) - self.comp
+        ny = self.m.get_index_of_refraction(z) + self.f2_rec(-z[2]) - self.comp
+        nz = self.m.get_index_of_refraction(z) + self.f3_rec(-z[2]) - self.comp 
                 
-        return n1, n2, n3
+        return nx, ny, nz
 
 
-    def get_index_of_refraction_all(self, z):
+        
+    
+    
+    
+class birefringence_index_B:
+    
+    """
+    This class can be used to model the index of refrection in three dimensions at the south pole from 0m to -2500m.
+    The interpolation files used were spline fitted to the data from the Jordan et al. paper(https://arxiv.org/abs/1910.01471)
+    Different files for the smoothness of the fit can be found in (birefringence_example) as well as an example script on how to us this model
+    
+    
+    model b - converging interpolation to 1.78 for shallow depths
+    """
+    
+    def __init__(self):
+        
+     
+        model = str(self.__class__.__name__).split('_')[-1]
+       
+        filepath = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/index_model' + model + '.npy'
+        data = np.load(filepath, allow_pickle=True)
 
+    
+        self.f1_rec = interpolate.UnivariateSpline._from_tck(data[0])
+        self.f2_rec = interpolate.UnivariateSpline._from_tck(data[1])
+        self.f3_rec = interpolate.UnivariateSpline._from_tck(data[2])
+
+        self.m = southpole_2015()  
+        self.comp = self.m.get_index_of_refraction(np.array([0, 0, -2500]))
+
+
+   
+    def get_index_of_refraction(self, z):
+        
         """
-        Returns the three indices of refraction for every meter down to the specified depth.
+        Overlapping the index from southpole_2015 and the interpolated function.
+        Returns the three indices of refraction.
         
         Parameters
         ---------
         z:    numpy.array (int as entries), position of the interaction (only the z-coordinate matters)
-        
-        n:    numpy.array, every entry is a list with the three indices of refrection at the specific depth
-          
-        """
-                
-        n = []
-        znew = np.arange(z[2], 0, 1)
-        
-        pos = np.zeros((len(znew), 3))       
-        pos[:,2] = znew
-                             
-        for i in znew:
 
-            n.append(birefringence_index().get_index_of_refraction(pos[i]))
+        n1:   float, index of refrection in x-direction
+        n2:   float, index of refrection in y-direction
+        n3:   float, index of refrection in z-direction                
+        """
         
-        return(np.array(n))
+        nx = self.m.get_index_of_refraction(z) + self.f1_rec(-z[2]) - self.comp
+        ny = self.m.get_index_of_refraction(z) + self.f2_rec(-z[2]) - self.comp
+        nz = self.m.get_index_of_refraction(z) + self.f3_rec(-z[2]) - self.comp 
+                
+        return nx, ny, nz
 
 
 

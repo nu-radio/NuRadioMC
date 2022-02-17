@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import copy
-from scipy import optimize, integrate, interpolate
+from scipy import optimize, integrate, interpolate, signal
 import scipy.constants
 from operator import itemgetter
 import NuRadioReco.utilities.geometryUtilities
@@ -12,12 +12,14 @@ except ImportError:
 
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
-from NuRadioMC.utilities.medium import birefringence_index
+from NuRadioMC.utilities.medium import birefringence_index_A
+from NuRadioMC.utilities.medium import birefringence_index_B
 from radiotools import coordinatesystems as cstrans
 from radiotools import helper as hp
 from NuRadioMC.utilities.medium import southpole_2015
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework import base_trace
+
 
 import logging
 logging.basicConfig()
@@ -1753,7 +1755,7 @@ class ray_tracing:
                     
     def get_effective_index(self, n, direction, nx, ny, nz):
         """
-        objective function to find the possible values of 'n' into the direction of 'k'
+        Function to find the determinant of the wave equation in matrix form for a given direction and index of refraction.
     
         Parameters
         ------------
@@ -1767,9 +1769,13 @@ class ray_tracing:
             the index of refraction into the y direction
         nz: float
             the index of refraciton into the z direction
-
-        
+            
+        Returns
+        ------------
+        output format: float
+        meaning:       determinant of the wave equation in matrix form 
         """
+
         sx = direction[0]
         sy = direction[1]
         sz = direction[2]
@@ -1781,7 +1787,7 @@ class ray_tracing:
     def get_polarization(self, n, direction, nx, ny, nz, rounding=20):
         
         """
-        returns the polarization of a wave for the direction of propagation 
+        Function for the normalized e-field vector of a wave for the direction of propagation in cartesian coordinates.
     
         Parameters
         ------------
@@ -1796,7 +1802,12 @@ class ray_tracing:
         nz: float
             the index of refraciton into the z direction         
         rounding: int
-            the precision of the comparison between n and nx, ny, nz for the special cases    
+            the precision of the comparison between n and nx, ny, nz for the special cases  
+            
+        Returns
+        ------------
+        output format: list: [px, py, pz]  
+        meaning:       normalized e-field vector   
         """ 
         
         if(np.round(n, rounding) in [np.round(nx, rounding), np.round(ny, rounding), np.round(nz, rounding)]):
@@ -1850,7 +1861,7 @@ class ray_tracing:
     def get_3d_trace(self, source, antenna, acc = 1000):
         
         """
-        returns the trace of the two possible solutions provided by get_path
+        Function  for the trace of the two possible solutions provided by get_path.
     
         Parameters
         ------------
@@ -1860,6 +1871,13 @@ class ray_tracing:
             position of the receiving antenna        
         acc: int
             step number of the ray tracer   
+            
+        Returns
+        ------------
+        output format: numpy.array
+        meaning:       ray trace of    * [0] - direct
+                                       * [1] - refracted or reflected
+        
         """    
     
         ice = southpole_2015()
@@ -1879,11 +1897,11 @@ class ray_tracing:
                 
         return(np.array(p))              
     
-    def get_birefringence_time_delay(self, source, antenna, path_type=0, acc =1000):
+    def get_birefringence_time_delay(self, source, antenna, model = 'A', path_type=0, acc =1000):
         
         """
-        returns the calculated time delay between the two birefringence states and the time stamps at every step
-        the path of the two rays is approximated to be equal
+        Function for the calculated time delay between the two birefringence states and the time stamps of the ordinary and extraordinary state at every step.
+        The path of the two rays is approximated to be equal.
 
         Parameters
         ------------
@@ -1895,16 +1913,33 @@ class ray_tracing:
             refers to the short or long path of the radio wave (0 for short, 1 for long)        
         acc: int
             step number of the ray tracer   
-        """      
+            
+        Returns
+        ------------
+        solution_type: list:    [Dt, t_o, t_e]
+        meaning:                [0] - Dt (float) - total time delay between ordinary and extraordinary ray
+                                [1] - t_o (numpy.array) - time stamps from interaction to antenna for the ordinary ray
+                                [2] - t_e (numpy.array) - time stamps from interaction to antenna for the extraordinary ray
+         
+        """   
+        
+           
        
         ice = southpole_2015()
-        ice_n = birefringence_index()
+        
+        
+        if model == 'A':
+            ice_n = birefringence_index_A()
+        if model == 'B':
+            ice_n = birefringence_index_B()        
+        
+        
         r = ray_tracing(ice)
         p = r.get_3d_trace(source, antenna, acc)
         c = speed_of_light * units.m / units.ns
         
-        t_p = [] 
-        t_s = [] 
+        t_o = [] 
+        t_e = [] 
     
         for i in range(acc-1):
             
@@ -1939,20 +1974,20 @@ class ray_tracing:
             s1 = optimize.root_scalar(r.get_effective_index, bracket=(0, res.x[0]), args=(direction, n1, n2, n3))
             s2 = optimize.root_scalar(r.get_effective_index, bracket=(res.x[0], 3), args=(direction, n1, n2, n3))
 
-            n_p = s1.root
-            n_s = s2.root 
+            n_o = s1.root
+            n_e = s2.root 
 
-            t_p.append(l * n_p / c)
-            t_s.append(l * n_s / c)
+            t_o.append(l * n_o / c)
+            t_e.append(l * n_e / c)
            
-        Dt = np.sum(t_p) - np.sum(t_s) 
+        Dt = np.sum(t_o) - np.sum(t_e) 
 
-        return(Dt, np.array(t_p), np.array(t_s))     
+        return(Dt, np.array(t_o), np.array(t_e))     
         
-    def get_path_polarization(self, source, antenna, path_type=0, acc=1000):
+    def get_path_polarization(self, source, antenna, model='A', path_type=0, acc=1000):
 
         """
-        returns the polarization of the two states of the wave along its path and the path length
+        Function for the polarization of the two states of the wave along its path and the path length
 
         Parameters
         ------------
@@ -1964,10 +1999,22 @@ class ray_tracing:
             refers to the short or long path of the radio wave (0 for short, 1 for long)        
         acc: int
             step number of the ray tracer   
+            
+        Returns
+        ------------
+        solution_type: list:    [sky_e, sky_o, l_path]
+        meaning:                [0] - sky_e (numpy.array) - polarization vectors of the extraordinary ray along the trace
+                                [1] - sky_o (numpy.array) - polarization vectors of the ordinary ray along the trace
+                                [2] - l_path (numpy.array) - lenth of the path increment        
         """    
 
         ice = southpole_2015()
-        ice_n = birefringence_index()
+        
+        if model == 'A':
+            ice_n = birefringence_index_A()
+        if model == 'B':
+            ice_n = birefringence_index_B()     
+            
         r = ray_tracing(ice)
         p = r.get_3d_trace(source, antenna, acc)
     
@@ -2026,15 +2073,46 @@ class ray_tracing:
 
         return(np.array(sky_e), np.array(sky_o), np.array(l_path))         
 
-    def get_pulse_trace(self, source, antenna, amp_phi = 1/np.sqrt(2), amp_theta = 1/np.sqrt(2), t = 0.0001, path_type=0, acc=1000):
+    def get_pulse_trace(self, source, antenna, model= 'A',  amp_phi = 1/np.sqrt(2), amp_theta = 1/np.sqrt(2), t = 0.0001, path_type=0, acc=1000):
+
+        """
+        Function for the time trace propagation according to the polarization change.
+
+        Parameters
+        ------------
+        source: numpy.array
+            position of the interaction       
+        antenna: numpy.array
+            position of the receiving antenna      
+        amp_phi: float
+            starting amplitude of the phi pulse
+        amp_theta: float
+            starting amplitude of the theta pulse
+        t: float
+            1/sampling rate [ns]
+        path_type: int
+            refers to the short or long path of the radio wave (0 for short, 1 for long)        
+        acc: int
+            step number of the ray tracer   
+            
+        Returns
+        ------------
+        solution_type: list:    [start_theta, start_phi, end_theta, end_phi, dt]
+        meaning:                [0] - start_theta (list) - starting pulse for the theta component
+                                [1] - start_phi (list) - starting pulse for the phi component
+                                [2] - end_theta (list) - final pulse for the theta componentnt        
+                                [3] - end_phi (list) - final pulse for the phi component 
+                                [4] - dt (float) - 1/sampling rate [ns]
+        """   
+
 
         r = ray_tracing(southpole_2015())
 
-        time_delay_short = r.get_birefringence_time_delay(source, antenna, path_type=path_type, acc=acc)
-        time_delay_long = r.get_birefringence_time_delay(source, antenna, path_type=path_type, acc=acc)
+        time_delay_short = r.get_birefringence_time_delay(source, antenna, model=model, path_type=path_type, acc=acc)
+        time_delay_long = r.get_birefringence_time_delay(source, antenna, model=model, path_type=path_type, acc=acc)
 
-        polar_short = r.get_path_polarization(source, antenna, path_type=path_type, acc=acc)
-        polar_long = r.get_path_polarization(source, antenna, path_type=path_type, acc=acc)
+        polar_short = r.get_path_polarization(source, antenna, model=model, path_type=path_type, acc=acc)
+        polar_long = r.get_path_polarization(source, antenna, model=model, path_type=path_type, acc=acc)
 
         polar_theta = polar_short[1][:,1]
         polar_phi = polar_short[1][:,2]
@@ -2087,8 +2165,6 @@ class ray_tracing:
 
         for i in range(len(diff)):
             
-            #if i == 0:
-            #    break
     
             a = polar_theta[i]
             b = polar_phi[i]
@@ -2112,8 +2188,33 @@ class ray_tracing:
         
         return(start_theta, start_phi, end_theta, end_phi, dt)
     
-    def get_pulse_trace_fast(self, source, antenna, pulse, path_type=0, acc=1000):
+    def get_pulse_trace_fast(self, source, antenna, pulse, model='A', path_type=0, acc=1000):
         
+        """
+        Function for the time trace propagation according to the polarization change.
+
+        Parameters
+        ------------
+        source: numpy.array
+            position of the interaction       
+        antenna: numpy.array
+            position of the receiving antenna      
+        pulse: string
+            .npy file name of the starting pulse shape ([0] - time stamp, [1] - theta component, [2] - phi component)
+        path_type: int
+            refers to the short or long path of the radio wave (0 for short, 1 for long)        
+        acc: int
+            step number of the ray tracer   
+            
+        Returns
+        ------------
+        solution_type: list:    [start_theta, start_phi, end_theta, end_phi, dt]
+        meaning:                [0] - start_theta (list) - starting pulse for the theta component
+                                [1] - start_phi (list) - starting pulse for the phi component
+                                [2] - end_theta (list) - final pulse for the theta componentnt        
+                                [3] - end_phi (list) - final pulse for the phi component 
+                                [4] - TT (list) - time stamps of the  starting theta pulse
+        """           
         data = np.load(pulse)
         
         time = data[0]
@@ -2121,8 +2222,8 @@ class ray_tracing:
         ephi = data[2]    
       
         r = ray_tracing(southpole_2015())   
-        time_delay_short = r.get_birefringence_time_delay(source, antenna, path_type=path_type, acc=acc)
-        polar_short = r.get_path_polarization(source, antenna, path_type=path_type, acc=acc)
+        time_delay_short = r.get_birefringence_time_delay(source, antenna, model=model, path_type=path_type, acc=acc)
+        polar_short = r.get_path_polarization(source, antenna, model=model, path_type=path_type, acc=acc)
     
         polar_theta = polar_short[1][:,1]
         polar_phi = polar_short[1][:,2]
@@ -2176,9 +2277,12 @@ class ray_tracing:
         end_theta = t_theta.get_trace()
         end_phi = t_phi.get_trace()
         
-        print('test')
+        h_th = signal.hilbert(end_theta)
+        h_ph = signal.hilbert(end_phi)     
+        
+        t_delay = TT[h_th == max(h_th)] - TT[h_ph == max(h_ph)]
     
-        return(start_theta, start_phi, end_theta, end_phi, TT)
+        return(start_theta, start_phi, end_theta, end_phi, TT, t_delay)
 
     def get_launch_vector(self, iS):
         """
