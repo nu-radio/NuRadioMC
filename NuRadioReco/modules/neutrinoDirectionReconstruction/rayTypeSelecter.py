@@ -23,7 +23,12 @@ class rayTypeSelecter:
     def begin(self):
         pass
 
-    def run(self, event, station, det, use_channels=[9, 14], noise_rms = 10, template = None, shower_id = None, icemodel = 'greenland_simple', raytracing_method = 'analytic', att_model = 'GL1', sim = False, debug_plots = True, debugplots_path = None):
+    def run(
+            self, event, station, det, use_channels=[9, 14], noise_rms = 10,
+            template = None, shower_id = None,
+            icemodel = 'greenland_simple', raytracing_method = 'analytic',
+            att_model = 'GL1', sim = False,
+            debug_plots = True, debugplots_path = None):
         """
         Finds the pulse position of the triggered pulse in the phased array and returns the raytype of the pulse
         
@@ -98,9 +103,11 @@ class rayTypeSelecter:
                            type_exist= 1
                 #           print("RAYTYPE", raytype)
                            T = r.get_travel_time(iS)
-                           if channel_id == use_channels[0]: T_ref[iS] = T
+                           if channel_id == use_channels[0]: 
+                               T_ref[iS] = T
+                               trace_start_time_ref = channel.get_trace_start_time()
       #
-                           dt = T - T_ref[iS]
+                           dt = T - T_ref[iS] - (channel.get_trace_start_time() - trace_start_time_ref)
                            dn_samples = -1*dt * sampling_rate
                            dn_samples = math.ceil(dn_samples)
                            cp_trace = np.copy(channel.get_trace())
@@ -180,12 +187,13 @@ class rayTypeSelecter:
         if sim: station.set_parameter(stnp.pulse_position_sim, position_pulse)
 
         if debug_plots:
-            fig, axs = plt.subplots(16, sharex = True, figsize = (5, 20))
+            fig, axs = plt.subplots(station.get_number_of_channels(), sharex = True, figsize = (5, station.get_number_of_channels() * 1.25))
           
         #### use pulse position to find places in traces of the other channels to determine which traces have a SNR > 3.5
         channels_pulses = []
 
         x2 = det.get_relative_position(station_id, use_channels[0]) + det.get_absolute_position(station_id)
+        trace_start_time_ref = station.get_channel(use_channels[0]).get_trace_start_time()
         r = prop(ice, att_model)
         r.set_start_and_end_point(vertex, x2)
         r.find_solutions()
@@ -198,6 +206,7 @@ class rayTypeSelecter:
            # channel = station.get_channel(channelid)
             channel_id = channel.get_id()
             x2 = det.get_relative_position(station_id, channel_id) + det.get_absolute_position(station_id)
+            trace_start_time_channel = channel.get_trace_start_time()
             r = prop( ice, att_model)
             r.set_start_and_end_point(vertex, x2)
             simchannel = []
@@ -206,7 +215,7 @@ class rayTypeSelecter:
             for iS in range(r.get_number_of_solutions()):
                # print("ray type", r.get_solution_type(iS))
                 T = r.get_travel_time(iS)
-                delta_T =  T - T_reference  
+                delta_T =  T - T_reference - (trace_start_time_channel - trace_start_time_ref)
                 delta_toffset = delta_T * sampling_rate
                 ### if channel is phased array channel, and pulse is triggered pulse, store signal zenith and azimuth
                 if channel_id == use_channels[0]: # if channel is upper phased array channel
@@ -229,18 +238,21 @@ class rayTypeSelecter:
                 ### figuring out the time offset for specfic trace
                 k = int(position_pulse + delta_toffset )
                 pulse_window = channel.get_trace()[k-300: k + 500]
+                if len(pulse_window) == 0:
+                    pulse_window = np.zeros(800)
                 if debug_plots:
+                    plot_pulse_time = trace_start_time_channel + k / sampling_rate
                     axs[ich].plot(channel.get_times(), channel.get_trace(), color = 'blue')
                     axs[ich].set_xlabel("time [ns]")
                     if sim: 
                         for sim_ch in station.get_sim_station().get_channels_by_channel_id(channel_id):
                             axs[ich].plot(sim_ch.get_times(), sim_ch.get_trace(), color = 'orange') 
-                    axs[ich].axvline(channel.get_times()[k-300], color = 'grey')
-                    axs[ich].axvline(channel.get_times()[k+500], color = 'grey')
+                    axs[ich].axvline(plot_pulse_time -300 / sampling_rate, color = 'grey')
+                    axs[ich].axvline(plot_pulse_time +500 / sampling_rate, color = 'grey')
                     if ((np.max(pulse_window) - np.min(pulse_window))/(2*noise_rms) > 3.5): 
-                        axs[ich].axvline(channel.get_times()[k], color = 'green')
+                        axs[ich].axvline(plot_pulse_time, color = 'green')
                     else:
-                        axs[ich].axvline(channel.get_times()[k], color = 'red')
+                        axs[ich].axvline(plot_pulse_time, color = 'red')
                     axs[ich].set_title("channel {}".format(channel_id))  
                 if ((np.max(pulse_window) - np.min(pulse_window))/(2*noise_rms) > 3.5):
                     channels_pulses.append(channel.get_id())

@@ -28,13 +28,12 @@ import NuRadioMC
 #(librabry = '/lustre/fs22/group/radio/plaisier/software/NuRadioMC/NuRadioMC/SignalGen/ARZ/average.pkl') ## average ARZ model. In practice this is way too slow.
 
 logger = logging.getLogger("sim")
+# logger.setLevel(logging.DEBUG)
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.framework.parameters import showerParameters as shp
 raytracing = {}
 eventreader = NuRadioReco.modules.io.eventReader.eventReader()
 
-ice = medium.get_ice_model('greenland_simple')
-prop = propagation.get_propagation_module('analytic')
 attenuate_ice = True
 
 
@@ -88,7 +87,12 @@ class simulation():
 					pickle.dump(self._templates, f)
 		return 
 	
-	def begin(self, det, station, use_channels, raytypesolution = False, ch_Vpol = None, Hpol_channels = None, Hpol_lower_band = 50, Hpol_upper_band = 700, att_model = 'GL1'):
+	def begin(
+			self, det, station, use_channels, raytypesolution = False,
+			ch_Vpol = None, Hpol_channels = None,
+			Hpol_lower_band = 50, Hpol_upper_band = 700,
+			passband = [96 * units.MHz, 1000 * units.MHz],
+			ice_model="greenland_simple", att_model = 'GL1', propagation_module="analytic"):
 		""" initialize filter and amplifier """
 		self._ch_Vpol = ch_Vpol
 		sim_to_data = True
@@ -99,51 +103,70 @@ class simulation():
 		self._dt = 1./self._sampling_rate
 		self._n_samples = int(time_trace * self._sampling_rate) ## templates are 800 samples long. The analytic models can be longer.
 		self._att_model = att_model
-	
+		self._ice_model = medium.get_ice_model(ice_model)
+		self._prop = propagation.get_propagation_module(propagation_module)
         #### define filters. Now same filter is used for Hpol as Vpol
 		self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
 		tt = np.arange(0, self._n_samples * self._dt, self._dt)
-        
+		if not isinstance(passband, dict):
+			passband = {channel_id:passband for channel_id in use_channels}
+
 		mask = self._ff > 0
-		order = 8
-		passband = [50* units.MHz, 1150 * units.MHz]
-		b, a = signal.butter(order, passband, 'bandpass', analog=True)
-		w, ha = signal.freqs(b, a, self._ff[mask])
-		order = 10
-		passband = [0* units.MHz, 700 * units.MHz]
-		b, a = signal.butter(order, passband, 'bandpass', analog=True)
-		w, hb = signal.freqs(b, a, self._ff[mask])
-		fa = np.zeros_like(self._ff, dtype=np.complex)
-		fa[mask] = ha
-		fb = np.zeros_like(self._ff, dtype = np.complex)
-		fb[mask] = hb
-		h = fb*fa
+		self._h = dict()
+		for channel_id in use_channels:
+			order = 8
+			passband_i = passband[channel_id]
+			b, a = signal.butter(order, [passband_i[0], 1150 * units.MHz], 'bandpass', analog=True)
+			w, ha = signal.freqs(b, a, self._ff[mask])
+			order = 10
+			b, a = signal.butter(order, [0, passband_i[-1]], 'bandpass', analog=True)
+			w, hb = signal.freqs(b, a, self._ff[mask])
+			fa = np.zeros_like(self._ff, dtype=np.complex)
+			fb = np.zeros_like(self._ff, dtype=np.complex)
+			fa[mask] = ha
+			fb[mask] = hb
+			self._h[channel_id] = fb * fa
 
 
-		order = 8
-		passband = [Hpol_lower_band* units.MHz, 1150 * units.MHz]
-		b, a = signal.butter(order, passband, 'bandpass', analog=True)
-		w, ha = signal.freqs(b, a, self._ff[mask])
-		order = 10
-		passband = [0* units.MHz, Hpol_upper_band * units.MHz]
-		b, a = signal.butter(order, passband, 'bandpass', analog=True)
-		w, hb = signal.freqs(b, a, self._ff[mask])
-		fa = np.zeros_like(self._ff, dtype=np.complex)
-		fa[mask] = ha
-		fb = np.zeros_like(self._ff, dtype = np.complex)
-		fb[mask] = hb
-		h_Hpol = fb*fa
+		# order = 8
+		# passband = [50* units.MHz, 1150 * units.MHz]
+		# b, a = signal.butter(order, passband, 'bandpass', analog=True)
+		# w, ha = signal.freqs(b, a, self._ff[mask])
+		# order = 10
+		# passband = [0* units.MHz, 700 * units.MHz]
+		# b, a = signal.butter(order, passband, 'bandpass', analog=True)
+		# w, hb = signal.freqs(b, a, self._ff[mask])
+		# fa = np.zeros_like(self._ff, dtype=np.complex)
+		# fa[mask] = ha
+		# fb = np.zeros_like(self._ff, dtype = np.complex)
+		# fb[mask] = hb
+		# h = fb*fa
+
+
+		# order = 8
+		# passband = [Hpol_lower_band* units.MHz, 1150 * units.MHz]
+		# b, a = signal.butter(order, passband, 'bandpass', analog=True)
+		# w, ha = signal.freqs(b, a, self._ff[mask])
+		# order = 10
+		# passband = [0* units.MHz, Hpol_upper_band * units.MHz]
+		# b, a = signal.butter(order, passband, 'bandpass', analog=True)
+		# w, hb = signal.freqs(b, a, self._ff[mask])
+		# fa = np.zeros_like(self._ff, dtype=np.complex)
+		# fa[mask] = ha
+		# fb = np.zeros_like(self._ff, dtype = np.complex)
+		# fb[mask] = hb
+		# h_Hpol = fb*fa
 
 
         
-		self._h = {}
-		for channel_id in use_channels:
-			if channel_id in Hpol_channels:
-				self._h[channel_id] = {}
-				self._h[channel_id] = h_Hpol
-			else:
-				self._h[channel_id] = {}
-				self._h[channel_id] = h
+		# self._h = {}
+		# for channel_id in use_channels:
+		# 	if channel_id in Hpol_channels:
+		# 		self._h[channel_id] = {}
+		# 		self._h[channel_id] = h_Hpol
+		# 	else:
+		# 		self._h[channel_id] = {}
+		# 		self._h[channel_id] = h
   
 
 		self._amp = {}
@@ -167,9 +190,13 @@ class simulation():
 		cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["launch vector"]))
 		return cs.transform_from_ground_to_onsky(polarization_direction)
 	
-	def simulation(self, det, station, vertex_x, vertex_y, vertex_z, nu_zenith, nu_azimuth, energy, use_channels, fit = 'seperate', first_iter = False, model = 'Alvarez2009', starting_values = False, pol_angle = None):
-		ice = medium.get_ice_model('greenland_simple')
-		prop = propagation.get_propagation_module('analytic')
+	def simulation(
+			self, det, station, vertex_x, vertex_y, vertex_z, nu_zenith,
+			nu_azimuth, energy, use_channels, fit = 'seperate',
+			first_iter = False, model = 'Alvarez2009',
+			starting_values = False, pol_angle = None):
+		ice = self._ice_model
+		prop = self._prop
 		attenuate_ice = True
 		polarization = True
 		reflection = True
@@ -188,8 +215,6 @@ class simulation():
 		if(first_iter):
 
 
-			ice = medium.get_ice_model('greenland_simple')
-			prop = propagation.get_propagation_module('analytic')
 			attenuate_ice = True
 
 
@@ -211,7 +236,9 @@ class simulation():
 
 			x1 = vertex
 
+			# logger.debug("Solving for channels {}".format(use_channels))
 			for channel_id in use_channels:
+				# logger.debug("Obtaining ray tracing info for channel {}".format(channel_id))
 				raytracing[channel_id] = {}
 				x2 = det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id())
 				r = prop( ice,self._att_model)
@@ -371,7 +398,8 @@ class simulation():
 						
 				timing[channel_id][iS] =raytracing[channel_id][iS]["travel time"]
 				raytype[channel_id][iS] = raytracing[channel_id][iS]["raytype"]
-			
+		# logger.debug("Found solutions for channels {}".format(raytracing.keys()))
+		
 		if(first_iter):
 		     
 			maximum_channel = 0

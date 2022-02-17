@@ -838,6 +838,8 @@ class Detector(object):
             if amp_response_functions is not None:
                 raise ValueError('Amplifier name {} is not unique'.format(amp_type))
             amp_response_functions = NuRadioReco.detector.ARIANNA.analog_components.load_amplifier_response(amp_type)
+        if amp_type == "dummy_amp":
+            amp_response_functions = dict(gain=np.ones_like, phase=np.ones_like)
         if amp_response_functions is None:
             raise ValueError('Amplifier of type {} not found'.format(amp_type))
         amp_gain = amp_response_functions['gain'](frequencies)

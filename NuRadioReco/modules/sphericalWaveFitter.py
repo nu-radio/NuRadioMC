@@ -66,7 +66,7 @@ class sphericalWaveFitter:
         
         def get_time_delay_spherical_wave(position, ch_pair, n=n_index):
             T0 = get_distance(position, det.get_relative_position(station_id, ch_pair[0]))/(constants.c/n_index)*units.s
-            T1 = get_distance(position , det.get_relative_position(station_id, ch_pair[1]))/(constants.c/n_index)*units.s
+            T1 = get_distance(position, det.get_relative_position(station_id, ch_pair[1]))/(constants.c/n_index)*units.s
             return T1 - T0
 
 

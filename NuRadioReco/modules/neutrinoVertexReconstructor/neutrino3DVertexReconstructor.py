@@ -11,7 +11,11 @@ from NuRadioReco.utilities import trace_utilities, fft, bandpass_filter
 import radiotools.helper as hp
 import scipy.optimize
 import scipy.ndimage
+import logging
 
+logging.basicConfig()
+logger = logging.getLogger('vertexReco')
+logger.setLevel(logging.INFO)
 
 class neutrino3DVertexReconstructor:
 
@@ -166,6 +170,7 @@ class neutrino3DVertexReconstructor:
                 f = NuRadioReco.utilities.io_utilities.read_pickle('{}/lookup_table_{}.p'.format(self.__lookup_table_location, int(abs(channel_z))))
                 self.__header[int(channel_z)] = f['header']
                 self.__lookup_table[int(abs(channel_z))] = f['antenna_{}'.format(channel_z)]
+        self.__start_times = dict()
 
     def run(
             self,
@@ -185,6 +190,8 @@ class neutrino3DVertexReconstructor:
         for i_pair, channel_pair in enumerate(self.__channel_pairs):
             channel_1 = station.get_channel(channel_pair[0])
             channel_2 = station.get_channel(channel_pair[1])
+            self.__start_times[channel_pair[0]] = channel_1.get_trace_start_time()
+            self.__start_times[channel_pair[1]] = channel_2.get_trace_start_time()
             antenna_response = trace_utilities.get_efield_antenna_factor(
                 station=station,
                 frequencies=self.__electric_field_template.get_frequencies(),
@@ -194,9 +201,14 @@ class neutrino3DVertexReconstructor:
                 azimuth=0,
                 antenna_pattern_provider=self.__antenna_pattern_provider
             )[0]
+            try:
+                amp_response = det.get_amplifier_response(station.get_id(), channel_pair[0], self.__electric_field_template.get_frequencies())
+            except ValueError:
+                logger.warning("No amplifier response specified in detector, using 1.")
+                amp_response = 1
             voltage_spec = (
                 antenna_response[0] * self.__electric_field_template.get_frequency_spectrum() + antenna_response[1] * self.__electric_field_template.get_frequency_spectrum()
-            ) * det.get_amplifier_response(station.get_id(), channel_pair[0], self.__electric_field_template.get_frequencies())
+            ) * amp_response
             if self.__passband is not None:
                 voltage_spec *= bandpass_filter.get_filter_response(self.__electric_field_template.get_frequencies(), self.__passband, 'butterabs', 10)
             voltage_template = fft.freq2time(voltage_spec, self.__sampling_rate)
@@ -354,9 +366,14 @@ class neutrino3DVertexReconstructor:
                 azimuth=0,
                 antenna_pattern_provider=self.__antenna_pattern_provider
             )[0]
+            try:
+                amp_response = det.get_amplifier_response(station.get_id(), channel_id, self.__electric_field_template.get_frequencies())
+            except ValueError:
+                logger.warning("No amplifier response specified in detector, using 1.")
+                amp_response = 1
             voltage_spec = (
                 antenna_response[0] * self.__electric_field_template.get_frequency_spectrum() + antenna_response[1] * self.__electric_field_template.get_frequency_spectrum()
-            ) * det.get_amplifier_response(station.get_id(), channel_id, self.__electric_field_template.get_frequencies())
+            ) * amp_response
             if self.__passband is not None:
                 voltage_spec *= bandpass_filter.get_filter_response(self.__electric_field_template.get_frequencies(), self.__passband, 'butter', 10)
             voltage_template = fft.freq2time(voltage_spec, self.__sampling_rate)
@@ -462,6 +479,7 @@ class neutrino3DVertexReconstructor:
         t_1 = self.get_signal_travel_time(d_hor[0], z, self.__current_ray_types[0], self.__channel_pair[0])
         t_2 = self.get_signal_travel_time(d_hor[1], z, self.__current_ray_types[1], self.__channel_pair[1])
         delta_t = t_1 - t_2
+        delta_start_time = self.__start_times[self.__channel_pair[1]] - self.__start_times[self.__channel_pair[0]]
         delta_t = delta_t.astype(float)
 
         t_offset_1 = self.get_signal_travel_time(d_hor[0] - self.__distance_step_3d / 2., z, self.__current_ray_types[0], self.__channel_pair[0])
@@ -471,12 +489,12 @@ class neutrino3DVertexReconstructor:
         delta_t_offset = delta_t_offset.astype(float)
         time_deviations = np.abs(delta_t - delta_t_offset)
 
-        t_offset_1 = self.get_signal_travel_time(d_hor[0] + self.__distance_step_3d / 2., z, self.__current_ray_types[0], self.__channel_pair[0])
-        t_offset_2 = self.get_signal_travel_time(d_hor[1] + self.__distance_step_3d / 2., z, self.__current_ray_types[1], self.__channel_pair[1])
-        delta_t_offset = t_offset_1 - t_offset_2
-        delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
-        delta_t_offset = delta_t_offset.astype(float)
-        time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
+        # t_offset_1 = self.get_signal_travel_time(d_hor[0] + self.__distance_step_3d / 2., z, self.__current_ray_types[0], self.__channel_pair[0])
+        # t_offset_2 = self.get_signal_travel_time(d_hor[1] + self.__distance_step_3d / 2., z, self.__current_ray_types[1], self.__channel_pair[1])
+        # delta_t_offset = t_offset_1 - t_offset_2
+        # delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
+        # delta_t_offset = delta_t_offset.astype(float)
+        # time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
 
         t_offset_1 = self.get_signal_travel_time(d_hor[0] + self.__distance_step_3d / 2., z, self.__current_ray_types[0], self.__channel_pair[0])
         t_offset_2 = self.get_signal_travel_time(d_hor[1] + self.__distance_step_3d / 2., z, self.__current_ray_types[1], self.__channel_pair[1])
@@ -499,7 +517,7 @@ class neutrino3DVertexReconstructor:
         delta_t_offset = delta_t_offset.astype(float)
         time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
 
-        corr_index = self.__correlation.shape[0] / 2 + np.round(delta_t * self.__sampling_rate)
+        corr_index = self.__correlation.shape[0] / 2 + np.round((delta_t + delta_start_time) * self.__sampling_rate)
         corr_index[np.isnan(delta_t)] = 0
         mask = (corr_index > 0) & (corr_index < self.__correlation.shape[0]) & (~np.isinf(delta_t))
         corr_index[~mask] = 0
@@ -577,6 +595,17 @@ class neutrino3DVertexReconstructor:
         d_slope[i_x_2 > i_x_1] = (travel_times_1 - travel_times_2)[i_x_2 > i_x_1] / (cell_dist_1 - cell_dist_2)[i_x_2 > i_x_1]
         travel_times = (d_hor - cell_dist_1) * d_slope + travel_times_1
         travel_times[~mask] = np.nan
+        # print(self.__lookup_table.keys())
+        # print(channel_type)
+        # print(self.__header[channel_type])
+        # print("indices: ", i_x_1, i_x_2, i_z_1, i_z_2)
+        # print(travel_times_1_1)
+        # print(travel_times_1_2)
+        # print(travel_times_2_1)
+        # print(travel_times_2_2)
+        # print('\n')
+        # print(travel_times_1)
+        # print(travel_times_2)
         return travel_times
 
     def __draw_2d_correlation_map(self, event, correlation_map, slope, offset, max_z_offset, min_z_offset):

@@ -10,6 +10,10 @@ import radiotools.helper as hp
 import NuRadioMC.SignalProp.analyticraytracing
 import NuRadioMC.utilities.medium
 import NuRadioMC.SignalGen.askaryan
+import logging
+logging.basicConfig()
+logger = logging.getLogger('vertexReco')
+logger.setLevel(logging.DEBUG)
 
 
 class neutrino2DVertexReconstructor:
@@ -61,6 +65,7 @@ class neutrino2DVertexReconstructor:
             ['reflected', 'refracted'],
             ['refracted', 'reflected']
         ]
+        self.__start_times = dict()
 
     def begin(self, station_id, channel_ids, detector, passband=None, template=None, output_path=None):
         """
@@ -159,6 +164,14 @@ class neutrino2DVertexReconstructor:
         for i_pair, channel_pair in enumerate(self.__channel_pairs):
             ch1 = station.get_channel(channel_pair[0])
             ch2 = station.get_channel(channel_pair[1])
+            self.__start_times[channel_pair[0]] = ch1.get_trace_start_time()
+            self.__start_times[channel_pair[1]] = ch2.get_trace_start_time()
+            logger.warning(
+                "start times: {} : {:.1f} ns; {} : {:.1f} ns".format(
+                    channel_pair[0], self.__start_times[channel_pair[0]],
+                    channel_pair[1], self.__start_times[channel_pair[1]]
+                )
+            )
             snr1 = np.max(np.abs(ch1.get_trace()))
             snr2 = np.max(np.abs(ch2.get_trace()))
             if snr1 == 0 or snr2 == 0:
@@ -257,6 +270,8 @@ class neutrino2DVertexReconstructor:
                 fig2.tight_layout()
                 plt.show()
                 plt.close('all')
+                plt.imshow(correlation_sum, extent=(np.min(x_coords), np.max(x_coords), np.min(z_coords),np.max(z_coords)), cmap='plasma')
+                plt.show()
         if use_dnr:
             dnr_correlation_sum = np.zeros(x_coords.shape)
             for channel_id in self.__channel_ids:
@@ -381,7 +396,7 @@ class neutrino2DVertexReconstructor:
         """
         t1 = self.get_signal_travel_time(d_hor[0], z, self.__current_ray_types[0], self.__channel_pair[0])
         t2 = self.get_signal_travel_time(d_hor[1], z, self.__current_ray_types[1], self.__channel_pair[1])
-        delta_t = t1 - t2
+        delta_t = t1 - t2 + (self.__start_times[self.__channel_pair[1]] - self.__start_times[self.__channel_pair[0]])
         delta_t = delta_t.astype(float)
         corr_index = self.__correlation.shape[0] / 2 + np.round(delta_t * self.__sampling_rate)
         corr_index[np.isnan(corr_index)] = 0
@@ -408,6 +423,7 @@ class neutrino2DVertexReconstructor:
         channel_id: int
             ID of the channel to which the travel time shall be calculated
         """
+        print(ray_type, channel_id)
         channel_pos = self.__detector.get_relative_position(self.__station_id, channel_id)
         channel_type = int(abs(channel_pos[2]))
         travel_times = np.zeros_like(d_hor)
@@ -420,13 +436,21 @@ class neutrino2DVertexReconstructor:
             self.__lookup_table[int(abs(channel_z))] = f['antenna_{}'.format(channel_z)]
 
         i_x = np.array(np.round((-d_hor - self.__header[channel_type]['x_min']) / self.__header[channel_type]['d_x'])).astype(int)
+        print("i_x\n",i_x)
         mask[i_x > self.__lookup_table[channel_type][ray_type].shape[0] - 1] = False
         i_z = np.array(np.round((z - self.__header[channel_type]['z_min']) / self.__header[channel_type]['d_z'])).astype(int)
+        print("i_z\n", i_z)
         mask[i_z > self.__lookup_table[channel_type][ray_type].shape[1] - 1] = False
         i_x[~mask] = 0
         i_z[~mask] = 0
-        travel_times = self.__lookup_table[channel_type][ray_type][i_x, i_z]
+        travel_times = self.__lookup_table[channel_type][ray_type][i_x, i_z] #- self.__start_times[channel_id]
+        print("mask\n",mask)
+        print(d_hor)
+        print(travel_times)
+        # plt.plot(d_hor, travel_times, ls='none', marker='.')
         travel_times[~mask] = np.nan
+        # plt.plot(d_hor, travel_times, ls='none',marker='.')
+        # plt.show()
         return travel_times
 
     def find_ray_type(self, station, ch1):
@@ -468,7 +492,7 @@ class neutrino2DVertexReconstructor:
                     t_2 = self.get_signal_travel_time(np.array([self.__rec_x]), np.array([self.__rec_z]), ray_type, ch2.get_id())[0]
                     if np.isnan(t_1) or np.isnan(t_2):
                         return None
-                    delta_t = t_1 - t_2
+                    delta_t = t_1 - t_2 #- (self.__start_times[self.__channel_pair[1]] - self.__start_times[self.__channel_pair[0]])
                     corr_index = correlation.shape[0] / 2 + np.round(delta_t * self.__sampling_rate)
                     if np.isnan(corr_index):
                         return None
