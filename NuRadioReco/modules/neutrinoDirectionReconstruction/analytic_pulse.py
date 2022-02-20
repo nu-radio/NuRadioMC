@@ -283,8 +283,12 @@ class simulation():
 					spectrum *= self._templates_R
 					spectrum /= raytracing[channel_id][iS]["trajectory length"]
                     
-					spectrum *= template_energy ### this needs to be added otherwise energy is wrongly determined
-					spectrum /= energy
+					spectrum *= energy#template_energy ### this needs to be added otherwise energy is wrongly determined
+					spectrum /= template_energy#energy
+			#		print("template energy", template_energy)
+		#			print("energy", energy)
+	#				print("self._templates", self._templates_R)
+#					print("raytracing[channel_id][iS][trajectory length]", raytracing[channel_id][iS]["trajectory length"])
 					spectrum= fft.time2freq(spectrum, 1/self._dt)
 				
 				else:
