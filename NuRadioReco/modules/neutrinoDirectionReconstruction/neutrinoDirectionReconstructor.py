@@ -56,7 +56,7 @@ class neutrinoDirectionReconstructor:
         for i in np.unique(shower_ids):
             simulated_energy += event.get_sim_shower(i)[shp.energy]
             
-        shower_id = shower_ids
+        shower_id = shower_ids[0]
         self._simulated_azimuth = event.get_sim_shower(shower_id)[shp.azimuth]
         self._simulated_zenith = event.get_sim_shower(shower_id)[shp.zenith]
         if sim:
@@ -560,6 +560,7 @@ class neutrinoDirectionReconstructor:
                             ax[ich][0].plot(channel.get_times(), channel.get_trace(), lw = linewidth, label = 'data', color = 'black')
                         
                             ax[ich][0].fill_between(timingdata[channel.get_id()][0], tracrec[channel.get_id()][0] - self._model_sys*tracrec[channel.get_id()][0], tracrec[channel.get_id()][0] + self._model_sys * tracrec[channel.get_id()][0], color = 'green', alpha = 0.2)
+                            print("channel getid", channel.get_id())
                             ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel.get_id()][0]), 1/sampling_rate), abs(fft.time2freq( tracdata[channel.get_id()][0], sampling_rate)), color = 'black', lw = linewidth)
                             ax[ich][0].plot(timingsim[channel.get_id()][0], tracsim[channel.get_id()][0], label = 'simulation', color = 'orange', lw = linewidth)
                             ax[ich][0].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)

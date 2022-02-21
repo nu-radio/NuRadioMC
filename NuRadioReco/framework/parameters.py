@@ -70,7 +70,8 @@ class channelParameters(Enum):
     signal_region_snrs = 19
     receive_zenith_vertex = 20
     receive_azimuth_vertex = 21
-
+    #signal_receiving_zenith = 22
+    #signal_receiving_zenith = 23
 class electricFieldParameters(Enum):
     ray_path_type = 1  # the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
     polarization_angle = 2  # electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
