@@ -177,6 +177,7 @@ class rayTypeSelecter:
         reconstructed_raytype = ['direct', 'refracted', 'reflected'][np.argmax(max_totalcorr)]
         print("		reconstructed raytype:", reconstructed_raytype)
         if not sim: station.set_parameter(stnp.raytype, reconstructed_raytype)
+        #print("CHECK")
         if sim: station.set_parameter(stnp.raytype_sim, reconstructed_raytype)
         print("		max_totalcorr", max_totalcorr)
         print("		pos_mas", pos_max)
