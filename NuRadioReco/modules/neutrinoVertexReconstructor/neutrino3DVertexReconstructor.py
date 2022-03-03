@@ -11,11 +11,12 @@ from NuRadioReco.utilities import trace_utilities, fft, bandpass_filter
 import radiotools.helper as hp
 import scipy.optimize
 import scipy.ndimage
+# import scipy.interpolate
 import logging
 
 logging.basicConfig()
 logger = logging.getLogger('vertexReco')
-logger.setLevel(logging.INFO)
+# logger.setLevel(logging.DEBUG)
 
 class neutrino3DVertexReconstructor:
 
@@ -30,6 +31,7 @@ class neutrino3DVertexReconstructor:
             times are stored
         """
         self.__lookup_table_location = lookup_table_location
+        # self.__get_time_scipy = {}
         self.__detector = None
         self.__lookup_table = {}
         self.__header = {}
@@ -166,11 +168,32 @@ class neutrino3DVertexReconstructor:
         self.__z_step_3d = z_step_3d
         for channel_id in channel_ids:
             channel_z = abs(detector.get_relative_position(station_id, channel_id)[2])
-            if channel_z not in self.__lookup_table.keys():
+            channel_type = int(channel_z)
+            if channel_type not in self.__lookup_table.keys():
                 f = NuRadioReco.utilities.io_utilities.read_pickle('{}/lookup_table_{}.p'.format(self.__lookup_table_location, int(abs(channel_z))))
-                self.__header[int(channel_z)] = f['header']
-                self.__lookup_table[int(abs(channel_z))] = f['antenna_{}'.format(channel_z)]
+                self.__header[channel_type] = f['header']
+                self.__lookup_table[channel_type] = f['antenna_{}'.format(channel_z)]
+            # if channel_type not in self.__get_time_scipy:
+            #     self.__get_time_scipy[channel_type] = {}
+            #     for ray_type in ['direct', 'reflected', 'refracted']:
+            #         get_time_interp = scipy.interpolate.RectBivariateSpline(
+            #             np.arange(
+            #                 self.__header[channel_type]['x_min'],
+            #                 self.__header[channel_type]['x_max'],
+            #                 self.__header[channel_type]['d_x']
+            #             ),
+            #             np.arange(
+            #                 self.__header[channel_type]['z_min'],
+            #                 self.__header[channel_type]['z_max'],
+            #                 self.__header[channel_type]['d_z']
+            #             ),
+            #             self.__lookup_table[channel_type][ray_type],
+            #             # kx=1, ky=1
+            #         )
+            #         self.__get_time_scipy[channel_type][ray_type] = get_time_interp.ev
+
         self.__start_times = dict()
+        logger.debug("Using {} channels / {} channel pairs".format(len(self.__channel_ids), len(self.__channel_pairs)))
 
     def run(
             self,
@@ -236,6 +259,7 @@ class neutrino3DVertexReconstructor:
         if debug:
             fig1.tight_layout()
             fig1.savefig('{}/{}_{}_correlation.png'.format(self.__debug_folder, event.get_run_number(), event.get_id()))
+        logger.debug("Starting 2D correlation...")
         for i_dist, distance in enumerate(self.__distances_2d):
             self.__current_distance = distance
             correlation_sum = np.zeros_like(azimuth_grid_2d)
@@ -314,6 +338,8 @@ class neutrino3DVertexReconstructor:
             )
 
         # <--- 3D Fit ---> #
+        logger.debug("Starting 3D correlation...")
+        
         distances_3d = np.arange(self.__distances_2d[0], self.__distances_2d[-1], self.__distance_step_3d)
         z_coords = slope * distances_3d + offset
         distances_3d = distances_3d[(z_coords < 0) & (z_coords > -2700)]
@@ -325,8 +351,11 @@ class neutrino3DVertexReconstructor:
         y_coords = np.sin(median_theta) * x_0 + y_0 * np.cos(median_theta)
 
         correlation_sum = np.zeros_like(z_coords)
-
+        logger.debug(
+            'Dimensions:\nmedian_theta: {}, x_0: {}, x_coords: {}, z_coords: {}'.format(
+                str(median_theta.shape), str(x_0.shape), str(x_coords.shape), str(z_coords.shape)))
         for i_pair, channel_pair in enumerate(self.__channel_pairs):
+            logger.debug("Obtaining 3D correlations for channel pair {} ({})".format(i_pair, str(channel_pair)))
             self.__correlation = self.__pair_correlations[i_pair]
             self.__channel_pair = channel_pair
             self.__channel_positions = [self.__detector.get_relative_position(self.__station_id, channel_pair[0]),
@@ -353,6 +382,7 @@ class neutrino3DVertexReconstructor:
                 i_max
             )
         # <<--- DnR Reco --->> #
+        logger.debug("Starting DnR correlation...")
         self.__self_correlations = np.zeros((len(self.__channel_ids), station.get_channel(self.__channel_ids[0]).get_number_of_samples() + self.__electric_field_template.get_number_of_samples() - 1))
         self_correlation_sum = np.zeros_like(z_coords)
         for i_channel, channel_id in enumerate(self.__channel_ids):
@@ -451,6 +481,7 @@ class neutrino3DVertexReconstructor:
         y = self.__current_distance * np.sin(phi)
         d_hor1 = np.sqrt((x - channel_pos1[0])**2 + (y - channel_pos1[1])**2)
         d_hor2 = np.sqrt((x - channel_pos2[0])**2 + (y - channel_pos2[1])**2)
+        # logger.debug("2d correlation - array shape {}".format(str(d_hor1.shape)))
         res = self.get_correlation_for_pos(np.array([d_hor1, d_hor2]), z)
         return res
 
@@ -459,6 +490,7 @@ class neutrino3DVertexReconstructor:
         channel_pos2 = self.__channel_positions[1]
         d_hor1 = np.sqrt((x - channel_pos1[0])**2 + (y - channel_pos1[1])**2)
         d_hor2 = np.sqrt((x - channel_pos2[0])**2 + (y - channel_pos2[1])**2)
+        # logger.debug("3d correlation - array shape {}".format(str(d_hor1.shape)))
         res = self.get_correlation_for_pos(np.array([d_hor1, d_hor2]), z)
         # res[np.abs(res) < .8 * np.max(np.abs(res))] = 0
         return res
@@ -562,8 +594,11 @@ class neutrino3DVertexReconstructor:
         channel_id: int
             ID of the channel to which the travel time shall be calculated
         """
+        # logger.debug("get_signal_travel_time: array shape {}, ray type {}".format(d_hor.shape, ray_type))
         channel_pos = self.__detector.get_relative_position(self.__station_id, channel_id)
         channel_type = int(abs(channel_pos[2]))
+        # travel_times = self.__get_time_scipy[channel_type][ray_type](d_hor, z)
+        # return travel_times
         travel_times = np.zeros_like(d_hor)
         mask = np.ones_like(travel_times).astype(bool)
         i_z_1 = np.array(np.floor((z - self.__header[channel_type]['z_min']) / self.__header[channel_type]['d_z'])).astype(int)
