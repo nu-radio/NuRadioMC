@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('raytracing')
 
 
-model = 'A'
+model = 'E'
 
 
 c = constants.c
@@ -98,6 +98,16 @@ n2 = np.sqrt(e_p + e_d * e2)
 n3 = np.sqrt(e_p + e_d * e3)
 depth = dep
 
+n1 = np.array(n1)
+n2_av = np.array(n2)
+n3_av = np.array(n3)
+
+print(depth)
+
+n2 = (n2_av+n3_av)/2
+n3 = (n2_av+n3_av)/2
+#n2, n3 = n2 + n3 /2
+
 long = 1000
 
 filler_n1 = np.full((1,long), np.mean(n1[-10:]))
@@ -123,6 +133,9 @@ n3 = np.concatenate((filler_n3, n3), axis=None)
 depth = np.concatenate((filler_d, depth), axis=None)
 
 
+#n2 = n2 + n3 / 2
+
+
 #print(n3)
 
 #xnew = np.arange(depth[0], depth[-1], 20)
@@ -138,8 +151,8 @@ node_cond3 = 0.000001
 
 #smooth interpolation
 node_cond1 = 0.000001
-node_cond2 = 0.0000017
-node_cond3 = 0.0000013
+node_cond2 = 0.0000003
+node_cond3 = 0.0000003
 
 f1 = interpolate.UnivariateSpline(depth, n1, s = node_cond1)     
 f2 = interpolate.UnivariateSpline(depth, n2, s = node_cond2)         
@@ -165,19 +178,26 @@ if 0:
 #--------------Jordan interpolation
 
 if 1:
-    n1 = n1[(depth<1750)&(depth>140)]
-    n2 = n2[(depth<1750)&(depth>140)]
-    n3 = n3[(depth<1750)&(depth>140)]
-    depth = depth[(depth<1750)&(depth>140)]
+    
+    n1 = n1[(depth<=1739)&(depth>=140)]
+    n2 = n2[(depth<=1739)&(depth>=140)]
+    n3 = n3[(depth<=1739)&(depth>=140)]
+    depth = depth[(depth<=1739)&(depth>=140)]
+    
     
     plt.plot(-depth, n1, 'b.', label = 'nx - data')
     plt.plot(-xnew, f1(xnew), label = 'nx - interpolation')
     
-    plt.plot(-depth, n2, 'r.', label = 'ny - data')
-    plt.plot(-xnew, f2(xnew), label = 'ny - interpolation')
+    plt.plot(-depth, n2, 'c.', label = '(ny + nz)/2 - data')
+    plt.plot(-xnew, f2(xnew), label = '(ny + nz)/2 - interpolation')
+
     
-    plt.plot(-depth, n3, 'g.', label = 'nz - data')
-    plt.plot(-xnew, f3(xnew), label = 'nz - interpolation')
+    plt.plot(-dep, n2_av, 'r.', label = 'ny - data')
+    #plt.plot(-xnew, f2(xnew), label = 'ny - interpolation')
+    
+    plt.plot(-dep, n3_av, 'g.', label = 'nz - data')
+    #plt.plot(-xnew, f3(xnew), label = 'nz - interpolation')    
+
     
     plt.title('Principle refractive index at SPICE')
     plt.xlabel('depth [m]')

@@ -5,6 +5,7 @@ from scipy import optimize, integrate, interpolate, signal
 import scipy.constants
 from operator import itemgetter
 import NuRadioReco.utilities.geometryUtilities
+from plotly.validators.volume.lighting import _vertexnormalsepsilon
 try:
     from functools import lru_cache
 except ImportError:
@@ -14,11 +15,17 @@ from NuRadioReco.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
 from NuRadioMC.utilities.medium import birefringence_index_A
 from NuRadioMC.utilities.medium import birefringence_index_B
+from NuRadioMC.utilities.medium import birefringence_index_C
+from NuRadioMC.utilities.medium import birefringence_index_D
+from NuRadioMC.utilities.medium import birefringence_index_E
+#from NuRadioMC.utilities.medium import birefringence_index_F
 from radiotools import coordinatesystems as cstrans
 from radiotools import helper as hp
 from NuRadioMC.utilities.medium import southpole_2015
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework import base_trace
+
+import matplotlib.pyplot as plt
 
 
 import logging
@@ -1851,9 +1858,15 @@ class ray_tracing:
                     return [0, 0, 0]
 
             else:
-                print(f"ERROR: non of the special cases worked")
-                print(n, direction, nx, ny, nz)
-                return [0, 0, 0]
+                
+                try:
+                    p = np.array([direction[0] / (n ** 2 - nx ** 2), direction[1] / (n ** 2 - ny ** 2), direction[2] / (n ** 2 - nz ** 2)])
+                    return p / np.linalg.norm(p)
+                
+                except:
+                    print(f"ERROR: non of the special cases worked")
+                    print(n, direction, nx, ny, nz)
+                    return [0, 0, 0]
         else:
             p = np.array([direction[0] / (n ** 2 - nx ** 2), direction[1] / (n ** 2 - ny ** 2), direction[2] / (n ** 2 - nz ** 2)])
             return p / np.linalg.norm(p)
@@ -1927,13 +1940,22 @@ class ray_tracing:
        
         ice = southpole_2015()
         
-        
         if model == 'A':
             ice_n = birefringence_index_A()
         if model == 'B':
-            ice_n = birefringence_index_B()        
+            ice_n = birefringence_index_B()      
         
+        if model == 'C':
+            ice_n = birefringence_index_C()
+        if model == 'D':
+            ice_n = birefringence_index_D()         
         
+        if model == 'E':
+            ice_n = birefringence_index_E()
+        #if model == 'F':
+            #ice_n = birefringence_index_F() 
+            
+                    
         r = ray_tracing(ice)
         p = r.get_3d_trace(source, antenna, acc)
         c = speed_of_light * units.m / units.ns
@@ -2013,7 +2035,17 @@ class ray_tracing:
         if model == 'A':
             ice_n = birefringence_index_A()
         if model == 'B':
-            ice_n = birefringence_index_B()     
+            ice_n = birefringence_index_B()      
+        
+        if model == 'C':
+            ice_n = birefringence_index_C()
+        if model == 'D':
+            ice_n = birefringence_index_D()         
+        
+        if model == 'E':
+            ice_n = birefringence_index_E()
+        #if model == 'F':
+            #ice_n = birefringence_index_F()  
             
         r = ray_tracing(ice)
         p = r.get_3d_trace(source, antenna, acc)
@@ -2122,7 +2154,7 @@ class ray_tracing:
 
         diff =  time_delay_short[2] - time_delay_short[1]
         T_theta = np.abs(3 * time_delay_short[0])
-        #T_theta = 100
+        T_theta = 100
 
         dt = t * units.ns
         n_samples = int(T_theta / dt)
@@ -2157,31 +2189,137 @@ class ray_tracing:
         factor_theta = 1 / t_theta.get_trace().max()
         factor_phi = 1 / t_phi.get_trace().max()
 
-        t_theta *= factor_theta
-        t_phi *= factor_phi 
+        t_theta *= factor_theta * 1/np.sqrt(2)
+        t_phi *= factor_phi  * 1/np.sqrt(2)
         
         start_theta = t_theta.get_trace()
         start_phi = t_phi.get_trace()        
 
         for i in range(len(diff)):
             
+            
+            
+            th = t_theta.get_trace()
+            t_th = t_theta.get_times()
+            ph = t_phi.get_trace()
+            t_ph = t_phi.get_times()
+            
+            step_0 = [th, t_th, ph, t_ph]
+            
+            D = t_ph[ph == max(ph)]
+            
+            plt.title('Pulse propagation (Step 0)')            
+            plt.plot(t_th -D ,th, label='theta')
+            plt.plot(t_ph - D,ph, label='phi')
+            plt.xlabel('relative arrival time [ns]')
+            plt.ylabel('pulse amplitude')
+            #plt.xlim(-17, 17)
+            plt.grid()
+            plt.legend()
+            plt.show()
     
-            a = polar_theta[i]
-            b = polar_phi[i]
+    
+    
+            #a = polar_theta[i]
+            #b = polar_phi[i]
+            
+            a = 5
+            b = 1
+            
+            nor = np.sqrt(a**2 + b**2)
+            
+            a = a/nor
+            b = b/nor
+            
+            
 
             R = np.matrix([[a, -b],[b, a]])    
             t_slow.set_trace(t_theta.get_trace() * R[0, 0] + t_phi.get_trace() * R[0, 1], sampling_rate=t_theta.get_sampling_rate())
             t_fast.set_trace(t_theta.get_trace() * R[1, 0] + t_phi.get_trace() * R[1, 1], sampling_rate=t_phi.get_sampling_rate())
 
-            t_fast.apply_time_shift(diff[i])
+
+
+            s = t_slow.get_trace()
+            t_s = t_slow.get_times()
+            f = t_fast.get_trace()
+            t_f = t_fast.get_times()
+            
+            
+            step_1 = [s, t_s, f, t_f]
+            
+            D = t_f[f == max(f)]
+            
+            plt.title('Pulse propagation (Step 1 - rotation)')            
+            plt.plot(t_s -D ,s, label='slow')
+            plt.plot(t_f - D,f, label='fast')
+            plt.xlabel('relative arrival time [ns]')
+            plt.ylabel('pulse amplitude')
+            #plt.xlim(-17, 17)
+            plt.grid()
+            plt.legend()
+            plt.show()
+
+            
+
+
+            #t_fast.apply_time_shift(diff[i])
+            t_fast.apply_time_shift(10)
+            
+            s = t_slow.get_trace()
+            t_s = t_slow.get_times()
+            f = t_fast.get_trace()
+            t_f = t_fast.get_times()
+            
+            step_2 = [s, t_s, f, t_f]
+            
+            D = t_f[f == max(f)]
+            
+            plt.title('Pulse propagation (Step 2 - time shift)')            
+            plt.plot(t_s -D ,s, label='slow')
+            plt.plot(t_f - D,f, label='fast')
+            plt.xlabel('relative arrival time [ns]')
+            plt.ylabel('pulse amplitude')
+            #plt.xlim(-27, 7)
+            plt.grid()
+            plt.legend()
+            plt.show()            
+            
 
             Rinv = np.linalg.inv(R)
             t_theta.set_trace(t_slow.get_trace() * Rinv[0, 0] + t_fast.get_trace() * Rinv[0, 1], sampling_rate=t_slow.get_sampling_rate())
             t_phi.set_trace(t_slow.get_trace() * Rinv[1, 0] + t_fast.get_trace() * Rinv[1, 1], sampling_rate=t_fast.get_sampling_rate())
+
+
+
+
+            th = t_theta.get_trace()
+            t_th = t_theta.get_times()
+            ph = t_phi.get_trace()
+            t_ph = t_phi.get_times()
+            
+            step_3 = [th, t_th, ph, t_ph]
+            
+            D = t_ph[ph == max(ph)]
+            
+            plt.title('Pulse propagation (Step 3 - inverse rotation)')            
+            plt.plot(t_th -D ,th, label='theta')
+            plt.plot(t_ph - D,ph, label='phi')
+            plt.xlabel('relative arrival time [ns]')
+            plt.ylabel('pulse amplitude')
+            #plt.xlim(-27, 7)
+            plt.grid()
+            plt.legend()
+            plt.show()
+
+            prop_model = np.array([step_0, step_1, step_2, step_3])
+
+            np.save('/home/nils/MasterUppsala/Sem3Period1/IceCube/software/ARIANNA_pulseprop/prop_model.npy', prop_model)
+
+
     
             print(i)
-            #if i == 0:
-            #    break
+            if i == 0:
+                break
     
         end_theta = t_theta.get_trace()
         end_phi = t_phi.get_trace()

@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('raytracing')
 
 
-model = 'A'
+model = 'D'
 
 
 c = constants.c
@@ -34,9 +34,9 @@ def get_index_of_refraction(z):
     
 
     
-    n1 = m.get_index_of_refraction(z) + f1_rec(-z[2]) - comp
-    n2 = m.get_index_of_refraction(z) + f2_rec(-z[2]) - comp
-    n3 = m.get_index_of_refraction(z) + f3_rec(-z[2]) - comp 
+    n1 = m.get_index_of_refraction(z) + interpolation[0] - comp
+    n2 = m.get_index_of_refraction(z) + interpolation[1] - comp
+    n3 = m.get_index_of_refraction(z) + interpolation[2] - comp 
             
     return n1, n2, n3
 
@@ -98,65 +98,12 @@ n2 = np.sqrt(e_p + e_d * e2)
 n3 = np.sqrt(e_p + e_d * e3)
 depth = dep
 
-long = 1000
 
-filler_n1 = np.full((1,long), np.mean(n1[-10:]))
-filler_n2 = np.full((1,long), np.mean(n2[-10:]))
-filler_n3 = np.full((1,long), np.mean(n3[-10:]))
-filler_d = np.linspace(1800, 2500,long)
+print(np.mean(n1))
+print(np.mean(n2))
+print(np.mean(n3))
 
-n1 = np.concatenate((n1, filler_n1), axis=None)
-n2 = np.concatenate((n2, filler_n2), axis=None)
-n3 = np.concatenate((n3, filler_n3), axis=None)
-
-depth = np.concatenate((depth, filler_d), axis=None)
-
-filler_n1 = np.full((1,long), np.mean(n1[:10]))
-filler_n2 = np.full((1,long), np.mean(n2[:10]))
-filler_n3 = np.full((1,long), np.mean(n3[:10]))
-filler_d = np.linspace(0, 140,long)
-
-n1 = np.concatenate((filler_n1, n1), axis=None)
-n2 = np.concatenate((filler_n2, n2), axis=None)
-n3 = np.concatenate((filler_n3, n3), axis=None)
-
-depth = np.concatenate((filler_d, depth), axis=None)
-
-
-#print(n3)
-
-#xnew = np.arange(depth[0], depth[-1], 20)
-xnew = np.arange(0, 2500, 1)
-
-#node_cond = 0.0000015           # s < len(n) * np.var(n)
-
-#wrinkly interpolation
-node_cond1 = 0.0000007
-node_cond2 = 0.0000015
-node_cond3 = 0.000001
-
-
-#smooth interpolation
-node_cond1 = 0.000001
-node_cond2 = 0.0000017
-node_cond3 = 0.0000013
-
-f1 = interpolate.UnivariateSpline(depth, n1, s = node_cond1)     
-f2 = interpolate.UnivariateSpline(depth, n2, s = node_cond2)         
-f3 = interpolate.UnivariateSpline(depth, n3, s = node_cond3)
-
-tck1 = f1._eval_args
-f1_rec = interpolate.UnivariateSpline._from_tck(tck1)
-
-tck2 = f2._eval_args
-f2_rec = interpolate.UnivariateSpline._from_tck(tck2)
-
-tck3 = f3._eval_args
-f3_rec = interpolate.UnivariateSpline._from_tck(tck3)
-
-
-
-interpolation = np.array([tck1, tck2, tck3])
+interpolation = np.array([np.mean(n1), np.mean(n2), np.mean(n3)])
 
 if 0:
     np.save('index_model' + model + '.npy', interpolation)
@@ -165,19 +112,17 @@ if 0:
 #--------------Jordan interpolation
 
 if 1:
-    n1 = n1[(depth<1750)&(depth>140)]
-    n2 = n2[(depth<1750)&(depth>140)]
-    n3 = n3[(depth<1750)&(depth>140)]
-    depth = depth[(depth<1750)&(depth>140)]
+
     
     plt.plot(-depth, n1, 'b.', label = 'nx - data')
-    plt.plot(-xnew, f1(xnew), label = 'nx - interpolation')
     
     plt.plot(-depth, n2, 'r.', label = 'ny - data')
-    plt.plot(-xnew, f2(xnew), label = 'ny - interpolation')
     
     plt.plot(-depth, n3, 'g.', label = 'nz - data')
-    plt.plot(-xnew, f3(xnew), label = 'nz - interpolation')
+    
+    plt.hlines(np.mean(n1), -depth[0], -depth[-1], 'b', label = 'nx - average')
+    plt.hlines(np.mean(n2), -depth[0], -depth[-1], 'r', label = 'ny - average')
+    plt.hlines(np.mean(n3), -depth[0], -depth[-1], 'g', label = 'nz - average')
     
     plt.title('Principle refractive index at SPICE')
     plt.xlabel('depth [m]')
