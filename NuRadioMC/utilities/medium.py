@@ -300,64 +300,6 @@ class birefringence_index_E:
     
 
 
-    
-    
-    
-class birefringence_index_F:
-    
-    """
-    This class can be used to model the index of refrection in three dimensions at the south pole from 0m to -2500m.
-    The interpolation files used were spline fitted to the data from the Jordan et al. paper(https://arxiv.org/abs/1910.01471)
-    Different files for the smoothness of the fit can be found in (birefringence_example) as well as an example script on how to us this model
-    
-    
-    model b - converging interpolation to 1.78 for shallow depths
-    """
-    
-    def __init__(self):
-        
-     
-        model = str(self.__class__.__name__).split('_')[-1]
-       
-        filepath = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/index_model' + model + '.npy'
-        data = np.load(filepath, allow_pickle=True)
-
-    
-        self.f1_rec = interpolate.UnivariateSpline._from_tck(data[0])
-        self.f2_rec = interpolate.UnivariateSpline._from_tck(data[1])
-        self.f3_rec = interpolate.UnivariateSpline._from_tck(data[2])
-
-        self.m = southpole_2015()  
-        self.comp = self.m.get_index_of_refraction(np.array([0, 0, -2500]))
-
-
-   
-    def get_index_of_refraction(self, z):
-        
-        """
-        Overlapping the index from southpole_2015 and the interpolated function.
-        Returns the three indices of refraction.
-        
-        Parameters
-        ---------
-        z:    numpy.array (int as entries), position of the interaction (only the z-coordinate matters)
-
-        n1:   float, index of refrection in x-direction
-        n2:   float, index of refrection in y-direction
-        n3:   float, index of refrection in z-direction                
-        """
-        
-        nx = self.m.get_index_of_refraction(z) + self.f1_rec(-z[2]) - self.comp
-        ny = self.m.get_index_of_refraction(z) + self.f2_rec(-z[2]) - self.comp
-        nz = self.m.get_index_of_refraction(z) + self.f3_rec(-z[2]) - self.comp 
-                
-        return nx, ny, nz
-
-
-
-
-
-
 
 
 
@@ -411,6 +353,143 @@ class ARA_2022(medium_base.IceModelSimple):
             z_0 = 49.5049505*units.meter, 
             delta_n = 0.454,
             )
+        
+        
+
+
+
+
+
+
+
+
+
+
+    
+    
+    
+class birefringence_index:
+    
+    """
+    This class can be used to model the index of refrection in three dimensions at the south pole from 0m to -2500m.
+    The interpolation files used were spline fitted to the data from the Jordan et al. paper(https://arxiv.org/abs/1910.01471)
+    Different files for the smoothness of the fit can be found in (birefringence_example) as well as an example script on how to us this model
+    
+    
+    model b - converging interpolation to 1.78 for shallow depths
+    """
+    
+    def __init__(self, bir_model = 'A', exp_model = southpole_2015()):
+        
+        
+        self.__bir_model = bir_model
+        self.__exp_model = exp_model
+        
+        #----------------birefringence model A
+        filepath_A = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/index_modelA.npy'
+        data_A = np.load(filepath_A, allow_pickle=True)
+    
+        self.f1_A = interpolate.UnivariateSpline._from_tck(data_A[0])
+        self.f2_A = interpolate.UnivariateSpline._from_tck(data_A[1])
+        self.f3_A = interpolate.UnivariateSpline._from_tck(data_A[2])
+        
+        
+        #----------------birefringence model B
+        filepath_B = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/index_modelB.npy'
+        data_B = np.load(filepath_B, allow_pickle=True)
+    
+        self.f1_B = interpolate.UnivariateSpline._from_tck(data_B[0])
+        self.f2_B = interpolate.UnivariateSpline._from_tck(data_B[1])
+        self.f3_B = interpolate.UnivariateSpline._from_tck(data_B[2])
+
+        
+        #----------------birefringence model D
+        filepath_D = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/index_modelD.npy'
+        self.data_D = np.load(filepath_D, allow_pickle=True)
+
+
+        #----------------birefringence model E
+        filepath_E = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/index_modelE.npy'
+        data_E = np.load(filepath_E, allow_pickle=True)
+   
+        self.f1_E = interpolate.UnivariateSpline._from_tck(data_E[0])
+        self.f2_E = interpolate.UnivariateSpline._from_tck(data_E[1])
+        self.f3_E = interpolate.UnivariateSpline._from_tck(data_E[2])
+
+        
+
+   
+    def get_index_of_refraction(self, z):
+        
+        """
+        Overlapping the index from an exponential ice model and the interpolated function from a birefringence model.
+        Returns the three indices of refraction.
+        
+        Parameters
+        ---------
+        z:            numpy.array (int as entries), position of the interaction (only the z-coordinate matters)
+        bir_model:    birfringence model for the refractive index
+        exp_model:    exponential (density dependent) model for the refractive index
+
+        n1:   float, index of refrection in x-direction
+        n2:   float, index of refrection in y-direction
+        n3:   float, index of refrection in z-direction                
+        """
+
+        comp = 1.78
+        
+        if self.__bir_model == 'A':
+            add1 = self.f1_A(-z[2])
+            add2 = self.f2_A(-z[2])
+            add3 = self.f3_A(-z[2])
+               
+        if self.__bir_model == 'B':
+            add1 = self.f1_B(-z[2])
+            add2 = self.f2_B(-z[2])
+            add3 = self.f3_B(-z[2])
+                     
+        if self.__bir_model == 'C':
+            add1 = comp
+            add2 = comp
+            add3 = comp
+                      
+        if self.__bir_model == 'D':
+            add1 = self.data_D[0]
+            add2 = self.data_D[1]
+            add3 = self.data_D[2]
+        
+        if self.__bir_model == 'E':
+            add1 = self.f1_E(-z[2])
+            add2 = self.f2_E(-z[2])
+            add3 = self.f3_E(-z[2])    
+
+
+                   
+        
+        nx = self.__exp_model.get_index_of_refraction(z) + add1 - comp
+        ny = self.__exp_model.get_index_of_refraction(z) + add2 - comp
+        nz = self.__exp_model.get_index_of_refraction(z) + add3 - comp 
+                
+        return nx, ny, nz
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class mooresbay_simple(medium_base.IceModelSimple):
