@@ -153,6 +153,218 @@ class birefringence_index_B:
                 
         return nx, ny, nz
 
+    
+    
+    
+class birefringence_index_C:
+    
+    """
+    This class can be used to model the index of refrection in three dimensions at the south pole from 0m to -2500m.
+    The interpolation files used were spline fitted to the data from the Jordan et al. paper(https://arxiv.org/abs/1910.01471)
+    Different files for the smoothness of the fit can be found in (birefringence_example) as well as an example script on how to us this model
+    
+    
+    model c - nx, ny, nz = southpole_2015() 
+    """
+    
+    def __init__(self):
+        
+        self.m = southpole_2015()  
+
+   
+    def get_index_of_refraction(self, z):
+        
+        """
+        Overlapping the index from southpole_2015 and the interpolated function.
+        Returns the three indices of refraction.
+        
+        Parameters
+        ---------
+        z:    numpy.array (int as entries), position of the interaction (only the z-coordinate matters)
+
+        n1:   float, index of refrection in x-direction
+        n2:   float, index of refrection in y-direction
+        n3:   float, index of refrection in z-direction                
+        """
+        
+        nx = self.m.get_index_of_refraction(z) 
+        ny = self.m.get_index_of_refraction(z) 
+        nz = self.m.get_index_of_refraction(z) 
+                
+        return nx, ny, nz
+
+
+
+    
+    
+    
+class birefringence_index_D:
+    
+    """
+    This class can be used to model the index of refrection in three dimensions at the south pole from 0m to -2500m.
+    The interpolation files used were spline fitted to the data from the Jordan et al. paper(https://arxiv.org/abs/1910.01471)
+    Different files for the smoothness of the fit can be found in (birefringence_example) as well as an example script on how to us this model
+    
+    
+    model d - constant indices at the average of jordan et al.
+    """
+    
+    def __init__(self):
+        
+     
+        model = str(self.__class__.__name__).split('_')[-1]
+       
+        filepath = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/index_model' + model + '.npy'
+        self.data = np.load(filepath, allow_pickle=True)
+
+        self.m = southpole_2015()  
+        self.comp = self.m.get_index_of_refraction(np.array([0, 0, -2500]))
+
+
+   
+    def get_index_of_refraction(self, z):
+        
+        """
+        Overlapping the index from southpole_2015 and the interpolated function.
+        Returns the three indices of refraction.
+        
+        Parameters
+        ---------
+        z:    numpy.array (int as entries), position of the interaction (only the z-coordinate matters)
+
+        n1:   float, index of refrection in x-direction
+        n2:   float, index of refrection in y-direction
+        n3:   float, index of refrection in z-direction                
+        """
+        
+        nx = self.m.get_index_of_refraction(z) + self.data[0] - self.comp
+        ny = self.m.get_index_of_refraction(z) + self.data[1] - self.comp
+        nz = self.m.get_index_of_refraction(z) + self.data[2] - self.comp 
+                
+        return nx, ny, nz
+    
+    
+    
+    
+    
+    
+class birefringence_index_E:
+    
+    """
+    This class can be used to model the index of refrection in three dimensions at the south pole from 0m to -2500m.
+    The interpolation files used were spline fitted to the data from the Jordan et al. paper(https://arxiv.org/abs/1910.01471)
+    Different files for the smoothness of the fit can be found in (birefringence_example) as well as an example script on how to us this model
+    
+    
+    model b - converging interpolation to 1.78 for shallow depths
+    """
+    
+    def __init__(self):
+        
+     
+        model = str(self.__class__.__name__).split('_')[-1]
+       
+        filepath = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/index_model' + model + '.npy'
+        data = np.load(filepath, allow_pickle=True)
+
+    
+        self.f1_rec = interpolate.UnivariateSpline._from_tck(data[0])
+        self.f2_rec = interpolate.UnivariateSpline._from_tck(data[1])
+        self.f3_rec = interpolate.UnivariateSpline._from_tck(data[2])
+
+        self.m = southpole_2015()  
+        self.comp = self.m.get_index_of_refraction(np.array([0, 0, -2500]))
+
+
+   
+    def get_index_of_refraction(self, z):
+        
+        """
+        Overlapping the index from southpole_2015 and the interpolated function.
+        Returns the three indices of refraction.
+        
+        Parameters
+        ---------
+        z:    numpy.array (int as entries), position of the interaction (only the z-coordinate matters)
+
+        n1:   float, index of refrection in x-direction
+        n2:   float, index of refrection in y-direction
+        n3:   float, index of refrection in z-direction                
+        """
+        
+        nx = self.m.get_index_of_refraction(z) + self.f1_rec(-z[2]) - self.comp
+        ny = self.m.get_index_of_refraction(z) + self.f2_rec(-z[2]) - self.comp
+        nz = self.m.get_index_of_refraction(z) + self.f3_rec(-z[2]) - self.comp 
+                
+        return nx, ny, nz
+    
+
+
+    
+    
+    
+class birefringence_index_F:
+    
+    """
+    This class can be used to model the index of refrection in three dimensions at the south pole from 0m to -2500m.
+    The interpolation files used were spline fitted to the data from the Jordan et al. paper(https://arxiv.org/abs/1910.01471)
+    Different files for the smoothness of the fit can be found in (birefringence_example) as well as an example script on how to us this model
+    
+    
+    model b - converging interpolation to 1.78 for shallow depths
+    """
+    
+    def __init__(self):
+        
+     
+        model = str(self.__class__.__name__).split('_')[-1]
+       
+        filepath = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/index_model' + model + '.npy'
+        data = np.load(filepath, allow_pickle=True)
+
+    
+        self.f1_rec = interpolate.UnivariateSpline._from_tck(data[0])
+        self.f2_rec = interpolate.UnivariateSpline._from_tck(data[1])
+        self.f3_rec = interpolate.UnivariateSpline._from_tck(data[2])
+
+        self.m = southpole_2015()  
+        self.comp = self.m.get_index_of_refraction(np.array([0, 0, -2500]))
+
+
+   
+    def get_index_of_refraction(self, z):
+        
+        """
+        Overlapping the index from southpole_2015 and the interpolated function.
+        Returns the three indices of refraction.
+        
+        Parameters
+        ---------
+        z:    numpy.array (int as entries), position of the interaction (only the z-coordinate matters)
+
+        n1:   float, index of refrection in x-direction
+        n2:   float, index of refrection in y-direction
+        n3:   float, index of refrection in z-direction                
+        """
+        
+        nx = self.m.get_index_of_refraction(z) + self.f1_rec(-z[2]) - self.comp
+        ny = self.m.get_index_of_refraction(z) + self.f2_rec(-z[2]) - self.comp
+        nz = self.m.get_index_of_refraction(z) + self.f3_rec(-z[2]) - self.comp 
+                
+        return nx, ny, nz
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class southpole_simple(medium_base.IceModelSimple):
@@ -186,6 +398,18 @@ class ARAsim_southpole(medium_base.IceModelSimple):
             n_ice = 1.78, 
             z_0 = 75.75757575757576*units.meter, 
             delta_n = 0.43,
+            )
+        
+        
+        
+class ARA_2022(medium_base.IceModelSimple):
+    def __init__(self):
+        # define model parameters (SPICE 2015/southpole)
+        super().__init__(
+            z_bottom = -2820*units.meter, 
+            n_ice = 1.78, 
+            z_0 = 49.5049505*units.meter, 
+            delta_n = 0.454,
             )
 
 
