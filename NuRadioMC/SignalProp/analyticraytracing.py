@@ -22,6 +22,8 @@ from NuRadioMC.utilities.medium import birefringence_index_E
 from radiotools import coordinatesystems as cstrans
 from radiotools import helper as hp
 from NuRadioMC.utilities.medium import southpole_2015
+from NuRadioMC.utilities.medium import ARA_2022
+
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework import base_trace
 
