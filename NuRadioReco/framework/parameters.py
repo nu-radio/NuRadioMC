@@ -46,6 +46,7 @@ class stationParameters(Enum):
     viewing_angles = 46 # reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float
     raytype_sim = 47 
     pulse_position_sim = 48
+    pulse_selection = 49 
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction

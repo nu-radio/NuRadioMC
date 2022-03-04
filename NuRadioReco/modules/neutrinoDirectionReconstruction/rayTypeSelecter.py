@@ -132,7 +132,7 @@ class rayTypeSelecter:
                            if debug_plots: axs[iax].plot(trace, color = 'darkgrey', lw =2)
                            if debug_plots: 
                                if channel_id == use_channels[-1]:
-                                   axs[iax].plot(total_trace, lw = 2, color = 'darkgreen', label= 'combined trace')
+                                   axs[iax].plot(total_trace, lw = 2, color = 'darkgreen', label= 'added PA traces')
                         
                                    axs[iax].legend(loc = 1, fontsize= 20)
                                    for tick in axs[iax].yaxis.get_majorticklabels():
@@ -144,7 +144,7 @@ class rayTypeSelecter:
                                    for tick in axs[2].xaxis.get_majorticklabels():
                                        tick.set_fontsize(20)
             if debug_plots and type_exist:
-                axs[iax].set_title("raytype: {}".format(['direct', 'refracted', 'reflected'][raytype-1]), fontsize = 40)
+                axs[iax].set_title("hypothesis: {}".format(['direct', 'refracted', 'reflected'][raytype-1]), fontsize = 30)
                 axs[iax].grid()
                 axs[iax].set_xlim((position_max_totaltrace - 40*sampling_rate, position_max_totaltrace + 40*sampling_rate))
                 axs[iax].set_xlabel("samples", fontsize = 25)
@@ -152,7 +152,7 @@ class rayTypeSelecter:
            
             if type_exist and debug_plots:
                 if 1:
-                    axs[raytype-1].set_title("raytype {}".format(['direct', 'refracted', 'reflected'][raytype-1]), fontsize = 30)
+                    axs[raytype-1].set_title("hypothesis: {}".format(['direct', 'refracted', 'reflected'][raytype-1]), fontsize = 30)
                     axs[2].plot(corr_total, lw = 2,  label= '{}'.format(['direct', 'refracted', 'reflected'][raytype-1]))
                   
                     axs[2].legend(fontsize = 20)
@@ -163,6 +163,8 @@ class rayTypeSelecter:
                 where_are_NaNs = np.isnan(max_totalcorr)
             
         if debug_plots:
+            axs[2].grid()
+            axs[2].set_xlim((20000, 50000))
             fig.tight_layout()
             fig.savefig("{}/pulse_selection.pdf".format(debugplots_path))
         
@@ -217,6 +219,7 @@ class rayTypeSelecter:
                         #print("		get receive vector...............>>")
                         receive_vector = r.get_receive_vector(iS)
                         receive_zenith, receive_azimuth = hp.cartesian_to_spherical(*receive_vector)
+                        
                         if sim == True: 
                             channel.set_parameter(chp.signal_receiving_zenith, receive_zenith)
                             channel.set_parameter(chp.signal_receiving_azimuth, receive_azimuth)
@@ -234,8 +237,22 @@ class rayTypeSelecter:
                     axs[ich].plot(channel.get_times(), channel.get_trace(), color = 'blue')
                     axs[ich].set_xlabel("time [ns]")
                     if sim: 
+                        amp = []
                         for sim_ch in station.get_sim_station().get_channels_by_channel_id(channel_id):
                             axs[ich].plot(sim_ch.get_times(), sim_ch.get_trace(), color = 'orange') 
+                            
+                            if (channel_id == use_channels[0]) and (r.get_solution_type(iS) in [np.argmax(max_totalcorr)+1]):
+                                time_for_pulse_pos = channel.get_times()[k]
+                                print("r type", r.get_solution_type(iS))    
+                                print('time for pulse pos', time_for_pulse_pos)
+                                index_for_corres_time = np.argmin(abs(sim_ch.get_times()-time_for_pulse_pos))
+                                amp.append(abs(sim_ch.get_trace())[index_for_corres_time])
+                                axs[ich].axvline(sim_ch.get_times()[index_for_corres_time], color = 'purple')
+                                print("amp", amp) 
+                                if max(amp) > .0001:
+                                    station.set_parameter(stnp.pulse_selection, True)
+                                else: 
+                                    station.set_parameter(stnp.pulse_selection, False)
                     axs[ich].axvline(channel.get_times()[k-300], color = 'grey')
                     axs[ich].axvline(channel.get_times()[k+500], color = 'grey')
                     if ((np.max(pulse_window) - np.min(pulse_window))/(2*noise_rms) > 3.5): 
