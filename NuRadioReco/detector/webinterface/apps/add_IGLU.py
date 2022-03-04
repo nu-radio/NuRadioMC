@@ -56,12 +56,19 @@ layout = html.Div([
                          'float': 'left'}
         ),
 
+        dcc.Input(
+            id='laser-id',
+            placeholder='laser serial',
+            style={'width': '200px', 'float':'left'}
+        ),
+
         dcc.Dropdown(
             id='DRAB-id',
             options=[],
             value='Golden_DRAB',
             style={'width': '200px', 'float':'left'}
         ),
+
         dcc.Dropdown(
             id='temperature-list',
             options=[
@@ -213,9 +220,11 @@ def validate_global(Sdata_validated, board_dropdown, new_board_name, drab_id, fu
              State('temperature-list', 'value'),
              State("function-test", "value"),
              State("group_delay_corr", "value"),
+             State("laser-id", "value"),
              State("protocol", "value")])
 def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff,
-                 unit_mag, unit_phase, drab_id, sep, temp, function_test, corr_group_delay, protocol):
+                 unit_mag, unit_phase, drab_id, sep, temp, function_test,
+                 corr_group_delay, laser_id, protocol):
     print(f"n_clicks is {n_clicks}")
     if(not n_clicks is None):
         print("insert to db")
@@ -255,7 +264,7 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff,
                 temp, S_data, measurement_time, primary_measurement, time_delay, protocol)
             else:
                 det.IGLU_board_channel_add_Sparameters_with_DRAB(board_name,
-                drab_id, temp, S_data, measurement_time, primary_measurement, time_delay, protocol)
+                drab_id, laser_id, temp, S_data, measurement_time, primary_measurement, time_delay, protocol)
         return {'display': 'none'}, {}
     else:
         return {}, {'display': 'none'}

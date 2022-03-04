@@ -73,8 +73,10 @@ sparameters_layout = html.Div([
     dcc.Dropdown(id="protocol",
                 options=[
                     {'label': 'Chicago 2020', 'value': "chicago2020"},
-                    {'label': 'Erlangen 2020', 'value': "erlangen2020"}],
-              value="erlangen2020",
+                    {'label': 'Erlangen 2020', 'value': "erlangen2020"},
+                    {'label': 'Chicago 2022', 'value': "erlangen2020"},
+                    {'label': 'Erlangen 2022', 'value': "erlangen2022"}],
+              value="erlangen2022",
               style={'width': '200px',
                      'float': 'left'}),
     html.Br(),
