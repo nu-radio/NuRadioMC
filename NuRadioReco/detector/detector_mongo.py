@@ -229,7 +229,8 @@ class Detector(object):
                                   })
 
     def DRAB_add_Sparameters(self, board_name, channel_id, iglu_id, temp, S_data,
-                             measurement_time, primary_measurement, time_delay, protocol):
+                             measurement_time, primary_measurement, time_delay,
+                             photo, protocol):
         """
         inserts a new S parameter measurement of one channel of an amp board
         If the board dosn't exist yet, it will be created.
@@ -251,6 +252,8 @@ class Detector(object):
         time_delay: array of floats
             the absolute time delay of each S parameter measurement (e.g. the group delay at
             a reference frequency)
+        photo: string
+            the serial number of the photodiode
         protocol: string
             details of the testing enviornment
 
@@ -260,6 +263,7 @@ class Detector(object):
             self.db.DRAB.update_one({'name': board_name},
                                     {"$push": {'measurements': {
                                           'channel_id': channel_id,
+                                          'photodiode_serial': photo,
                                           'last_updated': datetime.datetime.utcnow(),
                                           'function_test': True,
                                           'IGLU_id': iglu_id,
@@ -453,8 +457,8 @@ class Detector(object):
                              upsert=True)
 
     def IGLU_board_channel_add_Sparameters_with_DRAB(self, board_name, drab_id,
-                                                     temp, S_data, measurement_time,
-                                                     primary_measurement, time_delay, protocol):
+                                    laser_id, temp, S_data, measurement_time,
+                                    primary_measurement, time_delay, protocol):
         """
         inserts a new S parameter measurement of one channel of an IGLU board
         If the board dosn't exist yet, it will be created.
@@ -465,6 +469,8 @@ class Detector(object):
             the unique identifier of the board
         drab_id: string
             the unique name of the DRAB unit
+        laser_id: string
+            the serial number of the laser diode
         temp: int
             the temperature at which the measurement was taken
         S_data: array of floats
@@ -490,7 +496,8 @@ class Detector(object):
                                       {"$push":{'measurements': {
                                           'last_updated': datetime.datetime.utcnow(),
                                           'function_test': True,
-                                          'DRAB-id': drab_id,
+                                          'DRAB_id': drab_id,
+                                          'laser_id': laser_id,
                                           'measurement_temp': temp,
                                           'measurement_time': measurement_time,
                                           'primary_measurement': primary_measurement,

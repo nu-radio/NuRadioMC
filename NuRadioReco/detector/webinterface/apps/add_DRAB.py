@@ -52,6 +52,10 @@ layout = html.Div([
                   placeholder='new unique DRAB name',
                   style={'width': '200px',
                          'float': 'left'}),
+        dcc.Input(id="photodiode",
+                  placeholder='photodiode serial',
+                  style={'width': '200px',
+                         'float': 'left'}),
         dcc.Dropdown(
             id=table_name + 'channel-id',
             options=[{'label': x, 'value': x} for x in range(number_of_channels)],
@@ -189,10 +193,11 @@ def validate_global(Sdata_validated, board_dropdown, new_board_name, function_te
              State('temperature-list', 'value'),
              State("function-test", "value"),
              State("group_delay_corr", "value"),
+             State("photodiode", "value"),
              State("protocol", "value")])
 def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff,
                  unit_mag, unit_phase, channel_id, iglu_id, sep, temp,
-                 function_test, corr_group_delay, protocol):
+                 function_test, corr_group_delay, photo, protocol):
     print(f"n_clicks is {n_clicks}")
     if(not n_clicks is None):
         print("insert to db")
@@ -230,7 +235,8 @@ def insert_to_db(n_clicks, board_dropdown, new_board_name, contents, unit_ff,
                 correction = corr_group_delay
             time_delay = [0, 0, correction * units.ns, 0]
             det.DRAB_add_Sparameters(board_name, channel_id, iglu_id, temp,
-                S_data, measurement_time, primary_measurement, time_delay, protocol)
+                S_data, measurement_time, primary_measurement, time_delay,
+                photo, protocol)
 
         return {'display': 'none'}, {}
     else:
