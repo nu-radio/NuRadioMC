@@ -1,0 +1,11 @@
+noise: False  # specify if simulation should be run with or without noise
+sampling_rate: 2.  # sampling rate in GHz used internally in the simulation.
+speedup:
+  minimum_weight_cut: 0
+  delta_C_cut: 100  
+  redo_raytracing: True  # redo ray tracing even if previous calculated ray tracing solutions are present
+  distance_cut: False # Skip ray tracing if vertex distance is greater than a distance cut that is a function of shower energy.
+propagation:
+  ice_model: southpole_2015
+trigger:
+  noise_temperature: 300  # in Kelvin

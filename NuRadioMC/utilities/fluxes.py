@@ -8,15 +8,15 @@ logger = logging.getLogger('fluxes')
 
 def get_limit_from_aeff(energy, aeff,
                         livetime,
-                        signalEff = 1.00,
+                        signalEff=1.00,
                         energyBinsPerDecade=1.000,
                         upperLimOnEvents=2.44):
 
     """
     Limit from effective volume
 
-    Parameters:
-        --------------
+    Parameters
+    ----------
     energy: array of floats
         neutrino energy
     veff: array of floats
@@ -36,26 +36,26 @@ def get_limit_from_aeff(energy, aeff,
     evtsPerFluxPerEnergy = aeff * signalEff
     evtsPerFluxPerEnergy *= livetime
 
-    ul  = upperLimOnEvents / evtsPerFluxPerEnergy
+    ul = upperLimOnEvents / evtsPerFluxPerEnergy
     ul *= energyBinsPerDecade / np.log(10)
     ul /= energy
 
     return ul
 
 
-
 def get_limit_flux(energy, veff_sr,
                     livetime,
-                    signalEff = 1.00,
+                    signalEff=1.00,
                     energyBinsPerDecade=1.000,
                     upperLimOnEvents=2.44,
-                    nuCrsScn='ctw'):
+                    nuCrsScn='ctw',
+                    inttype="total"):
 
     """
     Limit from effective volume
 
-    Parameters:
-        --------------
+    Parameters
+    ----------
     energy: array of floats
         neutrino energy
     veff_sr: array of floats
@@ -77,9 +77,9 @@ def get_limit_flux(energy, veff_sr,
 
     evtsPerFluxPerEnergy = veff_sr * signalEff
     evtsPerFluxPerEnergy *= livetime
-    evtsPerFluxPerEnergy /= cross_sections.get_interaction_length(energy, cross_section_type = nuCrsScn)
+    evtsPerFluxPerEnergy /= cross_sections.get_interaction_length(energy, cross_section_type=nuCrsScn, inttype=inttype)
 
-    ul  = upperLimOnEvents / evtsPerFluxPerEnergy
+    ul = upperLimOnEvents / evtsPerFluxPerEnergy
     ul *= energyBinsPerDecade / np.log(10)
     ul /= energy
 
@@ -125,18 +125,20 @@ def get_limit_flux(energy, veff_sr,
 #
 #     return ul
 
+
 def get_limit_e1_flux(energy, veff_sr,
                     livetime,
-                    signalEff = 1.00,
+                    signalEff=1.00,
                     energyBinsPerDecade=1.000,
                     upperLimOnEvents=2.44,
-                    nuCrsScn='ctw'):
+                    nuCrsScn='ctw',
+                    inttype="total"):
 
     """
     Limit from effective volume on E^1 flux plot
 
-    Parameters:
-        --------------
+    Parameters
+    ----------
     energy: array of floats
         neutrino energy
     veff_sr: array of floats
@@ -158,24 +160,26 @@ def get_limit_e1_flux(energy, veff_sr,
 
     evtsPerFluxPerEnergy = veff_sr * signalEff
     evtsPerFluxPerEnergy *= livetime
-    evtsPerFluxPerEnergy /= cross_sections.get_interaction_length(energy, cross_section_type = nuCrsScn)
+    evtsPerFluxPerEnergy /= cross_sections.get_interaction_length(energy, cross_section_type=nuCrsScn, inttype=inttype)
 
-    ul  = upperLimOnEvents / evtsPerFluxPerEnergy
+    ul = upperLimOnEvents / evtsPerFluxPerEnergy
     ul *= energyBinsPerDecade / np.log(10)
 
     return ul
 
+
 def get_limit_e2_flux(energy, veff_sr,
                     livetime,
-                    signalEff = 1.00,
+                    signalEff=1.00,
                     energyBinsPerDecade=1.000,
                     upperLimOnEvents=2.44,
-                    nuCrsScn='ctw'):
+                    nuCrsScn='ctw',
+                    inttype="total"):
     """
     Limit from effective volume on E^2 flux plot
 
-    Parameters:
-        --------------
+    Parameters
+    ----------
     energy: array of floats
         neutrino energy
     veff_sr: array of floats
@@ -194,7 +198,8 @@ def get_limit_e2_flux(energy, veff_sr,
 
 
     """
-    return energy**2 * get_limit_flux(energy, veff_sr, livetime, signalEff, energyBinsPerDecade, upperLimOnEvents,nuCrsScn)
+    return energy ** 2 * get_limit_flux(energy, veff_sr, livetime, signalEff, energyBinsPerDecade, upperLimOnEvents,
+                                        nuCrsScn, inttype)
 
 
 def get_number_of_events_for_flux(energies, flux, Veff, livetime, nuCrsScn='ctw'):
@@ -220,10 +225,10 @@ def get_number_of_events_for_flux(energies, flux, Veff, livetime, nuCrsScn='ctw'
     Veff = np.array(Veff)
     logE = np.log10(energies)
     dlogE = logE[1] - logE[0]
-    return np.log(10) * livetime * flux * energies * Veff / cross_sections.get_interaction_length(energies, cross_section_type = nuCrsScn) * dlogE
+    return np.log(10) * livetime * flux * energies * Veff / cross_sections.get_interaction_length(energies, cross_section_type=nuCrsScn) * dlogE
 
 
-def get_exposure(energy, Veff, field_of_view=2*np.pi):
+def get_exposure(energy, Veff, field_of_view=2 * np.pi):
     """
     calculate exposure from effective volume
 
@@ -237,9 +242,11 @@ def get_exposure(energy, Veff, field_of_view=2*np.pi):
         the field of view of the detector
 
     Returns
+    -------
     float: exposure
     """
     return Veff / field_of_view / cross_sections.get_interaction_length(energy)
+
 
 def get_integrated_exposure(exp_func, E_low, E_high):
     """
@@ -256,31 +263,29 @@ def get_integrated_exposure(exp_func, E_low, E_high):
     i = integrate.quad(f, np.log10(E_low), np.log10(E_high))
     return i[0]
 
+
 def get_fluence_limit(int_exp):
     """
     calculates the fluence limit for a integrated exposure
     """
-    return 2.39/int_exp
+    return 2.39 / int_exp
 
 
+if __name__ == "__main__":  # this part of the code gets only executed it the script is directly called
 
+    energy = 10 ** 18 * units.eV
+    veff = 2150 * units.km ** 3 * units.sr
+    livetime = 5 * units.year
 
-if __name__=="__main__":  # this part of the code gets only executed it the script is directly called
+    print("Cross section: {} cm^2".format(cross_sections.get_nu_cross_section(energy, cross_section_type='ctw')))
 
+    print("interaction length: {} km".format(cross_sections.get_interaction_length(energy, cross_section_type='ctw') / units.km))
 
-    energy = 10**18 * units.eV
-    veff = 2150 * units.km**3 * units.sr
-    livetime = 5 *units.year
+    print("calculating flux limit for {time} years and Veff of {veff} km^3 sr".format(time=livetime / units.year,
+                            veff=veff / (units.km ** 3 * units.sr)))
+    print("Flux limit: {} GeV/(cm^2 s sr)".format(get_limit_e2_flux(energy, veff, livetime) / (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)))
 
-    print("Cross section: {} cm^2".format(cross_sections.get_nu_cross_section(energy, cross_section_type = 'ctw')))
+    aeff = np.array([0.0032, 0.033, 0.43, 3.1, 21, 68, 167]) * units.km ** 2 * units.sr
+    energies = 10 ** np.array([18, 18.5, 19, 19.5, 20, 20.5, 21]) * units.eV
 
-    print("interaction length: {} km".format(cross_sections.get_interaction_length(energy, cross_section_type = 'ctw')/units.km))
-
-    print("calculating flux limit for {time} years and Veff of {veff} km^3 sr".format(time=livetime/units.year,
-                            veff = veff/ (units.km**3 * units.sr)))
-    print("Flux limit: {} GeV/(cm^2 s sr)".format(get_limit_e2_flux(energy,veff, livetime) / (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)))
-
-    aeff = np.array([0.0032,0.033,0.43,3.1,21,68,167])* units.km**2 * units.sr
-    energies = 10**np.array([18,18.5,19,19.5,20,20.5,21])* units.eV
-
-    print("Flux limit: {} GeV/(cm^2 s sr)".format(energies**2*get_limit_from_aeff(energies,aeff,livetime) / (units.GeV * units.cm**-2 * units.second**-1 * units.sr**-1)))
+    print("Flux limit: {} GeV/(cm^2 s sr)".format(energies ** 2 * get_limit_from_aeff(energies, aeff, livetime) / (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1)))
