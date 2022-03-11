@@ -1,6 +1,8 @@
 import scipy.constants
 import numpy as np
 from NuRadioReco.utilities import units
+from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
+from NuRadioMC.SignalProp.propagation import solution_types_revert
 
 import logging
 logging.basicConfig()
@@ -11,98 +13,36 @@ speed_of_light = scipy.constants.c * units.m / units.s
 
 
 
-class directRayTracing():
-
-    
-    solution_types = {1: 'direct',
-                      2: 'refracted',
-                      3: 'reflected'}
-    
-    
-    
-    def __init__(self, medium, attenuation_model = None , log_level = None, n_frequencies_integration = None, n_reflections = None , config = None, detector = None):
-        self._medium = medium
-        self._attenuation_model = attenuation_model
-        self._results = None
-        self.__config = None    # the raytracer is so simple, there is no need to configure anything
-        pass
-       
-    def set_start_and_end_point(self, x1, x2):
-        x1 = np.array(x1, dtype =np.float)
-        x2 = np.array(x2, dtype = np.float)
-        self._x1 = x1
-        self._x2 = x2
-
-    def use_optional_function(self, function_name, *args, **kwargs):
-        """
-        Use optional function which may be different for each ray tracer. 
-        If the name of the function is not present for the ray tracer this function does nothing.
-
-        Parameters
-        ----------
-        function_name: string
-                       name of the function to use
-        *args: type of the argument required by function
-               all the neseccary arguments for the function separated by a comma
-        **kwargs: type of keyword argument of function
-                  all all the neseccary keyword arguments for the function in the
-                  form of key=argument and separated by a comma
-
-        Example
-        -------
-        use_optional_function('set_shower_axis',np.array([0,0,1]))
-        use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
-        """
-        if not hasattr(self,function_name):
-            pass
-        else:
-            getattr(self,function_name)(*args,**kwargs)
+class direct_ray_tracing(ray_tracing_base):
         
     def find_solutions(self):
         results = []
-        solution_type = 1
-        results.append({'type': solution_type, 'reflection':0})
+        for iS in range(self.get_number_of_solutions()):
+            results.append({'type': self.get_solution_type(iS), 'reflection':0})
         self._results = results
-        return results
-    
-    def has_solution(self):
-        return len(self._results) > 0    
-    
-    
+        return results    
     
     def get_launch_vector(self, iS):
-        launch_vector = self._x2 - self._x1  
+        launch_vector = self._X2 - self._X1  
         return launch_vector 
     
-    
     def get_number_of_solutions(self):
-        return len(self._results)
-    
-    def get_number_of_raytracing_solutions(self):
         return 1
-    
-
-    def get_results(self):
-        return self._results
     
     def get_solution_type(self, iS):
-        return 1
+        return solution_types_revert['direct']
     
     def get_path(self, iS, n_points = 1000):
-        delta_x =(self._x2-self._x1)/n_points
-        path = [[],[],[]]
-        for i in range(n_points+1):
-            for j in range(3):
-                path[j].append(self._x1[j] + i*delta_x[j])
-                
+        delta_x =(self._X2-self._X1)/(n_points-1)
+        path = self._X1[None] + np.arange(n_points)[:, None] * delta_x[None]
         return path
     
     def get_receive_vector(self, iS):
-        receive_vector = self._x1 - self._x2
+        receive_vector = self._X1 - self._X2
         return receive_vector
     
     def get_path_length(self, iS):
-        path_length = np.linalg.norm(self._x2 - self._x1)
+        path_length = np.linalg.norm(self._X2 - self._X1)
         return path_length 
     
     def get_travel_time(self, iS):
@@ -122,7 +62,6 @@ class directRayTracing():
     def get_reflection_angle(self):
         return None 
     
-    
     def apply_propagation_effects(self, efield, iS):
         return efield
 
@@ -135,12 +74,3 @@ class directRayTracing():
         return {
             'ray_tracing_solution_type': self.get_solution_type(i_solution)
         }
-
-    def get_config(self):
-        return self.__config
-
-    def set_config(self, config):
-        """
-        This function only exists to fit the template, the raytracer is so simple it does not need a config
-        """
-        pass

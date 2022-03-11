@@ -219,6 +219,7 @@ class NuRadioRecoio(object):
             self.__scan_files()
         if(event_number < 0 or event_number >= self.get_n_events()):
             self.logger.error('event number {} out of bounds, only {} present in file'.format(event_number, self.get_n_events()))
+            self.__read_lock = False
             return None
         # determine in which file event i is
         istart = 0
@@ -295,6 +296,11 @@ class NuRadioRecoio(object):
                     # Detector is a generic detector, so we have to consider default
                     # station/channel and event-specific changes
                     self.__detectors[self._current_file_id] = NuRadioReco.detector.generic_detector.GenericDetector.__new__(NuRadioReco.detector.generic_detector.GenericDetector)
+                    # the use of default_station and default_channel is deprecated. Allow to set it for now, to ensure backward compatibility
+                    if 'default_station' not in detector_dict:
+                        detector_dict['default_station'] = None
+                    if 'default_channel' not in detector_dict:
+                        detector_dict['default_channel'] = None
                     self.__detectors[self._current_file_id].__init__(source='dictionary', json_filename='', dictionary=detector_dict, default_station=detector_dict['default_station'], default_channel=detector_dict['default_channel'])
                     if self._current_file_id in self._event_specific_detector_changes.keys():
                         for change in self._event_specific_detector_changes[self._current_file_id]:

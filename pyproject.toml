@@ -1,34 +1,58 @@
 [build-system]
-requires = ["flit"]
-build-backend = "flit.buildapi"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
-[tool.flit.metadata]
-module = "NuRadioMC"
-author = "Christian Glaser"
-author-email = "work@c-glaser.de"
-home-page = "https://github.com/nu-radio/NuRadioMC"
-classifiers = ["License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"]
-
-requires = [
-	"numpy",
-	"scipy",
-    "tinydb>=4.1.1",
-    "tinydb-serialization",
-	"pickle",
-    "aenum",
-    "astropy",
-    "radiotools >=0.2.0",
-    "h5py",
-    "pyyaml",
-    "cython",
-    "peakutils",
-    "requests",
-    "pymongo",
-    "dash",
-    "plotly",
-    "sphinx"
+[tool.poetry]
+name = "NuRadioMC"
+version = "2.2.0-dev"
+authors = ["Christian Glaser et al."]
+homepage = "https://github.com/nu-radio/NuRadioMC"
+documentation = "https://nu-radio.github.io/NuRadioMC/main.html"
+license = "GPL-3.0-or-later"
+packages = [
+    {include = "NuRadioMC"},
+    {include = "NuRadioReco"}
 ]
-requires-python=">=3.6"
+readme = "README.md"
+include = ["changelog.txt"]
+description = "A Monte Carlo simulation package for radio neutrino detectors and reconstruction framework for radio detectors of high-energy neutrinos and cosmic-rays."
+# classifiers = ["License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"]
 
-[tool.flit.metadata.requires-extra]
-doc = ["sphinx"]
+[tool.poetry.dependencies]
+numpy = "*"
+scipy = "*"
+tinydb = ">=4.1.1"
+tinydb-serialization = ">=2.1"
+aenum = "*"
+astropy = "*"
+radiotools = ">=0.2"
+cython = "*"
+dash = ">=2.0"
+future = "*"
+h5py = "*"
+peakutils = "*"
+pymongo = "*"
+pyyaml = "*"
+awkward = "*"
+python = "^3.6"
+matplotlib = "*"
+requests = "*"
+toml = ">=0.10.2"
+uproot = "4.1.1"
+importlib-metadata = {version = ">=4.8.1", python = "<3.8"}
+numba = "*"
+
+[tool.poetry.dev-dependencies]
+Sphinx = "*"
+sphinx-rtd-theme = "*"
+numpydoc = "1.1.0"
+proposal = "6.1.6"
+pygdsm = {git = "https://github.com/telegraphic/pygdsm"}
+nifty5 = {git = "https://gitlab.mpcdf.mpg.de/ift/nifty.git", branch="NIFTy_5"}
+pypocketfft = {git = "https://gitlab.mpcdf.mpg.de/mtr/pypocketfft"}
+
+[tool.poetry.extras]
+documentation = ["Sphinx", "sphinx-rtd-theme", "numpydoc"]
+proposal = ["proposal"]
+galacticnoise = ['pygdsm']
+ift_reco = ['nifty5', 'pypocketfft']

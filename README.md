@@ -1,7 +1,7 @@
 # NuRadioMC/NuRadioReco
 A Monte Carlo simulation package for radio neutrino detectors and reconstruction framework for radio detectors of high-energy neutrinos and cosmic-rays
 
-Please visit the wiki at https://github.com/nu-radio/NuRadioMC/wiki for documentation.
+The documentation can be found at https://nu-radio.github.io/NuRadioMC/main.html
 
 If you want to keep up to date, consider signing up to the following email lists:
  * user email list, will be used to announce new versions and major improvements etc. Subscribe via https://lists.uu.se/sympa/subscribe/physics-astro-nuradiomc
@@ -28,7 +28,7 @@ NuRadioMC is continuously improved and new features are being added. The followi
 
 
 If you would like to contribute, please contact @cg-laser or @anelles for permissions to work on NuRadioMC. We work with pull requests only that can be merged after review.
-Also please visit https://github.com/nu-radio/NuRadioMC/blob/master/CONTRIBUTING.md
+Also please visit https://nu-radio.github.io/NuRadioMC/Introduction/pages/contributing.html for details on our workflow and coding conventions.
 
 NuRadioMC is used in an increasing number of studies. To get an overview for what NuRadioMC can be used for, please have a look at the following publications or see [here](https://inspirehep.net/literature?sort=mostrecent&size=25&page=1&q=refersto%3Arecid%3A1738571%20or%20refersto%3Arecid%3A1725583):
 
@@ -45,6 +45,7 @@ NuRadioMC is used in an increasing number of studies. To get an overview for wha
 * S. Barwick et al., "Capabilities of ARIANNA: Neutrino Pointing Resolution and Implications for Future Ultra-high Energy Neutrino Astronomy", [PoS(ICRC2021)1151](https://doi.org/10.22323/1.395.1151)
 * S. Barwick et al., "Science case and detector concept for ARIANNA high energy neutrino telescope at Moore's Bay, Antarctica", [PoS(ICRC2021)1190](https://doi.org/10.22323/1.395.1190)
 * RNO-G collaboration, "Reconstructing the neutrino energy for in-ice radio detectors : A study for the Radio Neutrino Observatory Greenland (RNO-G)", [arXiv:2107.02604](https://arxiv.org/abs/2107.02604)
+* Ice-Cube-Gen2 collaboration, "IceCube-Gen2: The Window to the Extreme Universe", [J.Phys.G 48 (2021) 6, 060501](https://doi.org/10.1088/1361-6471/abbd48), [arXiv:2008.04323](https://arxiv.org/abs/2008.04323)
 * C. Welling et al., "Reconstructing non-repeating radio pulses with Information Field Theory", [JCAP 04 (2021) 071](https://doi.org/10.1088/1475-7516/2021/04/071), [arXiv:2102.00258](https://arxiv.org/abs/2102.00258)
 * C. Glaser, S. Barwick, "An improved trigger for Askaryan radio detectors", [JINST 16 (2021) 05, T05001](https://doi.org/10.1088/1748-0221/16/05/T05001), [arXiv:2011.12997](https://arxiv.org/abs/2011.12997)
 * RNO-G collaboration, "Design and Sensitivity of the Radio Neutrino Observatory in Greenland (RNO-G)", [JINST 16 (2021) 03, P03025](https://doi.org/10.1088/1748-0221/16/03/P03025) [arXiv:2010.12279](https://arxiv.org/abs/2010.12279)
