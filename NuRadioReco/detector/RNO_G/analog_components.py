@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
 import os
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, bandpass_filter
 from radiotools import helper as hp
 import logging
 logger = logging.getLogger('analog_components')
@@ -75,6 +75,32 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
         amp_response['gain'] = dummy_amp_gain
         amp_response['phase'] = np.ones_like
         return amp_response
+    elif amp_type =='gen2_sim_2021':
+        passband_low = [0, 1000*units.MHz]
+        passband_high = [96*units.MHz, 100*units.GHz]
+        order_low = 7
+        order_high = 4
+        def get_amp_gain(freqs, temp=None):
+            filt1 = bandpass_filter.get_filter_response(
+                frequencies=freqs, passband=passband_low,
+                filter_type='cheby1', order=order_low, rp=0.1)
+            filt2 = bandpass_filter.get_filter_response(
+                frequencies=freqs, passband=passband_high,
+                filter_type='cheby1', order=order_high, rp=0.1)
+            return np.abs(filt1 * filt2)
+        
+        def get_amp_phase(freqs):
+            filt1 = bandpass_filter.get_filter_response(
+                frequencies=freqs, passband=passband_low,
+                filter_type='cheby1', order=order_low, rp=0.1)
+            filt2 = bandpass_filter.get_filter_response(
+                frequencies=freqs, passband=passband_high,
+                filter_type='cheby1', order=order_high, rp=0.1)
+            return np.angle(filt1 * filt2)
+        
+        amp_response['gain'] = get_amp_gain
+        amp_response['phase'] = get_amp_phase
+        return amp_response
     else:
         logger.error("Amp type not recognized")
         return amp_response
@@ -104,4 +130,4 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
 
 
 def get_available_amplifiers():
-    return ['iglu', 'rno_surface', 'phased_array']
+    return ['iglu', 'rno_surface', 'phased_array', 'dummy_amp']
