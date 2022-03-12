@@ -68,21 +68,6 @@ class Detector(object):
         # self.update(datetime.datetime.now())
 
 
-
-
-# mongo_password = urllib.parse.quote_plus(os.environ.get('mongo_password'))
-# mongo_user = urllib.parse.quote_plus(os.environ.get('mongo_user'))
-# mongo_server = os.environ.get('mongo_server')
-# if mongo_server is None:
-#     logging.warning('variable "mongo_server" not set')
-# if None in [mongo_user, mongo_server]:
-#     logging.warning('"mongo_user" or "mongo_password" not set')
-# # start client
-# client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
-# db = client.RNOG_test
-
-
-
     def update(self, timestamp):
         logger.info("updating detector time to {}".format(timestamp))
         self.__current_time = timestamp
@@ -96,7 +81,7 @@ class Detector(object):
         else:
             self.__db["detector_time"] = self.__current_time
             with open(filename, 'w') as fp:
-                fp.write(json_util.dumps(self.__db))#, fp, indent=4)
+                fp.write(json_util.dumps(self.__db, indent=4, sort_keys=True))
                 #Note: some output/timezone options can be set in bson.json_util.DEFAULT_JSON_OPTIONS
             logger.info("Output written to {}.".format(filename))
     def import_detector(self, filename):
@@ -822,7 +807,7 @@ class Detector(object):
 
         return None
 
-    def get_amplifier_type(station_id, channel_id):
+    def get_amplifier_type(self, station_id, channel_id):
         """
         returns the type of the amplifier
 
@@ -996,9 +981,13 @@ class Detector(object):
                          {"$unwind": '$channels.signal_ch'},
                          {"$project": {"_id": False, "channels.signal_ch.uname": True,  "channels.signal_ch.type": True}}]
 
-        # convert retult to the dict of hardware types / names
+        # convert result to the dict of hardware types / names
         components = {}
         for item in list(self.db.station.aggregate(component_filter)):
+            if not 'signal_ch' in item['channels']:
+                ## continue silently
+                #logger.debug("'signal_ch' not in db entry, continuing")
+                continue
             ch_type = item['channels']['signal_ch']['type']
             ch_uname = item['channels']['signal_ch']['uname']
             # only add each component once
@@ -1008,6 +997,7 @@ class Detector(object):
         # convert sets to lists
         for key in components.keys():
             components[key] = list(components[key])
+            logger.info(f"found {len(components[key])} hardware components in {key}: {components[key]}")
         return components
 
     def _buffer_hardware_components(self, S_parameters = ["S21"]):
