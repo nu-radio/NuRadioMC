@@ -96,7 +96,7 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
             filt2 = bandpass_filter.get_filter_response(
                 frequencies=freqs, passband=passband_high,
                 filter_type='cheby1', order=order_high, rp=0.1)
-            return np.angle(filt1 * filt2)
+            return np.exp(1j*np.angle(filt1 * filt2))
         
         amp_response['gain'] = get_amp_gain
         amp_response['phase'] = get_amp_phase
@@ -130,4 +130,4 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
 
 
 def get_available_amplifiers():
-    return ['iglu', 'rno_surface', 'phased_array', 'dummy_amp']
+    return ['iglu', 'rno_surface', 'phased_array', 'dummy_amp', 'gen2_sim_2021']
