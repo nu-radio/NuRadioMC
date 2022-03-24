@@ -23,16 +23,16 @@ input_detector = detector.Detector(json_filename = "RNO_G/RNO_season_2021.json")
 
 input_detector.update(Time.now())
 
-station = input_detector.get_station(input_detector.get_station_ids()[1])
+station = input_detector.get_station(input_detector.get_station_ids()[0])
 
-mongo_detector.add_station(97,"dummy3",(station['pos_altitude'], station["pos_easting"], station["pos_northing"]),
+mongo_detector.add_station(96,"dummy3",(station['pos_altitude'], station["pos_easting"], station["pos_northing"]),
             station["commission_time"], station["decommission_time"])
 
 
 
-def add_dummy_channels(input_detector, station_id = 97):
-    for channel_id in input_detector.get_channel_ids(input_detector.get_station_ids()[2]):
-        channel = input_detector.get_channel(input_detector.get_station_ids()[2], channel_id)
+def add_dummy_channels(input_detector, station_id = 96):
+    for channel_id in input_detector.get_channel_ids(input_detector.get_station_ids()[0]):
+        channel = input_detector.get_channel(input_detector.get_station_ids()[0], channel_id)
         amp = channel["amp_type"]
         if amp == "rno_surface":
             signal_chain = [ "Golden_Coax", "Golden_Surface"]
@@ -54,4 +54,28 @@ def add_dummy_channels(input_detector, station_id = 97):
                                    channel_type = channel["ant_type"],
                                    commission_time = channel["commission_time"])
 
-add_dummy_channels(input_detector)
+# add_dummy_channels(input_detector)
+
+# def add_dummy_devices(input_detector, station_id = 97):
+#     for device_id in input_detector.get_device_ids(input_detector.get_station_ids()[2]):
+#         device = input_detector.get_device(input_detector.get_station_ids()[2], device_id)
+#         amp = channel["amp_type"]
+#         if amp == "surface_pulser":
+#             signal_chain = ["Golden_Coax", "Golden_Surface"]
+#         elif amp == "deep_pulser":
+#             signal_chain = ["Golden_IGLU", "Golden_Fiber", "Golden_DRAB"]
+#         else:
+#             print(f"unknown amp type {amp}")
+#             continue
+#
+#         mongo_detector.add_channel_to_station(station_id,
+#                                    channel_id,
+#                                    signal_chain = signal_chain,
+#                                    ant_name = channel["ant_comment"],
+#                                    ant_ori_theta = channel["ant_orientation_theta"],
+#                                    ant_ori_phi = channel["ant_orientation_phi"],
+#                                    ant_rot_theta = channel["ant_rotation_theta"],
+#                                    ant_rot_phi = channel["ant_rotation_phi"],
+#                                    ant_position = [channel["ant_position_x"],channel["ant_position_y"],channel["ant_position_z"]],
+#                                    channel_type = channel["ant_type"],
+#                                    commission_time = channel["commission_time"])

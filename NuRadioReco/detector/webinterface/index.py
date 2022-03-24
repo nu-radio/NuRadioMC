@@ -1,5 +1,5 @@
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+from dash import html
 from dash.dependencies import Input, Output
 from NuRadioReco.detector.webinterface.apps import add_surface_board
 from NuRadioReco.detector.webinterface.apps import menu
@@ -11,6 +11,7 @@ from NuRadioReco.detector.webinterface.apps import add_surf_CABLE
 from NuRadioReco.detector.webinterface.apps import add_Pulser
 from NuRadioReco.detector.webinterface.apps import add_HPol
 from NuRadioReco.detector.webinterface.apps import add_DAQ
+from NuRadioReco.detector.webinterface.apps import downhole_chain
 from NuRadioReco.detector.webinterface.apps import reader
 from NuRadioReco.detector.webinterface.apps import channel
 from NuRadioReco.detector.webinterface.apps import station
@@ -29,6 +30,8 @@ app.layout = html.Div([
 def display_page(pathname):
     if pathname == '/apps/add_surface_board':
         return add_surface_board.layout
+    elif pathname == '/apps/downhole_chain':
+        return downhole_chain.layout
     elif pathname == '/apps/add_DRAB':
         return add_DRAB.layout
     elif pathname == '/apps/add_IGLU':
