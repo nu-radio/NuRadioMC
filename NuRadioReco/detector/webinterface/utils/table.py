@@ -12,5 +12,9 @@ def get_table(name):
         return det.db.CABLE
     elif(name == "VPol"):
         return det.db.VPol
+    elif(name == "HPol"):
+        return det.db.HPol
     elif(name == "PULSER"):
         return det.db.PULSER
+    elif(name == "downhole"):
+        return det.db.downhole

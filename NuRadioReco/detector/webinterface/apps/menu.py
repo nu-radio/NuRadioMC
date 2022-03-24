@@ -1,5 +1,5 @@
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+from dash import html
 import base64
 
 test_png = 'rno_logo.png'
@@ -9,6 +9,9 @@ test_base64 = base64.b64encode(open(test_png, 'rb').read()).decode('ascii')
 layout = html.Div([
     html.H3('Welcome to the RNO-G Hardware Databse Uploader'),
     html.Img(src='data:image/png;base64,{}'.format(test_base64), style={'float':'right', 'width':'50%'}),
+    dcc.Link('Add FULL DOWNHOLE CHAIN measurement', href='/apps/downhole_chain'),
+    html.Br(),
+    html.Br(),
     dcc.Link('Add SURFACE Board S Parameters', href='/apps/add_surface_board'),
     html.Br(),
     html.Br(),

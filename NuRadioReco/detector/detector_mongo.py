@@ -21,7 +21,7 @@ logger.setLevel(logging.DEBUG)
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class Detector(object):
 
-    def __init__(self, database_connection="test"):
+    def __init__(self, database_connection="env_pw_user"):
 
         if database_connection == "local":
             MONGODB_URL = "localhost"
@@ -445,7 +445,7 @@ class Detector(object):
                                     laser_id, temp, S_data, measurement_time,
                                     primary_measurement, time_delay, protocol):
         """
-        inserts a new S parameter measurement of one channel of an IGLU board
+        inserts a new S parameter measurement of IGLU board
         If the board dosn't exist yet, it will be created.
 
         Parameters
@@ -514,7 +514,7 @@ class Detector(object):
                                                         S_data, measurement_time,
                                                         primary_measurement, time_delay, protocol):
         """
-        inserts a new S parameter measurement of one channel of an IGLU board
+        inserts a new S parameter measurement of an IGLU board
         If the board dosn't exist yet, it will be created.
 
         Parameters
@@ -557,6 +557,81 @@ class Detector(object):
                                           'phase': list(S_data[2 * i + 2])
                                           }}},
                                      upsert=True)
+
+
+    def downhole_chain(self, tactical_name, iglu_id, drab_id,
+                       breakout, breakout_channel, temp, S_data, measurement_time,
+                       primary_measurement, time_delay, protocol):
+        """
+        inserts a new S parameter measurement for the downhole chain, including
+        IGLU and DRAB while connectected with a full fiber set up.If the chain dosn't
+        exist yet, it will be created.
+
+        Parameters
+        ---------
+        tactical_name: string
+            the name of the (long) tactical fiber being tested
+        iglu_id: string
+            the unique identifier of the iglu
+        drab_id: string
+            the unique name of the DRAB unit
+        drab_channel: int
+            the channel of the drab from which the measurement was taken
+        breakout: int
+            the connector from the fiber which
+        temp: int
+            the temperature at which the measurement was taken
+        S_data: array of floats
+            1st collumn: frequencies
+            2nd/3rd collumn: S11 mag/phase
+            4th/5th collumn: S12 mag/phase
+            6th/7th collumn: S21 mag/phase
+            8th/9th collumn: S22 mag/phase
+        measurement_time: timestamp
+            the time of the measurement
+        primary_measurement: bool
+            indicates the primary measurement to be used for analysis
+        time_delay: array of floats
+            the absolute time delay of each S parameter measurement (e.g. the group delay at
+            a reference frequency)
+        protocol: string
+            details of the testing enviornment
+
+        """
+        S_names = ["S11", "S12", "S21", "S22"]
+        for i in range(4):
+            self.db.downhole.update_one({'name': tactical_name},
+                                      {"$push":{'measurements': {
+                                          'last_updated': datetime.datetime.utcnow(),
+                                          'IGLU_id': iglu_id,
+                                          'DRAB_id': drab_id,
+                                          'breakout': breakout,
+                                          'breakout_channel': breakout_channel,
+                                          'measurement_temp': temp,
+                                          'measurement_time': measurement_time,
+                                          'primary_measurement': primary_measurement,
+                                          'measurement_protocol': protocol,
+                                          'time_delay': time_delay[i],
+                                          'S_parameters': S_names[i],
+                                          'frequencies': list(S_data[0]),
+                                          'mag': list(S_data[2 * i + 1]),
+                                          'phase': list(S_data[2 * i + 2])
+                                          }}},
+                                     upsert=True)
+    def downhole_remove_primary(self, tactical_name):
+        """
+        updates the primary_measurement of previous entries to False by channel
+
+        Parameters
+        ---------
+        tactical_name: string
+            the unique identifier of tactical fiber bundle
+        """
+
+        self.db.downhole.update_one({'name': tactical_name},
+                                {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+                                array_filters=[{"updateIndex.primary_measurement": True}])
+
 
     def add_station(self,
                     station_id,
