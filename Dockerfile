@@ -5,7 +5,7 @@ RUN apt-get update
 RUN apt-get upgrade -y
 
 # Install core dependencies
-RUN pip install aenum astropy matplotlib numpy radiotools scipy tinydb tinydb-serialization
+RUN pip install aenum astropy matplotlib numpy radiotools scipy tinydb tinydb-serialization importlib-metadata 
 
 # Install optional dependencies
 RUN pip install dash gunicorn h5py peakutils plotly pymongo sphinx pandas six DateTime
