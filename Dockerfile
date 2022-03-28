@@ -5,11 +5,10 @@ RUN apt-get update
 RUN apt-get upgrade -y
 
 # Install core dependencies
-RUN pip install aenum astropy matplotlib numpy radiotools scipy tinydb tinydb-serialization importlib-metadata 
+RUN pip install toml aenum astropy matplotlib numpy radiotools scipy tinydb tinydb-serialization
 
 # Install optional dependencies
-RUN pip install dash gunicorn h5py peakutils plotly pymongo sphinx pandas six DateTime
-
+RUN pip install mysql-python dash gunicorn uproot==4.1.1 h5py peakutils plotly pymongo sphinx sphinx_rtd_theme numpydoc pandas six DateTime
 # Install NuRadioReco
 ADD NuRadioMC /usr/local/lib/python3.6/site-packages/NuRadioMC
 ADD NuRadioReco /usr/local/lib/python3.6/site-packages/NuRadioReco
