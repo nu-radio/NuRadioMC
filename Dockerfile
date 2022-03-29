@@ -10,10 +10,10 @@ RUN pip install toml aenum astropy matplotlib numpy radiotools scipy tinydb tiny
 # Install optional dependencies
 RUN pip install dash gunicorn h5py peakutils plotly pymongo sphinx pandas six DateTime importlib-metadata
 
-#Uninstal werkzeug bug
+#Uninstall and reinstall werkzeug bug
 RUN pip uninstall Werkzeug
 
-RUN pip install -v https://github.com/pallets/werkzeug/archive/refs/tags/2.0.1.tar.gz
+RUN pip install Werkzeug==2.0.0
 
 # Install NuRadioReco
 ADD NuRadioMC /usr/local/lib/python3.9/site-packages/NuRadioMC
