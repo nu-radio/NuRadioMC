@@ -17,6 +17,7 @@ RUN pip install Werkzeug==2.0.0
 # Install NuRadioReco
 ADD NuRadioMC /usr/local/lib/python3.10.4/site-packages/NuRadioMC
 ADD NuRadioReco /usr/local/lib/python3.10.4/site-packages/NuRadioReco
+ENV PYTHONPATH=/usr/local/lib/python3.10.4/site-packages/NuRadioMC
 
 RUN useradd nuradio
 
