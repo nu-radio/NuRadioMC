@@ -11,8 +11,7 @@ RUN pip install toml aenum astropy matplotlib numpy radiotools scipy tinydb tiny
 RUN pip install dash gunicorn h5py peakutils plotly pymongo sphinx pandas six DateTime importlib-metadata
 
 #Uninstall and reinstall werkzeug bug
-RUN pip uninstall Werkzeug
-
+#RUN pip uninstall Werkzeug
 RUN pip install Werkzeug==2.0.0
 
 # Install NuRadioReco
