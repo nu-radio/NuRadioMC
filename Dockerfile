@@ -8,7 +8,7 @@ RUN apt-get upgrade -y
 RUN pip install aenum astropy matplotlib numpy radiotools scipy tinydb tinydb-serialization
 
 # Install optional dependencies
-RUN pip install dash gunicorn h5py peakutils plotly pymongo sphinx pandas six DateTime importlib-metadata
+RUN pip install Werkzeug==2.0.0 dash gunicorn h5py peakutils plotly pymongo sphinx pandas six DateTime importlib-metadata
 
 # Install NuRadioReco
 ADD NuRadioMC /usr/local/lib/python3.9/site-packages/NuRadioMC
