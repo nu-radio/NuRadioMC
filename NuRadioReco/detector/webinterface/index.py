@@ -1,5 +1,5 @@
-from dash import dcc
-from dash import html
+import dash_core_components as dcc
+import dash_html_components as html
 from dash.dependencies import Input, Output
 from NuRadioReco.detector.webinterface.apps import add_surface_board
 from NuRadioReco.detector.webinterface.apps import menu

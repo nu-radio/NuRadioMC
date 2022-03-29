@@ -1,5 +1,5 @@
-from dash import dcc
-from dash import html
+import dash_core_components as dcc
+import dash_html_components as html
 import base64
 
 test_png = 'rno_logo.png'
