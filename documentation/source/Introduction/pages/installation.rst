@@ -209,5 +209,7 @@ ____________________________
 
     sudo apt-get install libgsl-dev
 
+  With GSL installed, compile the CPP ray tracer by navigating to `NuRadioMC/NuRadioMC/SignalProp`
+  and running the included `install.sh` script.
 - To use the :mod:`RadioPropa numerical ray tracing <NuRadioMC.SignalProp.radioproparaytracing>` module, ``radiopropa`` needs to be installed.
   The radiopropa github, with installation instructions, can be found `here <https://github.com/nu-radio/RadioPropa>`_.
