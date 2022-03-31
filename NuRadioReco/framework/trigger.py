@@ -142,7 +142,7 @@ class SimpleThresholdTrigger(Trigger):
         initialize trigger class
 
         Parameters
-        -----------
+        ----------
         name: string
             unique name of the trigger
         threshold: float or dict of floats
@@ -169,8 +169,9 @@ class EnvelopePhasedTrigger(Trigger):
                  output_passband=(None, None)):
         """
         initialize trigger class
+
         Parameters
-        -----------
+        ----------
         name: string
             unique name of the trigger
         threshold_factor: float
@@ -210,8 +211,9 @@ class SimplePhasedTrigger(Trigger):
                  trigger_delays=None, sec_trigger_delays=None):
         """
         initialize trigger class
+
         Parameters
-        -----------
+        ----------
         name: string
             unique name of the trigger
         threshold: float
@@ -250,7 +252,7 @@ class HighLowTrigger(Trigger):
         initialize trigger class
 
         Parameters
-        -----------
+        ----------
         name: string
             unique name of the trigger
         threshold_high: float or dict of floats
@@ -284,7 +286,7 @@ class IntegratedPowerTrigger(Trigger):
         initialize trigger class
 
         Parameters
-        -----------
+        ----------
         name: string
             unique name of the trigger
         threshold: float
@@ -315,7 +317,7 @@ class EnvelopeTrigger(Trigger):
         initialize trigger class
 
         Parameters
-        -----------
+        ----------
         name: string
             unique name of the trigger
         passband: array
