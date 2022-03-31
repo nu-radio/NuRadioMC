@@ -44,7 +44,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     # 'sphinx.ext.autosummary',
-    'sphinx.ext.napoleon',
+    # 'sphinx.ext.napoleon',
     'sphinx.ext.autosectionlabel',
 ]
 
@@ -220,6 +220,7 @@ autosectionlabel_prefix_document = True
 # Don't make toctrees for class methods (doesn't seem to work with apidoc)
 numpydoc_class_members_toctree = False
 
+autoclass_content = 'both' # include __init__ docstrings in class description
 # 
 # coverage_ignore_modules
 
