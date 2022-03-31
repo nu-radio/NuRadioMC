@@ -4,24 +4,24 @@ LABEL maintainer="The NuRadioReco Authors <physics-astro-nuradiomcdev@lists.uu.s
 RUN apt-get update
 RUN apt-get upgrade -y
 
+# copy NuRadioMC
+COPY . /usr/local/lib/NuRadioMC
 # Install core dependencies
-RUN pip install toml aenum astropy matplotlib numpy radiotools scipy tinydb tinydb-serialization
+RUN python /usr/local/lib/NuRadioMC/install_dev.py --install --no-interactive
 
-# Install optional dependencies
-RUN pip install dnspython dash gunicorn h5py peakutils plotly pymongo sphinx pandas six DateTime importlib-metadata==4.10.0 uproot==4.1.1 #mysql-python
+# Install optional dependencies #TODO: add to pyproject.toml
+RUN pip install dnspython gunicorn DateTime pandas
 
 #Uninstall and reinstall werkzeug bug
 #RUN pip uninstall Werkzeug
 RUN pip install Werkzeug==2.0.0
 
-# Install NuRadioReco
-ADD NuRadioMC /usr/local/lib/python3.10/site-packages/NuRadioMC
-ADD NuRadioReco /usr/local/lib/python3.10/site-packages/NuRadioReco
-#ENV PYTHONPATH=/usr/local/lib/python3.10/site-packages
+# Add NuRadioMC to PYTHONPATH
+ENV PYTHONPATH="/usr/local/lib/NuRadioMC:$PYTHONPATH"
 
 RUN useradd nuradio
 
-USER   nuradio
+USER nuradio
 EXPOSE 8050
-WORKDIR /usr/local/lib/python3.10/site-packages/NuRadioReco/detector/webinterface
-CMD [ "python", "./index.py" ]
+WORKDIR /usr/local/lib/NuRadioMC/NuRadioReco/detector/webinterface
+CMD python index.py
