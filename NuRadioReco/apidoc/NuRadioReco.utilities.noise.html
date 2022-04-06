@@ -73,6 +73,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -83,6 +84,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#links-and-cross-references">Links and cross-references</a></li>
@@ -250,7 +252,9 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -631,6 +635,38 @@
 <dt class="sig sig-object py" id="NuRadioReco.utilities.noise.thermalNoiseGenerator">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.noise.</span></span><span class="sig-name descname"><span class="pre">thermalNoiseGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_coincidence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_majority</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_coincidence_majority</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rayleigh'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#thermalNoiseGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.thermalNoiseGenerator" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Efficient algorithms to generate thermal noise fluctuations that fulfill a high/low trigger + a majority
+coincidence logic (as used by ARIANNA)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>n_samples: int</strong></dt><dd><p>the number of samples of the trace</p>
+</dd>
+<dt><strong>sampling_rate: float</strong></dt><dd><p>the sampling rate</p>
+</dd>
+<dt><strong>Vrms: float</strong></dt><dd><p>the RMS noise</p>
+</dd>
+<dt><strong>threshold: float</strong></dt><dd><p>the trigger threshold (assuming a symmetric high and low threshold)</p>
+</dd>
+<dt><strong>time_coincidence: float</strong></dt><dd><p>the high/low coincidence time</p>
+</dd>
+<dt><strong>n_majority: int</strong></dt><dd><p>specifies how many channels need to have a trigger</p>
+</dd>
+<dt><strong>time_coincidence_majority: float</strong></dt><dd><p>multi channel coincidence window</p>
+</dd>
+<dt><strong>n_channels: int</strong></dt><dd><p>number of channels to generate</p>
+</dd>
+<dt><strong>trigger_time: float</strong></dt><dd><p>the trigger time (time when the trigger completes)</p>
+</dd>
+<dt><strong>filt: array of floats</strong></dt><dd><p>the filter that should be applied after noise generation (needs to match frequency binning)</p>
+</dd>
+<dt><strong>noise_type: string</strong></dt><dd><p>the type of the noise, can be
+* “rayleigh” (default)
+* “noise”</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -656,6 +692,31 @@
 <dt class="sig sig-object py" id="NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.noise.</span></span><span class="sig-name descname"><span class="pre">thermalNoiseGeneratorPhasedArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">detector_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rayleigh'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#thermalNoiseGeneratorPhasedArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Efficient algorithms to generate thermal noise fluctuations that fulfill a phased array trigger</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>detector_filename: string</strong></dt><dd><p>the filename to the detector description</p>
+</dd>
+<dt><strong>station_id: int</strong></dt><dd><p>the station id of the station from the detector file</p>
+</dd>
+<dt><strong>triggered_channels: array of ints</strong></dt><dd><p>list of channel ids that are part of the trigger</p>
+</dd>
+<dt><strong>Vrms: float</strong></dt><dd><p>the RMS noise</p>
+</dd>
+<dt><strong>threshold: float</strong></dt><dd><p>the trigger threshold (assuming a symmetric high and low threshold)</p>
+</dd>
+<dt><strong>trigger_time: float</strong></dt><dd><p>the trigger time (time when the trigger completes)</p>
+</dd>
+<dt><strong>filt: array of floats</strong></dt><dd><p>the filter that should be applied after noise generation (needs to match frequency binning)</p>
+</dd>
+<dt><strong>noise_type: string</strong></dt><dd><p>the type of the noise, can be
+* “rayleigh” (default)
+* “noise”</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>

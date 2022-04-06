@@ -70,6 +70,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -80,6 +81,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#links-and-cross-references">Links and cross-references</a></li>
@@ -247,7 +249,9 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -560,10 +564,12 @@
 <span class="sd">        This object stores a 3 dimensional trace plus additional meta parameters</span>
 
 <span class="sd">        Parameters</span>
-<span class="sd">        ---------</span>
+<span class="sd">        ----------</span>
 <span class="sd">        channel_ids: array of ints</span>
-<span class="sd">            the channels ids this electric field is valid for. (For cosmic rays one electric field is typically valid</span>
-<span class="sd">            for several channels. For neutrino simulations, we typically simulate the electric field for each</span>
+<span class="sd">            the channels ids this electric field is valid for. </span>
+<span class="sd">            (For cosmic rays one electric field is typically valid</span>
+<span class="sd">            for several channels. For neutrino simulations, we typically</span>
+<span class="sd">            simulate the electric field for each</span>
 <span class="sd">            channel separately)</span>
 <span class="sd">        position: 3-dim array/list of floats</span>
 <span class="sd">            the position of the electric field</span>

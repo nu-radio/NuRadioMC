@@ -73,6 +73,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -83,6 +84,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#links-and-cross-references">Links and cross-references</a></li>
@@ -250,7 +252,9 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5 current"><a class="reference internal" href="NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -550,6 +554,16 @@
 <dt class="sig sig-object py" id="NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.</span></span><span class="sig-name descname"><span class="pre">neutrino3DVertexReconstructor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lookup_table_location</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/neutrinoVertexReconstructor/neutrino3DVertexReconstructor.html#neutrino3DVertexReconstructor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino3DVertexReconstructor.neutrino3DVertexReconstructor" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Constructor for the vertex reconstructor</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>lookup_table_location: string</strong></dt><dd><p>path to the folder in which the lookup tables for the signal travel
+times are stored</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>

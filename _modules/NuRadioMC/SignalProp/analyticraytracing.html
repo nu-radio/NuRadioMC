@@ -70,6 +70,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -80,6 +81,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#links-and-cross-references">Links and cross-references</a></li>
@@ -247,7 +249,9 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -2081,6 +2085,7 @@
 <span class="sd">            name under which things should be logged</span>
 <span class="sd">        log_level: logging object</span>
 <span class="sd">            specify the log level of the ray tracing class</span>
+
 <span class="sd">            * logging.ERROR</span>
 <span class="sd">            * logging.WARNING</span>
 <span class="sd">            * logging.INFO</span>
@@ -2096,10 +2101,12 @@
 <span class="sd">        config: dict</span>
 <span class="sd">            a dictionary with the optional config settings. If None, the config is intialized with default values,</span>
 <span class="sd">            which is needed to avoid any &quot;key not available&quot; errors. The default settings are</span>
-<span class="sd">                self._config = {&#39;propagation&#39;: {}}</span>
-<span class="sd">                self._config[&#39;propagation&#39;][&#39;attenuate_ice&#39;] = True</span>
-<span class="sd">                self._config[&#39;propagation&#39;][&#39;focusing_limit&#39;] = 2</span>
-<span class="sd">                self._config[&#39;propagation&#39;][&#39;focusing&#39;] = False</span>
+
+<span class="sd">                * self._config = {&#39;propagation&#39;: {}}</span>
+<span class="sd">                * self._config[&#39;propagation&#39;][&#39;attenuate_ice&#39;] = True</span>
+<span class="sd">                * self._config[&#39;propagation&#39;][&#39;focusing_limit&#39;] = 2</span>
+<span class="sd">                * self._config[&#39;propagation&#39;][&#39;focusing&#39;] = False</span>
+
 <span class="sd">        detector: detector object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ray_tracing_analytic&#39;</span><span class="p">)</span>
@@ -2460,15 +2467,15 @@
 <span class="sd">        iS: int</span>
 <span class="sd">            choose for which solution to compute the launch vector, counting</span>
 <span class="sd">            starts at zero</span>
-
 <span class="sd">        dz: float</span>
 <span class="sd">            the infinitesimal change of the depth of the receiver, 1cm by default</span>
 <span class="sd">        limit: float</span>
 <span class="sd">            The maximum signal focusing.</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        focusing: a float</span>
-<span class="sd">            gain of the signal at the receiver due to the focusing effect:</span>
+<span class="sd">        focusing: float</span>
+<span class="sd">            gain of the signal at the receiver due to the focusing effect</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">recVec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_receive_vector</span><span class="p">(</span><span class="n">iS</span><span class="p">)</span>
         <span class="n">recVec</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">recVec</span>

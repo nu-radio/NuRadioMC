@@ -73,6 +73,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -83,6 +84,7 @@
 <li class="toctree-l4"><a class="reference internal" href="contributing.html#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="contributing.html#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="contributing.html#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="contributing.html#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="contributing.html#links-and-cross-references">Links and cross-references</a></li>
@@ -250,7 +252,9 @@
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -580,6 +584,13 @@ is defined into the direction of propagation.</p>
 <h2>Units<a class="headerlink" href="#units" title="Permalink to this headline"></a></h2>
 <p>Physical quantities in <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> use Auger base units. To print, plot and convert dimensional quantities,
 a convenient module is included in <code class="docutils literal notranslate"><span class="pre">NuRadioReco</span></code>. Details are given <a class="reference internal" href="../../NuRadioReco/pages/utilities.html#unit-system"><span class="std std-ref">here</span></a>.</p>
+</section>
+<section id="particle-types">
+<h2>Particle types<a class="headerlink" href="#particle-types" title="Permalink to this headline"></a></h2>
+<p>Particle types are encoded using the <a class="reference external" href="https://pdg.lbl.gov/2007/reviews/montecarlorpp.pdf">PDG convention</a>.
+The most relevant particle ids for us are [12,14,16] for the electron, muon and tau neutrino, respectively,
+with an overall minus sign indicating their corresponding anti-particles. A more extensive overview is included
+as a table in the <a class="reference internal" href="../../NuRadioMC/pages/Manuals/event_generation.html#particle-code-table"><span class="std std-ref">event generation manual</span></a>.</p>
 </section>
 <section id="fourier-transformations">
 <h2>Fourier transformations<a class="headerlink" href="#fourier-transformations" title="Permalink to this headline"></a></h2>

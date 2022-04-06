@@ -70,6 +70,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -80,6 +81,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../Introduction/pages/contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../Introduction/pages/contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../../Introduction/pages/contributing.html#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../Introduction/pages/contributing.html#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../Introduction/pages/contributing.html#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../Introduction/pages/contributing.html#links-and-cross-references">Links and cross-references</a></li>
@@ -247,7 +249,9 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -548,7 +552,7 @@
 
 <div class="viewcode-block" id="hardwareResponseIncorporator"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator">[docs]</a><span class="k">class</span> <span class="nc">hardwareResponseIncorporator</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Incorporates the gain and phase induced by the ARIANNA hardware.</span>
+<span class="sd">    Incorporates the gain and phase induced by the RNO-G hardware.</span>
 
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -590,10 +594,10 @@
 <span class="sd">            Options:</span>
 
 <span class="sd">            * &#39;phase_only&#39;: only the phases response is applied but not the amplitude response</span>
-<span class="sd">                (identical to phase_only=True )</span>
+<span class="sd">              (identical to phase_only=True )</span>
 <span class="sd">            * &#39;relative&#39;: gain of amp is divided by maximum of the gain, i.e. at the maximum of the</span>
-<span class="sd">                filter response is 1 (before applying cable response). This makes it easier</span>
-<span class="sd">                to compare the filtered to unfiltered signal</span>
+<span class="sd">              filter response is 1 (before applying cable response). This makes it easier</span>
+<span class="sd">              to compare the filtered to unfiltered signal</span>
 <span class="sd">            * None : default, gain and phase effects are applied &#39;normally&#39;</span>
 
 <span class="sd">        mingainlin: float</span>
@@ -601,8 +605,9 @@
 <span class="sd">            dividing the measured signal by the gain) leads to excessively high values, due to the effect of</span>
 <span class="sd">            post-amplifier noise. In order to mitigate this effect, a minimum gain (linear scale!) as fraction of the</span>
 <span class="sd">            maximum gain can be defined. If specified, any gain value smaller than mingainlin will be replaced by mingainlin.</span>
+<span class="sd">            </span>
 <span class="sd">            Note: The adjustment to the minimal gain is NOT visible when getting the amp response from</span>
-<span class="sd">            analog_components.get_amplifier_response()</span>
+<span class="sd">            ``analog_components.get_amplifier_response()``</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -----------</span>
@@ -657,10 +662,10 @@
 <span class="sd">            Options:</span>
 
 <span class="sd">            * &#39;phase_only&#39;: only the phases response is applied but not the amplitude response</span>
-<span class="sd">                (identical to phase_only=True )</span>
+<span class="sd">              (identical to phase_only=True )</span>
 <span class="sd">            * &#39;relative&#39;: gain of amp is divided by maximum of the gain, i.e. at the maximum of the</span>
-<span class="sd">                filter response is 1 (before applying cable response). This makes it easier</span>
-<span class="sd">                to compare the filtered to unfiltered signal</span>
+<span class="sd">              filter response is 1 (before applying cable response). This makes it easier</span>
+<span class="sd">              to compare the filtered to unfiltered signal</span>
 <span class="sd">            * None : default, gain and phase effects are applied &#39;normally&#39;</span>
 <span class="sd">            </span>
 <span class="sd">        mingainlin: float</span>
@@ -668,8 +673,9 @@
 <span class="sd">            dividing the measured signal by the gain) leads to excessively high values, due to the effect of</span>
 <span class="sd">            post-amplifier noise. In order to mitigate this effect, a minimum gain (linear scale!) as fraction of the</span>
 <span class="sd">            maximum gain can be defined. If specified, any gain value smaller than mingainlin will be replaced by mingainlin.</span>
+<span class="sd">            </span>
 <span class="sd">            Note: The adjustment to the minimal gain is NOT visible when getting the amp response from</span>
-<span class="sd">            analog_components.get_amplifier_response()</span>
+<span class="sd">            ``analog_components.get_amplifier_response()``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__mingainlin</span> <span class="o">=</span> <span class="n">mingainlin</span>

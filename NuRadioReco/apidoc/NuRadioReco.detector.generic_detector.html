@@ -73,6 +73,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -83,6 +84,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#links-and-cross-references">Links and cross-references</a></li>
@@ -250,7 +252,9 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -562,6 +566,210 @@ of the other channels will be taken from the default channel.
 The GenericDetector also ignores commission and decommision times and should
 therefore not be used for real data, but only for simulation studies.
 This detector only accepts json detector descriptions or dictionary.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.add_generic_station" title="NuRadioReco.detector.generic_detector.GenericDetector.add_generic_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_generic_station</span></code></a>(station_dict)</p></td>
+<td><p>Add a generic station to the detector.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.add_station_properties_for_event" title="NuRadioReco.detector.generic_detector.GenericDetector.add_station_properties_for_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_station_properties_for_event</span></code></a>(properties, ...)</p></td>
+<td><p>Adds an entry to the list of event-specific changes to the detector description.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_absolute_position</span></code>(station_id)</p></td>
+<td><p>get the absolute position of a specific station</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_absolute_position_site</span></code>(site)</p></td>
+<td><p>get the absolute position of a specific station</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_measurement</span></code>(station_id, channel_id)</p></td>
+<td><p>returns a unique reference to the amplifier measurement</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_response</span></code>(station_id, ...)</p></td>
+<td><p>Returns the amplifier response for the amplifier of a given channel</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_type</span></code>(station_id, channel_id)</p></td>
+<td><p>returns the type of the amplifier</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_deployment_time</span></code>(station_id, ...)</p></td>
+<td><p>returns the time of antenna deployment</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_model</span></code>(station_id, channel_id[, ...])</p></td>
+<td><p>determines the correct antenna model from antenna type, position and orientation of antenna</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_orientation</span></code>(station_id, channel_id)</p></td>
+<td><p>returns the orientation of a specific antenna</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_type</span></code>(station_id, channel_id)</p></td>
+<td><p>returns the antenna type</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cable_delay</span></code>(station_id, channel_id)</p></td>
+<td><p>returns the cable delay of a channel</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cable_type_and_length</span></code>(station_id, channel_id)</p></td>
+<td><p>returns the cable type (e.g.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel</span></code>(station_id, channel_id)</p></td>
+<td><p>returns a dictionary of all channel parameters</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_ids</span></code>(station_id)</p></td>
+<td><p>get the channel ids of a station</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.get_default_channel" title="NuRadioReco.detector.generic_detector.GenericDetector.get_default_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_default_channel</span></code></a>()</p></td>
+<td><p>Get the properties of the default channel</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.get_default_channel_id" title="NuRadioReco.detector.generic_detector.GenericDetector.get_default_channel_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_default_channel_id</span></code></a>()</p></td>
+<td><p>Get the ID of the default channel</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.get_default_station" title="NuRadioReco.detector.generic_detector.GenericDetector.get_default_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_default_station</span></code></a>()</p></td>
+<td><p>Get the properties of the default station</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.get_default_station_id" title="NuRadioReco.detector.generic_detector.GenericDetector.get_default_station_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_default_station_id</span></code></a>()</p></td>
+<td><p>Get the ID of the default station</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_detector_time</span></code>()</p></td>
+<td><p>Returns the time that the detector is currently set to</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_device</span></code>(station_id, device_id)</p></td>
+<td><p>returns a dictionary of all device parameters</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_device_ids</span></code>(station_id)</p></td>
+<td><p>get the device ids of a station</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_noise_RMS</span></code>(station_id, channel_id[, stage])</p></td>
+<td><p>returns the noise RMS that was precomputed from forced triggers</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_noise_temperature</span></code>(station_id, channel_id)</p></td>
+<td><p>returns the noise temperature of the channel</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_channels</span></code>(station_id)</p></td>
+<td><p>Get the number of channels per station</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_devices</span></code>(station_id)</p></td>
+<td><p>Get the number of devices per station</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_samples</span></code>(station_id, channel_id)</p></td>
+<td><p>returns the number of samples of a channel</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parallel_channels</span></code>(station_id)</p></td>
+<td><p>get a list of parallel antennas</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.get_raw_channel" title="NuRadioReco.detector.generic_detector.GenericDetector.get_raw_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_raw_channel</span></code></a>(station_id, channel_id)</p></td>
+<td><p>Get the properties of a channel as they are in the original detector description, i.e. without missing properties being replaced by those from the default channel.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.get_raw_station" title="NuRadioReco.detector.generic_detector.GenericDetector.get_raw_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_raw_station</span></code></a>(station_id)</p></td>
+<td><p>Get the properties of a station as they are in the original detector description, i.e. without missing properties being replaced by those from the default station.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.get_reference_station" title="NuRadioReco.detector.generic_detector.GenericDetector.get_reference_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_reference_station</span></code></a>(station_id)</p></td>
+<td><p>Get the properties of the reference station</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.get_reference_station_id" title="NuRadioReco.detector.generic_detector.GenericDetector.get_reference_station_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_reference_station_id</span></code></a>(station_id)</p></td>
+<td><p>Get the properties of the reference station</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.get_reference_station_ids" title="NuRadioReco.detector.generic_detector.GenericDetector.get_reference_station_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_reference_station_ids</span></code></a>()</p></td>
+<td><p>Get the whole diectionary of reference stations</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.get_reference_stations" title="NuRadioReco.detector.generic_detector.GenericDetector.get_reference_stations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_reference_stations</span></code></a>()</p></td>
+<td><p>Get the properties of the reference stations</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_relative_position</span></code>(station_id, channel_id)</p></td>
+<td><p>get the relative position of a specific channels/antennas with respect to the station center</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_frequency</span></code>(station_id, channel_id)</p></td>
+<td><p>returns the sampling frequency</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site</span></code>(station_id)</p></td>
+<td><p>get the site where the station is deployed (e.g.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site_coordinates</span></code>(station_id)</p></td>
+<td><p>get the (latitude, longitude) coordinates (in degrees) for a given detector site.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_ids</span></code>()</p></td>
+<td><p>returns a sorted list of all station ids present in the database</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.get_station_properties_for_event" title="NuRadioReco.detector.generic_detector.GenericDetector.get_station_properties_for_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_properties_for_event</span></code></a>(run_number, ...)</p></td>
+<td><p>Returns all event-specific changes that have been stored in the detector description for a given station and event</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_time_periods</span></code>(station_id)</p></td>
+<td><p>returns the time periods in which the station configuration (including all channels) was constant</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.has_station" title="NuRadioReco.detector.generic_detector.GenericDetector.has_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_station</span></code></a>(station_id)</p></td>
+<td><p>checks if a station is present in the database</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_channel_noiseless</span></code>(station_id, channel_id)</p></td>
+<td><p>returns true if the detector description has the field <cite>noiseless</cite> and if this field is True.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.set_event" title="NuRadioReco.detector.generic_detector.GenericDetector.set_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_event</span></code></a>(run_number, event_id)</p></td>
+<td><p>Sets the run number and event ID for which the detector description should be returned.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.update" title="NuRadioReco.detector.generic_detector.GenericDetector.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(time)</p></td>
+<td><p>updates the detector description to a new time</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 60%" />
+<col style="width: 40%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>get_station</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Initialize the stations detector properties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>json_filename</strong><span class="classifier">str</span></dt><dd><p>the path to the json detector description file (if first checks a path relative to this directory, then a
+path relative to the current working directory of the user)
+default value is ‘ARIANNA/arianna_detector_db.json’</p>
+</dd>
+<dt><strong>default_station:</strong></dt><dd><p>This option is deprecated.
+ONLY in case no ‘reference_station’ is set in the station parameters of the detector description,
+the ‘default_station’ is used as reference for the time being.
+ID of the station that should be used as the default station.
+The default station needs to have a complete detector description. If a property is missing in any of the
+other stations, the value from the default station will be used instead.</p>
+</dd>
+<dt><strong>default_channel:</strong></dt><dd><p>This option is deprecated.
+ONLY in case no ‘reference_channel’ is set in the channel parameters of the detector description,
+the ‘default_channel’ is used as reference for the time being.
+ID of the channel that should be used as the default channel. This channel has to be part of the reference
+station and have a complete detector description. If a property is missing in any of the other channels,
+the value from the default channel will be used instead.</p>
+</dd>
+<dt><strong>default_device:</strong></dt><dd><p>This option is deprecated.
+ONLY in case no ‘reference_device’ is set in the device parameters of the detector description,
+the ‘default_device’ is used as reference for the time being.
+ID of the device that should be used as the default device. This channel has to be part of the reference
+station and have a complete detector description. If a property is missing in any of the other devices,
+the value from the default device will be used instead.</p>
+</dd>
+<dt><strong>source: str</strong></dt><dd><p>‘json’ or ‘dictionary’
+default value is ‘json’
+If ‘json’ is passed, the JSON dictionary at the location specified
+by json_filename will be used
+If ‘dictionary’ is passed, the dictionary specified by the parameter
+‘dictionary’ will be used</p>
+</dd>
+<dt><strong>dictionary: dict</strong></dt><dd><p>If ‘dictionary’ is passed to the parameter source, the dictionary
+passed to this parameter will be used for the detector description.</p>
+</dd>
+<dt><strong>assume_inf</strong><span class="classifier">Bool</span></dt><dd><p>Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna
+madel will be determined by the station geometry.</p>
+</dd>
+<dt><strong>antenna_by_depth: bool (default True)</strong></dt><dd><p>if True the antenna model is determined automatically depending on the depth of the antenna.
+This is done by appending e.g. ‘_InfFirn’ to the antenna model name.
+if False, the antenna model as specified in the database is used.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>

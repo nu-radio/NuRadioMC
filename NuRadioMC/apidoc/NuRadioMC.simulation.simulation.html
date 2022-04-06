@@ -73,6 +73,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -83,6 +84,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#links-and-cross-references">Links and cross-references</a></li>
@@ -250,7 +252,9 @@
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -549,6 +553,7 @@
 <dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.NuRadioMCLogger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">NuRadioMCLogger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#NuRadioMCLogger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.NuRadioMCLogger" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">logging.Logger</span></code></a></p>
+<p>Initialize the logger with a name and an optional level.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -659,6 +664,59 @@
 <dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.simulation">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputfilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detectorfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfilenameNuRadioReco</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'full'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evt_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">datetime.datetime(2018,</span> <span class="pre">1,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_detector_station</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_detector_channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level_propagation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ice_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.simulation" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>initialize the NuRadioMC end-to-end simulation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>inputfilename: string, or pair</strong></dt><dd><p>the path to the hdf5 file containing the list of neutrino events
+alternatively, the data and attributes dictionary can be passed directly to the method</p>
+</dd>
+<dt><strong>outputfilename: string</strong></dt><dd><p>specify hdf5 output filename.</p>
+</dd>
+<dt><strong>detectorfile: string</strong></dt><dd><p>path to the json file containing the detector description</p>
+</dd>
+<dt><strong>station_id: int</strong></dt><dd><p>the station id for which the simulation is performed. Must match a station
+deself._fined in the detector description</p>
+</dd>
+<dt><strong>outputfilenameNuRadioReco: string or None</strong></dt><dd><p>outputfilename of NuRadioReco detector sim file, this file contains all
+waveforms of the triggered events
+default: None, i.e., no output file will be written which is useful for
+effective volume calculations</p>
+</dd>
+<dt><strong>debug: bool</strong></dt><dd><p>True activates debug mode, default False</p>
+</dd>
+<dt><strong>write_mode: str</strong></dt><dd><p>Detail level of eventWriter
+specifies the output mode:</p>
+<ul class="simple">
+<li><p>‘full’ (default): the full event content is written to disk</p></li>
+<li><p>‘mini’: only station traces are written to disc</p></li>
+<li><p>‘micro’: no traces are written to disc</p></li>
+</ul>
+</dd>
+<dt><strong>evt_time: datetime object</strong></dt><dd><p>the time of the events, default 1/1/2018</p>
+</dd>
+<dt><strong>config_file: string</strong></dt><dd><p>path to config file</p>
+</dd>
+<dt><strong>log_level: logging.LEVEL</strong></dt><dd><p>the log level</p>
+</dd>
+<dt><strong>default_detector_station: int or None</strong></dt><dd><p>if station parameters are not defined, the parameters of the default station are used</p>
+</dd>
+<dt><strong>default_detector_channel: int or None</strong></dt><dd><p>if channel parameters are not defined, the parameters of the default channel are used</p>
+</dd>
+<dt><strong>file_overwrite: bool</strong></dt><dd><p>True allows overwriting of existing files, default False</p>
+</dd>
+<dt><strong>write_detector: bool</strong></dt><dd><p>If true, the detector description is written into the .nur files along with the events
+default True</p>
+</dd>
+<dt><strong>event_list: None or list of ints</strong></dt><dd><p>if provided, only the event listed in this list are being simulated</p>
+</dd>
+<dt><strong>log_level_propagation: logging.LEVEL</strong></dt><dd><p>the log level of the propagation module</p>
+</dd>
+<dt><strong>ice_model: medium object (default None)</strong></dt><dd><p>allows to specify a custom ice model. This model is used if the config file specifies the ice model as “custom”.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>

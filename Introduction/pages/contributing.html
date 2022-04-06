@@ -73,6 +73,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="conventions.html#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -83,6 +84,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="#links-and-cross-references">Links and cross-references</a></li>
@@ -250,7 +252,9 @@
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -605,7 +609,7 @@ missed!</strong></p></li>
 <h2>Coding conventions<a class="headerlink" href="#coding-conventions" title="Permalink to this headline"></a></h2>
 <p>In general we try to follow ‘industry’ coding workflow conventions. So, if
 something is not explicitly mentioned here, please resort to ‘best practices’.
-NuRadioMC tries to follow <a class="reference external" href="https://www.python.org/dev/peps/pep-0008/">PEP-8 coding conventions</a></p>
+NuRadioMC tries to follow <a class="reference external" href="https://www.python.org/dev/peps/pep-0008/">PEP-8 coding conventions</a>.</p>
 <p>Please document your code extensively, especially the physics behind it.
 Each function should come with a docstring where all variables are defined.
 All variables representing something with a unit must make use of the
@@ -727,6 +731,18 @@ inside the module folders confuses <code class="docutils literal notranslate"><s
 <a class="reference external" href="https://www.sphinx-doc.org/en/master/index.html">sphinx</a>. Please consult these websites for a more extensive overview
 of the correct syntax. You can use any existing page of the documentation (which can be found in the <code class="docutils literal notranslate"><span class="pre">documentation/source</span></code> directory)
 as a template for how to write more code. However, below is a summary of the basics:</p>
+<section id="compiling-the-documentation">
+<h4>Compiling the documentation<a class="headerlink" href="#compiling-the-documentation" title="Permalink to this headline"></a></h4>
+<p>In order to compile the documentation locally, make sure the required
+<a class="reference internal" href="installation.html#optional-dependencies"><span class="std std-ref">dependencies</span></a>
+are installed (this can be done by running the <a class="reference internal" href="installation.html#development-version"><span class="std std-ref">installer</span></a>).
+Compiling the documentation is then done by running</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">documentation</span><span class="o">/</span><span class="n">make_docs</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>This will build the documentation at <cite>documentation/build/html</cite>
+(open <cite>main.html</cite> to view it in your browser).</p>
+</section>
 <section id="headings-and-text">
 <h4>Headings and text<a class="headerlink" href="#headings-and-text" title="Permalink to this headline"></a></h4>
 <div class="highlight-reStructuredText notranslate"><div class="highlight"><pre><span></span><span class="gh">Document Title</span>

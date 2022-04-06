@@ -1,0 +1,7 @@
+NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos module
+======================================================================================================
+
+.. automodule:: NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos
+   :members:
+   :undoc-members:
+   :show-inheritance:

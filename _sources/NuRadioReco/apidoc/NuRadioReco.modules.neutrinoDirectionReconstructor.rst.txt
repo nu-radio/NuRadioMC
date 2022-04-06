@@ -1,0 +1,15 @@
+NuRadioReco.modules.neutrinoDirectionReconstructor package
+==========================================================
+
+.. automodule:: NuRadioReco.modules.neutrinoDirectionReconstructor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.neutrinoDirectionReconstructor.voltageToEfieldAnalyticConverterForNeutrinos

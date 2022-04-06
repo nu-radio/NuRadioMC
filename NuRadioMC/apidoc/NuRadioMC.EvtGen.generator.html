@@ -73,6 +73,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -83,6 +84,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#links-and-cross-references">Links and cross-references</a></li>
@@ -250,7 +252,9 @@
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -549,6 +553,7 @@
 <dt class="sig sig-object py" id="NuRadioMC.EvtGen.generator.NuRadioMCLogger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.generator.</span></span><span class="sig-name descname"><span class="pre">NuRadioMCLogger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/generator.html#NuRadioMCLogger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.generator.NuRadioMCLogger" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">logging.Logger</span></code></a></p>
+<p>Initialize the logger with a name and an optional level.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -804,11 +809,8 @@ This is useful to split up the computing on multiple cores.</p>
 <li><p>‘log_uniform’: uniformly distributed in the logarithm of energy</p></li>
 <li><p>‘E-?’: E to the -? spectrum where ? can be any float</p></li>
 <li><p>‘IceCube-nu-2017’: astrophysical neutrino flux measured with IceCube muon sample (<a class="reference external" href="https://doi.org/10.22323/1.301.1005">https://doi.org/10.22323/1.301.1005</a>)</p></li>
-<li><dl class="simple">
-<dt>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a></dt><dd><p>for 10% proton fraction (see get_GZK_1 function for details)</p>
-</dd>
-</dl>
-</li>
+<li><p>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a> 
+for 10% proton fraction (see get_GZK_1 function for details)</p></li>
 <li><p>‘GZK-1+IceCube-nu-2017’: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</p></li>
 </ul>
 </dd>
@@ -852,7 +854,7 @@ if False the event datasets + atrributes are returned</p>
 </dd>
 <dt><strong>seed: None of int</strong></dt><dd><p>seed of the random state</p>
 </dd>
-<dt><strong>interaction_type: string</strong></dt><dd><p>the interaction type. default is “ccnc” which randomly choses neutral current (NC) or charged-current (CC) interactions.
+<dt><strong>interaction_type: string</strong></dt><dd><p>the interaction type. default is “ccnc” which randomly choses neutral current (NC) or charged-current (CC) interactions. 
 The use can also specify “nc” or “cc” to exclusively simulate NC or CC interactions</p>
 </dd>
 </dl>
@@ -1012,11 +1014,8 @@ This is useful to split up the computing on multiple cores.</p>
 <li><p>‘log_uniform’: uniformly distributed in the logarithm of energy</p></li>
 <li><p>‘E-?’: E to the -? spectrum where ? can be any float</p></li>
 <li><p>‘IceCube-nu-2017’: astrophysical neutrino flux measured with IceCube muon sample (<a class="reference external" href="https://doi.org/10.22323/1.301.1005">https://doi.org/10.22323/1.301.1005</a>)</p></li>
-<li><dl class="simple">
-<dt>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a></dt><dd><p>for 10% proton fraction (see get_GZK_1 function for details)</p>
-</dd>
-</dl>
-</li>
+<li><p>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a> 
+for 10% proton fraction (see get_GZK_1 function for details)</p></li>
 <li><p>‘GZK-1+IceCube-nu-2017’: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</p></li>
 </ul>
 </dd>
@@ -1027,23 +1026,14 @@ if True, generate deposited energies instead of primary neutrino energies</p>
 <dt><strong>config_file: string</strong></dt><dd><p>The user can specify the path to their own config file or choose among
 the three available options:</p>
 <ul class="simple">
-<li><dl class="simple">
-<dt>‘SouthPole’, a config file for the South Pole (spherical Earth). It</dt><dd><p>consists of a 2.7 km deep layer of ice, bedrock below and air above.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>‘MooresBay’, a config file for Moore’s Bay (spherical Earth). It</dt><dd><p>consists of a 576 m deep ice layer with a 2234 m deep water layer below,
-and bedrock below that.</p>
-</dd>
-</dl>
-</li>
+<li><p>‘SouthPole’, a config file for the South Pole (spherical Earth). It
+consists of a 2.7 km deep layer of ice, bedrock below and air above.</p></li>
+<li><p>‘MooresBay’, a config file for Moore’s Bay (spherical Earth). It
+consists of a 576 m deep ice layer with a 2234 m deep water layer below,
+and bedrock below that.</p></li>
 <li><p>‘InfIce’, a config file with a medium of infinite ice</p></li>
-<li><dl class="simple">
-<dt>‘Greenland’, a config file for Summit Station, Greenland (spherical Earth),</dt><dd><p>same as SouthPole but with a 3 km deep ice layer.</p>
-</dd>
-</dl>
-</li>
+<li><p>‘Greenland’, a config file for Summit Station, Greenland (spherical Earth),
+same as SouthPole but with a 3 km deep ice layer.</p></li>
 </ul>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
@@ -1071,7 +1061,7 @@ table paths and then copy this file to config_PROPOSAL_xxx.json.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.EvtGen.generator.generate_vertex_positions">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.generator.</span></span><span class="sig-name descname"><span class="pre">generate_vertex_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/generator.html#generate_vertex_positions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.generator.generate_vertex_positions" title="Permalink to this definition"></a></dt>
-<dd><p>helper function that generates the vertex position randomly distributed in simulation volume.
+<dd><p>helper function that generates the vertex position randomly distributed in simulation volume. 
 The relevant quantities are also saved into the hdf5 attributes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1112,11 +1102,8 @@ and a proton fraction of 10% at E = 10^19.6 eV</p>
 <li><p>‘log_uniform’: uniformly distributed in the logarithm of energy</p></li>
 <li><p>‘E-?’: E to the -? spectrum where ? can be any float</p></li>
 <li><p>‘IceCube-nu-2017’: astrophysical neutrino flux measured with IceCube muon sample (<a class="reference external" href="https://doi.org/10.22323/1.301.1005">https://doi.org/10.22323/1.301.1005</a>)</p></li>
-<li><dl class="simple">
-<dt>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a> for</dt><dd><p>10% proton fraction (see get_GZK_1 function for details)</p>
-</dd>
-</dl>
-</li>
+<li><p>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a> for
+10% proton fraction (see get_GZK_1 function for details)</p></li>
 <li><p>‘GZK-1+IceCube-nu-2017’: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</p></li>
 </ul>
 </dd>

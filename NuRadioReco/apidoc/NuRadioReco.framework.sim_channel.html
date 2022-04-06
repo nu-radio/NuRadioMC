@@ -73,6 +73,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -83,6 +84,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#links-and-cross-references">Links and cross-references</a></li>
@@ -250,7 +252,9 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -552,6 +556,114 @@
 <p>Object to store simulated channels.</p>
 <p>This class is the same as the regular channel trace but has apart from the channel id also
 a shower and ray tracing solution id</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_time_shift</span></code>(delta_t[, silent])</p></td>
+<td><p>Uses the fourier shift theorem to apply a time shift to the trace Note that this is a cyclic shift, which means the trace will wrap around, which might lead to problems, especially for large time shifts.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_filtered_trace</span></code>(passband[, filter_type, ...])</p></td>
+<td><p>Returns the trace after applying a filter to it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_samples</span></code>()</p></td>
+<td><p>returns the number of samples in the time domain</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_rate</span></code>()</p></td>
+<td><p>returns the sampling rate of the trace</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code>()</p></td>
+<td><p>returns the time trace.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier" title="NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_identifier</span></code></a>()</p></td>
+<td><p>returns a unique identifier consisting of the tuple channel_id, shower_id and ray_tracing_id</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code>(trace, sampling_rate)</p></td>
+<td><p>sets the time trace</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 76%" />
+<col style="width: 24%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>add_trace_start_time</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>deserialize</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_frequencies</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_frequency_spectrum</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_hilbert_envelope</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_hilbert_envelope_mag</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_id</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_parameter</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_parameters</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_ray_tracing_solution_id</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_shower_id</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_times</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_trace_start_time</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>has_parameter</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>resample</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>serialize</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>set_frequency_spectrum</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>set_parameter</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>set_trace_start_time</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Initializes SimChannel object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>channel_id: int</strong></dt><dd><p>id of channel</p>
+</dd>
+<dt><strong>shower_id: int or None</strong></dt><dd><p>the id of the corresponding shower object</p>
+</dd>
+<dt><strong>ray_tracing_id: int or None</strong></dt><dd><p>the id of the corresponding ray tracing solution</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>

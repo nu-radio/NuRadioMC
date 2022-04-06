@@ -1,0 +1,16 @@
+NuRadioReco.modules.iftElectricFieldReconstructor package
+=========================================================
+
+.. automodule:: NuRadioReco.modules.iftElectricFieldReconstructor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.iftElectricFieldReconstructor.iftElectricFieldReconstructor
+   NuRadioReco.modules.iftElectricFieldReconstructor.operators

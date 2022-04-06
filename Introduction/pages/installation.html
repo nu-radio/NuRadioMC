@@ -73,6 +73,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="conventions.html#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -83,6 +84,7 @@
 <li class="toctree-l4"><a class="reference internal" href="contributing.html#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="contributing.html#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="contributing.html#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="contributing.html#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="contributing.html#links-and-cross-references">Links and cross-references</a></li>
@@ -250,7 +252,9 @@
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -727,6 +731,8 @@ to be installed, and <code class="docutils literal notranslate"><span class="pre
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt-get install libgsl-dev
 </pre></div>
 </div>
+<p>With GSL installed, compile the CPP ray tracer by navigating to <cite>NuRadioMC/NuRadioMC/SignalProp</cite>
+and running the included <cite>install.sh</cite> script.</p>
 </li>
 <li><p>To use the <a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.SignalProp.radioproparaytracing.html#module-NuRadioMC.SignalProp.radioproparaytracing" title="NuRadioMC.SignalProp.radioproparaytracing"><code class="xref py py-mod docutils literal notranslate"><span class="pre">RadioPropa</span> <span class="pre">numerical</span> <span class="pre">ray</span> <span class="pre">tracing</span></code></a> module, <code class="docutils literal notranslate"><span class="pre">radiopropa</span></code> needs to be installed.
 The radiopropa github, with installation instructions, can be found <a class="reference external" href="https://github.com/nu-radio/RadioPropa">here</a>.</p></li>

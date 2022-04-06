@@ -73,6 +73,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -83,6 +84,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#links-and-cross-references">Links and cross-references</a></li>
@@ -250,7 +252,9 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -600,6 +604,149 @@
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>main detector class which provides access to the detector description</p>
 <p>This class provides functions for all relevant detector properties.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_absolute_position" title="NuRadioReco.detector.detector.Detector.get_absolute_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_absolute_position</span></code></a>(station_id)</p></td>
+<td><p>get the absolute position of a specific station</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_absolute_position_site" title="NuRadioReco.detector.detector.Detector.get_absolute_position_site"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_absolute_position_site</span></code></a>(site)</p></td>
+<td><p>get the absolute position of a specific station</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_amplifier_measurement" title="NuRadioReco.detector.detector.Detector.get_amplifier_measurement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_measurement</span></code></a>(station_id, channel_id)</p></td>
+<td><p>returns a unique reference to the amplifier measurement</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_amplifier_response" title="NuRadioReco.detector.detector.Detector.get_amplifier_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_response</span></code></a>(station_id, ...)</p></td>
+<td><p>Returns the amplifier response for the amplifier of a given channel</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_amplifier_type" title="NuRadioReco.detector.detector.Detector.get_amplifier_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_type</span></code></a>(station_id, channel_id)</p></td>
+<td><p>returns the type of the amplifier</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_antenna_deployment_time" title="NuRadioReco.detector.detector.Detector.get_antenna_deployment_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_deployment_time</span></code></a>(station_id, ...)</p></td>
+<td><p>returns the time of antenna deployment</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_antenna_model" title="NuRadioReco.detector.detector.Detector.get_antenna_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_model</span></code></a>(station_id, channel_id[, ...])</p></td>
+<td><p>determines the correct antenna model from antenna type, position and orientation of antenna</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_antenna_orientation" title="NuRadioReco.detector.detector.Detector.get_antenna_orientation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_orientation</span></code></a>(station_id, channel_id)</p></td>
+<td><p>returns the orientation of a specific antenna</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_antenna_type" title="NuRadioReco.detector.detector.Detector.get_antenna_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_type</span></code></a>(station_id, channel_id)</p></td>
+<td><p>returns the antenna type</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_cable_delay" title="NuRadioReco.detector.detector.Detector.get_cable_delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cable_delay</span></code></a>(station_id, channel_id)</p></td>
+<td><p>returns the cable delay of a channel</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_cable_type_and_length" title="NuRadioReco.detector.detector.Detector.get_cable_type_and_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cable_type_and_length</span></code></a>(station_id, channel_id)</p></td>
+<td><p>returns the cable type (e.g.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_channel" title="NuRadioReco.detector.detector.Detector.get_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel</span></code></a>(station_id, channel_id)</p></td>
+<td><p>returns a dictionary of all channel parameters</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_channel_ids" title="NuRadioReco.detector.detector.Detector.get_channel_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_ids</span></code></a>(station_id)</p></td>
+<td><p>get the channel ids of a station</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_detector_time" title="NuRadioReco.detector.detector.Detector.get_detector_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_detector_time</span></code></a>()</p></td>
+<td><p>Returns the time that the detector is currently set to</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_device" title="NuRadioReco.detector.detector.Detector.get_device"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_device</span></code></a>(station_id, device_id)</p></td>
+<td><p>returns a dictionary of all device parameters</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_device_ids" title="NuRadioReco.detector.detector.Detector.get_device_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_device_ids</span></code></a>(station_id)</p></td>
+<td><p>get the device ids of a station</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_noise_RMS" title="NuRadioReco.detector.detector.Detector.get_noise_RMS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_noise_RMS</span></code></a>(station_id, channel_id[, stage])</p></td>
+<td><p>returns the noise RMS that was precomputed from forced triggers</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_noise_temperature" title="NuRadioReco.detector.detector.Detector.get_noise_temperature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_noise_temperature</span></code></a>(station_id, channel_id)</p></td>
+<td><p>returns the noise temperature of the channel</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_number_of_channels" title="NuRadioReco.detector.detector.Detector.get_number_of_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_channels</span></code></a>(station_id)</p></td>
+<td><p>Get the number of channels per station</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_number_of_devices" title="NuRadioReco.detector.detector.Detector.get_number_of_devices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_devices</span></code></a>(station_id)</p></td>
+<td><p>Get the number of devices per station</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_number_of_samples" title="NuRadioReco.detector.detector.Detector.get_number_of_samples"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_samples</span></code></a>(station_id, channel_id)</p></td>
+<td><p>returns the number of samples of a channel</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_parallel_channels" title="NuRadioReco.detector.detector.Detector.get_parallel_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parallel_channels</span></code></a>(station_id)</p></td>
+<td><p>get a list of parallel antennas</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_relative_position" title="NuRadioReco.detector.detector.Detector.get_relative_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_relative_position</span></code></a>(station_id, channel_id)</p></td>
+<td><p>get the relative position of a specific channels/antennas with respect to the station center</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_sampling_frequency" title="NuRadioReco.detector.detector.Detector.get_sampling_frequency"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_frequency</span></code></a>(station_id, channel_id)</p></td>
+<td><p>returns the sampling frequency</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_site" title="NuRadioReco.detector.detector.Detector.get_site"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site</span></code></a>(station_id)</p></td>
+<td><p>get the site where the station is deployed (e.g.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_site_coordinates" title="NuRadioReco.detector.detector.Detector.get_site_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site_coordinates</span></code></a>(station_id)</p></td>
+<td><p>get the (latitude, longitude) coordinates (in degrees) for a given detector site.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_station_ids" title="NuRadioReco.detector.detector.Detector.get_station_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_ids</span></code></a>()</p></td>
+<td><p>returns a sorted list of all station ids present in the database</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.get_unique_time_periods" title="NuRadioReco.detector.detector.Detector.get_unique_time_periods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_time_periods</span></code></a>(station_id)</p></td>
+<td><p>returns the time periods in which the station configuration (including all channels) was constant</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.has_station" title="NuRadioReco.detector.detector.Detector.has_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_station</span></code></a>(station_id)</p></td>
+<td><p>checks if a station is present in the database</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.is_channel_noiseless" title="NuRadioReco.detector.detector.Detector.is_channel_noiseless"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_channel_noiseless</span></code></a>(station_id, channel_id)</p></td>
+<td><p>returns true if the detector description has the field <cite>noiseless</cite> and if this field is True.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector.Detector.update" title="NuRadioReco.detector.detector.Detector.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(time)</p></td>
+<td><p>updates the detector description to a new time</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 60%" />
+<col style="width: 40%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>get_station</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Initialize the stations detector properties.
+By default, a new detector instance is only created of none exists yet, otherwise the existing instance
+is returned. To force the creation of a new detector instance, pass the additional keyword parameter
+<cite>create_new=True</cite> to this function. For more details, check the documentation for the
+<a class="reference external" href="NuRadioReco.utilities.html#NuRadioReco.utilities.metaclasses.Singleton">Singleton metaclass</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>source</strong><span class="classifier">str</span></dt><dd><p>‘json’, ‘dictionary’ or ‘sql’
+default value is ‘json’
+if dictionary is specified, the dictionary passed to __init__ is used
+if ‘sql’ is specified, the file ‘detector_sql_auth.json’ file needs to be present in this folder that
+specifies the sql server credentials (see ‘detector_sql_auth.json.sample’ for an example of the syntax)</p>
+</dd>
+<dt><strong>json_filename</strong><span class="classifier">str</span></dt><dd><p>the path to the json detector description file (if first checks a path relative to this directory, then a
+path relative to the current working directory of the user)
+default value is ‘ARIANNA/arianna_detector_db.json’</p>
+</dd>
+<dt><strong>assume_inf</strong><span class="classifier">Bool</span></dt><dd><p>Default to True, if true forces antenna models to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.</p>
+</dd>
+<dt><strong>antenna_by_depth: bool (default True)</strong></dt><dd><p>if True the antenna model is determined automatically depending on the depth of the antenna. This is done by
+appending e.g. ‘_InfFirn’ to the antenna model name.
+if False, the antenna model as specified in the database is used.</p>
+</dd>
+<dt><strong>create_new: bool (default:False)</strong></dt><dd><p>Can be used to force the creation of a new detector object. By default, the __init__ will anly create a new
+object of none already exists.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>

@@ -73,6 +73,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -83,6 +84,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#links-and-cross-references">Links and cross-references</a></li>
@@ -250,7 +252,9 @@
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -549,6 +553,33 @@
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.ARAsim_southpole">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">ARAsim_southpole</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#ARAsim_southpole"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.ARAsim_southpole" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium_base.IceModelSimple</span></code></a></p>
+<p>initiaion of a simple exponential ice model</p>
+<p>The bottom defined here is a boundary condition used in simulations and
+should always be defined. Note: it is not the same as reflective bottom.
+The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
+<p>The z_shift is a variable introduced to be able to shift the exponential
+up or down along the z direction. For simple models this is almost never
+but it is used to construct more complex ice models which rely on exp.
+profiles also</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+</dd>
+<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dd>
+<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
+</dd>
+<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
+of the snow at the surface</p>
+</dd>
+<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
+</dd>
+<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -618,7 +649,63 @@ Therefor, the model is implemented through radiopropa.</p>
 <td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_firn.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
-<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes that define the medium in radiopropa.</p></td>
+<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.get_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_firn.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>returns the index of refraction at position.</p></td>
+</tr>
+</tbody>
+</table>
+<p>initiation of a double exponential ice model at summit, Greenland</p>
+<p>The bottom defined here is a boundary condition used in simulations and
+should always be defined. Note: it is not the same as reflective bottom.
+The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
+<p>The z_shift is a variable introduced to be able to shift the exponential
+up or down along the z direction. For simple models this is almost never
+but it is used to construct more complex ice models which rely on exp.
+profiles also</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+</dd>
+<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dd>
+<dt><strong>z_firn:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the transition from the upper 
+exponential profile to the lower one</p>
+</dd>
+<dt><strong>The following parameters can be found without (lower)</strong></dt><dd></dd>
+<dt><strong>and with (upper) the suffix of `_firn`</strong></dt><dd></dd>
+<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
+</dd>
+<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
+of the snow at the surface</p>
+</dd>
+<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
+</dd>
+<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
+<td><p>function which adds a reflective bottom to your ice model</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_firn.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
+<td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_firn.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_firn.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
+<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.get_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_firn.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the index of refraction at position.</p></td>
@@ -672,8 +759,8 @@ Overwrites function of the mother class</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_firn.get_ice_model_radiopropa">
 <span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#greenland_firn.get_ice_model_radiopropa"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_firn.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
-<dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes
-that define the medium in radiopropa. It uses the parameters of the medium object to
+<dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
+that define the medium in radiopropa. It uses the parameters of the medium object to 
 contruct some modules, like a discontinuity object for the air boundary. Additional modules
 can be added in this function</p>
 <p>Overwrites function of the mother class</p>
@@ -714,6 +801,33 @@ Overwrites function of the mother class</p>
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_simple">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">greenland_simple</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#greenland_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_simple" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium_base.IceModelSimple</span></code></a></p>
+<p>initiaion of a simple exponential ice model</p>
+<p>The bottom defined here is a boundary condition used in simulations and
+should always be defined. Note: it is not the same as reflective bottom.
+The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
+<p>The z_shift is a variable introduced to be able to shift the exponential
+up or down along the z direction. For simple models this is almost never
+but it is used to construct more complex ice models which rely on exp.
+profiles also</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+</dd>
+<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dd>
+<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
+</dd>
+<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
+of the snow at the surface</p>
+</dd>
+<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
+</dd>
+<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -744,6 +858,33 @@ Overwrites function of the mother class</p>
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">mooresbay_simple</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#mooresbay_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium_base.IceModelSimple</span></code></a></p>
+<p>initiaion of a simple exponential ice model</p>
+<p>The bottom defined here is a boundary condition used in simulations and
+should always be defined. Note: it is not the same as reflective bottom.
+The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
+<p>The z_shift is a variable introduced to be able to shift the exponential
+up or down along the z direction. For simple models this is almost never
+but it is used to construct more complex ice models which rely on exp.
+profiles also</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+</dd>
+<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dd>
+<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
+</dd>
+<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
+of the snow at the surface</p>
+</dd>
+<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
+</dd>
+<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -774,6 +915,33 @@ Overwrites function of the mother class</p>
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple_2">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">mooresbay_simple_2</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#mooresbay_simple_2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple_2" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium_base.IceModelSimple</span></code></a></p>
+<p>initiaion of a simple exponential ice model</p>
+<p>The bottom defined here is a boundary condition used in simulations and
+should always be defined. Note: it is not the same as reflective bottom.
+The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
+<p>The z_shift is a variable introduced to be able to shift the exponential
+up or down along the z direction. For simple models this is almost never
+but it is used to construct more complex ice models which rely on exp.
+profiles also</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+</dd>
+<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dd>
+<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
+</dd>
+<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
+of the snow at the surface</p>
+</dd>
+<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
+</dd>
+<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -804,6 +972,33 @@ Overwrites function of the mother class</p>
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_2015">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">southpole_2015</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#southpole_2015"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_2015" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium_base.IceModelSimple</span></code></a></p>
+<p>initiaion of a simple exponential ice model</p>
+<p>The bottom defined here is a boundary condition used in simulations and
+should always be defined. Note: it is not the same as reflective bottom.
+The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
+<p>The z_shift is a variable introduced to be able to shift the exponential
+up or down along the z direction. For simple models this is almost never
+but it is used to construct more complex ice models which rely on exp.
+profiles also</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+</dd>
+<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dd>
+<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
+</dd>
+<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
+of the snow at the surface</p>
+</dd>
+<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
+</dd>
+<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -834,6 +1029,33 @@ Overwrites function of the mother class</p>
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_simple">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">southpole_simple</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#southpole_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_simple" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium_base.IceModelSimple</span></code></a></p>
+<p>initiaion of a simple exponential ice model</p>
+<p>The bottom defined here is a boundary condition used in simulations and
+should always be defined. Note: it is not the same as reflective bottom.
+The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
+<p>The z_shift is a variable introduced to be able to shift the exponential
+up or down along the z direction. For simple models this is almost never
+but it is used to construct more complex ice models which rely on exp.
+profiles also</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+</dd>
+<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dd>
+<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
+</dd>
+<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
+of the snow at the surface</p>
+</dd>
+<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
+</dd>
+<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>

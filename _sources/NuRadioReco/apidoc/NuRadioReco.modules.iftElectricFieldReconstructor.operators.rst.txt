@@ -1,0 +1,7 @@
+NuRadioReco.modules.iftElectricFieldReconstructor.operators module
+==================================================================
+
+.. automodule:: NuRadioReco.modules.iftElectricFieldReconstructor.operators
+   :members:
+   :undoc-members:
+   :show-inheritance:

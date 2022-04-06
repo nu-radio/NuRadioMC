@@ -70,6 +70,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -80,6 +81,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../Introduction/pages/contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../Introduction/pages/contributing.html#links-and-cross-references">Links and cross-references</a></li>
@@ -247,7 +249,9 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -894,7 +898,7 @@
 <span class="sd">        * &#39;E-?&#39;: E to the -? spectrum where ? can be any float</span>
 <span class="sd">        * &#39;IceCube-nu-2017&#39;: astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)</span>
 <span class="sd">        * &#39;GZK-1&#39;: GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for</span>
-<span class="sd">            10% proton fraction (see get_GZK_1 function for details)</span>
+<span class="sd">          10% proton fraction (see get_GZK_1 function for details)</span>
 <span class="sd">        * &#39;GZK-1+IceCube-nu-2017&#39;: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</span>
 <span class="sd">        </span>
 <span class="sd">    rnd: random generator object</span>
@@ -1335,7 +1339,7 @@
 <span class="sd">        * &#39;E-?&#39;: E to the -? spectrum where ? can be any float</span>
 <span class="sd">        * &#39;IceCube-nu-2017&#39;: astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)</span>
 <span class="sd">        * &#39;GZK-1&#39;: GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 </span>
-<span class="sd">            for 10% proton fraction (see get_GZK_1 function for details)</span>
+<span class="sd">          for 10% proton fraction (see get_GZK_1 function for details)</span>
 <span class="sd">        * &#39;GZK-1+IceCube-nu-2017&#39;: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</span>
 <span class="sd">        </span>
 <span class="sd">    start_file_id: int (default 0)</span>
@@ -1347,13 +1351,13 @@
 <span class="sd">        the three available options:</span>
 <span class="sd">        </span>
 <span class="sd">        * &#39;SouthPole&#39;, a config file for the South Pole (spherical Earth). It</span>
-<span class="sd">            consists of a 2.7 km deep layer of ice, bedrock below and air above.</span>
+<span class="sd">          consists of a 2.7 km deep layer of ice, bedrock below and air above.</span>
 <span class="sd">        * &#39;MooresBay&#39;, a config file for Moore&#39;s Bay (spherical Earth). It</span>
-<span class="sd">            consists of a 576 m deep ice layer with a 2234 m deep water layer below,</span>
-<span class="sd">            and bedrock below that.</span>
+<span class="sd">          consists of a 576 m deep ice layer with a 2234 m deep water layer below,</span>
+<span class="sd">          and bedrock below that.</span>
 <span class="sd">        * &#39;InfIce&#39;, a config file with a medium of infinite ice</span>
 <span class="sd">        * &#39;Greenland&#39;, a config file for Summit Station, Greenland (spherical Earth),</span>
-<span class="sd">            same as SouthPole but with a 3 km deep ice layer.</span>
+<span class="sd">          same as SouthPole but with a 3 km deep ice layer.</span>
 <span class="sd">        </span>
 <span class="sd">        .. Important:: If these options are used, the code is more efficient if the</span>
 <span class="sd">            user requests their own &quot;path_to_tables&quot; and &quot;path_to_tables_readonly&quot;,</span>
@@ -1662,7 +1666,7 @@
 <span class="sd">        * &#39;E-?&#39;: E to the -? spectrum where ? can be any float</span>
 <span class="sd">        * &#39;IceCube-nu-2017&#39;: astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)</span>
 <span class="sd">        * &#39;GZK-1&#39;: GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 </span>
-<span class="sd">            for 10% proton fraction (see get_GZK_1 function for details)</span>
+<span class="sd">          for 10% proton fraction (see get_GZK_1 function for details)</span>
 <span class="sd">        * &#39;GZK-1+IceCube-nu-2017&#39;: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</span>
 
 <span class="sd">    deposited: bool</span>

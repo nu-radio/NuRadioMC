@@ -17,7 +17,9 @@ Subpackages
    NuRadioReco.modules.RNO_G
    NuRadioReco.modules.base
    NuRadioReco.modules.custom
+   NuRadioReco.modules.iftElectricFieldReconstructor
    NuRadioReco.modules.io
+   NuRadioReco.modules.neutrinoDirectionReconstructor
    NuRadioReco.modules.neutrinoVertexReconstructor
    NuRadioReco.modules.phasedarray
    NuRadioReco.modules.trigger

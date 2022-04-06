@@ -73,6 +73,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -83,6 +84,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#links-and-cross-references">Links and cross-references</a></li>
@@ -250,7 +252,9 @@
 <li class="toctree-l5 current"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -550,7 +554,7 @@
 <dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.</span></span><span class="sig-name descname"><span class="pre">hardwareResponseIncorporator</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/hardwareResponseIncorporator.html#hardwareResponseIncorporator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Incorporates the gain and phase induced by the ARIANNA hardware.</p>
+<p>Incorporates the gain and phase induced by the RNO-G hardware.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -600,9 +604,9 @@
 <dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter">
 <span class="sig-name descname"><span class="pre">get_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">293.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_to_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mingainlin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/hardwareResponseIncorporator.html#hardwareResponseIncorporator.get_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter" title="Permalink to this definition"></a></dt>
 <dd><p>helper function to return the filter that the module applies.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
+<dd class="field-odd"><dl>
 <dt><strong>frequencies: array of floats</strong></dt><dd><p>the frequency array for which the filter should be returned</p>
 </dd>
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
@@ -621,26 +625,20 @@
 </dd>
 <dt><strong>mode: {None, ‘phase_only’, ‘relative’}, default None</strong></dt><dd><p>Options:</p>
 <ul class="simple">
-<li><dl class="simple">
-<dt>‘phase_only’: only the phases response is applied but not the amplitude response</dt><dd><p>(identical to phase_only=True )</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>‘relative’: gain of amp is divided by maximum of the gain, i.e. at the maximum of the</dt><dd><p>filter response is 1 (before applying cable response). This makes it easier
-to compare the filtered to unfiltered signal</p>
-</dd>
-</dl>
-</li>
+<li><p>‘phase_only’: only the phases response is applied but not the amplitude response
+(identical to phase_only=True )</p></li>
+<li><p>‘relative’: gain of amp is divided by maximum of the gain, i.e. at the maximum of the
+filter response is 1 (before applying cable response). This makes it easier
+to compare the filtered to unfiltered signal</p></li>
 <li><p>None : default, gain and phase effects are applied ‘normally’</p></li>
 </ul>
 </dd>
 <dt><strong>mingainlin: float</strong></dt><dd><p>In frequency ranges where the gain gets very small, the reconstruction of the original signal (obtained by
 dividing the measured signal by the gain) leads to excessively high values, due to the effect of
 post-amplifier noise. In order to mitigate this effect, a minimum gain (linear scale!) as fraction of the
-maximum gain can be defined. If specified, any gain value smaller than mingainlin will be replaced by mingainlin.
-Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
-analog_components.get_amplifier_response()</p>
+maximum gain can be defined. If specified, any gain value smaller than mingainlin will be replaced by mingainlin.</p>
+<p>Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
+<code class="docutils literal notranslate"><span class="pre">analog_components.get_amplifier_response()</span></code></p>
 </dd>
 </dl>
 </dd>
@@ -668,9 +666,9 @@ analog_components.get_amplifier_response()</p>
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">293.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_to_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mingainlin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/hardwareResponseIncorporator.html#hardwareResponseIncorporator.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.run" title="Permalink to this definition"></a></dt>
 <dd><p>Switch sim_to_data to go from simulation to data or otherwise.
 The option zero_noise can be used to zero the noise around the pulse. It is unclear, how useful this is.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
+<dd class="field-odd"><dl>
 <dt><strong>evt</strong><span class="classifier">Event</span></dt><dd><p>Event to run the module on</p>
 </dd>
 <dt><strong>station</strong><span class="classifier">Station</span></dt><dd><p>Station to run the module on</p>
@@ -687,26 +685,20 @@ The option zero_noise can be used to zero the noise around the pulse. It is uncl
 </dd>
 <dt><strong>mode: string or None, default None</strong></dt><dd><p>Options:</p>
 <ul class="simple">
-<li><dl class="simple">
-<dt>‘phase_only’: only the phases response is applied but not the amplitude response</dt><dd><p>(identical to phase_only=True )</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>‘relative’: gain of amp is divided by maximum of the gain, i.e. at the maximum of the</dt><dd><p>filter response is 1 (before applying cable response). This makes it easier
-to compare the filtered to unfiltered signal</p>
-</dd>
-</dl>
-</li>
+<li><p>‘phase_only’: only the phases response is applied but not the amplitude response
+(identical to phase_only=True )</p></li>
+<li><p>‘relative’: gain of amp is divided by maximum of the gain, i.e. at the maximum of the
+filter response is 1 (before applying cable response). This makes it easier
+to compare the filtered to unfiltered signal</p></li>
 <li><p>None : default, gain and phase effects are applied ‘normally’</p></li>
 </ul>
 </dd>
 <dt><strong>mingainlin: float</strong></dt><dd><p>In frequency ranges where the gain gets very small, the reconstruction of the original signal (obtained by
 dividing the measured signal by the gain) leads to excessively high values, due to the effect of
 post-amplifier noise. In order to mitigate this effect, a minimum gain (linear scale!) as fraction of the
-maximum gain can be defined. If specified, any gain value smaller than mingainlin will be replaced by mingainlin.
-Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
-analog_components.get_amplifier_response()</p>
+maximum gain can be defined. If specified, any gain value smaller than mingainlin will be replaced by mingainlin.</p>
+<p>Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
+<code class="docutils literal notranslate"><span class="pre">analog_components.get_amplifier_response()</span></code></p>
 </dd>
 </dl>
 </dd>

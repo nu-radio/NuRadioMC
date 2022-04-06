@@ -73,6 +73,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#particle-types">Particle types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../Introduction/pages/conventions.html#fourier-transformations">Fourier transformations</a></li>
 </ul>
 </li>
@@ -83,6 +84,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-docstrings">Writing docstrings</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#update-the-version-number-dependencies">Update the version number / dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../Introduction/pages/contributing.html#writing-additional-documentation">Writing additional documentation</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#compiling-the-documentation">Compiling the documentation</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#headings-and-text">Headings and text</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#lists">Lists</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../Introduction/pages/contributing.html#links-and-cross-references">Links and cross-references</a></li>
@@ -250,7 +252,9 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
@@ -549,6 +553,34 @@
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopePhasedTrigger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.trigger.</span></span><span class="sig-name descname"><span class="pre">EnvelopePhasedTrigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power_mean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power_std</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phasing_angles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_delays</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_passband</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(None,</span> <span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#EnvelopePhasedTrigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopePhasedTrigger" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger" title="NuRadioReco.framework.trigger.Trigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioReco.framework.trigger.Trigger</span></code></a></p>
+<p>initialize trigger class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name: string</strong></dt><dd><p>unique name of the trigger</p>
+</dd>
+<dt><strong>threshold_factor: float</strong></dt><dd><p>the threshold factor</p>
+</dd>
+<dt><strong>power_mean: float</strong></dt><dd><p>mean of the noise trace after being filtered with the diode</p>
+</dd>
+<dt><strong>power_std: float</strong></dt><dd><p>standard deviation of the noise trace after being filtered with the
+diode. power_mean and power_std can be calculated with the function
+calculate_noise_parameters from utilities.diodeSimulator</p>
+</dd>
+<dt><strong>triggered_channels: array of ints or None</strong></dt><dd><p>the channels that are involved in the main phased beam
+default: None, i.e. all channels</p>
+</dd>
+<dt><strong>phasing_angles: array of floats or None</strong></dt><dd><p>the angles for each beam</p>
+</dd>
+<dt><strong>trigger_delays: dictionary</strong></dt><dd><p>the delays for the channels that have caused a trigger.
+If there is no trigger, it’s an empty dictionary</p>
+</dd>
+<dt><strong>output_passband: (float, float) tuple</strong></dt><dd><p>Frequencies for a 6th-order Butterworth filter to be applied after
+the diode filtering.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -611,6 +643,29 @@
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.EnvelopeTrigger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.trigger.</span></span><span class="sig-name descname"><span class="pre">EnvelopeTrigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_coincidences</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_coincidence_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#EnvelopeTrigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.EnvelopeTrigger" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger" title="NuRadioReco.framework.trigger.Trigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioReco.framework.trigger.Trigger</span></code></a></p>
+<p>initialize trigger class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name: string</strong></dt><dd><p>unique name of the trigger</p>
+</dd>
+<dt><strong>passband: array</strong></dt><dd><p>the passband in which the trigger should apply</p>
+</dd>
+<dt><strong>order: int</strong></dt><dd><p>order of filtertype ‘butterabs’</p>
+</dd>
+<dt><strong>threshold: float</strong></dt><dd><p>the threshold</p>
+</dd>
+<dt><strong>channels: array of ints or None</strong></dt><dd><p>the channels that are involved in the trigger
+default: None, i.e. all channels</p>
+</dd>
+<dt><strong>number_of_coincidences: int</strong></dt><dd><p>the number of channels that need to fulfill the trigger condition
+default: 1</p>
+</dd>
+<dt><strong>channel_coincidence_window: float or None (default)</strong></dt><dd><p>the coincidence time between triggers of different channels</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -673,6 +728,29 @@
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.HighLowTrigger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.trigger.</span></span><span class="sig-name descname"><span class="pre">HighLowTrigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_high</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_low</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">high_low_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_coincidence_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_coincidences</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#HighLowTrigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.HighLowTrigger" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger" title="NuRadioReco.framework.trigger.Trigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioReco.framework.trigger.Trigger</span></code></a></p>
+<p>initialize trigger class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name: string</strong></dt><dd><p>unique name of the trigger</p>
+</dd>
+<dt><strong>threshold_high: float or dict of floats</strong></dt><dd><p>the high threshold</p>
+</dd>
+<dt><strong>threshold_low: float or dict of floats</strong></dt><dd><p>the low threshold</p>
+</dd>
+<dt><strong>high_low_window: float</strong></dt><dd><p>the coincidence time between a high and low per channel</p>
+</dd>
+<dt><strong>channel_coincidence_window: float</strong></dt><dd><p>the coincidence time between triggers of different channels</p>
+</dd>
+<dt><strong>channels: array of ints or None</strong></dt><dd><p>the channels that are involved in the trigger
+default: None, i.e. all channels</p>
+</dd>
+<dt><strong>number_of_coincidences: int</strong></dt><dd><p>the number of channels that need to fulfill the trigger condition
+default: 1</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -735,6 +813,25 @@
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.IntegratedPowerTrigger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.trigger.</span></span><span class="sig-name descname"><span class="pre">IntegratedPowerTrigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_coincidence_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_coincidences</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#IntegratedPowerTrigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.IntegratedPowerTrigger" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger" title="NuRadioReco.framework.trigger.Trigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioReco.framework.trigger.Trigger</span></code></a></p>
+<p>initialize trigger class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name: string</strong></dt><dd><p>unique name of the trigger</p>
+</dd>
+<dt><strong>threshold: float</strong></dt><dd><p>the threshold</p>
+</dd>
+<dt><strong>channel_coincidence_window: float</strong></dt><dd><p>the coincidence time between triggers of different channels</p>
+</dd>
+<dt><strong>channels: array of ints or None</strong></dt><dd><p>the channels that are involved in the trigger
+default: None, i.e. all channels</p>
+</dd>
+<dt><strong>number_of_coincidences: int</strong></dt><dd><p>the number of channels that need to fulfill the trigger condition
+default: 1</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -797,6 +894,32 @@
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimplePhasedTrigger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.trigger.</span></span><span class="sig-name descname"><span class="pre">SimplePhasedTrigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_angles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_angles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_delays</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sec_trigger_delays</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#SimplePhasedTrigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.SimplePhasedTrigger" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger" title="NuRadioReco.framework.trigger.Trigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioReco.framework.trigger.Trigger</span></code></a></p>
+<p>initialize trigger class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name: string</strong></dt><dd><p>unique name of the trigger</p>
+</dd>
+<dt><strong>threshold: float</strong></dt><dd><p>the threshold</p>
+</dd>
+<dt><strong>channels: array of ints or None</strong></dt><dd><p>the channels that are involved in the main phased beam
+default: None, i.e. all channels</p>
+</dd>
+<dt><strong>secondary_channels: array of ints or None</strong></dt><dd><p>the channels involved in the secondary phased beam</p>
+</dd>
+<dt><strong>primary_angles: array of floats or None</strong></dt><dd><p>the angles for each subbeam of the primary phasing</p>
+</dd>
+<dt><strong>secondary_angles: array of floats or None</strong></dt><dd><p>the angles for each subbeam of the secondary phasing</p>
+</dd>
+<dt><strong>trigger_delays: dictionary</strong></dt><dd><p>the delays for the primary channels that have caused a trigger.
+If there is no trigger, it’s an empty dictionary</p>
+</dd>
+<dt><strong>sec_trigger_delays: dictionary</strong></dt><dd><p>the delays for the secondary channels that have caused a trigger.
+If there is no trigger or no secondary channels, it’s an empty dictionary</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -859,6 +982,25 @@
 <dt class="sig sig-object py" id="NuRadioReco.framework.trigger.SimpleThresholdTrigger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.trigger.</span></span><span class="sig-name descname"><span class="pre">SimpleThresholdTrigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_coincidences</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_coincidence_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#SimpleThresholdTrigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.SimpleThresholdTrigger" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger" title="NuRadioReco.framework.trigger.Trigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioReco.framework.trigger.Trigger</span></code></a></p>
+<p>initialize trigger class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name: string</strong></dt><dd><p>unique name of the trigger</p>
+</dd>
+<dt><strong>threshold: float or dict of floats</strong></dt><dd><p>the threshold</p>
+</dd>
+<dt><strong>channels: array of ints or None</strong></dt><dd><p>the channels that are involved in the trigger
+default: None, i.e. all channels</p>
+</dd>
+<dt><strong>number_of_coincidences: int</strong></dt><dd><p>the number of channels that need to fulfill the trigger condition
+default: 1</p>
+</dd>
+<dt><strong>channel_coincidence_window: float or None (default)</strong></dt><dd><p>the coincidence time between triggers of different channels</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -922,6 +1064,75 @@
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.trigger.</span></span><span class="sig-name descname"><span class="pre">Trigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/trigger.html#Trigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.trigger.Trigger" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>base class to store different triggers</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_name" title="NuRadioReco.framework.trigger.Trigger.get_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_name</span></code></a>()</p></td>
+<td><p>get trigger name</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_trigger_time" title="NuRadioReco.framework.trigger.Trigger.get_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_time</span></code></a>()</p></td>
+<td><p>get the trigger time (time with respect to beginning of trace)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_trigger_times" title="NuRadioReco.framework.trigger.Trigger.get_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger_times</span></code></a>()</p></td>
+<td><p>get the trigger times (time with respect to beginning of trace)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_triggered_channels" title="NuRadioReco.framework.trigger.Trigger.get_triggered_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggered_channels</span></code></a>()</p></td>
+<td><p>get IDs of channels that have triggered</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.get_type" title="NuRadioReco.framework.trigger.Trigger.get_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_type</span></code></a>()</p></td>
+<td><p>get trigger type</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.has_triggered" title="NuRadioReco.framework.trigger.Trigger.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>()</p></td>
+<td><p>returns true if station has trigger, false otherwise</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_trigger_time" title="NuRadioReco.framework.trigger.Trigger.set_trigger_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_time</span></code></a>(time)</p></td>
+<td><p>set the trigger time</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_trigger_times" title="NuRadioReco.framework.trigger.Trigger.set_trigger_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger_times</span></code></a>(times)</p></td>
+<td><p>set the trigger times</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.trigger.Trigger.set_triggered" title="NuRadioReco.framework.trigger.Trigger.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<td><p>set the trigger to True or False</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 72%" />
+<col style="width: 28%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>deserialize</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>get_trigger_settings</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>serialize</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>set_triggered_channels</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>initialize trigger class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name: string</strong></dt><dd><p>unique name of the trigger</p>
+</dd>
+<dt><strong>channels: array of ints</strong></dt><dd><p>the channels that are involved in the trigger</p>
+</dd>
+<dt><strong>trigger_type: string</strong></dt><dd><p>the trigger type</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
