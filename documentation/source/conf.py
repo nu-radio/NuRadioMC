@@ -242,7 +242,8 @@ nitpick_ignore_regex = [
     ("py:class", "tinydb_serialization.Serializer"),
     ("py:class", "radiopropa.ScalarField"),
     ("py:obj", "NuRadioReco.*"),
-    ("py:obj", "NuRadioMC.*")
+    ("py:obj", "NuRadioMC.*"),
+    ("py:class", "nifty5.*")
 ]
 
 # def skip_modules(app, what, name, obj, skip, options):
