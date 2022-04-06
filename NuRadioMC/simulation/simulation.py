@@ -136,9 +136,11 @@ class simulation():
         write_mode: str
             Detail level of eventWriter
             specifies the output mode:
+
             * 'full' (default): the full event content is written to disk
             * 'mini': only station traces are written to disc
             * 'micro': no traces are written to disc
+            
         evt_time: datetime object
             the time of the events, default 1/1/2018
         config_file: string

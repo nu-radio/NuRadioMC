@@ -66,7 +66,7 @@ Coding conventions
 ------------------
 In general we try to follow 'industry' coding workflow conventions. So, if
 something is not explicitly mentioned here, please resort to 'best practices'.
-NuRadioMC tries to follow `PEP-8 coding conventions <https://www.python.org/dev/peps/pep-0008/>`_
+NuRadioMC tries to follow `PEP-8 coding conventions <https://www.python.org/dev/peps/pep-0008/>`_.
 
 Please document your code extensively, especially the physics behind it.
 Each function should come with a docstring where all variables are defined.
@@ -195,6 +195,20 @@ The documentation is written in `reStructuredText <https://docutils.sourceforge.
 `sphinx <https://www.sphinx-doc.org/en/master/index.html>`_. Please consult these websites for a more extensive overview
 of the correct syntax. You can use any existing page of the documentation (which can be found in the ``documentation/source`` directory)
 as a template for how to write more code. However, below is a summary of the basics:
+
+Compiling the documentation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In order to compile the documentation locally, make sure the required 
+:ref:`dependencies <Introduction/pages/installation:Optional Dependencies>`
+are installed (this can be done by running the :ref:`installer <Introduction/pages/installation:Development version>`).
+Compiling the documentation is then done by running 
+
+.. code-block::
+
+  python documentation/make_docs.py
+
+This will build the documentation at `documentation/build/html` 
+(open `main.html` to view it in your browser).
 
 Headings and text
 ^^^^^^^^^^^^^^^^^

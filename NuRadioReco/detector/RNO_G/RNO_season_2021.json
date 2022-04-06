@@ -1329,7 +1329,7 @@
         
         "5": {
             "amp_type": "iglu",
-            "ant_comment": "Helper String B CAL Hpol",
+            "ant_comment": "Helper String B CAL Vpol",
             "ant_orientation_phi": 0.0,
             "ant_orientation_theta": 0.0,
             "ant_position_x": -17.51,
