@@ -57,7 +57,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
         the width of a time bin (inverse of sampling rate)
 
     Returns
-    --------
+    -------
     triggerd: bool
         returns True if majority logic is fulfilled
     triggerd_bins: array of ints
@@ -139,7 +139,7 @@ class triggerSimulator:
 
         """
         t = time.time()
-        sampling_rate = station.get_channel(0).get_sampling_rate()
+        sampling_rate = station.get_channel(station.get_channel_ids()[0]).get_sampling_rate()
         channels_that_passed_trigger = []
         if not set_not_triggered:
             triggerd_bins_channels = []

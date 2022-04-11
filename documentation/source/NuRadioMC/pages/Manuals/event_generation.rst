@@ -283,6 +283,8 @@ The following items have the same meaning as the parameters that are passed to t
 
 The HDF5 data sets outlined here are what constitute a NuRadioMC input file produced its generator module. However, any HDF5 file containing equally named data sets (and, depending on the purpose, also the attributes) can be processed by NuRadioMC to simulate a detector. This is useful in case one wants to compare the effect of a different input generation on the simulation output. However, although these comparisons are necessary for cross-checking, we encourage our NuRadioMC users to contribute to our projects and expand on our event generators if they consider that a different or complementary way of drawing input events is advisable.
 
+    .. _particle-code-table:
+    
     .. csv-table:: Particle codes used in NuRadioMC
             :header: "Name", "Symbol", "Code"
             
@@ -323,6 +325,7 @@ Atmospheric muons generated on a flat surface
 The function ``generate_surface_muons`` generates muons (leptons, NOT muon neutrinos) at ``z=0`` and propagates them using PROPOSAL. Please be aware that a functioning installation of PROPOSAL is needed for using this function. 
 
     .. code-block:: Python
+        
         def generate_surface_muons(filename, n_events, Emin, Emax,
                                    fiducial_rmin, fiducial_rmax, 
                                    fiducial_zmin, fiducial_zmax,
