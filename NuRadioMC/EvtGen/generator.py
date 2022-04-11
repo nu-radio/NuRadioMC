@@ -354,7 +354,7 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for
-            10% proton fraction (see get_GZK_1 function for details)
+          10% proton fraction (see get_GZK_1 function for details)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
         
     rnd: random generator object
@@ -795,7 +795,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 
-            for 10% proton fraction (see get_GZK_1 function for details)
+          for 10% proton fraction (see get_GZK_1 function for details)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
         
     start_file_id: int (default 0)
@@ -807,13 +807,13 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         the three available options:
         
         * 'SouthPole', a config file for the South Pole (spherical Earth). It
-            consists of a 2.7 km deep layer of ice, bedrock below and air above.
+          consists of a 2.7 km deep layer of ice, bedrock below and air above.
         * 'MooresBay', a config file for Moore's Bay (spherical Earth). It
-            consists of a 576 m deep ice layer with a 2234 m deep water layer below,
-            and bedrock below that.
+          consists of a 576 m deep ice layer with a 2234 m deep water layer below,
+          and bedrock below that.
         * 'InfIce', a config file with a medium of infinite ice
         * 'Greenland', a config file for Summit Station, Greenland (spherical Earth),
-            same as SouthPole but with a 3 km deep ice layer.
+          same as SouthPole but with a 3 km deep ice layer.
         
         .. Important:: If these options are used, the code is more efficient if the
             user requests their own "path_to_tables" and "path_to_tables_readonly",
@@ -1122,7 +1122,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 
-            for 10% proton fraction (see get_GZK_1 function for details)
+          for 10% proton fraction (see get_GZK_1 function for details)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
 
     deposited: bool

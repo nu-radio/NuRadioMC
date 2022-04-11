@@ -61,9 +61,23 @@ error_classes = [
 ]
 
 if __name__ == "__main__":
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument('--no-clean', default=False, const=True, action='store_const')
-    argparser.add_argument('--debug', default=False, const=True, action='store_const')
+    argparser = argparse.ArgumentParser(
+        prog="NuRadioMC.documentation.make_docs",
+        description=(
+            "A script to automatically generate the API documentation for NuRadioMC/NuRadioReco,"
+            " and build the html documentation for online publishing."
+        )
+    )
+    argparser.add_argument(
+        '--no-clean', default=False, const=True, action='store_const',
+        help=(
+            "Do not delete existing html files and build only pages which have changed."
+            " Useful if you are only modifying or adding (not moving/removing) pages.")
+    )
+    argparser.add_argument(
+        '--debug', default=False, const=True, action='store_const',
+        help="Store full debugging output in make_docs.log."
+        )
     parsed_args = argparser.parse_args()
     if parsed_args.debug: # set up the logger to also write output to make_docs.log
         logfile = 'make_docs.log'
@@ -184,9 +198,12 @@ if __name__ == "__main__":
     elif len(other_errs):
         logger.warning((
             "make_docs found some errors but doesn't know what to do with them.\n"
-            "The documentation will not be rejected, but consider fixing the following anyway:"
+            "The documentation may not be rejected, but consider fixing the following anyway:"
             ))
         print('\n'.join(other_errs))
+
+    if sphinx_log.returncode:
+        logger.error("The documentation failed to build, make_docs will raise an error.")
 
     if parsed_args.debug:
         logger.info('Logging output under {}'.format(logfile))
@@ -202,5 +219,5 @@ if __name__ == "__main__":
             file.write('[other]\n')
             file.write('\n'.join(other_errs))
     
-    if fixable_errors:
+    if fixable_errors or sphinx_log.returncode:
         sys.exit(1)

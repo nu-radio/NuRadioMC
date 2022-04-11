@@ -16,10 +16,27 @@ double fit_GL1(double z, double frequency){
 
 	double att_length_f = att_length - 0.55*utl::m * (frequency/utl::MHz - 75);
 
-	const double min_length = 100 * utl::m;
+	const double min_length = 1 * utl::m;
 	if ( att_length_f < min_length ){ att_length_f = min_length; }
 
 	return att_length_f;
+}
+
+double fit_GL2(double z, double frequency){
+    // Model from the 2021 measurements taken at Summit Station, Greenland: https://arxiv.org/abs/2201.07846
+    const double fit_values_GL2[] = {1.20547286e+00, 1.58815679e-05, -2.58901767e-07, -5.16435542e-10, -2.89124473e-13, -4.58987344e-17};
+    const double freq_slope = -0.54 * utl::m / utl::MHz;
+    const double freq_inter = 852.0 * utl::m;
+    double bulk_att_length_f = freq_inter + freq_slope * frequency;
+    double att_length_f_GL2 = 0;
+    for (int power = 0; power < 6; power++){
+		att_length_f_GL2 += bulk_att_length_f * fit_values_GL2[power] * pow(z, power);
+	}
+	const double min_length = 1 * utl::m;
+	if ( att_length_f_GL2 < min_length ){ att_length_f_GL2 = min_length; }
+
+	return att_length_f_GL2;
+
 }
 
 double get_temperature(double z){
@@ -67,6 +84,8 @@ double get_attenuation_length(double z, double frequency, int model){
         // integral (int(1/L, 420, 0)/420) ^ -1 = 231.21m and NOT 262m.
         att_length *= L / (231.21 * utl::m);
 		return att_length;
+	} else if (model == 4) {
+	    return fit_GL2(z, frequency);
 	} else {
 		std::cout << "attenuation length model " << model << " unknown" << std::endl;
 		throw 0;
