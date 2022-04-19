@@ -99,9 +99,9 @@ layout = html.Div([
                 {'label': '-20*C', 'value': -20},
                 {'label': '-10*C', 'value': -10},
                 {'label': '0*C', 'value': 0},
-                {'label': '10*C', 'value': 0},
-                {'label': '30*C', 'value': 0},
-                {'label': '40*C', 'value': 0},
+                {'label': '10*C', 'value': 10},
+                {'label': '30*C', 'value': 30},
+                {'label': '40*C', 'value': 40},
             ],
             value=20,
             style={'width': '200px', 'float':'left'})
