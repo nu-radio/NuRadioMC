@@ -264,21 +264,6 @@ def ice_cube_nu_fit_2022(energy, slope=-2.37, offset=1.44):
     return flux
 
 
-def get_GZK_1(energy):
-    """
-    model of (van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1) of the cosmogenic neutrino ﬂux
-    for a source evolution parameter of m = 3.4,
-    a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,
-    and a proton fraction of 10% at E = 10^19.6 eV
-    """
-    E, J = np.loadtxt(os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                                     '../data/examples/Sensitivities/ReasonableNeutrinos1.txt'))
-    E *= units.GeV
-    J *= units.GeV * units.cm ** -2 * units.s ** -1 * units.sr ** -1 / E ** 2
-    get_flux = interpolate.interp1d(E, J, fill_value=0, bounds_error=False)
-    return get_flux(energy)
-
-
 def get_energy_from_flux(Emin, Emax, n_events, flux, rnd=None):
     """
     returns randomly distribution of energy according to a flux
