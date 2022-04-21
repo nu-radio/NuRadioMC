@@ -330,7 +330,7 @@ def get_product_position_time(data_sets, product, iE):
 def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
     """
     generates a random distribution of enrgies following a certain spectrum
-    
+
     Parameters
     -----------
     n_events: int
@@ -353,6 +353,7 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
     """
+
     if(rnd is None):
         rnd = np.random.default_rng()
     logger.debug("generating energies")
