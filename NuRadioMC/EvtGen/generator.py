@@ -150,7 +150,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
     while True:
         iFile += 1
         filename2 = filename
-        evt_ids_this_file = np.unique(data_sets["event_group_ids"])[iFile * n_events_per_file : (iFile + 1) * n_events_per_file]
+        evt_ids_this_file = np.unique(data_sets["event_group_ids"])[iFile * n_events_per_file: (iFile + 1) * n_events_per_file]
         if(len(evt_ids_this_file) == 0):
             logger.info("no more events to write in file {}".format(iFile))
             break
@@ -196,7 +196,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         # case 2) it is the last file -> total number of simulated events - last event id of previous file
         # case 3) it is the first file -> last event id + 1 - start_event_id
         # case 4) it is the first and last file -> total number of simulated events
-        evt_ids_next_file = np.unique(data_sets["event_group_ids"])[(iFile + 1) * n_events_per_file : (iFile + 2) * n_events_per_file]
+        evt_ids_next_file = np.unique(data_sets["event_group_ids"])[(iFile + 1) * n_events_per_file: (iFile + 2) * n_events_per_file]
         n_events_this_file = None
         if(iFile == 0 and len(evt_ids_next_file) == 0):  # case 4
             n_events_this_file = total_number_of_events
@@ -257,6 +257,13 @@ def ice_cube_nu_fit(energy, slope=-2.19, offset=1.01):
     return flux
 
 
+def ice_cube_nu_fit_2022(energy, slope=-2.37, offset=1.44):
+    # 9.5 years analysis 2.37+0.09−0.09, offset 1.44 + 0.25 - 0.26, Astrophysical normalization @ 100TeV: 1.44+0.25−0.26 × 10−18 GeV−1cm−2s−1 sr−1
+    flux = 3 * offset * (energy / (100 * units.TeV)) ** slope * 1e-18 * \
+        (units.GeV ** -1 * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+    return flux
+
+
 def get_GZK_1(energy):
     """
     model of (van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1) of the cosmogenic neutrino ﬂux
@@ -265,7 +272,7 @@ def get_GZK_1(energy):
     and a proton fraction of 10% at E = 10^19.6 eV
     """
     E, J = np.loadtxt(os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                                     '../examples/Sensitivities/ReasonableNeutrinos1.txt'))
+                                     '../data/examples/Sensitivities/ReasonableNeutrinos1.txt'))
     E *= units.GeV
     J *= units.GeV * units.cm ** -2 * units.s ** -1 * units.sr ** -1 / E ** 2
     get_flux = interpolate.interp1d(E, J, fill_value=0, bounds_error=False)
@@ -349,14 +356,15 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
         the maximum energy
     spectrum_type: string
         defines the probability distribution for which the neutrino energies are generated
-        
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for
           10% proton fraction (see get_GZK_1 function for details)
+        * 'GZK-2': GZK neutrino flux model from fit to TA data (https://pos.sissa.it/395/338/)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
-        
+        * 'GZK-1+IceCube-nu-2022': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux
+        * 'GZK-2+IceCube-nu-2022': a combination of the cosmogenic (GZK-2) and astrophysical (IceCube nu 2022) flux
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
     """
@@ -382,13 +390,31 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
         a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,
         and a proton fraction of 10% at E = 10^19.6 eV
         """
-        energies = get_energy_from_flux(Emin, Emax, n_events, get_GZK_1, rnd)
+        from NuRadioMC.examples.Sensitivities.E2_fluxes3 import get_proton_10
+        energies = get_energy_from_flux(Emin, Emax, n_events, get_proton_10, rnd)
     elif(spectrum_type == "IceCube-nu-2017"):
         energies = get_energy_from_flux(Emin, Emax, n_events, ice_cube_nu_fit, rnd)
+    elif(spectrum_type == "IceCube-nu-2022"):
+        energies = get_energy_from_flux(Emin, Emax, n_events, ice_cube_nu_fit_2022, rnd)
     elif(spectrum_type == "GZK-1+IceCube-nu-2017"):
+        from NuRadioMC.examples.Sensitivities.E2_fluxes3 import get_proton_10
 
         def J(E):
-            return ice_cube_nu_fit(E) + get_GZK_1(E)
+            return ice_cube_nu_fit(E) + get_proton_10(E)
+
+        energies = get_energy_from_flux(Emin, Emax, n_events, J, rnd)
+    elif(spectrum_type == "GZK-1+IceCube-nu-2022"):
+        from NuRadioMC.examples.Sensitivities.E2_fluxes3 import get_proton_10
+
+        def J(E):
+            return ice_cube_nu_fit_2022(E) + get_proton_10(E)
+
+        energies = get_energy_from_flux(Emin, Emax, n_events, J, rnd)
+    elif(spectrum_type == "GZK-2+IceCube-nu-2022"):
+        from NuRadioMC.examples.Sensitivities.E2_fluxes3 import get_TAGZK_flux_ICRC2021
+
+        def J(E):
+            return ice_cube_nu_fit_2022(E) + get_TAGZK_flux_ICRC2021(E)
 
         energies = get_energy_from_flux(Emin, Emax, n_events, J, rnd)
     else:
@@ -400,7 +426,7 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
 def set_volume_attributes(volume, proposal, attributes):
     """
     helper function that interprets the volume settings and sets the relevant quantities as hdf5 attributes.
-    
+
     Parameters
     ----------
     volume: dictionarty
@@ -447,7 +473,7 @@ def set_volume_attributes(volume, proposal, attributes):
             else:
                 tau_95_length = get_tau_95_length(attributes['Emax'])
                 # check if thetamax/thetamin are in same quadrant
-                is_same_quadrant = np.sign(np.cos(attributes['thetamin']))==np.sign(np.cos(attributes['thetamax']))
+                is_same_quadrant = np.sign(np.cos(attributes['thetamin'])) == np.sign(np.cos(attributes['thetamax']))
                 if is_same_quadrant:
                     max_horizontal_dist = np.abs(max(np.abs(np.tan(attributes['thetamin'])), np.abs(np.tan(attributes['thetamax']))) * volume['fiducial_zmin'])  # calculates the maximum horizontal distance through the ice
                 else:
@@ -513,7 +539,7 @@ def set_volume_attributes(volume, proposal, attributes):
                 # extent fiducial by tau decay length
                 tau_95_length = get_tau_95_length(attributes['Emax'])
                 # check if thetamax/thetamin are in same quadrant
-                is_same_quadrant = np.sign(np.cos(attributes['thetamin']))==np.sign(np.cos(attributes['thetamax']))
+                is_same_quadrant = np.sign(np.cos(attributes['thetamin'])) == np.sign(np.cos(attributes['thetamax']))
                 if is_same_quadrant:
                     max_horizontal_dist = np.abs(max(np.abs(np.tan(attributes['thetamin'])), np.abs(np.tan(attributes['thetamax']))) * volume['fiducial_zmin'])  # calculates the maximum horizontal distance through the ice
                 else:
@@ -553,7 +579,7 @@ def generate_vertex_positions(attributes, n_events, rnd=None):
     """
     helper function that generates the vertex position randomly distributed in simulation volume. 
     The relevant quantities are also saved into the hdf5 attributes
-    
+
     Parameters
     ----------
     attributes: dicitionary
@@ -583,7 +609,7 @@ def intersection_box_ray(bounds, ray):
     """
     this function calculates the intersection between a ray and an axis-aligned box
     code adapted from https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
-    
+
     Parameters
     ----------
     box: array with shape (2,3)
@@ -1121,9 +1147,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
+        * 'IceCube-nu-2022': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.48550/arXiv.2111.10299)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 
           for 10% proton fraction (see get_GZK_1 function for details)
+        * 'GZK-2': GZK neutrino flux model from fit to TA data (https://pos.sissa.it/395/338/)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
+        * 'GZK-1+IceCube-nu-2022': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux
+        * 'GZK-2+IceCube-nu-2022': a combination of the cosmogenic (GZK-2) and astrophysical (IceCube nu 2022) flux
 
     deposited: bool
         if True, generate deposited energies instead of primary neutrino energies
