@@ -341,6 +341,7 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
         the maximum energy
     spectrum_type: string
         defines the probability distribution for which the neutrino energies are generated
+        
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
@@ -350,6 +351,7 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
         * 'GZK-1+IceCube-nu-2022': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux
         * 'GZK-2+IceCube-nu-2022': a combination of the cosmogenic (GZK-2) and astrophysical (IceCube nu 2022) flux
+        
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
     """
