@@ -58,10 +58,20 @@ breakout=1234
 breakout_channel=1234
 temp=20
 S_data = np.zeros((9,100))
-measurement_time=Time.now().isot
+measurement_time=datetime.datetime.utcnow()#Time.now().isot
 primary_measurement=True
 time_delay=np.zeros(9)
 protocol="Chicago_2022"
-mongo_detector.downhole_chain(tactical_name, iglu_id, drab_id,
-                         breakout, breakout_channel, temp, S_data, measurement_time,
-                         primary_measurement, time_delay, protocol)
+
+## add a measurement for the downhole chain to the database
+# mongo_detector.downhole_chain(tactical_name, iglu_id, drab_id,
+#                          breakout, breakout_channel, temp, S_data, measurement_time,
+#                          primary_measurement, time_delay, protocol)
+
+## add a measurement for the SURFACE chain to the database
+surface_id='ref_surface'
+surface_channel=1234
+mongo_detector.surface_chain(
+    tactical_name, surface_id, surface_channel, temp,
+    S_data, measurement_time, primary_measurement,
+    time_delay, protocol)
