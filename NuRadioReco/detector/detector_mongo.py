@@ -605,6 +605,9 @@ class Detector(object):
             details of the testing enviornment
 
         """
+        if(self.db.downhole.count_documents({'name': tactical_name}) > 0):
+            logger.error(f"Downhole chain measurement for {tactical_name} already exists. Doing nothing.")
+            return 1
         S_names = ["S11", "S12", "S21", "S22"]
         for i in range(4):
             self.db.downhole.update_one({'name': tactical_name},
@@ -677,6 +680,9 @@ class Detector(object):
             details of the testing enviornment
 
         """
+        if(self.db.surface_chain.count_documents({'name': tactical_name}) > 0):
+            logger.error(f"Surface chain measurement with name {tactical_name} already exists. Doing nothing.")
+            return 1
         S_names = ["S11", "S12", "S21", "S22"]
         for i in range(4):
             self.db.surface_chain.update_one({'name': tactical_name},
