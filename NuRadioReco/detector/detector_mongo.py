@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 import six
 import os
+import sys
 import pymongo
 import datetime
 # pprint library is used to make the output look more pretty
@@ -954,7 +955,7 @@ class Detector(object):
         Returns string
         """
 
-        antenna_type = get_antenna_type(station_id, channel_id)
+        antenna_type = self.get_antenna_type(station_id, channel_id)
         # antenna_relative_position = get_relative_position(station_id, channel_id)
         return None
 
