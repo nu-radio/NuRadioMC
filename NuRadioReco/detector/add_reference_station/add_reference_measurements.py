@@ -16,8 +16,8 @@ import NuRadioReco.utilities.metaclasses
 from NuRadioReco.detector import detector_mongo
 from NuRadioReco.detector import detector
 
-user="XXX"
-pw="XXX"
+user=os.getenv('RNOG_DB_USER')
+pw=os.getenv('RNOG_DB_PW')
 mongo_detector = detector_mongo.Detector(database_connection=f"mongodb+srv://{user}:{pw}@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority", database_name="RNOG_test")
 
 
@@ -58,9 +58,9 @@ breakout=1234
 breakout_channel=1234
 temp=20
 S_data = np.zeros((9,100))
-measurement_time=None
-primary_measurement=Time.now().isot
-time_delay= np.zeros(9)
+measurement_time=Time.now().isot
+primary_measurement=True
+time_delay=np.zeros(9)
 protocol="Chicago_2022"
 mongo_detector.downhole_chain(tactical_name, iglu_id, drab_id,
                          breakout, breakout_channel, temp, S_data, measurement_time,
