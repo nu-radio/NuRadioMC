@@ -21,7 +21,7 @@ logger.setLevel(logging.DEBUG)
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class Detector(object):
 
-    def __init__(self, database_connection="env_pw_user"):
+    def __init__(self, database_connection="env_pw_user", database_name=None):
 
         if database_connection == "local":
             MONGODB_URL = "localhost"
@@ -51,8 +51,14 @@ class Detector(object):
             self.__mongo_client = MongoClient("mongodb+srv://RNOG_test:TTERqY1YWBYB0KcL@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
             self.db = self.__mongo_client.RNOG_test
         elif database_connection == "RNOG_public":
-            self.__mongo_client = MongoClient("mongodb+srv://RNOG_read:7-fqTRedi$_f43Q@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
+            self.__mongo_client = MongoClient("mongodb://read:EseNbGVaCV4pBBrt@radio.zeuthen.desy.de:27017/admin?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=true")
+            #self.__mongo_client = MongoClient("mongodb+srv://RNOG_read:7-fqTRedi$_f43Q@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
             self.db = self.__mongo_client.RNOG_live
+        elif isinstance(database_connection, str):
+            logger.info(f'trying to connect to {database_connection} ...')
+            self.__mongo_client = MongoClient(database_connection)
+            logger.info(f'looking for {database_name} ...')
+            self.db = self.__mongo_client.get_database(database_name)
         else:
             logger.error('specify a defined database connection ["local", "env_url", "env_pw_user", "test"]')
 
@@ -948,7 +954,7 @@ class Detector(object):
         Returns string
         """
 
-        # antenna_type = get_antenna_type(station_id, channel_id)
+        antenna_type = get_antenna_type(station_id, channel_id)
         # antenna_relative_position = get_relative_position(station_id, channel_id)
         return None
 
@@ -1263,10 +1269,8 @@ def get_measurement_from_buffer(hardware_db, S_parameter="S21", channel_id=None)
         print("WARNING: more than one match for requested measurement found")
     return measurements
 
-det = Detector()
 
 
-
-# if __name__ == "__main__":
-#     test = sys.argv[1]
-#     det = Detector(test)
+if __name__ == "__main__":
+     test = sys.argv[1]
+     det = Detector(test)
