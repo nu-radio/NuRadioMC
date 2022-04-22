@@ -748,7 +748,8 @@ class Detector(object):
                                decommission_time=datetime.datetime(2080, 1, 1)):
         unique_station_id = self.db.station.find_one({'id': station_id})['_id']
         if(self.db.station.count_documents({'id': station_id, "channels.id": channel_id}) > 0):
-            logger.warning(f"channel with id {channel_id} already exists")
+            logger.error(f"channel with id {channel_id} already exists. Doing nothing.")
+            return 1
 
         self.db.station.update_one({'_id': unique_station_id},
                                {"$push": {'channels': {
