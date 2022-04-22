@@ -639,6 +639,77 @@ class Detector(object):
                                 {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
                                 array_filters=[{"updateIndex.primary_measurement": True}])
 
+    def surface_chain(
+            self, tactical_name, surface_id,
+            surface_channel, temp, S_data, measurement_time,
+            primary_measurement, time_delay, protocol):
+        """
+        inserts a new S parameter measurement for the surface chain.
+        
+        If the chain doesn't exist yet, it will be created.
+
+        Parameters
+        ----------
+        tactical_name: string
+            the name of the (long) tactical fiber being tested
+        surface_id: string
+            the unique identifier of the SURFACE board
+        surface_channel: int
+            the channel id of the surface chain
+        temp: int
+            the temperature at which the measurement was taken
+        S_data: array of floats with shape (n_rows, n_frequencies)
+            
+            - 1st row: frequencies
+            - 2nd/3rd row: S11 mag/phase
+            - 4th/5th row: S12 mag/phase
+            - 6th/7th row: S21 mag/phase
+            - 8th/9th row: S22 mag/phase
+
+        measurement_time: timestamp
+            the time of the measurement
+        primary_measurement: bool
+            indicates the primary measurement to be used for analysis
+        time_delay: array of floats
+            the absolute time delay of each S parameter measurement (e.g. the group delay at
+            a reference frequency)
+        protocol: string
+            details of the testing enviornment
+
+        """
+        S_names = ["S11", "S12", "S21", "S22"]
+        for i in range(4):
+            self.db.surface_chain.update_one({'name': tactical_name},
+                                      {"$push":{'measurements': {
+                                          'last_updated': datetime.datetime.utcnow(),
+                                          'SURFACE_id': surface_id,
+                                          'surface_channel': surface_channel,
+                                          'measurement_temp': temp,
+                                          'measurement_time': measurement_time,
+                                          'primary_measurement': primary_measurement,
+                                          'measurement_protocol': protocol,
+                                          'time_delay': time_delay[i],
+                                          'S_parameters': S_names[i],
+                                          'frequencies': list(S_data[0]),
+                                          'mag': list(S_data[2 * i + 1]),
+                                          'phase': list(S_data[2 * i + 2])
+                                          }}},
+                                     upsert=True)
+
+    def surface_chain_remove_primary(self, tactical_name):
+        """
+        updates the primary_measurement of previous entries to False by channel
+
+        Parameters
+        ---------
+        tactical_name: string
+            the unique identifier of tactical fiber bundle
+        """
+
+        self.db.surface_chain.update_one({'name': tactical_name},
+                                {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+                                array_filters=[{"updateIndex.primary_measurement": True}])
+
 
     def add_station(self,
                     station_id,
