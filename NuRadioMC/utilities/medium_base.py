@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
+from scipy import integrate, linalg
 from NuRadioReco.utilities import units
 import logging
 logging.basicConfig()
@@ -93,8 +94,18 @@ class IceModel():
         n_average:  float
                     averaged index of refraction between the two points
         """
-        logger.error('function not defined')
-        raise NotImplementedError('function not defined')
+        logger.warning('Using general implementation of function which might be slow. For faster calculation, overwrite with an ice model specific function')
+
+        def get_index_of_refraction(x,y,z):
+            pos = np.array([x,y,z])
+            return self.get_index_of_refraction(pos)
+
+        ranges = [[position1[0],position2[0]],
+                  [position1[1],position2[1]],
+                  [position1[2],position2[2]]]
+        int_result = integrate.nquad(get_index_of_refraction,ranges)
+        n_average = int_result[0] / linalg.norm(position2-position1)
+        return n_average
 
     def get_gradient_of_index_of_refraction(self, position):
         """
@@ -215,11 +226,21 @@ class IceModelSimple(IceModel):
         n_average:  float
                     averaged index of refraction between the two points
         """
-        if ((position1[2] - self.z_air_boundary) <=0) and ((position2[2] - self.z_air_boundary) <=0):
-            return (self.n_ice - self.delta_n * self.z_0 / (position2[2] - position1[2]) 
-                    * (np.exp((position2[2]-self.z_shift) / self.z_0) - np.exp((position1[2]-self.z_shift) / self.z_0)))
+        zmax = max(position1[2], position2[2])
+        zmin = min(position1[2], position2[2])
+
+        def exp_average(zmax, zmin):
+            return (self.n_ice - self.delta_n * self.z_0 / (zmax - zmin) 
+                    * (np.exp((zmax-self.z_shift) / self.z_0) - np.exp((zmin-self.z_shift) / self.z_0)))
+
+        if ((zmax - self.z_air_boundary) <=0):
+            return exp_average(zmax, zmin)
+        else if ((zmin - self.z_air_boundary) <=0):
+            n1 = exp_average(self.z_air_boundary, zmin) * (self.z_air_boundary - zmin)
+            n2 = 1 * (zmax - self.z_air_boundary)
+            return (n1 * (self.z_air_boundary - zmin) + n2 * (zmax - self.z_air_boundary)) / (zmax - zmin)
         else:
-            return None
+            return 1
 
     def get_gradient_of_index_of_refraction(self, position):
         """
