@@ -78,6 +78,11 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 config['propagation']['focusing_limit'] = 2
                 config['propagation']['focusing'] = False
                 config['speedup']['delta_C_cut'] = 40 * units.degree
+                config['propagation']['radiopropa']['mode'] = 'iterative'
+                config['propagation']['radiopropa']['max_traj_length'] = 10000
+                config['propagation']['radiopropa']['iter_steps_channel'] = [25., 2., .5]
+                config['propagation']['radiopropa']['auto_step_size'] = False
+                config['propagation']['radiopropa']['iter_steps_zenith'] = [.5, .05, .005]
         detector: detector object
         """
         self.__logger = logging.getLogger('radiopropa_ray_tracing')
@@ -142,7 +147,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """ 
         self._shower_axis = shower_axis / np.linalg.norm(shower_axis)
 
-    def set_iterative_sphere_sizes(self, sphere_sizes=np.array(config['propagation']['radiopropa']['iter_steps_channel']) * units.meter):
+    def set_iterative_sphere_sizes(self, sphere_sizes=np.array(self._config['propagation']['radiopropa']['iter_steps_channel']) * units.meter):
         """
         Set the sphere_sizes for the iterative ray tracer
 
@@ -158,7 +163,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             self.__logger.error('sphere_sizes array should be 1 dimensional')
             raise ValueError('sphere_sizes array should be 1 dimensional')
 
-    def set_iterative_step_sizes(self, step_zeniths=np.array(config['propagation']['radiopropa']['iter_steps_zenith']) * units.degree):
+    def set_iterative_step_sizes(self, step_zeniths=np.array(self._config['propagation']['radiopropa']['iter_steps_zenith']) * units.degree):
         """
         Set the steps_sizes for the iterative ray tracer
 
@@ -515,7 +520,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         results = []
         rays_results = []
         
-        if config['propagation']['radiopropa']['mode'] == 'minimize':
+        if self._config['propagation']['radiopropa']['mode'] == 'minimizing':
             has_reflec = (hasattr(self._medium,'reflection') or self.__ice_model_nuradio.reflection is not None)
             if isinstance(self._medium, medium_base.IceModelSimple) and not has_reflec:
                 self.raytracer_minimizer(n_reflections=self._n_reflections)
@@ -1127,11 +1132,11 @@ class radiopropa_ray_tracing(ray_tracing_base):
             )
         super().set_config(config)
 
-        self._cut_viewing_angle = config['speedup']['delta_C_cut'] * units.radian
-        self._max_traj_length = config['propagation']['radiopropa']['max_traj_length'] * units.meter
-        self.set_iterative_sphere_sizes(np.array(config['propagation']['radiopropa']['iter_steps_channel']) * units.meter)
-        self._auto_step = config['propagation']['radiopropa']['auto_step_size']
-        self.activate_auto_step_size(np.array(config['propagation']['radiopropa']['iter_steps_zenith']) * units.degree)
+        self._cut_viewing_angle = self._config['speedup']['delta_C_cut'] * units.radian
+        self._max_traj_length = self._config['propagation']['radiopropa']['max_traj_length'] * units.meter
+        self.set_iterative_sphere_sizes(np.array(self._config['propagation']['radiopropa']['iter_steps_channel']) * units.meter)
+        self._auto_step = self._config['propagation']['radiopropa']['auto_step_size']
+        self.activate_auto_step_size(np.array(self._config['propagation']['radiopropa']['iter_steps_zenith']) * units.degree)
 
     ## helper functions
     def delta_theta_direct(self, dz):

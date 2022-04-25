@@ -32,7 +32,7 @@ propagation:
   n_reflections: 0  # the maximum number of reflections off a reflective layer at the bottom of the ice layer
 
   radiopropa:  #every module can have its own addition settings
-    mode: iterative  # can also be "minimize" but these ray tracing solution are not accurate yet
+    mode: iterative  # can also be "minimizing" but these ray tracing solution are not accurate yet
     iter_steps_channel: [25., 2., .5]  #radial size of spheres (in meter) around channels to find solutions iteratively
     iter_steps_zenith: [.5, .05, .005]  #the anglular resolution (in degrees) in zenith of the launch vector to find solutions iteratively
     auto_step_size: False  #automatically set angular step with respect to distance of vertex and sphere size around channel to find solutions iteratively
