@@ -121,7 +121,8 @@ class eventWriter:
             self.__write_fout_header()
 
         event_bytearray = self.__get_event_bytearray(evt, mode)
-        self.__fout.write(event_bytearray)
+        n_bytes_written = self.__fout.write(event_bytearray)
+        logger.debug(f"{n_bytes_written} bytes written to diks")
         self.__current_file_size += event_bytearray.__sizeof__()
         self.__number_of_events += 1
         self.__event_ids_and_runs.append([evt.get_run_number(), evt.get_id()])
