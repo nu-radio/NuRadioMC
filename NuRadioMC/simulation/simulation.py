@@ -1038,6 +1038,8 @@ class simulation():
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
         self._write_output_file()
+        if(self._outputfilenameNuRadioReco is not None):
+            self._eventWriter.end()
 
         try:
             self.calculate_Veff()
