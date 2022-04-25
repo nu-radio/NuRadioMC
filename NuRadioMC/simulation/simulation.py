@@ -397,7 +397,7 @@ class simulation():
         channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
         electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
         if(self._outputfilenameNuRadioReco is not None):
-            self._eventWriter.begin(self._outputfilenameNuRadioReco)
+            self._eventWriter.begin(self._outputfilenameNuRadioReco, log_level=logging.DEBUG)
         unique_event_group_ids = np.unique(self._fin['event_group_ids'])
         self._n_showers = len(self._fin['event_group_ids'])
         self._shower_ids = np.array(self._fin['shower_ids'])
