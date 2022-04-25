@@ -235,7 +235,7 @@ class IceModelSimple(IceModel):
 
         if ((zmax - self.z_air_boundary) <=0):
             return exp_average(zmax, zmin)
-        else if ((zmin - self.z_air_boundary) <=0):
+        elif ((zmin - self.z_air_boundary) <=0):
             n1 = exp_average(self.z_air_boundary, zmin) * (self.z_air_boundary - zmin)
             n2 = 1 * (zmax - self.z_air_boundary)
             return (n1 * (self.z_air_boundary - zmin) + n2 * (zmax - self.z_air_boundary)) / (zmax - zmin)
