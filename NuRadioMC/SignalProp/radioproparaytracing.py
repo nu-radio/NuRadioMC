@@ -134,7 +134,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             stop point of the ray
         """
         super().set_start_and_end_point(x1, x2)
-        self.set_iterative_step_sizes(step_sizes=self._step_sizes) #if auto is on this set the automated step size, otherwise nothing happens
+        self.set_iterative_step_sizes(step_zeniths=self._step_zeniths) #if auto is on this set the automated step size, otherwise nothing happens
 
     def set_shower_axis(self, shower_axis):
         """
@@ -147,7 +147,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """ 
         self._shower_axis = shower_axis / np.linalg.norm(shower_axis)
 
-    def set_iterative_sphere_sizes(self, sphere_sizes=np.array(self._config['propagation']['radiopropa']['iter_steps_channel']) * units.meter):
+    def set_iterative_sphere_sizes(self, sphere_sizes=None):
         """
         Set the sphere_sizes for the iterative ray tracer
 
@@ -157,13 +157,16 @@ class radiopropa_ray_tracing(ray_tracing_base):
             the sphere size used by the iterative ray tracer
             iteration from big to small observer around channel
         """
+        if sphere_sizes is None:
+            sphere_sizes = np.array(self._config['propagation']['radiopropa']['iter_steps_channel']) * units.meter
+
         if (sphere_sizes.ndim == 1):
             self._sphere_sizes = sphere_sizes
         else:
             self.__logger.error('sphere_sizes array should be 1 dimensional')
             raise ValueError('sphere_sizes array should be 1 dimensional')
 
-    def set_iterative_step_sizes(self, step_zeniths=np.array(self._config['propagation']['radiopropa']['iter_steps_zenith']) * units.degree):
+    def set_iterative_step_sizes(self, step_zeniths= None):
         """
         Set the steps_sizes for the iterative ray tracer
 
@@ -178,7 +181,10 @@ class radiopropa_ray_tracing(ray_tracing_base):
         auto_step:  boolean
             defines whether or not an automatic step_size should be calculated for each
             sphere_size depending on the horizontal distance of the event
-        """         
+        """   
+        if step_zeniths is None:
+            step_zeniths = np.array(self._config['propagation']['radiopropa']['iter_steps_zenith']) * units.degree
+
         if self._auto_step:
             if (self._X1 != None) and (self._X2 != None):
                 for s, sphere_size in enumerate(self._sphere_sizes):
