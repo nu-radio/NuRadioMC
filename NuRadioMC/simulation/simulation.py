@@ -998,7 +998,7 @@ class simulation():
                     global_shower_indices = self._get_shower_index(self._shower_ids_of_sub_event)
                     local_shower_index = find_indices(global_shower_indices, event_indices)
                     self._save_triggers_to_hdf5(sg, local_shower_index, global_shower_indices)
-                    if(self._outputfilenameNuRadioReco is not None and self._station.has_triggered()):
+                    if(self._outputfilenameNuRadioReco is not None):
                         # downsample traces to detector sampling rate to save file size
                         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
                         channelResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
@@ -1012,6 +1012,7 @@ class simulation():
                             self._eventWriter.run(self._evt, self._det, mode=output_mode)
                         else:
                             self._eventWriter.run(self._evt, mode=output_mode)
+                        print("WRITING EVENT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 # end sub events loop
 
                 # add local sg array to output data structure if any
@@ -1040,6 +1041,7 @@ class simulation():
         self._write_output_file()
         if(self._outputfilenameNuRadioReco is not None):
             self._eventWriter.end()
+            print("CLOSING NUR FILE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
         try:
             self.calculate_Veff()
