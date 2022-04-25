@@ -50,7 +50,7 @@ class eventWriter:
         self.__fout.write(b)
         self.__header_written = True
 
-    def begin(self, filename, max_file_size=1024, check_for_duplicates=False, events_per_file=None):
+    def begin(self, filename, max_file_size=1024, check_for_duplicates=False, events_per_file=None, log_level=logging.WARNING):
         """
         begin method
 
@@ -68,6 +68,7 @@ class eventWriter:
             into the same file, the output will be split into another file. If max_file_size and events_per_file are
             both set, the file will be split whenever any of the two conditions is fullfilled.
         """
+        logger.setLevel(log_level)
         if filename[-4:] == '.nur':
             self.__filename = filename[:-4]
         else:
