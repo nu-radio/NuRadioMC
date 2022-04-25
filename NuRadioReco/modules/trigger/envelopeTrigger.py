@@ -22,6 +22,7 @@ def get_envelope_triggers(trace, threshold):  # define trigger constraint for ea
         the signal trace
     threshold: float
         the threshold
+        
     Returns
     -------
     triggered bins: array of bools
