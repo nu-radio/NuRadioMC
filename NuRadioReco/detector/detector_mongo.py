@@ -605,6 +605,9 @@ class Detector(object):
             details of the testing enviornment
 
         """
+        if(self.db.downhole.count_documents({'name': tactical_name}) > 0):
+            logger.error(f"Downhole chain measurement for {tactical_name} already exists. Doing nothing.")
+            return 1
         S_names = ["S11", "S12", "S21", "S22"]
         for i in range(4):
             self.db.downhole.update_one({'name': tactical_name},
@@ -677,6 +680,9 @@ class Detector(object):
             details of the testing enviornment
 
         """
+        if(self.db.surface_chain.count_documents({'name': tactical_name}) > 0):
+            logger.error(f"Surface chain measurement with name {tactical_name} already exists. Doing nothing.")
+            return 1
         S_names = ["S11", "S12", "S21", "S22"]
         for i in range(4):
             self.db.surface_chain.update_one({'name': tactical_name},
@@ -742,7 +748,8 @@ class Detector(object):
                                decommission_time=datetime.datetime(2080, 1, 1)):
         unique_station_id = self.db.station.find_one({'id': station_id})['_id']
         if(self.db.station.count_documents({'id': station_id, "channels.id": channel_id}) > 0):
-            logger.warning(f"channel with id {channel_id} already exists")
+            logger.error(f"channel with id {channel_id} already exists. Doing nothing.")
+            return 1
 
         self.db.station.update_one({'_id': unique_station_id},
                                {"$push": {'channels': {
