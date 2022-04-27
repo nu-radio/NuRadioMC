@@ -375,16 +375,18 @@ class Detector(object):
             details of the testing enviornment
         """
 
-        self.db.CABLE.insert_one({'name': cable_name,
-                                    'last_updated': datetime.datetime.utcnow(),
-                                     'function_test': True,
-                                     'primary_measurement': primary_measurement,
-                                     'measurement_protocol': protocol,
-                                     'S_parameter': 'S21',
-                                     'frequencies': list(Sm_data[0]),
-                                     'mag': list(Sm_data[1]),
-                                     'phase': list(Sp_data[1]),
-                                  })
+        self.db.CABLE.update_one({'name': cable_name},
+                                 {"$push": {'measurements': {
+                                       'last_updated': datetime.datetime.utcnow(),
+                                       'function_test': True,
+                                       'primary_measurement': primary_measurement,
+                                       'measurement_protocol': protocol,
+                                       'S_parameter': 'S21',
+                                       'frequencies': list(Sm_data[0]),
+                                       'mag': list(Sm_data[1]),
+                                       'phase': list(Sp_data[1])}}},
+                                upsert=True)
+
 
     def surfCable_set_not_working(self, cable_name):
         """
@@ -495,7 +497,7 @@ class Detector(object):
                                           'primary_measurement': primary_measurement,
                                           'measurement_protocol': protocol,
                                           'time_delay': time_delay[i],
-                                          'S_parameter_DRAB': S_names[i],
+                                          'S_parameter': S_names[i],
                                           'frequencies': list(S_data[0]),
                                           'mag': list(S_data[2 * i + 1]),
                                           'phase': list(S_data[2 * i + 2])
@@ -605,12 +607,12 @@ class Detector(object):
             details of the testing enviornment
 
         """
-        if(self.db.downhole.count_documents({'name': tactical_name}) > 0):
+        if(self.db.downhole_chain.count_documents({'name': tactical_name}) > 0):
             logger.error(f"Downhole chain measurement for {tactical_name} already exists. Doing nothing.")
             return 1
         S_names = ["S11", "S12", "S21", "S22"]
         for i in range(4):
-            self.db.downhole.update_one({'name': tactical_name},
+            self.db.downhole_chain.update_one({'name': tactical_name},
                                       {"$push":{'measurements': {
                                           'last_updated': datetime.datetime.utcnow(),
                                           'IGLU_id': iglu_id,
@@ -622,7 +624,7 @@ class Detector(object):
                                           'primary_measurement': primary_measurement,
                                           'measurement_protocol': protocol,
                                           'time_delay': time_delay[i],
-                                          'S_parameters': S_names[i],
+                                          'S_parameter': S_names[i],
                                           'frequencies': list(S_data[0]),
                                           'mag': list(S_data[2 * i + 1]),
                                           'phase': list(S_data[2 * i + 2])
@@ -638,7 +640,7 @@ class Detector(object):
             the unique identifier of tactical fiber bundle
         """
 
-        self.db.downhole.update_one({'name': tactical_name},
+        self.db.downhole_chain.update_one({'name': tactical_name},
                                 {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
                                 array_filters=[{"updateIndex.primary_measurement": True}])
 
@@ -876,6 +878,14 @@ class Detector(object):
 
         Returns float (delay time)
         """
+
+        components = self.get_signal_ch_hardware(station_id, channel_id)
+        time_delay = 0
+        #print(components)
+        for item in components:
+
+        #    print(key, self.get_hardware_channel(component["type"], component["name"])["components[key]["weight"])
+
         return None
 
     #TODO this should go to the signal chain I guess... there could be more than one cable
@@ -1175,6 +1185,10 @@ class Detector(object):
         for hardware_type in component_dict:
             # grouping dictionary is needed to undo the unwind
             grouping_dict = {"_id": "$_id", "measurements": {"$push": "$measurements"}}
+
+            if self.db[hardware_type].find_one() is None:
+                print(f"DB for {hardware_type} is empty. Skipping...")
+                continue
             # add other keys that belong to a station
             for key in list(self.db[hardware_type].find_one().keys()):
                 if key in grouping_dict:
@@ -1190,12 +1204,21 @@ class Detector(object):
                                                                          {"$group": grouping_dict}]))
             #TODO wind #only S21?
             #list to dict conversion using "name" as keys
-            self.__db[hardware_type] = dictionarize_nested_lists_as_tuples(matching_components,
+            print(f"Component entries found in {hardware_type}: {len(matching_components)}")
+            if len(matching_components)==0:
+                continue
+            try:
+                self.__db[hardware_type] = dictionarize_nested_lists_as_tuples(matching_components,
                         parent_key="name",
                         nested_field="measurements",
                         nested_keys=("channel_id","S_parameter"))
+            except:
+                continue
+
+            #print("there")
             #self.__db[hardware_type] = dictionarize_nested_lists(matching_components, parent_key="name", nested_field=None, nested_key=None)
 
+        print("done...")
     def get_hardware_component(self, hardware_type, name):
         """
         get a specific hardware from the component buffer
@@ -1207,7 +1230,7 @@ class Detector(object):
 
         return self.__db[hardware_type][name]
 
-    def get_hardware_channel(self, hardware_type, name, channel, S_parameter="S21"):
+    def get_hardware_channel(self, hardware_type, name, channel=None, S_parameter="S21"):
         """
         get a channel for a hardware from the component buffer
 
@@ -1215,8 +1238,12 @@ class Detector(object):
         -------------
         dict of hardware channel info
         """
+        if name not in self.__db[hardware_type]:
+            return None
         component = self.__db[hardware_type][name]
-        return component[(channel, S_parameter)]
+        if (channel, S_parameter) not in component["measurements"]:
+            return None
+        return component["measurements"][(channel, S_parameter)]
 
     def get_signal_ch_hardware(self, station_id, channel_id):
         """
@@ -1237,7 +1264,15 @@ class Detector(object):
         channel = self.get_channel(station_id, channel_id)
         components = []
         for component in channel["signal_ch"]:
-            components.append(self.get_hardware_channel(component['type'], component['uname'], component['channel_id']))
+            print("here", component)
+            if 'channel_id' not in component:
+                component["channel_id"] = None
+
+            item = self.get_hardware_channel(component['type'], component['uname'], component['channel_id'])
+            if item is None:
+                print("hardware component missing")
+                continue
+            components.append(item)
         return components
 
     # TODO this is probably not used, unless we want to update on a per-station level
