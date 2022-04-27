@@ -20,19 +20,82 @@ user=os.getenv('RNOG_DB_USER')
 pw=os.getenv('RNOG_DB_PW')
 mongo_detector = detector_mongo.Detector(database_connection=f"mongodb+srv://{user}:{pw}@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority", database_name="RNOG_test")
 
+
+fiber_names = {
+        4:'A1',
+        8:'A2',
+        3:'A3',
+        2:'A4',
+        1:'A5',
+        0:'A6',
+        5:'ABLUE',
+        7:'ABROWN',
+        6:'AGREEN',
+        ##'pulserPower':'AORANGE',
+        ##'pulserB':'B1',
+        11:'B2',
+        10:'B3',
+        9:'B4',
+        ##'pulserC':'C1',
+        21:'C2',
+        22:'C3',
+        23:'C4'}
+
+channel_to_reference_measurement = {
+        9:  1,
+        10: 2,
+        11: 3,
+        23: 1,
+        22: 2,
+        21: 3}
+
+short_fiber_names = {
+        4: '1A1_SHORT',
+        8: '1A2_SHORT',
+        3: '1A3_SHORT',
+        2: '1A4_SHORT',
+        1: '1A5_SHORT',
+        0: '1A6_SHORT',
+        11:'1B2_SHORT',
+        10:'1B3_SHORT',
+        9: '1B4_SHORT',
+        21:'1C2_SHORT',
+        22:'1C3_SHORT',
+        23:'1C4_SHORT'}        
+
+hardware_number = {11: 5, 21: 7, 22: 6}
+
 def add_channels_to_database(input_detector, station_id, target_station_id=None, commission_time=None):
     if target_station_id is None:
         target_station_id = station_id
     for channel_id in input_detector.get_channel_ids(station_id):
         channel = input_detector.get_channel(station_id, channel_id)
         amp = channel["amp_type"]
-        if amp == "rno_surface":
-            signal_chain = [ "Golden_Coax", "Golden_Surface"]
-        elif amp == "iglu":
-            signal_chain = ["Golden_IGLU", "Golden_Fiber", "Golden_DRAB"]
-        else:
-            print(f"unknown amp type {amp}")
-            continue
+        if target_station_id == 999:
+            if amp == "rno_surface":
+                signal_chain = [{'type': 'surface_chain','uname': f'ref_surface', 'weight': 1}]
+            elif amp == "iglu":
+                if channel_id in channel_to_reference_measurement:
+                    mapped_channel_id = channel_to_reference_measurement[channel_id]
+                else:
+                    mapped_channel_id = channel_id
+                signal_chain = [{'type': 'downhole','uname': f'ref_channel{mapped_channel_id}', 'weight': 1}]
+                if channel_id in short_fiber_names:
+                    signal_chain.append({'type': 'CABLE','uname': short_fiber_names[channel_id], 'weight': 1})
+            else:
+                print(f"unknown amp type {amp}")
+                continue
+        else:    
+            if amp == "rno_surface":
+                signal_chain = [{'type': "SURFACE", 'uname': "Golden_Surface", 'weight': 1},
+                                {'type': "surfCABLE", 'uname': "Golden_Coax", 'weight': 1}]
+            elif amp == "iglu":
+                signal_chain = [{'type': "IGLU", 'uname': "Golden_IGLU", 'weight': 1},
+                                {'type': "CABLE",'uname': f"{hardware_number[station_id]}{fiber_names[channel_id]}_FULL", 'weight': 1},
+                                {'type': "DRAB", 'uname': "Golden_DRAB", 'weight': 1}]
+            else:
+                print(f"unknown amp type {amp}")
+                continue
 
         if commission_time is None:
             commission_time = channel["commission_time"]
