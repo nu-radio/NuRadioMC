@@ -303,4 +303,5 @@ class eventWriter:
     def end(self):
         if(hasattr(self, "__fout")):
             self.__fout.close()
+            self.debug(f"closing file.")
         return self.__number_of_events
