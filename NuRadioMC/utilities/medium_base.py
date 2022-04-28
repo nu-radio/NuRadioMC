@@ -229,15 +229,15 @@ class IceModelSimple(IceModel):
         zmax = max(position1[2], position2[2])
         zmin = min(position1[2], position2[2])
 
-        def exp_average(zmax, zmin):
-            return (self.n_ice - self.delta_n * self.z_0 / (zmax - zmin) 
-                    * (np.exp((zmax-self.z_shift) / self.z_0) - np.exp((zmin-self.z_shift) / self.z_0)))
+        def exp_average(z_max, z_min):
+            return (self.n_ice - self.delta_n * self.z_0 / (z_max - z_min) 
+                    * (np.exp((z_max-self.z_shift) / self.z_0) - np.exp((z_min-self.z_shift) / self.z_0)))
 
         if ((zmax - self.z_air_boundary) <=0):
             return exp_average(zmax, zmin)
         elif ((zmin - self.z_air_boundary) <=0):
-            n1 = exp_average(self.z_air_boundary, zmin) * (self.z_air_boundary - zmin)
-            n2 = 1 * (zmax - self.z_air_boundary)
+            n1 = exp_average(self.z_air_boundary, zmin)
+            n2 = 1
             return (n1 * (self.z_air_boundary - zmin) + n2 * (zmax - self.z_air_boundary)) / (zmax - zmin)
         else:
             return 1
