@@ -436,17 +436,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
         def cot(x):
             return 1/np.tan(x)
 
-        def tan(x):
-            return np.tan(x)
-
         def arccot(x):
             return np.arctan(-x) + np.pi/2
-
-        def arctan(x):
-            theta = np.arctan(x)
-            if theta < 0:
-                theta += np.pi
-            return theta
 
         def delta_z(cot_theta):
             theta = arccot(cot_theta)
