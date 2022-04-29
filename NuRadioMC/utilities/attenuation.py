@@ -1,6 +1,11 @@
 import numpy as np
 from NuRadioReco.utilities import units
 
+import logging
+logger = logging.getLogger("attenuation")
+logging.basicConfig()
+logger.setLevel(logging.INFO)
+
 model_to_int = {"SP1" : 1, "GL1" : 2, "MB1" : 3, "GL2": 4}
 
 
@@ -146,6 +151,10 @@ def get_attenuation_length(z, frequency, model):
         raise NotImplementedError("attenuation model {} is not implemented.".format(model))
 
     # mask for positive z and mask for <~0 attenuation length
+    if np.any(z > 0):
+        logger.warning("Attenuation length is set to inf for positive z (above ice surface)")
+
+
     min_length = 1 * units.m
     if (not hasattr(frequency, '__len__') and not hasattr(z, '__len__')):
         if att_length_f < min_length:
@@ -156,3 +165,19 @@ def get_attenuation_length(z, frequency, model):
         att_length_f[att_length_f < min_length] = min_length
         att_length_f[z > 0] = np.inf
     return att_length_f
+
+
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+
+    z = np.linspace(1*units.km,-3*units.km,1000)
+    frequencies = [0.5*units.GHz] #np.linspace(0,1*units.GHz,10)
+    for frequency in frequencies:
+        for model in ["SP1", "GL1", "GL2", "MB1"]:
+            plt.plot(-z/units.m, np.nan_to_num(get_attenuation_length(z, frequency, model)/units.m, posinf=3333), label=f"{model}")
+    plt.xlabel("depth [m]")
+    plt.ylabel("attenuation length [m]")
+    plt.ylim(0,None)
+    plt.title("attenuation length (inf masked to +3333m)")
+    plt.legend()
+    plt.savefig("attenuation_length_models.png")
