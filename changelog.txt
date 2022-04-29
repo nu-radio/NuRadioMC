@@ -5,7 +5,8 @@ please update the categories "new features" and "bugfixes" before a pull request
 version 2.2.0
 new features:
 - add attenuation model from the 2021 measurements taken at Summit Station
-
+- print warning for positive z in attenuation, and set attenuation length to
++inf for positive z
 bugfixes:
 
 
