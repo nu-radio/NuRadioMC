@@ -32,7 +32,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         * cw : a sinusoidal wave of given frequency
         * square : a rectangular pulse of given amplituede and width
         * tone_burst : a short sine wave pulse of given frequency and desired width
-        * idl & hvsp2 : these are the waveforms generated in KU lab and stored in hdf5 files
+        * idl & hvsp : these are the waveforms generated in KU lab and stored in hdf5 files
         * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
 
     full_output: bool (default False)
@@ -75,10 +75,12 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         sigma = half_width / (np.sqrt(2 * np.log(2)))
         trace = 1 / (sigma * np.sqrt(2 * np.pi)) * np.exp(-1 / 2 * ((time - 500) / sigma) ** 2)
         trace = amplitude * 1 / np.max(np.abs(trace)) * trace
-    elif(model == 'idl' or model == 'hvsp2'):  # the idl & hvsp2 waveforms gemerated in KU Lab stored in hdf5 file
+    elif(model == 'idl1' or model =='hvsp1' or model == 'hvsp2'):  # the idl & hvsp waveforms gemerated in KU Lab stored in hdf5 file
         path = os.path.dirname(os.path.dirname(__file__))
-        if(model == 'idl'):
-            input_file = os.path.join(path, 'data/idl_data.hdf5')
+        if(model == 'idl1'):
+            input_file = os.path.join(path, 'data/idl1_data.hdf5')
+        elif(model =='hvsp1'):
+            input_file = os.path.join(path, 'data/hvsp1_data.hdf5')
         else:
             input_file = os.path.join(path, 'data/hvsp2_data.hdf5')
         read_file = h5py.File(input_file, 'r')
@@ -131,7 +133,7 @@ def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs)
         * cw : a sinusoidal wave of given frequency
         * square : a rectangular pulse of given amplituede and width
         * tone_burst : a short sine wave pulse of given frequency and desired width
-        * idl & hvsp2 : these are the waveforms generated in KU lab and stored in hdf5 files
+        * idl & hvsp : these are the waveforms generated in KU lab and stored in hdf5 files
         * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
 
     full_output: bool (default False)
