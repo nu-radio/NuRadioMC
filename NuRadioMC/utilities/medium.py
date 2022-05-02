@@ -330,6 +330,26 @@ class southpole_2015(medium_base.IceModelSimple):
             z_0 = 77.*units.meter, 
             delta_n = 0.423,
             )
+        
+class southpole_2015_up(medium_base.IceModelSimple):
+    def __init__(self):
+        # from https://doi.org/10.1088/1475-7516/2018/07/055 SPICE2015/SP model
+        super().__init__(
+            z_bottom = -2820*units.meter, 
+            n_ice = 1.781, 
+            z_0 = 77.*units.meter, 
+            delta_n = 0.423,
+            )
+        
+class southpole_2015_down(medium_base.IceModelSimple):
+    def __init__(self):
+        # from https://doi.org/10.1088/1475-7516/2018/07/055 SPICE2015/SP model
+        super().__init__(
+            z_bottom = -2820*units.meter, 
+            n_ice = 1.779, 
+            z_0 = 77.*units.meter, 
+            delta_n = 0.423,
+            )
 
 
 class ARAsim_southpole(medium_base.IceModelSimple):

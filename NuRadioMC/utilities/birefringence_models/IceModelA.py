@@ -158,6 +158,11 @@ f3_rec = interpolate.UnivariateSpline._from_tck(tck3)
 
 interpolation = np.array([tck1, tck2, tck3])
 
+#print(tck1)
+
+print(np.array(f3.get_coeffs()))
+print(np.array(f3.get_knots()))
+
 if 0:
     np.save('index_model' + model + '.npy', interpolation)
 
