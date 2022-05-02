@@ -5,7 +5,6 @@ from scipy import optimize, integrate, interpolate, signal
 import scipy.constants
 from operator import itemgetter
 import NuRadioReco.utilities.geometryUtilities
-from plotly.validators.volume.lighting import _vertexnormalsepsilon
 #from torch.fx.experimental.fx2trt.converters.acc_ops_converters import acc_ops_dequantize
 try:
     from functools import lru_cache
@@ -1956,7 +1955,7 @@ class ray_tracing:
                 print('error: wrong path type')
                               
             direction = np.array([ dx, dy, dz])  
-            l = np.linalg.norm(direction)  * units.m
+            l = np.linalg.norm(direction)
             direction = direction / l
 
             s = self.get_effective_index_fast(n1, n2, n3, direction)
@@ -2035,7 +2034,7 @@ class ray_tracing:
                 dz = p[1,i+1,2] - p[1,i,2]
           
             direction = np.array([ dx, dy, dz])
-            l = np.linalg.norm(direction) * units.m
+            l = np.linalg.norm(direction)
             direction = direction / l        
         
             dist = dist + l
@@ -2108,9 +2107,10 @@ class ray_tracing:
         """           
         data = np.load(pulse)
         
-        time = data[0]
-        etheta = data[1]
-        ephi = data[2]    
+        time = data[0] * units.ns
+        etheta = data[1] * units.V / units.m
+        ephi = data[2] * units.V / units.m
+        dt = time[1] - time[0] 
       
         #r = ray_tracing(southpole_2015())   
         time_delay_short = self.get_birefringence_time_delay(source, antenna, path_type=path_type, acc=acc)
@@ -2123,7 +2123,6 @@ class ray_tracing:
         polar_phi1 = polar_short[1][:,2]
         
         diff =  time_delay_short[2] - time_delay_short[1]
-        dt =  time[-1] / len(etheta) * units.ns  
          
         t_theta = base_trace.BaseTrace()
         t_phi = base_trace.BaseTrace()
