@@ -27,6 +27,14 @@ def get_filter_response(frequencies, passband, filter_type, order, rp=None):
         (for chebyshev filter)
 
     """
+
+    # we need to specify if we have a lowpass filter
+    # otherwise scipy>=1.8.0 raises an error
+    if passband[0] == 0: 
+        scipy_args = [passband[1], 'lowpass']
+    else:
+        scipy_args = [passband, 'bandpass']
+
     if (filter_type == 'rectangular'):
         f = np.ones_like(frequencies)
         f[np.where(frequencies < passband[0])] = 0.
@@ -35,21 +43,21 @@ def get_filter_response(frequencies, passband, filter_type, order, rp=None):
     elif (filter_type == 'butter'):
         f = np.zeros_like(frequencies, dtype=np.complex)
         mask = frequencies > 0
-        b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
+        b, a = scipy.signal.butter(order, *scipy_args, analog=True)
         w, h = scipy.signal.freqs(b, a, frequencies[mask])
         f[mask] = h
         return f
     elif (filter_type == 'butterabs'):
         f = np.zeros_like(frequencies, dtype=np.complex)
         mask = frequencies > 0
-        b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
+        b, a = scipy.signal.butter(order, *scipy_args, analog=True)
         w, h = scipy.signal.freqs(b, a, frequencies[mask])
         f[mask] = h
         return np.abs(f)
     elif(filter_type == 'cheby1'):
         f = np.zeros_like(frequencies, dtype=np.complex)
         mask = frequencies > 0
-        b, a = scipy.signal.cheby1(order, rp, passband, 'bandpass', analog=True)
+        b, a = scipy.signal.cheby1(order, rp, *scipy_args, analog=True)
         w, h = scipy.signal.freqs(b, a, frequencies[mask])
         f[mask] = h
         return f
