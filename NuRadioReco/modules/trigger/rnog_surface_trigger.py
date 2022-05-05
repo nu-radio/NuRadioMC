@@ -12,7 +12,8 @@ import logging
 logger = logging.getLogger('rnog_surface_trigger')
 
 def schottky_diode(trace, threshold, temp=250*units.kelvin, Vbias=2*units.volt):
-    '''returns the absolute maximum of the diode response depending on the maximum input signal.
+    '''
+    returns the absolute maximum of the diode response depending on the maximum input signal.
     Options for temperature are [300K, 273K, 250K], for the bias voltages [2, 1.5, 1, 0.5]V.
     The triggerpath reduces the voltage by -10dB, hence the threshold is small. The linear fit is optained from
     measurements done at DESY Zeuthen.
@@ -30,7 +31,7 @@ def schottky_diode(trace, threshold, temp=250*units.kelvin, Vbias=2*units.volt):
     -------
     trigger: bool
        if signal is above threshold
-        '''
+    '''
 
     def func(x, a, b):
         return a * x + b
