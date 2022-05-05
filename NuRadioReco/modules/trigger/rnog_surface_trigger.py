@@ -1,6 +1,7 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 from NuRadioReco.framework.trigger import RNOGSurfaceTrigger
+from NuRadioReco.utilities import units
 import NuRadioReco.utilities.fft
 import numpy as np
 import scipy.signal
@@ -36,50 +37,52 @@ def schottky_diode(trace, threshold, temp=250*units.kelvin, Vbias=2*units.volt):
 
     if temp == 300 *units.kelvin:  #measurements taken at 300K
         if Vbias == 2*units.volt:
-            a = 0.03766068
-            b = 0.70800604
+            a = 38.10032
+            b = -9.19654194e-08
         if Vbias == 1.5*units.volt: #measurements taken at 1.6V
-            a = 0.03461924
-            b = 0.07128205
+            a = 34.6274877
+            b = -8.45140238e-05
         if Vbias == 1*units.volt:
-            a = 0.0246676
-            b = -1.03562532
+            a = 24.6683322
+            b = -1.03679002e-03
         if Vbias == 0.5*units.volt:  #measurements taken at 0.6V
-            a = 0.0160004
-            b = -0.58376456
+            a = 16.0005295
+            b = -5.83972425e-04
 
     if temp == 273*units.kelvin: #measurements taken at 273K
         if Vbias == 2*units.volt:
-            a = 0.0457741
-            b = 0.30626021
+            a = 45.9646064
+            b = 0
         if Vbias == 1.5*units.volt:
-            a = 0.03880661
-            b = -0.29508052
+            a = 38.80661
+            b = -3.01491791e-04
         if Vbias == 1*units.volt:
-            a = 0.02945406
-            b = -0.7667915
+            a = 29.45406
+            b = -7.71227505e-04
         if Vbias == 0.5*units.volt:
-            a = 0.01541898
-            b = -0.51015485
+            a = 15.4192195
+            b = -5.10530795e-04
 
     if temp == 250*units.kelvin: #measurements taken at 248K
         if Vbias == 2*units.volt:
-            a = 0.05493735
-            b = 0.13760984
+            a = 55.0380132
+            b = -2.13447979e-05
         if Vbias == 1.5*units.volt:
-            a = 0.04931924
-            b = -1.67120145
+            a = 49.3192486
+            b = -1.67121000e-03
         if Vbias == 1*units.volt:
-            a = 0.03743406
-            b = -0.97467304
+            a = 37.4351427
+            b = -9.76368002e-04
         if Vbias == 0.5*units.volt:
-            a = 0.01745737
-            b = -0.59006738
+            a = 17.4574667
+            b = -5.90216182e-04
 
-    v_in = np.max(np.abs(trace))**2
+    v_in = (trace)**2
     v_out = func(v_in, a, b)
-
-    return np.abs(v_out) > threshold
+    print('in', np.max(v_in))
+    print('out', np.max(v_out))
+    print('triggered bins', np.sum(v_out > threshold))
+    return v_out > threshold
 
 class triggerSimulator:
     """
@@ -94,7 +97,7 @@ class triggerSimulator:
         return
 
     @register_run()
-    def run(self, evt, station, det, threshold, coinc_window=80, number_coincidences=1, triggered_channels=[13, 16, 19], temp=250*units.kelvin, Vbias=2*units.volt, trigger_name='rnog_surface_trigger'):
+    def run(self, evt, station, det, threshold, coinc_window=60*units.ns, number_coincidences=1, triggered_channels=[13, 16, 19], temp=250*units.kelvin, Vbias=2*units.volt, trigger_name='rnog_surface_trigger'):
         """
         Parameters
         ----------
@@ -136,8 +139,17 @@ class triggerSimulator:
             channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
 
         for channel in station.iter_channels():
-            frequencies = channel.get_frequencies()
+            channel_id = channel.get_id()
+            logger.debug(f'channel id {channel_id}')
+            if triggered_channels is not None and channel_id not in triggered_channels:
+                logger.debug("skipping channel {}".format(channel_id))
+                continue
+            if channel.get_trace_start_time() != channel_trace_start_time:
+                logger.warning('Channel has a trace_start_time that differs from '
+                               '        the other channels. The trigger simulator may not work properly')
 
+            frequencies = channel.get_frequencies()
+            logger.debug(f'trace before trigger {np.abs(np.max(channel.get_trace()))}')
             #here we apply a bandpass filter which is in the signal chain
             f = np.zeros_like(frequencies, dtype=complex)
             mask = frequencies > 0
@@ -152,26 +164,21 @@ class triggerSimulator:
 
             freq_spectrum_fft_copy *= f
             trace_filtered = NuRadioReco.utilities.fft.freq2time(freq_spectrum_fft_copy, sampling_rate)
-
+            logger.debug(f'trace after bandpass {np.abs(np.max(trace_filtered))}')
             # apply -10dB attenuator of signal chain
             trace_filtered *= 10**(-10/20)
-
-            channel_id = channel.get_id()
+            logger.debug(f'trace after attenuator {np.abs(np.max(trace_filtered))}')
             trace = trace_filtered
-            if triggered_channels is not None and channel_id not in triggered_channels:
-                logger.debug("skipping channel {}".format(channel_id))
-                continue
-            if channel.get_trace_start_time() != channel_trace_start_time:
-                logger.warning('Channel has a trace_start_time that differs from '
-                               '        the other channels. The trigger simulator may not work properly')
 
             if(isinstance(threshold, dict)):
                 threshold_tmp = threshold[channel_id]
             else:
                 threshold_tmp = threshold
+            print('threshold_tmp', threshold_tmp)
+            print(f'trace after attenuator {np.abs(np.max(trace_filtered))}')
             triggered_bins = schottky_diode(trace, threshold_tmp)
+            print('triggered_bins', triggered_bins)
             triggered_bins_channels.append(triggered_bins)
-
             if True in triggered_bins:
                 channels_that_passed_trigger.append(channel.get_id())
 
