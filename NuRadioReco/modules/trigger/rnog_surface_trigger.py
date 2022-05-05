@@ -51,8 +51,8 @@ def schottky_diode(trace, threshold, temp=250*units.kelvin, Vbias=2*units.volt):
 
     if temp == 273*units.kelvin: #measurements taken at 273K
         if Vbias == 2*units.volt:
-            a = 45.9646064
-            b = 0
+            a = 45.9684369
+            b = -6.15792586e-06
         if Vbias == 1.5*units.volt:
             a = 38.80661
             b = -3.01491791e-04
@@ -79,9 +79,6 @@ def schottky_diode(trace, threshold, temp=250*units.kelvin, Vbias=2*units.volt):
 
     v_in = (trace)**2
     v_out = func(v_in, a, b)
-    print('in', np.max(v_in))
-    print('out', np.max(v_out))
-    print('triggered bins', np.sum(v_out > threshold))
     return v_out > threshold
 
 class triggerSimulator:
@@ -123,6 +120,7 @@ class triggerSimulator:
         trigger_name: string
             a unique name of this particular trigger
         """
+
         t = time.time()  # absolute time of system
 
         sampling_rate = station.get_channel(det.get_channel_ids(station.get_id())[0]).get_sampling_rate()
@@ -174,10 +172,7 @@ class triggerSimulator:
                 threshold_tmp = threshold[channel_id]
             else:
                 threshold_tmp = threshold
-            print('threshold_tmp', threshold_tmp)
-            print(f'trace after attenuator {np.abs(np.max(trace_filtered))}')
             triggered_bins = schottky_diode(trace, threshold_tmp)
-            print('triggered_bins', triggered_bins)
             triggered_bins_channels.append(triggered_bins)
             if True in triggered_bins:
                 channels_that_passed_trigger.append(channel.get_id())
