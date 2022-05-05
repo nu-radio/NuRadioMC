@@ -345,9 +345,9 @@ class EnvelopeTrigger(Trigger):
         self._coinc_window = channel_coincidence_window
 
 class RNOGSurfaceTrigger(Trigger):
-
+    from NuRadioReco.utilities import units
     def __init__(self, name, threshold, number_of_coincidences=1,
-                 channel_coincidence_window=80, channels=[13, 16, 19], temp=250*units.kelvin, Vbias=2*units.volt):
+                 channel_coincidence_window=60*units.ns, channels=[13, 16, 19], temp=250*units.kelvin, Vbias=2*units.volt):
         """
         initialize trigger class
 
