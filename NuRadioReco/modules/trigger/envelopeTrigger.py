@@ -47,8 +47,11 @@ class triggerSimulator:
     @register_run()
     def run(self, evt, station, det, passband, order, threshold, coinc_window, number_coincidences=2, triggered_channels=None, trigger_name='envelope_trigger'):
         """
-        Simulates simple threshold trigger based on an Hilbert-envelope of the trace. Passband of the trigger, coincidence
-        window within different channels should have triggered, and the number of channels needed to trigger can be specified.
+        Simulates simple threshold trigger based on an Hilbert-envelope of the trace. 
+        
+        Passband of the trigger, coincidence window within which different channels 
+        should have triggered, and the number of channels needed to trigger 
+        can be specified.
 
         Parameters
         ----------
@@ -63,12 +66,12 @@ class triggerSimulator:
         order: int
             Order of the butterworth filter to apply before the trigger
         threshold: float or dict of floats
-            threshold above (or below) a trigger is issued, absolute amplitude
+            threshold above (or below) a trigger is issued, absolute amplitude.
             a dict can be used to specify a different threshold per channel where the key is the channel id
         number_coincidences: int
             number of channels that are required in coincidence to trigger a station
         triggered_channels: array of ints or None
-            channels ids that are triggered on, if None trigger will run on all channels
+            channels ids that are triggered on. if None, trigger will run on all channels
         coinc_window: float
             time window in which number_coincidences channels need to trigger
         trigger_name: string
@@ -91,30 +94,13 @@ class triggerSimulator:
             channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
 
         for channel in station.iter_channels():
-            # get filter
-            frequencies = channel.get_frequencies()
-
-            f = np.zeros_like(frequencies, dtype=complex)
-            mask = frequencies > 0
-            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)  # Numerator (b) and denominator (a) polynomials of the IIR filter
-            w, h = scipy.signal.freqs(b, a, frequencies[mask])  # w :The angular frequencies at which h was computed. h :The frequency response.
-            f[mask] = h
-
-            # apply filter
-            freq_spectrum_fft = channel.get_frequency_spectrum()
-            freq_spectrum_fft_copy = copy.copy(freq_spectrum_fft)  # copy spectrum so it is only changed within the trigger module
-            sampling_rate = channel.get_sampling_rate()
-
-            freq_spectrum_fft_copy *= f
-            trace_filtered = NuRadioReco.utilities.fft.freq2time(freq_spectrum_fft_copy, sampling_rate)
-
-            # apply envelope trigger to each channel
             channel_id = channel.get_id()
-
-            trace = trace_filtered
             if triggered_channels is not None and channel_id not in triggered_channels:
                 logger.debug("skipping channel {}".format(channel_id))
                 continue
+
+            # we bandpass filter the trace before running the trigger
+            trace = channel.get_filtered_trace(passband, filter_type='butter', order=order)
             if channel.get_trace_start_time() != channel_trace_start_time:
                 logger.warning('Channel has a trace_start_time that differs from '
                                '        the other channels. The trigger simulator may not work properly')
