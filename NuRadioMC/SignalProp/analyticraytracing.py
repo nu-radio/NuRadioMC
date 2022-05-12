@@ -1249,9 +1249,12 @@ class ray_tracing_2D(ray_tracing_base):
         emitted to "skim the surface", i.e. arrive horizontally (angle = 90 deg) at the surface;
         This is used to find the refraction zone.
 
-        returns:
-            C0crit: C0 of critical angle
-            thcrit: critical angle
+        Returns
+        -------
+        C0crit: float
+            C0 of critical angle
+        thcrit: float
+            critical angle
         '''
 
         nlaunch = self.n(x1[1])
@@ -1538,6 +1541,7 @@ class ray_tracing(ray_tracing_base):
             name under which things should be logged
         log_level: logging object
             specify the log level of the ray tracing class
+
             * logging.ERROR
             * logging.WARNING
             * logging.INFO
@@ -1553,10 +1557,12 @@ class ray_tracing(ray_tracing_base):
         config: dict
             a dictionary with the optional config settings. If None, the config is intialized with default values,
             which is needed to avoid any "key not available" errors. The default settings are
-                self._config = {'propagation': {}}
-                self._config['propagation']['attenuate_ice'] = True
-                self._config['propagation']['focusing_limit'] = 2
-                self._config['propagation']['focusing'] = False
+
+                * self._config = {'propagation': {}}
+                * self._config['propagation']['attenuate_ice'] = True
+                * self._config['propagation']['focusing_limit'] = 2
+                * self._config['propagation']['focusing'] = False
+
         detector: detector object
         """
         self.__logger = logging.getLogger('ray_tracing_analytic')
@@ -1917,15 +1923,15 @@ class ray_tracing(ray_tracing_base):
         iS: int
             choose for which solution to compute the launch vector, counting
             starts at zero
-
         dz: float
             the infinitesimal change of the depth of the receiver, 1cm by default
         limit: float
             The maximum signal focusing.
+
         Returns
         -------
-        focusing: a float
-            gain of the signal at the receiver due to the focusing effect:
+        focusing: float
+            gain of the signal at the receiver due to the focusing effect
         """
         recVec = self.get_receive_vector(iS)
         recVec = -1.0 * recVec
