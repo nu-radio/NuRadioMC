@@ -3,6 +3,7 @@ from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from NuRadioReco.utilities import units, fft
 from numpy.random import Generator, Philox
+import numpy.random
 import logging
 
 
@@ -308,7 +309,8 @@ class channelGenericNoiseAdder:
 
     def begin(self, debug=False, seed=None):
         self.__debug = debug
-        self.__random_generator = Generator(Philox(seed))
+        self.__random_generator = np.random.RandomState(seed)
+        # self.__random_generator = Generator(Philox(seed))
         if debug:
             self.logger.setLevel(logging.DEBUG)
 
