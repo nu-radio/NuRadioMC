@@ -164,6 +164,7 @@ class simulation():
             allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom". 
         """
         logger.setLevel(log_level)
+        self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
         logger.status('reading default config from {}'.format(config_file_default))
@@ -397,7 +398,7 @@ class simulation():
         channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
         electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
         if(self._outputfilenameNuRadioReco is not None):
-            self._eventWriter.begin(self._outputfilenameNuRadioReco, log_level=logging.DEBUG)
+            self._eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
         unique_event_group_ids = np.unique(self._fin['event_group_ids'])
         self._n_showers = len(self._fin['event_group_ids'])
         self._shower_ids = np.array(self._fin['shower_ids'])
