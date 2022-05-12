@@ -723,15 +723,21 @@
 
 <div class="viewcode-block" id="BaseStation.is_neutrino"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.is_neutrino">[docs]</a>    <span class="k">def</span> <span class="nf">is_neutrino</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Stations particle type has not been set&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Stations particle type has not been set&quot;</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Stations particle type has not been set. Please call the module `eventTypeIdentifier.run(event, station, mode=&#39;forced&#39;, forced_event_type=&#39;neutrino&#39;/&#39;cosmic_ray&#39;)`.&quot;</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot; This flag is used to differentiate between signals that originate from air vs. signals that originate from within the ice which is needed to e.g. determine if refraction &quot;</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;into the ice needs to be considered.&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">==</span> <span class="s1">&#39;nu&#39;</span></div>
 
 <div class="viewcode-block" id="BaseStation.is_cosmic_ray"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.is_cosmic_ray">[docs]</a>    <span class="k">def</span> <span class="nf">is_cosmic_ray</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Stations particle type has not been set&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Stations particle type has not been set&quot;</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Stations particle type has not been set. Please call the module `eventTypeIdentifier.run(event, station, mode=&#39;forced&#39;, forced_event_type=&#39;neutrino&#39;/&#39;cosmic_ray&#39;)`.&quot;</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot; This flag is used to differentiate between signals that originate from air vs. signals that originate from within the ice which is needed to e.g. determine if refraction &quot;</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;into the ice needs to be considered.&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">==</span> <span class="s1">&#39;cr&#39;</span></div>
 

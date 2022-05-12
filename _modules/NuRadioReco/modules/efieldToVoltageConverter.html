@@ -560,6 +560,8 @@
 
 <div class="viewcode-block" id="efieldToVoltageConverter"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverter.html#NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter">[docs]</a><span class="k">class</span> <span class="nc">efieldToVoltageConverter</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convolves electric field with antenna response to get the voltage output of the antenna</span>
+
 <span class="sd">    Module that should be used to convert simulations to data.</span>
 <span class="sd">    It assumes that at least one efield is given per channel as input. It will</span>
 <span class="sd">    convolve the electric field with the corresponding antenna response for the</span>
@@ -595,7 +597,7 @@
 <span class="sd">            enable/disable debug mode (default: False -&gt; no debug output)</span>
 <span class="sd">        uncertainty: dictionary (default: {})</span>
 <span class="sd">            optional argument to specify systematic uncertainties. currently supported keys</span>
-<span class="sd">             </span>
+
 <span class="sd">             * &#39;sys_dx&#39;: systematic uncertainty of x position of antenna</span>
 <span class="sd">             * &#39;sys_dy&#39;: systematic uncertainty of y position of antenna</span>
 <span class="sd">             * &#39;sys_dz&#39;: systematic uncertainty of z position of antenna</span>

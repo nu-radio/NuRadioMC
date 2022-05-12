@@ -653,6 +653,13 @@
 
 
 <div class="viewcode-block" id="voltageToEfieldConverter"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html#NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter">[docs]</a><span class="k">class</span> <span class="nc">voltageToEfieldConverter</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This module reconstructs the electric field by solving the system of equation that related the incident electric field via the antenna response functions to the measured voltages </span>
+<span class="sd">    (see Eq. 4 of the NuRadioReco paper https://link.springer.com/article/10.1140/epjc/s10052-019-6971-5).</span>
+<span class="sd">    The module assumed that the electric field is identical at the antennas/channels that are used for the reconstruction. Furthermore, at least two antennas with</span>
+<span class="sd">    orthogonal polarization response are needed to reconstruct the 3dim electric field. </span>
+<span class="sd">    Alternatively, the polarization of the resulting efield could be forced to a single polarization component. In that case, a single antenna is sufficient. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">antenna_provider</span> <span class="o">=</span> <span class="kc">None</span>
