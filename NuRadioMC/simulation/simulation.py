@@ -1012,7 +1012,7 @@ class simulation():
                             self._eventWriter.run(self._evt, self._det, mode=output_mode)
                         else:
                             self._eventWriter.run(self._evt, mode=output_mode)
-                        print("WRITING EVENT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                        logger.debug("WRITING EVENT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 # end sub events loop
 
                 # add local sg array to output data structure if any
@@ -1041,7 +1041,7 @@ class simulation():
         self._write_output_file()
         if(self._outputfilenameNuRadioReco is not None):
             self._eventWriter.end()
-            print("CLOSING NUR FILE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            logger.debug("closing nur file")
 
         try:
             self.calculate_Veff()
