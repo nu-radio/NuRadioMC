@@ -16,6 +16,8 @@ import copy
 
 class efieldToVoltageConverter():
     """
+    Convolves electric field with antenna response to get the voltage output of the antenna
+
     Module that should be used to convert simulations to data.
     It assumes that at least one efield is given per channel as input. It will
     convolve the electric field with the corresponding antenna response for the
@@ -51,7 +53,7 @@ class efieldToVoltageConverter():
             enable/disable debug mode (default: False -> no debug output)
         uncertainty: dictionary (default: {})
             optional argument to specify systematic uncertainties. currently supported keys
-             
+
              * 'sys_dx': systematic uncertainty of x position of antenna
              * 'sys_dy': systematic uncertainty of y position of antenna
              * 'sys_dz': systematic uncertainty of z position of antenna
