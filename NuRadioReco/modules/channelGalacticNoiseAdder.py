@@ -189,7 +189,7 @@ class channelGalacticNoiseAdder:
                 if detector.get_relative_position(station.get_id(), channel.get_id())[2] < 0:
                     t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_ice, 1)
                     t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_ice, 1)
-                    fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, 1., n_ice)
+                    fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, n_ice, 1.)
                     if fresnel_zenith is None:
                         continue
                 else:

@@ -136,9 +136,11 @@ class simulation():
         write_mode: str
             Detail level of eventWriter
             specifies the output mode:
+
             * 'full' (default): the full event content is written to disk
             * 'mini': only station traces are written to disc
             * 'micro': no traces are written to disc
+            
         evt_time: datetime object
             the time of the events, default 1/1/2018
         config_file: string
@@ -778,14 +780,12 @@ class simulation():
                                 zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*self._launch_vector)
                                 VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
                                 c = constants.c * units.m / units.s
-                                k = 2 * np.pi * frequencies * n_index / c
-                                eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c) * np.exp(-1j * k * R)
-                                ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c) * np.exp(-1j * k * R)
+                                eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c)
+                                ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c) 
                                 eR = np.zeros_like(eTheta)
                                 # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
                                 eTheta *= 1 / R
                                 ePhi *= 1 / R
-
                             else:
                                 logger.error(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
                                 raise AttributeError(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
@@ -1311,7 +1311,6 @@ class simulation():
     def _read_input_particle_properties(self, idx=None):
         if idx is None:
             idx = self._primary_index
-        self._fin['n_interaction'][self._shower_index] = self._fin['n_interaction'][idx]
         self._event_group_id = self._fin['event_group_ids'][idx]
 
         self.input_particle = NuRadioReco.framework.particle.Particle(0)
@@ -1320,13 +1319,13 @@ class simulation():
         self.input_particle[simp.interaction_type] = self._fin['interaction_type'][idx]
         self.input_particle[simp.inelasticity] = self._fin['inelasticity'][idx]
         self.input_particle[simp.vertex] = np.array([self._fin['xx'][idx],
-                                                  self._fin['yy'][idx],
-                                                  self._fin['zz'][idx]])
+                                                     self._fin['yy'][idx],
+                                                     self._fin['zz'][idx]])
         self.input_particle[simp.zenith] = self._fin['zeniths'][idx]
         self.input_particle[simp.azimuth] = self._fin['azimuths'][idx]
         self.input_particle[simp.inelasticity] = self._fin['inelasticity'][idx]
         self.input_particle[simp.n_interaction] = self._fin['n_interaction'][idx]
-        if self._fin['n_interaction'][self._shower_index] <= 1:
+        if self._fin['n_interaction'][idx] <= 1:
             # parents before the neutrino and outgoing daughters without shower are currently not
             # simulated. The parent_id is therefore at the moment only rudimentarily populated.
             self.input_particle[simp.parent_id] = None  # primary does not have a parent
