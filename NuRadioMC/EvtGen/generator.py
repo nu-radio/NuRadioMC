@@ -346,7 +346,7 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for
-          10% proton fraction (see get_GZK_1 function for details)
+          10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)
         * 'GZK-2': GZK neutrino flux model from fit to TA data (https://pos.sissa.it/395/338/)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
         * 'GZK-1+IceCube-nu-2022': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux
@@ -809,7 +809,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 
-          for 10% proton fraction (see get_GZK_1 function for details)
+          for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
         
     start_file_id: int (default 0)
@@ -1137,7 +1137,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
         * 'IceCube-nu-2022': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.48550/arXiv.2111.10299)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 
-          for 10% proton fraction (see get_GZK_1 function for details)
+          for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)
         * 'GZK-2': GZK neutrino flux model from fit to TA data (https://pos.sissa.it/395/338/)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
         * 'GZK-1+IceCube-nu-2022': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux
