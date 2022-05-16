@@ -3,6 +3,7 @@ from scipy import constants
 import scipy.stats as stats 
 import NuRadioReco.modules.io.eventReader
 from radiotools import helper as hp
+import radiotools.coordinatesystems as cstrans
 import matplotlib.pyplot as plt
 import numpy as np
 from NuRadioReco.utilities import fft
@@ -11,14 +12,18 @@ import h5py
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.modules.neutrinoDirectionReconstruction import analytic_pulse
-import matplotlib
+from NuRadioMC.utilities import medium
 from scipy import signal
 from scipy import optimize as opt
+from scipy.spatial.transform import Rotation
 from matplotlib import rc
 import datetime
 import math
 from NuRadioReco.utilities import units
 import datetime
+import logging
+logger = logging.getLogger("neutrinoDirectionReconstructor")
+logger.setLevel(logging.DEBUG)
 
 
 class neutrinoDirectionReconstructor:
@@ -31,8 +36,9 @@ class neutrinoDirectionReconstructor:
             self, station, det, event, shower_ids, use_channels=[6, 14], ch_Vpol = 6,
             ch_Hpol = 8,sim = True, single_pulse_fit = False, PA_cluster_channels= [0,1,2,3,7,8],
             Hpol_channels = [7,8], window_Vpol = [-10, +50], window_Hpol = [10, 40], 
-            PA_channels = [0,1,2,3], Vrms_Hpol = 8.2 * units.mV, Vrms_Vpol = 8.2 * units.mV, 
-            template = True, icemodel='greenland_simple', att_model='GL1'):
+            PA_channels = [0,1,2,3], Vrms_Hpol = 8.2 * units.mV, Vrms_Vpol = 8.2 * units.mV,
+            passband = [50*units.MHz, 700*units.MHz], 
+            template = True, icemodel='greenland_simple', att_model='GL1', propagation_config=None):
         """
         begin method. This function is executed before the event loop.
         We do not use this function for the reconsturctions. But only to determining uncertainties.
@@ -46,7 +52,11 @@ class neutrinoDirectionReconstructor:
         self._det = det
         self._ice_model = icemodel
         self._att_model = att_model
-        self._sampling_rate = station.get_channel(0).get_sampling_rate() #TODO - what if a station doesn't have a channel 0?
+        self._prop_config = propagation_config
+        self._passband = passband
+        for channel in station.iter_channels():
+            self._sampling_rate = channel.get_sampling_rate()
+            break
         simulated_energy = 0
         for i in np.unique(shower_ids):
             simulated_energy += event.get_sim_shower(i)[shp.energy]
@@ -63,8 +73,14 @@ class neutrinoDirectionReconstructor:
         if not sim: rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
         simulation.begin(
             det, station, use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol,
-            Hpol_channels = Hpol_channels, ice_model=self._ice_model, att_model=self._att_model)#[1, 2, 3] [direct, refracted, reflected]
-        a, b, self._launch_vector_sim, view, d, e =  simulation.simulation(det, station, vertex[0],vertex[1], vertex[2], self._simulated_zenith, self._simulated_azimuth, simulated_energy, use_channels, first_iter = True)
+            Hpol_channels = Hpol_channels,
+            ice_model=self._ice_model, att_model=self._att_model,
+            passband=self._passband, propagation_config=self._prop_config
+        )#[1, 2, 3] [direct, refracted, reflected]
+        self._launch_vector_sim, view =  simulation.simulation(
+            det, station, vertex[0],vertex[1], vertex[2], self._simulated_zenith,
+            self._simulated_azimuth, simulated_energy, use_channels,
+            first_iter = True)[2:4]
         self._simulation = simulation
         self._single_pulse_fit = single_pulse_fit
         self._PA_cluster_channels = PA_cluster_channels
@@ -165,7 +181,9 @@ class neutrinoDirectionReconstructor:
             reconstructed_vertex = station[stnp.nu_vertex]
         
             print("reconstructed vertex direction reco", reconstructed_vertex)
-      
+        self._vertex_azimuth = np.arctan2(reconstructed_vertex[1], reconstructed_vertex[0])
+        ice = medium.get_ice_model(self._ice_model)
+        self._cherenkov_angle = np.arccos(1 / ice.get_index_of_refraction(reconstructed_vertex))
         
         if self._station.has_sim_station():
             shower_id = shower_ids[0]
@@ -187,8 +205,43 @@ class neutrinoDirectionReconstructor:
                 det, station, use_channels, raytypesolution = rt,
                 ch_Vpol = ch_Vpol, Hpol_channels = Hpol_channels,
                 Hpol_lower_band = Hpol_lower_band, Hpol_upper_band = Hpol_upper_band,
-                ice_model=self._ice_model, att_model=self._att_model)
-            tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(det, station, event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], simulated_zenith, simulated_azimuth, simulated_energy, use_channels, first_iter = True) 
+                ice_model=self._ice_model, att_model=self._att_model,
+                passband=self._passband, propagation_config=self._prop_config)
+            tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(
+                det, station, event.get_sim_shower(shower_id)[shp.vertex][0], 
+                event.get_sim_shower(shower_id)[shp.vertex][1], 
+                event.get_sim_shower(shower_id)[shp.vertex][2], 
+                simulated_zenith, simulated_azimuth, simulated_energy, 
+                use_channels, first_iter = True) 
+            if pol_sim is None: # occasionally (if the vertex position is wrong), no solution may exist for the sim vertex and the given ray type.
+                if rt == 'refracted':
+                    sim_rt = 'reflected'
+                elif rt == 'reflected':
+                    sim_rt = 'refracted'
+                else: # this probably shouldn't ever happen?
+                    logger.warning("Couldn't determine polarization / viewing angle for sim_station. Skipping...")
+                    sim_rt = None
+                logger.warning(
+                    "The reconstructed ray type is {}, but for the simulated vertex, no such ray solution exists. Using {} instead.".format(
+                        rt, sim_rt
+                    ))
+                simulation._raytypesolution = sim_rt
+                tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(
+                    det, station, event.get_sim_shower(shower_id)[shp.vertex][0], 
+                    event.get_sim_shower(shower_id)[shp.vertex][1], 
+                    event.get_sim_shower(shower_id)[shp.vertex][2], 
+                    simulated_zenith, simulated_azimuth, simulated_energy, 
+                    use_channels, first_iter = True) 
+            # simulation._raytypesolution = rt # revert to reconstructed ray type for reconstruction!
+            if pol_sim is None: # for some reason, didn't manage to obtain simulated vw / polarization angle
+                pol_sim = np.nan * np.ones(3) # we still set them, so the debug plots don't fail
+                vw_sim = np.nan
+            self._launch_vector_sim = lv_sim # not used?
+            logger.debug(
+                "Simulated viewing angle: {:.1f} deg / Polarization angle: {:.1f} deg".format(
+                    vw_sim / units.deg, np.arctan2(pol_sim[2], pol_sim[1]) / units.deg
+                )
+            )
        
             ## check SNR of channels
             SNR = []
@@ -207,7 +260,8 @@ class neutrinoDirectionReconstructor:
             det, station, use_channels, raytypesolution = rt,
             ch_Vpol = ch_Vpol, Hpol_channels = Hpol_channels,
             Hpol_lower_band = Hpol_lower_band, Hpol_upper_band = Hpol_upper_band,
-            ice_model=self._ice_model, att_model=self._att_model
+            ice_model=self._ice_model, att_model=self._att_model,
+            passband=self._passband, propagation_config=self._prop_config
             )
         self._simulation = simulation
         if station.has_sim_station():
@@ -220,7 +274,11 @@ class neutrinoDirectionReconstructor:
                 use_channels, first_iter=True)[2]
             #### values for reconstructed vertex and simulated direction
             if sim_station:
-                traces_sim, timing_sim, self._launch_vector_sim, viewingangles_sim, rayptypes, a = simulation.simulation( det, station, event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], simulated_zenith, simulated_azimuth, simulated_energy, use_channels, first_iter = True)
+                # traces_sim, timing_sim, self._launch_vector_sim, viewingangles_sim, rayptypes, a = simulation.simulation(
+                #     det, station, event.get_sim_shower(shower_id)[shp.vertex][0],
+                #     event.get_sim_shower(shower_id)[shp.vertex][1],
+                #     event.get_sim_shower(shower_id)[shp.vertex][2],
+                #     simulated_zenith, simulated_azimuth, simulated_energy, use_channels, first_iter = True)
 
          
                 fsimsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  True, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)
@@ -292,7 +350,7 @@ class neutrinoDirectionReconstructor:
                     self._single_pulse_fit = True
                     res = opt.minimize(self.minimizer, x0=(.1),args = (reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], True, False, False, True, False, ch_Vpol, ch_Hpol, False,False, False, True), bounds = bounds[iv],method = method)
                     # minimizer with fitted viewing angle and energy for polarization
-                    station.set_parameter(stnp.viewing_angle, [viewangles[np.argmin(L)], viewingangles_sim])
+                    station.set_parameter(stnp.viewing_angle, [viewangles[np.argmin(L)], vw_sim])
                     station.set_parameter(stnp.nu_energy, 10**energies[np.argmin(L)])
              #       print("single pulse fit")
               
@@ -303,11 +361,11 @@ class neutrinoDirectionReconstructor:
             
                 check_starting_values =False  #
                 if check_starting_values:
-                    station.set_parameter(stnp.viewing_angle, [viewangles[np.argmin(L)], viewingangles_sim])
+                    station.set_parameter(stnp.viewing_angle, [viewangles[np.argmin(L)], vw_sim])
                     station.set_parameter(stnp.nu_energy, 10**energies[np.argmin(L)])
                     #exit()
                     if sim_station:
-                        print("simulated viewing angle: {}, reconstructed viewing angle {}".format(np.rad2deg(viewingangles_sim), np.rad2deg(viewangles[np.argmin(L)])))
+                        print("simulated viewing angle: {}, reconstructed viewing angle {}".format(np.rad2deg(vw_sim), np.rad2deg(viewangles[np.argmin(L)])))
                         print("simulated energy: {}, reconstructed energy {}".format(simulated_energy, 10**energies[np.argmin(L)]))
                 
                   
@@ -336,12 +394,11 @@ class neutrinoDirectionReconstructor:
                     #             ax[ich].set_xlim((channel.get_times()[np.argmax(channel.get_trace())] - 50, channel.get_times()[np.argmax(channel.get_trace())]+50))#timingsim[channel.get_id()][0][0], timingsim[channel.get_id()][0][-1])
                                  ich += 1
                          fig.savefig("{}/startingvalues.pdf".format(debugplots_path))
-                              	
                
 
         if 1:#
         
-            cherenkov = 55.6 ## cherenov angle
+            # cherenkov = self._cherenkov_angle ## cherenov angle
             if starting_values:
                 viewing_start = viewangles[np.argmin(L)] - np.deg2rad(2)
                 viewing_end = viewangles[np.argmin(L)] + np.deg2rad(2)
@@ -351,11 +408,22 @@ class neutrinoDirectionReconstructor:
             #     viewing_end = vw_sim + np.deg2rad(2)
             #     energy_start = simulated_energy
 
-            viewing_start = np.deg2rad(cherenkov) - np.deg2rad(10) # 15 degs
-            viewing_end = np.deg2rad(cherenkov) + np.deg2rad(10)
-            energy_start = 1e18 * units.eV
-            theta_start = np.deg2rad(50) #-180
-            theta_end =  np.deg2rad(90) #180
+            viewing_start = self._cherenkov_angle - np.deg2rad(15) # 15 degs
+            viewing_end = self._cherenkov_angle + np.deg2rad(15)
+            # viewing_start = vw_sim - 2 * units.deg
+            # viewing_end = vw_sim + 2.1 * units.deg
+            d_viewing_grid = .5 * units.deg # originally .5 deg
+            energy_start = 1e17 * units.eV
+            energy_end = 1e19 * units.eV + 1e14 * units.eV
+            d_log_energy = .5
+            # energy_start = simulated_energy / 3
+            # energy_end = simulated_energy * 3
+            theta_start = np.deg2rad(-180) #-180
+            theta_end =  np.deg2rad(180) #180
+            # pol_angle_sim = np.arctan2(pol_sim[2], pol_sim[1])
+            # theta_start = pol_angle_sim - 5 * units.deg
+            # theta_end = pol_angle_sim + 5.1 * units.deg
+            d_theta_grid = 5 * units.deg # originally 1 degree
 
             cop = datetime.datetime.now()
             if station.has_sim_station(): print("SIMULATED DIRECTION {} {}".format(np.rad2deg(simulated_zenith), np.rad2deg(simulated_azimuth)))
@@ -371,7 +439,18 @@ class neutrinoDirectionReconstructor:
                     else:
                         results = results1
                 else:
-                    results = opt.brute(self.minimizer, ranges=(slice(viewing_start, viewing_end, np.deg2rad(.5)), slice(theta_start, theta_end, np.deg2rad(1)), slice(np.log10(energy_start) - .1, np.log10(energy_start) + .1, .1)), full_output = True, finish = opt.fmin , args = (reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], True, False, False, True, False, ch_Vpol, ch_Hpol, full_station))
+                    results = opt.brute(
+                        self.minimizer,
+                        ranges=(
+                            slice(viewing_start, viewing_end, d_viewing_grid),
+                            slice(theta_start, theta_end, d_theta_grid),
+                            slice(np.log10(energy_start), np.log10(energy_end), d_log_energy)
+                        ), full_output = True, finish = opt.fmin,
+                        args = (
+                            reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2],
+                            True, False, False, True, False, ch_Vpol, ch_Hpol, full_station
+                        )
+                    )
                     
             elif restricted_input:
                 zenith_start =  simulated_zenith - np.deg2rad(2)
@@ -384,8 +463,12 @@ class neutrinoDirectionReconstructor:
                 
             print('start datetime', cop)
             print("end datetime", datetime.datetime.now() - cop)
-                
-    
+            # print("cache statistics for analytic_pulse ray tracer")
+            # print(self._simulation._raytracer.cache_info())
+            vw_grid = results[-2]
+            chi2_grid = results[-1]
+            # np.save("{}/grid_{}".format(debugplots_path, filenumber), vw_grid)
+            # np.save("{}/chi2_{}".format(debugplots_path, filenumber), chi2_grid)
             ###### GET PARAMETERS #########
             
             if only_simulation:
@@ -398,15 +481,16 @@ class neutrinoDirectionReconstructor:
                 cherenkov_angle = results[0][0]
                 angle = results[0][1]
 
-                p3 = np.array([np.sin(cherenkov_angle)*np.cos(angle), np.sin(cherenkov_angle)*np.sin(angle), np.cos(cherenkov_angle)])
-                p3 = rotation_matrix.dot(p3)
-                global_az = hp.cartesian_to_spherical(p3[0], p3[1], p3[2])[1]
-                global_zen = hp.cartesian_to_spherical(p3[0], p3[1], p3[2])[0]
-                global_zen = np.deg2rad(180) - global_zen
-                
+                # p3 = np.array([np.sin(cherenkov_angle)*np.cos(angle), np.sin(cherenkov_angle)*np.sin(angle), np.cos(cherenkov_angle)])
+                # p3 = rotation_matrix.dot(p3)
+                # global_az = hp.cartesian_to_spherical(p3[0], p3[1], p3[2])[1]
+                # global_zen = hp.cartesian_to_spherical(p3[0], p3[1], p3[2])[0]
+                # global_zen = np.deg2rad(180) - global_zen
 
-                rec_zenith = global_zen
-                rec_azimuth = global_az
+                rec_zenith, rec_azimuth = self._transform_angles(cherenkov_angle, angle)                
+
+                # rec_zenith = global_zen
+                # rec_azimuth = global_az
                 rec_energy = 10**results[0][2]
                 
             elif restricted_input:
@@ -441,6 +525,8 @@ class neutrinoDirectionReconstructor:
             results = scipy.optimize.minimize(self.minimizer, [14],method = method, args=(reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], True, False, False,False, [simulated_zenith, simulated_azimuth], ch_Vpol, ch_Hpol, True, False), bounds= bounds)
             if station.has_sim_station(): fmin_simdir_recvertex = self.minimizer([simulated_zenith, simulated_azimuth, results.x[0]], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)
     
+            ### values for reconstructed vertex and reconstructed direction
+            traces_rec, timing_rec, launch_vector_rec, viewingangle_rec, a, pol_rec =  simulation.simulation( det, station, reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], rec_zenith, rec_azimuth, rec_energy, use_channels, first_iter = True)
 
             print("make debug plots....")
             if debug_plots:
@@ -452,7 +538,7 @@ class neutrinoDirectionReconstructor:
                 timingsim_recvertex = self.minimizer([simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], first_iter = True, minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[2]
                 plt.rc('xtick', labelsize = 25)
                 plt.rc('ytick', labelsize = 25)
-                fig, ax = plt.subplots(len(use_channels), 3, sharex=False, figsize=(40, 10*len(use_channels)))
+                fig, ax = plt.subplots(len(use_channels), 3, sharex=False, figsize=(32, 8*len(use_channels)))
 
                 ich = 0
                 SNRs = np.zeros((len(use_channels), 2))
@@ -469,6 +555,9 @@ class neutrinoDirectionReconstructor:
 
                         
                         if len(tracdata[channel.get_id()]) > 0:
+                            # logger.debug("Plotting channel {}....".format(channel.get_id()))
+                            # logger.debug("Data trace: {:.0f} - {:.0f} ns".format(channel.get_times()[0], channel.get_times()[-1]))
+                            # logger.debug("Sim trace: {:.0f} - {:.0f} ns".format(timingsim[channel.get_id()][0][0], timingsim[channel.get_id()][0][-1]))
                             ax[ich][0].grid()
                             ax[ich][2].grid()
                             ax[ich][0].set_xlabel("timing [ns]", fontsize = 30)
@@ -521,10 +610,48 @@ class neutrinoDirectionReconstructor:
                 fig.tight_layout()
                 print("output path for stored figure","{}/fit_{}.pdf".format(debugplots_path, filenumber))
                 fig.savefig("{}/fit_{}.pdf".format(debugplots_path, filenumber, shower_id))
+                plt.close('all')
+                ### chi squared grid from opt.brute:
+                plt.rc('xtick', labelsize = 10)
+                plt.rc('ytick', labelsize = 10)
+                min_energy_index = np.unravel_index(np.argmin(chi2_grid), vw_grid.shape)[-1]
+                extent = (
+                    vw_grid[0,0,0,0] / units.deg,
+                    vw_grid[0,-1,0,0] / units.deg,
+                    vw_grid[1,0,0,0] / units.deg,
+                    vw_grid[1,0,-1,0] / units.deg,
+                )
+
+                plt.figure(figsize=(8,8))
+                plt.imshow(
+                    (chi2_grid[:,:,min_energy_index].T),
+                    extent=extent,
+                    aspect='auto',
+                    vmax=5*np.min(chi2_grid),
+                    origin='lower'   
+                )
+
+                plt.plot(
+                    vw_sim / units.deg, np.arctan2(pol_sim[2], pol_sim[1]) / units.deg,
+                    marker='o', label='{:.1f}, {:.1f} (simulated)'.format(
+                        vw_sim/units.deg, np.arctan2(pol_sim[2], pol_sim[1]) / units.deg
+                    ), color='red', ls='none'
+                )
+                plt.plot(
+                    viewingangle_rec / units.deg, np.arctan2(pol_rec[2], pol_rec[1]) / units.deg,
+                    marker='x', label='{:.1f}, {:.1f} (reconstructed)'.format(
+                        viewingangle_rec/units.deg, np.arctan2(pol_rec[2], pol_rec[1]) / units.deg
+                    ), color='magenta', ms=8, mfc='magenta', ls='none'
+                )
+                plt.legend()
+                plt.xlabel("Viewing angle (deg)")
+                plt.ylabel("Polarization angle (deg)")
+                plt.title("E=1e{:.1f} eV".format(vw_grid[2,0,0,min_energy_index]))
+                plt.colorbar(label=r"$\chi^2$")
+                plt.savefig("{}/chi_squared_{}.pdf".format(debugplots_path, filenumber))
+                plt.close()
                 #exit()
 
-                ### values for reconstructed vertex and reconstructed direction
-            traces_rec, timing_rec, launch_vector_rec, viewingangle_rec, a, pol_rec =  simulation.simulation( det, station, reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], rec_zenith, rec_azimuth, rec_energy, use_channels, first_iter = True)
 
             ###### STORE PARAMTERS AND PRINT PARAMTERS #########
             station.set_parameter(stnp.extra_channels, extra_channel)
@@ -559,402 +686,415 @@ class neutrinoDirectionReconstructor:
             azimuth = 360 + azimuth
         return np.deg2rad(azimuth)
 
-
+    def _transform_angles(self, viewing_angle, polarization_angle):
+        lv = self._launch_vector
+        pol = np.array([0, np.cos(polarization_angle), np.sin(polarization_angle)])
+        cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*lv))
+        pol_cartesian = cs.transform_from_onsky_to_ground(pol)
+        rotation_axis = np.cross(lv, pol_cartesian)
+        rot = Rotation.from_rotvec(viewing_angle * rotation_axis / np.linalg.norm(rotation_axis))
+        nu_direction = -rot.apply(lv) # using the convention that nu_direction points to its origin
+        zenith, azimuth = hp.cartesian_to_spherical(*nu_direction)
+        return zenith, azimuth
                   
-    def minimizer(self, params, vertex_x, vertex_y, vertex_z, minimize = True, timing_k = False, first_iter = False, banana = False,  direction = [0, 0], ch_Vpol = 6, ch_Hpol = False, full_station = False, single_pulse =False, fixed_timing = False, starting_values = False, penalty = False, sim = False):
-            """""""""""
-            params: list
-                input paramters for viewing angle / direction
-            vertex_x, vertex_y, vertex_z: float
-                input vertex
-            minimize: Boolean
-                If true, minimization output is given (chi2). If False, parameters are returned. Default minimize = True.
-            first_iter: Boolean
-                If true, raytracing is performed. If false, raytracing is not perfomred. Default first_iter = False.
-            banana: Boolean
-                If true, input values are viewing angle and energy. If false, input values should be theta and phi. Default banana = False.
-            direction: list
-                List with phi and theta direction. This is only for determining contours. Default direction = [0,0].
-            ch_Vpol: int
-                channel id for the Vpol of the reference pulse. Must be upper Vpol in phased array. Default ch_Vpol = 6.
-            ch_Hpol: int
-    		channel id for the Hpol which is closest by the ch_Vpol
-            full_station:       
-                if True, all raytype solutions for all channels are used, regardless of SNR of pulse. Default full_station = True.
-            single_pulse: Boolean
-                if True, only 1 pulse is used from the reference Vpol. Default single_pulse = False.
-            fixed_timing: Boolean
-                if True, the positions of the pulses using the simulated timing is used. This only works for the simulated vertex and for Alvarez2009 reconstruction and simulation. Default fixed_timing = False.
-            starting_values: Boolean
-                if True, the phased array cluster is used to obtain starting values for the viewing angle and the energy to limit the timing for the brute force approach. Default starting_values = False.
-            penalty: Boolean
-                if True, a penalty is included such that the reconstruction is not allowed to overshoot the traces with snr< 3.5. Default penalty = False.
-                
-                
-            """""""""""""""
+    def minimizer(
+            self, params, vertex_x, vertex_y, vertex_z, minimize = True, timing_k = False,
+            first_iter = False, banana = False,  direction = [0, 0], ch_Vpol = 6, ch_Hpol = False,
+            full_station = False, single_pulse =False, fixed_timing = False,
+            starting_values = False, penalty = False, sim = False
+        ):
+        """"
+        params: list
+            input paramters for viewing angle / direction
+        vertex_x, vertex_y, vertex_z: float
+            input vertex
+        minimize: Boolean
+            If true, minimization output is given (chi2). If False, parameters are returned. Default minimize = True.
+        first_iter: Boolean
+            If true, raytracing is performed. If false, raytracing is not perfomred. Default first_iter = False.
+        banana: Boolean
+            If true, input values are viewing angle and energy. If false, input values should be theta and phi. Default banana = False.
+        direction: list
+            List with phi and theta direction. This is only for determining contours. Default direction = [0,0].
+        ch_Vpol: int
+            channel id for the Vpol of the reference pulse. Must be upper Vpol in phased array. Default ch_Vpol = 6.
+        ch_Hpol: int
+            channel id for the Hpol which is closest by the ch_Vpol
+        full_station:       
+            if True, all raytype solutions for all channels are used, regardless of SNR of pulse. Default full_station = True.
+        single_pulse: Boolean
+            if True, only 1 pulse is used from the reference Vpol. Default single_pulse = False.
+        fixed_timing: Boolean
+            if True, the positions of the pulses using the simulated timing is used. This only works for the simulated vertex and for Alvarez2009 reconstruction and simulation. Default fixed_timing = False.
+        starting_values: Boolean
+            if True, the phased array cluster is used to obtain starting values for the viewing angle and the energy to limit the timing for the brute force approach. Default starting_values = False.
+        penalty: Boolean
+            if True, a penalty is included such that the reconstruction is not allowed to overshoot the traces with snr< 3.5. Default penalty = False.
+            
+        """
+
+        model_sys = 0
     
-            model_sys = 0
-     
-            if banana: ## if input is viewing angle and energy, they need to be transformed to zenith and azimuth
-                if len(params) ==3:
-                    cherenkov_angle, angle, log_energy = params 
-                    print("viewing angle and energy and angle ", [np.rad2deg(cherenkov_angle), log_energy, np.rad2deg(angle)])
-                if len(params) == 2:
-                    cherenkov_angle, log_energy = params
-                    angle = self._angle
-                    print("viewing angle and energy and angle ", [np.rad2deg(cherenkov_angle), log_energy, np.rad2deg(angle)])
-                if len(params) == 1:
-                    cherenkov_angle = self._viewing_angle
-                    self._pol_angle = params
-                    print("pol angle", self._pol_angle)
-                    log_energy = self._log_energy
-                    angle = self._angle
+        if banana: ## if input is viewing angle and energy, they need to be transformed to zenith and azimuth
+            if len(params) ==3:
+                cherenkov_angle, angle, log_energy = params 
+                # print("viewing angle and energy and angle ", [np.rad2deg(cherenkov_angle), log_energy, np.rad2deg(angle)])
+            if len(params) == 2:
+                cherenkov_angle, log_energy = params
+                angle = self._angle
+                print("viewing angle and energy and angle ", [np.rad2deg(cherenkov_angle), log_energy, np.rad2deg(angle)])
+            if len(params) == 1:
+                cherenkov_angle = self._viewing_angle
+                self._pol_angle = params
+                print("pol angle", self._pol_angle)
+                log_energy = self._log_energy
+                angle = self._angle
+            energy = 10**log_energy
+            
+
+            #print("viewing angle and energy and angle ", [np.rad2deg(cherenkov_angle), log_energy, np.rad2deg(angle)])
+            # signal_zenith, signal_azimuth = hp.cartesian_to_spherical(*self._launch_vector)
+
+            # sig_dir = hp.spherical_to_cartesian(signal_zenith, signal_azimuth)
+            # rotation_matrix = hp.get_rotation(sig_dir, np.array([0, 0,1]))
+
+
+            # p3 = np.array([np.sin(cherenkov_angle)*np.cos(angle), np.sin(cherenkov_angle)*np.sin(angle), np.cos(cherenkov_angle)])
+            # p3 = rotation_matrix.dot(p3)
+            # azimuth = hp.cartesian_to_spherical(p3[0], p3[1], p3[2])[1]
+            # zenith = hp.cartesian_to_spherical(p3[0], p3[1], p3[2])[0]
+            # zenith = np.deg2rad(180) - zenith
+            zenith, azimuth = self._transform_angles(cherenkov_angle, angle)
+
+            if np.rad2deg(zenith) > 120:
+                return np.inf ## not in field of view
+            # if np.rad2deg(zenith) < 20:  ## not in field of view
+            #     return np.inf
+            
+        else: 
+            if len(params) ==3:
+                zenith, azimuth, log_energy = params 
                 energy = 10**log_energy
+            #       print("parameters zen {} az {} energy {}".format(np.rad2deg(zenith), np.rad2deg(azimuth), energy))
+            if len(params) == 1:
+                log_energy = params
                 
-
-                #print("viewing angle and energy and angle ", [np.rad2deg(cherenkov_angle), log_energy, np.rad2deg(angle)])
-                signal_zenith, signal_azimuth = hp.cartesian_to_spherical(*self._launch_vector)
-
-                sig_dir = hp.spherical_to_cartesian(signal_zenith, signal_azimuth)
-                rotation_matrix = hp.get_rotation(sig_dir, np.array([0, 0,1]))
-
-
-                p3 = np.array([np.sin(cherenkov_angle)*np.cos(angle), np.sin(cherenkov_angle)*np.sin(angle), np.cos(cherenkov_angle)])
-                p3 = rotation_matrix.dot(p3)
-                azimuth = hp.cartesian_to_spherical(p3[0], p3[1], p3[2])[1]
-                zenith = hp.cartesian_to_spherical(p3[0], p3[1], p3[2])[0]
-                zenith = np.deg2rad(180) - zenith
-               
-
-                if np.rad2deg(zenith) > 100:
-                    return np.inf ## not in field of view
-                if np.rad2deg(zenith) < 20:  ## not in field of view
-                    return np.inf
-             
-            else: 
-                if len(params) ==3:
-                    zenith, azimuth, log_energy = params 
-                    energy = 10**log_energy
-             #       print("parameters zen {} az {} energy {}".format(np.rad2deg(zenith), np.rad2deg(azimuth), energy))
-                if len(params) == 1:
-                    log_energy = params
-                 
-                    energy = 10**log_energy[0]
-                    zenith, azimuth = direction
-            
-            azimuth = self.transform_azimuth(azimuth)
-            
-            pol_angle = 0
-            if self._single_pulse_fit:
-                pol_angle = self._pol_angle
-            traces, timing, launch_vector, viewingangles, raytypes, pol = self._simulation.simulation(
-                self._det, self._station, vertex_x, vertex_y, vertex_z, zenith, azimuth, energy,
-                self._use_channels, first_iter = first_iter, starting_values = starting_values,
-                pol_angle = pol_angle) ## get traces due to neutrino direction and vertex position
-            chi2 = 0
-            all_chi2 = []
-            over_reconstructed = [] ## list for channel ids where reconstruction is larger than data
-            extra_channel = 0 ## count number of pulses besides triggering pulse in Vpol + Hpol
-
-
-            rec_traces = {} ## to store reconstructed traces
-            data_traces = {} ## to store data traces
-            data_timing = {} ## to store timing
+                energy = 10**log_energy[0]
+                zenith, azimuth = direction
         
+        azimuth = self.transform_azimuth(azimuth)
+        
+        pol_angle = 0
+        if self._single_pulse_fit:
+            pol_angle = self._pol_angle
+        traces, timing, launch_vector, viewingangles, raytypes, pol = self._simulation.simulation(
+            self._det, self._station, vertex_x, vertex_y, vertex_z, zenith, azimuth, energy,
+            self._use_channels, first_iter = first_iter, starting_values = starting_values,
+            pol_angle = pol_angle) ## get traces due to neutrino direction and vertex position
+        chi2 = 0
+        all_chi2 = []
+        over_reconstructed = [] ## list for channel ids where reconstruction is larger than data
+        extra_channel = 0 ## count number of pulses besides triggering pulse in Vpol + Hpol
 
-            #get timing and pulse position for raytype of triggered pulse
-            for iS in raytypes[ch_Vpol]:
-                if sim or self._sim_vertex: raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1
-                if not sim and not self._sim_vertex: raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
 
-                if raytypes[ch_Vpol][iS] == raytype:
-                    solution_number = iS#for reconstructed vertex it can happen that the ray solution does not exist
-            T_ref = timing[ch_Vpol][solution_number]
-            trace_start_time_ref = self._station.get_channel(ch_Vpol).get_trace_start_time()
+        rec_traces = {} ## to store reconstructed traces
+        data_traces = {} ## to store data traces
+        data_timing = {} ## to store timing
+    
 
-            if sim or self._sim_vertex: k_ref = self._station[stnp.pulse_position_sim]# get pulse position for triggered pulse
-            if not sim and not self._sim_vertex:  k_ref = self._station[stnp.pulse_position]
-            ks = {}
+        #get timing and pulse position for raytype of triggered pulse
+        for iS in raytypes[ch_Vpol]:
+            if sim or self._sim_vertex: raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1
+            if not sim and not self._sim_vertex: raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
+
+            if raytypes[ch_Vpol][iS] == raytype:
+                solution_number = iS#for reconstructed vertex it can happen that the ray solution does not exist
+        T_ref = timing[ch_Vpol][solution_number]
+        trace_start_time_ref = self._station.get_channel(ch_Vpol).get_trace_start_time()
+
+        if sim or self._sim_vertex: k_ref = self._station[stnp.pulse_position_sim]# get pulse position for triggered pulse
+        if not sim and not self._sim_vertex:  k_ref = self._station[stnp.pulse_position]
+        ks = {}
+        
+        ich = -1
+        reduced_chi2_Vpol = 0
+        reduced_chi2_Hpol = 0
+        channels_Vpol = self._use_channels
+        dict_dt = {}
+        for ch in self._use_channels:    
+            dict_dt[ch] = {}
+        for channel in self._station.iter_channels(): ### FIRST SET TIMINGS
+            channel_id = channel.get_id()
+            if (channel_id in self._use_channels):
+
+                ich += 1 ## number of channel
+                data_trace = np.copy(channel.get_trace())
+                rec_traces[channel_id] = {}
+                data_traces[channel_id] = {}
+                data_timing[channel_id] = {}
+
+                ### if no solution exist, than analytic voltage is zero
+                rec_trace = np.zeros(len(data_trace))# if there is no raytracing solution, the trace is only zeros
+
+                delta_k = [] ## if no solution type exist then channel is not included
+                num = 0
+                chi2s = np.zeros(2)
+                for i_trace, key in enumerate(traces[channel_id]):#get dt for phased array pulse
+                    rec_trace = traces[channel_id][key]
+
+                    delta_T =  timing[channel_id][key] - T_ref
+                    if int(delta_T) == 0:
+                        trace_ref = i_trace
+
+                    ## before correlating, set values around maximum voltage trace data to zero
+                    delta_toffset = delta_T * self._sampling_rate
+                    # take into account unequal trace start times
+                    delta_toffset -= (channel.get_trace_start_time() - trace_start_time_ref) * self._sampling_rate 
+
+                    ### figuring out the time offset for specfic trace
+                    dk = int(k_ref + delta_toffset )# where do we expect the pulse to be wrt channel 6 main pulse and rec vertex position
+                    
+                    if 1:
+                        data_trace_timing = np.copy(data_trace) ## cut data around timing
+                        ## DETERMIINE PULSE REGION DUE TO REFERENCE TIMING
+
+                        data_timing_timing = np.copy(channel.get_times())#np.arange(0, len(channel.get_trace()), 1)#
+                        # dk_1 = data_timing_timing[dk] # this will probably raise an error if the pulse is outside the trace!
+
+                        data_window = [30 * self._sampling_rate, 50 * self._sampling_rate] # window around pulse in samples
+                        include_samples = np.arange(int(dk - data_window[0]), int(dk + data_window[1]))
+                        first_sample = np.max([include_samples[0], 0]) # make sure the first index is non-negative
+                        mask = (include_samples >= 0) & (include_samples < len(data_trace_timing))
+                        data_timing_timing_1, data_trace_timing_1 = np.zeros((2,len(include_samples)))
+                        if np.sum(mask):
+                            data_timing_timing_1[mask] = data_timing_timing[first_sample:include_samples[-1] + 1]
+                            data_trace_timing_1[mask] = data_trace_timing[first_sample:include_samples[-1] + 1]
+                        data_timing_timing = data_timing_timing_1
+                        # print("Channel {} / RT solution {} / pulse at sample {} / Samples in window {}".format(channel_id, i_trace, dk, np.sum(mask)))
+
+                        # data_timing_timing = data_timing_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)] ## 800 samples, like the simulation
+                        # data_trace_timing = data_trace_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)]
+                        # data_trace_timing_1 = np.copy(data_trace_timing)
+                        ### cut data trace timing to make window to search for pulse smaller
+                        # data_trace_timing_1[data_timing_timing < (dk_1 - 50)] = 0 # this doesn't do anything?
+                        # data_trace_timing_1[data_timing_timing > (dk_1 + 50)] = 0
+                
+                        library_channels ={}
+                        for i_ch in self._use_channels:
+                            library_channels[i_ch] = [i_ch]
+
+                        corr = signal.hilbert(signal.correlate(rec_trace, data_trace_timing_1))
+                        dt1 = np.argmax(corr) - (len(corr)/2) + 1
             
-            ich = -1
-            reduced_chi2_Vpol = 0
-            reduced_chi2_Hpol = 0
-            channels_Vpol = self._use_channels
-            dict_dt = {}
-            for ch in self._use_channels:    
-                dict_dt[ch] = {}
-            for channel in self._station.iter_channels(): ### FIRST SET TIMINGS
-                channel_id = channel.get_id()
-                if (channel_id in self._use_channels):
+                        chi2_dt1 = np.sum((np.roll(rec_trace, math.ceil(-1*dt1)) - data_trace_timing_1)**2 / ((self._Vrms)**2))/len(rec_trace)
+                        dt2 = np.argmax(corr) - (len(corr)/2)
+                        chi2_dt2 = np.sum((np.roll(rec_trace, math.ceil(-1*dt2)) - data_trace_timing_1)**2 / ((self._Vrms)**2))/len(rec_trace)
+                        if chi2_dt2 < chi2_dt1:
+                            dt = dt2
+                        else:
+                            dt = dt1
+                        corresponding_channels = library_channels[channel_id]
+                        for ch in corresponding_channels:
+                            dict_dt[ch][i_trace] = dt
 
-                    ich += 1 ## number of channel
-                    data_trace = np.copy(channel.get_trace())
-                    rec_traces[channel_id] = {}
-                    data_traces[channel_id] = {}
-                    data_timing[channel_id] = {}
 
-                    ### if no solution exist, than analytic voltage is zero
-                    rec_trace = np.zeros(len(data_trace))# if there is no raytracing solution, the trace is only zeros
-
-                    delta_k = [] ## if no solution type exist then channel is not included
-                    num = 0
-                    chi2s = np.zeros(2)
-                    for i_trace, key in enumerate(traces[channel_id]):#get dt for phased array pulse
+        if fixed_timing:
+            for i_ch in self._use_channels:
+                if 1:#i_ch not in self._PA_cluster_channels:
+                    dict_dt[i_ch][0] = dict_dt[ch_Vpol][trace_ref]
+                    dict_dt[i_ch][1] = dict_dt[ch_Vpol][trace_ref]
+                
+                    
+        dof = 0
+        for channel in self._station.iter_channels():
+            channel_id = channel.get_id()
+            if channel_id in self._use_channels:
+                chi2s = np.zeros(2)
+                echannel = np.zeros(2)
+                dof_channel = 0
+                rec_traces[channel_id] = {}
+                data_traces[channel_id] = {}
+                data_timing[channel_id] = {}
+                data_trace = np.copy(channel.get_trace())
+                if traces[channel_id]:
+                    for i_trace, key in enumerate(traces[channel_id]): ## iterate over ray type solutions
                         rec_trace = traces[channel_id][key]
-
                         delta_T =  timing[channel_id][key] - T_ref
-                        if int(delta_T) == 0:
-                            trace_ref = i_trace
-   
                         ## before correlating, set values around maximum voltage trace data to zero
                         delta_toffset = delta_T * self._sampling_rate
-                        # take into account unequal trace start times
-                        delta_toffset -= (channel.get_trace_start_time() - trace_start_time_ref) * self._sampling_rate 
+                        # adjust for unequal trace start times
+                        # if adjust_for_start_time:
+                        delta_toffset -= (channel.get_trace_start_time() - trace_start_time_ref) * self._sampling_rate
 
                         ### figuring out the time offset for specfic trace
-                        dk = int(k_ref + delta_toffset )# where do we expect the pulse to be wrt channel 6 main pulse and rec vertex position
-                       
-                        if 1:
+                        dk = int(k_ref + delta_toffset )
+                        if 1:#
                             data_trace_timing = np.copy(data_trace) ## cut data around timing
-                            ## DETERMIINE PULSE REGION DUE TO REFERENCE TIMING
-
+                            
+                            ## DETERMINE PULSE REGION DUE TO REFERENCE TIMING
                             data_timing_timing = np.copy(channel.get_times())#np.arange(0, len(channel.get_trace()), 1)#
-                            # dk_1 = data_timing_timing[dk] # this will probably raise an error if the pulse is outside the trace!
+                            dk_1 = channel.get_trace_start_time() + dk / self._sampling_rate # this is defined also if we're outside the trace. Does introduce a rounding error?
 
-                            data_window = [30 * self._sampling_rate, 50 * self._sampling_rate] # window around pulse in samples
-                            include_samples = np.arange(int(dk - data_window[0]), int(dk + data_window[1]))
-                            first_sample = np.max([include_samples[0], 0]) # make sure the first index is non-negative
-                            mask = (include_samples >= 0) & (include_samples < len(data_trace_timing))
-                            data_timing_timing_1, data_trace_timing_1 = np.zeros((2,len(include_samples)))
-                            if np.sum(mask):
-                                data_timing_timing_1[mask] = data_timing_timing[first_sample:include_samples[-1] + 1]
-                                data_trace_timing_1[mask] = data_trace_timing[first_sample:include_samples[-1] + 1]
-                            data_timing_timing = data_timing_timing_1
-                            # print("Channel {} / RT solution {} / pulse at sample {} / Samples in window {}".format(channel_id, i_trace, dk, np.sum(mask)))
+                            data_timing_timing = data_timing_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)] ## 800 samples, like the simulation
+                            data_trace_timing = data_trace_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)]
+                            
+                            fixed_timing_PA_cluster = True
+                            if fixed_timing_PA_cluster:
+                                if channel_id in self._PA_cluster_channels:
+                                    if i_trace == trace_ref:
+                                        dict_dt[channel_id][trace_ref] = dict_dt[ch_Vpol][trace_ref]
 
-                            # data_timing_timing = data_timing_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)] ## 800 samples, like the simulation
-                            # data_trace_timing = data_trace_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)]
-                            # data_trace_timing_1 = np.copy(data_trace_timing)
-                            ### cut data trace timing to make window to search for pulse smaller
-                            # data_trace_timing_1[data_timing_timing < (dk_1 - 50)] = 0 # this doesn't do anything?
-                            # data_trace_timing_1[data_timing_timing > (dk_1 + 50)] = 0
-                    
-                            library_channels ={}
-                            for i_ch in self._use_channels:
-                                library_channels[i_ch] = [i_ch]
 
-                            corr = signal.hilbert(signal.correlate(rec_trace, data_trace_timing_1))
-                            dt1 = np.argmax(corr) - (len(corr)/2) + 1
-              
-                            chi2_dt1 = np.sum((np.roll(rec_trace, math.ceil(-1*dt1)) - data_trace_timing_1)**2 / ((self._Vrms)**2))/len(rec_trace)
-                            dt2 = np.argmax(corr) - (len(corr)/2)
-                            chi2_dt2 = np.sum((np.roll(rec_trace, math.ceil(-1*dt2)) - data_trace_timing_1)**2 / ((self._Vrms)**2))/len(rec_trace)
-                            if chi2_dt2 < chi2_dt1:
-                                dt = dt2
+                            dt = dict_dt[channel_id][i_trace]
+                            rec_trace = np.roll(rec_trace, math.ceil(-1*dt))
+                                
+                            #### select fitting time-window ####
+                            if channel_id in self._Hpol_channels:
+                                indices = [i for i, x in enumerate(data_timing_timing) if (x > (dk_1 + self._window_Hpol[0])  and (x < (dk_1 + self._window_Hpol[1]) ))]
                             else:
-                                dt = dt1
-                            corresponding_channels = library_channels[channel_id]
-                            for ch in corresponding_channels:
-                                dict_dt[ch][i_trace] = dt
-
-
-            if fixed_timing:
-                for i_ch in self._use_channels:
-                    if 1:#i_ch not in self._PA_cluster_channels:
-                        dict_dt[i_ch][0] = dict_dt[ch_Vpol][trace_ref]
-                        dict_dt[i_ch][1] = dict_dt[ch_Vpol][trace_ref]
-                   
+                                indices = [i for i, x in enumerate(data_timing_timing) if (x > (dk_1 + self._window_Vpol[0])  and (x < (dk_1 + self._window_Vpol[1]) ))]
+                            if not len(indices):
+                                # print("empty timing window for channel {}, RT solution {} - skipping...".format(channel_id, i_trace))
+                                rec_traces[channel_id][i_trace] = np.zeros(int(80 * self._sampling_rate))
+                                data_traces[channel_id][i_trace] = np.zeros(int(80 * self._sampling_rate))
+                                data_timing[channel_id][i_trace] = np.zeros(int(80 * self._sampling_rate))
+                                continue
+                            rec_trace = rec_trace[indices]
+                            data_trace_timing = data_trace_timing[indices]
+                            data_timing_timing = data_timing_timing[indices]
+        
                         
-            dof = 0
-            for channel in self._station.iter_channels():
-                channel_id = channel.get_id()
-                if channel_id in self._use_channels:
-                    chi2s = np.zeros(2)
-                    echannel = np.zeros(2)
-                    dof_channel = 0
-                    rec_traces[channel_id] = {}
-                    data_traces[channel_id] = {}
-                    data_timing[channel_id] = {}
-                    data_trace = np.copy(channel.get_trace())
-                    if traces[channel_id]:
-                        for i_trace, key in enumerate(traces[channel_id]): ## iterate over ray type solutions
-                            rec_trace = traces[channel_id][key]
-                            delta_T =  timing[channel_id][key] - T_ref
-                            ## before correlating, set values around maximum voltage trace data to zero
-                            delta_toffset = delta_T * self._sampling_rate
-                            # adjust for unequal trace start times
-                            # if adjust_for_start_time:
-                            delta_toffset -= (channel.get_trace_start_time() - trace_start_time_ref) * self._sampling_rate
+                            ks[channel_id] = delta_k
+                            rec_traces[channel_id][i_trace] = rec_trace
+                            data_traces[channel_id][i_trace] = data_trace_timing
+                            data_timing[channel_id][i_trace] = data_timing_timing
+                            
+                            ### set vrms and time_window for channel
+                            if channel_id in self._Hpol_channels:
+                                Vrms = self._Vrms_Hpol
+                            else:
+                                Vrms = self._Vrms
+                            if len(data_trace_timing):
+                                SNR = abs(max(data_trace_timing) - min(data_trace_timing) ) / (2*Vrms)
+                            else: # we are apparently outside the recorded trace
+                                SNR = 0
 
-                           ### figuring out the time offset for specfic trace
-                            dk = int(k_ref + delta_toffset )
-                            if 1:#
-                                data_trace_timing = np.copy(data_trace) ## cut data around timing
-                                
-                                ## DETERMINE PULSE REGION DUE TO REFERENCE TIMING
-                                data_timing_timing = np.copy(channel.get_times())#np.arange(0, len(channel.get_trace()), 1)#
-                                dk_1 = channel.get_trace_start_time() + dk / self._sampling_rate # this is defined also if we're outside the trace. Does introduce a rounding error?
+                            if fixed_timing:
+                                if SNR > 3.5:
+                                    echannel[i_trace] = 1
+                            
 
-                                data_timing_timing = data_timing_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)] ## 800 samples, like the simulation
-                                data_trace_timing = data_trace_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)]
+                            
+                            if (single_pulse):
+                                if ((channel_id == ch_Vpol) and (i_trace == trace_ref)):
+                                    chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
+                                    reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
+                                    Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
+                                dof_channel += 1
                                 
-                                fixed_timing_PA_cluster = True
-                                if fixed_timing_PA_cluster:
-                                    if channel_id in self._PA_cluster_channels:
-                                        if i_trace == trace_ref:
-                                            dict_dt[channel_id][trace_ref] = dict_dt[ch_Vpol][trace_ref]
-
-
-                                dt = dict_dt[channel_id][i_trace]
-                                rec_trace = np.roll(rec_trace, math.ceil(-1*dt))
-                                 
-                                #### select fitting time-window ####
-                                if channel_id in self._Hpol_channels:
-                                    indices = [i for i, x in enumerate(data_timing_timing) if (x > (dk_1 + self._window_Hpol[0])  and (x < (dk_1 + self._window_Hpol[1]) ))]
-                                else:
-                                    indices = [i for i, x in enumerate(data_timing_timing) if (x > (dk_1 + self._window_Vpol[0])  and (x < (dk_1 + self._window_Vpol[1]) ))]
-                                if not len(indices):
-                                    # print("empty timing window for channel {}, RT solution {} - skipping...".format(channel_id, i_trace))
-                                    rec_traces[channel_id][i_trace] = np.zeros(int(80 * self._sampling_rate))
-                                    data_traces[channel_id][i_trace] = np.zeros(int(80 * self._sampling_rate))
-                                    data_timing[channel_id][i_trace] = np.zeros(int(80 * self._sampling_rate))
-                                    continue
-                                rec_trace = rec_trace[indices]
-                                data_trace_timing = data_trace_timing[indices]
-                                data_timing_timing = data_timing_timing[indices]
-           
-                           
-                                ks[channel_id] = delta_k
-                                rec_traces[channel_id][i_trace] = rec_trace
-                                data_traces[channel_id][i_trace] = data_trace_timing
-                                data_timing[channel_id][i_trace] = data_timing_timing
+                            elif (self._single_pulse_fit) and (i_trace == trace_ref): #use only 1 Vpol and 1 Hpol as input channels! 
+                                if ((channel_id == ch_Vpol) and (i_trace == trace_ref)):
+                                    chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
+                                    reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
+                                    Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
+                                if ((channel_id == ch_Hpol) and (i_trace == trace_ref)):
+                                    chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
+                                    reduced_chi2_Hpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
+                                    Hpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
+                                dof_channel += 1
+                            elif ((channel_id in self._PA_channels) and (i_trace == trace_ref) and starting_values) and not self._single_pulse_fit: #PA_cluster_channels contains all channels that are definitely included in the fit and for which the timings are fixed.
                                 
-                                ### set vrms and time_window for channel
-                                if channel_id in self._Hpol_channels:
-                                    Vrms = self._Vrms_Hpol
-                                else:
-                                    Vrms = self._Vrms
-                                if len(data_trace_timing):
-                                    SNR = abs(max(data_trace_timing) - min(data_trace_timing) ) / (2*Vrms)
-                                else: # we are apparently outside the recorded trace
-                                    SNR = 0
- 
-                                if fixed_timing:
-                                    if SNR > 3.5:
-                                        echannel[i_trace] = 1
-                                
-
-                                
-                                if (single_pulse):
-                                    if ((channel_id == ch_Vpol) and (i_trace == trace_ref)):
-                                        chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
-                                        reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
-                                        Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
-                                    dof_channel += 1
+                                if channel_id == ch_Vpol:
+                                    reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
+                                    Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
+                    
+                                chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
+                                dof_channel += 1
+                                echannel[i_trace] = 1
+                            elif ((channel_id in self._PA_cluster_channels) and (i_trace == trace_ref) and not starting_values and not self._single_pulse_fit):
+                                if channel_id == ch_Vpol:
+                                    reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
+                                    Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
+                                if channel_id == ch_Hpol:
+                                    reduced_chi2_Hpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms_Hpol)**2))/len(rec_trace)
+                                    Hpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
                                     
-                                elif (self._single_pulse_fit) and (i_trace == trace_ref): #use only 1 Vpol and 1 Hpol as input channels! 
-                                    if ((channel_id == ch_Vpol) and (i_trace == trace_ref)):
-                                        chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
-                                        reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
-                                        Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
-                                    if ((channel_id == ch_Hpol) and (i_trace == trace_ref)):
-                                        chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
-                                        reduced_chi2_Hpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
-                                        Hpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
-                                    dof_channel += 1
-                                elif ((channel_id in self._PA_channels) and (i_trace == trace_ref) and starting_values) and not self._single_pulse_fit: #PA_cluster_channels contains all channels that are definitely included in the fit and for which the timings are fixed.
-                                   
-                                    if channel_id == ch_Vpol:
-                                        reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
-                                        Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
-                        
-                                    chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
-                                    dof_channel += 1
-                                    echannel[i_trace] = 1
-                                elif ((channel_id in self._PA_cluster_channels) and (i_trace == trace_ref) and not starting_values and not self._single_pulse_fit):
-                                    if channel_id == ch_Vpol:
-                                        reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
-                                        Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
-                                    if channel_id == ch_Hpol:
-                                        reduced_chi2_Hpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms_Hpol)**2))/len(rec_trace)
-                                        Hpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
-                                        
-                                    chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
-                                    dof_channel += 1
-                                    echannel[i_trace] = 1
-                                elif ((channel_id in self._use_channels) and (full_station) and (SNR > 3.5) and not starting_values and not self._single_pulse_fit):
-                                    chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
-                                    dof_channel += 1
-                                    echannel[i_trace] = 1
-                                elif penalty:
-                                    if abs(max(rec_trace) - min(rec_trace))/(2*Vrms) > 4.0:
-                                        chi2s[i_trace] = np.inf
-            
-                    else:#if no raytracing solution exist
-                        rec_traces[channel_id][0] = np.zeros(80 * int(self._sampling_rate))
-                        data_traces[channel_id][0] = np.zeros(80 * int(self._sampling_rate))
-                        data_timing[channel_id][0] = np.zeros(80 * int(self._sampling_rate))
-                        rec_traces[channel_id][1] = np.zeros(80 * int(self._sampling_rate))
-                        data_traces[channel_id][1] = np.zeros(80 * int(self._sampling_rate))
-                        data_timing[channel_id][1] = np.zeros(80 * int(self._sampling_rate))
+                                chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
+                                dof_channel += 1
+                                echannel[i_trace] = 1
+                            elif ((channel_id in self._use_channels) and (full_station) and (SNR > 3.5) and not starting_values and not self._single_pulse_fit):
+                                chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
+                                dof_channel += 1
+                                echannel[i_trace] = 1
+                            elif penalty:
+                                if abs(max(rec_trace) - min(rec_trace))/(2*Vrms) > 4.0:
+                                    chi2s[i_trace] = np.inf
+        
+                else:#if no raytracing solution exist
+                    rec_traces[channel_id][0] = np.zeros(80 * int(self._sampling_rate))
+                    data_traces[channel_id][0] = np.zeros(80 * int(self._sampling_rate))
+                    data_timing[channel_id][0] = np.zeros(80 * int(self._sampling_rate))
+                    rec_traces[channel_id][1] = np.zeros(80 * int(self._sampling_rate))
+                    data_traces[channel_id][1] = np.zeros(80 * int(self._sampling_rate))
+                    data_timing[channel_id][1] = np.zeros(80 * int(self._sampling_rate))
 
-                    #### if the pulses are overlapping, than we don't include them in the fit because the timing is not exactly known.
-                    if min([max(data_timing[channel_id][0]), max(data_timing[channel_id][1])]) > max([min(data_timing[channel_id][1]), min(data_timing[channel_id][0])]):
-                        if int(min(data_timing[channel_id][1])) != 0:
-        #
-                            if (channel_id == ch_Vpol):
+                #### if the pulses are overlapping, than we don't include them in the fit because the timing is not exactly known.
+                if min([max(data_timing[channel_id][0]), max(data_timing[channel_id][1])]) > max([min(data_timing[channel_id][1]), min(data_timing[channel_id][0])]):
+                    if int(min(data_timing[channel_id][1])) != 0:
+    #
+                        if (channel_id == ch_Vpol):
+                            chi2 += chi2s[trace_ref]
+                            dof += 1
+                        if (channel_id == ch_Hpol):
+                            if 'Hpol_ref' in locals(): #Hpol_ref is only defined when this is supposed to be included in the fit
                                 chi2 += chi2s[trace_ref]
-                                dof += 1
-                            if (channel_id == ch_Hpol):
-                                if 'Hpol_ref' in locals(): #Hpol_ref is only defined when this is supposed to be included in the fit
-                                    chi2 += chi2s[trace_ref]
-                         
-        
-                    else:
-                            extra_channel += echannel[0]
-                            extra_channel += echannel[1]
-                            chi2 += chi2s[0]
-                            chi2 += chi2s[1]
-                            dof += dof_channel
-                            all_chi2.append(chi2s[0])
-                            all_chi2.append(chi2s[1])
-                
-            self.__dof = dof
-            if timing_k:
-                return ks
-            if not minimize:
-                return [rec_traces, data_traces, data_timing, all_chi2, [reduced_chi2_Vpol, reduced_chi2_Hpol], over_reconstructed, extra_channel]
-           
-            return chi2
-            """
-                    ### helper functions for plotting
-            def mollweide_azimuth(az):
-                az -= (simulated_azimuth - np.deg2rad(180)) ## put simulated azimuth at 180 degrees
-                az = np.remainder(az, np.deg2rad(360)) ## rotate values such that they are between 0 and 360
-                az -= np.deg2rad(180)
-                return az
-        
-            def mollweide_zenith(zen):
-                zen -= (simulated_zenith  - np.deg2rad(90)) ## put simulated azimuth at 90 degrees
-                zen = np.remainder(zen, np.deg2rad(180)) ## rotate values such that they are between 0 and 180
-                zen -= np.deg2rad(90) ## hisft to mollweide projection
-                return zen
-
-
-            def get_normalized_angle(angle, degree=False, interval=np.deg2rad([0, 360])):
-                import collections
-                if degree:
-                    interval = np.rad2deg(interval)
-                delta = interval[1] - interval[0]
-                if(isinstance(angle, (collections.Sequence, np.ndarray))):
-                    angle[angle >= interval[1]] -= delta
-                    angle[angle < interval[0]] += delta
+                        
+    
                 else:
-                    while (angle >= interval[1]):
-                        angle -= delta
-                    while (angle < interval[0]):
-                        angle += delta
-                return angle
-            """
+                        extra_channel += echannel[0]
+                        extra_channel += echannel[1]
+                        chi2 += chi2s[0]
+                        chi2 += chi2s[1]
+                        dof += dof_channel
+                        all_chi2.append(chi2s[0])
+                        all_chi2.append(chi2s[1])
+            
+        self.__dof = dof
+        if timing_k:
+            return ks
+        if not minimize:
+            return [rec_traces, data_traces, data_timing, all_chi2, [reduced_chi2_Vpol, reduced_chi2_Hpol], over_reconstructed, extra_channel]
+        
+        return chi2
+        """
+                ### helper functions for plotting
+        def mollweide_azimuth(az):
+            az -= (simulated_azimuth - np.deg2rad(180)) ## put simulated azimuth at 180 degrees
+            az = np.remainder(az, np.deg2rad(360)) ## rotate values such that they are between 0 and 360
+            az -= np.deg2rad(180)
+            return az
+    
+        def mollweide_zenith(zen):
+            zen -= (simulated_zenith  - np.deg2rad(90)) ## put simulated azimuth at 90 degrees
+            zen = np.remainder(zen, np.deg2rad(180)) ## rotate values such that they are between 0 and 180
+            zen -= np.deg2rad(90) ## hisft to mollweide projection
+            return zen
+
+
+        def get_normalized_angle(angle, degree=False, interval=np.deg2rad([0, 360])):
+            import collections
+            if degree:
+                interval = np.rad2deg(interval)
+            delta = interval[1] - interval[0]
+            if(isinstance(angle, (collections.Sequence, np.ndarray))):
+                angle[angle >= interval[1]] -= delta
+                angle[angle < interval[0]] += delta
+            else:
+                while (angle >= interval[1]):
+                    angle -= delta
+                while (angle < interval[0]):
+                    angle += delta
+            return angle
+        """
     def end(self):
         pass

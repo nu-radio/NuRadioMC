@@ -171,7 +171,9 @@ class rayTypeSelecter:
             
         if debug_plots:
             fig.tight_layout()
-            fig.savefig("{}/pulse_selection.pdf".format(debugplots_path))
+            run_number = event.get_run_number()
+            event_id = event.get_id()
+            fig.savefig("{}/{}_{}_pulse_selection.pdf".format(debugplots_path, run_number, event_id))
         
         ### store parameters
         reconstructed_raytype = ['direct', 'refracted', 'reflected'][np.argmax(max_totalcorr)]
@@ -227,8 +229,8 @@ class rayTypeSelecter:
                         receive_vector = r.get_receive_vector(iS)
                         receive_zenith, receive_azimuth = hp.cartesian_to_spherical(*receive_vector)
                         if sim == True: 
-                            channel.set_parameter(chp.signal_receiving_zenith, receive_zenith)
-                            channel.set_parameter(chp.signal_receiving_azimuth, receive_azimuth)
+                            channel.set_parameter(chp.signal_receiving_zeniths, receive_zenith)
+                            channel.set_parameter(chp.signal_receiving_azimuths, receive_azimuth)
                             print("	receive zenith vertex, simulated vertex:", np.rad2deg(receive_zenith))
                         if not sim: 
                             channel.set_parameter(chp.receive_zenith_vertex, receive_zenith)
@@ -238,7 +240,9 @@ class rayTypeSelecter:
                     #print("zenith", channel[chp.signal_receiving_zenith])#print("channel id", channel_id)
                 ### figuring out the time offset for specfic trace
                 k = int(position_pulse + delta_toffset )
-                pulse_window = channel.get_trace()[k-300: k + 500]
+                k_start = np.max([k-300, 0])
+                k_stop = np.max([k+500, 0]) # probably never happens...
+                pulse_window = channel.get_trace()[k_start: k_stop]
                 if len(pulse_window) == 0:
                     pulse_window = np.zeros(800)
                 if debug_plots:
@@ -261,7 +265,7 @@ class rayTypeSelecter:
     
         if debug_plots:
             fig.tight_layout()              
-            fig.savefig("{}/pulse_window.pdf".format(debugplots_path))
+            fig.savefig("{}/{}_{}_pulse_window.pdf".format(debugplots_path, run_number, event_id))
         station.set_parameter(stnp.channels_pulses, channels_pulses)
 
     def end(self):
