@@ -47,6 +47,7 @@ class stationParameters(Enum):
     planewave_azimuth = 47
     raytype_sim = 48
     pulse_position_sim = 49
+    vertex_correlation_sums = 50 # (fit, simulated, max pairwise, max DNR correlation) for the vertex reconstruction
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
