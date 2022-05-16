@@ -281,6 +281,10 @@ class neutrino3DVertexReconstructor:
             toffset = sample_shifts / channel_1.get_sampling_rate()
             for i_shift, shift_sample in enumerate(sample_shifts):
                 correlation_product[i_shift] = np.max((corr_1 * np.roll(corr_2, shift_sample)))
+            # corr_median = np.median(correlation_product)
+            # corr_diff = correlation_product - corr_median
+            # correlation_product = np.sign(corr_diff) * corr_diff**2 / corr_median**2
+            # correlation_product -= np.min(correlation_product)
             self.__pair_correlations[i_pair] = correlation_product
             if debug:
                 ax1_1 = fig1.add_subplot(len(self.__channel_pairs) // 2 + len(self.__channel_pairs) % 2, 2,
@@ -721,16 +725,19 @@ class neutrino3DVertexReconstructor:
         corr_index[np.isnan(delta_t)] = -1
         mask = (corr_index >= 0) & (corr_index < self.__correlation.shape[0]) & (~np.isinf(delta_t))
         corr_index[~mask] = 0
+        # res = np.take(self.__correlation, corr_index.astype(int))
+        # res[~mask] = 0
+        # return res
 
         res = np.zeros_like(corr_index)
         step_size_x = min(10, res.shape[0])
         step_size_y = min(10, res.shape[1])
-        for i_x in range(step_size_x):
-            for i_y in range(step_size_y):
-                i_x_0 = i_x * (res.shape[0] // step_size_x)
-                i_x_1 = min(i_x_0 + res.shape[0] // step_size_x, res.shape[0]+1)
-                i_y_0 = i_y * (res.shape[1] // step_size_y)
-                i_y_1 = min(i_y_0 + res.shape[1] // step_size_y, res.shape[1]+1)
+        for i_x in range(res.shape[0] // step_size_x + 1):
+            for i_y in range(res.shape[1] // step_size_y + 1):
+                i_x_0 = i_x * step_size_x
+                i_x_1 = i_x_0 + step_size_x
+                i_y_0 = i_y * step_size_y
+                i_y_1 = i_y_0 + step_size_y
                 maximized_correlation = scipy.ndimage.maximum_filter(
                             np.abs(self.__correlation),
                             size=np.median(np.abs(time_deviations[i_x_0:i_x_1, i_y_0:i_y_1])) * self.__sampling_rate / 2.
@@ -1145,7 +1152,7 @@ class neutrino3DVertexReconstructor:
         #     ax5_2.set_xlabel(r'$\phi [^\circ]$')
         #     ax5_2.set_ylabel('|z| [m]')
         fig5.tight_layout()
-        fname = '{}/{}_{}_search_zones.png'.format(self.__debug_folder, event.get_run_number(), event.get_id())
+        fname = '{}/{}_{}_search_zones'.format(self.__debug_folder, event.get_run_number(), event.get_id())
         save_fig(fig5, fname, self.__debug_fmts)
 
     def __draw_vertex_reco(
@@ -1404,7 +1411,7 @@ class neutrino3DVertexReconstructor:
         ax8_5.set_ylabel(r'$\Delta z$ [m]', fontsize=fontsize)
         # ax8_2.grid()
         fig8.tight_layout()
-        fname = '{}/{}_{}_dnr_reco.png'.format(self.__debug_folder, event.get_run_number(), event.get_id())
+        fname = '{}/{}_{}_dnr_reco'.format(self.__debug_folder, event.get_run_number(), event.get_id())
         save_fig(fig8, fname, self.__debug_fmts)
 
 
