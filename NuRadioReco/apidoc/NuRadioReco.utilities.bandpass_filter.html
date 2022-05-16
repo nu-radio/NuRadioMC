@@ -552,24 +552,35 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.bandpass_filter.get_filter_response">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.bandpass_filter.</span></span><span class="sig-name descname"><span class="pre">get_filter_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/bandpass_filter.html#get_filter_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.bandpass_filter.get_filter_response" title="Permalink to this definition"></a></dt>
-<dd><dl>
-<dt>frequencies: array of floats</dt><dd><p>the frequencies the filter is requested for</p>
+<dd><p>Convenience function to obtain a bandpass filter response</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>frequencies: array of floats</strong></dt><dd><p>the frequencies the filter is requested for</p>
 </dd>
-<dt>passband: list or dict of lists, (default: [55 * units.MHz, 1000 * units.MHz])</dt><dd><p>passband[0]: lower boundary of filter, passband[1]: upper boundary of filter
-a dict can be used to specify a different bandwidth per channel, the key is the channel_id</p>
+<dt><strong>passband: list</strong></dt><dd><p>passband[0]: lower boundary of filter, passband[1]: upper boundary of filter</p>
 </dd>
-<dt>filter_type: string or dict</dt><dd><p>‘rectangular’: perfect straight line filter
-‘butter’: butterworth filter from scipy
-‘butterabs’: absolute of butterworth filter from scipy
-or any filter that is implemented in NuRadioReco.detector.filterresponse. In this case the
-passband parameter is ignored
-or ‘FIR &lt;type&gt; &lt;parameter&gt;’ - see below for FIR filter options</p>
-<p>a dict can be used to specify a different bandwidth per channel, the key is the channel_id</p>
+<dt><strong>filter_type: string or dict</strong></dt><dd><ul class="simple">
+<li><p>‘rectangular’: perfect straight line filter</p></li>
+<li><p>‘butter’: butterworth filter from scipy</p></li>
+<li><p>‘butterabs’: absolute of butterworth filter from scipy</p></li>
+</ul>
+<p>or any filter that is implemented in <a class="reference internal" href="NuRadioReco.detector.filterresponse.html#module-NuRadioReco.detector.filterresponse" title="NuRadioReco.detector.filterresponse"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.detector.filterresponse</span></code></a>.
+In this case the passband parameter is ignored</p>
 </dd>
-<dt>order: int (optional, default 2) or dict</dt><dd><p>for a butterworth filter: specifies the order of the filter</p>
+<dt><strong>order: int</strong></dt><dd><p>for a butterworth filter: specifies the order of the filter</p>
 </dd>
-<dt>rp: float</dt><dd><p>The maximum ripple allowed below unity gain in the passband. Specified in decibels, as a positive number.
-(for chebyshev filter)</p>
+<dt><strong>rp: float</strong></dt><dd><p>The maximum ripple allowed below unity gain in the passband. 
+Specified in decibels, as a positive number.
+(Relevant for chebyshev filter)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>f: array of floats</dt><dd><p>The bandpass filter response. Has the same shape as <code class="docutils literal notranslate"><span class="pre">frequencies</span></code>.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </dd></dl>

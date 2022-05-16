@@ -549,28 +549,43 @@
 
 <div class="viewcode-block" id="get_filter_response"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.bandpass_filter.html#NuRadioReco.utilities.bandpass_filter.get_filter_response">[docs]</a><span class="k">def</span> <span class="nf">get_filter_response</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">filter_type</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convenience function to obtain a bandpass filter response</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
 <span class="sd">    frequencies: array of floats</span>
 <span class="sd">        the frequencies the filter is requested for</span>
-<span class="sd">    passband: list or dict of lists, (default: [55 * units.MHz, 1000 * units.MHz])</span>
+<span class="sd">    passband: list</span>
 <span class="sd">        passband[0]: lower boundary of filter, passband[1]: upper boundary of filter</span>
-<span class="sd">        a dict can be used to specify a different bandwidth per channel, the key is the channel_id</span>
 <span class="sd">    filter_type: string or dict</span>
-<span class="sd">        &#39;rectangular&#39;: perfect straight line filter</span>
-<span class="sd">        &#39;butter&#39;: butterworth filter from scipy</span>
-<span class="sd">        &#39;butterabs&#39;: absolute of butterworth filter from scipy</span>
-<span class="sd">        or any filter that is implemented in NuRadioReco.detector.filterresponse. In this case the</span>
-<span class="sd">        passband parameter is ignored</span>
-<span class="sd">        or &#39;FIR &lt;type&gt; &lt;parameter&gt;&#39; - see below for FIR filter options</span>
 
-<span class="sd">        a dict can be used to specify a different bandwidth per channel, the key is the channel_id</span>
-<span class="sd">    order: int (optional, default 2) or dict</span>
+<span class="sd">        * &#39;rectangular&#39;: perfect straight line filter</span>
+<span class="sd">        * &#39;butter&#39;: butterworth filter from scipy</span>
+<span class="sd">        * &#39;butterabs&#39;: absolute of butterworth filter from scipy</span>
+<span class="sd">        </span>
+<span class="sd">        or any filter that is implemented in :mod:`NuRadioReco.detector.filterresponse`.</span>
+<span class="sd">        In this case the passband parameter is ignored</span>
+<span class="sd">    order: int</span>
 <span class="sd">        for a butterworth filter: specifies the order of the filter</span>
-
 <span class="sd">    rp: float</span>
-<span class="sd">        The maximum ripple allowed below unity gain in the passband. Specified in decibels, as a positive number.</span>
-<span class="sd">        (for chebyshev filter)</span>
+<span class="sd">        The maximum ripple allowed below unity gain in the passband. </span>
+<span class="sd">        Specified in decibels, as a positive number.</span>
+<span class="sd">        (Relevant for chebyshev filter)</span>
 
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    f: array of floats</span>
+<span class="sd">        The bandpass filter response. Has the same shape as ``frequencies``.</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># we need to specify if we have a lowpass filter</span>
+    <span class="c1"># otherwise scipy&gt;=1.8.0 raises an error</span>
+    <span class="k">if</span> <span class="n">passband</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> 
+        <span class="n">scipy_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">passband</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;lowpass&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">scipy_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">passband</span><span class="p">,</span> <span class="s1">&#39;bandpass&#39;</span><span class="p">]</span>
+
     <span class="k">if</span> <span class="p">(</span><span class="n">filter_type</span> <span class="o">==</span> <span class="s1">&#39;rectangular&#39;</span><span class="p">):</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
         <span class="n">f</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">frequencies</span> <span class="o">&lt;</span> <span class="n">passband</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span> <span class="o">=</span> <span class="mf">0.</span>
@@ -579,21 +594,21 @@
     <span class="k">elif</span> <span class="p">(</span><span class="n">filter_type</span> <span class="o">==</span> <span class="s1">&#39;butter&#39;</span><span class="p">):</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">)</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">frequencies</span> <span class="o">&gt;</span> <span class="mi">0</span>
-        <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">butter</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="s1">&#39;bandpass&#39;</span><span class="p">,</span> <span class="n">analog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">butter</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="o">*</span><span class="n">scipy_args</span><span class="p">,</span> <span class="n">analog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
         <span class="n">f</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span>
         <span class="k">return</span> <span class="n">f</span>
     <span class="k">elif</span> <span class="p">(</span><span class="n">filter_type</span> <span class="o">==</span> <span class="s1">&#39;butterabs&#39;</span><span class="p">):</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">)</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">frequencies</span> <span class="o">&gt;</span> <span class="mi">0</span>
-        <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">butter</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="s1">&#39;bandpass&#39;</span><span class="p">,</span> <span class="n">analog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">butter</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="o">*</span><span class="n">scipy_args</span><span class="p">,</span> <span class="n">analog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
         <span class="n">f</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
     <span class="k">elif</span><span class="p">(</span><span class="n">filter_type</span> <span class="o">==</span> <span class="s1">&#39;cheby1&#39;</span><span class="p">):</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">)</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">frequencies</span> <span class="o">&gt;</span> <span class="mi">0</span>
-        <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">cheby1</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="s1">&#39;bandpass&#39;</span><span class="p">,</span> <span class="n">analog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">cheby1</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="o">*</span><span class="n">scipy_args</span><span class="p">,</span> <span class="n">analog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
         <span class="n">f</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span>
         <span class="k">return</span> <span class="n">f</span>
