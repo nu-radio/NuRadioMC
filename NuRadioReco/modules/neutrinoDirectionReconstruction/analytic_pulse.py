@@ -412,7 +412,7 @@ class simulation():
 
 				analytic_trace_fft[0] = 0
 				
-				traces[channel_id][iS] =  np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), -500)
+				traces[channel_id][iS] =  fft.freq2time(analytic_trace_fft, self._sampling_rate)#np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), int(-50*self._sampling_rate))
                                                 
 						
 				timing[channel_id][iS] =raytracing[channel_id][iS]["travel time"]
