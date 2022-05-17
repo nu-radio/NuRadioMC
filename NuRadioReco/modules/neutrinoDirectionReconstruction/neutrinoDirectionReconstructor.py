@@ -1,22 +1,16 @@
 import scipy
-from scipy import constants
-import scipy.stats as stats 
-import NuRadioReco.modules.io.eventReader
 from radiotools import helper as hp
 import radiotools.coordinatesystems as cstrans
 import matplotlib.pyplot as plt
 import numpy as np
 from NuRadioReco.utilities import fft
 from NuRadioReco.framework.parameters import stationParameters as stnp
-import h5py
 from NuRadioReco.framework.parameters import showerParameters as shp
-from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.modules.neutrinoDirectionReconstruction import analytic_pulse
 from NuRadioMC.utilities import medium
 from scipy import signal
 from scipy import optimize as opt
 from scipy.spatial.transform import Rotation
-from matplotlib import rc
 import datetime
 import math
 from NuRadioReco.utilities import units
@@ -24,7 +18,6 @@ import datetime
 import logging
 logger = logging.getLogger("neutrinoDirectionReconstructor")
 logger.setLevel(logging.DEBUG)
-
 
 class neutrinoDirectionReconstructor:
     
@@ -410,8 +403,8 @@ class neutrinoDirectionReconstructor:
 
             viewing_start = self._cherenkov_angle - np.deg2rad(15) # 15 degs
             viewing_end = self._cherenkov_angle + np.deg2rad(15)
-            # viewing_start = vw_sim - 2 * units.deg
-            # viewing_end = vw_sim + 2.1 * units.deg
+            # viewing_start = vw_sim - 5 * units.deg
+            # viewing_end = vw_sim + 5.1 * units.deg
             d_viewing_grid = .5 * units.deg # originally .5 deg
             energy_start = 1e17 * units.eV
             energy_end = 1e19 * units.eV + 1e14 * units.eV
@@ -421,8 +414,8 @@ class neutrinoDirectionReconstructor:
             theta_start = np.deg2rad(-180) #-180
             theta_end =  np.deg2rad(180) #180
             # pol_angle_sim = np.arctan2(pol_sim[2], pol_sim[1])
-            # theta_start = pol_angle_sim - 5 * units.deg
-            # theta_end = pol_angle_sim + 5.1 * units.deg
+            # theta_start = pol_angle_sim - 25 * units.deg
+            # theta_end = pol_angle_sim + 25.1 * units.deg
             d_theta_grid = 5 * units.deg # originally 1 degree
 
             cop = datetime.datetime.now()
@@ -808,7 +801,7 @@ class neutrinoDirectionReconstructor:
             if not sim and not self._sim_vertex: raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
 
             if raytypes[ch_Vpol][iS] == raytype:
-                solution_number = iS#for reconstructed vertex it can happen that the ray solution does not exist
+                solution_number = iS
         T_ref = timing[ch_Vpol][solution_number]
         trace_start_time_ref = self._station.get_channel(ch_Vpol).get_trace_start_time()
 
@@ -893,10 +886,24 @@ class neutrinoDirectionReconstructor:
                             dt = dt2
                         else:
                             dt = dt1
+                        #TODO - REMOVE (used for debugging)
+                        # if self._ultradebug:
+                        #     fig, axs = plt.subplots(2,1,)
+                        #     fig.subplots_adjust(hspace=0)
+                        #     axs[0].plot(np.roll(rec_trace, math.ceil(-dt)), color='g')
+                        #     axs[0].plot(data_trace_timing_1, color='k')
+                        #     axs[1].plot(corr)
+                        #     axs[0].set_title(f'{channel_id} / {i_trace} / {dt:.1f} / {chi2_dt1:.2f}')
+                        #     plt.show()
                         corresponding_channels = library_channels[channel_id]
                         for ch in corresponding_channels:
                             dict_dt[ch][i_trace] = dt
 
+        # TODO - REMOVE!
+        # logger.debug("time shifts (channel / trace / shift):")
+        # for ch in dict_dt.keys():
+        #     for i_trace in dict_dt[ch].keys():
+        #         logger.debug(f'{ch} / {i_trace} / {dict_dt[ch][i_trace]}')
 
         if fixed_timing:
             for i_ch in self._use_channels:
@@ -983,32 +990,29 @@ class neutrinoDirectionReconstructor:
                                 if SNR > 3.5:
                                     echannel[i_trace] = 1
                             
+                            # compute chi squared. We take the mean rather than the sum to avoid an unjustified preference
+                            # for traces which are only partially contained in the data window
+                            chi2s[i_trace] = np.mean((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
 
-                            
                             if (single_pulse):
                                 if ((channel_id == ch_Vpol) and (i_trace == trace_ref)):
-                                    chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
                                     reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
                                     Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
                                 dof_channel += 1
                                 
                             elif (self._single_pulse_fit) and (i_trace == trace_ref): #use only 1 Vpol and 1 Hpol as input channels! 
                                 if ((channel_id == ch_Vpol) and (i_trace == trace_ref)):
-                                    chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
                                     reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
                                     Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
                                 if ((channel_id == ch_Hpol) and (i_trace == trace_ref)):
-                                    chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
                                     reduced_chi2_Hpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
                                     Hpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
                                 dof_channel += 1
                             elif ((channel_id in self._PA_channels) and (i_trace == trace_ref) and starting_values) and not self._single_pulse_fit: #PA_cluster_channels contains all channels that are definitely included in the fit and for which the timings are fixed.
-                                
                                 if channel_id == ch_Vpol:
                                     reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
                                     Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
                     
-                                chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
                                 dof_channel += 1
                                 echannel[i_trace] = 1
                             elif ((channel_id in self._PA_cluster_channels) and (i_trace == trace_ref) and not starting_values and not self._single_pulse_fit):
@@ -1019,11 +1023,9 @@ class neutrinoDirectionReconstructor:
                                     reduced_chi2_Hpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms_Hpol)**2))/len(rec_trace)
                                     Hpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+model_sys*abs(data_trace_timing))**2))/len(rec_trace)
                                     
-                                chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
                                 dof_channel += 1
                                 echannel[i_trace] = 1
                             elif ((channel_id in self._use_channels) and (full_station) and (SNR > 3.5) and not starting_values and not self._single_pulse_fit):
-                                chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms+model_sys*abs(data_trace_timing))**2))
                                 dof_channel += 1
                                 echannel[i_trace] = 1
                             elif penalty:
