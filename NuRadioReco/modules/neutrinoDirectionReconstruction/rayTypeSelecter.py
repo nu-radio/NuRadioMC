@@ -157,18 +157,16 @@ class rayTypeSelecter:
                 axs[iax].set_xlabel("samples", fontsize = 25)
                 iax += 1
            
-            if type_exist and debug_plots:
-                if 1:
-                    axs[raytype-1].set_title("raytype {}".format(['direct', 'refracted', 'reflected'][raytype-1]), fontsize = 30)
-                    axs[2].plot(corr_total, lw = 2,  label= '{}'.format(['direct', 'refracted', 'reflected'][raytype-1]))
-                  
-                    axs[2].legend(fontsize = 20)
-                    axs[2].grid()
-                    axs[2].set_title("correlation", fontsize = 30)
-                    
-                max_totalcorr[raytype-1] = max(abs(corr_total))
-                where_are_NaNs = np.isnan(max_totalcorr)
-            
+                axs[raytype-1].set_title("raytype {}".format(['direct', 'refracted', 'reflected'][raytype-1]), fontsize = 30)
+                axs[2].plot(corr_total, lw = 2,  label= '{}'.format(['direct', 'refracted', 'reflected'][raytype-1]))
+                
+                axs[2].legend(fontsize = 20)
+                axs[2].grid()
+                axs[2].set_title("correlation", fontsize = 30)
+
+            max_totalcorr[raytype-1] = max(abs(corr_total))
+            where_are_NaNs = np.isnan(max_totalcorr)
+
         if debug_plots:
             fig.tight_layout()
             run_number = event.get_run_number()
