@@ -123,15 +123,15 @@ class simulation():
 		for channel_id in use_channels:
 			order = 8
 			passband_i = passband[channel_id]
-			b, a = signal.butter(order, [passband_i[0], 1150 * units.MHz], 'bandpass', analog=True)
-			w, ha = signal.freqs(b, a, self._ff[mask])
-			order = 10
-			b, a = signal.butter(order, [0, passband_i[-1]], 'bandpass', analog=True)
-			w, hb = signal.freqs(b, a, self._ff[mask])
-			fa = np.zeros_like(self._ff, dtype=np.complex)
-			fb = np.zeros_like(self._ff, dtype=np.complex)
-			fa[mask] = ha
-			fb[mask] = hb
+			# b, a = signal.butter(order, [passband_i[0], 1150 * units.MHz], 'bandpass', analog=True)
+			# w, ha = signal.freqs(b, a, self._ff[mask])
+			# order = 10
+			# b, a = signal.butter(order, [0, passband_i[-1]], 'bandpass', analog=True)
+			# w, hb = signal.freqs(b, a, self._ff[mask])
+			# fa = np.zeros_like(self._ff, dtype=np.complex)
+			# fb = np.zeros_like(self._ff, dtype=np.complex)
+			# fa[mask] = ha
+			# fb[mask] = hb
 			filter_response = bandpass_filter.get_filter_response(self._ff, passband_i, 'butterabs', 10)
 			self._h[channel_id] = filter_response #fb * fa
 

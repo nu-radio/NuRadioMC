@@ -16,6 +16,7 @@ import math
 from NuRadioReco.utilities import units
 import datetime
 import logging
+import pickle
 logger = logging.getLogger("neutrinoDirectionReconstructor")
 logger.setLevel(logging.DEBUG)
 
@@ -31,7 +32,8 @@ class neutrinoDirectionReconstructor:
             Hpol_channels = [7,8], window_Vpol = [-10, +50], window_Hpol = [10, 40], 
             PA_channels = [0,1,2,3], Vrms_Hpol = 8.2 * units.mV, Vrms_Vpol = 8.2 * units.mV,
             passband = [50*units.MHz, 700*units.MHz], 
-            template = True, icemodel='greenland_simple', att_model='GL1', propagation_config=None):
+            template = True, icemodel='greenland_simple', att_model='GL1', propagation_config=None,
+            debug_formats='.pdf'):
         """
         begin method. This function is executed before the event loop.
         We do not use this function for the reconsturctions. But only to determining uncertainties.
@@ -81,6 +83,7 @@ class neutrinoDirectionReconstructor:
         self._window_Vpol = window_Vpol
         self._window_Hpol = window_Hpol
         self._PA_channels = PA_channels
+        self._debug_formats = debug_formats
         return self._launch_vector_sim, view
     
     def run(self, event, station, det, shower_ids = None,
@@ -152,8 +155,6 @@ class neutrinoDirectionReconstructor:
         self._model_sys = 0.0 ## test amplitude effect of systematics on the model
         self._PA_cluster_channels = PA_cluster_channels
         self._Hpol_channels = Hpol_channels
-        self._window_Hpol = window_Hpol
-        self._window_Vpol = window_Vpol
         self._single_pulse_fit = single_pulse_fit
         self._PA_channels = PA_channels
         self._sim_vertex = sim_vertex 
@@ -207,10 +208,10 @@ class neutrinoDirectionReconstructor:
                 simulated_zenith, simulated_azimuth, simulated_energy, 
                 use_channels, first_iter = True) 
             if pol_sim is None: # occasionally (if the vertex position is wrong), no solution may exist for the sim vertex and the given ray type.
-                if rt == 'refracted':
-                    sim_rt = 'reflected'
-                elif rt == 'reflected':
-                    sim_rt = 'refracted'
+                if rt == 1:
+                    sim_rt = 2
+                elif rt == 2:
+                    sim_rt = 1
                 else: # this probably shouldn't ever happen?
                     logger.warning("Couldn't determine polarization / viewing angle for sim_station. Skipping...")
                     sim_rt = None
@@ -290,11 +291,9 @@ class neutrinoDirectionReconstructor:
                 sim_reduced_chi2_Hpol = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)[4][1]
             #     self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)
 
-
-            if sim_station: 
                 tracsim_recvertex = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, first_iter = True,ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[0]
 
-            signal_zenith, signal_azimuth = hp.cartesian_to_spherical(*self._launch_vector) ## due to
+            signal_zenith, signal_azimuth = hp.cartesian_to_spherical(*self._launch_vector)
             sig_dir = hp.spherical_to_cartesian(signal_zenith, signal_azimuth)
             # self._vertex_azimuth = hp.cartesian_to_spherical(*reconstructed_vertex)[1]
 
@@ -403,8 +402,8 @@ class neutrinoDirectionReconstructor:
 
             viewing_start = self._cherenkov_angle - np.deg2rad(15) # 15 degs
             viewing_end = self._cherenkov_angle + np.deg2rad(15)
-            # viewing_start = vw_sim - 5 * units.deg
-            # viewing_end = vw_sim + 5.1 * units.deg
+            # viewing_start = vw_sim - 2 * units.deg
+            # viewing_end = vw_sim + 2.1 * units.deg
             d_viewing_grid = .5 * units.deg # originally .5 deg
             energy_start = 1e17 * units.eV
             energy_end = 1e19 * units.eV + 1e14 * units.eV
@@ -414,8 +413,8 @@ class neutrinoDirectionReconstructor:
             theta_start = np.deg2rad(-180) #-180
             theta_end =  np.deg2rad(180) #180
             # pol_angle_sim = np.arctan2(pol_sim[2], pol_sim[1])
-            # theta_start = pol_angle_sim - 25 * units.deg
-            # theta_end = pol_angle_sim + 25.1 * units.deg
+            # theta_start = pol_angle_sim - 10 * units.deg
+            # theta_end = pol_angle_sim + 10.1 * units.deg
             d_theta_grid = 5 * units.deg # originally 1 degree
 
             cop = datetime.datetime.now()
@@ -504,11 +503,13 @@ class neutrinoDirectionReconstructor:
             
 
             ## get the traces for the reconstructed energy and direction
-            tracrec = self.minimizer([rec_zenith, rec_azimuth, np.log10(rec_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[0]
-            fit_reduced_chi2_Vpol = self.minimizer([rec_zenith, rec_azimuth, np.log10(rec_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[4][0]
-            fit_reduced_chi2_Hpol = self.minimizer([rec_zenith, rec_azimuth, np.log10(rec_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[4][1]
-            channels_overreconstructed = self.minimizer([rec_zenith, rec_azimuth, np.log10(rec_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[5]
-            extra_channel = self.minimizer([rec_zenith, rec_azimuth, np.log10(rec_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[6]
+            reconstruction_output = self.minimizer([rec_zenith, rec_azimuth, np.log10(rec_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)
+            tracrec = reconstruction_output[0]
+            fit_reduced_chi2_Vpol = reconstruction_output[4][0]
+            fit_reduced_chi2_Hpol = reconstruction_output[4][1]
+            channels_overreconstructed = reconstruction_output[5]
+            extra_channel = reconstruction_output[6]
+            chi2_dict = reconstruction_output[3]
 
             fminfit = self.minimizer([rec_zenith, rec_azimuth, np.log10(rec_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)
             
@@ -523,15 +524,13 @@ class neutrinoDirectionReconstructor:
 
             print("make debug plots....")
             if debug_plots:
-                linewidth = 5
-                tracdata = self.minimizer([rec_zenith, rec_azimuth, np.log10(rec_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[1]
-                timingdata = self.minimizer([rec_zenith, rec_azimuth, np.log10(rec_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[2]
+                linewidth = 2
+                tracdata = reconstruction_output[1]
+                timingdata = reconstruction_output[2]
                 timingsim = self.minimizer([simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], first_iter = True, minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[2]
                                 
                 timingsim_recvertex = self.minimizer([simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], first_iter = True, minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[2]
-                plt.rc('xtick', labelsize = 25)
-                plt.rc('ytick', labelsize = 25)
-                fig, ax = plt.subplots(len(use_channels), 3, sharex=False, figsize=(32, 8*len(use_channels)))
+                fig, ax = plt.subplots(len(use_channels), 3, sharex=False, figsize=(16, 4*len(use_channels)))
 
                 ich = 0
                 SNRs = np.zeros((len(use_channels), 2))
@@ -553,7 +552,7 @@ class neutrinoDirectionReconstructor:
                             # logger.debug("Sim trace: {:.0f} - {:.0f} ns".format(timingsim[channel.get_id()][0][0], timingsim[channel.get_id()][0][-1]))
                             ax[ich][0].grid()
                             ax[ich][2].grid()
-                            ax[ich][0].set_xlabel("timing [ns]", fontsize = 30)
+                            ax[ich][0].set_xlabel("timing [ns]", )
                             ax[ich][0].plot(channel.get_times(), channel.get_trace(), lw = linewidth, label = 'data', color = 'black')
                         
                             ax[ich][0].fill_between(timingdata[channel.get_id()][0], tracrec[channel.get_id()][0] - self._model_sys*tracrec[channel.get_id()][0], tracrec[channel.get_id()][0] + self._model_sys * tracrec[channel.get_id()][0], color = 'green', alpha = 0.2)
@@ -563,7 +562,7 @@ class neutrinoDirectionReconstructor:
 
                             ax[ich][0].plot(timingsim_recvertex[channel.get_id()][0], tracsim_recvertex[channel.get_id()][0], label = 'simulation rec vertex', color = 'lightblue' , lw = linewidth, ls = '--')
 
-                            ax[ich][0].set_xlim((timingsim[channel.get_id()][0][0], timingsim[channel.get_id()][0][-1]))
+                            ax[ich][0].set_xlim((timingdata[channel.get_id()][0][0], timingdata[channel.get_id()][0][-1]))
             
                             if 1:
                                     ax[ich][0].plot(timingdata[channel.get_id()][0], tracrec[channel.get_id()][0], label = 'reconstruction', lw = linewidth, color = 'green')
@@ -574,12 +573,12 @@ class neutrinoDirectionReconstructor:
                             if 1:
                                     ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel.get_id()][0]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel.get_id()][0], sampling_rate)), color = 'green', lw = linewidth)
                                     ax[ich][2].set_xlim((0, 1))
-                                    ax[ich][2].set_xlabel("frequency [GHz]", fontsize = 30)
-                            ax[ich][0].legend(fontsize = 30)
+                                    ax[ich][2].set_xlabel("frequency [GHz]", )
+                            ax[ich][0].legend()
                             
                         if len(tracdata[channel.get_id()]) > 1:
                             ax[ich][1].grid()
-                            ax[ich][1].set_xlabel("timing [ns]", fontsize = 30)
+                            ax[ich][1].set_xlabel("timing [ns]", )
                             ax[ich][1].plot(channel.get_times(), channel.get_trace(), label = 'data', lw = linewidth, color = 'black')
                             ax[ich][2].plot(np.fft.rfftfreq(len(timingsim[channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel.get_id()][1], sampling_rate)), lw = linewidth, color = 'red')
                             ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracdata[channel.get_id()][1], sampling_rate)), color = 'black', lw = linewidth)
@@ -591,22 +590,30 @@ class neutrinoDirectionReconstructor:
                         
                             ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel.get_id()][1], sampling_rate)), lw = linewidth, color = 'orange')
                             ax[ich][1].plot(timingsim_recvertex[channel.get_id()][1], tracsim_recvertex[channel.get_id()][1], label = 'simulation rec vertex', color = 'lightblue', lw = linewidth, ls = '--')
-                            ax[ich][1].set_xlim((timingsim[channel.get_id()][1][0], timingsim[channel.get_id()][1][-1]))
+                            ax[ich][1].set_xlim((timingdata[channel.get_id()][1][0], timingdata[channel.get_id()][1][-1]))
                             if 1:#channel.get_id() in [6]:
-                                    ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel.get_id()][1], sampling_rate)), color = 'green', lw = linewidth, label = 'channel id {}'.format(channel.get_id()))
-                                    ax[ich][2].legend(fontsize = 30)                      
-                        
+                                ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel.get_id()][1]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel.get_id()][1], sampling_rate)), color = 'green', lw = linewidth, label = 'channel id {}'.format(channel.get_id()))
+                                ax[ich][2].legend()                      
+                        for ii in range(2):
+                            chi2 = chi2_dict[channel.get_id()][ii]
+                            if chi2 > 0:
+                                ax[ich][ii].set_title(f'$\chi^2={chi2:.2f}$')
+                            else:
+                                ax[ich][ii].set_fc('grey')
+
                         ich += 1
-                ax[0][0].legend(fontsize = 30)
+                ax[0][0].legend()
 
                 
                 fig.tight_layout()
-                print("output path for stored figure","{}/fit_{}.pdf".format(debugplots_path, filenumber))
-                fig.savefig("{}/fit_{}.pdf".format(debugplots_path, filenumber, shower_id))
+                fig_path = "{}/{}_fit".format(debugplots_path, filenumber, shower_id)
+                logger.debug(f"output path for stored figure: {fig_path}")
+                # print("output path for stored figure","{}/fit_{}.pdf".format(debugplots_path, filenumber))
+                save_fig(fig, fig_path, self._debug_formats)
                 plt.close('all')
                 ### chi squared grid from opt.brute:
-                plt.rc('xtick', labelsize = 10)
-                plt.rc('ytick', labelsize = 10)
+                # plt.rc('xtick',)
+                # plt.rc('ytick', labelsize = 10)
                 min_energy_index = np.unravel_index(np.argmin(chi2_grid), vw_grid.shape)[-1]
                 extent = (
                     vw_grid[0,0,0,0] / units.deg,
@@ -615,12 +622,13 @@ class neutrinoDirectionReconstructor:
                     vw_grid[1,0,-1,0] / units.deg,
                 )
 
-                plt.figure(figsize=(8,8))
+                fig = plt.figure(figsize=(6,6))
+                vmax = np.min([4*np.min(chi2_grid), np.max(chi2_grid[:,:,min_energy_index])])
                 plt.imshow(
                     (chi2_grid[:,:,min_energy_index].T),
                     extent=extent,
                     aspect='auto',
-                    vmax=5*np.min(chi2_grid),
+                    vmax=vmax,
                     origin='lower'   
                 )
 
@@ -640,8 +648,17 @@ class neutrinoDirectionReconstructor:
                 plt.xlabel("Viewing angle (deg)")
                 plt.ylabel("Polarization angle (deg)")
                 plt.title("E=1e{:.1f} eV".format(vw_grid[2,0,0,min_energy_index]))
-                plt.colorbar(label=r"$\chi^2$")
-                plt.savefig("{}/chi_squared_{}.pdf".format(debugplots_path, filenumber))
+                cbar = plt.colorbar(label=r"$\chi^2$")
+                vmax = cbar.vmax
+                vmin = cbar.vmin
+                cbar_ticks = cbar.get_ticks()
+                cbar_ticks = cbar_ticks[(cbar_ticks < vmax) & (cbar_ticks > vmin)]
+                cbar_ticks[0] = vmin
+                cbar_ticklabels = [f'{tick:.0f}' for tick in cbar_ticks]
+                cbar_ticklabels[0] = f'{vmin:.2f} / {self.__dof}'
+                cbar.set_ticks(cbar_ticks, labels=cbar_ticklabels)
+                plt.tight_layout()
+                save_fig(fig, "{}/{}_chi_squared".format(debugplots_path, filenumber), self._debug_formats)
                 plt.close()
                 #exit()
 
@@ -659,6 +676,8 @@ class neutrinoDirectionReconstructor:
             if station.has_sim_station(): print("chi2 for simulated rec vertex {}, simulated sim vertex {} and fit {}".format(fsim, fsimsim, fminfit))#reconstructed vertex
             if station.has_sim_station():
                 print("chi2 for all channels simulated rec vertex {}, simulated sim vertex {} and fit {}".format(all_fsim, all_fsimsim, all_fminfit))#reconstructed vertex
+                total_chi2 = np.sum([chi2s for chi2s in chi2_dict.values()])
+                logger.warning(f"Fit chi squared: {total_chi2:.2f} / {self.__dof}")
                 print("launch vector for simulated {} and fit {}".format(lv_sim, launch_vector_rec))
                 zen_sim = hp.cartesian_to_spherical(*lv_sim)[0]
                 zen_rec = hp.cartesian_to_spherical(*launch_vector_rec)[0]
@@ -785,7 +804,7 @@ class neutrinoDirectionReconstructor:
             self._use_channels, first_iter = first_iter, starting_values = starting_values,
             pol_angle = pol_angle) ## get traces due to neutrino direction and vertex position
         chi2 = 0
-        all_chi2 = []
+        all_chi2 = dict()
         over_reconstructed = [] ## list for channel ids where reconstruction is larger than data
         extra_channel = 0 ## count number of pulses besides triggering pulse in Vpol + Hpol
 
@@ -825,7 +844,7 @@ class neutrinoDirectionReconstructor:
                 rec_traces[channel_id] = {}
                 data_traces[channel_id] = {}
                 data_timing[channel_id] = {}
-
+                all_chi2[channel_id] = np.zeros(2)
                 ### if no solution exist, than analytic voltage is zero
                 rec_trace = np.zeros(len(data_trace))# if there is no raytracing solution, the trace is only zeros
 
@@ -1046,20 +1065,21 @@ class neutrinoDirectionReconstructor:
     #
                         if (channel_id == ch_Vpol):
                             chi2 += chi2s[trace_ref]
+                            all_chi2[channel_id][trace_ref] = chi2s[trace_ref]
                             dof += 1
                         if (channel_id == ch_Hpol):
                             if 'Hpol_ref' in locals(): #Hpol_ref is only defined when this is supposed to be included in the fit
                                 chi2 += chi2s[trace_ref]
+                                all_chi2[channel_id][trace_ref] = chi2s[trace_ref]
                         
-    
                 else:
-                        extra_channel += echannel[0]
-                        extra_channel += echannel[1]
-                        chi2 += chi2s[0]
-                        chi2 += chi2s[1]
-                        dof += dof_channel
-                        all_chi2.append(chi2s[0])
-                        all_chi2.append(chi2s[1])
+                    extra_channel += echannel[0]
+                    extra_channel += echannel[1]
+                    # chi2 += chi2s[0]
+                    # chi2 += chi2s[1]
+                    chi2 += np.sum(chi2s[np.where(echannel)])
+                    dof += dof_channel
+                    all_chi2[channel_id] = np.where(echannel, chi2s, 0)
             
         self.__dof = dof
         if timing_k:
@@ -1100,3 +1120,30 @@ class neutrinoDirectionReconstructor:
         """
     def end(self):
         pass
+
+
+def save_fig(fig, fname, format='.png'):
+    """
+    Save a matplotlib Figure instance
+
+    Parameters
+    ----------
+    fig : matplotlib Fig instance
+    fname : string
+        location / name
+    format : string | list (default: '.png')
+        format(s) to save to save the figure to.
+        If a list, save the figure to multiple formats.
+        Can also include '.pickle'/'.pkl' to enable the Fig to be
+        imported and edited in the future
+
+    """
+    formats = np.atleast_1d(format)
+    for fmt in formats:
+        if ('pickle' in fmt) or ('pkl' in fmt):
+            with open(fname+'.pkl', 'wb') as file:
+                pickle.dump(fig, file)
+        else:
+            if not fmt[0] == '.':
+                fmt = '.' + fmt
+            fig.savefig(fname+fmt)
