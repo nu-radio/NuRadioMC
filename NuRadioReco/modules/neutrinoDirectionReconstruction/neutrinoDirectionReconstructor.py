@@ -402,19 +402,19 @@ class neutrinoDirectionReconstructor:
 
             viewing_start = self._cherenkov_angle - np.deg2rad(15) # 15 degs
             viewing_end = self._cherenkov_angle + np.deg2rad(15)
-            viewing_start = vw_sim - 2 * units.deg
-            viewing_end = vw_sim + 2.1 * units.deg
+            # viewing_start = vw_sim - 2 * units.deg
+            # viewing_end = vw_sim + 2.1 * units.deg
             d_viewing_grid = .5 * units.deg # originally .5 deg
             energy_start = 1e17 * units.eV
-            energy_end = 1e18 * units.eV + 1e14 * units.eV
+            energy_end = 1e19 * units.eV + 1e14 * units.eV
             d_log_energy = .5
             # energy_start = simulated_energy / 3
             # energy_end = simulated_energy * 3
             theta_start = np.deg2rad(-180) #-180
             theta_end =  np.deg2rad(180) #180
-            pol_angle_sim = np.arctan2(pol_sim[2], pol_sim[1])
-            theta_start = pol_angle_sim - 10 * units.deg
-            theta_end = pol_angle_sim + 10.1 * units.deg
+            # pol_angle_sim = np.arctan2(pol_sim[2], pol_sim[1])
+            # theta_start = pol_angle_sim - 10 * units.deg
+            # theta_end = pol_angle_sim + 10.1 * units.deg
             d_theta_grid = 5 * units.deg # originally 1 degree
 
             cop = datetime.datetime.now()
