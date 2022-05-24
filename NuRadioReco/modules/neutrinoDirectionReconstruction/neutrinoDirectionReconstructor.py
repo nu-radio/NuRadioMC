@@ -402,19 +402,19 @@ class neutrinoDirectionReconstructor:
 
             viewing_start = self._cherenkov_angle - np.deg2rad(15) # 15 degs
             viewing_end = self._cherenkov_angle + np.deg2rad(15)
-            # viewing_start = vw_sim - 2 * units.deg
-            # viewing_end = vw_sim + 2.1 * units.deg
+            viewing_start = vw_sim - 2 * units.deg
+            viewing_end = vw_sim + 2.1 * units.deg
             d_viewing_grid = .5 * units.deg # originally .5 deg
             energy_start = 1e17 * units.eV
-            energy_end = 1e19 * units.eV + 1e14 * units.eV
+            energy_end = 1e18 * units.eV + 1e14 * units.eV
             d_log_energy = .5
             # energy_start = simulated_energy / 3
             # energy_end = simulated_energy * 3
             theta_start = np.deg2rad(-180) #-180
             theta_end =  np.deg2rad(180) #180
-            # pol_angle_sim = np.arctan2(pol_sim[2], pol_sim[1])
-            # theta_start = pol_angle_sim - 10 * units.deg
-            # theta_end = pol_angle_sim + 10.1 * units.deg
+            pol_angle_sim = np.arctan2(pol_sim[2], pol_sim[1])
+            theta_start = pol_angle_sim - 10 * units.deg
+            theta_end = pol_angle_sim + 10.1 * units.deg
             d_theta_grid = 5 * units.deg # originally 1 degree
 
             cop = datetime.datetime.now()
@@ -527,7 +527,11 @@ class neutrinoDirectionReconstructor:
                 linewidth = 2
                 tracdata = reconstruction_output[1]
                 timingdata = reconstruction_output[2]
-                timingsim = self.minimizer([simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], first_iter = True, minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[2]
+                timingsim = self.minimizer(
+                    [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], 
+                    *event.get_sim_shower(shower_id)[shp.vertex],
+                    first_iter = True, minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol,
+                     full_station = full_station, sim=True)[2]
                                 
                 timingsim_recvertex = self.minimizer([simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], first_iter = True, minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[2]
                 fig, ax = plt.subplots(len(use_channels), 3, sharex=False, figsize=(16, 4*len(use_channels)))
@@ -623,7 +627,8 @@ class neutrinoDirectionReconstructor:
                 )
 
                 fig = plt.figure(figsize=(6,6))
-                vmax = np.min([4*np.min(chi2_grid), np.max(chi2_grid[:,:,min_energy_index])])
+                max_chi2_plot = np.max(np.where(chi2_grid < np.inf, chi2_grid, 0)[:,:,min_energy_index])
+                vmax = np.min([4*np.min(chi2_grid), max_chi2_plot])
                 plt.imshow(
                     (chi2_grid[:,:,min_energy_index].T),
                     extent=extent,
