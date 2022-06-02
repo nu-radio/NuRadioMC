@@ -240,7 +240,7 @@ class neutrinoDirectionReconstructor:
             ## check SNR of channels
             SNR = []
             for ich, channel in enumerate(station.get_sim_station().iter_channels()):
-                print("channel {}, SNR {}".format(channel.get_id(),(abs(min(channel.get_trace())) + max(channel.get_trace())) / (2*self._Vrms) ))
+                # logger.debug("channel {}, SNR {}".format(channel.get_id(),(abs(min(channel.get_trace())) + max(channel.get_trace())) / (2*self._Vrms) ))
                 if channel.get_id() in use_channels:
                     SNR.append((abs(abs(min(channel.get_trace()))) + max(channel.get_trace())) / (2*self._Vrms))
         

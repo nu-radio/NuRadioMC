@@ -1232,7 +1232,7 @@ class neutrino3DVertexReconstructor:
                 [sim_vertex[2] - sim_vertex_dhor * slope - offset],
                 c='r',
                 marker='o',
-                s=20
+                s=20, label='simulated'
             )
             ax6_2.scatter(
                 [np.cos(median_theta) * sim_vertex[0] + np.sin(median_theta) * sim_vertex[1]],
@@ -1259,28 +1259,28 @@ class neutrino3DVertexReconstructor:
             [x_0[i_max]],
             [z_0[i_max]],
             c='k',
-            marker='o',
-            s=20
+            marker='x',
+            s=20, label='fit'
         )
         ax6_2.scatter(
             [x_0[i_max]],
             [y_0[i_max]],
             c='k',
-            marker='o',
+            marker='x',
             s=20
         )
         ax6_3.scatter(
             [x_0[i_max]],
             [z_coords[i_max]],
             c='k',
-            marker='o',
+            marker='x',
             s=20
         )
         ax6_4.scatter(
             [x_coords[i_max]],
             [y_coords[i_max]],
             c='k',
-            marker='o',
+            marker='x',
             s=20
         )
         fontsize = 12
@@ -1296,8 +1296,9 @@ class neutrino3DVertexReconstructor:
         ax6_2.grid()
         ax6_3.grid()
         ax6_4.grid()
+        ax6_1.legend()
         fig6.tight_layout()
-        fname = '{}/{}_{}_slices.png'.format(self.__debug_folder, event.get_run_number(), event.get_id())
+        fname = '{}/{}_{}_slices'.format(self.__debug_folder, event.get_run_number(), event.get_id())
         save_fig(fig6, fname, self.__debug_fmts)
 
     def __draw_dnr_reco(
@@ -1427,14 +1428,14 @@ def save_fig(fig, fname, format='.png'):
     format : string | list (default: '.png')
         format(s) to save to save the figure to.
         If a list, save the figure to multiple formats.
-        Can also include '.pickle' to enable the Fig to be
+        Can also include '.pickle'/'.pkl' to enable the Fig to be
         imported and edited in the future
 
     """
     formats = np.atleast_1d(format)
     for fmt in formats:
-        if 'pickle' in fmt:
-            with open(fname+'.pickle', 'wb') as file:
+        if ('pickle' in fmt) or ('pkl' in fmt):
+            with open(fname+'.pkl', 'wb') as file:
                 pickle.dump(fig, file)
         else:
             if not fmt[0] == '.':
