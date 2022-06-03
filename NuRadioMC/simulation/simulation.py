@@ -164,6 +164,7 @@ class simulation():
             allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom". 
         """
         logger.setLevel(log_level)
+        self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
         logger.status('reading default config from {}'.format(config_file_default))
@@ -397,7 +398,7 @@ class simulation():
         channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
         electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
         if(self._outputfilenameNuRadioReco is not None):
-            self._eventWriter.begin(self._outputfilenameNuRadioReco)
+            self._eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
         unique_event_group_ids = np.unique(self._fin['event_group_ids'])
         self._n_showers = len(self._fin['event_group_ids'])
         self._shower_ids = np.array(self._fin['shower_ids'])
@@ -998,7 +999,7 @@ class simulation():
                     global_shower_indices = self._get_shower_index(self._shower_ids_of_sub_event)
                     local_shower_index = find_indices(global_shower_indices, event_indices)
                     self._save_triggers_to_hdf5(sg, local_shower_index, global_shower_indices)
-                    if(self._outputfilenameNuRadioReco is not None and self._station.has_triggered()):
+                    if(self._outputfilenameNuRadioReco is not None):
                         # downsample traces to detector sampling rate to save file size
                         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
                         channelResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
@@ -1012,6 +1013,7 @@ class simulation():
                             self._eventWriter.run(self._evt, self._det, mode=output_mode)
                         else:
                             self._eventWriter.run(self._evt, mode=output_mode)
+                        logger.debug("WRITING EVENT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 # end sub events loop
 
                 # add local sg array to output data structure if any
@@ -1038,6 +1040,9 @@ class simulation():
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
         self._write_output_file()
+        if(self._outputfilenameNuRadioReco is not None):
+            self._eventWriter.end()
+            logger.debug("closing nur file")
 
         try:
             self.calculate_Veff()
