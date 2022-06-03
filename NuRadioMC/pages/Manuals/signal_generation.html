@@ -15,6 +15,7 @@
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -548,10 +549,10 @@
            <div itemprop="articleBody">
              
   <section id="signal-generation-electric-field">
-<h1>Signal Generation (electric field)<a class="headerlink" href="#signal-generation-electric-field" title="Permalink to this headline"></a></h1>
+<h1>Signal Generation (electric field)<a class="headerlink" href="#signal-generation-electric-field" title="Permalink to this heading"></a></h1>
 <p>One of the NuRadioMC pillars is the signal generation procedure. All the relevant modules for signal generation can be found in the SignalGen folder. NuRadioMC has two methods for generating the electric field. The first one is through the use of frequency-domain parameterisations, and the second one is the use of the semianalytical ARZ model. An more in-depth explanation of the models can be found in the <a class="reference external" href="https://link.springer.com/article/10.1140%2Fepjc%2Fs10052-020-7612-8">NuRadioMC paper</a>.</p>
 <section id="frequency-domain-parameterisations">
-<h2>Frequency-domain parameterisations<a class="headerlink" href="#frequency-domain-parameterisations" title="Permalink to this headline"></a></h2>
+<h2>Frequency-domain parameterisations<a class="headerlink" href="#frequency-domain-parameterisations" title="Permalink to this heading"></a></h2>
 <p>Frequency-domain parameterisations are fits to simulation results for which the fitting functions are motivated by physical arguments. These parameterisations return waveforms and spectra that closely resemble the results of of full Monte Carlos. For instance, their predicted amplitudes are not far off of what a refined Monte Carlo would yield, so they can be used for simple trigger studies and for effective volume calculations. However, the fine details of the shower emission, an accurate timing, shower-to-shower fluctuations, or LPM effect cannot be fully reproduced with these frequency domain parameterisations. These parameterisations are:</p>
 <blockquote>
 <div><ul class="simple">
@@ -585,7 +586,7 @@
 <p>The trace units are the standard units for an electric field in NuRadioMC, that is, volts per metre. The user can also obtain the Fourier transform using the function <code class="docutils literal notranslate"><span class="pre">get_frequency_spectrum</span></code>. An FFT wrapper coded in NuRadioReco ensures that the units of this spectrum are units of electric field per frequency (volts per metre per gigahertz, in default NuRadioMC units), rejecting the standard adimensional FFT convention and freeing the user of keeping track of the transform normalisation.</p>
 </section>
 <section id="arz-semi-analytical-model">
-<h2>ARZ - semi-analytical model<a class="headerlink" href="#arz-semi-analytical-model" title="Permalink to this headline"></a></h2>
+<h2>ARZ - semi-analytical model<a class="headerlink" href="#arz-semi-analytical-model" title="Permalink to this heading"></a></h2>
 <p>NuRadioMC posesses an implementation of the semi-analytical <a class="reference external" href="https://dx.doi.org/10.1103/PhysRevD.84.103003">ARZ model</a>. This model uses a library of simulated shower longitudinal profiles together with a simulated parameterisation of the electric field at the Cherenkov angle and a formula for calculating the electric field for every observer using these data. This method agrees with the ZHS MC to the few percent level up to ~3 GHz. This model offers the advantage of having shower-to-shower fluctuations thanks to the simulated shower profiles library.  These showers have been simulated using a model for the LPM effect, which means that high-energy electromagnetic showers will be stretched and can present several local shower maxima. Also, hadronic showers can have a displaced maximum due to a pion that takes a lot of time to decay. All of the shower physics complexity is present if the library contains a fair sample of neutrino-induced showers, which translates into an accurate depiction of the electric field.</p>
 <p>When the user calls the ARZ module, the shower library <code class="docutils literal notranslate"><span class="pre">ARZ/shower_profile/shower_library_vX.Y.pkl</span></code> will be loaded in memory, and the shower profiles will be drawn from there. However, advanced users can provide their own shower profiles using a format similar to the files <code class="docutils literal notranslate"><span class="pre">ARZ/shower_profile/nue*tXXXX</span></code> and then use the file <code class="docutils literal notranslate"><span class="pre">A01preprocess_shower_library.py</span></code> to create the pickle library.</p>
 <p>The ARZ module should be the one used for reconstruction purposes, while the Alvarez2009 module can be used for effective volume calculations. However, if time is not an issue, we also recommend the use of the ARZ module for effective volume calculations.</p>
@@ -652,7 +653,7 @@
 recommend to always divide all variables by the units the user wants to display them on, and even more for density units.</p>
 </section>
 <section id="validity-of-the-parameterisations-and-the-arz-model">
-<h2>Validity of the parameterisations and the ARZ model<a class="headerlink" href="#validity-of-the-parameterisations-and-the-arz-model" title="Permalink to this headline"></a></h2>
+<h2>Validity of the parameterisations and the ARZ model<a class="headerlink" href="#validity-of-the-parameterisations-and-the-arz-model" title="Permalink to this heading"></a></h2>
 <p>The ARZ model is valid as long as the minimum distance between shower and observer is much larger than the minimum observation wavelength of interest. When this happens we say that the observer is in the far field (in an electromagnetic sense) (<a class="reference external" href="https://journals.aps.org/prd/abstract/10.1103/PhysRevD.87.023003">see paper</a>):</p>
 <blockquote>
 <div><ol class="arabic simple">
@@ -689,7 +690,7 @@ It can be argued that we should use the <strong>average</strong> refractive inde
 <p>This reduces to the standard wave equation if we neglect the term <span class="math notranslate nohighlight">\(\boldsymbol{E}\cdot\nabla\epsilon\)</span>. This is the approximation that is usually made (implicitly) in papers like <a class="reference external" href="https://dx.doi.org/10.1103/PhysRevLett.123.091102">this one</a>. While it’s a good starting point, we cannot claim to have a complete solution when neglecting this term. The gradient of the permittivity doesn’t seem negligible in shallow ice, and also this term is coupled to the electric field, which means it is larger for those regions where the electric field is larger. Another problem is that when neglecting this term, refraction disappears and we have to put it back ad hoc, as we usually do. But it is in principle not clear what we have lost along the way by removing the permittivity gradient and putting it back with ray tracing, although it does seem physically sound as a first-order approximation. The best way to settle this debate is with a proper finite differences in time domain (FDTD) method.</p>
 </section>
 <section id="timing">
-<h2>Timing<a class="headerlink" href="#timing" title="Permalink to this headline"></a></h2>
+<h2>Timing<a class="headerlink" href="#timing" title="Permalink to this heading"></a></h2>
 <p>Knowing the way timing works in NuRadioMC is crucial for reconstruction applications. As of now, the calculation of times is an interplay between the event generator, the signal generator, and the signal propagator modules.</p>
 <blockquote>
 <div><ol class="arabic simple">
@@ -702,7 +703,7 @@ It can be argued that we should use the <strong>average</strong> refractive inde
 <p>In short, the times obtained for each channel trace are calculated assuming that the first interaction happens at <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">0</span></code>, and the time array obtained with the method <code class="docutils literal notranslate"><span class="pre">channel.get_times()</span></code> are consistent with this description.</p>
 </section>
 <section id="using-the-same-shower-random-seed">
-<h2>Using the same shower. Random seed<a class="headerlink" href="#using-the-same-shower-random-seed" title="Permalink to this headline"></a></h2>
+<h2>Using the same shower. Random seed<a class="headerlink" href="#using-the-same-shower-random-seed" title="Permalink to this heading"></a></h2>
 <p>Two of the most relevant models have randomness added to simulate shower to shower fluctuations: the Alvarez2009 and the ARZ2020 (or 2019) model.</p>
 <p>The randomness in the Alvarez2009 model comes from a crude simulation of the LPM effect for electromagnetic showers. The constant k:sub:<cite>L</cite> is obtained from a log-gaussian distribution to simulate the stretching of the shower due to LPM. This stretching leaves the EM shower with the same smooth profile, only extended along a larger length, unlike a true LPM shower profile which should be bumpy because of the stochastic interactions. Nevertheless, it is a decent first approximation for illustration purposes.</p>
 <p>The ARZ models give different results each time they are called because the shower profile taken from the shower library changes. This mimics shower-to-shower fluctuations in a rigorous way.</p>
@@ -724,7 +725,7 @@ the numpy random seed can be fixed right before calling the  <code class="docuti
 </div></blockquote>
 </section>
 <section id="fft-normalisation">
-<h2>FFT normalisation<a class="headerlink" href="#fft-normalisation" title="Permalink to this headline"></a></h2>
+<h2>FFT normalisation<a class="headerlink" href="#fft-normalisation" title="Permalink to this heading"></a></h2>
 <p>FFT normalisation is a confusing subject to most people that that have worked with FFT algorithms. For the sake of speed, FFT algorithms work without any notion of dimensions or intervals between the points of an array, which combined with many other things, allows for a much faster transform, hence the first F for fast. The issue is, when using an FFT to transform from time to frequency, for instance, the FFT does not tell us the dimensions of the resulting transform or the frequencies. That is left for the user, so the fast part seems to be when calculating the transform and not when one has to interpret it, where it is really easy to commit a mistake and waste more time, effectively turning our FFTs into SFTs (Slow Fourier Transforms) or JWFTs (Just Wrong Fourier Transforms). The problem is only aggravated when transforming back, as some implementations present an extra N factor, the number of samples.</p>
 <p>With the FFT implementation in numpy, it is enough to multiply the result by the sampling rate to get the Fourier transform in the trace dimensions per frequency unit. It uses a standard normalisation with factor 1. In our case, we are using <code class="docutils literal notranslate"><span class="pre">numpy.rfft</span></code>, the real transform, instead of the general complex <code class="docutils literal notranslate"><span class="pre">numpy.fft</span></code>. This implementation ignores the negative frequencies, so if we want to get the whole energy of a signal integrating on the positive frequencies only, we have to multiply our transform by a factor of square root of 2.</p>
 <p>We have written a convenient FFT wrapper in NuRadioReco.utilities.fft. This wrapper has two functions, <code class="docutils literal notranslate"><span class="pre">time2freq</span></code>, to transform from time to frequency, and <code class="docutils literal notranslate"><span class="pre">freq2time</span></code>, for the inverse operation. The factors of square root of 2 and the dimensions of the function in frequency space are automatically taken into account. These functions need as arguments both the trace or spectrum, and the sampling rate. <code class="docutils literal notranslate"><span class="pre">time2freq</span></code> returns the spectrum in the input trace units per GHz. So, if a voltage in volts is passed as input, <code class="docutils literal notranslate"><span class="pre">time2freq</span></code> will return the spectrum in V/GHz.</p>

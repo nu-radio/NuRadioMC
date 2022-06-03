@@ -15,6 +15,7 @@
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -547,7 +548,7 @@
            <div itemprop="articleBody">
              
   <section id="use-the-vertex-reconstruction-modules">
-<h1>Use the Vertex Reconstruction Modules<a class="headerlink" href="#use-the-vertex-reconstruction-modules" title="Permalink to this headline"></a></h1>
+<h1>Use the Vertex Reconstruction Modules<a class="headerlink" href="#use-the-vertex-reconstruction-modules" title="Permalink to this heading"></a></h1>
 <p>NuRadioReco comes with 2 modules to reconstruct the position of the neutrino
 interaction vertex. Both work in a very similar way: The expected difference
 in signal arrival times between channels is determined for a possible vertex
@@ -557,7 +558,7 @@ for each pair are summed up. By scanning over all possible locations,the vertex
 position can be determined by finding the point where the sum of correlations
 is the largest.</p>
 <section id="creating-lookup-tables">
-<h2>Creating Lookup Tables<a class="headerlink" href="#creating-lookup-tables" title="Permalink to this headline"></a></h2>
+<h2>Creating Lookup Tables<a class="headerlink" href="#creating-lookup-tables" title="Permalink to this heading"></a></h2>
 <p>Redoing the raytracing for every point where the interaction vertex may be
 will take too much time to be practical in the long run. Therefore, the propagation
 times for a grid of positions is calculated once and stored to be used as a
@@ -581,7 +582,7 @@ recommend running it on a batch system.</p></li>
 </div></blockquote>
 </section>
 <section id="creating-electric-field-templates">
-<h2>Creating Electric Field Templates<a class="headerlink" href="#creating-electric-field-templates" title="Permalink to this headline"></a></h2>
+<h2>Creating Electric Field Templates<a class="headerlink" href="#creating-electric-field-templates" title="Permalink to this heading"></a></h2>
 <p>The reliability of the vertex reconstructor modules at low SNR can be improved by using
 a template to correlate with the measured voltages instead of correlating the waveforms
 directly.</p>
@@ -628,7 +629,7 @@ is applied.</p>
 </div>
 </section>
 <section id="d-vs-3d-vertex-reconstructor">
-<h2>2D vs. 3D Vertex Reconstructor<a class="headerlink" href="#d-vs-3d-vertex-reconstructor" title="Permalink to this headline"></a></h2>
+<h2>2D vs. 3D Vertex Reconstructor<a class="headerlink" href="#d-vs-3d-vertex-reconstructor" title="Permalink to this heading"></a></h2>
 <p>The neutrino2DVertexReconstructor uses antennas that are on the same string and takes advantage of
 resulting symmetry to speed up the reconstruction. Thanks to the rotational symmetry around the
 z-axis, the problem can be reduced to two dimensions and the vertex position is described by the

@@ -15,6 +15,7 @@
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -547,7 +548,7 @@
            <div itemprop="articleBody">
              
   <section id="example-calculating-effective-volume">
-<h1>Example: Calculating effective volume<a class="headerlink" href="#example-calculating-effective-volume" title="Permalink to this headline"></a></h1>
+<h1>Example: Calculating effective volume<a class="headerlink" href="#example-calculating-effective-volume" title="Permalink to this heading"></a></h1>
 <p>This tutorial gives a full example to simulate the effective volume of a high-energy radio neutrino detector.
 .. comment:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Installation
@@ -556,7 +557,7 @@ See :doc:`here &lt;/Introduction/pages/installation&gt;` for installation instru
 </pre></div>
 </div>
 <section id="run-an-effective-volume-simulation">
-<h2>Run an effective volume simulation<a class="headerlink" href="#run-an-effective-volume-simulation" title="Permalink to this headline"></a></h2>
+<h2>Run an effective volume simulation<a class="headerlink" href="#run-an-effective-volume-simulation" title="Permalink to this heading"></a></h2>
 <p>An effective volume simulation consists of the following steps</p>
 <ul class="simple">
 <li><p>generation of neutrino interactions in a cylindrical volume</p></li>
@@ -580,7 +581,7 @@ cp -r <span class="nv">$HOME</span>/software/NuRadioMC/NuRadioMC/examples/01_Vef
 <li><p>a main run script that also defines the details of the detector simulation</p></li>
 </ul>
 <section id="generating-the-input-event-list">
-<h3>Generating the input event list<a class="headerlink" href="#generating-the-input-event-list" title="Permalink to this headline"></a></h3>
+<h3>Generating the input event list<a class="headerlink" href="#generating-the-input-event-list" title="Permalink to this heading"></a></h3>
 <p>Generating the input event list is easy using the NuRadioMC event generator. Just execute</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python T01generate_event_list.py
 </pre></div>
@@ -588,7 +589,7 @@ cp -r <span class="nv">$HOME</span>/software/NuRadioMC/NuRadioMC/examples/01_Vef
 <p>The script will generate two event lists. One with 1000 events at 1e19 eV neutrino energy and one with 10,000 events at 1e18 eV neutrino energy.</p>
 </section>
 <section id="running-the-simulation">
-<h3>Running the simulation<a class="headerlink" href="#running-the-simulation" title="Permalink to this headline"></a></h3>
+<h3>Running the simulation<a class="headerlink" href="#running-the-simulation" title="Permalink to this heading"></a></h3>
 <p>To run the simulation execute</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python T02RunSimulation.py 1e19_n1e3.hdf5 surface_station_1GHz.json config.yaml 1e19_n1e3_output.hdf5
 </pre></div>
@@ -612,21 +613,21 @@ If you also want to save the pulse forms just add another command line argument.
 </div>
 <p>which takes 71 seconds on my laptop and leads to 29 triggered events.</p>
 <section id="more-details-the-detector-description">
-<h4>More details: the detector description<a class="headerlink" href="#more-details-the-detector-description" title="Permalink to this headline"></a></h4>
+<h4>More details: the detector description<a class="headerlink" href="#more-details-the-detector-description" title="Permalink to this heading"></a></h4>
 <p>The detector is defined in a JSON file and allows you to specify every detail of your detector that can have a relevance for the simulation or later reconstruction.
 For our simple example though, it contains many parameters that we don’t need to worry about, e.g. details about the ADC, so just ignore those fields.
 The file <code class="docutils literal notranslate"><span class="pre">surface_station_1GHz.json</span></code> defines a ‘surface station’ consisting of 4 downward pointing LPDAs at -2m depth and 4 bicone antennas at -5m depth.</p>
 <p>More info about detector files can be found <a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html"><span class="doc">here</span></a>.</p>
 </section>
 <section id="more-details-the-config-file">
-<h4>More details: the config file<a class="headerlink" href="#more-details-the-config-file" title="Permalink to this headline"></a></h4>
+<h4>More details: the config file<a class="headerlink" href="#more-details-the-config-file" title="Permalink to this heading"></a></h4>
 <p>An overview of all parameters can be found in the default config file <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/blob/master/NuRadioMC/simulation/config_default.yaml">config_default</a>.
 Everything defined in the local configuration file <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> will override the default parameters. The config file uses the YAML format, an easy to use and human readable format.
 It is similar to JSON but easier to type down.</p>
 </section>
 </section>
 <section id="visualization-of-results">
-<h3>Visualization of results<a class="headerlink" href="#visualization-of-results" title="Permalink to this headline"></a></h3>
+<h3>Visualization of results<a class="headerlink" href="#visualization-of-results" title="Permalink to this heading"></a></h3>
 <p>NuRadioMC includes visualization tools. To produce the typical debugging plots of an effective volume simulation execute</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python <span class="nv">$HOME</span>/software/NuRadioMC/NuRadioMC/simulation/scripts/T05visualize_sim_output.py 1e18_n1e4_output.hdf5
 </pre></div>

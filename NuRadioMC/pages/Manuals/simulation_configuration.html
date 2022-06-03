@@ -15,6 +15,7 @@
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -547,7 +548,7 @@
            <div itemprop="articleBody">
              
   <section id="simulation-and-configuration">
-<h1>Simulation and configuration<a class="headerlink" href="#simulation-and-configuration" title="Permalink to this headline"></a></h1>
+<h1>Simulation and configuration<a class="headerlink" href="#simulation-and-configuration" title="Permalink to this heading"></a></h1>
 <p>The simulation class and the module of the same name, located in the <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/tree/master/NuRadioMC/simulation">simulation</a> folder, constitute the heart of NuRadioMC. The simulation module takes the neutrino input files and creates events with them. These events are then processed using the information in the config file and the detector layout specified in the detector JSON file. Finally, the trigger description in a steering file is used to determine whether an event triggers or not.</p>
 <p>This page outlines the important aspects of how to operate a NuRadioMC simulation. For a practical example, visit <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/tree/master/NuRadioMC/examples/06_webinar">the webinar example</a>.</p>
 <p>Let us begin with a description of the steering files needed to run the simulation then let us discuss a brief outline of the procedure in <code class="docutils literal notranslate"><span class="pre">simulation.py</span></code>.</p>
@@ -558,7 +559,7 @@
 </div>
 </div></blockquote>
 <section id="steering-files">
-<h2>Steering files<a class="headerlink" href="#steering-files" title="Permalink to this headline"></a></h2>
+<h2>Steering files<a class="headerlink" href="#steering-files" title="Permalink to this heading"></a></h2>
 <p>A NuRadioMC steering file is the file that describes and runs the simulation. As a small example, we can define a detector with an empty detector description. Every steering file should have a class that inherits from the simulation class, that we can call <code class="docutils literal notranslate"><span class="pre">mySimulation</span></code>. This class must have a method called <code class="docutils literal notranslate"><span class="pre">_detector_simulation</span></code>, which uses NuRadioReco modules to simulate the detector response.</p>
 <p>To create a simulation instance, we need a NuRadioMC neutrino input file, a detector description JSON file, a YAML file with various configuration settings, the output file name, and optionally the output NuRadioReco file name (nur file).</p>
 <p>The following code shows how to run a simulation by creating an instance of mySimulation, who is a child class of simulation, and then run it.</p>
@@ -597,7 +598,7 @@
 <p>An example of a steering file, complete with detector description, can be found in <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/blob/master/NuRadioMC/examples/06_webinar/W02RunSimulation.py">examples/06_webinar/W02RunSimulation.py</a>.</p>
 </section>
 <section id="config-files">
-<h2>Config files<a class="headerlink" href="#config-files" title="Permalink to this headline"></a></h2>
+<h2>Config files<a class="headerlink" href="#config-files" title="Permalink to this heading"></a></h2>
 <p>The default configuration (or config) file used is the <code class="docutils literal notranslate"><span class="pre">config_default.yaml</span></code> file in the simulation folder. If the user wants to use different parameters, it suffices to specify ONLY the parameters they want to be overriden in their own config file. For instance, if the user wants to change only the emission model to ARZ2020, a short file like the following is enough:</p>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">signal</span><span class="p">:</span><span class="w"></span>
@@ -706,7 +707,7 @@
 </div></blockquote>
 </section>
 <section id="detector-description">
-<h2>Detector description<a class="headerlink" href="#detector-description" title="Permalink to this headline"></a></h2>
+<h2>Detector description<a class="headerlink" href="#detector-description" title="Permalink to this heading"></a></h2>
 <p>The detector description used by NuRadioReco must be specified in a JSON detector file. We will explain the most important fields needed in these JSON files.</p>
 <p>To write a JSON detector file, first we start with the channels, each one having an antenna. The mandatory parameters for a channel are:</p>
 <blockquote>
@@ -877,7 +878,7 @@
 </div></blockquote>
 </section>
 <section id="detector-simulation">
-<h2>Detector simulation<a class="headerlink" href="#detector-simulation" title="Permalink to this headline"></a></h2>
+<h2>Detector simulation<a class="headerlink" href="#detector-simulation" title="Permalink to this heading"></a></h2>
 <p>The following steering file teaches what the principal constituents of a detector simulation are. This code has been taken from the <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/blob/master/NuRadioMC/examples/06_webinar/W02RunSimulation.py">examples/06_webinar/W02RunSimulation.py</a>. It contains guidelines for generating noise, resampling, filtering, and implementing a trigger.</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">argparse</span>

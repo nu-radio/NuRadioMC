@@ -15,6 +15,7 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -546,11 +547,11 @@
            <div itemprop="articleBody">
              
   <section id="utilities">
-<h1>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline"></a></h1>
+<h1>Utilities<a class="headerlink" href="#utilities" title="Permalink to this heading"></a></h1>
 <p><em>NuRadioReco</em> provides a number of utilities to make life easier, the most
 important of which shall be introduced here.</p>
 <section id="unit-system">
-<h2>Unit System<a class="headerlink" href="#unit-system" title="Permalink to this headline"></a></h2>
+<h2>Unit System<a class="headerlink" href="#unit-system" title="Permalink to this heading"></a></h2>
 <p>To keep track of the units of the calculated event properties, <em>NuRadioReco</em>
 offers its own units system. The usage is simple: For every input, the number
 is multiplied by its units, for every output it is divided by it.</p>
@@ -570,7 +571,7 @@ and outputs are multiplied and divided by the correct units, things will stay
 consistent.</p>
 </section>
 <section id="fourier-transformation">
-<h2>Fourier Transformation<a class="headerlink" href="#fourier-transformation" title="Permalink to this headline"></a></h2>
+<h2>Fourier Transformation<a class="headerlink" href="#fourier-transformation" title="Permalink to this heading"></a></h2>
 <p>Helper functions to perform fast Fourier Transform between time and frequency
 domain. They can be found <a class="reference internal" href="../apidoc/NuRadioReco.utilities.fft.html#module-NuRadioReco.utilities.fft" title="NuRadioReco.utilities.fft"><code class="xref py py-mod docutils literal notranslate"><span class="pre">here</span></code></a>.
 The functions are wrappers around the the numpy real Fourier transform
@@ -584,9 +585,9 @@ independent of the sampling rate.</p>
 </div>
 </section>
 <section id="metaclasses">
-<h2>Metaclasses<a class="headerlink" href="#metaclasses" title="Permalink to this headline"></a></h2>
+<h2>Metaclasses<a class="headerlink" href="#metaclasses" title="Permalink to this heading"></a></h2>
 <section id="singleton">
-<h3>Singleton<a class="headerlink" href="#singleton" title="Permalink to this headline"></a></h3>
+<h3>Singleton<a class="headerlink" href="#singleton" title="Permalink to this heading"></a></h3>
 <p>For some classes (for example, the Detector class), it is usually a good idea to only have
 one instance of it active at a time. This can be accomplished by assigning the Singleton
 metaclass to it. The metaclass supercedes the __call__ method

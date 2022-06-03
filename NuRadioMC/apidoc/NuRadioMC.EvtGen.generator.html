@@ -15,6 +15,7 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -548,11 +549,11 @@
            <div itemprop="articleBody">
              
   <section id="module-NuRadioMC.EvtGen.generator">
-<span id="nuradiomc-evtgen-generator-module"></span><h1>NuRadioMC.EvtGen.generator module<a class="headerlink" href="#module-NuRadioMC.EvtGen.generator" title="Permalink to this headline"></a></h1>
+<span id="nuradiomc-evtgen-generator-module"></span><h1>NuRadioMC.EvtGen.generator module<a class="headerlink" href="#module-NuRadioMC.EvtGen.generator" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.EvtGen.generator.NuRadioMCLogger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.generator.</span></span><span class="sig-name descname"><span class="pre">NuRadioMCLogger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/generator.html#NuRadioMCLogger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.generator.NuRadioMCLogger" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">logging.Logger</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Logger</span></code></a></p>
 <p>Initialize the logger with a name and an optional level.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
@@ -809,9 +810,13 @@ This is useful to split up the computing on multiple cores.</p>
 <li><p>‘log_uniform’: uniformly distributed in the logarithm of energy</p></li>
 <li><p>‘E-?’: E to the -? spectrum where ? can be any float</p></li>
 <li><p>‘IceCube-nu-2017’: astrophysical neutrino flux measured with IceCube muon sample (<a class="reference external" href="https://doi.org/10.22323/1.301.1005">https://doi.org/10.22323/1.301.1005</a>)</p></li>
+<li><p>‘IceCube-nu-2022’: astrophysical neutrino flux measured with IceCube muon sample (<a class="reference external" href="https://doi.org/10.48550/arXiv.2111.10299">https://doi.org/10.48550/arXiv.2111.10299</a>)</p></li>
 <li><p>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a> 
-for 10% proton fraction (see get_GZK_1 function for details)</p></li>
+for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)</p></li>
+<li><p>‘GZK-2’: GZK neutrino flux model from fit to TA data (<a class="reference external" href="https://pos.sissa.it/395/338/">https://pos.sissa.it/395/338/</a>)</p></li>
 <li><p>‘GZK-1+IceCube-nu-2017’: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</p></li>
+<li><p>‘GZK-1+IceCube-nu-2022’: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux</p></li>
+<li><p>‘GZK-2+IceCube-nu-2022’: a combination of the cosmogenic (GZK-2) and astrophysical (IceCube nu 2022) flux</p></li>
 </ul>
 </dd>
 <dt><strong>deposited: bool</strong></dt><dd><p>if True, generate deposited energies instead of primary neutrino energies</p>
@@ -1015,7 +1020,7 @@ This is useful to split up the computing on multiple cores.</p>
 <li><p>‘E-?’: E to the -? spectrum where ? can be any float</p></li>
 <li><p>‘IceCube-nu-2017’: astrophysical neutrino flux measured with IceCube muon sample (<a class="reference external" href="https://doi.org/10.22323/1.301.1005">https://doi.org/10.22323/1.301.1005</a>)</p></li>
 <li><p>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a> 
-for 10% proton fraction (see get_GZK_1 function for details)</p></li>
+for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)</p></li>
 <li><p>‘GZK-1+IceCube-nu-2017’: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</p></li>
 </ul>
 </dd>
@@ -1076,15 +1081,6 @@ The relevant quantities are also saved into the hdf5 attributes</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.EvtGen.generator.get_GZK_1">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.generator.</span></span><span class="sig-name descname"><span class="pre">get_GZK_1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/generator.html#get_GZK_1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.generator.get_GZK_1" title="Permalink to this definition"></a></dt>
-<dd><p>model of (van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a>) of the cosmogenic neutrino ﬂux
-for a source evolution parameter of m = 3.4,
-a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,
-and a proton fraction of 10% at E = 10^19.6 eV</p>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.EvtGen.generator.get_energies">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.generator.</span></span><span class="sig-name descname"><span class="pre">get_energies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Emin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Emax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectrum_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/generator.html#get_energies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.generator.get_energies" title="Permalink to this definition"></a></dt>
 <dd><p>generates a random distribution of enrgies following a certain spectrum</p>
@@ -1103,8 +1099,11 @@ and a proton fraction of 10% at E = 10^19.6 eV</p>
 <li><p>‘E-?’: E to the -? spectrum where ? can be any float</p></li>
 <li><p>‘IceCube-nu-2017’: astrophysical neutrino flux measured with IceCube muon sample (<a class="reference external" href="https://doi.org/10.22323/1.301.1005">https://doi.org/10.22323/1.301.1005</a>)</p></li>
 <li><p>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a> for
-10% proton fraction (see get_GZK_1 function for details)</p></li>
+10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)</p></li>
+<li><p>‘GZK-2’: GZK neutrino flux model from fit to TA data (<a class="reference external" href="https://pos.sissa.it/395/338/">https://pos.sissa.it/395/338/</a>)</p></li>
 <li><p>‘GZK-1+IceCube-nu-2017’: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</p></li>
+<li><p>‘GZK-1+IceCube-nu-2022’: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux</p></li>
+<li><p>‘GZK-2+IceCube-nu-2022’: a combination of the cosmogenic (GZK-2) and astrophysical (IceCube nu 2022) flux</p></li>
 </ul>
 </dd>
 <dt><strong>rnd: random generator object</strong></dt><dd><p>if None is provided, a new default random generator object is initialized</p>
@@ -1179,6 +1178,11 @@ with PROPOSAL. We calculate the 95% percentile for the largest energy.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.EvtGen.generator.ice_cube_nu_fit">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.generator.</span></span><span class="sig-name descname"><span class="pre">ice_cube_nu_fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">2.19</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.01</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/generator.html#ice_cube_nu_fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.generator.ice_cube_nu_fit" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.EvtGen.generator.ice_cube_nu_fit_2022">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.generator.</span></span><span class="sig-name descname"><span class="pre">ice_cube_nu_fit_2022</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">2.37</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.44</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/generator.html#ice_cube_nu_fit_2022"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.generator.ice_cube_nu_fit_2022" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">

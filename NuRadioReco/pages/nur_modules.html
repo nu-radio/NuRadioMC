@@ -15,6 +15,7 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -546,7 +547,7 @@
            <div itemprop="articleBody">
              
   <section id="modules">
-<h1>Modules<a class="headerlink" href="#modules" title="Permalink to this headline"></a></h1>
+<h1>Modules<a class="headerlink" href="#modules" title="Permalink to this heading"></a></h1>
 <p>In NuRadioReco, the process of reconstruction event properties from data is done
 by modules. In principle, each step of an analysis should be done by a dedicated
 module. For example, one module applies a filter to the channel spectrum and a
@@ -562,7 +563,7 @@ It is even possible to combine several modules into a single module, for example
 to make a standard reconstruction model, that performs a reconstruction with the
 default settings deemed best for a given experiment.</p>
 <section id="basic-module-structure">
-<h2>Basic Module Structure<a class="headerlink" href="#basic-module-structure" title="Permalink to this headline"></a></h2>
+<h2>Basic Module Structure<a class="headerlink" href="#basic-module-structure" title="Permalink to this heading"></a></h2>
 <p>Each module consists of four components:</p>
 <ul class="simple">
 <li><p>A constructor to create the module. In a reconstruction, this is usually
@@ -578,7 +579,7 @@ or to print information on what the module has done.</p></li>
 function can be skipped for some modules.</p>
 </section>
 <section id="logging">
-<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline"></a></h2>
+<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this heading"></a></h2>
 <blockquote>
 <div><p>Every module MODULE should have in the init function the initalization of a
 logger with</p>

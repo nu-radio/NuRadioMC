@@ -15,6 +15,7 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -548,11 +549,11 @@
            <div itemprop="articleBody">
              
   <section id="module-NuRadioMC.utilities.medium">
-<span id="nuradiomc-utilities-medium-module"></span><h1>NuRadioMC.utilities.medium module<a class="headerlink" href="#module-NuRadioMC.utilities.medium" title="Permalink to this headline"></a></h1>
+<span id="nuradiomc-utilities-medium-module"></span><h1>NuRadioMC.utilities.medium module<a class="headerlink" href="#module-NuRadioMC.utilities.medium" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.ARAsim_southpole">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">ARAsim_southpole</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#ARAsim_southpole"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.ARAsim_southpole" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium_base.IceModelSimple</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
 <p>initiaion of a simple exponential ice model</p>
 <p>The bottom defined here is a boundary condition used in simulations and
 should always be defined. Note: it is not the same as reflective bottom.
@@ -629,7 +630,7 @@ of the snow at the surface</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_firn">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">greenland_firn</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#greenland_firn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_firn" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel" title="NuRadioMC.utilities.medium_base.IceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium_base.IceModel</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel" title="NuRadioMC.utilities.medium_base.IceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModel</span></code></a></p>
 <p>This model can only be used with the radiopropa raytracer.
 Therefor, the model is implemented through radiopropa.</p>
 <p class="rubric">Methods</p>
@@ -800,7 +801,7 @@ Overwrites function of the mother class</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_simple">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">greenland_simple</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#greenland_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_simple" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium_base.IceModelSimple</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
 <p>initiaion of a simple exponential ice model</p>
 <p>The bottom defined here is a boundary condition used in simulations and
 should always be defined. Note: it is not the same as reflective bottom.
@@ -857,7 +858,7 @@ of the snow at the surface</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">mooresbay_simple</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#mooresbay_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium_base.IceModelSimple</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
 <p>initiaion of a simple exponential ice model</p>
 <p>The bottom defined here is a boundary condition used in simulations and
 should always be defined. Note: it is not the same as reflective bottom.
@@ -914,7 +915,7 @@ of the snow at the surface</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple_2">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">mooresbay_simple_2</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#mooresbay_simple_2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple_2" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium_base.IceModelSimple</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
 <p>initiaion of a simple exponential ice model</p>
 <p>The bottom defined here is a boundary condition used in simulations and
 should always be defined. Note: it is not the same as reflective bottom.
@@ -971,7 +972,7 @@ of the snow at the surface</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_2015">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">southpole_2015</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#southpole_2015"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_2015" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium_base.IceModelSimple</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
 <p>initiaion of a simple exponential ice model</p>
 <p>The bottom defined here is a boundary condition used in simulations and
 should always be defined. Note: it is not the same as reflective bottom.
@@ -1028,7 +1029,7 @@ of the snow at the surface</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_simple">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">southpole_simple</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#southpole_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_simple" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium_base.IceModelSimple</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
 <p>initiaion of a simple exponential ice model</p>
 <p>The bottom defined here is a boundary condition used in simulations and
 should always be defined. Note: it is not the same as reflective bottom.

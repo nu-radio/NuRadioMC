@@ -14,6 +14,7 @@
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -694,7 +695,7 @@
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">iFile</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">filename2</span> <span class="o">=</span> <span class="n">filename</span>
-        <span class="n">evt_ids_this_file</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;event_group_ids&quot;</span><span class="p">])[</span><span class="n">iFile</span> <span class="o">*</span> <span class="n">n_events_per_file</span> <span class="p">:</span> <span class="p">(</span><span class="n">iFile</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">n_events_per_file</span><span class="p">]</span>
+        <span class="n">evt_ids_this_file</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;event_group_ids&quot;</span><span class="p">])[</span><span class="n">iFile</span> <span class="o">*</span> <span class="n">n_events_per_file</span><span class="p">:</span> <span class="p">(</span><span class="n">iFile</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">n_events_per_file</span><span class="p">]</span>
         <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">evt_ids_this_file</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;no more events to write in file </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iFile</span><span class="p">))</span>
             <span class="k">break</span>
@@ -740,7 +741,7 @@
         <span class="c1"># case 2) it is the last file -&gt; total number of simulated events - last event id of previous file</span>
         <span class="c1"># case 3) it is the first file -&gt; last event id + 1 - start_event_id</span>
         <span class="c1"># case 4) it is the first and last file -&gt; total number of simulated events</span>
-        <span class="n">evt_ids_next_file</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;event_group_ids&quot;</span><span class="p">])[(</span><span class="n">iFile</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">n_events_per_file</span> <span class="p">:</span> <span class="p">(</span><span class="n">iFile</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">n_events_per_file</span><span class="p">]</span>
+        <span class="n">evt_ids_next_file</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;event_group_ids&quot;</span><span class="p">])[(</span><span class="n">iFile</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">n_events_per_file</span><span class="p">:</span> <span class="p">(</span><span class="n">iFile</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">n_events_per_file</span><span class="p">]</span>
         <span class="n">n_events_this_file</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span><span class="p">(</span><span class="n">iFile</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">evt_ids_next_file</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>  <span class="c1"># case 4</span>
             <span class="n">n_events_this_file</span> <span class="o">=</span> <span class="n">total_number_of_events</span>
@@ -801,19 +802,11 @@
     <span class="k">return</span> <span class="n">flux</span></div>
 
 
-<div class="viewcode-block" id="get_GZK_1"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_GZK_1">[docs]</a><span class="k">def</span> <span class="nf">get_GZK_1</span><span class="p">(</span><span class="n">energy</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    model of (van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1) of the cosmogenic neutrino ﬂux</span>
-<span class="sd">    for a source evolution parameter of m = 3.4,</span>
-<span class="sd">    a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,</span>
-<span class="sd">    and a proton fraction of 10% at E = 10^19.6 eV</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">E</span><span class="p">,</span> <span class="n">J</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span>
-                                     <span class="s1">&#39;../examples/Sensitivities/ReasonableNeutrinos1.txt&#39;</span><span class="p">))</span>
-    <span class="n">E</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">GeV</span>
-    <span class="n">J</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">s</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="n">E</span> <span class="o">**</span> <span class="mi">2</span>
-    <span class="n">get_flux</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="n">E</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">get_flux</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span></div>
+<div class="viewcode-block" id="ice_cube_nu_fit_2022"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.ice_cube_nu_fit_2022">[docs]</a><span class="k">def</span> <span class="nf">ice_cube_nu_fit_2022</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">slope</span><span class="o">=-</span><span class="mf">2.37</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">1.44</span><span class="p">):</span>
+    <span class="c1"># 9.5 years analysis 2.37+0.09−0.09, offset 1.44 + 0.25 - 0.26, Astrophysical normalization @ 100TeV: 1.44+0.25−0.26 × 10−18 GeV−1cm−2s−1 sr−1</span>
+    <span class="n">flux</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">offset</span> <span class="o">*</span> <span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">TeV</span><span class="p">))</span> <span class="o">**</span> <span class="n">slope</span> <span class="o">*</span> <span class="mf">1e-18</span> <span class="o">*</span> \
+        <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">flux</span></div>
 
 
 <div class="viewcode-block" id="get_energy_from_flux"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_energy_from_flux">[docs]</a><span class="k">def</span> <span class="nf">get_energy_from_flux</span><span class="p">(</span><span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">flux</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -882,7 +875,7 @@
 <div class="viewcode-block" id="get_energies"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_energies">[docs]</a><span class="k">def</span> <span class="nf">get_energies</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span> <span class="n">spectrum_type</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    generates a random distribution of enrgies following a certain spectrum</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    -----------</span>
 <span class="sd">    n_events: int</span>
@@ -898,12 +891,16 @@
 <span class="sd">        * &#39;E-?&#39;: E to the -? spectrum where ? can be any float</span>
 <span class="sd">        * &#39;IceCube-nu-2017&#39;: astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)</span>
 <span class="sd">        * &#39;GZK-1&#39;: GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for</span>
-<span class="sd">          10% proton fraction (see get_GZK_1 function for details)</span>
+<span class="sd">          10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)</span>
+<span class="sd">        * &#39;GZK-2&#39;: GZK neutrino flux model from fit to TA data (https://pos.sissa.it/395/338/)</span>
 <span class="sd">        * &#39;GZK-1+IceCube-nu-2017&#39;: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</span>
+<span class="sd">        * &#39;GZK-1+IceCube-nu-2022&#39;: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux</span>
+<span class="sd">        * &#39;GZK-2+IceCube-nu-2022&#39;: a combination of the cosmogenic (GZK-2) and astrophysical (IceCube nu 2022) flux</span>
 <span class="sd">        </span>
 <span class="sd">    rnd: random generator object</span>
 <span class="sd">        if None is provided, a new default random generator object is initialized</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">if</span><span class="p">(</span><span class="n">rnd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">rnd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;generating energies&quot;</span><span class="p">)</span>
@@ -926,13 +923,31 @@
 <span class="sd">        a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,</span>
 <span class="sd">        and a proton fraction of 10% at E = 10^19.6 eV</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">energies</span> <span class="o">=</span> <span class="n">get_energy_from_flux</span><span class="p">(</span><span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">get_GZK_1</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">NuRadioMC.examples.Sensitivities.E2_fluxes3</span> <span class="kn">import</span> <span class="n">get_proton_10</span>
+        <span class="n">energies</span> <span class="o">=</span> <span class="n">get_energy_from_flux</span><span class="p">(</span><span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">get_proton_10</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
     <span class="k">elif</span><span class="p">(</span><span class="n">spectrum_type</span> <span class="o">==</span> <span class="s2">&quot;IceCube-nu-2017&quot;</span><span class="p">):</span>
         <span class="n">energies</span> <span class="o">=</span> <span class="n">get_energy_from_flux</span><span class="p">(</span><span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">ice_cube_nu_fit</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
+    <span class="k">elif</span><span class="p">(</span><span class="n">spectrum_type</span> <span class="o">==</span> <span class="s2">&quot;IceCube-nu-2022&quot;</span><span class="p">):</span>
+        <span class="n">energies</span> <span class="o">=</span> <span class="n">get_energy_from_flux</span><span class="p">(</span><span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">ice_cube_nu_fit_2022</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
     <span class="k">elif</span><span class="p">(</span><span class="n">spectrum_type</span> <span class="o">==</span> <span class="s2">&quot;GZK-1+IceCube-nu-2017&quot;</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">NuRadioMC.examples.Sensitivities.E2_fluxes3</span> <span class="kn">import</span> <span class="n">get_proton_10</span>
 
         <span class="k">def</span> <span class="nf">J</span><span class="p">(</span><span class="n">E</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">ice_cube_nu_fit</span><span class="p">(</span><span class="n">E</span><span class="p">)</span> <span class="o">+</span> <span class="n">get_GZK_1</span><span class="p">(</span><span class="n">E</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ice_cube_nu_fit</span><span class="p">(</span><span class="n">E</span><span class="p">)</span> <span class="o">+</span> <span class="n">get_proton_10</span><span class="p">(</span><span class="n">E</span><span class="p">)</span>
+
+        <span class="n">energies</span> <span class="o">=</span> <span class="n">get_energy_from_flux</span><span class="p">(</span><span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
+    <span class="k">elif</span><span class="p">(</span><span class="n">spectrum_type</span> <span class="o">==</span> <span class="s2">&quot;GZK-1+IceCube-nu-2022&quot;</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">NuRadioMC.examples.Sensitivities.E2_fluxes3</span> <span class="kn">import</span> <span class="n">get_proton_10</span>
+
+        <span class="k">def</span> <span class="nf">J</span><span class="p">(</span><span class="n">E</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">ice_cube_nu_fit_2022</span><span class="p">(</span><span class="n">E</span><span class="p">)</span> <span class="o">+</span> <span class="n">get_proton_10</span><span class="p">(</span><span class="n">E</span><span class="p">)</span>
+
+        <span class="n">energies</span> <span class="o">=</span> <span class="n">get_energy_from_flux</span><span class="p">(</span><span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
+    <span class="k">elif</span><span class="p">(</span><span class="n">spectrum_type</span> <span class="o">==</span> <span class="s2">&quot;GZK-2+IceCube-nu-2022&quot;</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">NuRadioMC.examples.Sensitivities.E2_fluxes3</span> <span class="kn">import</span> <span class="n">get_TAGZK_flux_ICRC2021</span>
+
+        <span class="k">def</span> <span class="nf">J</span><span class="p">(</span><span class="n">E</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">ice_cube_nu_fit_2022</span><span class="p">(</span><span class="n">E</span><span class="p">)</span> <span class="o">+</span> <span class="n">get_TAGZK_flux_ICRC2021</span><span class="p">(</span><span class="n">E</span><span class="p">)</span>
 
         <span class="n">energies</span> <span class="o">=</span> <span class="n">get_energy_from_flux</span><span class="p">(</span><span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -944,7 +959,7 @@
 <div class="viewcode-block" id="set_volume_attributes"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.set_volume_attributes">[docs]</a><span class="k">def</span> <span class="nf">set_volume_attributes</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">proposal</span><span class="p">,</span> <span class="n">attributes</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    helper function that interprets the volume settings and sets the relevant quantities as hdf5 attributes.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    volume: dictionarty</span>
@@ -991,7 +1006,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">tau_95_length</span> <span class="o">=</span> <span class="n">get_tau_95_length</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;Emax&#39;</span><span class="p">])</span>
                 <span class="c1"># check if thetamax/thetamin are in same quadrant</span>
-                <span class="n">is_same_quadrant</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">]))</span><span class="o">==</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">]))</span>
+                <span class="n">is_same_quadrant</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">]))</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">]))</span>
                 <span class="k">if</span> <span class="n">is_same_quadrant</span><span class="p">:</span>
                     <span class="n">max_horizontal_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">])),</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">])))</span> <span class="o">*</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">])</span>  <span class="c1"># calculates the maximum horizontal distance through the ice</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -1057,7 +1072,7 @@
                 <span class="c1"># extent fiducial by tau decay length</span>
                 <span class="n">tau_95_length</span> <span class="o">=</span> <span class="n">get_tau_95_length</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;Emax&#39;</span><span class="p">])</span>
                 <span class="c1"># check if thetamax/thetamin are in same quadrant</span>
-                <span class="n">is_same_quadrant</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">]))</span><span class="o">==</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">]))</span>
+                <span class="n">is_same_quadrant</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">]))</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">]))</span>
                 <span class="k">if</span> <span class="n">is_same_quadrant</span><span class="p">:</span>
                     <span class="n">max_horizontal_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">])),</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">])))</span> <span class="o">*</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">])</span>  <span class="c1"># calculates the maximum horizontal distance through the ice</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -1097,7 +1112,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    helper function that generates the vertex position randomly distributed in simulation volume. </span>
 <span class="sd">    The relevant quantities are also saved into the hdf5 attributes</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    attributes: dicitionary</span>
@@ -1127,7 +1142,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    this function calculates the intersection between a ray and an axis-aligned box</span>
 <span class="sd">    code adapted from https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    box: array with shape (2,3)</span>
@@ -1339,7 +1354,7 @@
 <span class="sd">        * &#39;E-?&#39;: E to the -? spectrum where ? can be any float</span>
 <span class="sd">        * &#39;IceCube-nu-2017&#39;: astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)</span>
 <span class="sd">        * &#39;GZK-1&#39;: GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 </span>
-<span class="sd">          for 10% proton fraction (see get_GZK_1 function for details)</span>
+<span class="sd">          for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)</span>
 <span class="sd">        * &#39;GZK-1+IceCube-nu-2017&#39;: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</span>
 <span class="sd">        </span>
 <span class="sd">    start_file_id: int (default 0)</span>
@@ -1665,9 +1680,13 @@
 <span class="sd">        * &#39;log_uniform&#39;: uniformly distributed in the logarithm of energy</span>
 <span class="sd">        * &#39;E-?&#39;: E to the -? spectrum where ? can be any float</span>
 <span class="sd">        * &#39;IceCube-nu-2017&#39;: astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)</span>
+<span class="sd">        * &#39;IceCube-nu-2022&#39;: astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.48550/arXiv.2111.10299)</span>
 <span class="sd">        * &#39;GZK-1&#39;: GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 </span>
-<span class="sd">          for 10% proton fraction (see get_GZK_1 function for details)</span>
+<span class="sd">          for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)</span>
+<span class="sd">        * &#39;GZK-2&#39;: GZK neutrino flux model from fit to TA data (https://pos.sissa.it/395/338/)</span>
 <span class="sd">        * &#39;GZK-1+IceCube-nu-2017&#39;: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</span>
+<span class="sd">        * &#39;GZK-1+IceCube-nu-2022&#39;: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux</span>
+<span class="sd">        * &#39;GZK-2+IceCube-nu-2022&#39;: a combination of the cosmogenic (GZK-2) and astrophysical (IceCube nu 2022) flux</span>
 
 <span class="sd">    deposited: bool</span>
 <span class="sd">        if True, generate deposited energies instead of primary neutrino energies</span>

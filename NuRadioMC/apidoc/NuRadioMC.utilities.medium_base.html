@@ -15,6 +15,7 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -548,7 +549,7 @@
            <div itemprop="articleBody">
              
   <section id="module-NuRadioMC.utilities.medium_base">
-<span id="nuradiomc-utilities-medium-base-module"></span><h1>NuRadioMC.utilities.medium_base module<a class="headerlink" href="#module-NuRadioMC.utilities.medium_base" title="Permalink to this headline"></a></h1>
+<span id="nuradiomc-utilities-medium-base-module"></span><h1>NuRadioMC.utilities.medium_base module<a class="headerlink" href="#module-NuRadioMC.utilities.medium_base" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModel">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium_base.</span></span><span class="sig-name descname"><span class="pre">IceModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z_air_boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_bottom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel" title="Permalink to this definition"></a></dt>
@@ -711,7 +712,7 @@ Reimplement everytime in the specific model</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelSimple">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium_base.</span></span><span class="sig-name descname"><span class="pre">IceModelSimple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_ice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_air_boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_bottom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelSimple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModel" title="NuRadioMC.utilities.medium_base.IceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioMC.utilities.medium_base.IceModel</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModel" title="NuRadioMC.utilities.medium_base.IceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModel</span></code></a></p>
 <p>predefined ice model (to inherit from) with exponential shape</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
@@ -1013,7 +1014,7 @@ to the dictionary</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.ScalarFieldBuilder">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium_base.</span></span><span class="sig-name descname"><span class="pre">ScalarFieldBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#ScalarFieldBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.ScalarFieldBuilder" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">radiopropa.ScalarField</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ScalarField</span></code></p>
 <p>If the requested ice model does not exist in radiopropa, this class can build
 one in stead. It is a radiopropa object but constructed through the python
 wrapper which is much slower.</p>

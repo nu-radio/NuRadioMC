@@ -15,6 +15,7 @@
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -547,13 +548,13 @@
            <div itemprop="articleBody">
              
   <section id="example-multi-station-coincidences">
-<h1>Example: Multi-station coincidences<a class="headerlink" href="#example-multi-station-coincidences" title="Permalink to this headline"></a></h1>
+<h1>Example: Multi-station coincidences<a class="headerlink" href="#example-multi-station-coincidences" title="Permalink to this heading"></a></h1>
 <p>In this example we calculate the probability to measure the same neutrino in multiple stations.
 For a discovery detector, one objective is a large sensitivity which means that stations
 need to be separated far enough to minimize station coincidences.
 Here, we show how this can be studied as a function of station separation and antenna depth with NuRadioMC.</p>
 <section id="generation-of-detector-layout">
-<h2>1. Generation of detector layout<a class="headerlink" href="#generation-of-detector-layout" title="Permalink to this headline"></a></h2>
+<h2>1. Generation of detector layout<a class="headerlink" href="#generation-of-detector-layout" title="Permalink to this heading"></a></h2>
 <p>We consider two simplified detectors. The first one is a surface oriented station consisting of LPDAs and dipoles.
 To save computing time, we only simulate two orthogonally oriented horizontal LPDAs at 2m depth and one dipole at 5m depth
 to cover all signal polarizations. The second one is a deep detector, approximated with a single dipole antenna at 50m depth.
@@ -692,7 +693,7 @@ Hence, for every station separation distance, we place consider only the eight n
 measured a signal in coincidence with any of its surrounding stations of a certain distance.</p>
 </section>
 <section id="detector-simulation">
-<h2>2. Detector simulation<a class="headerlink" href="#detector-simulation" title="Permalink to this headline"></a></h2>
+<h2>2. Detector simulation<a class="headerlink" href="#detector-simulation" title="Permalink to this heading"></a></h2>
 <p>We define the typical detector simulation, apply a bandpass filter from 80 - 500 MHz to mimic a typical amplifier response,
 and run a simple threshold trigger that saves all events where one channel has a signal above 1xVrms.
 This trigger is chosen to obtain a rough preselection that could fulfill the coincidence criterion.</p>
@@ -713,13 +714,13 @@ This trigger is chosen to obtain a rough preselection that could fulfill the coi
 </div>
 </section>
 <section id="running-the-simulation">
-<h2>3. Running the simulation<a class="headerlink" href="#running-the-simulation" title="Permalink to this headline"></a></h2>
+<h2>3. Running the simulation<a class="headerlink" href="#running-the-simulation" title="Permalink to this heading"></a></h2>
 <p>The next step is to generate the input event lists and to run the simulation.
 As we study the multi-station coincidences for different neutrino energies, we generate separate input event lists per fixed neutrino energy as described in the <a class="reference internal" href="veff_tutorial.html"><span class="doc">Effective volume tutorial</span></a>.</p>
 <p>If many similar studies are performed, a significant gain in computing time can be achieved with the following trick: We first run a simulation with a single station at (x,y) = (0,0) and a low trigger threshold. Then, we use the output of the pre-simulation as the input of this study. Hence, we only need to simulate a reduced event data set, and don’t spend a lot of computing time on simulating events that don’t trigger the central station.</p>
 </section>
 <section id="analyzing-the-output">
-<h2>4. Analyzing the output<a class="headerlink" href="#analyzing-the-output" title="Permalink to this headline"></a></h2>
+<h2>4. Analyzing the output<a class="headerlink" href="#analyzing-the-output" title="Permalink to this heading"></a></h2>
 <p>The NuRadioMC output is available in one hdf5 file per simulated neutrino energy. (If the data set was split up in small files to run it simultaneously on a cluster, the hdf5 needs to be merged first as describe <a class="reference internal" href="running_on_a_cluster.html#merge-individual-hdf5-output-files"><span class="std std-ref">here</span></a>).</p>
 <p>Part of the output file is the maximum amplitude of each channel of each event stored in a two dimensional array. This allows a quick calculation of the coincidence requirements. We first check if the central station fulfilled the trigger condition which we assume to be a signal above 3xVrms in any channel. Then, for each simulated distance, we select the channels corresponding to this distance and check if any channel fulfills the trigger condition. The coincidence rate is then given by the ratio of events where both the central station and any of its nearest neighbors triggered, divided by the number of triggers of the central station alone.</p>
 <p>This calculation is done with the following Python code</p>

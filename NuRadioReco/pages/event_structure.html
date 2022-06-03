@@ -15,6 +15,7 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -546,11 +547,11 @@
            <div itemprop="articleBody">
              
   <section id="data-structure">
-<h1>Data Structure<a class="headerlink" href="#data-structure" title="Permalink to this headline"></a></h1>
+<h1>Data Structure<a class="headerlink" href="#data-structure" title="Permalink to this heading"></a></h1>
 <section id="nur-files-and-how-to-use-them">
-<h2>.nur Files and How to Use Them<a class="headerlink" href="#nur-files-and-how-to-use-them" title="Permalink to this headline"></a></h2>
+<h2>.nur Files and How to Use Them<a class="headerlink" href="#nur-files-and-how-to-use-them" title="Permalink to this heading"></a></h2>
 <section id="philosophy-and-basic-structure">
-<h3>Philosophy and Basic Structure<a class="headerlink" href="#philosophy-and-basic-structure" title="Permalink to this headline"></a></h3>
+<h3>Philosophy and Basic Structure<a class="headerlink" href="#philosophy-and-basic-structure" title="Permalink to this heading"></a></h3>
 <blockquote>
 <div><p>NuRadioReco comes with its own input and output format, called <em>.nur</em>. With
 the obvious exception of reading in data from other file formats, like
@@ -575,7 +576,7 @@ station’s channels would work like this:</p>
 </div></blockquote>
 </section>
 <section id="reading-and-writing-nur-files">
-<h3>Reading and Writing .nur Files<a class="headerlink" href="#reading-and-writing-nur-files" title="Permalink to this headline"></a></h3>
+<h3>Reading and Writing .nur Files<a class="headerlink" href="#reading-and-writing-nur-files" title="Permalink to this heading"></a></h3>
 <blockquote>
 <div><p>Reading and writing <em>.nur</em> files is done by dedicated IO modules.
 Writing events is done by the eventWriter module. To save disc space it offers
@@ -642,7 +643,7 @@ the framework, since all that has to be done is to define <code class="docutils 
 </section>
 </section>
 <section id="parameter-storage">
-<h2>Parameter Storage<a class="headerlink" href="#parameter-storage" title="Permalink to this headline"></a></h2>
+<h2>Parameter Storage<a class="headerlink" href="#parameter-storage" title="Permalink to this heading"></a></h2>
 <blockquote>
 <div><p>NuRadioReco offers a flexible way to store properties in the data structure via
 the parameter storage. Certain classes (<code class="docutils literal notranslate"><span class="pre">Station</span></code>, <code class="docutils literal notranslate"><span class="pre">SimStation</span></code>, <code class="docutils literal notranslate"><span class="pre">Channel</span></code>,
@@ -676,9 +677,9 @@ would do to a dictionary:</p>
 </div></blockquote>
 </section>
 <section id="list-of-data-classes">
-<h2>List of Data Classes<a class="headerlink" href="#list-of-data-classes" title="Permalink to this headline"></a></h2>
+<h2>List of Data Classes<a class="headerlink" href="#list-of-data-classes" title="Permalink to this heading"></a></h2>
 <section id="event">
-<h3>Event<a class="headerlink" href="#event" title="Permalink to this headline"></a></h3>
+<h3>Event<a class="headerlink" href="#event" title="Permalink to this heading"></a></h3>
 <blockquote>
 <div><p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-class docutils literal notranslate"><span class="pre">Event</span></code></a>
 is the upper-most element of the event structure and holds all simulated and reconstructed
@@ -686,7 +687,7 @@ showers and stations as well as the event ID and run number.</p>
 </div></blockquote>
 </section>
 <section id="radio-shower">
-<h3>Radio Shower<a class="headerlink" href="#radio-shower" title="Permalink to this headline"></a></h3>
+<h3>Radio Shower<a class="headerlink" href="#radio-shower" title="Permalink to this heading"></a></h3>
 <blockquote>
 <div><p>A <a class="reference internal" href="../apidoc/NuRadioReco.framework.radio_shower.html#NuRadioReco.framework.radio_shower.RadioShower" title="NuRadioReco.framework.radio_shower.RadioShower"><code class="xref py py-class docutils literal notranslate"><span class="pre">Radio</span> <span class="pre">Shower</span></code></a> is used to
 hold reconstructed shower parameters via the parameter storage. It should only be
@@ -697,7 +698,7 @@ used, respectrively.</p>
 </div></blockquote>
 </section>
 <section id="simshower">
-<h3>SimShower<a class="headerlink" href="#simshower" title="Permalink to this headline"></a></h3>
+<h3>SimShower<a class="headerlink" href="#simshower" title="Permalink to this heading"></a></h3>
 <blockquote>
 <div><p>A Sim Shower is used to hold parameters of simulated showers via the parameter storage.
 They are the same class as <code class="docutils literal notranslate"><span class="pre">RadioShower</span></code>, but are stored separately to distinguish
@@ -706,7 +707,7 @@ between simulated and reconstructed properties.</p>
 </div></blockquote>
 </section>
 <section id="station">
-<h3>Station<a class="headerlink" href="#station" title="Permalink to this headline"></a></h3>
+<h3>Station<a class="headerlink" href="#station" title="Permalink to this heading"></a></h3>
 <blockquote>
 <div><p>A <a class="reference internal" href="../apidoc/NuRadioReco.framework.station.html#module-NuRadioReco.framework.station" title="NuRadioReco.framework.station"><code class="xref py py-class docutils literal notranslate"><span class="pre">Station</span></code></a> is used to hold event properties
 reconstructed at the station level, i.e. reconstructed from the data of a single station.</p>
@@ -714,10 +715,10 @@ reconstructed at the station level, i.e. reconstructed from the data of a single
 </div></blockquote>
 </section>
 <section id="trigger">
-<h3>Trigger<a class="headerlink" href="#trigger" title="Permalink to this headline"></a></h3>
+<h3>Trigger<a class="headerlink" href="#trigger" title="Permalink to this heading"></a></h3>
 </section>
 <section id="simstation">
-<h3>SimStation<a class="headerlink" href="#simstation" title="Permalink to this headline"></a></h3>
+<h3>SimStation<a class="headerlink" href="#simstation" title="Permalink to this heading"></a></h3>
 <blockquote>
 <div><p>A <a class="reference internal" href="../apidoc/NuRadioReco.framework.sim_station.html#module-NuRadioReco.framework.sim_station" title="NuRadioReco.framework.sim_station"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimStation</span></code></a> can hold the same
 properties as the <code class="docutils literal notranslate"><span class="pre">Station</span></code> (and inherits from it), but is used for the MC truth  of the simulation. This
@@ -726,7 +727,7 @@ also implies that events from measured data typically do not have a <code class=
 </div></blockquote>
 </section>
 <section id="basetrace">
-<h3>BaseTrace<a class="headerlink" href="#basetrace" title="Permalink to this headline"></a></h3>
+<h3>BaseTrace<a class="headerlink" href="#basetrace" title="Permalink to this heading"></a></h3>
 <blockquote>
 <div><p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#module-NuRadioReco.framework.base_trace" title="NuRadioReco.framework.base_trace"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTrace</span></code></a> class
 is used to store waveforms, both for voltages in the channels and electric fields.
@@ -750,7 +751,7 @@ the <code class="docutils literal notranslate"><span class="pre">Channel</span><
 </div></blockquote>
 </section>
 <section id="electric-field">
-<h3>Electric Field<a class="headerlink" href="#electric-field" title="Permalink to this headline"></a></h3>
+<h3>Electric Field<a class="headerlink" href="#electric-field" title="Permalink to this heading"></a></h3>
 <blockquote>
 <div><p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.electric_field.html#module-NuRadioReco.framework.electric_field" title="NuRadioReco.framework.electric_field"><code class="xref py py-class docutils literal notranslate"><span class="pre">ElectricField</span></code></a>
 is used to store information about electric fields, which can be accessed via the parameter storage
@@ -768,7 +769,7 @@ method or the <code class="docutils literal notranslate"><span class="pre">get_e
 </div></blockquote>
 </section>
 <section id="channel">
-<h3>Channel<a class="headerlink" href="#channel" title="Permalink to this headline"></a></h3>
+<h3>Channel<a class="headerlink" href="#channel" title="Permalink to this heading"></a></h3>
 <blockquote>
 <div><p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.channel.html#module-NuRadioReco.framework.channel" title="NuRadioReco.framework.channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a>
 is used to store information about the voltage traces recorded in a channel,
@@ -777,7 +778,7 @@ the <code class="docutils literal notranslate"><span class="pre">BaseTrace</span
 </div></blockquote>
 </section>
 <section id="hybrid-information">
-<h3>Hybrid Information<a class="headerlink" href="#hybrid-information" title="Permalink to this headline"></a></h3>
+<h3>Hybrid Information<a class="headerlink" href="#hybrid-information" title="Permalink to this heading"></a></h3>
 <blockquote>
 <div><p>As many radio detectors are built as part of a hybrid detector whose data may be used in the
 radio event reconstruction, a way to make this data accessible in NuRadioReco is needed. The
@@ -792,7 +793,7 @@ or <code class="docutils literal notranslate"><span class="pre">get_hybrid_showe
 </div></blockquote>
 </section>
 <section id="hybrid-shower">
-<h3>Hybrid Shower<a class="headerlink" href="#hybrid-shower" title="Permalink to this headline"></a></h3>
+<h3>Hybrid Shower<a class="headerlink" href="#hybrid-shower" title="Permalink to this heading"></a></h3>
 <blockquote>
 <div><p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.hybrid_shower.html#module-NuRadioReco.framework.hybrid_shower" title="NuRadioReco.framework.hybrid_shower"><code class="xref py py-class docutils literal notranslate"><span class="pre">HybridShower</span></code></a> is
 used to store information about a shower that was reconstructed with a complementary detector,
@@ -802,7 +803,7 @@ mainly via the parameter storage.</p>
 </div></blockquote>
 </section>
 <section id="hybrid-detector">
-<h3>Hybrid Detector<a class="headerlink" href="#hybrid-detector" title="Permalink to this headline"></a></h3>
+<h3>Hybrid Detector<a class="headerlink" href="#hybrid-detector" title="Permalink to this heading"></a></h3>
 <blockquote>
 <div><p>A <code class="docutils literal notranslate"><span class="pre">HybridDetector</span></code> can be used to store more detailed and experiment-specific information
 about a complementary detector. The diversity of hybrid radio detectors makes it

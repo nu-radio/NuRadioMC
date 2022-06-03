@@ -15,6 +15,7 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -546,7 +547,7 @@
            <div itemprop="articleBody">
              
   <section id="contributing-to-nuradiomc">
-<h1>Contributing to NuRadioMC<a class="headerlink" href="#contributing-to-nuradiomc" title="Permalink to this headline"></a></h1>
+<h1>Contributing to NuRadioMC<a class="headerlink" href="#contributing-to-nuradiomc" title="Permalink to this heading"></a></h1>
 <p>Thank you for considering to contribute to NuRadioMC.
 NuRadioMC is intended as community based simulation and reconstruction software for
 radio (neutrino) detectors. Everyone is invited to contribute and use the
@@ -555,7 +556,7 @@ software for their experiment.</p>
 <a class="reference external" href="https://github.com/anelles">&#64;anelles</a> and <a class="reference external" href="https://github.com/cg-laser">&#64;cg-laser</a> on GitHub so that we are informed about ongoing
 activities. Both will also be able to provide commit access to the repository.</p>
 <section id="workflow">
-<h2>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline"></a></h2>
+<h2>Workflow<a class="headerlink" href="#workflow" title="Permalink to this heading"></a></h2>
 <p>If you find an issue or bug in NuRadioMC, please <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/issues">create an issue on GitHub</a>.
 If you want to contribute to NuRadioMC, please provide your code addition in a new branch and <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/pulls">make a pull request</a>.</p>
 <p>We loosely follow the git flow model. A detailed tutorial is given  <a class="reference external" href="https://jeffkreeftmeijer.com/git-flow/">here</a>.
@@ -606,7 +607,7 @@ missed!</strong></p></li>
 </ul>
 </section>
 <section id="coding-conventions">
-<h2>Coding conventions<a class="headerlink" href="#coding-conventions" title="Permalink to this headline"></a></h2>
+<h2>Coding conventions<a class="headerlink" href="#coding-conventions" title="Permalink to this heading"></a></h2>
 <p>In general we try to follow ‘industry’ coding workflow conventions. So, if
 something is not explicitly mentioned here, please resort to ‘best practices’.
 NuRadioMC tries to follow <a class="reference external" href="https://www.python.org/dev/peps/pep-0008/">PEP-8 coding conventions</a>.</p>
@@ -617,9 +618,9 @@ NuRadioMC/utilities/units convention. Please avoid adding additional
 dependencies without clearing this with the core developers.</p>
 </section>
 <section id="how-to">
-<h2>How to<a class="headerlink" href="#how-to" title="Permalink to this headline"></a></h2>
+<h2>How to<a class="headerlink" href="#how-to" title="Permalink to this heading"></a></h2>
 <section id="writing-docstrings">
-<h3>Writing docstrings<a class="headerlink" href="#writing-docstrings" title="Permalink to this headline"></a></h3>
+<h3>Writing docstrings<a class="headerlink" href="#writing-docstrings" title="Permalink to this heading"></a></h3>
 <p>All parts of the software are documented in the source code using python
 docstrings. Human-Readable documentation can then be generated using Sphinx.
 We use the <a class="reference external" href="https://numpydoc.readthedocs.io/en/latest/format.html">numpy docstring syntax</a>.
@@ -677,7 +678,7 @@ Please consult this link for correct syntax. Some of the basics are also summari
 <a class="reference internal" href="#writing-additional-documentation"><span class="std std-ref">Writing additional documentation</span></a> section below.</p>
 </section>
 <section id="update-the-version-number-dependencies">
-<h3>Update the version number / dependencies<a class="headerlink" href="#update-the-version-number-dependencies" title="Permalink to this headline"></a></h3>
+<h3>Update the version number / dependencies<a class="headerlink" href="#update-the-version-number-dependencies" title="Permalink to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> is built and published using <a class="reference external" href="https://python-poetry.org/docs/pyproject/">poetry</a>. To update the current version number,
 open the <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> file in the NuRadioMC root directory, and update <code class="docutils literal notranslate"><span class="pre">version</span></code> under <code class="docutils literal notranslate"><span class="pre">[tool.poetry]</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">tool</span><span class="o">.</span><span class="n">poetry</span><span class="p">]</span>
@@ -715,7 +716,7 @@ This is specified in <code class="docutils literal notranslate"><span class="pre
 </ul>
 </section>
 <section id="writing-additional-documentation">
-<h3>Writing additional documentation<a class="headerlink" href="#writing-additional-documentation" title="Permalink to this headline"></a></h3>
+<h3>Writing additional documentation<a class="headerlink" href="#writing-additional-documentation" title="Permalink to this heading"></a></h3>
 <p>Code documentation is generated automatically using <a class="reference external" href="https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html">sphinx-apidoc</a>
 and <a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#module-sphinx.ext.autodoc">sphinx.ext.autodoc</a>.
 Any new modules with correctly written docstrings will therefore be added to the <a class="reference internal" href="../../NuRadioMC/pages/code_documentation.html"><span class="doc">code documentation</span></a>
@@ -732,7 +733,7 @@ inside the module folders confuses <code class="docutils literal notranslate"><s
 of the correct syntax. You can use any existing page of the documentation (which can be found in the <code class="docutils literal notranslate"><span class="pre">documentation/source</span></code> directory)
 as a template for how to write more code. However, below is a summary of the basics:</p>
 <section id="compiling-the-documentation">
-<h4>Compiling the documentation<a class="headerlink" href="#compiling-the-documentation" title="Permalink to this headline"></a></h4>
+<h4>Compiling the documentation<a class="headerlink" href="#compiling-the-documentation" title="Permalink to this heading"></a></h4>
 <p>In order to compile the documentation locally, make sure the required
 <a class="reference internal" href="installation.html#optional-dependencies"><span class="std std-ref">dependencies</span></a>
 are installed (this can be done by running the <a class="reference internal" href="installation.html#development-version"><span class="std std-ref">installer</span></a>).
@@ -744,7 +745,7 @@ Compiling the documentation is then done by running</p>
 (open <cite>main.html</cite> to view it in your browser).</p>
 </section>
 <section id="headings-and-text">
-<h4>Headings and text<a class="headerlink" href="#headings-and-text" title="Permalink to this headline"></a></h4>
+<h4>Headings and text<a class="headerlink" href="#headings-and-text" title="Permalink to this heading"></a></h4>
 <div class="highlight-reStructuredText notranslate"><div class="highlight"><pre><span></span><span class="gh">Document Title</span>
 <span class="gh">==============</span>
 Headings should always be underlined by one of the following symbols:
@@ -768,7 +769,7 @@ started if it is separated by a newline
 </ul>
 </section>
 <section id="lists">
-<h4>Lists<a class="headerlink" href="#lists" title="Permalink to this headline"></a></h4>
+<h4>Lists<a class="headerlink" href="#lists" title="Permalink to this heading"></a></h4>
 <p>Lists can be included using “-”, “*” or “+” (for bullet points), or
 “1.”, “2.”, … (enumerated) / “#.” (automatically enumerated). Lists should always
 be separated by newlines above and below from other text:</p>
@@ -793,7 +794,7 @@ This is some text
 </div>
 </section>
 <section id="links-and-cross-references">
-<h4>Links and cross-references<a class="headerlink" href="#links-and-cross-references" title="Permalink to this headline"></a></h4>
+<h4>Links and cross-references<a class="headerlink" href="#links-and-cross-references" title="Permalink to this heading"></a></h4>
 <p>Links look like this: <code class="docutils literal notranslate"><span class="pre">`link</span> <span class="pre">text</span> <span class="pre">&lt;https://link-url.com&gt;`_</span></code>. Note the trailing underscore!
 For internal links (e.g. to other parts of the documentation), we prefer
 <a class="reference external" href="https://docs.readthedocs.io/en/stable/guides/cross-referencing-with-sphinx.html">cross-references</a>
@@ -813,7 +814,7 @@ respectively. The name of the function follows the same logic as in Python, e.g.
 </ul>
 </section>
 <section id="showing-code">
-<h4>Showing code<a class="headerlink" href="#showing-code" title="Permalink to this headline"></a></h4>
+<h4>Showing code<a class="headerlink" href="#showing-code" title="Permalink to this heading"></a></h4>
 <p>To render code, use the <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">code-block::</span></code> directive, optionally followed by the code language that is used
 (e.g. <code class="docutils literal notranslate"><span class="pre">Python</span></code>). As with lists, the code block needs to be separated from the rest of the text using
 newlines. E.g. the following:</p>

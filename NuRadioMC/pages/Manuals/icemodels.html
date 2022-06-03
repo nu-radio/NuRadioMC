@@ -15,6 +15,7 @@
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -548,12 +549,12 @@
            <div itemprop="articleBody">
              
   <section id="ice-and-attenuation-models">
-<h1>Ice and attenuation models<a class="headerlink" href="#ice-and-attenuation-models" title="Permalink to this headline"></a></h1>
+<h1>Ice and attenuation models<a class="headerlink" href="#ice-and-attenuation-models" title="Permalink to this heading"></a></h1>
 <section id="ice-model-implementation">
-<h2>Ice model implementation<a class="headerlink" href="#ice-model-implementation" title="Permalink to this headline"></a></h2>
+<h2>Ice model implementation<a class="headerlink" href="#ice-model-implementation" title="Permalink to this heading"></a></h2>
 <p>Ice models are the object in NuRadioMC that holds all the information of the ice needed to calculate the trajectory, namely: the refractive index at all the relevant points in space, boundary conditions and other special features that determine the ice medium. It can be found in the <strong>utilities</strong> module under <code class="docutils literal notranslate"><span class="pre">medium.py</span></code> and <code class="docutils literal notranslate"><span class="pre">medium_base.py</span></code>.</p>
 <section id="the-icemodel-and-icemodel-simple-class">
-<h3>The IceModel and IceModel_Simple class<a class="headerlink" href="#the-icemodel-and-icemodel-simple-class" title="Permalink to this headline"></a></h3>
+<h3>The IceModel and IceModel_Simple class<a class="headerlink" href="#the-icemodel-and-icemodel-simple-class" title="Permalink to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">medium_base.py</span></code> holds the framework of which all the specific ice models depends. The most basic class of ice models is the <code class="docutils literal notranslate"><span class="pre">IceModel</span></code> from which all final models should inherit directly or via some daughter classes. It represents a planar medium with a top and bottom boundary and in between a refractive index. A reflective bottom layer may be added as well.</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">IceModel</span><span class="p">():</span>
@@ -598,7 +599,7 @@
 </div></blockquote>
 </section>
 <section id="radiopropaicewrapper">
-<h3>RadioPropaIceWrapper<a class="headerlink" href="#radiopropaicewrapper" title="Permalink to this headline"></a></h3>
+<h3>RadioPropaIceWrapper<a class="headerlink" href="#radiopropaicewrapper" title="Permalink to this heading"></a></h3>
 <p>The analytic ray tracer can only handle simple ice models. For other models you need the RadioPropa ray tracer. However, for this to work, the model needs a translation into proper RadioPropa object. To facilitate this, the <code class="docutils literal notranslate"><span class="pre">RadioPropaIceWrapper</span></code> class is defined in <code class="docutils literal notranslate"><span class="pre">medium_base.py</span></code>. This class hold the index of refraction as a RadioPropa scalar field and the boundary conditions and special features in the relevant RadioPropa modules.</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RadioPropaIceWrapper</span><span class="p">():</span>
@@ -654,9 +655,9 @@
 </section>
 </section>
 <section id="available-models-in-nuradiomc">
-<h2>Available models in NuRadioMC<a class="headerlink" href="#available-models-in-nuradiomc" title="Permalink to this headline"></a></h2>
+<h2>Available models in NuRadioMC<a class="headerlink" href="#available-models-in-nuradiomc" title="Permalink to this heading"></a></h2>
 <section id="simple-ice-models">
-<h3>Simple ice models<a class="headerlink" href="#simple-ice-models" title="Permalink to this headline"></a></h3>
+<h3>Simple ice models<a class="headerlink" href="#simple-ice-models" title="Permalink to this heading"></a></h3>
 <p>In the table below we can find the different parameters for the simple ice refractive index models available in NuRadioMC.</p>
 <blockquote>
 <div><table class="docutils align-default" id="id1">
@@ -711,11 +712,11 @@
 <p>The models <code class="docutils literal notranslate"><span class="pre">mooresbay_simple</span></code> and <code class="docutils literal notranslate"><span class="pre">mooresbay_simple_2</span></code> also contain a reflective layer at -576 m with a reflection coefficient of 0.82, mimicking the bottom layer of Ross Ice Shelf, in Antarctica.</p>
 </section>
 <section id="radiopropa-ice-models">
-<h3>RadioPropa ice models<a class="headerlink" href="#radiopropa-ice-models" title="Permalink to this headline"></a></h3>
+<h3>RadioPropa ice models<a class="headerlink" href="#radiopropa-ice-models" title="Permalink to this heading"></a></h3>
 <p>Besides the simple ice models above, there is also one other ice model implemented: <a class="reference external" href="https://arxiv.org/abs/1805.12576">greenland_firn</a></p>
 </section>
 <section id="attenuation-model">
-<h3>Attenuation model<a class="headerlink" href="#attenuation-model" title="Permalink to this headline"></a></h3>
+<h3>Attenuation model<a class="headerlink" href="#attenuation-model" title="Permalink to this heading"></a></h3>
 <p>NuRadioMC has also three attenuation models available. These models provide attenuation lengths that are depth- and frequency-dependent.</p>
 <blockquote>
 <div><ul class="simple">
@@ -726,7 +727,7 @@
 </div></blockquote>
 </section>
 <section id="using-specific-models">
-<h3>Using specific models<a class="headerlink" href="#using-specific-models" title="Permalink to this headline"></a></h3>
+<h3>Using specific models<a class="headerlink" href="#using-specific-models" title="Permalink to this heading"></a></h3>
 <p>Both the ice model and the attenuation model can be specified in the config file. As an example, if we want to use the <code class="docutils literal notranslate"><span class="pre">greenland_simple</span></code> ice model together with the GL1 attenuation, we have to write on the yaml configuration file:</p>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">propagation</span><span class="p">:</span><span class="w"></span>
@@ -738,7 +739,7 @@
 </section>
 </section>
 <section id="example-script">
-<h2>Example script<a class="headerlink" href="#example-script" title="Permalink to this headline"></a></h2>
+<h2>Example script<a class="headerlink" href="#example-script" title="Permalink to this heading"></a></h2>
 <p>The following snippet shows how the ice properties can be retrieved from NuRadioMC for an independent analysis.</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">NuRadioMC.utilities</span> <span class="kn">import</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation</span>

@@ -15,6 +15,7 @@
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -548,7 +549,7 @@
            <div itemprop="articleBody">
              
   <section id="event-generation">
-<h1>Event Generation<a class="headerlink" href="#event-generation" title="Permalink to this headline"></a></h1>
+<h1>Event Generation<a class="headerlink" href="#event-generation" title="Permalink to this heading"></a></h1>
 <blockquote>
 <div><div class="admonition important">
 <p class="admonition-title">Important</p>
@@ -557,7 +558,7 @@
 </div></blockquote>
 <p>The first thing to do when using NuRadioMC for simulating a realistic experiment is generating events. The module <code class="docutils literal notranslate"><span class="pre">generator.py</span></code> contained in the folder EvtGen allows the user to create input files for different detector geometries and physical assumptions, and constitutes the most important module for event generation.</p>
 <section id="events-in-a-cylindrical-volume">
-<h2>Events in a cylindrical volume<a class="headerlink" href="#events-in-a-cylindrical-volume" title="Permalink to this headline"></a></h2>
+<h2>Events in a cylindrical volume<a class="headerlink" href="#events-in-a-cylindrical-volume" title="Permalink to this heading"></a></h2>
 <p>Generating input events for calculating effective volumes can be done just by importing the function <code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder</span></code> and calling it with the minimum number of arguments requested:</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">NuRadioMC.EvtGen.generator</span> <span class="kn">import</span> <span class="n">generate_eventlist_cylinder</span>
@@ -578,7 +579,7 @@
 </div></blockquote>
 <p>These few lines generate a mixture of all-flavour events (1:1:1) in a fiducial cylinder. Each event constitutes a forced neutrino interaction in our fiducial volume. The event vertex distribution is homogeneous, and the flux in any region of the cylinder is isotropic, which is what would be expected in nature were the radius of the Earth small compared to the interaction length. NuRadioMC then uses weights to account for the probability that the neutrino reaches the vertex position.</p>
 <section id="input-parameters">
-<h3>Input parameters<a class="headerlink" href="#input-parameters" title="Permalink to this headline"></a></h3>
+<h3>Input parameters<a class="headerlink" href="#input-parameters" title="Permalink to this heading"></a></h3>
 <p>We explain here all the different input values for the <code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder</span></code> function.</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_eventlist_cylinder</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span>
@@ -787,7 +788,7 @@ file can be simulated in parallel using a cluster. Due to the Poissonian distrib
 </div></blockquote>
 </section>
 <section id="data-sets-and-attributes">
-<h3>Data sets and attributes<a class="headerlink" href="#data-sets-and-attributes" title="Permalink to this headline"></a></h3>
+<h3>Data sets and attributes<a class="headerlink" href="#data-sets-and-attributes" title="Permalink to this heading"></a></h3>
 <p>The function <code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder</span></code> creates events according to the input parameters and saves all the relevant parameters to a set of HDF5 files. These files created by the event generator consist of a collection of arrays containing the properties of the neutrinos and other secondary particles. The array keys and contents are the following:</p>
 <blockquote>
 <div><ul class="simple">
@@ -985,7 +986,7 @@ file can be simulated in parallel using a cluster. Due to the Poissonian distrib
 </section>
 </section>
 <section id="atmospheric-muons-generated-on-a-flat-surface">
-<h2>Atmospheric muons generated on a flat surface<a class="headerlink" href="#atmospheric-muons-generated-on-a-flat-surface" title="Permalink to this headline"></a></h2>
+<h2>Atmospheric muons generated on a flat surface<a class="headerlink" href="#atmospheric-muons-generated-on-a-flat-surface" title="Permalink to this heading"></a></h2>
 <p>The function <code class="docutils literal notranslate"><span class="pre">generate_surface_muons</span></code> generates muons (leptons, NOT muon neutrinos) at <code class="docutils literal notranslate"><span class="pre">z=0</span></code> and propagates them using PROPOSAL. Please be aware that a functioning installation of PROPOSAL is needed for using this function.</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_surface_muons</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span>
@@ -1030,7 +1031,7 @@ explored in one of our papers (<a class="reference external" href="https://arxiv
 <p>For a realistic background simulation for which high statistics are needed, we recommend the use of a cluster to execute this function in parallel to create one or more files for each energy bin. The user should be aware of the following pitfall: if two input files with the same input parameters are going to be used for the same analysis, these two files should not have overlapping event IDs. The number of events for each file is an input parameter, so one can know a priori how many event IDs are going to be in a file. Unlike when using the <code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder</span></code>, increasing the full volume does not change the total number of events. The user can use the parameter <code class="docutils literal notranslate"><span class="pre">n_events_per_file</span></code> to split the file, but sometimes it is more convenient and faster to execute the function in parallel than calling it once and splitting the file.</p>
 </section>
 <section id="nuradioproposal-as-a-standalone-module">
-<h2>NuRadioProposal as a standalone module<a class="headerlink" href="#nuradioproposal-as-a-standalone-module" title="Permalink to this headline"></a></h2>
+<h2>NuRadioProposal as a standalone module<a class="headerlink" href="#nuradioproposal-as-a-standalone-module" title="Permalink to this heading"></a></h2>
 <p>The module <code class="docutils literal notranslate"><span class="pre">NuRadioProposal.py</span></code> in EvtGen can also be used standalone to study the propagation of leptons created by neutrino interactions and the radio-detectable showers they produce. For instance, for propagating 1000 taus having 1 EeV of energy in infinite ice, we can use the following code.</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">NuRadioMC.EvtGen.NuRadioProposal</span> <span class="kn">import</span> <span class="n">ProposalFunctions</span>

@@ -15,6 +15,7 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -546,14 +547,14 @@
            <div itemprop="articleBody">
              
   <section id="installing-nuradiomc-nuradioreco">
-<h1>Installing NuRadioMC / NuRadioReco<a class="headerlink" href="#installing-nuradiomc-nuradioreco" title="Permalink to this headline"></a></h1>
+<h1>Installing NuRadioMC / NuRadioReco<a class="headerlink" href="#installing-nuradiomc-nuradioreco" title="Permalink to this heading"></a></h1>
 <section id="requirements">
-<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline"></a></h2>
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this heading"></a></h2>
 <p>In order to use <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> / <code class="docutils literal notranslate"><span class="pre">NuRadioReco</span></code>, please ensure you are using a version of Python <code class="docutils literal notranslate"><span class="pre">&gt;=3.6</span></code>, and a UNIX operating system (linux or MacOS).
 If you are using Windows, consider installing the <a class="reference external" href="https://docs.microsoft.com/en-us/windows/wsl/install">Windows Subsystem for Linux</a>.</p>
 </section>
 <section id="installation-using-pip">
-<h2>Installation using Pip<a class="headerlink" href="#installation-using-pip" title="Permalink to this headline"></a></h2>
+<h2>Installation using Pip<a class="headerlink" href="#installation-using-pip" title="Permalink to this heading"></a></h2>
 <p>As of version <code class="docutils literal notranslate"><span class="pre">2.0.0</span></code>, <code class="docutils literal notranslate"><span class="pre">NuRadioReco</span></code> is now a subpackage of <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code>. Both <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> and <code class="docutils literal notranslate"><span class="pre">NuRadioReco</span></code> can therefore be installed
 using <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
 <blockquote>
@@ -574,7 +575,7 @@ The pip installation will also install all core dependencies.</p>
 </div>
 </section>
 <section id="development-version">
-<h2>Development version<a class="headerlink" href="#development-version" title="Permalink to this headline"></a></h2>
+<h2>Development version<a class="headerlink" href="#development-version" title="Permalink to this heading"></a></h2>
 <p>The most recent version of <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> is available on <a class="reference external" href="github.com">github</a>.
 It can be downloaded manually from the <a class="reference external" href="https://github.com/nu-radio/NuRadioMC.git">repository website</a>,
 or cloned using <code class="docutils literal notranslate"><span class="pre">git</span></code></p>
@@ -596,7 +597,7 @@ If you for some reason do not want to use a virtual environment, you can install
 <p>If the installer above does not work, or you want/need to install additional dependencies,
 please follow the <a class="reference internal" href="#manual-installation"><span class="std std-ref">manual installation instructions</span></a> below.</p>
 <section id="pythonpath">
-<h3>PYTHONPATH<a class="headerlink" href="#pythonpath" title="Permalink to this headline"></a></h3>
+<h3>PYTHONPATH<a class="headerlink" href="#pythonpath" title="Permalink to this heading"></a></h3>
 <p>To use the development version of NuRadioMC, its installation path needs to be included in the user PYTHONPATH.
 If the installer does not succesfully do this, please manually add</p>
 <div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span>/path/to/NuRadioMC:<span class="nv">$PYTHONPATH</span>
@@ -606,9 +607,9 @@ If the installer does not succesfully do this, please manually add</p>
 </section>
 </section>
 <section id="manual-installation">
-<h2>Manual installation<a class="headerlink" href="#manual-installation" title="Permalink to this headline"></a></h2>
+<h2>Manual installation<a class="headerlink" href="#manual-installation" title="Permalink to this heading"></a></h2>
 <section id="pip-installable-dependencies">
-<h3>Pip-installable dependencies<a class="headerlink" href="#pip-installable-dependencies" title="Permalink to this headline"></a></h3>
+<h3>Pip-installable dependencies<a class="headerlink" href="#pip-installable-dependencies" title="Permalink to this heading"></a></h3>
 <p>To install all (optional and non-optional) dependencies available in pip at once, use the command</p>
 <div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip install numpy scipy matplotlib astropy tinydb tinydb-serialization aenum h5py mysql-python pymongo dash plotly toml peakutils
 </pre></div>
@@ -616,7 +617,7 @@ If the installer does not succesfully do this, please manually add</p>
 <p>Note that some optional dependencies are not pip-installable and need to be
 <a class="reference internal" href="#not-pip-installable-packages"><span class="std std-ref">installed manually</span></a></p>
 <section id="core-dependencies">
-<h4>Core Dependencies<a class="headerlink" href="#core-dependencies" title="Permalink to this headline"></a></h4>
+<h4>Core Dependencies<a class="headerlink" href="#core-dependencies" title="Permalink to this heading"></a></h4>
 <ul>
 <li><p>toml:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install toml
@@ -662,7 +663,7 @@ tinydb version 4.1.1 or newer is required.</p>
 </ul>
 </section>
 <section id="optional-dependencies">
-<h4>Optional Dependencies<a class="headerlink" href="#optional-dependencies" title="Permalink to this headline"></a></h4>
+<h4>Optional Dependencies<a class="headerlink" href="#optional-dependencies" title="Permalink to this heading"></a></h4>
 <p>These packages are recommended to be able to use all of NuRadioMC/NuRadioReco’s features:</p>
 <ul class="simple">
 <li><p>h5py to open HDF5 files:</p></li>
@@ -722,7 +723,7 @@ feature, which tries to import all modules it documents. So if you are missing s
 </section>
 </section>
 <section id="not-pip-installable-packages">
-<h3>Not pip-installable packages<a class="headerlink" href="#not-pip-installable-packages" title="Permalink to this headline"></a></h3>
+<h3>Not pip-installable packages<a class="headerlink" href="#not-pip-installable-packages" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p>To read ARIANNA files, <a class="reference external" href="https://arianna.ps.uci.edu/mediawiki/index.php/Local_DAQ_Instructions">Snowshovel</a> needs to be installed.</p></li>
 <li><p>To read ARA files, <a class="reference external" href="http://www.hep.ucl.ac.uk/uhen/ara/araroot/branches/3.13/index.shtml">ARA ROOT</a> needs to be installed.</p></li>

@@ -15,6 +15,7 @@
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -548,9 +549,9 @@
            <div itemprop="articleBody">
              
   <section id="signal-propagation">
-<h1>Signal Propagation<a class="headerlink" href="#signal-propagation" title="Permalink to this headline"></a></h1>
+<h1>Signal Propagation<a class="headerlink" href="#signal-propagation" title="Permalink to this heading"></a></h1>
 <section id="propagation-module">
-<h2>Propagation module<a class="headerlink" href="#propagation-module" title="Permalink to this headline"></a></h2>
+<h2>Propagation module<a class="headerlink" href="#propagation-module" title="Permalink to this heading"></a></h2>
 <p>The modules for the raytracing are stored in the folder <strong>SignalProp</strong>. All the propagation effects (attenuation, focussing) are also taken account for in the raytracer module itself.
 The configuration of the raytracing and propagation effects are specified in the <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file under <code class="docutils literal notranslate"><span class="pre">propagation</span></code> with the following attributes:</p>
 <ul class="simple">
@@ -580,7 +581,7 @@ The configuration of the raytracing and propagation effects are specified in the
 <p>How to implement new ice-models and information on all the available ice-models and attenuation models can be found in the documentation.</p>
 </section>
 <section id="ray-tracing">
-<h2>Ray tracing<a class="headerlink" href="#ray-tracing" title="Permalink to this headline"></a></h2>
+<h2>Ray tracing<a class="headerlink" href="#ray-tracing" title="Permalink to this heading"></a></h2>
 <p>Ray tracing is the module to calculate the trajectory of the emitted radiation. Depending on the ice model one wants to use, the user can specify which ray tracer method should be used by NuRadioMC. This can be done in the <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file by setting the propagation module to the desired module name.</p>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">propagation</span><span class="p">:</span><span class="w"></span>
@@ -590,7 +591,7 @@ The configuration of the raytracing and propagation effects are specified in the
 </div></blockquote>
 <p>One has to keep in mind that it is possible some methods only work using specific classes of ice models.</p>
 <section id="analytical-ray-tracer">
-<h3>Analytical ray tracer<a class="headerlink" href="#analytical-ray-tracer" title="Permalink to this headline"></a></h3>
+<h3>Analytical ray tracer<a class="headerlink" href="#analytical-ray-tracer" title="Permalink to this heading"></a></h3>
 <p>The analytical ray tracer of NuRadioMC is a method that can only handle the so called <em>simple</em> ice models. Simple ice models are media with a planar geometry and a refractive index with an exponential profile depending on the depth in the ice. The module name to be used in the config file for this method is <code class="docutils literal notranslate"><span class="pre">analytic</span></code>. The analytic method is implemented in both python but also in c++ for more rapid solving which will automatically be used when all dependencies are available on the users machine. Below you’ll find an overview of the mathematics and an example of the possible rays. The details of this method can be found in the <a class="reference external" href="http://dx.doi.org/10.1140/epjc/s10052-020-7612-8">NuRadioMC paper</a>.</p>
 <p>Take the following ice model:</p>
 <blockquote>
@@ -607,7 +608,7 @@ with an exponential refractive index can be calculated analytically using the op
 <p>where y is the horizontal coordinate, <span class="math notranslate nohighlight">\(\gamma = \Delta_n \exp(z/z_0)\)</span>, <span class="math notranslate nohighlight">\(b = 2n_{ice}\)</span>, and <span class="math notranslate nohighlight">\(d = n_{ice}^2 - C_0^{-2}\)</span>. <span class="math notranslate nohighlight">\(C_0\)</span> is an integration constant related to the angle at launch position and <span class="math notranslate nohighlight">\(C_1\)</span>  is another integration constant that gives the starting point.</p>
 <p>The ray path can be expressed in closed form, as well as the travel time and the path length. However, the calculation of the frequency-dependent attenuation length must be done numerically.</p>
 <section id="gsl-speed-boost">
-<h4>GSL speed-boost<a class="headerlink" href="#gsl-speed-boost" title="Permalink to this headline"></a></h4>
+<h4>GSL speed-boost<a class="headerlink" href="#gsl-speed-boost" title="Permalink to this heading"></a></h4>
 <p>A C++ version of the ray tracer exists, which can be called from Python, and is significantly faster. The C++ version needs to be compiled on the user’s system, which is attempted automatically if this is not already the case. However, this requires that the <a class="reference internal" href="../../../Introduction/pages/installation.html#not-pip-installable-packages"><span class="std std-ref">GSL library is installed</span></a>, and the <code class="docutils literal notranslate"><span class="pre">$GSLDIR</span></code> variable is defined and points to the GNU Scientific Library directory.</p>
 <blockquote>
 <div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">GSLDIR</span><span class="o">=</span>/path/to/my/GNU_Scientific_Library
@@ -624,7 +625,7 @@ with an exponential refractive index can be calculated analytically using the op
 </section>
 </section>
 <section id="radiopropa-numerical-ray-tracer-in-development">
-<h3>RadioPropa numerical ray tracer (in development)<a class="headerlink" href="#radiopropa-numerical-ray-tracer-in-development" title="Permalink to this headline"></a></h3>
+<h3>RadioPropa numerical ray tracer (in development)<a class="headerlink" href="#radiopropa-numerical-ray-tracer-in-development" title="Permalink to this heading"></a></h3>
 <p>For ice models other then the simple ones, one need a numerical ray tracer which is provided by the RadioPropa method. This method uses the RadioPropa package which is written in c++. Information on the installation of RadioPropa can found on <a class="reference external" href="https://github.com/nu-radio/RadioPropa">https://github.com/nu-radio/RadioPropa</a>. The module name for this method is <code class="docutils literal notranslate"><span class="pre">radiopropa</span></code>.</p>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">propagation</span><span class="p">:</span><span class="w"></span>
@@ -637,9 +638,9 @@ with an exponential refractive index can be calculated analytically using the op
 </section>
 </section>
 <section id="example-scripts">
-<h2>Example scripts<a class="headerlink" href="#example-scripts" title="Permalink to this headline"></a></h2>
+<h2>Example scripts<a class="headerlink" href="#example-scripts" title="Permalink to this heading"></a></h2>
 <section id="how-to-calculate-an-analytic-ray-path">
-<h3>How to calculate an analytic ray path<a class="headerlink" href="#how-to-calculate-an-analytic-ray-path" title="Permalink to this headline"></a></h3>
+<h3>How to calculate an analytic ray path<a class="headerlink" href="#how-to-calculate-an-analytic-ray-path" title="Permalink to this heading"></a></h3>
 <p>The following code shows how to perform a analytic ray tracing and extract information on the solutions, such as trajectory, travel time, or attenuation.</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp</span> <span class="kn">import</span> <span class="n">propagation</span>
@@ -722,7 +723,7 @@ with an exponential refractive index can be calculated analytically using the op
 </div></blockquote>
 </section>
 <section id="how-to-calculate-an-radiopropa-ray-path">
-<h3>How to calculate an radiopropa ray path<a class="headerlink" href="#how-to-calculate-an-radiopropa-ray-path" title="Permalink to this headline"></a></h3>
+<h3>How to calculate an radiopropa ray path<a class="headerlink" href="#how-to-calculate-an-radiopropa-ray-path" title="Permalink to this heading"></a></h3>
 <p>The following code shows how to perform a ray tracing and extract  information on the solutions, such as trajectory, travel time, or attenuation.</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp</span> <span class="kn">import</span> <span class="n">propagation</span>
