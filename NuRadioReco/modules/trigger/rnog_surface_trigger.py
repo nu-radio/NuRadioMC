@@ -28,7 +28,7 @@ def schottky_diode(trace, threshold, temp=250*units.kelvin, Vbias=2*units.volt):
         temperature of the board with diode
     Vbias: float
         applied bias voltage to the diode board
-        
+
     Returns
     -------
     trigger: list of booleans
