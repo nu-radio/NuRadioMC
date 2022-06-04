@@ -1,6 +1,7 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 from NuRadioReco.framework.trigger import EnvelopeTrigger
+import NuRadioReco.framework.base_trace as base_trace
 import NuRadioReco.utilities.fft
 import numpy as np
 import scipy.signal
@@ -91,27 +92,10 @@ class triggerSimulator:
             channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
 
         for channel in station.iter_channels():
-            # get filter
-            frequencies = channel.get_frequencies()
-
-            f = np.zeros_like(frequencies, dtype=complex)
-            mask = frequencies > 0
-            b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)  # Numerator (b) and denominator (a) polynomials of the IIR filter
-            w, h = scipy.signal.freqs(b, a, frequencies[mask])  # w :The angular frequencies at which h was computed. h :The frequency response.
-            f[mask] = h
-
-            # apply filter
-            freq_spectrum_fft = channel.get_frequency_spectrum()
-            freq_spectrum_fft_copy = copy.copy(freq_spectrum_fft)  # copy spectrum so it is only changed within the trigger module
-            sampling_rate = channel.get_sampling_rate()
-
-            freq_spectrum_fft_copy *= f
-            trace_filtered = NuRadioReco.utilities.fft.freq2time(freq_spectrum_fft_copy, sampling_rate)
+            trace = channel.base_trace.get_filtered_trace(passband, 'butter', order)
 
             # apply envelope trigger to each channel
             channel_id = channel.get_id()
-
-            trace = trace_filtered
             if triggered_channels is not None and channel_id not in triggered_channels:
                 logger.debug("skipping channel {}".format(channel_id))
                 continue
