@@ -374,5 +374,5 @@ class RNOGSurfaceTrigger(Trigger):
         self._threshold = threshold
         self._number_of_coincidences = number_of_coincidences
         self._coinc_window = channel_coincidence_window
-        self._temp = temp
+        self._temperature = temperature
         self._Vbias = Vbias
