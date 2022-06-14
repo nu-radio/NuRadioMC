@@ -585,7 +585,11 @@ replace the first line by <code class="docutils literal notranslate"><span class
 </div>
 <p>Now code can be written, fixed, committed and pushed to git as normally (<strong>exception</strong>: for your first
 push to the git repository, you need to include <code class="docutils literal notranslate"><span class="pre">--set-upstream</span></code>, as the branch initially only exists
-on your local machine). Once you are ready for your code to be merged into <code class="docutils literal notranslate"><span class="pre">develop</span></code> (for features and hotfixes) and/or
+on your local machine).</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">push</span> <span class="o">--</span><span class="nb">set</span><span class="o">-</span><span class="n">upstream</span> <span class="n">origin</span> <span class="n">feature</span><span class="o">/</span><span class="n">my_new_feature</span>
+</pre></div>
+</div>
+<p>Once you are ready for your code to be merged into <code class="docutils literal notranslate"><span class="pre">develop</span></code> (for features and hotfixes) and/or
 <code class="docutils literal notranslate"><span class="pre">master</span></code> (for hotfixes only), you should <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/pulls">create a pull request</a>.</p>
 <p>Before you make a pull request, make that your code:</p>
 <ul class="simple">

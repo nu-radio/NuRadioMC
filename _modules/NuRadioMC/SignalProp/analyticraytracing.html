@@ -580,9 +580,10 @@
                                  <span class="s2">&quot;install.sh&quot;</span><span class="p">))</span>
         <span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp.CPPAnalyticRayTracing</span> <span class="kn">import</span> <span class="n">wrapper</span>
         <span class="n">cpp_available</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;compilation was sucessful, using CPP version of ray tracer&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;compilation was successful, using CPP version of ray tracer&quot;</span><span class="p">)</span>
     <span class="k">except</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;compilation was not sucessful, using python version of ray tracer&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;compilation was not successful, using python version of ray tracer&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation&quot;</span><span class="p">)</span>
         <span class="n">cpp_available</span> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
@@ -1928,10 +1929,10 @@
 <span class="sd">        ----------</span>
 <span class="sd">        x1, x2: arrays</span>
 <span class="sd">            Arrays with x and z positions of emitter x1 and receiver x2</span>
-<span class="sd">        infirn: Boolean. </span>
+<span class="sd">        infirn: Boolean.</span>
 <span class="sd">            Set to True if surface ray travels in the firn, set to False (default) if it travels</span>
 <span class="sd">            in air.</span>
-<span class="sd">        angle:  String </span>
+<span class="sd">        angle:  String</span>
 <span class="sd">            specifying angle at which ray reaches/leaves the surface. Can be &#39;Brewster&#39; or &#39;critical&#39;</span>
 <span class="sd">            If neither of these is chosen, a warning is printed and angle is set to &#39;critical&#39;</span>
 <span class="sd">        chdraw: string or None</span>
@@ -2069,9 +2070,9 @@
 <span class="sd">    utility class (wrapper around the 2D analytic ray tracing code) to get</span>
 <span class="sd">    ray tracing solutions in 3D for two arbitrary points x1 and x2</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation_model</span><span class="o">=</span><span class="s2">&quot;SP1&quot;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span>
-                 <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n_reflections</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n_reflections</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">detector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        class initilization</span>
@@ -2091,7 +2092,7 @@
 <span class="sd">            * logging.WARNING</span>
 <span class="sd">            * logging.INFO</span>
 <span class="sd">            * logging.DEBUG</span>
-<span class="sd">            </span>
+
 <span class="sd">            default is WARNING</span>
 <span class="sd">        n_frequencies_integration: int</span>
 <span class="sd">            the number of frequencies for which the frequency dependent attenuation</span>
@@ -2118,12 +2119,12 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The analytic raytracer can only handle ice model of the type &#39;IceModelSimple&#39;&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The analytic raytracer can only handle ice model of the type &#39;IceModelSimple&#39;&quot;</span><span class="p">)</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">medium</span><span class="o">=</span><span class="n">medium</span><span class="p">,</span> 
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">medium</span><span class="o">=</span><span class="n">medium</span><span class="p">,</span>
                          <span class="n">attenuation_model</span><span class="o">=</span><span class="n">attenuation_model</span><span class="p">,</span>
                          <span class="n">log_level</span><span class="o">=</span><span class="n">log_level</span><span class="p">,</span>
-                         <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="n">n_frequencies_integration</span><span class="p">,</span> 
+                         <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="n">n_frequencies_integration</span><span class="p">,</span>
                          <span class="n">n_reflections</span><span class="o">=</span><span class="n">n_reflections</span><span class="p">,</span>
-                         <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> 
+                         <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
                          <span class="n">detector</span><span class="o">=</span><span class="n">detector</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_config</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span> <span class="o">=</span> <span class="n">ray_tracing_2D</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attenuation_model</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">log_level</span><span class="p">,</span>
@@ -2134,7 +2135,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_R</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_x1</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span> <span class="o">=</span> <span class="kc">None</span>
-        
+
 <div class="viewcode-block" id="ray_tracing.reset_solutions"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions">[docs]</a>    <span class="k">def</span> <span class="nf">reset_solutions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Resets the raytracing solutions back to None. This is useful to do when changing the start and end</span>
@@ -2181,7 +2182,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_x1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">X1r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">X1r</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">X2r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">X2r</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;2D points </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">))</span></div>
-        
+
 <div class="viewcode-block" id="ray_tracing.set_solution"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution">[docs]</a>    <span class="k">def</span> <span class="nf">set_solution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raytracing_results</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read an already calculated raytracing solution from the input array</span>
@@ -2539,9 +2540,9 @@
         <span class="p">]</span></div>
 
 <div class="viewcode-block" id="ray_tracing.get_raytracing_output"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output">[docs]</a>    <span class="k">def</span> <span class="nf">get_raytracing_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_solution</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;focusing&#39;</span><span class="p">]:</span>    
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;focusing&#39;</span><span class="p">]:</span>
             <span class="n">focusing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_focusing</span><span class="p">(</span><span class="n">i_solution</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;focusing_limit&#39;</span><span class="p">]))</span>
-        <span class="k">else</span><span class="p">:</span> 
+        <span class="k">else</span><span class="p">:</span>
             <span class="n">focusing</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">output_dict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;ray_tracing_C0&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">i_solution</span><span class="p">][</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span>
