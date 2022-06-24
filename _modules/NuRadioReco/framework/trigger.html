@@ -569,6 +569,8 @@
             <span class="n">trigger</span> <span class="o">=</span> <span class="n">IntegratedPowerTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;envelope_phased&#39;</span><span class="p">:</span>
             <span class="n">trigger</span>  <span class="o">=</span> <span class="n">EnvelopePhasedTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;rnog_surface_trigger&#39;</span><span class="p">):</span>
+            <span class="n">trigger</span> <span class="o">=</span> <span class="n">RNOGSurfaceTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unknown trigger type&quot;</span><span class="p">)</span>
         <span class="n">trigger</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
@@ -886,6 +888,39 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="n">threshold</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_coincidences</span> <span class="o">=</span> <span class="n">number_of_coincidences</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_coinc_window</span> <span class="o">=</span> <span class="n">channel_coincidence_window</span></div>
+
+<div class="viewcode-block" id="RNOGSurfaceTrigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.RNOGSurfaceTrigger">[docs]</a><span class="k">class</span> <span class="nc">RNOGSurfaceTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">channel_coincidence_window</span><span class="o">=</span><span class="mi">60</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span> <span class="n">temperature</span><span class="o">=</span><span class="mi">250</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">kelvin</span><span class="p">,</span> <span class="n">Vbias</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">volt</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        initialize trigger class</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name: string</span>
+<span class="sd">            unique name of the trigger</span>
+<span class="sd">        threshold: float</span>
+<span class="sd">            the threshold</span>
+<span class="sd">        number_of_coincidences: int</span>
+<span class="sd">            the number of channels that need to fulfill the trigger condition</span>
+<span class="sd">            default: 1</span>
+<span class="sd">        channel_coincidence_window: float or None (default)</span>
+<span class="sd">            the coincidence time between triggers of different channels</span>
+<span class="sd">        channels: array of ints or None</span>
+<span class="sd">            the channels that are involved in the trigger</span>
+<span class="sd">            default: None, i.e. all channels</span>
+<span class="sd">        temperature: float</span>
+<span class="sd">            temperature of the trigger board</span>
+<span class="sd">        Vbias: float</span>
+<span class="sd">            bias voltage on the trigger board</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">&#39;rnog_surface_trigger&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_coincidences</span> <span class="o">=</span> <span class="n">number_of_coincidences</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coinc_window</span> <span class="o">=</span> <span class="n">channel_coincidence_window</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_temperature</span> <span class="o">=</span> <span class="n">temperature</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Vbias</span> <span class="o">=</span> <span class="n">Vbias</span></div>
 </pre></div>
 
            </div>

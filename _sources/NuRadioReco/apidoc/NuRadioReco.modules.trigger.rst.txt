@@ -12,8 +12,10 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   NuRadioReco.modules.trigger.calc_parameters_for_rnog_surface_trigger
    NuRadioReco.modules.trigger.envelopeTrigger
    NuRadioReco.modules.trigger.highLowThreshold
    NuRadioReco.modules.trigger.multiHighLowThreshold
    NuRadioReco.modules.trigger.powerIntegration
+   NuRadioReco.modules.trigger.rnog_surface_trigger
    NuRadioReco.modules.trigger.simpleThreshold

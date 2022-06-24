@@ -1,0 +1,7 @@
+NuRadioReco.modules.trigger.rnog\_surface\_trigger module
+=========================================================
+
+.. automodule:: NuRadioReco.modules.trigger.rnog_surface_trigger
+   :members:
+   :undoc-members:
+   :show-inheritance:
