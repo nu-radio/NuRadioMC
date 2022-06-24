@@ -139,7 +139,7 @@ femtosecond = femto * second
 minute = 60 * second
 hour = 60 * minute
 day = 24 * hour
-year = 356 * day
+year = 365.25 * day
 
 hertz = 1 / second
 kilohertz = kilo * hertz
