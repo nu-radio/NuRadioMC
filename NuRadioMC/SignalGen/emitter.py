@@ -32,9 +32,9 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         * cw : a sinusoidal wave of given frequency
         * square : a rectangular pulse of given amplituede and width
         * tone_burst : a short sine wave pulse of given frequency and desired width
-        * idl & hvsp2 : these are the waveforms generated in KU lab and stored in hdf5 files
+        * idl1 & hvsp1 : these are the waveforms generated in KU lab and stored in hdf5 files
         * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
-
+        * calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02
     full_output: bool (default False)
         if True, can return additional output
 
@@ -132,9 +132,9 @@ def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs)
         * cw : a sinusoidal wave of given frequency
         * square : a rectangular pulse of given amplituede and width
         * tone_burst : a short sine wave pulse of given frequency and desired width
-        * idl & hvsp2 : these are the waveforms generated in KU lab and stored in hdf5 files
+        * idl1 & hvsp1 : these are the waveforms generated in KU lab and stored in hdf5 files
         * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
-
+        * calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02
     full_output: bool (default False)
         if True, can return additional output
 
