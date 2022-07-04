@@ -73,6 +73,6 @@ def preprocess_300Amp(amp, channel, path="HardwareResponses/"):
     # checkGroupDelay(get_amp_gain(ff)*get_amp_phase(ff),ff,ch_name,path)
     save_preprocessed_Amps(amplifier_response, amp_name)
 
-
-for i in range(8):
-    preprocess_300Amp('300-03', i, path='HardwareResponses/300SeriesAmpBoxes')
+if __name__ == "__main__":
+    for i in range(8):
+        preprocess_300Amp('300-03', i, path='HardwareResponses/300SeriesAmpBoxes')

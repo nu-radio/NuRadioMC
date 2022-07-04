@@ -20,7 +20,7 @@ x5 = np.array([1000., 0., -5.]) * units.m  # no solution
 receive_vectors = np.zeros((4, 2, 3)) * np.nan
 ray_tracing_C0 = np.zeros((4, 2)) * np.nan
 ray_tracing_C1 = np.zeros((4, 2)) * np.nan
-ray_tracing_solution_type = np.zeros((4, 2), dtype=np.int) * np.nan
+ray_tracing_solution_type = np.zeros((4, 2), dtype=int) * np.nan
 travel_times = np.zeros((4, 2)) * np.nan
 travel_distances = np.zeros((4, 2)) * np.nan
 

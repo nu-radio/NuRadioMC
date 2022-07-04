@@ -50,7 +50,7 @@ class eventWriter:
         self.__fout.write(b)
         self.__header_written = True
 
-    def begin(self, filename, max_file_size=1024, check_for_duplicates=False, events_per_file=None):
+    def begin(self, filename, max_file_size=1024, check_for_duplicates=False, events_per_file=None, log_level=logging.WARNING):
         """
         begin method
 
@@ -68,6 +68,7 @@ class eventWriter:
             into the same file, the output will be split into another file. If max_file_size and events_per_file are
             both set, the file will be split whenever any of the two conditions is fullfilled.
         """
+        logger.setLevel(log_level)
         if filename[-4:] == '.nur':
             self.__filename = filename[:-4]
         else:
@@ -96,13 +97,17 @@ class eventWriter:
         det: detector object
             If a detector object is passed, the detector description for the
             events is written in the file as well
-        mode: dictionary (default: {'Channels': True, 'ElectricFields': True, 'SimChannels': True, 'SimElectricFields': True})
-            specifies what will saved into the *.nur output file
-            can contain the strings
+        mode: dictionary, optional 
+            Specifies what will saved into the `*.nur` output file.
+            Can contain the following keys:
+
             * 'Channels': if True channel traces of Stations will be saved
             * 'ElectricFields': if True (reconstructed) electric field traces of Stations will be saved
             * 'SimChannels': if True SimChannels of SimStations will be saved
             * 'SimElectricFields': if True electric field traces of SimStations will be saved
+
+            if no dictionary is passed, the default option is to save all of the above
+
         """
         if mode is None:
             mode = {
@@ -116,7 +121,8 @@ class eventWriter:
             self.__write_fout_header()
 
         event_bytearray = self.__get_event_bytearray(evt, mode)
-        self.__fout.write(event_bytearray)
+        n_bytes_written = self.__fout.write(event_bytearray)
+        logger.debug(f"{n_bytes_written} bytes written to diks")
         self.__current_file_size += event_bytearray.__sizeof__()
         self.__number_of_events += 1
         self.__event_ids_and_runs.append([evt.get_run_number(), evt.get_id()])
@@ -174,9 +180,6 @@ class eventWriter:
             "channels": {},
             "stations": {}
         }
-        if is_generic_detector:
-            det_dict['default_station'] = det.get_default_station_id()
-            det_dict['default_channel'] = det.get_default_channel_id()
         i_station = 0
         i_channel = 0
         for station in event.get_stations():
@@ -200,36 +203,40 @@ class eventWriter:
                 if not self.__is_channel_already_in_file(station.get_id(), channel.get_id(), station.get_station_time()):
                     if not is_generic_detector:
                         channel_description = det.get_channel(station.get_id(), channel.get_id())
-                    else:
-                        channel_description = det.get_raw_channel(station.get_id(), channel.get_id())
-                    det_dict['channels'][str(i_channel)] = channel_description
-                    self.__stored_channels.append({
-                        'station_id': station.get_id(),
-                        'channel_id': channel.get_id(),
-                        'commission_time': channel_description['commission_time'],
-                        'decommission_time': channel_description['decommission_time']
-                    })
-                    i_channel += 1
-        # If we have a genericDetector, the default station may not be in the event.
-        # In that case, we have to add it manually to make sure it ends up in the file
-        if is_generic_detector:
-            if not self.__is_station_already_in_file(det.get_default_station_id(), None):
-                station_description = det.get_raw_station(det.get_default_station_id())
-                self.__stored_stations.append({
-                    'station_id': station.get_id()
-                })
-                det_dict['stations'][str(i_station)] = station_description
-                for channel_id in det.get_channel_ids(det.get_default_station_id()):
-                    if not self.__is_channel_already_in_file(det.get_default_station_id(), channel_id, None):
-                        channel_description = det.get_raw_channel(det.get_default_station_id(), channel_id)
-                        det_dict['channels'][str(i_channel)] = channel_description
                         self.__stored_channels.append({
-                            'station_id': det.get_default_station_id(),
-                            'channel_id': channel_id,
+                            'station_id': station.get_id(),
+                            'channel_id': channel.get_id(),
                             'commission_time': channel_description['commission_time'],
                             'decommission_time': channel_description['decommission_time']
                         })
-                        i_channel += 1
+                    else:
+                        channel_description = det.get_raw_channel(station.get_id(), channel.get_id())
+                        self.__stored_channels.append({
+                          'station_id': station.get_id(),
+                          'channel_id': channel.get_id()
+                        })
+                    det_dict['channels'][str(i_channel)] = channel_description
+                    i_channel += 1
+            # If we have a genericDetector, the default station may not be in the event.
+            # In that case, we have to add it manually to make sure it ends up in the file
+            if is_generic_detector:
+                for reference_station_id in det.get_reference_station_ids():
+                    if not self.__is_station_already_in_file(reference_station_id, None):
+                        station_description = det.get_raw_station(reference_station_id)
+                        self.__stored_stations.append({
+                            'station_id': reference_station_id
+                        })
+                        det_dict['stations'][str(i_station)] = station_description
+                        i_station += 1
+                        for channel_id in det.get_channel_ids(reference_station_id):
+                            if not self.__is_channel_already_in_file(reference_station_id, channel_id, None):
+                                channel_description = det.get_raw_channel(reference_station_id, channel_id)
+                                det_dict['channels'][str(i_channel)] = channel_description
+                                self.__stored_channels.append({
+                                    'station_id': reference_station_id,
+                                    'channel_id': channel_id
+                                })
+                                i_channel += 1
         if i_station == 0 and i_channel == 0:  # All stations and channels have already been saved
             return None
         else:
@@ -263,6 +270,7 @@ class eventWriter:
             if entry['station_id'] == station_id and entry['channel_id'] == channel_id:
                 if 'commission_time' not in entry.keys() or 'decommission_time' not in entry.keys() or station_time is None:
                     return True
+                # it's a normal detector and we have to check commission/decommission times
                 if entry['commission_time'] < station_time < entry['decommission_time']:
                     return True
         return False
@@ -295,4 +303,5 @@ class eventWriter:
     def end(self):
         if(hasattr(self, "__fout")):
             self.__fout.close()
+            self.debug(f"closing file.")
         return self.__number_of_events

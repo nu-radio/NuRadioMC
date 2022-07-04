@@ -109,6 +109,13 @@ def stacked_lstsq(L, b, rcond=1e-10):
 
 
 class voltageToEfieldConverter:
+    """
+    This module reconstructs the electric field by solving the system of equation that related the incident electric field via the antenna response functions to the measured voltages 
+    (see Eq. 4 of the NuRadioReco paper https://link.springer.com/article/10.1140/epjc/s10052-019-6971-5).
+    The module assumed that the electric field is identical at the antennas/channels that are used for the reconstruction. Furthermore, at least two antennas with
+    orthogonal polarization response are needed to reconstruct the 3dim electric field. 
+    Alternatively, the polarization of the resulting efield could be forced to a single polarization component. In that case, a single antenna is sufficient. 
+    """
 
     def __init__(self):
         self.antenna_provider = None
@@ -124,7 +131,7 @@ class voltageToEfieldConverter:
         run method. This function is executed for each event
 
         Parameters
-        ---------
+        ----------
         evt
         station
         det
