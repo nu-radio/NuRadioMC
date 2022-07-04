@@ -38,15 +38,16 @@ parser.add_argument('--output_nur', type=str, default='output.nur')
 
 args = parser.parse_args()
 
-sim = mySimulation(
-    inputfilename=args.input_filename,
-    outputfilename=args.output_hdf,
-    detectorfile=args.detector_file,
-    outputfilenameNuRadioReco=args.output_nur,
-    config_file=args.config,
-    file_overwrite=True,
-    write_detector=False,
-    default_detector_channel=0,
-    default_detector_station=11
-)
-sim.run()
+if __name__ == "__main__":
+    sim = mySimulation(
+        inputfilename=args.input_filename,
+        outputfilename=args.output_hdf,
+        detectorfile=args.detector_file,
+        outputfilenameNuRadioReco=args.output_nur,
+        config_file=args.config,
+        file_overwrite=True,
+        write_detector=False,
+        default_detector_channel=0,
+        default_detector_station=11
+    )
+    sim.run()

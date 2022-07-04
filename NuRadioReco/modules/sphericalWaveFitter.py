@@ -13,25 +13,25 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 class sphericalWaveFitter:
     " Fits position x,y, z of a source using spherical fit to channels "
-    
+
     def __init__(self):
         pass
-        
-        
+
+
     def begin(self, channel_ids = [0, 3, 9, 10]):
         self.__channel_ids = channel_ids
         pass
 
 
     def run(self, evt, station, det, start_pulser_position, n_index = None, debug = True):
-       
+
         print("channels used for this reconstruction:", self.__channel_ids)
 
-        
+
         def get_distance(x, y):
             return np.sqrt((x[0] - y[0])**2+ (x[1] - y[1])**2 + (x[2] - y[2])**2)
-        
-        
+
+
         def get_time_delay_spherical_wave(position, ch_pair, n=n_index):
             T0 = get_distance(position, det.get_relative_position(station_id, ch_pair[0]))/(constants.c/n_index)*units.s
             T1 = get_distance(position , det.get_relative_position(station_id, ch_pair[1]))/(constants.c/n_index)*units.s
@@ -45,10 +45,10 @@ class sphericalWaveFitter:
             for j in range(i + 1, len(self.__channel_ids)):
                 relative_positions = det.get_relative_position(station_id, self.__channel_ids[i]) - det.get_relative_position(station_id, self.__channel_ids[j])
                 self.__relative_positions.append(relative_positions)
-                
+
                 self.__channel_pairs.append([self.__channel_ids[i], self.__channel_ids[j]])
-                
-       
+
+
         self.__sampling_rate = station.get_channel(0).get_sampling_rate()
         if debug:
             fig, ax = plt.subplots( len(self.__channel_pairs), 2)
@@ -73,24 +73,24 @@ class sphericalWaveFitter:
                     ax.set_ylim((0, max(self.__correlation[ich])))
                     ax.axvline(pos, label = 'reconstruction', lw = 1, color = 'orange')
                     ax.axvline(self._pos_starting[ich], label = 'starting pos', lw = 1, color = 'green')
-                    ax.set_title("channel pair {}".format( ch_pair), fontsize = 5) 
+                    ax.set_title("channel pair {}".format( ch_pair), fontsize = 5)
                     ax.legend(fontsize = 5)
- 
+
             if debug_corr:
                 fig.tight_layout()
                 fig.savefig("debug.pdf")
 
             return -1*corr
-            
-            
+
+
 
         trace = np.copy(station.get_channel(self.__channel_pairs[0][0]).get_trace())
         self.__correlation = np.zeros((len(self.__channel_pairs), len(np.abs(scipy.signal.correlate(trace, trace))) ))
 
         for ich, ch_pair in enumerate(self.__channel_pairs):
             trace1 = np.copy(station.get_channel(self.__channel_pairs[ich][0]).get_trace())
-            trace2 =np.copy(station.get_channel(self.__channel_pairs[ich][1]).get_trace())
-       
+            trace2 = np.copy(station.get_channel(self.__channel_pairs[ich][1]).get_trace())
+
             t_max1 = station.get_channel(self.__channel_pairs[ich][0]).get_times()[np.argmax(np.abs(trace1))]
             t_max2 = station.get_channel(self.__channel_pairs[ich][1]).get_times()[np.argmax(np.abs(trace2))]
             corr_range = 50 * units.ns
@@ -101,7 +101,7 @@ class sphericalWaveFitter:
             else:
                 trace2[np.abs(station.get_channel(self.__channel_pairs[ich][1]).get_times() - t_max2) > corr_range] = 0
             self.__correlation[ich] = np.abs(scipy.signal.correlate(trace1, trace2))
-          
+
 
 
         #### set positions for starting position ####
@@ -115,7 +115,7 @@ class sphericalWaveFitter:
             self._pos_starting[ich] = int(len(self.__correlation[ich]) / 2 - n_samples)
 
 
-        method = 'Nelder-Mead'
+        #method = 'Nelder-Mead'
         x_start, y_start, z_start = start_pulser_position
         dx, dy, dz = [.1, .1, .1]
         #ll = opt.minimize(likelihood, x0 = (start_pulser_position[0]-10, start_pulser_position[1], start_pulser_position[2]),method = method)#
@@ -124,7 +124,7 @@ class sphericalWaveFitter:
         print("reconstructed position: {}".format([ll[0], ll[1], ll[2]]))
 
         if debug:
-            
+
             method = 'Nelder-Mead'
             x = np.arange(x_start -3, x_start +3, dx)
             y = np.arange(y_start - 3, y_start +3, dy)
@@ -137,7 +137,7 @@ class sphericalWaveFitter:
                     c = opt.minimize(likelihood, x0 = (start_pulser_position[2]), args = (x_i, y_i, False), method = method)
                     zz[ix, iy] = c.fun
                     zz_values[ix, iy] = c.x[0]
-            
+
             fig = plt.figure(figsize = (10, 5))
             ax1 = fig.add_subplot(121)
             pax1 = ax1.pcolor(xx, yy,  zz.T)
@@ -170,4 +170,4 @@ class sphericalWaveFitter:
 
     def end(self):
         pass
-        
+

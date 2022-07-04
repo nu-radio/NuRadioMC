@@ -20,10 +20,12 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         This object stores a 3 dimensional trace plus additional meta parameters
 
         Parameters
-        ---------
+        ----------
         channel_ids: array of ints
-            the channels ids this electric field is valid for. (For cosmic rays one electric field is typically valid
-            for several channels. For neutrino simulations, we typically simulate the electric field for each
+            the channels ids this electric field is valid for. 
+            (For cosmic rays one electric field is typically valid
+            for several channels. For neutrino simulations, we typically
+            simulate the electric field for each
             channel separately)
         position: 3-dim array/list of floats
             the position of the electric field

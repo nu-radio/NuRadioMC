@@ -115,8 +115,10 @@ venv.bak/
 
 #Mac nonsense
 .DS_Store
-# pngs
+# pngs, pdfs
 *.png
+*.pdf
+!documentation/**/*.png
 
 # ignore .nur files in NuRadioReco/examples/
 # this should not apply for NuRadioReco/examples/example_data/

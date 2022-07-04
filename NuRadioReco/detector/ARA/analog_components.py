@@ -10,7 +10,7 @@ def load_system_response(path=os.path.dirname(os.path.realpath(__file__))):
     https://github.com/bhokansonfasig/pyrex/tree/master/pyrex/custom/ara/data
 
     Parameters
-    --------
+    ----------
     path: string
         Path to the file containing the system response
     """

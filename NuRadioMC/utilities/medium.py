@@ -4,6 +4,8 @@ from NuRadioReco.utilities import units
 import logging
 logging.basicConfig()
 
+logger = medium_base.logger
+
 try:
     import radiopropa as RP
     radiopropa_is_imported = True
@@ -142,7 +144,7 @@ class greenland_firn(medium_base.IceModel):
         profiles also
 
         Parameters
-        ---------
+        ----------
         z_air_boundary:  float, NuRadio length units
                          z coordinate of the surface of the glacier
         z_bottom:  float, NuRadio length units
@@ -166,8 +168,8 @@ class greenland_firn(medium_base.IceModel):
         """
 
         if not medium_base.radiopropa_is_imported:
-            medium_base.logger.error('This ice model depends fully on RadioPropa, which was not import, and can therefore not be used.'+
-                                     '\nMore info on https://github.com/nu-radio/RadioPropa')
+            logger.error('This ice model depends fully on RadioPropa, which was not import, and can therefore not be used.'+
+                         '\nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('This ice model depends fully on RadioPropa, which could not be imported')
 
         super().__init__(z_bottom = -3000*units.meter)
@@ -192,12 +194,12 @@ class greenland_firn(medium_base.IceModel):
         Overwrites function of the mother class
 
         Parameters
-        ---------
+        ----------
         position:  3dim np.array
                     point
 
-        Returns:
-        --------
+        Returns
+        -------
         n:  float
             index of refraction
         """
@@ -270,8 +272,8 @@ def get_ice_model(name):
     """
     function to access the right ice model class by name of the class
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     name: string
           name of the class of the requested ice model
 
@@ -281,7 +283,7 @@ def get_ice_model(name):
                object of the class with the name of the requested model
     """
     if globals()[name]() == None:
-        medium_base.logger.error('The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.')
+        logger.error('The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.')
         raise NotImplementedError('The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.')
     else:
         return globals()[name]()
