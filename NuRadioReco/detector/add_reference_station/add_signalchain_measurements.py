@@ -24,6 +24,7 @@ mongo_detector = detector_mongo.Detector(database_connection=f"mongodb+srv://{us
 # Folder Path
 path = "./box4_ps"
 #Change directory
+CWD=os.getcwd()
 os.chdir(path)
 
 
@@ -67,6 +68,8 @@ for file in os.listdir():
                                   primary_measurement,
                                   time_delay,
                                   protocol)
+
+os.chdir(CWD)
 
 # Folder Path
 surf_path = "./Surface_cables_box2"
