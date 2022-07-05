@@ -882,8 +882,8 @@ class Detector(object):
         components = self.get_signal_ch_hardware(station_id, channel_id)
         time_delay = 0
         #print(components)
-        for item in components:
-
+        #for item in components:
+        #
         #    print(key, self.get_hardware_channel(component["type"], component["name"])["components[key]["weight"])
 
         return None
