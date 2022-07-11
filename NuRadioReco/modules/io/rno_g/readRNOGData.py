@@ -70,12 +70,12 @@ class readRNOGData:
     def _set_iterators(self, cut=None):
         """
         Set uproot iterators to loop over event trees
-  
+
         Parameters
         ----------
         cut: str
             cut string to apply (e.g. for initial event selection based on event_number, ...
-            e.g. "(event_number==1)" or "(run_number==1)&(event_number<10)" 
+            e.g. "(event_number==1)" or "(run_number==1)&(event_number<10)"
         """
         self.__id_current_event = -1
 
@@ -92,7 +92,7 @@ class readRNOGData:
         # read_branches = ['run_number', 'event_number', 'station_number', 'radiant_data[24][2048]']
         self._iterator_data = uproot.iterate(datadict, cut=cut,step_size=1, how=dict, library="np")
 
-        self.uproot_iterator_data = uproot.iterate(datadict, cut=cut, step_size=1000)
+        self.uproot_iterator_data = uproot.iterate(datadict, cut=cut, step_size=256)
 
     @register_run()
     def run(self, channels=np.arange(24), event_numbers=None, run_numbers=None, cut_string=None):
@@ -115,7 +115,7 @@ class readRNOGData:
             selection string for event pre-selection
             Cavieat: use only if event_numbers and run_numbers are not set
         """
-    
+
         # generate cut string based on passed event_numbers or run_numbers parameters
         if not run_numbers is None:
             event_cuts = "|".join(["(run_number==%i)" for run_number in run_numbers])
@@ -151,7 +151,7 @@ class readRNOGData:
                 if self.__id_current_event > 0:
                     eta = (time.time() - self.__t) / self.__id_current_event * (self.n_events - self.__id_current_event) / 60.
                 self.logger.warning("reading in event {}/{} ({:.0f}%) ETA: {:.1f} minutes".format(self.__id_current_event, self.n_events, 100 * progress, eta))
-                
+
             run_number = event["run_number"]
             evt_number = event["event_number"]
             station_id = event["station_number"]
