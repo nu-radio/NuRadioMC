@@ -42,8 +42,7 @@ jobs:
     - name: Lint with flake8 (unimportant)
       run: |
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --max-complexity=10 --max-line-length=127 --statistics # --exit-zero
-      # continue-on-error: true
+        flake8 . --count --max-complexity=10 --max-line-length=127 --statistics  --exit-zero
     - name: "Single event test (South Pole)"
       if: always()
       run: |
