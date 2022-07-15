@@ -1,11 +1,12 @@
-Calculating effective volume
-============================
+Example: Calculating effective volume
+=====================================
 
 This tutorial gives a full example to simulate the effective volume of a high-energy radio neutrino detector.
+.. comment::
 
-Installation
-------------
-See :doc:`here </Introduction/pages/installation>` for installation instructions.
+    Installation
+    ------------
+    See :doc:`here </Introduction/pages/installation>` for installation instructions.
 
 Run an effective volume simulation
 ----------------------------------
@@ -35,7 +36,7 @@ To run a simulation you need
 * a main run script that also defines the details of the detector simulation
 
 Generating the input event list
--------------------------------
+_______________________________
 Generating the input event list is easy using the NuRadioMC event generator. Just execute
 
 .. code-block:: bash
@@ -45,7 +46,7 @@ Generating the input event list is easy using the NuRadioMC event generator. Jus
 The script will generate two event lists. One with 1000 events at 1e19 eV neutrino energy and one with 10,000 events at 1e18 eV neutrino energy.
 
 Running the simulation
--------------------------
+______________________
 To run the simulation execute 
 
 .. code-block:: bash
@@ -79,7 +80,7 @@ You can run the same simulation on the other input file with 10,000 events
 which takes 71 seconds on my laptop and leads to 29 triggered events.
 
 More details: the detector description
---------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The detector is defined in a JSON file and allows you to specify every detail of your detector that can have a relevance for the simulation or later reconstruction. 
 For our simple example though, it contains many parameters that we don't need to worry about, e.g. details about the ADC, so just ignore those fields. 
 The file ``surface_station_1GHz.json`` defines a 'surface station' consisting of 4 downward pointing LPDAs at -2m depth and 4 bicone antennas at -5m depth.
@@ -87,13 +88,13 @@ The file ``surface_station_1GHz.json`` defines a 'surface station' consisting of
 More info about detector files can be found :doc:`here</NuRadioReco/pages/detector/detector>`.
 
 More details: the config file
---------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 An overview of all parameters can be found in the default config file `config_default <https://github.com/nu-radio/NuRadioMC/blob/master/NuRadioMC/simulation/config_default.yaml>`_. 
 Everything defined in the local configuration file ``config.yaml`` will override the default parameters. The config file uses the YAML format, an easy to use and human readable format. 
 It is similar to JSON but easier to type down. 
 
 Visualization of results
-------------------------
+________________________
 NuRadioMC includes visualization tools. To produce the typical debugging plots of an effective volume simulation execute
 
 .. code-block:: bash

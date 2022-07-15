@@ -136,9 +136,11 @@ class simulation():
         write_mode: str
             Detail level of eventWriter
             specifies the output mode:
+
             * 'full' (default): the full event content is written to disk
             * 'mini': only station traces are written to disc
             * 'micro': no traces are written to disc
+            
         evt_time: datetime object
             the time of the events, default 1/1/2018
         config_file: string
@@ -162,6 +164,7 @@ class simulation():
             allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom". 
         """
         logger.setLevel(log_level)
+        self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
         logger.status('reading default config from {}'.format(config_file_default))
@@ -395,7 +398,7 @@ class simulation():
         channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
         electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
         if(self._outputfilenameNuRadioReco is not None):
-            self._eventWriter.begin(self._outputfilenameNuRadioReco)
+            self._eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
         unique_event_group_ids = np.unique(self._fin['event_group_ids'])
         self._n_showers = len(self._fin['event_group_ids'])
         self._shower_ids = np.array(self._fin['shower_ids'])
@@ -778,14 +781,12 @@ class simulation():
                                 zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*self._launch_vector)
                                 VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
                                 c = constants.c * units.m / units.s
-                                k = 2 * np.pi * frequencies * n_index / c
-                                eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c) * np.exp(-1j * k * R)
-                                ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c) * np.exp(-1j * k * R)
+                                eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c)
+                                ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c) 
                                 eR = np.zeros_like(eTheta)
                                 # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
                                 eTheta *= 1 / R
                                 ePhi *= 1 / R
-
                             else:
                                 logger.error(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
                                 raise AttributeError(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
@@ -998,7 +999,7 @@ class simulation():
                     global_shower_indices = self._get_shower_index(self._shower_ids_of_sub_event)
                     local_shower_index = find_indices(global_shower_indices, event_indices)
                     self._save_triggers_to_hdf5(sg, local_shower_index, global_shower_indices)
-                    if(self._outputfilenameNuRadioReco is not None and self._station.has_triggered()):
+                    if(self._outputfilenameNuRadioReco is not None):
                         # downsample traces to detector sampling rate to save file size
                         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
                         channelResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
@@ -1012,6 +1013,7 @@ class simulation():
                             self._eventWriter.run(self._evt, self._det, mode=output_mode)
                         else:
                             self._eventWriter.run(self._evt, mode=output_mode)
+                        logger.debug("WRITING EVENT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 # end sub events loop
 
                 # add local sg array to output data structure if any
@@ -1038,6 +1040,9 @@ class simulation():
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
         self._write_output_file()
+        if(self._outputfilenameNuRadioReco is not None):
+            self._eventWriter.end()
+            logger.debug("closing nur file")
 
         try:
             self.calculate_Veff()

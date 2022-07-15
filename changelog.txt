@@ -4,6 +4,7 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 2.2.0
 new features:
+- add attenuation model from the 2021 measurements taken at Summit Station
 
 bugfixes:
 
@@ -18,7 +19,13 @@ shower did not trigger the detector, this shower is not added to the output hdf5
 secondary interactions. With this bug, the initial interaction needs to be idenfified with np.abs(flavor) == 14 or 16.  
 This bug does not effect any effective volume calculation. 
 
+new features:
+- add hvsp1, update idl1 model for emitter simulation (from KU lab measurements) and remove
+hvsp2(no longer in use for experiment)
+
 version 2.1.5
+new features:
+
 bugfixes:
 - the phased array trigger module did not calculate the trigger time.
   The trigger time was always set to the trace start time. This got fixed in this version. 

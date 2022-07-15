@@ -9,6 +9,8 @@ Everyone is invited to contribute and use the software for their experiment.
 If you intend to contribute significantly to NuRadioMC or NuRadioReco, please contact @anelles and @cg-laser so that we
 are informed about ongoing activities. Both will also be able to provide commit access to the repository. You can of course also use the github tools to do so. 
 
+For a more extensive guide on how to contribute to NuRadioMC, consult our online documentation at https://nu-radio.github.io/NuRadioMC/Introduction/pages/contributing.html.
+
 * Workflow
 
 If you work with NuRadioMC/Reco and you encounter a problem that you CANNOT solve, please file an issue. 
