@@ -11,6 +11,8 @@ import base64
 from io import StringIO
 
 from NuRadioReco.detector.detector_mongo import det
+# from NuRadioReco.detector.detector_mongo import Detector
+# from NuRadioReco.detector.webinterface import config
 #from NuRadioReco.detector.webinterface.utils.sparameter_helper import validate_Sdata,  enable_board_name_input, plot_Sparameters, sparameters_layout
 from NuRadioReco.detector.webinterface.utils.Vpol_helper import validate_Sdata, plot_Sparameters, sparameters_layout
 from NuRadioReco.detector.webinterface.utils.table import get_table

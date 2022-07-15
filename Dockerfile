@@ -1,4 +1,4 @@
-FROM python:3.10.4-slim
+FROM python:3.10.5-slim
 LABEL maintainer="The NuRadioReco Authors <physics-astro-nuradiomcdev@lists.uu.se>"
 
 RUN apt-get update

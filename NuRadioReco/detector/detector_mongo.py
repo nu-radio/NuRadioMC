@@ -14,15 +14,17 @@ import numpy as np
 import pandas as pd
 from NuRadioReco.utilities import units
 import NuRadioReco.utilities.metaclasses
+from NuRadioReco.detector.webinterface import config
 logging.basicConfig()
 logger = logging.getLogger("database")
 logger.setLevel(logging.DEBUG)
 
 
+
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class Detector(object):
 
-    def __init__(self, database_connection="env_pw_user", database_name=None):
+    def __init__(self, database_connection = "test", database_name=None):
 
         if database_connection == "local":
             MONGODB_URL = "localhost"
@@ -73,6 +75,7 @@ class Detector(object):
         # just for testing
         # logger.info("setting detector time to current time")
         # self.update(datetime.datetime.now())
+
 
 
     def update(self, timestamp):
@@ -650,7 +653,7 @@ class Detector(object):
             primary_measurement, time_delay, protocol):
         """
         inserts a new S parameter measurement for the surface chain.
-        
+
         If the chain doesn't exist yet, it will be created.
 
         Parameters
@@ -664,7 +667,7 @@ class Detector(object):
         temp: int
             the temperature at which the measurement was taken
         S_data: array of floats with shape (n_rows, n_frequencies)
-            
+
             - 1st row: frequencies
             - 2nd/3rd row: S11 mag/phase
             - 4th/5th row: S12 mag/phase
@@ -1383,7 +1386,7 @@ def get_measurement_from_buffer(hardware_db, S_parameter="S21", channel_id=None)
         print("WARNING: more than one match for requested measurement found")
     return measurements
 
-
+det = Detector(config.DATABASE_TARGET)
 
 if __name__ == "__main__":
      test = sys.argv[1]
