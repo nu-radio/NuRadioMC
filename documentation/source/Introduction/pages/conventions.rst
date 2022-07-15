@@ -40,6 +40,13 @@ Units
 Physical quantities in ``NuRadioMC`` use Auger base units. To print, plot and convert dimensional quantities,
 a convenient module is included in ``NuRadioReco``. Details are given :ref:`here <NuRadioReco/pages/utilities:Unit System>`.
 
+Particle types
+--------------
+Particle types are encoded using the `PDG convention <https://pdg.lbl.gov/2007/reviews/montecarlorpp.pdf>`_.
+The most relevant particle ids for us are [12,14,16] for the electron, muon and tau neutrino, respectively, 
+with an overall minus sign indicating their corresponding anti-particles. A more extensive overview is included 
+as a table in the :ref:`event generation manual <particle-code-table>`.
+
 Fourier transformations
 -----------------------
 To ensure Fourier transforms have the correct units, please use the convenience functions provided

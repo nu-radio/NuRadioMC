@@ -192,9 +192,9 @@ def get_page_content(selection):
      Input('event-info-id', 'value'),
      Input('event-click-coordinator', 'children'),
      Input('filename', 'value'),
-     Input('event-counter-slider', 'value')],
-    [State('event-info-run', 'value'),
-     State('user_id', 'children')]
+     Input('event-counter-slider', 'value'),
+     Input('event-info-run', 'value')],
+    [State('user_id', 'children')]
 )
 def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, event_id, j_plot_click_info, filename, 
                      i_event, run_number, juser_id):
@@ -214,7 +214,7 @@ def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, event_i
     if context.triggered[0]['prop_id'] == 'event-counter-slider.value':
         return i_event, event_ids[i_event][0], event_ids[i_event][1]
     else:
-        if context.triggered[0]['prop_id'] == 'event-info-id.value':
+        if context.triggered[0]['prop_id'] in ['event-info-id.value', 'event-info-run.value']:
             mask = event_ids == (run_number, event_id)
             event_i = np.where(mask[:,0] * mask[:,1])[0][0]
             return event_i, run_number, event_id

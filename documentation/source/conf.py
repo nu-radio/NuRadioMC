@@ -44,7 +44,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     # 'sphinx.ext.autosummary',
-    'sphinx.ext.napoleon',
+    # 'sphinx.ext.napoleon',
     'sphinx.ext.autosectionlabel',
 ]
 
@@ -220,13 +220,15 @@ autosectionlabel_prefix_document = True
 # Don't make toctrees for class methods (doesn't seem to work with apidoc)
 numpydoc_class_members_toctree = False
 
+autoclass_content = 'both' # include __init__ docstrings in class description
 # 
 # coverage_ignore_modules
 
 
 autodoc_mock_imports = [
     'ROOT', 'mysql-python', 'pygdsm', 'MySQLdb', 'healpy', 'scripts',
-    'uproot', 'proposal', 'radiopropa', 'plotly', 'past'
+    'uproot', 'proposal', 'radiopropa', 'plotly', 'past',
+    'nifty5'
     ]
 # Raise warnings if any cross-references are broken
 nitpicky = True
@@ -240,7 +242,8 @@ nitpick_ignore_regex = [
     ("py:class", "tinydb_serialization.Serializer"),
     ("py:class", "radiopropa.ScalarField"),
     ("py:obj", "NuRadioReco.*"),
-    ("py:obj", "NuRadioMC.*")
+    ("py:obj", "NuRadioMC.*"),
+    ("py:class", "nifty5.*")
 ]
 
 # def skip_modules(app, what, name, obj, skip, options):

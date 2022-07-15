@@ -8,7 +8,7 @@ import logging
 
 class hardwareResponseIncorporator:
     """
-    Incorporates the gain and phase induced by the ARIANNA hardware.
+    Incorporates the gain and phase induced by the RNO-G hardware.
 
 
     """
@@ -50,10 +50,10 @@ class hardwareResponseIncorporator:
             Options:
 
             * 'phase_only': only the phases response is applied but not the amplitude response
-                (identical to phase_only=True )
+              (identical to phase_only=True )
             * 'relative': gain of amp is divided by maximum of the gain, i.e. at the maximum of the
-                filter response is 1 (before applying cable response). This makes it easier
-                to compare the filtered to unfiltered signal
+              filter response is 1 (before applying cable response). This makes it easier
+              to compare the filtered to unfiltered signal
             * None : default, gain and phase effects are applied 'normally'
 
         mingainlin: float
@@ -61,8 +61,9 @@ class hardwareResponseIncorporator:
             dividing the measured signal by the gain) leads to excessively high values, due to the effect of
             post-amplifier noise. In order to mitigate this effect, a minimum gain (linear scale!) as fraction of the
             maximum gain can be defined. If specified, any gain value smaller than mingainlin will be replaced by mingainlin.
+            
             Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
-            analog_components.get_amplifier_response()
+            ``analog_components.get_amplifier_response()``
 
         Returns
         -----------
@@ -117,10 +118,10 @@ class hardwareResponseIncorporator:
             Options:
 
             * 'phase_only': only the phases response is applied but not the amplitude response
-                (identical to phase_only=True )
+              (identical to phase_only=True )
             * 'relative': gain of amp is divided by maximum of the gain, i.e. at the maximum of the
-                filter response is 1 (before applying cable response). This makes it easier
-                to compare the filtered to unfiltered signal
+              filter response is 1 (before applying cable response). This makes it easier
+              to compare the filtered to unfiltered signal
             * None : default, gain and phase effects are applied 'normally'
             
         mingainlin: float
@@ -128,8 +129,9 @@ class hardwareResponseIncorporator:
             dividing the measured signal by the gain) leads to excessively high values, due to the effect of
             post-amplifier noise. In order to mitigate this effect, a minimum gain (linear scale!) as fraction of the
             maximum gain can be defined. If specified, any gain value smaller than mingainlin will be replaced by mingainlin.
+            
             Note: The adjustment to the minimal gain is NOT visible when getting the amp response from
-            analog_components.get_amplifier_response()
+            ``analog_components.get_amplifier_response()``
         """
 
         self.__mingainlin = mingainlin
