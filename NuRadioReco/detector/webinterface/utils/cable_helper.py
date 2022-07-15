@@ -9,7 +9,6 @@ import sys
 import base64
 from io import StringIO
 from NuRadioReco.detector.webinterface.app import app
-from NuRadioReco.detector.detector_mongo import det
 from NuRadioReco.detector.webinterface.utils.table import get_table
 from NuRadioReco.detector.webinterface.utils.units import str_to_unit
 

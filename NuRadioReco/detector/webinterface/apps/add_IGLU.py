@@ -12,12 +12,13 @@ from io import StringIO
 import csv
 from datetime import datetime
 
+# from NuRadioReco.detector.detector_mongo import Detector
+# from NuRadioReco.detector.webinterface import config
 from NuRadioReco.detector.detector_mongo import det
 from NuRadioReco.detector.webinterface.utils.sparameter_helper import validate_Sdata, update_dropdown_amp_names, enable_board_name_input, plot_Sparameters, sparameters_layout
 from NuRadioReco.detector.webinterface.utils.table import get_table
 from NuRadioReco.detector.webinterface.utils.units import str_to_unit
 from NuRadioReco.detector.webinterface.app import app
-
 
 number_of_channels = 1  # define number of channels for IGLU
 table_name = "IGLU"
