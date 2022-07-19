@@ -75,14 +75,14 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         sigma = half_width / (np.sqrt(2 * np.log(2)))
         trace = 1 / (sigma * np.sqrt(2 * np.pi)) * np.exp(-1 / 2 * ((time - 500) / sigma) ** 2)
         trace = amplitude * 1 / np.max(np.abs(trace)) * trace
-    elif(model == 'idl1' or model == 'hvsp1' or model == 'calPulser'):  # the idl & hvsp2 waveforms gemerated in KU Lab stored in hdf5 file
+    elif(model == 'idl1' or model == 'hvsp1' or model == 'ARA02_calPulser'):  # the idl1 & hvsp1 waveforms gemerated in KU Lab stored in hdf5 file
         path = os.path.dirname(os.path.dirname(__file__))
         if(model == 'idl1'):
-            input_file = os.path.join(path, 'data/idl_data.hdf5')
+            input_file = os.path.join(path, 'data/idl1_data.hdf5')
         elif(model == 'hvsp1'):
             input_file = os.path.join(path, 'data/hvsp1_data.hdf5')
         else:
-            input_file = os.path.join(path, 'data/Cal_data.hdf5')
+            input_file = os.path.join(path, 'data/ARA02_Cal_data.hdf5')
         read_file = h5py.File(input_file, 'r')
         time_original = read_file.get('time')
         voltage_original = read_file.get('voltage')
