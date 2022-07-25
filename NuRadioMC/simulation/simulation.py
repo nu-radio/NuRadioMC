@@ -149,9 +149,9 @@ class simulation():
         log_level: logging.LEVEL
             the log level
         default_detector_station: int or None
-            if station parameters are not defined, the parameters of the default station are used
+            DEPRECATED: Define reference stations in the detector JSON file instead
         default_detector_channel: int or None
-            if channel parameters are not defined, the parameters of the default channel are used
+            DEPRECATED: Define reference channels in the detector JSON file instead
         file_overwrite: bool
             True allows overwriting of existing files, default False
         write_detector: bool
