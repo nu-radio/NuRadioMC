@@ -13,6 +13,7 @@ import h5py
 import time
 import six
 import copy
+import json
 from scipy import constants
 # import detector simulation modules
 import NuRadioReco.modules.io.eventWriter
@@ -220,12 +221,29 @@ class simulation():
         # read in detector positions
         logger.status("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
         self._det = None
-        if(default_detector_station):
+        if(default_detector_station is not None):
+            logger.warning(
+                'Deprecation warning: Passing the default detector station is deprecated. Default stations and default'
+                'channel should be specified in the detector description directly.'
+            )
             logger.status(f"Default detector station provided (station {default_detector_station}) -> Using generic detector")
             self._det = gdetector.GenericDetector(json_filename=self._detectorfile, default_station=default_detector_station,
                                                  default_channel=default_detector_channel, antenna_by_depth=False)
         else:
-            self._det = detector.Detector(json_filename=self._detectorfile, antenna_by_depth=False)
+            json_file = json.load(open(self._detectorfile, 'r'))
+            reference_entry_found = False
+            for station in json_file['stations']:
+                if 'reference_station' in json_file['stations'][station].keys():
+                    reference_entry_found = True
+                    break
+            for channel in json_file['channels']:
+                if 'reference_channel' in json_file['channels'][channel].keys() or 'reference_station' in json_file['channels'][channel].keys():
+                    reference_entry_found = True
+                    break
+            if reference_entry_found:
+                self._det = gdetector.GenericDetector(json_filename=self._detectorfile, antenna_by_depth=False)
+            else:
+                self._det = detector.Detector(json_filename=self._detectorfile, antenna_by_depth=False)
         self._det.update(evt_time)
 
         self._station_ids = self._det.get_station_ids()
