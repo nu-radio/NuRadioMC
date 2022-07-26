@@ -15,7 +15,7 @@ class channelTimeJitterSimulator:
         Apply random time shifts to all channel waveforms of the station
 
         Parameters
-        __________
+        --------------------
         event: Event object
             The event containing the stations the time shift should be applied to.
         station: Station object

@@ -35,7 +35,7 @@ class neutrinoEnergyReconstructor():
         Set up module
 
         Parameters
-        __________
+        -------------------
         channel_groups: 2D array of integers
             List of groups of channels which were used together by the iftElectricFieldReconstructor
         ice: ice model object
