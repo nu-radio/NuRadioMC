@@ -7,7 +7,7 @@ import NuRadioReco.modules.io.eventReader
 import NuRadioReco.detector.generic_detector
 import argparse
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser('Use the reconstructed vertex position and electric field to determine the shower energy.')
 parser.add_argument(
     '--input_file',
     type=str,
@@ -48,7 +48,6 @@ for event in event_reader.run():
     interaction_type = None
     nu_flavor = None
     for sim_shower in event.get_sim_showers():
-        print(sim_shower.get_parameter(shp.flavor))
         sim_energy += sim_shower.get_parameter(shp.energy)
         nu_flavor = sim_shower.get_parameter(shp.flavor)
         interaction_type = sim_shower.get_parameter(shp.interaction_type)
@@ -63,19 +62,44 @@ sim_energies = np.array(sim_energies)
 rec_energies = np.array(rec_energies)
 nu_flavors = np.array(nu_flavors)
 interaction_types = np.array(interaction_types)
-# em_shower_filter = (np.abs(nu_flavors) == 12) & (interaction_types == 'c')
+em_shower_filter = (np.abs(nu_flavors) == 12) & (interaction_types == 'cc')
 
-fig1 = plt.figure(figsize=(8, 8))
-ax1_1 = fig1.add_subplot(111)
+fig1 = plt.figure(figsize=(5, 8))
+ax1_1 = fig1.add_subplot(211)
 ax1_1.grid()
 ax1_1.set_xscale('log')
 ax1_1.set_yscale('log')
 ax1_1.scatter(
-    sim_energies,
-    rec_energies,
+    sim_energies[~em_shower_filter],
+    rec_energies[~em_shower_filter],
     label='hadronic shower'
 )
+ax1_1.scatter(
+    sim_energies[em_shower_filter],
+    rec_energies[em_shower_filter],
+    label='EM shower'
+)
+ax1_1.legend()
+ax1_1.set_aspect('equal')
 ax1_1.set_xlim([1.e16, 1.e20])
 ax1_1.set_ylim([1.e16, 1.e20])
+ax1_1.set_xlabel('$E_{sim}$ [eV]')
+ax1_1.set_ylabel('$E_{rec}$ [eV]')
+ax1_2 = fig1.add_subplot(212)
+ax1_2.hist(
+    [
+        (rec_energies / sim_energies)[~em_shower_filter],
+        (rec_energies / sim_energies)[em_shower_filter]
+    ],
+    label=['hadronic shower', 'EM shower'],
+    bins=np.power(10, np.arange(-2., 2.1, .1)),
+    edgecolor='k',
+    stacked=True
+)
+ax1_2.legend()
+ax1_2.set_xscale('log')
+ax1_2.set_ylabel('# of events')
+ax1_2.set_xlabel('$E_{rec} / E_{sim}$')
+ax1_2.grid()
 fig1.tight_layout()
 fig1.savefig('plots/energy_reconstruction.png')

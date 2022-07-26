@@ -13,11 +13,36 @@ logger = logging.getLogger("runstrawman")
 parser = argparse.ArgumentParser(
     description='We start by creating some data to do reconstruction on, but feel free to use your own simulations!'
 )
-parser.add_argument('input_file', type=str)
-parser.add_argument('--output_file', type=str, default='simulated_events.nur')
-parser.add_argument('--detector_file', type=str, default='../../detector/RNO_G/RNO_single_station.json')
-parser.add_argument('--config_file', type=str, default='config.yaml')
-parser.add_argument('--noise_level', type=float, default=10.)
+parser.add_argument(
+    'input_file',
+    type=str,
+    help='Path to the HDF5 file containing generated neutrino events to be simulated.'
+)
+parser.add_argument(
+    '--output_file',
+    type=str,
+    default='simulated_events.nur',
+    help='Name of the .nur file the simulated events will be written into.'
+)
+parser.add_argument(
+    '--detector_file',
+    type=str,
+    default='../../detector/RNO_G/RNO_single_station.json',
+    help='Path to the JSON file containing the detector description.'
+)
+parser.add_argument(
+    '--config_file',
+    type=str,
+    default='config.yaml',
+    help='Path to the .yaml file containing the simulation configuration.'
+)
+parser.add_argument(
+    '--noise_level',
+    type=float,
+    default=10.,
+    help='Root mean square (in millivolt) of the noise to be simulated. Note that this noise should include the amplifier'
+         ' response.'
+)
 
 args = parser.parse_args()
 
@@ -37,8 +62,8 @@ class mySimulation(simulation.simulation):
 
     def _detector_simulation_trigger(self, evt, station, det):
         highLowThreshold.run(evt, station, det,
-                                    threshold_high=20. * units.mV,
-                                    threshold_low=-20. * units.mV,
+                                    threshold_high=2. * noise_level,
+                                    threshold_low=-2. * noise_level,
                                     triggered_channels=[0, 1],  # select the LPDA channels
                                     number_concidences=2,  # 2/4 majority logic
                                     trigger_name='main_trigger'
