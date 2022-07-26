@@ -10,6 +10,11 @@ from NuRadioReco.utilities import trace_utilities, units
 
 
 class neutrinoEnergyReconstructor():
+    """
+    Module to perform an energy reconstruction as described in https://arxiv.org/abs/2107.02604
+    Look at NuRadioReco/examples/RNO_energy_reconstruction for an example how to use it.
+    Requires vertex reconstruction and IFT electric field reconstruction to be run beforehand.
+    """
     def __init__(self):
         self.__s_parametrization = np.array([4.70, -22.20, 29.99])
         self.__s_prime_parametrization = np.array([6.46, -16.00, 12.49])
@@ -26,6 +31,18 @@ class neutrinoEnergyReconstructor():
         self.__raytracer = None
 
     def begin(self, channel_groups, ice, attenuation_model='GL1'):
+        """
+        Set up module
+
+        Parameters:
+        ____________
+        channel_groups: 2D array of integers
+            List of groups of channels which were used together by the iftElectricFieldReconstructor
+        ice: ice model object
+            Class describing the index of refraction model of the ice
+        attenuation model: string
+            Name of the model describing the signal attenuation
+        """
         self.__channel_groups = channel_groups
         self.__raytracer = NuRadioMC.SignalProp.analyticraytracing.ray_tracing(
             ice,
