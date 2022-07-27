@@ -49,7 +49,7 @@ class Detector(object):
                 logger.warning('"mongo_user" or "mongo_password" not set')
             # start client
             self.__mongo_client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
-            self.db = self.__mongo_client.RNOG_test
+            self.db = self.__mongo_client.RNOG_live
         elif database_connection == "test":
             self.__mongo_client = MongoClient("mongodb+srv://RNOG_test:TTERqY1YWBYB0KcL@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
             self.db = self.__mongo_client.RNOG_test
@@ -341,6 +341,49 @@ class Detector(object):
                                      'frequencies': list(S_data[0]),
                                      'mag': list(S_data[1]),
                                   })
+
+    # HPol
+
+    def HPol_set_not_working(self, HPol_name):
+        """
+        inserts that the VPol is broken.
+        If the antenna dosn't exist yet, it will be created.
+
+        Parameters
+        ---------
+        VPol_name: string
+            the unique identifier of the board
+        """
+        self.db.HPol.insert_one({'name': HPol_name,
+                                 'last_updated': datetime.datetime.utcnow(),
+                                 'function_test': False})
+
+    def HPol_add_Sparameters(self, HPol_name, S_data, primary_measurement, protocol, units_f, units_mag):
+        """
+        inserts a new S11 measurement of a HPol.
+        If the Antenna dosn't exist yet, it will be created.
+
+        Parameters
+        ---------
+        board_name: string
+            the unique identifier of the antenna
+        S_data: array of floats
+            1st collumn: frequencies
+            2ndcollumn: S mag (VSWR)
+        primary_measurement: bool
+            indicates the primary measurement to be used for analysis
+        protocol: string
+            details of the testing environment
+        """
+        self.db.HPol.insert_one({'name':HPol_name,
+                                 'last_updated': datetime.datetime.utcnow(),
+                                 'function-test': True,
+                                 'primary_measurement': primary_measurement,
+                                 'measurement_protocol': protocol,
+                                 'S_parameter': 'S11',
+                                 'Units': [units_f, units_mag],
+                                 'frequencies': list(S_data[0]),
+                                 'mag': list(S_data[1])})
 
     # Cables
 
