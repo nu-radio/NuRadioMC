@@ -54,7 +54,7 @@ class efieldInterferometricDepthReco:
         Set module config.
 
         Parameters
-        -----------
+        ----------
 
         interpolation : bool
             If true, use a linear interpolation to match sampling of the beamformed signal trace and the individual time-shifted antenna traces.
@@ -266,6 +266,7 @@ class efieldInterferometricDepthReco:
             traces, times, station_positions, shower_axis, core, depths=depths_final)
 
         def normal(x, A, x0, sigma):
+            """ Gauss curve """
             return A / np.sqrt(2 * np.pi * sigma ** 2) \
                 * np.exp(-1 / 2 * ((x - x0) / sigma) ** 2)
 
@@ -394,6 +395,43 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
 
     def find_maximum_in_plane(self, xs, ys, p_axis, station_positions, traces, times, cs):
+        """
+        Sample interferometric signals in 2-d plane (vxB-vxvxB) perpendicular to a given axis on a rectangular/quadratic grid.
+        The orientation of the plane is defined by the radiotools.coordinatesytem.cstrafo argument. 
+
+        Parameters
+        ----------
+
+        xs : array
+            x-coordinates defining the sampling positions.
+
+        ys : array
+            y-coordinates defining the sampling positions.
+
+        p_axis : array(3,)
+            Origin of the 2-d plane along the axis.
+
+        station_positions : array(number_of_antennas, 3)
+            Position of each antenna.
+
+        traces : array(number_of_antennas, samples)
+            Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.
+
+        times : array(number_of_antennas, samples)
+            Time vectors corresponding to the electric field traces.
+
+        cs : radiotools.coordinatesytem.cstrafo
+
+        Returns
+        -------
+
+        idx : int
+            Index of the entry with the largest signal (np.argmax(signals))
+
+        signals : array(len(xs), len(ys))
+            Interferometric signal
+
+        """
         signals = np.zeros((len(xs), len(ys)))
         tstep = times[0, 1] - times[0, 0]
 
@@ -437,7 +475,8 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
             Position of each antenna.
 
         shower_axis_inital : array(3,)
-            Axis/direction which is used as initial guess for the true shower axis, Around this axis we sample the 2d-lateral distributions
+            Axis/direction which is used as initial guess for the true shower axis.
+            Around this axis the interferometric signals are sample on 2-d planes.
 
         core : array(3,)
             Shower core which is used as initial guess. Keep in mind that the altitudes (z-coordinate) matters.
@@ -569,6 +608,43 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
             is_mc=True,
             initial_grid_spacing=60,
             cross_section_size=1000):
+        """
+        Run interferometric reconstruction of the shower axis. Find the maxima of the interferometric signals 
+        within 2-d plane (slices) along a given axis (initial guess). Through those maxima (their position in the
+        atmosphere) a straight line is fitted to reconstruct the shower axis.
+
+        traces : array(number_of_antennas, samples)
+            Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.
+
+        times : array(number_of_antennas, samples)
+            Time vectors corresponding to the electric field traces.
+
+        station_positions : array(number_of_antennas, 3)
+            Position of each antenna.
+
+        shower_axis_inital : array(3,)
+            Axis/direction which is used as initial guess for the true shower axis.
+            Around this axis the interferometric signals are sample on 2-d planes.
+
+        core : array(3,)
+            Shower core which is used as initial guess. Keep in mind that the altitudes (z-coordinate) matters.
+
+        magnetic_field_vector : array(3,)
+            Magnetic field vector of the site you are using.
+
+        is_mc : bool
+            If true, interprete the provided shower axis as truth and add some gaussian smearing to optain an
+            inperfect initial guess for the shower axis (Default: True). 
+        
+        initial_grid_spacing : double
+            Spacing of your grid points in meters (Default: 60m)
+
+        cross_section_size : double
+            Side length on the 2-d planes (slice) along which the maximum around the initial axis is sampled in meters
+            (Default: 1000m).
+
+        """
+        
 
         if is_mc:
             zenith_mc, azimuth_mc = hp.cartesian_to_spherical(*shower_axis)
@@ -606,6 +682,16 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         centered_around_truth = True
 
         def sample_lateral_cross_section_placeholder(dep):
+            """ 
+            Run sample_lateral_cross_section for a particular depth.
+            
+            Parameters
+            ----------
+
+            dep : double
+                Depth along the axis at which the cross section is sampled in g/cm2.
+            
+            """
             return self.sample_lateral_cross_section(
                 traces, times, station_positions,
                 shower_axis_inital, core_inital, dep, cs,
