@@ -27,13 +27,13 @@ layout = html.Div([
     dcc.Link('Add Surface Channel Cable measurments (S21)', href='/apps/add_surf_CABLE'),
     html.Br(),
     html.Br(),
-    dcc.Link('Add VPol measurment (S11)', href='/apps/add_VPol')])
+    dcc.Link('Add VPol measurment (S11)', href='/apps/add_VPol'),
     # html.Br(),
     # html.Br(),
     # dcc.Link('Add Pulser measurement (placeholder)', href='/apps/add_Pulser'),
-    # html.Br(),
-    # html.Br(),
-    # dcc.Link('Add HPol measurement (placeholder)', href='/apps/add_HPol'),
+    html.Br(),
+    html.Br(),
+    dcc.Link('Add HPol measurement (S11)', href='/apps/add_HPol'),
     # html.Br(),
     # html.Br(),
     # dcc.Link('Add DAQ measurement (placeholder)', href='/apps/add_DAQ'),
@@ -46,3 +46,4 @@ layout = html.Div([
     # html.Br(),
     # html.Br(),
     # dcc.Link('Build a Station', href='/apps/station')])
+    ])
