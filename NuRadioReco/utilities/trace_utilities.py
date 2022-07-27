@@ -168,6 +168,7 @@ def butterworth_filter_trace(trace, sampling_frequency, passband, order=8):
 
     Parameters
     ----------
+
     trace: array of floats
         Trace to be filtered
     sampling_frequency: float
@@ -178,7 +179,8 @@ def butterworth_filter_trace(trace, sampling_frequency, passband, order=8):
         Filter order
 
     Returns
-    ------
+    -------
+
     filtered_trace: array of floats
         The filtered trace
     """
