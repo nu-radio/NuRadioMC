@@ -69,7 +69,8 @@ def get_channel_voltage_from_efield(station, electric_field, channels, detector,
     Returns the voltage traces that would result in the channels from the station's E-field.
 
     Parameters
-    ------------------------
+    ----------
+
     station: Station
     electric_field: ElectricField
     channels: array of int
@@ -119,6 +120,7 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2 ** 
 
     Parameters
     ----------
+    
     trace: array of floats
         Trace to be upsampled
     original_sampling_frequency: float
