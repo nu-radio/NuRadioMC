@@ -2,8 +2,8 @@ import logging
 import json
 from tinydb import Query
 from tinydb_serialization import SerializationMiddleware
-import NuRadioReco.detector.detector
-from NuRadioReco.detector.detector import DateTimeSerializer
+import NuRadioReco.detector.detector_base
+from NuRadioReco.detector.detector_base import DateTimeSerializer
 import copy
 
 logger = logging.getLogger('NuRadioReco.genericDetector')
@@ -12,7 +12,7 @@ serialization = SerializationMiddleware()
 serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
 
 
-class GenericDetector(NuRadioReco.detector.detector.Detector):
+class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
     """
     Used the same way as the main detector class, but works with incomplete
     detector descriptions.
