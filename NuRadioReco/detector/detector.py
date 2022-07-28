@@ -63,18 +63,18 @@ class Detector(object):
             det = object.__new__(NuRadioReco.detector.generic_detector.GenericDetector)
             det.__init__(
                 json_filename=json_filename,
-                source='json',
-                dictionary=None,
-                assume_inf=True,
-                antenna_by_depth=True
+                source=source,
+                dictionary=dictionary,
+                assume_inf=assume_inf,
+                antenna_by_depth=antenna_by_depth
             )
         else:
             det =  object.__new__(NuRadioReco.detector.detector_base.DetectorBase)
             det.__init__(
-                source='json',
+                source=source,
                 json_filename=json_filename,
-                dictionary=None,
-                assume_inf=True,
-                antenna_by_depth=True
+                dictionary=dictionary,
+                assume_inf=assume_inf,
+                antenna_by_depth=antenna_by_depth
             )
         return det
