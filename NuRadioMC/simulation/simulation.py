@@ -230,22 +230,8 @@ class simulation():
             self._det = gdetector.GenericDetector(json_filename=self._detectorfile, default_station=default_detector_station,
                                                  default_channel=default_detector_channel, antenna_by_depth=False)
         else:
-            f = open(self._detectorfile, 'r')
-            json_file = json.load(f)
-            reference_entry_found = False
-            for station in json_file['stations']:
-                if 'reference_station' in json_file['stations'][station].keys():
-                    reference_entry_found = True
-                    break
-            for channel in json_file['channels']:
-                if 'reference_channel' in json_file['channels'][channel].keys() or 'reference_station' in json_file['channels'][channel].keys():
-                    reference_entry_found = True
-                    break
-            f.close()
-            if reference_entry_found:
-                self._det = gdetector.GenericDetector(json_filename=self._detectorfile, antenna_by_depth=False)
-            else:
-                self._det = detector.Detector(json_filename=self._detectorfile, antenna_by_depth=False)
+            self._det = detector.Detector(json_filename=self._detectorfile, antenna_by_depth=False)
+
         self._det.update(evt_time)
 
         self._station_ids = self._det.get_station_ids()
