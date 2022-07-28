@@ -132,7 +132,7 @@ class DetectorBase(object):
     This class provides functions for all relevant detector properties.
     """
 
-    def __init__(self, source='json', json_filename,
+    def __init__(self, source='json', json_filename='ARIANNA/arianna_detector_db.json',
                  dictionary=None, assume_inf=True, antenna_by_depth=True):
         """
         Initialize the stations detector properties.
