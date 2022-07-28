@@ -72,7 +72,7 @@ class Detector(object):
             det =  object.__new__(NuRadioReco.detector.detector_base.DetectorBase)
             det.__init__(
                 source='json',
-                json_filename='ARIANNA/arianna_detector_db.json',
+                json_filename=json_filename,
                 dictionary=None,
                 assume_inf=True,
                 antenna_by_depth=True
