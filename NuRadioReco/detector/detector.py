@@ -54,7 +54,7 @@ class Detector(object):
                 break
         for channel in station_dict['channels']:
             if 'reference_channel' in station_dict['channels'][channel].keys() or 'reference_station' in \
-                    json_file['channels'][channel].keys():
+                    station_dict['channels'][channel].keys():
                 reference_entry_found = True
                 break
         if source == 'json':
