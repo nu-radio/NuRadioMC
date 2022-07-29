@@ -1,6 +1,7 @@
 import NuRadioReco.detector.detector_base
 import NuRadioReco.detector.generic_detector
 import json
+import os
 
 class Detector(object):
     def __new__(
@@ -41,12 +42,23 @@ class Detector(object):
             if False, the antenna model as specified in the database is used.
         """
         if source == 'json':
-            f = open(json_filename, 'r')
+            dir_path = os.path.dirname(os.path.realpath(__file__))  # get the directory of this file
+            filename = os.path.join(dir_path, json_filename)
+            if not os.path.exists(filename):
+                # try local folder instead
+                filename2 = json_filename
+                if not os.path.exists(filename2):
+                    raise NameError("can't locate json database file {} or {}".format(filename, filename2))
+                filename = filename2
+
+            f = open(filename, 'r')
             station_dict = json.load(f)
         elif source == 'dictionary':
             station_dict = dictionary
+            filename = ''
         else:
             raise ValueError('Source must be either json or dictionary!')
+
         reference_entry_found = False
         for station in station_dict['stations']:
             if 'reference_station' in station_dict['stations'][station].keys():
@@ -59,10 +71,11 @@ class Detector(object):
                 break
         if source == 'json':
             f.close()
+
         if reference_entry_found:
             det = object.__new__(NuRadioReco.detector.generic_detector.GenericDetector)
             det.__init__(
-                json_filename=json_filename,
+                json_filename=filename,
                 source=source,
                 dictionary=dictionary,
                 assume_inf=assume_inf,
@@ -72,7 +85,7 @@ class Detector(object):
             det =  object.__new__(NuRadioReco.detector.detector_base.DetectorBase)
             det.__init__(
                 source=source,
-                json_filename=json_filename,
+                json_filename=filename,
                 dictionary=dictionary,
                 assume_inf=assume_inf,
                 antenna_by_depth=antenna_by_depth
