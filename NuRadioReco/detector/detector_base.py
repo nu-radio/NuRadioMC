@@ -177,18 +177,8 @@ class DetectorBase(object):
             for channel in dictionary['channels'].values():
                 channels_table.insert(channel)
         else:
-            dir_path = os.path.dirname(os.path.realpath(__file__))  # get the directory of this file
-            filename = os.path.join(dir_path, json_filename)
-            if not os.path.exists(filename):
-                # try local folder instead
-                filename2 = json_filename
-                if not os.path.exists(filename2):
-                    logger.error("can't locate json database file {} or {}".format(filename, filename2))
-                    raise NameError
-                filename = filename2
-            logger.warning("loading detector description from {}".format(os.path.abspath(filename)))
             self._db = TinyDB(
-                filename,
+                json_filename,
                 storage=self._serialization,
                 sort_keys=True,
                 indent=4,
