@@ -1,0 +1,80 @@
+{
+    "_default": {},
+    "channels": {
+        "1": {
+          "amp_type": "rno_surface",
+          "ant_comment": "triangle east, upward",
+          "ant_orientation_phi": 0.0,
+          "ant_orientation_theta": 0.0,
+          "ant_position_x": 16.0,
+          "ant_position_y": 0.0,
+          "ant_position_z": -3.0,
+          "ant_rotation_phi": 180.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz_InfFirn",
+          "channel_id": 1,
+          "station_id": 11
+        },
+        "2": {
+          "amp_type": "rno_surface",
+          "ant_comment": "triangle south, upward",
+          "ant_orientation_phi": 0.0,
+          "ant_orientation_theta": 0.0,
+          "ant_position_x": -8,
+          "ant_position_y": -13.85,
+          "ant_position_z": -3.0,
+          "ant_rotation_phi": 60.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz_InfFirn",
+          "channel_id": 2,
+          "station_id": 11
+        },
+        "3": {
+          "amp_type": "rno_surface",
+          "ant_comment": "triangle north, upward",
+          "ant_orientation_phi": 0.0,
+          "ant_orientation_theta": 0.0,
+          "ant_position_x": -8,
+          "ant_position_y": 13.85,
+          "ant_position_z": -3.0,
+          "ant_rotation_phi": 300.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz_InfFirn",
+          "channel_id": 3,
+          "station_id": 11
+        }
+    },
+    "positions": {},
+        "stations": {
+        "01": {
+            "pos_altitude": 3247.834,
+            "pos_easting": 0,
+            "pos_northing": 0,
+            "pos_site": "summit",
+            "station_id": 11,
+            "commission_time": "{TinyDate}:2021-07-01T00:00:00",
+            "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
+            "station_type": "Nanoq"
+        },
+        "02": {
+            "pos_altitude": 3249.67,
+            "pos_easting": -400,
+            "pos_northing": 400,
+            "pos_site": "summit",
+            "station_id": 21,
+            "commission_time": "{TinyDate}:2021-07-01T00:00:00",
+            "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
+            "station_type": "Amaroq"
+        },
+        "03": {
+            "pos_altitude": 3250.055,
+            "pos_easting": 400,
+            "pos_northing": 400,
+            "pos_site": "summit",
+            "station_id": 22,
+            "commission_time": "{TinyDate}:2021-07-01T00:00:00",
+            "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
+            "station_type": "Avinngaq"
+        }
+    }
+}
