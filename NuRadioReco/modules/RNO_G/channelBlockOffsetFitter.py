@@ -8,10 +8,13 @@ class channelBlockOffsets:
 
     def __init__(self, block_size=128, max_frequency=51*units.MHz):
         """
-        Initialize block offset fitter.
+        Add or remove block offsets to channel traces
 
-        Parameters:
-        -----------
+        This module adds, fits or removes 'block offsets' by fitting
+        them in a specified out-of-band region in frequency space.
+
+        Parameters
+        ----------
         block_size: int (default: 128)
             The size (in samples) of the blocks
         max_frequency: float (default: 51 MHz)
@@ -32,13 +35,13 @@ class channelBlockOffsets:
 
         Parameters
         ----------
-        event: `NuRadioReco.framework.event.Event` | None
-        station: `NuRadioReco.framework.station.Station`
+        event: Event object | None
+        station: Station
             The station to add block offsets to
         offsets: float | array | dict
             offsets to add to the event. Default: 1 mV
 
-            - if a float, add gaussian-distributed of amplitude `offsets`
+            - if a float, add gaussian-distributed of amplitude ``offsets``
               to all channels specified;
             - if an array, the length should be the same as the number
               of blocks in a single trace, and the entries will be
@@ -84,8 +87,8 @@ class channelBlockOffsets:
 
         Parameters
         ----------
-        event: `NuRadioReco.framework.event.Event` | None
-        station: `NuRadioReco.framework.station.Station`
+        event: NuRadioReco.framework.event.Event | None
+        station: NuRadioReco.framework.station.Station
             The station to remove the block offsets from
         offsets: str
             How to remove the offsets. Options are:
@@ -94,13 +97,13 @@ class channelBlockOffsets:
             - 'guess': similar to 'fit', but just take
               a first guess at the offsets from the out-of-band region
               without actually performing the fit.
-            - 'injected': if offsets were injected using the `add_offsets`
+            - 'injected': if offsets were injected using the ``add_offsets``
               method, this removes those offsets. Otherwise, this does nothing.
 
             Default: 'fit'
         channel_ids: list | None
             List of channel ids to remove offsets from. If None (default),
-            remove offsets from all channels in `station`
+            remove offsets from all channels in ``station``
 
         """
         if offsets=='fit':
@@ -130,12 +133,12 @@ class channelBlockOffsets:
 
         Parameters
         ----------
-        event: `NuRadioReco.framework.event.Event` | None
-        station: `NuRadioReco.framework.station.Station`
+        event: NuRadioReco.framework.event.Event | None
+        station: NuRadioReco.framework.station.Station
             The station to fit the block offsets to
         channel_ids: list | None
             List of channel ids to fit block offsets for. If None (default),
-            fit offsets for all channels in `station`
+            fit offsets for all channels in ``station``
 
         """
         block_size = self.block_size
@@ -216,12 +219,12 @@ class channelBlockOffsets:
             - 'fit': return the fitted block offsets
             - 'guess': return the first guess for the block offsets
             - 'injected': return the block offsets that were injected
-              using the `add_offsets` method.
+              using the ``add_offsets`` method.
 
         Returns
         -------
-        trace: `BaseTrace`
-            A `BaseTrace` object with the same length as the channel trace,
+        trace: BaseTrace
+            A :class:`NuRadioReco.framework.base_trace.BaseTrace` object with the same length as the channel trace,
             containing only the block offsets.
 
         """
