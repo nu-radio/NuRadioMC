@@ -202,7 +202,8 @@ def get_limit_e2_flux(energy, veff_sr,
                                         nuCrsScn, inttype)
 
 
-def get_number_of_events_for_flux(energies, flux, Veff, livetime, nuCrsScn='ctw'):
+def get_number_of_events_for_flux(energies, flux, Veff, livetime, cross_section_type='ctw',
+                                  inttype="total"):
     """
     calculates the number of expected neutrinos for a certain flux assumption
 
@@ -216,6 +217,22 @@ def get_number_of_events_for_flux(energies, flux, Veff, livetime, nuCrsScn='ctw'
         the effective volume per energy logE
     livetime: float
         the livetime of the detector (including signal efficiency)
+    cross_section_type: {'ctw', 'ghandi', 'csms'}, default 'ctw'
+        defines model of cross-section. Options:
+
+        * ctw: A. Connolly, R. S. Thorne, and D. Waters, Phys. Rev.D 83, 113009 (2011).
+          cross-sections for all interaction types and flavors
+        * ghandi: according to Ghandi et al. Phys.Rev.D58:093009,1998
+          only one cross-section for all interactions and flavors
+        * csms: A. Cooper-Sarkar, P. Mertsch, S. Sarkar, JHEP 08 (2011) 042
+        * hedis_bgr18
+
+    inttype: str, array of str
+        interaction type. Options:
+
+        * nc : neutral current
+        * cc : charged current
+        * total: total (for non-array type)
 
     Returns
     -------
@@ -225,7 +242,8 @@ def get_number_of_events_for_flux(energies, flux, Veff, livetime, nuCrsScn='ctw'
     Veff = np.array(Veff)
     logE = np.log10(energies)
     dlogE = logE[1] - logE[0]
-    return np.log(10) * livetime * flux * energies * Veff / cross_sections.get_interaction_length(energies, cross_section_type=nuCrsScn) * dlogE
+    return np.log(10) * livetime * flux * energies * Veff / cross_sections.get_interaction_length(energies, cross_section_type=cross_section_type,
+                                                                                                  inttype=inttype) * dlogE
 
 
 def get_exposure(energy, Veff, field_of_view=2 * np.pi):

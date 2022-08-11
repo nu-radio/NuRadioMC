@@ -252,6 +252,7 @@ class simulation():
             self._fin = inputfilename[0]
             self._fin_attrs = inputfilename[1]
             self._fin_stations = {}
+
         # store all relevant attributes of the input file in a dictionary
         self._generator_info = {}
         for enum_entry in genattrs:
