@@ -186,8 +186,7 @@ class simulation():
 		global viewingangle
 		global pol
 		if(first_iter):
-
-
+			print("first iter, for vertex:", vertex)
 			ice = medium.get_ice_model('greenland_simple')
 			prop = propagation.get_propagation_module('analytic')
 			attenuate_ice = True
@@ -259,7 +258,7 @@ class simulation():
 		viewingangles = np.zeros((len(use_channels), 2))
 		polarizations = []
 		polarizations_antenna = []
-		
+		#print("vertex used...", x1)
 		for ich, channel_id in enumerate(use_channels):
 			raytype[channel_id] = {}
 			traces[channel_id] = {}
@@ -292,8 +291,17 @@ class simulation():
 					spectrum= fft.time2freq(spectrum, 1/self._dt)
 				
 				else:
-		
-					spectrum = signalgen.get_frequency_spectrum(energy , viewing_angle, self._n_samples, self._dt, "HAD", n_index, raytracing[channel_id][iS]["trajectory length"],model)
+					def theta_to_thetaprime(theta, xmax, R):
+						b = R*np.sin(theta)
+						a = R*np.cos(theta) - xmax
+						return np.arctan2(b, a)
+					def xmax(energy):
+						return 0.25 * np.log(energy) - 2.78	
+					xmax = xmax(energy)
+					theta_prime = theta_to_thetaprime (viewing_angle, xmax, raytracing[channel_id][iS]["trajectory length"])
+					#print("d_view", np.rad2deg(d_view))
+					#print("viewing angle", viewing_angle)
+					spectrum = signalgen.get_frequency_spectrum(energy , theta_prime, self._n_samples, self._dt, "HAD", n_index, raytracing[channel_id][iS]["trajectory length"],model)
 
 				# apply frequency dependent attenuation
 				viewingangles[ich,i_s] = viewing_angle
