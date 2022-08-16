@@ -338,9 +338,16 @@ class simulation():
 					spectrum= fft.time2freq(spectrum, 1/self._dt)
 				
 				else:
-		
-					spectrum = signalgen.get_frequency_spectrum(
-						energy , viewing_angle, self._n_samples, 
+                                        def theta_to_thetaprime(theta, xmax, R):
+                                                b = R*np.sin(theta)
+                                                a = R*np.cos(theta) - xmax
+                                                return np.arctan2(b, a)
+                                        def xmax(energy):
+                                                return 0.25 * np.log(energy) - 2.78
+                                        xmax = xmax(energy)
+                                        theta_prime = theta_to_thetaprime (viewing_angle, xmax, raytracing[channel_id][iS]["trajectory length"])	
+                                        spectrum = signalgen.get_frequency_spectrum(
+						energy , theta_prime, self._n_samples, 
 						self._dt, "HAD", n_index,
 						raytracing[channel_id][iS]["trajectory length"],model)
 
