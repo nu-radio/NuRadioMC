@@ -1,7 +1,9 @@
 import numpy as np
 from NuRadioReco.utilities import units
+import scipy.interpolate
+import os
 
-model_to_int = {"SP1" : 1, "GL1" : 2, "MB1" : 3, "GL2": 4}
+model_to_int = {"SP1" : 1, "GL1" : 2, "MB1" : 3, "GL2": 4, "GL3": 5}
 
 
 def fit_GL1(z):
@@ -122,6 +124,27 @@ def get_attenuation_length(z, frequency, model):
         else:
             att_length_f[att_length_f < min_length] = min_length
         return att_length_f
+
+    if model == 'GL3':
+        gl3_parameters = np.genfromtxt(
+            os.path.join(os.path.dirname(__file__), 'data/GL3_params.csv'),
+            delimiter=','
+        )
+        slope_interpolation = scipy.interpolate.interp1d(
+            gl3_parameters[:, 0],
+            gl3_parameters[:, 1],
+            bounds_error=False,
+            fill_value=(gl3_parameters[0, 1], gl3_parameters[-1, 1])
+        )
+        offset_interpolation = scipy.interpolate.interp1d(
+            gl3_parameters[:, 0],
+            gl3_parameters[:, 2],
+            bounds_error=False,
+            fill_value=(gl3_parameters[0, 2], gl3_parameters[-1, 2])
+        )
+        slopes = slope_interpolation(-z)
+        offsets = offset_interpolation(-z)
+        return slopes * frequency + offsets
 
 
     elif(model == "MB1"):
