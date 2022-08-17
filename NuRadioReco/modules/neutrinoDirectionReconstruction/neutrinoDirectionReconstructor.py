@@ -778,25 +778,31 @@ class neutrinoDirectionReconstructor:
                            ### figuring out the time offset for specfic trace
                             dk = int(k_ref + delta_toffset )
                             if 1:#
-                                data_trace_timing = np.copy(data_trace) ## cut data around timing
                                 
-                                ## DETERMINE PULSE REGION DUE TO REFERENCE TIMING
-                                data_timing_timing = np.copy(channel.get_times())#np.arange(0, len(channel.get_trace()), 1)#
-                                dk_1 = data_timing_timing[dk]
 
-                                data_timing_timing = data_timing_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)] ## 800 samples, like the simulation
-                                data_trace_timing = data_trace_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)]
-                                
                                 fixed_timing_PA_cluster = True
                                 if fixed_timing_PA_cluster:
                                     if channel_id in self._PA_cluster_channels:
                                         if i_trace == trace_ref:
                                             dict_dt[channel_id][trace_ref] = dict_dt[ch_Vpol][trace_ref]
-
-
+                                data_trace_timing = np.copy(data_trace) ## cut data around timing
+                                
+                                ## DETERMINE PULSE REGION DUE TO REFERENCE TIMING
+                                data_timing_timing = np.copy(channel.get_times())#np.arange(0, len(channel.get_trace()), 1)#
+                                
+                                dk = int(dk - dict_dt[channel_id][i_trace] + dict_dt[ch_Vpol][trace_ref])
+                                
+                                dk_1 = data_timing_timing[dk] 
+                                
+                                
+                                
+                                data_timing_timing = data_timing_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)] ## 800 samples, like the simulation
+                                data_trace_timing = data_trace_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)]
+                                
+                                
                                 dt = dict_dt[channel_id][i_trace]
-                                rec_trace = np.roll(rec_trace, math.ceil(-1*dt))
-                                 
+                                rec_trace = np.roll(rec_trace, math.ceil(-1*dt + dict_dt[channel_id][i_trace] - dict_dt[ch_Vpol][trace_ref]))
+                                
                                 #### select fitting time-window ####
                                 if channel_id in self._Hpol_channels:
                                     indices = [i for i, x in enumerate(data_timing_timing) if (x > (dk_1 + self._window_Hpol[0])  and (x < (dk_1 + self._window_Hpol[1]) ))]
