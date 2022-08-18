@@ -65,7 +65,10 @@ def get_attenuation_length(z, frequency, model):
         
         * SP1: South Pole model, see various compilation
         * GL1: Greenland model, see https://arxiv.org/abs/1409.5413
-        * GL2: 2021 Greenland model, see: https://arxiv.org/abs/2201.07846
+        * GL2: 2021 Greenland model, using the Bogorodsky model for depth dependence
+                see: https://arxiv.org/abs/2201.07846, specifically Fig. 7
+        * GL3: 2021 Greenland model, using the MacGregor model for depth dependence
+                see: https://arxiv.org/abs/2201.07846, specifically Fig. 7
         * MB1: Moore's Bay Model, from 10.3189/2015JoG14J214 and
             Phd Thesis C. Persichilli (depth dependence)
         
