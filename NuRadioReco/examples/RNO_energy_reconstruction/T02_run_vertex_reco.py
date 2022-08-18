@@ -9,6 +9,7 @@ import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units, bandpass_filter
 import NuRadioReco.framework.base_trace
 import argparse
+import os
 
 parser = argparse.ArgumentParser(
     description='Run the vertex reconstruction used for the RNO-G energy reconstruction'
@@ -70,6 +71,8 @@ efield_template = NuRadioReco.framework.base_trace.BaseTrace()
 efield_template.set_frequency_spectrum(spec, sampling_rate)
 efield_template.apply_time_shift(20. * units.ns, True)
 
+if not os.isdir('plots/vertex_reco'):
+    os.mkdir('plots/vertex_reco')
 """
 Set up vertex reconstruction modules
 """

@@ -14,6 +14,7 @@ from NuRadioReco.utilities import units, bandpass_filter
 import NuRadioMC.utilities.medium
 import NuRadioReco.framework.base_trace
 import argparse
+import os
 
 parser = argparse.ArgumentParser(
     'Run the IFT electric field reconstruction.'
@@ -63,9 +64,12 @@ efield_template = NuRadioReco.framework.base_trace.BaseTrace()
 efield_template.set_frequency_spectrum(spec, sampling_rate)
 efield_template.apply_time_shift(20. * units.ns, True)
 
+if not os.isdir('plots/efield_reco'):
+    os.mkdir('plots/efield_reco')
 ift_efield_reconstructor = NuRadioReco.modules.iftElectricFieldReconstructor.iftElectricFieldReconstructor.IftElectricFieldReconstructor()
 ift_efield_reconstructor.begin(
     electric_field_template=efield_template,
+
     passband=efield_reco_passband,
     n_samples=10,
     n_iterations=5,
