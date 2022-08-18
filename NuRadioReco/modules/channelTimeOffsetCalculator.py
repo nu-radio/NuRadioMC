@@ -162,9 +162,7 @@ class channelTimeOffsetCalculator:
                     (channel + empty_trace).get_filtered_trace(passband, 'butter', 10)
                 )
 
-        global_time_shift = time_offsets[np.argmax(correlation_sum)]
         for i_channel, channel_id in enumerate(channel_ids):
-            times = np.arange(n_samples) / sampling_rate
             channel = station.get_channel(channel_id)
             if channel.has_parameter(chp.signal_regions):
                 signal_regions = channel.get_parameter(chp.signal_regions)
