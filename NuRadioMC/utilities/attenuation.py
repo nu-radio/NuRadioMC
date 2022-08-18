@@ -3,7 +3,7 @@ from NuRadioReco.utilities import units
 import scipy.interpolate
 import os
 
-model_to_int = {"SP1" : 1, "GL1" : 2, "MB1" : 3, "GL2": 4, "GL3": 5}
+model_to_int = {"SP1": 1, "GL1": 2, "MB1": 3, "GL2": 4, "GL3": 5}
 
 
 def fit_GL1(z):
