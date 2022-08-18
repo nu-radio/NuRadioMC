@@ -4,6 +4,13 @@ from NuRadioReco.modules.base.module import register_run
 
 
 class channelSignalPropertiesFromNeighbors:
+    """
+    Sets signal properties, like timing, arrival direction and whether a signal is likely present in the first place.
+    It does this by extrapolating these values from the neighboring channels.
+    This module requires either the channelTimeOffsetCalculator to be run beforehand or the channelParameters
+    signal_time_offsets, signal_receiving_zeniths, signal_receiving_azimuths and signal_regions to be set to reasonable
+    values some other way.
+    """
     def __init__(self):
         pass
 
@@ -12,6 +19,23 @@ class channelSignalPropertiesFromNeighbors:
 
     @register_run()
     def run(self, event, station, detector, channel_groups):
+        """
+        Run the module
+
+        Parameters
+        ----------
+        event: NuRadioReco.framework.event.Event object
+            The event the module should be run on
+        station: NuRadioReco.framework.station.Station object
+            The station the module should be run on
+        detector: NuRadioReco.detector.detector.Detector object of child object
+            The detector description
+        channel_groups: 2D array of integers
+            A list of groups of channels. In each group, a linear fit will be done to the signal arrival time and
+            direction and the position of the signal search windows of those channels where they are specified.
+            These fits will then be used to fill in these values for channels where they are missing.
+
+        """
         for i_group, channel_group in enumerate(channel_groups):
             channel_depths = np.zeros(len(channel_group))
             channel_signal_time_offsets = np.zeros((len(channel_group), 3))
