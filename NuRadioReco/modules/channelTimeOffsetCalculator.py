@@ -182,15 +182,11 @@ class channelTimeOffsetCalculator:
                             if found_solutions[i_channel, i_ray]:
                                 signal_window_correlation = radiotools.helper.get_normalized_xcorr(channel_templates[i_channel, i_ray + 1], signal_window_trace)
                                 max_correlations[i_ray] = np.max(scipy.ndimage.maximum_filter(np.abs(signal_window_correlation), size=20) * scipy.ndimage.maximum_filter(np.abs(correlation_sum), size=20))
-
-                                # plt.plot(scipy.ndimage.maximum_filter(np.abs(signal_window_correlation), size=20) * scipy.ndimage.maximum_filter(np.abs(correlation_sum), size=20), label=i_ray)
-                        # plt.legend()
                         max_corr_ray = np.argmax(max_correlations)
                         time_offsets[i_region] = propagation_times[i_channel, max_corr_ray]
                         receiving_zeniths[i_region] = receive_angles[i_channel, max_corr_ray, 0]
                         receiving_azimuths[i_region] = receive_angles[i_channel, max_corr_ray, 1]
                         ray_types[i_region] = max_corr_ray + 1
-                        # plt.show()
                     channel.set_parameter(chp.signal_time_offsets, time_offsets)
                     channel.set_parameter(chp.signal_receiving_zeniths, receiving_zeniths)
                     if not use_2d_vertex:
