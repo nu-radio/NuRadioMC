@@ -960,7 +960,6 @@ class neutrinoDirectionReconstructor:
 
                         ### figuring out the time offset for specfic trace
                         dk = int(k_ref + delta_toffset )
-                        dk = int(dk + dict_dt[channel_id][i_trace] - dict_dt[ch_Vpol][trace_ref])
                         if 1:#
                             data_trace_timing = np.copy(data_trace) ## cut data around timing
                             
@@ -979,8 +978,8 @@ class neutrinoDirectionReconstructor:
 
 
                             dt = dict_dt[channel_id][i_trace]
-                            #rec_trace = np.roll(rec_trace, math.ceil(-1*dt))
-                            rec_trace = np.roll(rec_trace, math.ceil(-1*dt + dict_dt[channel_id][i_trace] - dict_dt[ch_Vpol][trace_ref]))   
+                            rec_trace = np.roll(rec_trace, math.ceil(-1*dt))
+                                
                             #### select fitting time-window ####
                             if channel_id in self._Hpol_channels:
                                 indices = [i for i, x in enumerate(data_timing_timing) if (x > (dk_1 + self._window_Hpol[0])  and (x < (dk_1 + self._window_Hpol[1]) ))]
