@@ -48,11 +48,11 @@ double get_temperature(double z){
 }
 
 double get_attenuation_length(double z, double frequency, int model){
-    if (z>0) {
-        double inf = std::numeric_limits<double>::infinity();
-        return inf;
-    }
-    if(model == 1) {
+	if (z>0) {
+		double inf = std::numeric_limits<double>::infinity();
+		return inf;
+	}
+	if(model == 1) {
 		double t = get_temperature(z);
 		double f0 = 0.0001;
 		double f2 = 3.16;
