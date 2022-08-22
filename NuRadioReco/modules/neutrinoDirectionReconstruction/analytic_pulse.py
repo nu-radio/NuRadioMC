@@ -112,82 +112,22 @@ class simulation():
 		self._ice_model = medium.get_ice_model(ice_model)
 		self._prop = propagation.get_propagation_module(propagation_module)
 		self._prop_config = propagation_config
-        #### define filters. Now same filter is used for Hpol as Vpol
+
+        #### define bandpass filters and amplifier response
 		self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
-		tt = np.arange(0, self._n_samples * self._dt, self._dt)
 		if not isinstance(passband, dict):
 			passband = {channel_id:passband for channel_id in use_channels}
 
-		mask = self._ff > 0
 		self._h = dict()
 		for channel_id in use_channels:
-			order = 8
 			passband_i = passband[channel_id]
-			# b, a = signal.butter(order, [passband_i[0], 1150 * units.MHz], 'bandpass', analog=True)
-			# w, ha = signal.freqs(b, a, self._ff[mask])
-			# order = 10
-			# b, a = signal.butter(order, [0, passband_i[-1]], 'bandpass', analog=True)
-			# w, hb = signal.freqs(b, a, self._ff[mask])
-			# fa = np.zeros_like(self._ff, dtype=np.complex)
-			# fb = np.zeros_like(self._ff, dtype=np.complex)
-			# fa[mask] = ha
-			# fb[mask] = hb
 			filter_response = bandpass_filter.get_filter_response(self._ff, passband_i, 'butterabs', 10)
 			self._h[channel_id] = filter_response #fb * fa
-
-
-		# order = 8
-		# passband = [50* units.MHz, 1150 * units.MHz]
-		# b, a = signal.butter(order, passband, 'bandpass', analog=True)
-		# w, ha = signal.freqs(b, a, self._ff[mask])
-		# order = 10
-		# passband = [0* units.MHz, 700 * units.MHz]
-		# b, a = signal.butter(order, passband, 'bandpass', analog=True)
-		# w, hb = signal.freqs(b, a, self._ff[mask])
-		# fa = np.zeros_like(self._ff, dtype=np.complex)
-		# fa[mask] = ha
-		# fb = np.zeros_like(self._ff, dtype = np.complex)
-		# fb[mask] = hb
-		# h = fb*fa
-
-
-		# order = 8
-		# passband = [Hpol_lower_band* units.MHz, 1150 * units.MHz]
-		# b, a = signal.butter(order, passband, 'bandpass', analog=True)
-		# w, ha = signal.freqs(b, a, self._ff[mask])
-		# order = 10
-		# passband = [0* units.MHz, Hpol_upper_band * units.MHz]
-		# b, a = signal.butter(order, passband, 'bandpass', analog=True)
-		# w, hb = signal.freqs(b, a, self._ff[mask])
-		# fa = np.zeros_like(self._ff, dtype=np.complex)
-		# fa[mask] = ha
-		# fb = np.zeros_like(self._ff, dtype = np.complex)
-		# fb[mask] = hb
-		# h_Hpol = fb*fa
-
-
-
-		# self._h = {}
-		# for channel_id in use_channels:
-		# 	if channel_id in Hpol_channels:
-		# 		self._h[channel_id] = {}
-		# 		self._h[channel_id] = h_Hpol
-		# 	else:
-		# 		self._h[channel_id] = {}
-		# 		self._h[channel_id] = h
-
 
 		self._amp = {}
 		for channel_id in use_channels:
 			self._amp[channel_id] = {}
 			self._amp[channel_id] = hardwareResponseIncorporator.get_filter(self._ff, station.get_id(), channel_id, det, sim_to_data = sim_to_data)
-
-		# order = 8
-		# passband = [20* units.MHz, 1150 * units.MHz]
-		# b, a = signal.butter(order, passband, 'bandpass', analog=True)
-		# w, hc = signal.freqs(b, a, self._ff[mask])
-		# fc = np.zeros_like(self._ff, dtype=np.complex)
-		# fc[mask] = hc
 
 		pass
 
@@ -212,28 +152,18 @@ class simulation():
 			first_iter = False, model = 'Alvarez2009',
 			starting_values = False, pol_angle = None):
 		ice = self._ice_model
-		prop = self._prop
-		attenuate_ice = True
 		polarization = True
-		reflection = True
 
 		vertex = np.array([vertex_x, vertex_y, vertex_z])
 		self._shower_axis = -1 * hp.spherical_to_cartesian(nu_zenith, nu_azimuth)
 		n_index = ice.get_index_of_refraction(vertex)
-		cherenkov_angle = np.arccos(1. / n_index)
 
 		raytracing = self._raytracing # dictionary to store ray tracing properties
-		# global raytracing ## define dictionary to store the ray tracing properties
-		# global launch_vectors
-		# global launch_vector
-		# global viewingangle
-		# global pol
 		if(first_iter): # we run the ray tracer only on the first iteration
 
 			launch_vectors = []
 			polarizations = []
 			viewing_angles = []
-			polarization_antenna = []
 			chid = self._ch_Vpol
 			x2 = det.get_relative_position(station.get_id(), chid) + det.get_absolute_position(station.get_id())
 			# r = prop( ice, self._att_model, config=self._prop_config)
@@ -281,14 +211,12 @@ class simulation():
 					raytracing[channel_id][iS]["zenith"] = zenith
 					raytracing[channel_id][iS]["azimuth"] = azimuth
 
-					# attn = r.get_attenuation(soltype, self._ff)
 					# we create a dummy efield to obtain the propagation effects from the ray tracer
 					# this includes attenuation, focussing and reflection, depending on self._prop_config
 					efield = ElectricField([channel_id])
 					efield.set_frequency_spectrum(np.ones((3, len(self._ff)), dtype=complex), self._sampling_rate)
 					efield = r.apply_propagation_effects(efield, iS)
 					raytracing[channel_id][iS]["propagation_effects"] = efield.get_frequency_spectrum()
-					# raytracing[channel_id][iS]["attenuation"] = attn
 					raytracing[channel_id][iS]["raytype"] = r.get_solution_type(soltype)
 					zenith_reflections = np.atleast_1d(r.get_reflection_angle(soltype))
 					raytracing[channel_id][iS]["reflection angle"] = zenith_reflections
@@ -331,10 +259,10 @@ class simulation():
 
 					spectrum *= energy#template_energy ### this needs to be added otherwise energy is wrongly determined
 					spectrum /= template_energy#energy
-			#		print("template energy", template_energy)
-		#			print("energy", energy)
-	#				print("self._templates", self._templates_R)
-#					print("raytracing[channel_id][iS][trajectory length]", raytracing[channel_id][iS]["trajectory length"])
+					# print("template energy", template_energy)
+					# print("energy", energy)
+					# print("self._templates", self._templates_R)
+					# print("raytracing[channel_id][iS][trajectory length]", raytracing[channel_id][iS]["trajectory length"])
 					spectrum= fft.time2freq(spectrum, 1/self._dt)
 
 				else:
@@ -352,10 +280,7 @@ class simulation():
 						self._dt, "HAD", n_index,
 						raytracing[channel_id][iS]["trajectory length"],model)
 
-				# apply frequency dependent attenuation
 				viewingangles[ich,i_s] = viewing_angle
-				# if attenuate_ice:
-				# 	spectrum *= raytracing[channel_id][iS]["attenuation"]
 
 				if polarization:
 
@@ -373,35 +298,12 @@ class simulation():
 				if channel_id == self._ch_Vpol:
 					polarizations.append( self._calculate_polarization_vector(self._ch_Vpol, iS))
 					polarizations_antenna.append(polarization_direction_at_antenna)
-				## correct for reflection - should now be included in 'propagation_effects' key
-				# r_theta = None
-				# r_phi = None
-
-				# n_surface_reflections = np.sum(raytracing[channel_id][iS]["reflection angle"] != None)
-				# if reflection:
-				# 	x2 = det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id())
-				# 	for zenith_reflection in raytracing[channel_id][iS]["reflection angle"]:  # loop through all possible reflections
-				# 			if(zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
-				# 				continue
-				# 			r_theta = geo_utl.get_fresnel_r_p(
-				# 				zenith_reflection, n_2=1., n_1=ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
-				# 			r_phi = geo_utl.get_fresnel_r_s(
-				# 				zenith_reflection, n_2=1., n_1=ice.get_index_of_refraction([x2[0], x2[1], -1 * units.cm]))
-
-				# 			eTheta *= r_theta
-				# 			ePhi *= r_phi
-				# 			logger.debug("ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(zenith_reflection / units.deg,
-				# 				r_theta, r_phi))
 
 				## apply ray tracing corrections:
 				spectrum_3d *= raytracing[channel_id][iS]['propagation_effects']
 				eR, eTheta, ePhi = spectrum_3d
 
-                ##### Get filter (this is the filter used for the trigger for RNO-G)
-
                 #### get antenna respons for direction
-
-
 				zen = raytracing[channel_id][iS]["zenith"]
 				az = raytracing[channel_id][iS]["azimuth"]
 				efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, self._ff, [channel_id], det, zen,  az, self.antenna_provider)
@@ -429,12 +331,7 @@ class simulation():
 		# logger.debug("Found solutions for channels {}".format(raytracing.keys()))
 
 		if(first_iter):
-
-			maximum_channel = 0
-
 			for i, iS in enumerate(raytracing[self._ch_Vpol]):
-				maximum_trace = max(abs(traces[self._ch_Vpol][iS]))
-
 				if raytype[self._ch_Vpol][iS] == self._raytypesolution:
 					self._launch_vector = launch_vectors[i]
 					self._viewingangle = viewing_angles[i]
