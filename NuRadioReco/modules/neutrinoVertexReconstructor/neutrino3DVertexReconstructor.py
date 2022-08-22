@@ -150,8 +150,8 @@ class neutrino3DVertexReconstructor:
                         and np.sqrt(np.sum(relative_positions**2)) > min_antenna_distance:
                     self.__channel_pairs.append([channel_ids[i], channel_ids[j]])
         self.__lookup_table = {}
-        self.__header = {}       
-        
+        self.__header = {}
+
         if hasattr(template, '__len__'): # template is an array-like or a dict
             self.__voltage_trace_template = template
             self.__sampling_rate = sampling_rate # this needs to be defined in this case!
@@ -245,8 +245,8 @@ class neutrino3DVertexReconstructor:
             channel_2 = station.get_channel(channel_pair[1])
             self.__start_times[channel_pair[0]] = channel_1.get_trace_start_time()
             self.__start_times[channel_pair[1]] = channel_2.get_trace_start_time()
-            
-            if self.__voltage_trace_template is None: 
+
+            if self.__voltage_trace_template is None:
                 antenna_response = trace_utilities.get_efield_antenna_factor(
                     station=station,
                     frequencies=self.__electric_field_template.get_frequencies(),
@@ -263,7 +263,7 @@ class neutrino3DVertexReconstructor:
                 if self.__passband is not None:
                     voltage_spec *= bandpass_filter.get_filter_response(self.__electric_field_template.get_frequencies(), self.__passband, 'butterabs', 10)
                 voltage_template = fft.freq2time(voltage_spec, self.__sampling_rate)
-            elif isinstance(self.__voltage_trace_template, dict): 
+            elif isinstance(self.__voltage_trace_template, dict):
                 voltage_template = self.__voltage_trace_template[channel_pair[0]]
             else:
                 voltage_template = self.__voltage_trace_template
@@ -347,7 +347,7 @@ class neutrino3DVertexReconstructor:
                             color='red', label=sim_label, lw=1)
                         sim_label = None
                 template_t0 = channel.get_trace_start_time() + (
-                    np.argmax(corr) - len(voltage_template) + 1) / self.__sampling_rate 
+                    np.argmax(corr) - len(voltage_template) + 1) / self.__sampling_rate
                 template_times = np.linspace(
                     template_t0, template_t0 + len(voltage_template) / self.__sampling_rate,
                     len(voltage_template), endpoint=False
@@ -439,14 +439,14 @@ class neutrino3DVertexReconstructor:
                 full_correlations
             )
             ### export the correlations to a numpy file:
-            np.save(
-                '{}/{}_{}_2d_correlation.npy'.format(self.__debug_folder, event.get_run_number(), event.get_id()),
-                full_correlations
-            )
+            # np.save(
+            #     '{}/{}_{}_2d_correlation.npy'.format(self.__debug_folder, event.get_run_number(), event.get_id()),
+            #     full_correlations
+            # )
 
         # <--- 3D Fit ---> #
         logger.debug("Starting 3D correlation...")
-        
+
         distances_3d = np.arange(self.__distances_2d[0], self.__distances_2d[-1], self.__distance_step_3d)
         z_coords = slope * distances_3d + offset
         distances_3d = distances_3d[(z_coords < 0) & (z_coords > -2700)]
@@ -488,21 +488,21 @@ class neutrino3DVertexReconstructor:
                 median_theta,
                 i_max
             )
-            np.save(
-                '{}/{}_{}_3d_correlation.npy'.format(self.__debug_folder, event.get_run_number(), event.get_id()),
-                correlation_sum
-            )
-            np.savez(
-                '{}/{}_{}_3d_correlation_meshgrid.npy'.format(self.__debug_folder, event.get_run_number(), event.get_id()),
-                x=x_coords, y=y_coords, z=z_coords
-            )
+            # np.save(
+            #     '{}/{}_{}_3d_correlation.npy'.format(self.__debug_folder, event.get_run_number(), event.get_id()),
+            #     correlation_sum
+            # )
+            # np.savez(
+            #     '{}/{}_{}_3d_correlation_meshgrid.npy'.format(self.__debug_folder, event.get_run_number(), event.get_id()),
+            #     x=x_coords, y=y_coords, z=z_coords
+            # )
         # <<--- DnR Reco --->> #
         logger.debug("Starting DnR correlation...")
         self.__self_correlations = np.zeros((len(self.__channel_ids), station.get_channel(self.__channel_ids[0]).get_number_of_samples() + self.__electric_field_template.get_number_of_samples() - 1))
         self_correlation_sum = np.zeros_like(z_coords)
         for i_channel, channel_id in enumerate(self.__channel_ids):
             channel = station.get_channel(channel_id)
-            if self.__voltage_trace_template is None: 
+            if self.__voltage_trace_template is None:
                 antenna_response = trace_utilities.get_efield_antenna_factor(
                     station=station,
                     frequencies=self.__electric_field_template.get_frequencies(),
@@ -599,10 +599,10 @@ class neutrino3DVertexReconstructor:
                 i_max,
                 i_max_dnr
             )
-            np.save(
-                '{}/{}_{}_dnr_correlation.npy'.format(self.__debug_folder, event.get_run_number(), event.get_id()),
-                self_correlation_sum
-            )
+            # np.save(
+            #     '{}/{}_{}_dnr_correlation.npy'.format(self.__debug_folder, event.get_run_number(), event.get_id()),
+            #     self_correlation_sum
+            # )
             fit_vx_times = dict()
             sim_vx_times = dict()
             for channel_id in self.__channel_ids:
@@ -628,7 +628,7 @@ class neutrino3DVertexReconstructor:
                         dt = np.nan
                     sim_vx_times[channel_id][ray_type] = dt
             self.__draw_pair_correlations(event, fit_vx_times, sim_vx_times)
-            self.__draw_dnr_correlations(event, fit_vx_times, sim_vx_times)         
+            self.__draw_dnr_correlations(event, fit_vx_times, sim_vx_times)
 
 
     def get_correlation_array_2d(self, phi, z):
@@ -854,7 +854,7 @@ class neutrino3DVertexReconstructor:
             self_correlation_sum_sim += correlation_map_sim
         combined_correlations_sim = correlation_sum_sim + self_correlation_sum_sim
         return -np.max(combined_correlations_sim)
-            
+
     def __draw_pair_correlations(self, event,  fit_times=dict(), sim_times=dict()):
         fig1 = plt.figure(figsize=(12, (len(self.__channel_pairs) + len(self.__channel_pairs) % 2)))
         for i_pair, channel_pair in enumerate(self.__channel_pairs):
