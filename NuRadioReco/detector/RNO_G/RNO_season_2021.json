@@ -1300,7 +1300,7 @@
             "ant_orientation_theta": 0.0,
             "ant_position_x": -17.2,
             "ant_position_y": 29.097,
-            "ant_position_z": -92.72,
+            "ant_position_z": -91.72,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
             "commission_time": "{TinyDate}:2021-07-01T00:00:00",
