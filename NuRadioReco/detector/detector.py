@@ -56,6 +56,16 @@ class Detector(object):
         elif source == 'dictionary':
             station_dict = dictionary
             filename = ''
+        elif source == 'sql':   # Only the DetectorBaseClass can handle SQL, so no need to check for reference stations.
+            det = object.__new__(NuRadioReco.detector.generic_detector.GenericDetector)
+            det.__init__(
+                json_filename=None,
+                source=source,
+                dictionary=dictionary,
+                assume_inf=assume_inf,
+                antenna_by_depth=antenna_by_depth
+            )
+            return det
         else:
             raise ValueError('Source must be either json or dictionary!')
 
