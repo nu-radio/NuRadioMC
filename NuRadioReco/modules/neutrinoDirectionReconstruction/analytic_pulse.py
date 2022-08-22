@@ -39,7 +39,7 @@ attenuate_ice = True
 hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
 
 class simulation():
-	
+
 	def __init__(self, template = False, vertex = [0,0,-1000], distances = [200, 300, 400, 500, 600, 700,800, 900, 1000, 1100,1143, 1200, 1300,1400,  1500, 1600, 1800, 2100, 2200, 2500, 3000, 300, 3500, 4000]):
 		self._template = template
 		self.antenna_provider = antennapattern.AntennaPatternProvider()
@@ -53,7 +53,7 @@ class simulation():
 			self._templates_path = '/lustre/fs22/group/radio/plaisier/software/simulations/TotalFit/first_test/inIceMCCall/Uncertainties/templates'
 			distance_event = np.sqrt(vertex[0]**2 + vertex[1]**2 + vertex[2]**2) ## assume station is at 000
 			print("distance event", distance_event)
-		
+
 			R = distances[np.abs(np.array(distances) - distance_event).argmin()]
 			print("selected distance", R)
 			my_file = Path("/lustre/fs22/group/radio/plaisier/software/simulations/TotalFit/first_test/inIceMCCall/Uncertainties/templates/templates_{}.pkl".format(R, R))
@@ -64,7 +64,7 @@ class simulation():
 				self._templates_viewingangles = f['header']['viewing angles']
 				self._templates_R = f['header']['R']
 			else:
-				## open look up tables 
+				## open look up tables
 				viewing_angles = np.arange(40, 70, .2)
 				self._header = {}
 				self._templates = { 'header': {'energies': 0, 'viewing angles': 0, 'R': 0, 'n_indes': 0} }
@@ -82,22 +82,22 @@ class simulation():
 								self._templates['header']['R'] = self._templates_R
 								self._templates['header']['energies'] = f['header']['energies']
 								print("HEADER", self._templates['header']['R'])
-                                                                 
-						except: 
+
+						except:
 							print("template for viewing angle {} does not exist".format(int(viewing_angle*10)))
 				self._templates_energies = f['header']['energies']
 				print("template energies", self._template_energies)
 				self._templates['header']['viewing angles'] = self._templates_viewingangles
 				with open('{}/templates_343.pkl'.format(self._templates_path), 'wb') as f: #### this should be args.viewingangle/10
 					pickle.dump(self._templates, f)
-		return 
-	
+		return
+
 	def begin(
 			self, det, station, use_channels, raytypesolution = False,
 			ch_Vpol = None, Hpol_channels = None,
 			Hpol_lower_band = 50, Hpol_upper_band = 700,
 			passband = [96 * units.MHz, 1000 * units.MHz],
-			ice_model="greenland_simple", att_model = 'GL1', 
+			ice_model="greenland_simple", att_model = 'GL1',
 			propagation_module="analytic", propagation_config=None):
 		""" initialize filter and amplifier """
 		self._ch_Vpol = ch_Vpol
@@ -166,7 +166,7 @@ class simulation():
 		# h_Hpol = fb*fa
 
 
-        
+
 		# self._h = {}
 		# for channel_id in use_channels:
 		# 	if channel_id in Hpol_channels:
@@ -175,13 +175,13 @@ class simulation():
 		# 	else:
 		# 		self._h[channel_id] = {}
 		# 		self._h[channel_id] = h
-  
+
 
 		self._amp = {}
 		for channel_id in use_channels:
 			self._amp[channel_id] = {}
 			self._amp[channel_id] = hardwareResponseIncorporator.get_filter(self._ff, station.get_id(), channel_id, det, sim_to_data = sim_to_data)
-				
+
 		# order = 8
 		# passband = [20* units.MHz, 1150 * units.MHz]
 		# b, a = signal.butter(order, passband, 'bandpass', analog=True)
@@ -190,7 +190,7 @@ class simulation():
 		# fc[mask] = hc
 
 		pass
-	
+
 
 	def _calculate_polarization_vector(self, channel_id, iS):
 		raytracing = self._raytracing
@@ -198,7 +198,7 @@ class simulation():
 		polarization_direction /= np.linalg.norm(polarization_direction)
 		cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["launch vector"]))
 		return cs.transform_from_ground_to_onsky(polarization_direction)
-	
+
 	@lru_cache(maxsize=128)
 	def _raytracer(self, x1_x, x1_y, x1_z, x2_x, x2_y, x2_z):
 		r = self._prop(self._ice_model, self._att_model, config=self._prop_config)
@@ -223,7 +223,7 @@ class simulation():
 		cherenkov_angle = np.arccos(1. / n_index)
 
 		raytracing = self._raytracing # dictionary to store ray tracing properties
-		# global raytracing ## define dictionary to store the ray tracing properties	
+		# global raytracing ## define dictionary to store the ray tracing properties
 		# global launch_vectors
 		# global launch_vector
 		# global viewingangle
@@ -244,7 +244,7 @@ class simulation():
 			for iS in range(r.get_number_of_solutions()):
 				if r.get_solution_type(iS) == self._raytypesolution:
 					launch = r.get_launch_vector(iS)
-     
+
 					receive_zenith = hp.cartesian_to_spherical(*r.get_receive_vector(iS))[0]
 
 			# logger.debug("Solving for channels {}".format(use_channels))
@@ -259,17 +259,17 @@ class simulation():
 				if(not r.has_solution()):
 					print("warning: no solutions", channel_id)
 					continue
-                               
+
 				# loop through all ray tracing solution
-			
+
 				for soltype in range(r.get_number_of_solutions()):
-	
+
 					iS = soltype
-			
+
 					raytracing[channel_id][iS] = {}
 					self._launch_vector = r.get_launch_vector(soltype)
 					raytracing[channel_id][iS]["launch vector"] = self._launch_vector
-					R = r.get_path_length(soltype)					
+					R = r.get_path_length(soltype)
 					raytracing[channel_id][iS]["trajectory length"] = R
 					T = r.get_travel_time(soltype)  # calculate travel time
 					if (R == None or T == None):
@@ -280,7 +280,7 @@ class simulation():
 					raytracing[channel_id][iS]["receive vector"] = receive_vector
 					raytracing[channel_id][iS]["zenith"] = zenith
 					raytracing[channel_id][iS]["azimuth"] = azimuth
-				
+
 					# attn = r.get_attenuation(soltype, self._ff)
 					# we create a dummy efield to obtain the propagation effects from the ray tracer
 					# this includes attenuation, focussing and reflection, depending on self._prop_config
@@ -289,37 +289,37 @@ class simulation():
 					efield = r.apply_propagation_effects(efield, iS)
 					raytracing[channel_id][iS]["propagation_effects"] = efield.get_frequency_spectrum()
 					# raytracing[channel_id][iS]["attenuation"] = attn
-					raytracing[channel_id][iS]["raytype"] = r.get_solution_type(soltype)		
+					raytracing[channel_id][iS]["raytype"] = r.get_solution_type(soltype)
 					zenith_reflections = np.atleast_1d(r.get_reflection_angle(soltype))
 					raytracing[channel_id][iS]["reflection angle"] = zenith_reflections
 					viewing_angle = hp.get_angle(self._shower_axis,raytracing[channel_id][iS]["launch vector"])
 					if channel_id == self._ch_Vpol:
 						launch_vectors.append(self._launch_vector)
 						viewing_angles.append(viewing_angle)
-			
+
 			self._raytracing = raytracing
-					
+
 		raytype = {}
 		traces = {}
 		timing = {}
 		viewingangles = np.zeros((len(use_channels), 2))
 		polarizations = []
 		polarizations_antenna = []
-		
+
 		for ich, channel_id in enumerate(use_channels):
 			raytype[channel_id] = {}
 			traces[channel_id] = {}
 			timing[channel_id] = {}
-	
+
 			for i_s, iS in enumerate(raytracing[channel_id]):
-			
+
 				raytype[channel_id][iS] = {}
 				traces[channel_id][iS] = {}
 				timing[channel_id][iS] = {}
 				viewing_angle = hp.get_angle(self._shower_axis,raytracing[channel_id][iS]["launch vector"])
 				if self._template:
 
-					
+
 					template_viewingangle = self._templates_viewingangles[np.abs(np.array(self._templates_viewingangles) - np.rad2deg(viewing_angle)).argmin()] ### viewing angle template which is closest to wanted viewing angle
 					self._templates[template_viewingangle]
 					template_energy = self._templates_energies[np.abs(np.array(self._templates_energies) - energy).argmin()]
@@ -328,7 +328,7 @@ class simulation():
 					spectrum = np.array(list(spectrum)[0])
 					spectrum *= self._templates_R
 					spectrum /= raytracing[channel_id][iS]["trajectory length"]
-                    
+
 					spectrum *= energy#template_energy ### this needs to be added otherwise energy is wrongly determined
 					spectrum /= template_energy#energy
 			#		print("template energy", template_energy)
@@ -336,18 +336,19 @@ class simulation():
 	#				print("self._templates", self._templates_R)
 #					print("raytracing[channel_id][iS][trajectory length]", raytracing[channel_id][iS]["trajectory length"])
 					spectrum= fft.time2freq(spectrum, 1/self._dt)
-				
+
 				else:
-                                        def theta_to_thetaprime(theta, xmax, R):
-                                                b = R*np.sin(theta)
-                                                a = R*np.cos(theta) - xmax
-                                                return np.arctan2(b, a)
-                                        def xmax(energy):
-                                                return 0.25 * np.log(energy) - 2.78
-                                        xmax = xmax(energy)
-                                        theta_prime = theta_to_thetaprime (viewing_angle, xmax, raytracing[channel_id][iS]["trajectory length"])	
-                                        spectrum = signalgen.get_frequency_spectrum(
-						energy , theta_prime, self._n_samples, 
+					def theta_to_thetaprime(theta, xmax, R):
+						b = R*np.sin(theta)
+						a = R*np.cos(theta) - xmax
+						return np.arctan2(b, a)
+					def xmax(energy):
+						return 0.25 * np.log(energy) - 2.78
+
+					xmax = xmax(energy)
+					theta_prime = theta_to_thetaprime (viewing_angle, xmax, raytracing[channel_id][iS]["trajectory length"])
+					spectrum = signalgen.get_frequency_spectrum(
+						energy , theta_prime, self._n_samples,
 						self._dt, "HAD", n_index,
 						raytracing[channel_id][iS]["trajectory length"],model)
 
@@ -355,11 +356,11 @@ class simulation():
 				viewingangles[ich,i_s] = viewing_angle
 				# if attenuate_ice:
 				# 	spectrum *= raytracing[channel_id][iS]["attenuation"]
-					
+
 				if polarization:
-	
+
 					polarization_direction_onsky = self._calculate_polarization_vector(channel_id, iS)
-				
+
 					cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["receive vector"]))
 					polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
 					#print("polarization direction at antenna", hp.cartesian_to_spherical(*polarization_direction_at_antenna))
@@ -375,7 +376,7 @@ class simulation():
 				## correct for reflection - should now be included in 'propagation_effects' key
 				# r_theta = None
 				# r_phi = None
-				
+
 				# n_surface_reflections = np.sum(raytracing[channel_id][iS]["reflection angle"] != None)
 				# if reflection:
 				# 	x2 = det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id())
@@ -397,42 +398,43 @@ class simulation():
 				eR, eTheta, ePhi = spectrum_3d
 
                 ##### Get filter (this is the filter used for the trigger for RNO-G)
-				
+
                 #### get antenna respons for direction
-				
-				
+
+
 				zen = raytracing[channel_id][iS]["zenith"]
 				az = raytracing[channel_id][iS]["azimuth"]
 				efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, self._ff, [channel_id], det, zen,  az, self.antenna_provider)
-				
+
                 ### convolve efield with antenna reponse
-				if starting_values: 
+				if starting_values:
 					analytic_trace_fft = np.sum(efield_antenna_factor[0] * np.array([spectrum,np.zeros(len(spectrum))]), axis = 0)
-				else: 
+				else:
 					analytic_trace_fft = np.sum(efield_antenna_factor[0] * np.array([eTheta, ePhi]), axis = 0)
-				
+
                 ### apply bandpass filters
 				analytic_trace_fft *= self._h[channel_id]
-				
+
             	#### apply amplifier response
 				analytic_trace_fft *= self._amp[channel_id]
 
 				analytic_trace_fft[0] = 0
-				
-				traces[channel_id][iS] =  fft.freq2time(analytic_trace_fft, self._sampling_rate)#np.roll(fft.freq2time(analytic_trace_fft, 1/self._dt), int(-50*self._sampling_rate))
-                                                
-						
+
+				### currently, we roll the trace back by 1/4 the trace length to approximately centre the pulse
+				#TODO - come up with something more sensible
+				traces[channel_id][iS] =  np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), int(self._n_samples / 4))
+
 				timing[channel_id][iS] =raytracing[channel_id][iS]["travel time"]
 				raytype[channel_id][iS] = raytracing[channel_id][iS]["raytype"]
 		# logger.debug("Found solutions for channels {}".format(raytracing.keys()))
-		
+
 		if(first_iter):
-		     
+
 			maximum_channel = 0
-			
+
 			for i, iS in enumerate(raytracing[self._ch_Vpol]):
 				maximum_trace = max(abs(traces[self._ch_Vpol][iS]))
-			
+
 				if raytype[self._ch_Vpol][iS] == self._raytypesolution:
 					self._launch_vector = launch_vectors[i]
 					self._viewingangle = viewing_angles[i]
@@ -447,9 +449,9 @@ class simulation():
 					"No ray tracing solution exists for ch_Vpol with type {}."
 					"Therefore no viewing angle or polarization could be returned."
 				).format(self._raytypesolution))
-				
 
-		return traces, timing, self._launch_vector, self._viewingangle, raytype, self._pol      	
+
+		return traces, timing, self._launch_vector, self._viewingangle, raytype, self._pol
 
 
 
