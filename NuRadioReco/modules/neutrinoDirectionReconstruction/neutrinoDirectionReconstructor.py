@@ -794,7 +794,6 @@ class neutrinoDirectionReconstructor:
                     ## DETERMIINE PULSE REGION DUE TO REFERENCE TIMING
 
                     data_timing_timing = channel.get_times()#np.arange(0, len(channel.get_trace()), 1)#
-                    # dk_1 = data_timing_timing[dk] # this will probably raise an error if the pulse is outside the trace!
 
                     data_window = [30 * self._sampling_rate, 50 * self._sampling_rate] # window around pulse in samples
                     include_samples = np.arange(int(dk - data_window[0]), int(dk + data_window[1]))
@@ -805,18 +804,6 @@ class neutrinoDirectionReconstructor:
                         data_timing_timing_1[mask] = data_timing_timing[first_sample:include_samples[-1] + 1]
                         data_trace_timing_1[mask] = data_trace_timing[first_sample:include_samples[-1] + 1]
                     data_timing_timing = data_timing_timing_1
-                    # print("Channel {} / RT solution {} / pulse at sample {} / Samples in window {}".format(channel_id, i_trace, dk, np.sum(mask)))
-
-                    # data_timing_timing = data_timing_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)] ## 800 samples, like the simulation
-                    # data_trace_timing = data_trace_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)]
-                    # data_trace_timing_1 = np.copy(data_trace_timing)
-                    ### cut data trace timing to make window to search for pulse smaller
-                    # data_trace_timing_1[data_timing_timing < (dk_1 - 50)] = 0 # this doesn't do anything?
-                    # data_trace_timing_1[data_timing_timing > (dk_1 + 50)] = 0
-
-                    library_channels ={}
-                    for i_ch in self._use_channels:
-                        library_channels[i_ch] = [i_ch]
 
                     corr = signal.correlate(rec_trace, data_trace_timing_1)
                     dt1 = np.argmax(corr) - (len(corr)/2) + 1
@@ -828,6 +815,9 @@ class neutrinoDirectionReconstructor:
                         dt = dt2
                     else:
                         dt = dt1
+
+                    dict_dt[channel_id][i_trace] = dt
+
                     #TODO - REMOVE (used for debugging)
                     # if self._ultradebug:
                     #     fig, axs = plt.subplots(2,1,)
@@ -837,9 +827,6 @@ class neutrinoDirectionReconstructor:
                     #     axs[1].plot(corr)
                     #     axs[0].set_title(f'{channel_id} / {i_trace} / {dt:.1f} / {chi2_dt1:.2f}')
                     #     plt.show()
-                    corresponding_channels = library_channels[channel_id]
-                    for ch in corresponding_channels:
-                        dict_dt[ch][i_trace] = dt
 
         # TODO - REMOVE!
         # logger.debug("time shifts (channel / trace / shift):")
@@ -853,7 +840,7 @@ class neutrinoDirectionReconstructor:
                     dict_dt[i_ch][0] = dict_dt[ch_Vpol][trace_ref]
                     dict_dt[i_ch][1] = dict_dt[ch_Vpol][trace_ref]
 
-        ### 2. Perform fit
+        ### 2. Perform fit #TODO - merge into above loop to reduce amount of code.
         dof = 0
         for channel in self._station.iter_channels():
             channel_id = channel.get_id()
@@ -919,6 +906,9 @@ class neutrinoDirectionReconstructor:
                             data_timing[channel_id][i_trace] = data_timing_timing
 
                             ### set vrms and time_window for channel
+                            # we check the pulse SNR in the data window
+                            # for channels other than the PA cluster,
+                            # we only include channels with SNR > 3.5 (make this customizable?)
                             if channel_id in self._Hpol_channels:
                                 Vrms = self._Vrms_Hpol
                             else:
