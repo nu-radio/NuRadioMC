@@ -24,12 +24,14 @@ class Detector(object):
             path relative to the current working directory of the user)
             default value is 'ARIANNA/arianna_detector_db.json'
         source: str
-            'json' or 'dictionary'
+            'json', 'dictionary' or 'sql
             default value is 'json'
             If 'json' is passed, the JSON dictionary at the location specified
             by json_filename will be used
             If 'dictionary' is passed, the dictionary specified by the parameter
             'dictionary' will be used
+            if 'sql' is specified, the file 'detector_sql_auth.json' file needs to be present in this folder that
+            specifies the sql server credentials (see 'detector_sql_auth.json.sample' for an example of the syntax)
         dictionary: dict
             If 'dictionary' is passed to the parameter source, the dictionary
             passed to this parameter will be used for the detector description.
@@ -57,7 +59,7 @@ class Detector(object):
             station_dict = dictionary
             filename = ''
         elif source == 'sql':   # Only the DetectorBaseClass can handle SQL, so no need to check for reference stations.
-            det = object.__new__(NuRadioReco.detector.generic_detector.GenericDetector)
+            det = object.__new__(NuRadioReco.detector.detector_base.DetectorBase)
             det.__init__(
                 json_filename=None,
                 source=source,
