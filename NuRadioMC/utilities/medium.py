@@ -276,7 +276,7 @@ class greenland_perturbation(greenland_firn):
         return ice
 
 
-class uniform(medium_base.IceModelSimple):
+class uniform_ice(medium_base.IceModelSimple):
     """
     unifrom ice with refractive index of typical deep ice (1.78)
     """
