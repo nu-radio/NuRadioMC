@@ -799,6 +799,86 @@ Overwrites function of the mother class</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_perturbation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">greenland_perturbation</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#greenland_perturbation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_perturbation" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn" title="NuRadioMC.utilities.medium.greenland_firn"><code class="xref py py-class docutils literal notranslate"><span class="pre">greenland_firn</span></code></a></p>
+<p>initiation of a double exponential ice model at summit, Greenland</p>
+<p>The bottom defined here is a boundary condition used in simulations and
+should always be defined. Note: it is not the same as reflective bottom.
+The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
+<p>The z_shift is a variable introduced to be able to shift the exponential
+up or down along the z direction. For simple models this is almost never
+but it is used to construct more complex ice models which rely on exp.
+profiles also</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+</dd>
+<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dd>
+<dt><strong>z_firn:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the transition from the upper 
+exponential profile to the lower one</p>
+</dd>
+<dt><strong>The following parameters can be found without (lower)</strong></dt><dd></dd>
+<dt><strong>and with (upper) the suffix of `_firn`</strong></dt><dd></dd>
+<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
+</dd>
+<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
+of the snow at the surface</p>
+</dd>
+<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
+</dd>
+<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
+<td><p>function which adds a reflective bottom to your ice model</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code>(position1, ...)</p></td>
+<td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code>(position)</p></td>
+<td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_perturbation.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_perturbation.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>([discontinuity])</p></td>
+<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code>(position)</p></td>
+<td><p>returns the index of refraction at position.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_perturbation.get_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">discontinuity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#greenland_perturbation.get_ice_model_radiopropa"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_perturbation.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
+that define the medium in radiopropa. It uses the parameters of the medium object to 
+contruct some modules, like a discontinuity object for the air boundary. Additional modules
+can be added in this function</p>
+<p>Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ice:    RadioPropaIceWrapper</dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_simple">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">greenland_simple</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#greenland_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_simple" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>

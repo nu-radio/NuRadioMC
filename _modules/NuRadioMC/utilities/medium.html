@@ -809,6 +809,17 @@
         <span class="n">ice</span> <span class="o">=</span> <span class="n">medium_base</span><span class="o">.</span><span class="n">RadioPropaIceWrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scalarfield</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ice</span></div></div>
 
+<div class="viewcode-block" id="greenland_perturbation"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_perturbation">[docs]</a><span class="k">class</span> <span class="nc">greenland_perturbation</span><span class="p">(</span><span class="n">greenland_firn</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">greenland_firn</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="greenland_perturbation.get_ice_model_radiopropa"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_perturbation.get_ice_model_radiopropa">[docs]</a>    <span class="k">def</span> <span class="nf">get_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">discontinuity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">ice</span> <span class="o">=</span> <span class="n">greenland_firn</span><span class="o">.</span><span class="n">get_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">discontinuity</span><span class="o">=</span><span class="n">discontinuity</span><span class="p">)</span>
+        <span class="c1">#fraction from ArXiv 1805.12576 table IV last row</span>
+        <span class="n">perturbation_horz</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">PerturbationHorizontal</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ice</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="s1">&#39;horizontal perturbation&#39;</span><span class="p">,</span><span class="n">perturbation_horz</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ice</span></div></div>
+
 
 
 
