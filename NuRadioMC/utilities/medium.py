@@ -278,7 +278,7 @@ class greenland_perturbation(greenland_firn):
 
 class uniform_ice(medium_base.IceModelSimple):
     """
-    unifrom ice with refractive index of typical deep ice (1.78)
+    uniform ice with refractive index of typical deep ice (1.78)
     """
     def __init__(self, z_bottom=None):
         super().__init__(
