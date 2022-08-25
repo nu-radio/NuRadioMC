@@ -250,9 +250,14 @@ class radiopropa_ray_tracing(ray_tracing_base):
         theta_direct, phi_direct = hp.cartesian_to_spherical(*v) # zenith and azimuth for the direct linear ray solution (radians)
         cherenkov_angle = np.arccos(1. / self._medium.get_index_of_refraction(self._X1))
         
+        if np.linalg.norm(u) != 0:
+            delta_theta = 2*abs(self.delta_theta_direct(dz=self._sphere_sizes[0]))
+        else:
+            delta_theta = self._step_sizes[0]/units.radian
+            
         ## regions of theta with posible solutions (radians)
         launch_lower = [0]
-        launch_upper = [theta_direct + 2*abs(self.delta_theta_direct(dz=self._sphere_sizes[0]))] # below theta_direct no solutions are possible without upward reflections
+        launch_upper = [theta_direct + delta_theta] # below theta_direct no solutions are possible without upward reflections
 
         if n_reflections > 0:
             if self.medium.reflection is None:

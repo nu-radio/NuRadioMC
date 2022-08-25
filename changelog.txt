@@ -6,6 +6,7 @@ version 2.2.0
 new features:
 - add attenuation model from the 2021 measurements taken at Summit Station
 - adding minimize mode to the radiopropa propagation module & more configurable settings in config file
+- add uniform ice model with 1.78 refractive index
 
 bugfixes:
 
