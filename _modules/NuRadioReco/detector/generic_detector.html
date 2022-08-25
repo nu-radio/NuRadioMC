@@ -575,7 +575,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_filename</span><span class="p">,</span> <span class="n">default_station</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default_channel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default_device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">,</span>
-                 <span class="n">dictionary</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">dictionary</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span>
                  <span class="n">assume_inf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">antenna_by_depth</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the stations detector properties.</span>
@@ -625,6 +625,8 @@
 <span class="sd">            This is done by appending e.g. &#39;_InfFirn&#39; to the antenna model name.</span>
 <span class="sd">            if False, the antenna model as specified in the database is used.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.genericDetector&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="n">default_station</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">default_channel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">default_device</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
             <span class="c1"># load detector</span>

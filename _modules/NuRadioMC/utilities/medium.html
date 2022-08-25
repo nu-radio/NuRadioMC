@@ -821,7 +821,17 @@
         <span class="k">return</span> <span class="n">ice</span></div></div>
 
 
-
+<div class="viewcode-block" id="uniform_ice"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.uniform_ice">[docs]</a><span class="k">class</span> <span class="nc">uniform_ice</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelSimple</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    uniform ice with refractive index of typical deep ice (1.78)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z_bottom</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">z_bottom</span> <span class="o">=</span> <span class="n">z_bottom</span><span class="p">,</span> 
+            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span><span class="p">,</span> 
+            <span class="n">z_0</span> <span class="o">=</span> <span class="mi">1</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
+            <span class="n">delta_n</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="get_ice_model"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.get_ice_model">[docs]</a><span class="k">def</span> <span class="nf">get_ice_model</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>

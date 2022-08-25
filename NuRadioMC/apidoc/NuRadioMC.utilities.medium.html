@@ -1163,6 +1163,88 @@ of the snow at the surface</p>
 </table>
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.uniform_ice">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">uniform_ice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z_bottom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#uniform_ice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.uniform_ice" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
+<p>uniform ice with refractive index of typical deep ice (1.78)</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
+<td><p>function which adds a reflective bottom to your ice model</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code>(position1, ...)</p></td>
+<td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code>(position)</p></td>
+<td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code>()</p></td>
+<td><p>If radiopropa is installed this will return an object holding the radiopropa scalarfield and necessary radiopropa moduldes that define the medium in radiopropa.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code>(position)</p></td>
+<td><p>returns the index of refraction at position.</p></td>
+</tr>
+</tbody>
+</table>
+<p>initiaion of a simple exponential ice model</p>
+<p>The bottom defined here is a boundary condition used in simulations and
+should always be defined. Note: it is not the same as reflective bottom.
+The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
+<p>The z_shift is a variable introduced to be able to shift the exponential
+up or down along the z direction. For simple models this is almost never
+but it is used to construct more complex ice models which rely on exp.
+profiles also</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+</dd>
+<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dd>
+<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
+</dd>
+<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
+of the snow at the surface</p>
+</dd>
+<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
+</dd>
+<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
+<td><p>function which adds a reflective bottom to your ice model</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code>(position1, ...)</p></td>
+<td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code>(position)</p></td>
+<td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code>()</p></td>
+<td><p>If radiopropa is installed this will return an object holding the radiopropa scalarfield and necessary radiopropa moduldes that define the medium in radiopropa.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code>(position)</p></td>
+<td><p>returns the index of refraction at position.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </section>
 
 
