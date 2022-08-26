@@ -308,6 +308,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.amp.html">NuRadioReco.detector.amp module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.antennapattern.html">NuRadioReco.detector.antennapattern module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.detector.html">NuRadioReco.detector.detector module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.detector_base.html">NuRadioReco.detector.detector_base module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.detector_sql.html">NuRadioReco.detector.detector_sql module</a></li>
 <li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.detector.filterresponse.html">NuRadioReco.detector.filterresponse module</a></li>
@@ -552,7 +553,7 @@
 <span id="nuradioreco-detector-detector-sys-uncertainties-module"></span><h1>NuRadioReco.detector.detector_sys_uncertainties module<a class="headerlink" href="#module-NuRadioReco.detector.detector_sys_uncertainties" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector_sys_uncertainties.</span></span><span class="sig-name descname"><span class="pre">DetectorSysUncertainties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">create_new</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sys_uncertainties.html#DetectorSysUncertainties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector_sys_uncertainties.</span></span><span class="sig-name descname"><span class="pre">DetectorSysUncertainties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">json_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'json'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dictionary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_inf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_by_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sys_uncertainties.html#DetectorSysUncertainties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioReco.detector.detector.html#NuRadioReco.detector.detector.Detector" title="NuRadioReco.detector.detector.Detector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Detector</span></code></a></p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
@@ -561,95 +562,11 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_absolute_position</span></code>(station_id)</p></td>
-<td><p>get the absolute position of a specific station</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_absolute_position_site</span></code>(site)</p></td>
-<td><p>get the absolute position of a specific station</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_measurement</span></code>(station_id, channel_id)</p></td>
-<td><p>returns a unique reference to the amplifier measurement</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_response</span></code>(station_id, ...)</p></td>
-<td><p>Returns the amplifier response for the amplifier of a given channel</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_type</span></code>(station_id, channel_id)</p></td>
-<td><p>returns the type of the amplifier</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_deployment_time</span></code>(station_id, ...)</p></td>
-<td><p>returns the time of antenna deployment</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_model</span></code>(station_id, channel_id[, ...])</p></td>
-<td><p>determines the correct antenna model from antenna type, position and orientation of antenna</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_antenna_orientation" title="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_antenna_orientation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_orientation</span></code></a>(station_id, channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_antenna_orientation" title="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_antenna_orientation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_orientation</span></code></a>(station_id, channel_id)</p></td>
 <td><p>returns the orientation of a specific antenna + a systematic offset</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_type</span></code>(station_id, channel_id)</p></td>
-<td><p>returns the antenna type</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cable_delay</span></code>(station_id, channel_id)</p></td>
-<td><p>returns the cable delay of a channel</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cable_type_and_length</span></code>(station_id, channel_id)</p></td>
-<td><p>returns the cable type (e.g.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel</span></code>(station_id, channel_id)</p></td>
-<td><p>returns a dictionary of all channel parameters</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_ids</span></code>(station_id)</p></td>
-<td><p>get the channel ids of a station</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_detector_time</span></code>()</p></td>
-<td><p>Returns the time that the detector is currently set to</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_device</span></code>(station_id, device_id)</p></td>
-<td><p>returns a dictionary of all device parameters</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_device_ids</span></code>(station_id)</p></td>
-<td><p>get the device ids of a station</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_noise_RMS</span></code>(station_id, channel_id[, stage])</p></td>
-<td><p>returns the noise RMS that was precomputed from forced triggers</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_noise_temperature</span></code>(station_id, channel_id)</p></td>
-<td><p>returns the noise temperature of the channel</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_channels</span></code>(station_id)</p></td>
-<td><p>Get the number of channels per station</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_devices</span></code>(station_id)</p></td>
-<td><p>Get the number of devices per station</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_samples</span></code>(station_id, channel_id)</p></td>
-<td><p>returns the number of samples of a channel</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parallel_channels</span></code>(station_id)</p></td>
-<td><p>get a list of parallel antennas</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_relative_position" title="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_relative_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_relative_position</span></code></a>(station_id, channel_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_relative_position" title="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_relative_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_relative_position</span></code></a>(station_id, channel_id)</p></td>
 <td><p>returns the orientation of a specific antenna + a systematic offset</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_frequency</span></code>(station_id, channel_id)</p></td>
-<td><p>returns the sampling frequency</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site</span></code>(station_id)</p></td>
-<td><p>get the site where the station is deployed (e.g.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site_coordinates</span></code>(station_id)</p></td>
-<td><p>get the (latitude, longitude) coordinates (in degrees) for a given detector site.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_ids</span></code>()</p></td>
-<td><p>returns a sorted list of all station ids present in the database</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_time_periods</span></code>(station_id)</p></td>
-<td><p>returns the time periods in which the station configuration (including all channels) was constant</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_station</span></code>(station_id)</p></td>
-<td><p>checks if a station is present in the database</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_channel_noiseless</span></code>(station_id, channel_id)</p></td>
-<td><p>returns true if the detector description has the field <cite>noiseless</cite> and if this field is True.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.reset_antenna_orientation_offsets" title="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.reset_antenna_orientation_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_antenna_orientation_offsets</span></code></a>()</p></td>
 <td><p>resets all previously set antenna orientation offsets</p></td>
@@ -662,20 +579,6 @@
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.set_antenna_position_offsets" title="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.set_antenna_position_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_antenna_position_offsets</span></code></a>(x, y, z[, ...])</p></td>
 <td><p>sets a systematic offset for the antenna position</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code>(time)</p></td>
-<td><p>updates the detector description to a new time</p></td>
-</tr>
-</tbody>
-</table>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 60%" />
-<col style="width: 40%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><strong>get_station</strong></p></td>
-<td></td>
 </tr>
 </tbody>
 </table>
@@ -709,95 +612,11 @@ if False, the antenna model as specified in the database is used.</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_absolute_position</span></code>(station_id)</p></td>
-<td><p>get the absolute position of a specific station</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_absolute_position_site</span></code>(site)</p></td>
-<td><p>get the absolute position of a specific station</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_measurement</span></code>(station_id, channel_id)</p></td>
-<td><p>returns a unique reference to the amplifier measurement</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_response</span></code>(station_id, ...)</p></td>
-<td><p>Returns the amplifier response for the amplifier of a given channel</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_amplifier_type</span></code>(station_id, channel_id)</p></td>
-<td><p>returns the type of the amplifier</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_deployment_time</span></code>(station_id, ...)</p></td>
-<td><p>returns the time of antenna deployment</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_model</span></code>(station_id, channel_id[, ...])</p></td>
-<td><p>determines the correct antenna model from antenna type, position and orientation of antenna</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_antenna_orientation" title="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_antenna_orientation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_orientation</span></code></a>(station_id, channel_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_antenna_orientation" title="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_antenna_orientation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_orientation</span></code></a>(station_id, channel_id)</p></td>
 <td><p>returns the orientation of a specific antenna + a systematic offset</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_type</span></code>(station_id, channel_id)</p></td>
-<td><p>returns the antenna type</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cable_delay</span></code>(station_id, channel_id)</p></td>
-<td><p>returns the cable delay of a channel</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cable_type_and_length</span></code>(station_id, channel_id)</p></td>
-<td><p>returns the cable type (e.g.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel</span></code>(station_id, channel_id)</p></td>
-<td><p>returns a dictionary of all channel parameters</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel_ids</span></code>(station_id)</p></td>
-<td><p>get the channel ids of a station</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_detector_time</span></code>()</p></td>
-<td><p>Returns the time that the detector is currently set to</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_device</span></code>(station_id, device_id)</p></td>
-<td><p>returns a dictionary of all device parameters</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_device_ids</span></code>(station_id)</p></td>
-<td><p>get the device ids of a station</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_noise_RMS</span></code>(station_id, channel_id[, stage])</p></td>
-<td><p>returns the noise RMS that was precomputed from forced triggers</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_noise_temperature</span></code>(station_id, channel_id)</p></td>
-<td><p>returns the noise temperature of the channel</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_channels</span></code>(station_id)</p></td>
-<td><p>Get the number of channels per station</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_devices</span></code>(station_id)</p></td>
-<td><p>Get the number of devices per station</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_samples</span></code>(station_id, channel_id)</p></td>
-<td><p>returns the number of samples of a channel</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parallel_channels</span></code>(station_id)</p></td>
-<td><p>get a list of parallel antennas</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_relative_position" title="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_relative_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_relative_position</span></code></a>(station_id, channel_id)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_relative_position" title="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_relative_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_relative_position</span></code></a>(station_id, channel_id)</p></td>
 <td><p>returns the orientation of a specific antenna + a systematic offset</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_frequency</span></code>(station_id, channel_id)</p></td>
-<td><p>returns the sampling frequency</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site</span></code>(station_id)</p></td>
-<td><p>get the site where the station is deployed (e.g.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_site_coordinates</span></code>(station_id)</p></td>
-<td><p>get the (latitude, longitude) coordinates (in degrees) for a given detector site.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_ids</span></code>()</p></td>
-<td><p>returns a sorted list of all station ids present in the database</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_time_periods</span></code>(station_id)</p></td>
-<td><p>returns the time periods in which the station configuration (including all channels) was constant</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_station</span></code>(station_id)</p></td>
-<td><p>checks if a station is present in the database</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_channel_noiseless</span></code>(station_id, channel_id)</p></td>
-<td><p>returns true if the detector description has the field <cite>noiseless</cite> and if this field is True.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.reset_antenna_orientation_offsets" title="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.reset_antenna_orientation_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_antenna_orientation_offsets</span></code></a>()</p></td>
 <td><p>resets all previously set antenna orientation offsets</p></td>
@@ -810,20 +629,6 @@ if False, the antenna model as specified in the database is used.</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.set_antenna_position_offsets" title="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.set_antenna_position_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_antenna_position_offsets</span></code></a>(x, y, z[, ...])</p></td>
 <td><p>sets a systematic offset for the antenna position</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code>(time)</p></td>
-<td><p>updates the detector description to a new time</p></td>
-</tr>
-</tbody>
-</table>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 60%" />
-<col style="width: 40%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><strong>get_station</strong></p></td>
-<td></td>
 </tr>
 </tbody>
 </table>

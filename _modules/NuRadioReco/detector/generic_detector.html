@@ -305,6 +305,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.amp.html">NuRadioReco.detector.amp module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html">NuRadioReco.detector.antennapattern module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector.html">NuRadioReco.detector.detector module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html">NuRadioReco.detector.detector_base module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html">NuRadioReco.detector.detector_sql module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.filterresponse.html">NuRadioReco.detector.filterresponse module</a></li>
@@ -547,8 +548,8 @@
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">from</span> <span class="nn">tinydb</span> <span class="kn">import</span> <span class="n">Query</span>
 <span class="kn">from</span> <span class="nn">tinydb_serialization</span> <span class="kn">import</span> <span class="n">SerializationMiddleware</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.detector.detector</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.detector.detector</span> <span class="kn">import</span> <span class="n">DateTimeSerializer</span>
+<span class="kn">import</span> <span class="nn">NuRadioReco.detector.detector_base</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.detector.detector_base</span> <span class="kn">import</span> <span class="n">DateTimeSerializer</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.genericDetector&#39;</span><span class="p">)</span>
@@ -557,7 +558,7 @@
 <span class="n">serialization</span><span class="o">.</span><span class="n">register_serializer</span><span class="p">(</span><span class="n">DateTimeSerializer</span><span class="p">(),</span> <span class="s1">&#39;TinyDate&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="GenericDetector"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector">[docs]</a><span class="k">class</span> <span class="nc">GenericDetector</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">):</span>
+<div class="viewcode-block" id="GenericDetector"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.generic_detector.html#NuRadioReco.detector.generic_detector.GenericDetector">[docs]</a><span class="k">class</span> <span class="nc">GenericDetector</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">detector_base</span><span class="o">.</span><span class="n">DetectorBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Used the same way as the main detector class, but works with incomplete</span>
 <span class="sd">    detector descriptions.</span>

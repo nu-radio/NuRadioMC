@@ -25,6 +25,7 @@ Submodules
    NuRadioReco.detector.amp
    NuRadioReco.detector.antennapattern
    NuRadioReco.detector.detector
+   NuRadioReco.detector.detector_base
    NuRadioReco.detector.detector_sql
    NuRadioReco.detector.detector_sys_uncertainties
    NuRadioReco.detector.filterresponse

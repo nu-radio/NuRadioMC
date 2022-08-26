@@ -308,6 +308,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioReco.detector.amp.html">NuRadioReco.detector.amp module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioReco.detector.antennapattern.html">NuRadioReco.detector.antennapattern module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioReco.detector.detector.html">NuRadioReco.detector.detector module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioReco.detector.detector_base.html">NuRadioReco.detector.detector_base module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioReco.detector.detector_sql.html">NuRadioReco.detector.detector_sql module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioReco.detector.detector_sys_uncertainties.html">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../apidoc/NuRadioReco.detector.filterresponse.html">NuRadioReco.detector.filterresponse module</a></li>
@@ -632,26 +633,75 @@ e.g. the antenna position. In these cases, creating a full table entry for each
 station or channel would be cumbersome, error-prone and make it harder to make
 changes later.
 For this reason, <em>NuRadioReco</em> provides the <code class="docutils literal notranslate"><span class="pre">GenericDetector</span></code> detector class.
-The <code class="docutils literal notranslate"><span class="pre">GenericDetector</span></code> allows to declare a <em>default station</em>, which has to be fully
+The <code class="docutils literal notranslate"><span class="pre">GenericDetector</span></code> allows to declare a <em>reference station</em>, which has to be fully
 described, but for all other stations the description can be incomplete.
 When a station is requested, the  <code class="docutils literal notranslate"><span class="pre">GenericDetector</span></code> substitutes any
-missing entries with the entries from the <em>default station</em>. If the channels for
+missing entries with the entries from the <em>reference station</em>. If the channels for
 a station are requested and none are found, it is assumed that it has the same
-channels as the <em>default</em> station and the channels of the <em>default station</em> are
+channels as the <em>reference station</em> and the channels of the <em>reference station</em> are
 returned.
-In the same way, it is also possible to specify a <em>default channel</em>. This
-has to be a channel of the <em>default station</em>. When a requested entry is missing
-in one of the other channels, it is substituted with the entry in the <em>default station</em>.
-This allows the easy implementation of large detectors for simulation studies.
-For example, if one wanted to simulate a large array of identical radio stations,
-one would create a complete entry for the first station and specify its channels.
-For all other stations, only the ID and position would be specified.
-If the first station is declared the <em>default station</em>, a query for one of the
-other stations would return a copy of it at a different position.</p>
-<p>Since the <code class="docutils literal notranslate"><span class="pre">GenericDetector</span></code> inherits from the <code class="docutils literal notranslate"><span class="pre">Detector</span></code> class, it provides
-all its query functions as well. Practically, this means that it can be used
-in the same way as the normal <code class="docutils literal notranslate"><span class="pre">Detector</span></code> class, e.g. be passed to reconstruction
-modules.</p>
+In the same way, it is also possible to specify <em>reference channels</em>. When a requested
+entry is missing
+in one of the other channels, it is substituted with the entry in the <em>reference channel</em>.</p>
+<p><em>Reference stations</em> and <em>reference channels</em> are declared for each channel in the detector
+description JSON file. A simple detector description using this feature might look like this:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;channels&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;0&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;ant_comment&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;phased array&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;amp_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;iglu&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;adc_sampling_frequency&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.4</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;adc_n_samples&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1024</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;ant_orientation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;ant_orientation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;ant_position_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;ant_position_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;ant_position_z&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-100.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;ant_rotation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;ant_rotation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;ant_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;RNOG_vpol_4inch_center_n1.73&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;cab_time_delay&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;channel_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;station_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;1&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;ant_position_z&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">-200</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;channel_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;station_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;reference_channel&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;stations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;1&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;pos_altitude&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;pos_easting&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;pos_northing&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;pos_site&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;summit&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;station_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;station_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;2&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;pos_easting&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;station_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;reference_station&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>In this case, only channel 0 and station 1 are fully defined. But if we queried for channel 1,
+any missing property will be filled in with the corresponding property from channel 0. Likewise,
+station 2 will take any missing entries from station 1 and, since no channels were explicitly
+defined for station 2, queries for station 2’s channels will return copies of station 1’s channels.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>In older versions of <em>NuRadioMC</em>, reference stations and channels were defined by parameters
+passed to the <code class="docutils literal notranslate"><span class="pre">GenericDetector</span></code>’s <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method. While this still works for compatibility,
+it is deprecated and should not be used.</p>
+</div>
+<p>When creating a new <code class="docutils literal notranslate"><span class="pre">Detector</span></code> object, the constructor will check if the detector description
+contains any <code class="docutils literal notranslate"><span class="pre">reference_station</span></code> or <code class="docutils literal notranslate"><span class="pre">reference_channel</span></code> entries, and create a GenericDetector
+if these entries are found.</p>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">GenericDetector</span></code> does not support commission and decommission times.

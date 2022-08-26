@@ -308,6 +308,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.detector.amp.html">NuRadioReco.detector.amp module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html">NuRadioReco.detector.antennapattern module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.detector.detector.html">NuRadioReco.detector.detector module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html">NuRadioReco.detector.detector_base module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html">NuRadioReco.detector.detector_sql module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sys_uncertainties.html">NuRadioReco.detector.detector_sys_uncertainties module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.detector.filterresponse.html">NuRadioReco.detector.filterresponse module</a></li>
@@ -700,9 +701,9 @@ specifies the output mode:</p>
 </dd>
 <dt><strong>log_level: logging.LEVEL</strong></dt><dd><p>the log level</p>
 </dd>
-<dt><strong>default_detector_station: int or None</strong></dt><dd><p>if station parameters are not defined, the parameters of the default station are used</p>
+<dt><strong>default_detector_station: int or None</strong></dt><dd><p>DEPRECATED: Define reference stations in the detector JSON file instead</p>
 </dd>
-<dt><strong>default_detector_channel: int or None</strong></dt><dd><p>if channel parameters are not defined, the parameters of the default channel are used</p>
+<dt><strong>default_detector_channel: int or None</strong></dt><dd><p>DEPRECATED: Define reference channels in the detector JSON file instead</p>
 </dd>
 <dt><strong>file_overwrite: bool</strong></dt><dd><p>True allows overwriting of existing files, default False</p>
 </dd>
