@@ -13,6 +13,7 @@ import h5py
 import time
 import six
 import copy
+import json
 from scipy import constants
 # import detector simulation modules
 import NuRadioReco.modules.io.eventWriter
@@ -148,9 +149,9 @@ class simulation():
         log_level: logging.LEVEL
             the log level
         default_detector_station: int or None
-            if station parameters are not defined, the parameters of the default station are used
+            DEPRECATED: Define reference stations in the detector JSON file instead
         default_detector_channel: int or None
-            if channel parameters are not defined, the parameters of the default channel are used
+            DEPRECATED: Define reference channels in the detector JSON file instead
         file_overwrite: bool
             True allows overwriting of existing files, default False
         write_detector: bool
@@ -220,12 +221,17 @@ class simulation():
         # read in detector positions
         logger.status("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
         self._det = None
-        if(default_detector_station):
+        if(default_detector_station is not None):
+            logger.warning(
+                'Deprecation warning: Passing the default detector station is deprecated. Default stations and default'
+                'channel should be specified in the detector description directly.'
+            )
             logger.status(f"Default detector station provided (station {default_detector_station}) -> Using generic detector")
             self._det = gdetector.GenericDetector(json_filename=self._detectorfile, default_station=default_detector_station,
                                                  default_channel=default_detector_channel, antenna_by_depth=False)
         else:
             self._det = detector.Detector(json_filename=self._detectorfile, antenna_by_depth=False)
+
         self._det.update(evt_time)
 
         self._station_ids = self._det.get_station_ids()
