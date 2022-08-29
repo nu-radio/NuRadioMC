@@ -790,7 +790,7 @@ class neutrinoDirectionReconstructor:
                                 ## DETERMINE PULSE REGION DUE TO REFERENCE TIMING
                                 data_timing_timing = np.copy(channel.get_times())#np.arange(0, len(channel.get_trace()), 1)#
                                 
-                                dk = int(dk - dict_dt[channel_id][i_trace] + dict_dt[ch_Vpol][trace_ref])
+                               
                                 
                                 dk_1 = data_timing_timing[dk] 
                                 
@@ -801,7 +801,7 @@ class neutrinoDirectionReconstructor:
                                 
                                 
                                 dt = dict_dt[channel_id][i_trace]
-                                rec_trace = np.roll(rec_trace, math.ceil(-1*dt + dict_dt[channel_id][i_trace] - dict_dt[ch_Vpol][trace_ref]))
+                                rec_trace = np.roll(rec_trace, math.ceil(-1*dt))
                                 
                                 #### select fitting time-window ####
                                 if channel_id in self._Hpol_channels:
