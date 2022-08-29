@@ -3,7 +3,7 @@ import pandas as pd
 from plotly import subplots
 import plotly.graph_objs as go
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
-from NuRadioReco.detector.webinterface.utils.helper import build_success_page, select_cable, Sdata_validation, validate_global_cable, create_double_plot, insert_cable_to_db
+from NuRadioReco.detector.webinterface.utils.helper import build_success_page, select_cable, single_S_data_validation, validate_global_cable, create_double_plot, insert_cable_to_db
 from NuRadioReco.utilities import units
 
 page_name = 'CABLE'
@@ -37,8 +37,8 @@ def build_main_page(main_cont):
     cont_warning_bottom = main_cont.container()
 
     # # input checks and enable the INSERT button
-    S_magnitude, smagnitude_validated = Sdata_validation(cont_warning_bottom, uploaded_magnitude, [input_units[0],input_units[1]], 'magnitude')
-    S_phase, sphase_validated = Sdata_validation(cont_warning_bottom, uploaded_phase, [input_units[0],input_units[2]], 'phase')
+    S_magnitude, smagnitude_validated = single_S_data_validation(cont_warning_bottom, uploaded_magnitude, [input_units[0],input_units[1]], 'magnitude')
+    S_phase, sphase_validated = single_S_data_validation(cont_warning_bottom, uploaded_phase, [input_units[0],input_units[2]], 'phase')
     disable_button = validate_global_cable(cont_warning_bottom, cable_type, cable_station, cable_channel, working, smagnitude_validated, sphase_validated, uploaded_magnitude, uploaded_phase)
     figure = create_double_plot(s_name, cont_warning_bottom, S_magnitude, S_phase, ['frequency', 'magnitude'], ['frequency', 'phase'], ['MHz',input_units[1]], ['MHz',input_units[2]])
     main_cont.plotly_chart(figure, use_container_width=True)

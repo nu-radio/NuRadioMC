@@ -7,6 +7,7 @@ str_to_unit = {"GHz": units.GHz,
                "rad": units.rad,
                "V": units.V,
                "mV": units.mV,
+               "ns": units.ns,
                "VSWR": 1,
                "dB": 1,
                "MAG": 1}
