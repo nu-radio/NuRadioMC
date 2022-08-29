@@ -1,13 +1,15 @@
+import copy
+
 import streamlit as st
 import pandas as pd
 from plotly import subplots
 import plotly.graph_objs as go
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
-from NuRadioReco.detector.webinterface.utils.helper import build_success_page, select_IGLU, Sdata_validation, insert_cable_to_db
+from NuRadioReco.detector.webinterface.utils.helper import build_success_page, select_iglu, single_S_data_validation, create_ten_plots, validate_global_iglu, insert_iglu_to_db, read_measurement_time
 from NuRadioReco.utilities import units
 
 page_name = 'IGLU'
-s_name = 'S'
+s_name = ['S11', 'S12', 'S21', 'S22']
 
 
 def build_main_page(main_cont):
@@ -16,7 +18,7 @@ def build_main_page(main_cont):
     cont_warning_top = main_cont.container()
 
     # select the cable
-    cable_type = select_IGLU(page_name, main_cont, cont_warning_top)
+    iglu_name, iglu_dropdown, laser_serial_name, drab_name, temp = select_iglu(page_name, main_cont, cont_warning_top)
 
     # input of checkboxes, data_format, units and protocol
     working = main_cont.checkbox('channel is working', value=True)
@@ -28,30 +30,30 @@ def build_main_page(main_cont):
     input_units[1] = col22.selectbox('', ['MAG','V', 'mV'])
     input_units[2] = col33.selectbox('', ['deg', 'rad'])
     protocol = main_cont.selectbox('Specify the measurement protocol:', ['Chicago2020', 'Erlangen2020', 'Chicago2022', 'Erlangen2022'])
-    group_delay = main_cont.number_input('Enter group delay correction [ns] at around 200 MHz:', value=0, step=1)
+    group_delay = main_cont.number_input('Enter group delay correction [ns] at around 200 MHz:', value=0, step=1, help='Read off the group delay from the left group delay plot below (after inserting data) and input the result here. A plot for the group delay corrected plot will be shown below on the right.')
+    group_delay_arr = [0, 0, group_delay, 0]
     # upload the data
     uploaded_data = main_cont.file_uploader('Select your measurement:', accept_multiple_files=False)
-    main_cont.markdown(group_delay)
-
+    uploaded_data_copy = copy.deepcopy(uploaded_data) # copy needed to extract the measurement time
     # container for warnings/infos at the botton
     cont_warning_bottom = main_cont.container()
 
     # # input checks and enable the INSERT button
-    #S_magnitude, smagnitude_validated = Sdata_validation(cont_warning_bottom, uploaded_magnitude, [input_units[0],input_units[1]], 'magnitude')
-    #S_phase, sphase_validated = Sdata_validation(cont_warning_bottom, uploaded_phase, [input_units[0],input_units[2]], 'phase')
-    #disable_button = validate_global_cable(cont_warning_bottom, cable_type, cable_station, cable_channel, working, smagnitude_validated, sphase_validated, uploaded_magnitude, uploaded_phase)
-    #figure = create_double_plot(s_name, cont_warning_bottom, S_magnitude, S_phase, ['frequency', 'magnitude'], ['frequency', 'phase'], ['MHz',input_units[1]], ['MHz',input_units[2]])
-    #main_cont.plotly_chart(figure, use_container_width=True)
+    S_data, sdata_validated = single_S_data_validation(cont_warning_bottom, uploaded_data, input_units)
+    disable_button = validate_global_iglu(page_name, cont_warning_bottom, iglu_dropdown, iglu_name, laser_serial_name, working, sdata_validated, uploaded_data)
+    figure = create_ten_plots(s_name, cont_warning_bottom, S_data, ['frequency'], ['group delay', 'magnitude', 'phase'], input_units, group_delay)
+    main_cont.plotly_chart(figure, use_container_width=True)
 
     # INSERT button
-    #upload_button = main_cont.button('INSERT TO DB', disabled=disable_button)
-    #
+    upload_button = main_cont.button('INSERT TO DB', disabled=disable_button)
+
     # insert the data into the database and change to the success page by setting the session key
-    #if upload_button:
-    #    insert_cable_to_db(page_name, s_name, cable_name, S_magnitude, S_phase, input_units, working, primary, protocol)
-    #    main_cont.empty()
-    #    st.session_state.key = '1'
-    #    st.experimental_rerun()
+    if upload_button:
+        measure_time = read_measurement_time(uploaded_data_copy)
+        insert_iglu_to_db(page_name, s_name, iglu_name, S_data, input_units, working, primary, protocol, drab_name, laser_serial_name, temp, measure_time, group_delay_arr)
+        main_cont.empty()
+        st.session_state.key = '1'
+        st.experimental_rerun()
 
 
 # main page setup

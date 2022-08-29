@@ -3,7 +3,7 @@ import pandas as pd
 from plotly import subplots
 import plotly.graph_objs as go
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
-from NuRadioReco.detector.webinterface.utils.helper import build_success_page, create_single_plot, convert_uploaded_data, validate_global, Sdata_validation, select_antenna_name, insert_to_db
+from NuRadioReco.detector.webinterface.utils.helper import build_success_page, create_single_plot, validate_global, single_S_data_validation, select_antenna_name, insert_to_db
 from NuRadioReco.utilities import units
 
 page_name = 'HPol'
@@ -34,9 +34,9 @@ def build_main_page(main_cont):
     cont_warning_bottom = main_cont.container()
 
     # input checks and enable the INSERT button
-    S_data, sdata_validated = Sdata_validation(cont_warning_bottom, uploaded_data, input_units)
+    S_data, sdata_validated = single_S_data_validation(cont_warning_bottom, uploaded_data, input_units)
     disable_button = validate_global(page_name, cont_warning_bottom, HPol_dropdown, HPol_text, working, sdata_validated, uploaded_data)
-    figure = create_single_plot(s_name, cont_warning_bottom, S_data[0], S_data[1], 'frequency', 'magnitude', 'MHz', input_units[1])
+    figure = create_single_plot(s_name, cont_warning_bottom, S_data, 'frequency', 'magnitude', 'MHz', input_units[1])
     main_cont.plotly_chart(figure, use_container_width=True)
 
     # INSERT button
