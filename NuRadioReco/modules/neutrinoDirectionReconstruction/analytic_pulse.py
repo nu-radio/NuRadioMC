@@ -121,8 +121,9 @@ class simulation():
 		self._h = dict()
 		for channel_id in use_channels:
 			passband_i = passband[channel_id]
-			filter_response = bandpass_filter.get_filter_response(self._ff, passband_i, 'butterabs', 10)
-			self._h[channel_id] = filter_response #fb * fa
+			filter_response_1 = bandpass_filter.get_filter_response(self._ff, [passband_i[0], 1150*units.MHz], 'butter', 8)
+			filter_response_2 = bandpass_filter.get_filter_response(self._ff, [0*units.MHz, passband_i[1]], 'butter', 10)
+			self._h[channel_id] = filter_response_1 * filter_response_2 #fb * fa
 
 		self._amp = {}
 		for channel_id in use_channels:
