@@ -360,8 +360,9 @@ class neutrinoDirectionReconstructor:
             print("end datetime", datetime.datetime.now() - cop)
             # print("cache statistics for analytic_pulse ray tracer")
             # print(self._simulation._raytracer.cache_info())
-            vw_grid = results[-2]
-            chi2_grid = results[-1]
+            if not only_simulation:
+                vw_grid = results[-2]
+                chi2_grid = results[-1]
             # np.save("{}/grid_{}".format(debugplots_path, filenumber), vw_grid)
             # np.save("{}/chi2_{}".format(debugplots_path, filenumber), chi2_grid)
             ###### GET PARAMETERS #########
@@ -538,63 +539,64 @@ class neutrinoDirectionReconstructor:
                 ### chi squared grid from opt.brute:
                 # plt.rc('xtick',)
                 # plt.rc('ytick', labelsize = 10)
-                min_energy_index = np.unravel_index(np.argmin(chi2_grid), vw_grid.shape)[-1]
-                extent = (
-                    vw_grid[0,0,0,0] / units.deg,
-                    vw_grid[0,-1,0,0] / units.deg,
-                    vw_grid[1,0,0,0] / units.deg,
-                    vw_grid[1,0,-1,0] / units.deg,
-                )
+                if not only_simulation:
+                    min_energy_index = np.unravel_index(np.argmin(chi2_grid), vw_grid.shape)[-1]
+                    extent = (
+                        vw_grid[0,0,0,0] / units.deg,
+                        vw_grid[0,-1,0,0] / units.deg,
+                        vw_grid[1,0,0,0] / units.deg,
+                        vw_grid[1,0,-1,0] / units.deg,
+                    )
 
-                fig = plt.figure(figsize=(6,6))
-                max_chi2_plot = np.max(np.where(chi2_grid < np.inf, chi2_grid, 0)[:,:,min_energy_index])
-                vmax = np.min([4*np.min(chi2_grid), max_chi2_plot])
-                plt.imshow(
-                    (chi2_grid[:,:,min_energy_index].T),
-                    extent=extent,
-                    aspect='auto',
-                    vmax=vmax,
-                    origin='lower'
-                )
-                if restricted_input: # we did the minimization in azimuth/zenith, so should plot this
-                    x_sim, y_sim = simulated_zenith / units.deg, simulated_azimuth / units.deg % 360
-                    x_rec, y_rec = rec_zenith / units.deg, rec_azimuth / units.deg % 360
-                    xlabel, ylabel = 'zenith [deg]', 'azimuth [deg]'
-                else: # minimization in viewing angle & polarization
-                    x_sim, y_sim = vw_sim / units.deg, np.arctan2(pol_sim[2], pol_sim[1]) / units.deg
-                    x_rec, y_rec = viewingangle_rec / units.deg, np.arctan2(pol_rec[2], pol_rec[1]) / units.deg
-                    xlabel, ylabel = 'Viewing angle [deg]', 'Polarization angle [deg]'
+                    fig = plt.figure(figsize=(6,6))
+                    max_chi2_plot = np.max(np.where(chi2_grid < np.inf, chi2_grid, 0)[:,:,min_energy_index])
+                    vmax = np.min([4*np.min(chi2_grid), max_chi2_plot])
+                    plt.imshow(
+                        (chi2_grid[:,:,min_energy_index].T),
+                        extent=extent,
+                        aspect='auto',
+                        vmax=vmax,
+                        origin='lower'
+                    )
+                    if restricted_input: # we did the minimization in azimuth/zenith, so should plot this
+                        x_sim, y_sim = simulated_zenith / units.deg, simulated_azimuth / units.deg % 360
+                        x_rec, y_rec = rec_zenith / units.deg, rec_azimuth / units.deg % 360
+                        xlabel, ylabel = 'zenith [deg]', 'azimuth [deg]'
+                    else: # minimization in viewing angle & polarization
+                        x_sim, y_sim = vw_sim / units.deg, np.arctan2(pol_sim[2], pol_sim[1]) / units.deg
+                        x_rec, y_rec = viewingangle_rec / units.deg, np.arctan2(pol_rec[2], pol_rec[1]) / units.deg
+                        xlabel, ylabel = 'Viewing angle [deg]', 'Polarization angle [deg]'
 
-                plt.plot(
-                    x_sim, y_sim,
-                    marker='o', label='{:.1f}, {:.1f} (simulated)'.format(
+                    plt.plot(
                         x_sim, y_sim,
-                    ), color='red', ls='none'
-                )
-                plt.plot(
-                    x_rec, y_rec,
-                    marker='x', label='{:.1f}, {:.1f} (reconstructed)'.format(
-                        x_rec, y_rec
-                    ), color='magenta', ms=8, mfc='magenta', ls='none'
-                )
-                plt.xlabel(xlabel)
-                plt.ylabel(ylabel)
-                plt.legend()
-                plt.title("E=1e{:.1f} eV".format(vw_grid[2,0,0,min_energy_index]))
-                cbar = plt.colorbar(label=r"$\chi^2$")
-                vmax = cbar.vmax
-                vmin = cbar.vmin
-                cbar_ticks = cbar.get_ticks()
-                cbar_ticks = cbar_ticks[(cbar_ticks < vmax) & (cbar_ticks > vmin)]
-                cbar_ticks[0] = vmin
-                tick_precision = int(np.max([0, np.min([-(np.log10(vmax-vmin)-1) // 1, 2])]))
-                cbar_ticklabels = [f'{tick:.{tick_precision}f}' for tick in cbar_ticks]
-                cbar_ticklabels[0] = f'{vmin:.2f} / {self.__dof}'
-                cbar.set_ticks(cbar_ticks, labels=cbar_ticklabels)
-                plt.tight_layout()
-                save_fig(fig, "{}/{}_chi_squared".format(debugplots_path, filenumber), self._debug_formats)
-                plt.close()
-                #exit()
+                        marker='o', label='{:.1f}, {:.1f} (simulated)'.format(
+                            x_sim, y_sim,
+                        ), color='red', ls='none'
+                    )
+                    plt.plot(
+                        x_rec, y_rec,
+                        marker='x', label='{:.1f}, {:.1f} (reconstructed)'.format(
+                            x_rec, y_rec
+                        ), color='magenta', ms=8, mfc='magenta', ls='none'
+                    )
+                    plt.xlabel(xlabel)
+                    plt.ylabel(ylabel)
+                    plt.legend()
+                    plt.title("E=1e{:.1f} eV".format(vw_grid[2,0,0,min_energy_index]))
+                    cbar = plt.colorbar(label=r"$\chi^2$")
+                    vmax = cbar.vmax
+                    vmin = cbar.vmin
+                    cbar_ticks = cbar.get_ticks()
+                    cbar_ticks = cbar_ticks[(cbar_ticks < vmax) & (cbar_ticks > vmin)]
+                    cbar_ticks[0] = vmin
+                    tick_precision = int(np.max([0, np.min([-(np.log10(vmax-vmin)-1) // 1, 2])]))
+                    cbar_ticklabels = [f'{tick:.{tick_precision}f}' for tick in cbar_ticks]
+                    cbar_ticklabels[0] = f'{vmin:.2f} / {self.__dof}'
+                    cbar.set_ticks(cbar_ticks, labels=cbar_ticklabels)
+                    plt.tight_layout()
+                    save_fig(fig, "{}/{}_chi_squared".format(debugplots_path, filenumber), self._debug_formats)
+                    plt.close()
+                    #exit()
 
 
             ###### STORE PARAMTERS AND PRINT PARAMTERS #########
