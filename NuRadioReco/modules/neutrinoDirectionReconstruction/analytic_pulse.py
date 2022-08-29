@@ -22,19 +22,11 @@ import pickle
 from NuRadioMC.SignalGen import ARZ
 import copy
 
-
-
-# receive_pickle, launch_pickle, solution_pickle, zenith_vertex_pickle = pickle.load(open('/lustre/fs22/group/radio/plaisier/software/simulations/planeWaveFit/receive_launch.pkl', 'rb')) ## i used this to play around with a four parameter fit (R, E, theta, phi)
-#(librabry = '/lustre/fs22/group/radio/plaisier/software/NuRadioMC/NuRadioMC/SignalGen/ARZ/average.pkl') ## average ARZ model. In practice this is way too slow.
-
 logger = logging.getLogger("sim")
 # logger.setLevel(logging.DEBUG)
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.framework.parameters import showerParameters as shp
 eventreader = NuRadioReco.modules.io.eventReader.eventReader()
-
-attenuate_ice = True
-
 
 hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
 
@@ -139,6 +131,14 @@ class simulation():
 		polarization_direction /= np.linalg.norm(polarization_direction)
 		cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["launch vector"]))
 		return cs.transform_from_ground_to_onsky(polarization_direction)
+	
+	def _theta_to_thetaprime(self, theta, xmax, R):
+		b = R*np.sin(theta)
+		a = R*np.cos(theta) - xmax
+		return np.arctan2(b, a)
+	
+	def _xmax(self, energy):
+		return 0.25 * np.log(energy) - 2.78
 
 	@lru_cache(maxsize=128)
 	def _raytracer(self, x1_x, x1_y, x1_z, x2_x, x2_y, x2_z):
@@ -153,7 +153,6 @@ class simulation():
 			first_iter = False, model = 'Alvarez2009',
 			starting_values = False, pol_angle = None):
 		ice = self._ice_model
-		polarization = True
 
 		vertex = np.array([vertex_x, vertex_y, vertex_z])
 		self._shower_axis = -1 * hp.spherical_to_cartesian(nu_zenith, nu_azimuth)
@@ -258,24 +257,16 @@ class simulation():
 					spectrum *= self._templates_R
 					spectrum /= raytracing[channel_id][iS]["trajectory length"]
 
-					spectrum *= energy#template_energy ### this needs to be added otherwise energy is wrongly determined
-					spectrum /= template_energy#energy
-					# print("template energy", template_energy)
-					# print("energy", energy)
-					# print("self._templates", self._templates_R)
-					# print("raytracing[channel_id][iS][trajectory length]", raytracing[channel_id][iS]["trajectory length"])
+					spectrum *= energy#template_energy 
+					spectrum /= template_energy
+					
 					spectrum= fft.time2freq(spectrum, 1/self._dt)
 
 				else:
-					def theta_to_thetaprime(theta, xmax, R):
-						b = R*np.sin(theta)
-						a = R*np.cos(theta) - xmax
-						return np.arctan2(b, a)
-					def xmax(energy):
-						return 0.25 * np.log(energy) - 2.78
+					
 
-					xmax = xmax(energy)
-					theta_prime = theta_to_thetaprime (viewing_angle, xmax, raytracing[channel_id][iS]["trajectory length"])
+					xmax = self._xmax(energy)
+					theta_prime = self._theta_to_thetaprime (viewing_angle, xmax, raytracing[channel_id][iS]["trajectory length"])
 					spectrum = signalgen.get_frequency_spectrum(
 						energy , theta_prime, self._n_samples,
 						self._dt, "HAD", n_index,
@@ -283,17 +274,14 @@ class simulation():
 
 				viewingangles[ich,i_s] = viewing_angle
 
-				if polarization:
-
-					polarization_direction_onsky = self._calculate_polarization_vector(channel_id, iS)
-
-					cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["receive vector"]))
-					polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
-					#print("polarization direction at antenna", hp.cartesian_to_spherical(*polarization_direction_at_antenna))
-					logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
-						raytracing[channel_id][iS]["zenith"] / units.deg, raytracing[channel_id][iS]["azimuth"] / units.deg, polarization_direction_onsky[0],
-						polarization_direction_onsky[1], polarization_direction_onsky[2],
-						*polarization_direction_at_antenna))
+				polarization_direction_onsky = self._calculate_polarization_vector(channel_id, iS)
+				cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["receive vector"]))
+				polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
+				#print("polarization direction at antenna", hp.cartesian_to_spherical(*polarization_direction_at_antenna))
+				logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
+					raytracing[channel_id][iS]["zenith"] / units.deg, raytracing[channel_id][iS]["azimuth"] / units.deg, polarization_direction_onsky[0],
+					polarization_direction_onsky[1], polarization_direction_onsky[2],
+					*polarization_direction_at_antenna))
 				spectrum_3d = np.outer(polarization_direction_onsky, spectrum)
 
 				if channel_id == self._ch_Vpol:
