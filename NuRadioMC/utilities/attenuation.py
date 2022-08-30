@@ -9,7 +9,18 @@ gl3_parameters = np.genfromtxt(
             os.path.join(os.path.dirname(__file__), 'data/GL3_params.csv'),
             delimiter=','
         )
-
+gl3_slope_interpolation = scipy.interpolate.interp1d(
+    gl3_parameters[:, 0],
+    gl3_parameters[:, 1],
+    bounds_error=False,
+    fill_value=(gl3_parameters[0, 1], gl3_parameters[-1, 1])
+)
+gl3_offset_interpolation = scipy.interpolate.interp1d(
+    gl3_parameters[:, 0],
+    gl3_parameters[:, 2],
+    bounds_error=False,
+    fill_value=(gl3_parameters[0, 2], gl3_parameters[-1, 2])
+)
 
 def fit_GL1(z):
     """
@@ -134,20 +145,9 @@ def get_attenuation_length(z, frequency, model):
         return att_length_f
 
     if model == 'GL3':
-        slope_interpolation = scipy.interpolate.interp1d(
-            gl3_parameters[:, 0],
-            gl3_parameters[:, 1],
-            bounds_error=False,
-            fill_value=(gl3_parameters[0, 1], gl3_parameters[-1, 1])
-        )
-        offset_interpolation = scipy.interpolate.interp1d(
-            gl3_parameters[:, 0],
-            gl3_parameters[:, 2],
-            bounds_error=False,
-            fill_value=(gl3_parameters[0, 2], gl3_parameters[-1, 2])
-        )
-        slopes = slope_interpolation(-z)
-        offsets = offset_interpolation(-z)
+
+        slopes = gl3_slope_interpolation(-z)
+        offsets = gl3_offset_interpolation(-z)
         return slopes * frequency + offsets
 
 
