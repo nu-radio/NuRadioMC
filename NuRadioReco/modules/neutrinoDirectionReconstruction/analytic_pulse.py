@@ -97,7 +97,7 @@ class simulation():
 		self._raytypesolution= raytypesolution
 		channl = station.get_channel(use_channels[0])
 		self._sampling_rate = channl.get_sampling_rate()
-		time_trace = 80 #ns
+		time_trace = 200 #ns
 		self._dt = 1./self._sampling_rate
 		self._n_samples = int(time_trace * self._sampling_rate) ## templates are 800 samples long. The analytic models can be longer.
 		self._att_model = att_model
@@ -246,6 +246,7 @@ class simulation():
 				timing[channel_id][iS] = {}
 				viewing_angle = hp.get_angle(self._shower_axis,raytracing[channel_id][iS]["launch vector"])
 				if self._template:
+					
 
 
 					template_viewingangle = self._templates_viewingangles[np.abs(np.array(self._templates_viewingangles) - np.rad2deg(viewing_angle)).argmin()] ### viewing angle template which is closest to wanted viewing angle
@@ -264,7 +265,7 @@ class simulation():
 
 				else:
 					
-
+				
 					xmax = self._xmax(energy)
 					theta_prime = self._theta_to_thetaprime (viewing_angle, xmax, raytracing[channel_id][iS]["trajectory length"])
 					spectrum = signalgen.get_frequency_spectrum(
@@ -313,7 +314,15 @@ class simulation():
 
 				### currently, we roll the trace back by 1/4 the trace length to approximately centre the pulse
 				#TODO - come up with something more sensible
-				traces[channel_id][iS] =  np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), int(self._n_samples / 4))
+				#import matplotlib.pyplot as plt
+				#fig = plt.figure()
+				#ax = fig.add_subplot(111)
+				#ax.plot(fft.freq2time(analytic_trace_fft, self._sampling_rate))
+				#ax.plot(np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), -int(np.argmax(abs(fft.freq2time(analytic_trace_fft, self._sampling_rate)))-0.5*len(fft.freq2time(analytic_trace_fft, self._sampling_rate)))))
+				#fig.savefig("/lustre/fs22/group/radio/plaisier/software/simulations/full_reco/Penalty/test_2.pdf")
+                                ## shift such that maximum is in middle
+				
+				traces[channel_id][iS] = np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), int(self._n_samples /4))#-int(np.argmax(abs(fft.freq2time(analytic_trace_fft, self._sampling_rate)))-0.5*len(fft.freq2time(analytic_trace_fft, self._sampling_rate))))# np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), int(self._n_samples / 4))
 
 				timing[channel_id][iS] =raytracing[channel_id][iS]["travel time"]
 				raytype[channel_id][iS] = raytracing[channel_id][iS]["raytype"]

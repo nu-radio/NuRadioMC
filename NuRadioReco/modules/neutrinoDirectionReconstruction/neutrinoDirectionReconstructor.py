@@ -31,7 +31,7 @@ class neutrinoDirectionReconstructor:
             Hpol_channels = [7,8], window_Vpol = [-10, +50], window_Hpol = [10, 40],
             PA_channels = [0,1,2,3], Vrms_Hpol = 8.2 * units.mV, Vrms_Vpol = 8.2 * units.mV,
             passband = [50*units.MHz, 700*units.MHz],
-            template = True, icemodel='greenland_simple', att_model='GL1', propagation_config=None,
+            template = False, icemodel='greenland_simple', att_model='GL1', propagation_config=None,
             debug_formats='.pdf'):
         """
         begin method. This function is executed before the event loop.
@@ -346,7 +346,7 @@ class neutrinoDirectionReconstructor:
                     )
 
             elif restricted_input:
-                d_angle = 2
+                d_angle = 5
                 zenith_start =  simulated_zenith - np.deg2rad(d_angle)
                 zenith_end =simulated_zenith +  np.deg2rad(d_angle)
                 azimuth_start =simulated_azimuth - np.deg2rad(d_angle)
@@ -452,10 +452,10 @@ class neutrinoDirectionReconstructor:
                             ax[ich][0].set_xlabel("timing [ns]", )
                             ax[ich][0].plot(channel.get_times(), channel.get_trace(), lw = linewidth, label = 'data', color = 'black')
 
-                            ax[ich][0].fill_between(timingdata[channel_id][0], tracrec[channel_id][0] - tracrec[channel_id][0], tracrec[channel_id][0] +  tracrec[channel_id][0], color = 'green', alpha = 0.2)
+                            #ax[ich][0].fill_between(timingdata[channel_id][0], tracrec[channel_id][0] - tracrec[channel_id][0], tracrec[channel_id][0] +  tracrec[channel_id][0], color = 'green', alpha = 0.2)
                             ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel_id][0]), 1/sampling_rate), abs(fft.time2freq( tracdata[channel_id][0], sampling_rate)), color = 'black', lw = linewidth)
                             ax[ich][0].plot(timingsim[channel_id][0], tracsim[channel_id][0], label = 'simulation', color = 'orange', lw = linewidth)
-                            ax[ich][0].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
+                            if sim_trace != None: ax[ich][0].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
 
                             ax[ich][0].plot(timingsim_recvertex[channel_id][0], tracsim_recvertex[channel_id][0], label = 'simulation rec vertex', color = 'lightblue' , lw = linewidth, ls = '--')
 
@@ -470,7 +470,7 @@ class neutrinoDirectionReconstructor:
 
                             ax[ich][0].plot(timingdata[channel_id][0], tracrec[channel_id][0], label = 'reconstruction', lw = linewidth, color = 'green')
 
-                            ax[ich][2].plot( np.fft.rfftfreq(len(sim_trace.get_trace()), 1/sampling_rate), abs(fft.time2freq(sim_trace.get_trace(), sampling_rate)), lw = linewidth, color = 'red')
+                            if sim_trace != None: ax[ich][2].plot( np.fft.rfftfreq(len(sim_trace.get_trace()), 1/sampling_rate), abs(fft.time2freq(sim_trace.get_trace(), sampling_rate)), lw = linewidth, color = 'red')
                             ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel_id][0]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][0], sampling_rate)), lw = linewidth, color = 'orange')
 
                             ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel_id][0]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel_id][0], sampling_rate)), color = 'green', lw = linewidth)
@@ -486,7 +486,7 @@ class neutrinoDirectionReconstructor:
                             ax[ich][2].plot(np.fft.rfftfreq(len(timingsim[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][1], sampling_rate)), lw = linewidth, color = 'red')
                             ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracdata[channel_id][1], sampling_rate)), color = 'black', lw = linewidth)
                             ax[ich][1].plot(timingsim[channel_id][1], tracsim[channel_id][1], label = 'simulation', color = 'orange', lw = linewidth)
-                            ax[ich][1].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
+                            if sim_trace != None: ax[ich][1].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
                             if 1:#channel_id in [6]:#,7,8,9]:
                                 ax[ich][1].plot(timingdata[channel_id][1], tracrec[channel_id][1], label = 'reconstruction', color = 'green', lw = linewidth)
                                 #ax[ich][1].fill_between(timingdata[channel_id][1], tracrec[channel_id][1] - tracrec[channel_id][1], tracrec[channel_id][1] +  tracrec[channel_id][1], color = 'green', alpha = 0.2)
@@ -580,7 +580,7 @@ class neutrinoDirectionReconstructor:
                     tick_precision = int(np.max([0, np.min([-(np.log10(vmax-vmin)-1) // 1, 2])]))
                     cbar_ticklabels = [f'{tick:.{tick_precision}f}' for tick in cbar_ticks]
                     cbar_ticklabels[0] = f'{vmin:.2f} / {self.__dof}'
-                    cbar.set_ticks(cbar_ticks, labels=cbar_ticklabels)
+                #    cbar.set_ticks(cbar_ticks, labels=cbar_ticklabels)
                     plt.tight_layout()
                     save_fig(fig, "{}/{}_chi_squared".format(debugplots_path, filenumber), self._debug_formats)
                     plt.close()
@@ -792,17 +792,21 @@ class neutrinoDirectionReconstructor:
                         data_timing_timing_1[mask] = data_timing_timing[first_sample:include_samples[-1] + 1]
                         data_trace_timing_1[mask] = data_trace_timing[first_sample:include_samples[-1] + 1]
                     data_timing_timing = data_timing_timing_1
-
                     corr = signal.correlate(rec_trace, data_trace_timing_1)
-                    dt1 = np.argmax(corr) - (len(corr)/2) + 1
+                    
+                    corr_window_start = 0#int(len(corr)/2 - 30 * self._sampling_rate)
+                    corr_window_end = len(corr)#int(len(corr)/2 + 30 * self._sampling_rate)
 
-                    chi2_dt1 = np.sum((np.roll(rec_trace, math.ceil(-1*dt1)) - data_trace_timing_1)**2 / ((self._Vrms)**2))/len(rec_trace)
-                    dt2 = np.argmax(corr) - (len(corr)/2)
-                    chi2_dt2 = np.sum((np.roll(rec_trace, math.ceil(-1*dt2)) - data_trace_timing_1)**2 / ((self._Vrms)**2))/len(rec_trace)
+                    max_cor = np.arange(corr_window_start,corr_window_end, 1)[np.argmax(corr[corr_window_start:corr_window_end])]
+                    dt = max_cor - (len(corr)/2) + 1
+                    rec_trace_1 = np.roll(rec_trace, math.ceil(-dt + len(corr)/2))[:len(data_trace_timing_1)]
+                    chi2_dt1 = np.sum((rec_trace_1  - data_trace_timing_1)**2 )/ ((self._Vrms)**2)/len(rec_trace)
+                    rec_trace_2 = np.roll(rec_trace, math.ceil(-dt + len(corr)/2 - 1))[:len(data_trace_timing_1)]
+                    chi2_dt2 = np.sum((rec_trace_2 - data_trace_timing_1)**2) / ((self._Vrms)**2)/len(rec_trace)
                     if chi2_dt2 < chi2_dt1:
-                        dt = dt2
+                        dt = dt -1
                     else:
-                        dt = dt1
+                        dt = dt
 
                     dict_dt[channel_id][i_trace] = dt
 
@@ -869,8 +873,11 @@ class neutrinoDirectionReconstructor:
                                         dict_dt[channel_id][trace_ref] = dict_dt[ch_Vpol][trace_ref]
 
 
-                            dt = dict_dt[channel_id][i_trace]
-                            rec_trace = np.roll(rec_trace, math.ceil(-1*dt))
+                            dt = dict_dt[channel_id][i_trace]   
+                            rec_trace = np.roll(rec_trace, math.ceil(-dt + len(corr)/2))[:len(data_trace_timing_1)]
+                            
+                      
+
 
                             #### select fitting time-window ####
                             if channel_id in self._Hpol_channels:
@@ -883,6 +890,8 @@ class neutrinoDirectionReconstructor:
                                 data_traces[channel_id][i_trace] = np.zeros(int(80 * self._sampling_rate))
                                 data_timing[channel_id][i_trace] = np.zeros(int(80 * self._sampling_rate))
                                 continue
+
+                        
                             rec_trace = rec_trace[indices]
                             data_trace_timing = data_trace_timing[indices]
                             data_timing_timing = data_timing_timing[indices]
@@ -912,36 +921,36 @@ class neutrinoDirectionReconstructor:
 
                             # compute chi squared. We take the mean rather than the sum to avoid an unjustified preference
                             # for traces which are only partially contained in the data window
-                            chi2s[i_trace] = np.mean((rec_trace - data_trace_timing)**2 / ((Vrms+abs(data_trace_timing))**2))
+                            chi2s[i_trace] = np.mean((rec_trace - data_trace_timing)**2 / ((Vrms)**2))
 
                             if (single_pulse):
                                 if ((channel_id == ch_Vpol) and (i_trace == trace_ref)):
-                                    reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+abs(data_trace_timing))**2))/len(rec_trace)
-                                    Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+abs(data_trace_timing))**2))/len(rec_trace)
+                                    reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms)**2))/len(rec_trace)
+                                    Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms)**2))/len(rec_trace)
                                 dof_channel += 1
 
                             elif (self._single_pulse_fit) and (i_trace == trace_ref): #use only 1 Vpol and 1 Hpol as input channels!
                                 if ((channel_id == ch_Vpol) and (i_trace == trace_ref)):
-                                    reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+abs(data_trace_timing))**2))/len(rec_trace)
-                                    Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+abs(data_trace_timing))**2))/len(rec_trace)
+                                    reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms)**2))/len(rec_trace)
+                                    Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms)**2))/len(rec_trace)
                                 if ((channel_id == ch_Hpol) and (i_trace == trace_ref)):
-                                    reduced_chi2_Hpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+abs(data_trace_timing))**2))/len(rec_trace)
-                                    Hpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+abs(data_trace_timing))**2))/len(rec_trace)
+                                    reduced_chi2_Hpol = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms)**2))/len(rec_trace)
+                                    Hpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms)**2))/len(rec_trace)
                                 dof_channel += 1
                             elif ((channel_id in self._PA_channels) and (i_trace == trace_ref) and starting_values) and not self._single_pulse_fit: #PA_cluster_channels contains all channels that are definitely included in the fit and for which the timings are fixed.
                                 if channel_id == ch_Vpol:
-                                    reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+abs(data_trace_timing))**2))/len(rec_trace)
-                                    Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+abs(data_trace_timing))**2))/len(rec_trace)
+                                    reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms)**2))/len(rec_trace)
+                                    Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms)**2))/len(rec_trace)
 
                                 dof_channel += 1
                                 echannel[i_trace] = 1
                             elif ((channel_id in self._PA_cluster_channels) and (i_trace == trace_ref) and not starting_values and not self._single_pulse_fit):
                                 if channel_id == ch_Vpol:
-                                    reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+abs(data_trace_timing))**2))/len(rec_trace)
-                                    Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+abs(data_trace_timing))**2))/len(rec_trace)
+                                    reduced_chi2_Vpol = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms)**2))/len(rec_trace)
+                                    Vpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms)**2))/len(rec_trace)
                                 if channel_id == ch_Hpol:
-                                    reduced_chi2_Hpol = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms_Hpol)**2))/len(rec_trace)
-                                    Hpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((self._Vrms+abs(data_trace_timing))**2))/len(rec_trace)
+                                    reduced_chi2_Hpol = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms)**2))/len(rec_trace)
+                                    Hpol_ref = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms)**2))/len(rec_trace)
 
                                 dof_channel += 1
                                 echannel[i_trace] = 1
