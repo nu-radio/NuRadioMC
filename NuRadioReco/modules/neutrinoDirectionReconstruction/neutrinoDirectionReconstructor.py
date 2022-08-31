@@ -672,7 +672,7 @@ class neutrinoDirectionReconstructor:
 
         """
 
-     
+
 
         if banana: ## if input is viewing angle and energy, they need to be transformed to zenith and azimuth
             if len(params) ==3:
@@ -693,7 +693,7 @@ class neutrinoDirectionReconstructor:
 
             if np.rad2deg(zenith) > 120:
                 return np.inf ## not in field of view
-        
+
 
         else:
             if len(params) ==3:
@@ -793,18 +793,18 @@ class neutrinoDirectionReconstructor:
                         data_trace_timing_1[mask] = data_trace_timing[first_sample:include_samples[-1] + 1]
                     data_timing_timing = data_timing_timing_1
                     corr = signal.correlate(rec_trace, data_trace_timing_1)
-                    
+
                     corr_window_start = 0#int(len(corr)/2 - 30 * self._sampling_rate)
                     corr_window_end = len(corr)#int(len(corr)/2 + 30 * self._sampling_rate)
 
                     max_cor = np.arange(corr_window_start,corr_window_end, 1)[np.argmax(corr[corr_window_start:corr_window_end])]
-                    dt = max_cor - (len(corr)/2) + 1
+                    dt = max_cor - len(corr)/2
                     rec_trace_1 = np.roll(rec_trace, math.ceil(-dt + len(corr)/2))[:len(data_trace_timing_1)]
                     chi2_dt1 = np.sum((rec_trace_1  - data_trace_timing_1)**2 )/ ((self._Vrms)**2)/len(rec_trace)
                     rec_trace_2 = np.roll(rec_trace, math.ceil(-dt + len(corr)/2 - 1))[:len(data_trace_timing_1)]
                     chi2_dt2 = np.sum((rec_trace_2 - data_trace_timing_1)**2) / ((self._Vrms)**2)/len(rec_trace)
                     if chi2_dt2 < chi2_dt1:
-                        dt = dt -1
+                        dt = dt + 1
                     else:
                         dt = dt
 
@@ -873,10 +873,10 @@ class neutrinoDirectionReconstructor:
                                         dict_dt[channel_id][trace_ref] = dict_dt[ch_Vpol][trace_ref]
 
 
-                            dt = dict_dt[channel_id][i_trace]   
+                            dt = dict_dt[channel_id][i_trace]
                             rec_trace = np.roll(rec_trace, math.ceil(-dt + len(corr)/2))[:len(data_trace_timing_1)]
-                            
-                      
+
+
 
 
                             #### select fitting time-window ####
@@ -891,7 +891,7 @@ class neutrinoDirectionReconstructor:
                                 data_timing[channel_id][i_trace] = np.zeros(int(80 * self._sampling_rate))
                                 continue
 
-                        
+
                             rec_trace = rec_trace[indices]
                             data_trace_timing = data_trace_timing[indices]
                             data_timing_timing = data_timing_timing[indices]
