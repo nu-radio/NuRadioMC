@@ -546,9 +546,27 @@
   <h1>Source code for NuRadioMC.utilities.attenuation</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+<span class="kn">import</span> <span class="nn">scipy.interpolate</span>
+<span class="kn">import</span> <span class="nn">os</span>
 
-<span class="n">model_to_int</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;SP1&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;GL1&quot;</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;MB1&quot;</span> <span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;GL2&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">}</span>
+<span class="n">model_to_int</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;SP1&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;GL1&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;MB1&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;GL2&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;GL3&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
 
+<span class="n">gl3_parameters</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;data/GL3_params.csv&#39;</span><span class="p">),</span>
+            <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span>
+        <span class="p">)</span>
+<span class="n">gl3_slope_interpolation</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span>
+    <span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">fill_value</span><span class="o">=</span><span class="p">(</span><span class="n">gl3_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="p">)</span>
+<span class="n">gl3_offset_interpolation</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span>
+    <span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="n">gl3_parameters</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span>
+    <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">fill_value</span><span class="o">=</span><span class="p">(</span><span class="n">gl3_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="p">)</span>
 
 <div class="viewcode-block" id="fit_GL1"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.attenuation.html#NuRadioMC.utilities.attenuation.fit_GL1">[docs]</a><span class="k">def</span> <span class="nf">fit_GL1</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -609,7 +627,10 @@
 <span class="sd">        </span>
 <span class="sd">        * SP1: South Pole model, see various compilation</span>
 <span class="sd">        * GL1: Greenland model, see https://arxiv.org/abs/1409.5413</span>
-<span class="sd">        * GL2: 2021 Greenland model, see: https://arxiv.org/abs/2201.07846</span>
+<span class="sd">        * GL2: 2021 Greenland model, using the Bogorodsky model for depth dependence</span>
+<span class="sd">                see: https://arxiv.org/abs/2201.07846, specifically Fig. 7</span>
+<span class="sd">        * GL3: 2021 Greenland model, using the MacGregor model for depth dependence</span>
+<span class="sd">                see: https://arxiv.org/abs/2201.07846, specifically Fig. 7</span>
 <span class="sd">        * MB1: Moore&#39;s Bay Model, from 10.3189/2015JoG14J214 and</span>
 <span class="sd">            Phd Thesis C. Persichilli (depth dependence)</span>
 <span class="sd">        </span>
@@ -668,6 +689,12 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">att_length_f</span><span class="p">[</span><span class="n">att_length_f</span> <span class="o">&lt;</span> <span class="n">min_length</span><span class="p">]</span> <span class="o">=</span> <span class="n">min_length</span>
         <span class="k">return</span> <span class="n">att_length_f</span>
+
+    <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;GL3&#39;</span><span class="p">:</span>
+
+        <span class="n">slopes</span> <span class="o">=</span> <span class="n">gl3_slope_interpolation</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">)</span>
+        <span class="n">offsets</span> <span class="o">=</span> <span class="n">gl3_offset_interpolation</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">slopes</span> <span class="o">*</span> <span class="n">frequency</span> <span class="o">+</span> <span class="n">offsets</span>
 
 
     <span class="k">elif</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;MB1&quot;</span><span class="p">):</span>
