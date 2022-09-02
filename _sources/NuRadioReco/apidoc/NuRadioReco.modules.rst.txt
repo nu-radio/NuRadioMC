@@ -48,6 +48,7 @@ Submodules
    NuRadioReco.modules.correlationDirectionFitter
    NuRadioReco.modules.cosmicRayEnergyReconstructor
    NuRadioReco.modules.efieldAirToIcePropagator
+   NuRadioReco.modules.efieldRadioInterferometricReconstruction
    NuRadioReco.modules.efieldTimeDirectionFitter
    NuRadioReco.modules.efieldToVoltageConverter
    NuRadioReco.modules.efieldToVoltageConverterPerEfield

@@ -277,6 +277,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.correlationDirectionFitter.html">NuRadioReco.modules.correlationDirectionFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.cosmicRayEnergyReconstructor.html">NuRadioReco.modules.cosmicRayEnergyReconstructor module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldAirToIcePropagator.html">NuRadioReco.modules.efieldAirToIcePropagator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html">NuRadioReco.modules.efieldRadioInterferometricReconstruction module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldTimeDirectionFitter.html">NuRadioReco.modules.efieldTimeDirectionFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverter.html">NuRadioReco.modules.efieldToVoltageConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverterPerEfield.html">NuRadioReco.modules.efieldToVoltageConverterPerEfield module</a></li>
@@ -326,6 +327,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.fft.html">NuRadioReco.utilities.fft module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.geometryUtilities.html">NuRadioReco.utilities.geometryUtilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.ice.html">NuRadioReco.utilities.ice module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html">NuRadioReco.utilities.interferometry module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.io_utilities.html">NuRadioReco.utilities.io_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
@@ -565,7 +567,8 @@
 <span class="sd">    Returns the antenna response to a radio signal coming from a specific direction</span>
 
 <span class="sd">    Parameters</span>
-<span class="sd">    ---------------</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
 <span class="sd">    station: Station</span>
 <span class="sd">    frequencies: array of complex</span>
 <span class="sd">        frequencies of the radio signal for which the antenna response is needed</span>
@@ -614,7 +617,8 @@
 <span class="sd">    Returns the voltage traces that would result in the channels from the station&#39;s E-field.</span>
 
 <span class="sd">    Parameters</span>
-<span class="sd">    ------------------------</span>
+<span class="sd">    ----------</span>
+
 <span class="sd">    station: Station</span>
 <span class="sd">    electric_field: ElectricField</span>
 <span class="sd">    channels: array of int</span>
@@ -664,6 +668,7 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
+<span class="sd">    </span>
 <span class="sd">    trace: array of floats</span>
 <span class="sd">        Trace to be upsampled</span>
 <span class="sd">    original_sampling_frequency: float</span>
@@ -711,6 +716,7 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
+
 <span class="sd">    trace: array of floats</span>
 <span class="sd">        Trace to be filtered</span>
 <span class="sd">    sampling_frequency: float</span>
@@ -721,7 +727,8 @@
 <span class="sd">        Filter order</span>
 
 <span class="sd">    Returns</span>
-<span class="sd">    ------</span>
+<span class="sd">    -------</span>
+
 <span class="sd">    filtered_trace: array of floats</span>
 <span class="sd">        The filtered trace</span>
 <span class="sd">    &quot;&quot;&quot;</span>

@@ -1,0 +1,7 @@
+NuRadioReco.modules.efieldRadioInterferometricReconstruction module
+===================================================================
+
+.. automodule:: NuRadioReco.modules.efieldRadioInterferometricReconstruction
+   :members:
+   :undoc-members:
+   :show-inheritance:

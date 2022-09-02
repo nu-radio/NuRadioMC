@@ -277,6 +277,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.correlationDirectionFitter.html">NuRadioReco.modules.correlationDirectionFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.cosmicRayEnergyReconstructor.html">NuRadioReco.modules.cosmicRayEnergyReconstructor module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldAirToIcePropagator.html">NuRadioReco.modules.efieldAirToIcePropagator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html">NuRadioReco.modules.efieldRadioInterferometricReconstruction module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldTimeDirectionFitter.html">NuRadioReco.modules.efieldTimeDirectionFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverter.html">NuRadioReco.modules.efieldToVoltageConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverterPerEfield.html">NuRadioReco.modules.efieldToVoltageConverterPerEfield module</a></li>
@@ -326,6 +327,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.fft.html">NuRadioReco.utilities.fft module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.geometryUtilities.html">NuRadioReco.utilities.geometryUtilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.ice.html">NuRadioReco.utilities.ice module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html">NuRadioReco.utilities.interferometry module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.io_utilities.html">NuRadioReco.utilities.io_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
@@ -588,9 +590,18 @@
         <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span></div>
 
 <div class="viewcode-block" id="BaseShower.get_axis"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower.get_axis">[docs]</a>    <span class="k">def</span> <span class="nf">get_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; </span>
-<span class="sd">        Returns shower axis. Axis points towards the shower origin, i.e., is antiparallel to the (primary) particle trajectory. </span>
-<span class="sd">        The azimuth and zenith angle has to be set (parameters.showerParameters). </span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the (shower) axis. </span>
+<span class="sd">        </span>
+<span class="sd">        The axis is antiparallel to the movement of the shower particla and point</span>
+<span class="sd">        towards the origin of the shower.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        np.array(3,)  </span>
+<span class="sd">            Shower axis</span>
+<span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span> <span class="ow">or</span> \
            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">):</span>
@@ -604,8 +615,17 @@
 
 <div class="viewcode-block" id="BaseShower.get_coordinatesystem"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower.get_coordinatesystem">[docs]</a>    <span class="k">def</span> <span class="nf">get_coordinatesystem</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; </span>
-<span class="sd">        Returns radiotools.coordinatesystem.cstrafo. Can be used to transform the radio pulses or the observer coordiates in the shower frame.</span>
-<span class="sd">        Requieres the shower arrival direction (azimuth and zenith angle) and magnetic field vector (parameters.showerParameters).</span>
+<span class="sd">        Returns radiotools.coordinatesystem.cstrafo for shower geometry.</span>
+<span class="sd">        </span>
+<span class="sd">        Can be used to transform the radio pulses or the observer coordiates</span>
+<span class="sd">        in the shower frame. Requieres the shower arrival direction </span>
+<span class="sd">        (azimuth and zenith angle) and magnetic field vector (parameters.showerParameters).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        radiotools.coordinatesystem.cstrafo</span>
+<span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span> <span class="ow">or</span> \
            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span> <span class="ow">or</span> \

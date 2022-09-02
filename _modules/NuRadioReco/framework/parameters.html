@@ -277,6 +277,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.correlationDirectionFitter.html">NuRadioReco.modules.correlationDirectionFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.cosmicRayEnergyReconstructor.html">NuRadioReco.modules.cosmicRayEnergyReconstructor module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldAirToIcePropagator.html">NuRadioReco.modules.efieldAirToIcePropagator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html">NuRadioReco.modules.efieldRadioInterferometricReconstruction module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldTimeDirectionFitter.html">NuRadioReco.modules.efieldTimeDirectionFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverter.html">NuRadioReco.modules.efieldToVoltageConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverterPerEfield.html">NuRadioReco.modules.efieldToVoltageConverterPerEfield module</a></li>
@@ -326,6 +327,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.fft.html">NuRadioReco.utilities.fft module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.geometryUtilities.html">NuRadioReco.utilities.geometryUtilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.ice.html">NuRadioReco.utilities.ice module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html">NuRadioReco.utilities.interferometry module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.io_utilities.html">NuRadioReco.utilities.io_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
@@ -655,7 +657,11 @@
     <span class="n">vertex_time</span> <span class="o">=</span> <span class="mi">108</span>  <span class="c1"># the propagation time relative to the first interactions</span>
     <span class="n">interaction_type</span> <span class="o">=</span> <span class="mi">109</span>  <span class="c1"># the interaction type, e.g. cc or nc</span>
     <span class="n">k_L</span> <span class="o">=</span> <span class="mi">110</span>  <span class="c1"># the k_L parameter of the Alvarez2009 parameter that controls the longitudional width of the charge excess profile</span>
-    <span class="n">flavor</span> <span class="o">=</span> <span class="mi">111</span>  <span class="c1"># the flavor of the particle initiating the shower</span></div>
+    <span class="n">flavor</span> <span class="o">=</span> <span class="mi">111</span>  <span class="c1"># the flavor of the particle initiating the shower</span>
+
+    <span class="n">interferometric_shower_maximum</span> <span class="o">=</span> <span class="mi">120</span>  <span class="c1"># depth of the maximum of the longitudinal profile of the beam-formed signal</span>
+    <span class="n">interferometric_shower_axis</span> <span class="o">=</span> <span class="mi">121</span>  <span class="c1"># shower axis (direction) derived from beam-formed signal</span>
+    <span class="n">interferometric_core</span> <span class="o">=</span> <span class="mi">122</span>  <span class="c1"># core (intersection of shower axis with obs plane) derived from beam-formed signal</span></div>
 
 <div class="viewcode-block" id="particleParameters"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.particleParameters">[docs]</a><span class="k">class</span> <span class="nc">particleParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="n">parent_id</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># the entry number of the parent particle, None if primary.</span>

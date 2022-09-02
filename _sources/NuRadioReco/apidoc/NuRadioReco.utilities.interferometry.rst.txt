@@ -1,0 +1,7 @@
+NuRadioReco.utilities.interferometry module
+===========================================
+
+.. automodule:: NuRadioReco.utilities.interferometry
+   :members:
+   :undoc-members:
+   :show-inheritance:

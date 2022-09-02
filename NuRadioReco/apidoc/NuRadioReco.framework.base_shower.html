@@ -280,6 +280,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.correlationDirectionFitter.html">NuRadioReco.modules.correlationDirectionFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.cosmicRayEnergyReconstructor.html">NuRadioReco.modules.cosmicRayEnergyReconstructor module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.efieldAirToIcePropagator.html">NuRadioReco.modules.efieldAirToIcePropagator module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.efieldRadioInterferometricReconstruction.html">NuRadioReco.modules.efieldRadioInterferometricReconstruction module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.efieldTimeDirectionFitter.html">NuRadioReco.modules.efieldTimeDirectionFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.efieldToVoltageConverter.html">NuRadioReco.modules.efieldToVoltageConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.efieldToVoltageConverterPerEfield.html">NuRadioReco.modules.efieldToVoltageConverterPerEfield module</a></li>
@@ -329,6 +330,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.fft.html">NuRadioReco.utilities.fft module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.geometryUtilities.html">NuRadioReco.utilities.geometryUtilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.ice.html">NuRadioReco.utilities.ice module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.interferometry.html">NuRadioReco.utilities.interferometry module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.io_utilities.html">NuRadioReco.utilities.io_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
@@ -563,10 +565,10 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.get_axis" title="NuRadioReco.framework.base_shower.BaseShower.get_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_axis</span></code></a>()</p></td>
-<td><p>Returns shower axis.</p></td>
+<td><p>Returns the (shower) axis.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.base_shower.BaseShower.get_coordinatesystem" title="NuRadioReco.framework.base_shower.BaseShower.get_coordinatesystem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_coordinatesystem</span></code></a>()</p></td>
-<td><p>Returns radiotools.coordinatesystem.cstrafo.</p></td>
+<td><p>Returns radiotools.coordinatesystem.cstrafo for shower geometry.</p></td>
 </tr>
 </tbody>
 </table>
@@ -604,15 +606,33 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.get_axis">
 <span class="sig-name descname"><span class="pre">get_axis</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_shower.html#BaseShower.get_axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.get_axis" title="Permalink to this definition"></a></dt>
-<dd><p>Returns shower axis. Axis points towards the shower origin, i.e., is antiparallel to the (primary) particle trajectory. 
-The azimuth and zenith angle has to be set (parameters.showerParameters).</p>
+<dd><p>Returns the (shower) axis.</p>
+<p>The axis is antiparallel to the movement of the shower particla and point
+towards the origin of the shower.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>np.array(3,)</dt><dd><p>Shower axis</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_shower.BaseShower.get_coordinatesystem">
 <span class="sig-name descname"><span class="pre">get_coordinatesystem</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_shower.html#BaseShower.get_coordinatesystem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_shower.BaseShower.get_coordinatesystem" title="Permalink to this definition"></a></dt>
-<dd><p>Returns radiotools.coordinatesystem.cstrafo. Can be used to transform the radio pulses or the observer coordiates in the shower frame.
-Requieres the shower arrival direction (azimuth and zenith angle) and magnetic field vector (parameters.showerParameters).</p>
+<dd><p>Returns radiotools.coordinatesystem.cstrafo for shower geometry.</p>
+<p>Can be used to transform the radio pulses or the observer coordiates
+in the shower frame. Requieres the shower arrival direction 
+(azimuth and zenith angle) and magnetic field vector (parameters.showerParameters).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>radiotools.coordinatesystem.cstrafo</dt><dd></dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
