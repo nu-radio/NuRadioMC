@@ -66,16 +66,18 @@ class rayTypeSelecter:
 
 
 
-        if debug_plots: fig, axs = plt.subplots(3, figsize = (10, 10))
-        if debug_plots: iax = 0
+        if debug_plots:
+            fig, axs = plt.subplots(3, figsize = (10, 10))
+            iax = 0
         #### determine position of pulse
         T_ref = np.zeros(3)
         max_totalcorr= np.zeros(3)
-        position_max_totaltrace = np.zeros(3)
         pos_max = np.zeros(3)
         for raytype in [1,2,3]:
             type_exist = 0
             total_trace = np.zeros(len(station.get_channel(0).get_trace()))
+            traces = dict()
+            time_shifts = dict()
             if template is not None:
                 # pad template if it is too short (probably not needed?)
                 if (len(template) < len(total_trace)):
@@ -91,48 +93,62 @@ class rayTypeSelecter:
                     r.find_solutions()
                     for iS in range(r.get_number_of_solutions()):
                         if r.get_solution_type(iS) == raytype:
-                           type_exist= 1
-                           T = r.get_travel_time(iS)
-                           if channel_id == use_channels[0]:
-                               T_ref[iS] = T
-                               trace_start_time_ref = channel.get_trace_start_time()
+                            type_exist= 1
+                            T = r.get_travel_time(iS)
+                            if channel_id == use_channels[0]:
+                                T_ref[iS] = T
+                                trace_start_time_ref = channel.get_trace_start_time()
 
-                           dt = T - T_ref[iS] - (channel.get_trace_start_time() - trace_start_time_ref)
-                           dn_samples = -1*dt * sampling_rate
-                           dn_samples = math.ceil(dn_samples)
-                           cp_trace = np.copy(channel.get_trace())
+                            dt = T - T_ref[iS] - (channel.get_trace_start_time() - trace_start_time_ref)
+                            dn_samples = -1*dt * sampling_rate
+                            dn_samples = math.ceil(dn_samples)
+                            cp_trace = np.copy(channel.get_trace())
+                            cp_trace_roll = np.roll(cp_trace, dn_samples)
+                            corr = scipy.signal.correlate(cp_trace_roll*(1/(max(cp_trace_roll))), template*(1/(max(template))))
+                            corr_total += abs(corr)
 
-                           cp_trace_roll = np.roll(cp_trace, dn_samples)
-                           corr = scipy.signal.correlate(cp_trace_roll*(1/(max(cp_trace_roll))), template*(1/(max(template))))
+                            time_shifts[channel_id] = dn_samples
+                            traces[channel_id] = cp_trace
 
-                           corr_total += abs(corr)
-                           dt = np.argmax(corr) - (len(corr)/2) +1
-                           template_roll = np.roll(template, int(dt))
-                           if channel_id == use_channels[0]: ## position for reference pulse
-                                position_max_totaltrace = np.argmax(template_roll)
-                           cp_trace[np.arange(len(cp_trace)) < (position_max_totaltrace - 20 * sampling_rate)] = 0
-                           cp_trace[np.arange(len(cp_trace)) > (position_max_totaltrace + 30 * sampling_rate)] = 0
-                           trace = np.roll(cp_trace, dn_samples)
-                           total_trace += trace
-                           pos_max[raytype-1] = np.argmax(abs(total_trace))
-                           if debug_plots: axs[iax].plot(trace, color = 'darkgrey', lw =2)
-                           if debug_plots:
-                               if channel_id == use_channels[-1]:
-                                   axs[iax].plot(total_trace, lw = 2, color = 'darkgreen', label= 'combined trace')
+            if not type_exist:
+                continue # no solutions for this ray type
 
-                                   axs[iax].legend(loc = 1, fontsize= 20)
-                                   for tick in axs[iax].yaxis.get_majorticklabels():
-                                       tick.set_fontsize(20)
-                                   for tick in axs[iax].xaxis.get_majorticklabels():
-                                       tick.set_fontsize(20)
-                                   for tick in axs[2].yaxis.get_majorticklabels():
-                                       tick.set_fontsize(20)
-                                   for tick in axs[2].xaxis.get_majorticklabels():
-                                       tick.set_fontsize(20)
+            # we determine the approximate position of the pulse max
+            # by summing the shifted data traces
+            dt = np.argmax(corr_total) - len(corr_total)/2 + 1
+            template_roll = np.roll(template, int(dt))
+            position_max = np.argmax(template_roll)
+            for channel_id in traces.keys():
+                cp_trace = traces[channel_id]
+                dn_samples = time_shifts[channel_id]
+                # restrict to a 50 ns window around the expected pulse to avoid accidental maxima
+                cp_trace[np.arange(len(cp_trace)) < (position_max - 20 * sampling_rate)] = 0
+                cp_trace[np.arange(len(cp_trace)) > (position_max + 30 * sampling_rate)] = 0
+                trace = np.roll(cp_trace, dn_samples)
+                total_trace += trace
+
+                if debug_plots:
+                    axs[iax].plot(trace, color = 'darkgrey', lw =2, alpha=.75)
+
+            hilbert_envelope = np.abs(scipy.signal.hilbert(total_trace))
+            pos_max[raytype-1] = np.argmax(hilbert_envelope)
             if debug_plots and type_exist:
+                axs[iax].plot(total_trace, lw = 2, color = 'darkgreen', label= 'combined trace')
+                axs[iax].plot(hilbert_envelope, lw = 2, color = 'darkgreen', ls =':')
+
+                axs[iax].legend(loc = 1, fontsize= 20)
+                for tick in axs[iax].yaxis.get_majorticklabels():
+                    tick.set_fontsize(20)
+                for tick in axs[iax].xaxis.get_majorticklabels():
+                    tick.set_fontsize(20)
+                for tick in axs[2].yaxis.get_majorticklabels():
+                    tick.set_fontsize(20)
+                for tick in axs[2].xaxis.get_majorticklabels():
+                    tick.set_fontsize(20)
+
                 axs[iax].set_title("raytype: {}".format(['direct', 'refracted', 'reflected'][raytype-1]), fontsize = 40)
                 axs[iax].grid()
-                axs[iax].set_xlim((position_max_totaltrace - 40*sampling_rate, position_max_totaltrace + 40*sampling_rate))
+                axs[iax].set_xlim((position_max - 40*sampling_rate, position_max + 40*sampling_rate))
                 axs[iax].set_xlabel("samples", fontsize = 25)
                 iax += 1
 
