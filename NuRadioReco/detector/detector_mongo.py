@@ -134,7 +134,6 @@ class Detector(object):
                                      'last_updated': datetime.datetime.utcnow()
                                  }}})
 
-    #TODO: update to the new structure (update primary is inside measurements)
     def update_primary(self, type, name):
         """
         updates the primary_measurement of previous entries to False
@@ -147,9 +146,11 @@ class Detector(object):
             the unique identifier of the input unit
         """
 
-        self.db[type].update_one({'name': name},
-                                {"$set": {"primary_measurement": False}})
-
+        # self.db[type].update_one({'name': name}, {"$set": {'measurements.0': {"primary_measurement": False}}})
+        for i in range(len(self.db[type].find_one({'name': name})['measurements'])):
+            measurement_name = f'measurements.{i}.primary_measurement'
+            self.db[type].update_one({'name': name}, {"$set": {measurement_name: False}})
+       
     # antenna (VPol / HPol)
 
     def get_Antenna_names(self, antenna_type):
@@ -180,7 +181,8 @@ class Detector(object):
             list of the input units (only y unit will be saved)
         """
         # create an entry with the name and function test
-        self.db[antenna_type].insert_one({'name': antenna_name, 'function_test': True})
+        if antenna_name not in self.db[antenna_type].distinct('name'):
+            self.db[antenna_type].insert_one({'name': antenna_name, 'function_test': True})
         # update the entry with the measurement
         for spara in S_parameter:
             self.db[antenna_type].update_one({'name': antenna_name},
@@ -225,7 +227,8 @@ class Detector(object):
         """
 
         # create an entry with the name and function test
-        self.db[cable_type].insert_one({'name': cable_name, 'function_test': True})
+        if cable_name not in self.db[cable_type].distinct('name'):
+            self.db[cable_type].insert_one({'name': cable_name, 'function_test': True})
         # update the entry with the measurement
         for spara in S_parameter:
             self.db[cable_type].update_one({'name': cable_name},
@@ -289,7 +292,8 @@ class Detector(object):
 
         """
         # create an entry with the name and function test
-        self.db[page_name].insert_one({'name': board_name, 'function_test': True})
+        if board_name not in self.db[page_name].distinct('name'):
+            self.db[page_name].insert_one({'name': board_name, 'function_test': True})
         # update the entry with the measurement
         for i, spara in enumerate(S_names):
             self.db[page_name].update_one({'name': board_name},
@@ -344,7 +348,8 @@ class Detector(object):
 
         """
         # create an entry with the name and function test
-        self.db[page_name].insert_one({'name': board_name, 'function_test': True})
+        if board_name not in self.db[page_name].distinct('name'):
+            self.db[page_name].insert_one({'name': board_name, 'function_test': True})
         # update the entry with the measurement
         for i, spara in enumerate(S_names):
             self.db[page_name].update_one({'name': board_name},
@@ -400,7 +405,8 @@ class Detector(object):
 
         """
         # create an entry with the name and function test
-        self.db[page_name].insert_one({'name': board_name, 'function_test': True})
+        if board_name not in self.db[page_name].distinct('name'):
+            self.db[page_name].insert_one({'name': board_name, 'function_test': True})
         # update the entry with the measurement
         for i, spara in enumerate(S_names):
             self.db[page_name].update_one({'name': board_name},
@@ -454,7 +460,8 @@ class Detector(object):
 
         """
         # create an entry with the name and function test
-        self.db[page_name].insert_one({'name': board_name, 'function_test': True})
+        if board_name not in self.db[page_name].distinct('name'):
+            self.db[page_name].insert_one({'name': board_name, 'function_test': True})
         # update the entry with the measurement
         for i, spara in enumerate(S_names):
             self.db[page_name].update_one({'name': board_name},
