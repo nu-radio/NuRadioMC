@@ -123,3 +123,10 @@ venv.bak/
 # ignore .nur files in NuRadioReco/examples/
 # this should not apply for NuRadioReco/examples/example_data/
 NuRadioReco/examples/*.nur
+
+# ignore test output (not include input files here!)
+NuRadioMC/test/SingleEvents/1e18_output.nur
+NuRadioMC/test/SingleEvents/1e18_output_ARZ.hdf5
+NuRadioMC/test/SingleEvents/1e18_output_noise.hdf5
+NuRadioMC/test/SingleEvents/MB_1e18_output.hdf5
+NuRadioMC/test/Veff/1e18eV/output.nur
