@@ -455,7 +455,7 @@ def insert_iglu_to_db(page_name, s_names, iglu_name, data, input_units, working,
         det.set_not_working(page_name, iglu_name)
     else:
         if primary and iglu_name in det.get_board_names(page_name):
-            det.update_primary(page_name, iglu_name)
+            det.update_primary(page_name, iglu_name, temp)
         det.iglu_add_Sparameters(page_name, s_names, iglu_name, drab_id, laser_id, temp, data, measurement_time, primary, time_delay, protocol, input_units)
 
 
@@ -572,7 +572,7 @@ def insert_drab_to_db(page_name, s_names, drab_name, data, input_units, working,
         det.set_not_working(page_name, drab_name)
     else:
         if primary and drab_name in det.get_board_names(page_name):
-            det.update_primary(page_name, drab_name)
+            det.update_primary(page_name, drab_name, temp)
         det.drab_add_Sparameters(page_name, s_names, drab_name, iglu_id, photodiode_id, int(channel_id), temp, data, measurement_time, primary, time_delay, protocol, input_units)
 
 # SURFACE
@@ -666,11 +666,11 @@ def validate_global_surface(page_name, container_bottom, surface_name, new_surfa
 def insert_surface_to_db(page_name, s_names, surface_name, data, input_units, working, primary, protocol, channel_id, temp, measurement_time, time_delay):
     if not working:
         if primary and surface_name in det.get_board_names(page_name):
-            det.update_primary(page_name, surface_name)
+            det.update_primary(page_name, surface_name, temp)
         det.set_not_working(page_name, surface_name)
     else:
         if primary and surface_name in det.get_board_names(page_name):
-            det.update_primary(page_name, surface_name)
+            det.update_primary(page_name, surface_name, temp)
         det.surface_add_Sparameters(page_name, s_names, surface_name, int(channel_id), temp, data, measurement_time, primary, time_delay, protocol, input_units)
 
 # downhole
@@ -798,9 +798,9 @@ def validate_global_downhole(page_name, container_bottom, surface_name, new_surf
 def insert_downhole_to_db(page_name, s_names, downhole_name, data, input_units, working, primary, protocol, breakout_id, breakout_cha_id, iglu_id, drab_id, temp, measurement_time, time_delay):
     if not working:
         if primary and downhole_name in det.get_board_names(page_name):
-            det.update_primary(page_name, downhole_name)
+            det.update_primary(page_name, downhole_name, temp)
         det.set_not_working(page_name, downhole_name)
     else:
         if primary and downhole_name in det.get_board_names(page_name):
-            det.update_primary(page_name, downhole_name)
+            det.update_primary(page_name, downhole_name, temp)
         det.downhole_add_Sparameters(page_name, s_names, downhole_name, int(breakout_id), breakout_cha_id, iglu_id, drab_id, temp, data, measurement_time, primary, time_delay, protocol, input_units)
