@@ -134,7 +134,7 @@ class Detector(object):
                                      'last_updated': datetime.datetime.utcnow()
                                  }}})
 
-    def update_primary(self, type, name, temperature=None):
+    def update_primary(self, type, name, temperature=None, channel_id=None):
         """
         updates the primary_measurement of previous entries to False
 
@@ -145,19 +145,29 @@ class Detector(object):
         name: string
             the unique identifier of the input unit
         temperature: int
-            temperature at which the object was measured. If no temperature is given, the default value of 1000 is given to indicate that no temperature is given
+            temperature at which the object was measured
+        channel_id: int
+            channel-id of the object
         """
-        if temperature is None:
-            for i in range(len(self.db[type].find_one({'name': name})['measurements'])):
-                measurement_name = f'measurements.{i}.primary_measurement'
-                self.db[type].update_one({'name': name}, {"$set": {measurement_name: False}})
-        else:
+        if temperature is None and channel_id is None:
+            self.db[type].update_one({'name': name},
+                                     {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+                                     array_filters=[{"updateIndex.primary_measurement": True}])
+        elif temperature is not None and channel_id is None:
             # a measured temperature is given, only update the entries with the same temperature
-            for i in range(len(self.db[type].find_one({'name': name})['measurements'])):
-                measurement_name = f'measurements.{i}.primary_measurement'
-                temp_object = self.db[type].find_one({'name': name})['measurements'][i]['measurement_temp']
-                if temp_object == temperature:
-                    self.db[type].update_one({'name': name}, {"$set": {measurement_name: False}})
+            self.db[type].update_one({'name': name},
+                                     {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+                                     array_filters=[{"updateIndex.measurement_temp": temperature}])
+        elif temperature is None and channel_id is not None:
+            # a channel-id is given, only update the entries with the same channel-id
+            self.db[type].update_one({'name': name},
+                                     {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+                                     array_filters=[{"updateIndex.channel_id": channel_id}])
+        else:
+            # a measured temperature and channel-id is given, only update the entries with the same temperature and channel-id
+            self.db[type].update_one({'name': name},
+                                     {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+                                     array_filters=[{"updateIndex.measurement_temp": temperature, "updateIndex.channel_id": channel_id}])
 
     # antenna (VPol / HPol)
 

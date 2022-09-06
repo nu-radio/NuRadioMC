@@ -8,7 +8,7 @@ from NuRadioReco.detector.webinterface.utils.page_config import page_configurati
 from NuRadioReco.detector.webinterface.utils.helper import build_success_page, select_surface, single_S_data_validation, create_ten_plots, validate_global_surface, insert_surface_to_db, read_measurement_time
 from NuRadioReco.utilities import units
 
-page_name = 'SURFACE'
+page_name = 'surface_board'
 s_name = ['S11', 'S12', 'S21', 'S22']
 
 

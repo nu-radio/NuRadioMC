@@ -278,11 +278,11 @@ def select_cable(page_name, main_container, warning_container_top):
     cable_types = []
     cable_stations = []
     cable_channels = []
-    if page_name == 'surfCABLE':
+    if page_name == 'surface_cable':
         cable_types=['Choose an option', '11 meter signal']
         cable_stations = ['Choose an option', 'Station 1 (11 Nanoq)', 'Station 2 (12 Terianniaq)', 'Station 3 (13 Ukaleq)', 'Station 4 (14 Tuttu)', 'Station 5 (15 Umimmak)', 'Station 6 (21 Amaroq)', 'Station 7 (22 Avinngaq)', 'Station 8 (23 Ukaliatsiaq)', 'Station 9 (24 Qappik)','Station 10 (25 Aataaq)']
         cable_channels = ['Choose an option', 'Channel 1 (0)', 'Channel 2 (1)', 'Channel 3 (2)', 'Channel 4 (3)', 'Channel 5 (4)', 'Channel 6 (5)', 'Channel 7 (6)', 'Channel 8 (7)', 'Channel 9 (8)']
-    elif page_name == 'CABLE':
+    elif page_name == 'downhole_cable':
         cable_types = ['Choose an option', 'Orange (1m)', 'Blue (2m)', 'Green (3m)', 'White (4m)', 'Brown (5m)', 'Red/Grey (6m)']
         cable_stations = ['Choose an option', 'Station 11 (Nanoq)', 'Station 12 (Terianniaq)', 'Station 13 (Ukaleq)', 'Station 14 (Tuttu)', 'Station 15 (Umimmak)', 'Station 21 (Amaroq)',
                           'Station 22 (Avinngaq)', 'Station 23 (Ukaliatsiaq)', 'Station 24 (Qappik)', 'Station 25 (Aataaq)']
@@ -358,7 +358,7 @@ def select_iglu(page_name, main_container, warning_container):
     selected_iglu_name = ''
     iglu_names = det.get_board_names(page_name)
     iglu_names.insert(0, f'new {page_name}')
-    drab_names = det.get_board_names('DRAB')
+    drab_names = det.get_board_names('drab_board')
 
     iglu_dropdown = col1_I.selectbox('Select existing board or enter unique name of new board:', iglu_names)
     if iglu_dropdown == f'new {page_name}':
@@ -467,7 +467,7 @@ def select_drab(page_name, main_container, warning_container):
     selected_drab_name = ''
     drab_names = det.get_board_names(page_name)
     drab_names.insert(0, f'new {page_name}')
-    iglu_names = det.get_board_names('IGLU')
+    iglu_names = det.get_board_names('iglu_board')
 
     drab_dropdown = col1_I.selectbox('Select existing board or enter unique name of new board:', drab_names)
     if drab_dropdown == f'new {page_name}':
@@ -572,7 +572,7 @@ def insert_drab_to_db(page_name, s_names, drab_name, data, input_units, working,
         det.set_not_working(page_name, drab_name)
     else:
         if primary and drab_name in det.get_board_names(page_name):
-            det.update_primary(page_name, drab_name, temp)
+            det.update_primary(page_name, drab_name, temp, int(channel_id))
         det.drab_add_Sparameters(page_name, s_names, drab_name, iglu_id, photodiode_id, int(channel_id), temp, data, measurement_time, primary, time_delay, protocol, input_units)
 
 # SURFACE
@@ -666,11 +666,11 @@ def validate_global_surface(page_name, container_bottom, surface_name, new_surfa
 def insert_surface_to_db(page_name, s_names, surface_name, data, input_units, working, primary, protocol, channel_id, temp, measurement_time, time_delay):
     if not working:
         if primary and surface_name in det.get_board_names(page_name):
-            det.update_primary(page_name, surface_name, temp)
+            det.update_primary(page_name, surface_name, temp, int(channel_id))
         det.set_not_working(page_name, surface_name)
     else:
         if primary and surface_name in det.get_board_names(page_name):
-            det.update_primary(page_name, surface_name, temp)
+            det.update_primary(page_name, surface_name, temp, int(channel_id))
         det.surface_add_Sparameters(page_name, s_names, surface_name, int(channel_id), temp, data, measurement_time, primary, time_delay, protocol, input_units)
 
 # downhole
@@ -716,7 +716,7 @@ def select_downhole(page_name, main_container, warning_container):
     selected_breakout_cha_id = col4_I.selectbox('', breakout_cha_ids)
 
     # if an exiting fiber is selected, change the default option to the saved IGLU
-    iglu_names = det.get_board_names('IGLU')
+    iglu_names = det.get_board_names('iglu_board')
     if selected_downhole_infos != []:
         iglu_index = iglu_names.index(selected_downhole_infos[2])
         iglu_names.pop(iglu_index)
@@ -729,7 +729,7 @@ def select_downhole(page_name, main_container, warning_container):
     selected_IGLU = col5_I.selectbox('', iglu_names)
 
     # if an exiting fiber is selected, change the default option to the saved DRAB
-    drab_names = det.get_board_names('DRAB')
+    drab_names = det.get_board_names('drab_board')
     if selected_downhole_infos != []:
         drab_index = drab_names.index(selected_downhole_infos[3])
         drab_names.pop(drab_index)
