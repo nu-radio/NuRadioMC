@@ -6,7 +6,7 @@ from NuRadioReco.detector.webinterface.utils.page_config import page_configurati
 from NuRadioReco.detector.webinterface.utils.helper import build_success_page, select_cable, single_S_data_validation, validate_global_cable, create_double_plot, insert_cable_to_db
 from NuRadioReco.utilities import units
 
-page_name = 'CABLE'
+page_name = 'downhole_cable'
 s_name = 'S21'
 
 

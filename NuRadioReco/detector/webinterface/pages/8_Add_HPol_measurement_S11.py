@@ -6,7 +6,7 @@ from NuRadioReco.detector.webinterface.utils.page_config import page_configurati
 from NuRadioReco.detector.webinterface.utils.helper import build_success_page, create_single_plot, validate_global, single_S_data_validation, select_antenna_name, insert_to_db
 from NuRadioReco.utilities import units
 
-page_name = 'HPol'
+page_name = 'hpol'
 s_name = 'S11'
 
 
