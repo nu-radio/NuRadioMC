@@ -954,61 +954,6 @@ class Detector(object):
             #self.__db[hardware_type] = dictionarize_nested_lists(matching_components, parent_key="name", nested_field=None, nested_key=None)
 
         print("done...")
-    def get_hardware_component(self, hardware_type, name):
-        """
-        get a specific hardware from the component buffer
-
-        Return
-        -------------
-        dict of hardware component properties
-        """
-
-        return self.__db[hardware_type][name]
-
-    def get_hardware_channel(self, hardware_type, name, channel=None, S_parameter="S21"):
-        """
-        get a channel for a hardware from the component buffer
-
-        Return
-        -------------
-        dict of hardware channel info
-        """
-        if name not in self.__db[hardware_type]:
-            return None
-        component = self.__db[hardware_type][name]
-        if (channel, S_parameter) not in component["measurements"]:
-            return None
-        return component["measurements"][(channel, S_parameter)]
-
-    def get_signal_ch_hardware(self, station_id, channel_id):
-        """
-        get a list of component dicts for the signal chain
-
-        Parameters
-        ---------
-        station_id: int
-            the station id
-        channel_id: int
-            the channel id
-
-        Return
-        -------------
-        list of hardware components
-        """
-
-        channel = self.get_channel(station_id, channel_id)
-        components = []
-        for component in channel["signal_ch"]:
-            print("here", component)
-            if 'channel_id' not in component:
-                component["channel_id"] = None
-
-            item = self.get_hardware_channel(component['type'], component['uname'], component['channel_id'])
-            if item is None:
-                print("hardware component missing")
-                continue
-            components.append(item)
-        return components
 
     # TODO this is probably not used, unless we want to update on a per-station level
     def _query_modification_timestamps_per_station(self):
