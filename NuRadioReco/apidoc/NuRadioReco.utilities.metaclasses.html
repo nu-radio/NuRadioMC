@@ -557,8 +557,9 @@
 <dt class="sig sig-object py" id="NuRadioReco.utilities.metaclasses.Singleton">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.metaclasses.</span></span><span class="sig-name descname"><span class="pre">Singleton</span></span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/metaclasses.html#Singleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.metaclasses.Singleton" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">type</span></code></a></p>
-<p>Can be assigned to classes as a metaclass.
-By default, only one instance of a Singleton can exist at a time, as the __call__ method is overwritten to
+<p>Can be assigned to classes as a metaclass.</p>
+<p>By default, only one instance of a Singleton can exist at a time,
+as the <code class="docutils literal notranslate"><span class="pre">__call__</span></code> method is overwritten to
 return the existing instance if one exists.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
@@ -567,8 +568,8 @@ return the existing instance if one exists.</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>([create_new])</p></td>
-<td><p>Overwrites the __call__ method to check if an instance of the class already exists and returns that instance instead of creating a new one.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>(*args, **kwargs)</p></td>
+<td><p>Overwrites the __call__ method</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">mro</span></code>(/)</p></td>
 <td><p>Return a type's method resolution order.</p></td>

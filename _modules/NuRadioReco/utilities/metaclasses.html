@@ -549,21 +549,31 @@
 <div class="viewcode-block" id="Singleton"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html#NuRadioReco.utilities.metaclasses.Singleton">[docs]</a><span></span><span class="k">class</span> <span class="nc">Singleton</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Can be assigned to classes as a metaclass.</span>
-<span class="sd">    By default, only one instance of a Singleton can exist at a time, as the __call__ method is overwritten to</span>
+
+<span class="sd">    By default, only one instance of a Singleton can exist at a time,</span>
+<span class="sd">    as the ``__call__`` method is overwritten to</span>
 <span class="sd">    return the existing instance if one exists.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_instances</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">create_new</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overwrites the __call__ method to check if an instance of the class already exists</span>
-<span class="sd">        and returns that instance instead of creating a new one.</span>
+<span class="sd">        Overwrites the __call__ method</span>
+
+<span class="sd">        Checks if an instance of the class already exists</span>
+<span class="sd">        and returns that instance instead of creating a new one, unless</span>
+<span class="sd">        ``create_new=True`` is specified.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        create_new: bool (default:False)</span>
-<span class="sd">            If set to true, a new instance will always be created, event if one already exists.</span>
+<span class="sd">            If set to true, a new instance will always be created, even if one already exists.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s1">&#39;create_new&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">create_new</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;create_new&#39;</span><span class="p">]</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;create_new&#39;</span><span class="p">)</span> <span class="c1"># this kwarg should not be passed on to the class!</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">create_new</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># the default</span>
         <span class="k">if</span> <span class="n">Singleton</span><span class="o">.</span><span class="n">_instances</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">create_new</span><span class="p">:</span>
             <span class="n">Singleton</span><span class="o">.</span><span class="n">_instances</span><span class="p">[</span><span class="bp">cls</span><span class="p">]</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Singleton</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Singleton</span><span class="o">.</span><span class="n">_instances</span><span class="p">[</span><span class="bp">cls</span><span class="p">]</span></div>
