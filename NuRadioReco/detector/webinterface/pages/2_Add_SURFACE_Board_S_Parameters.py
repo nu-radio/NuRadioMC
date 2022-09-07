@@ -5,7 +5,8 @@ import pandas as pd
 from plotly import subplots
 import plotly.graph_objs as go
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
-from NuRadioReco.detector.webinterface.utils.helper import build_success_page, select_surface, single_S_data_validation, create_ten_plots, validate_global_surface, insert_surface_to_db, read_measurement_time
+from NuRadioReco.detector.webinterface.utils.helper import build_success_page, single_S_data_validation, create_ten_plots, read_measurement_time
+from NuRadioReco.detector.webinterface.utils.helper_surface_board import select_surface, validate_global_surface, insert_surface_to_db
 from NuRadioReco.utilities import units
 
 page_name = 'surface_board'

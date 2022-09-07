@@ -539,8 +539,6 @@ class Detector(object):
                                                 'phase': list(S_data[2 * i + 2])
                                            }}}, upsert=True)
 
-
-
     def help_function(self):
         for name in self.db['downhole_chain'].distinct('name'):
             for i in range(4):

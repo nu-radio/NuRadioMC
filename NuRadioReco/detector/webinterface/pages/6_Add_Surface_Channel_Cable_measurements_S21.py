@@ -3,7 +3,8 @@ import pandas as pd
 from plotly import subplots
 import plotly.graph_objs as go
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
-from NuRadioReco.detector.webinterface.utils.helper import build_success_page, select_cable, single_S_data_validation, validate_global_cable, create_double_plot, insert_cable_to_db
+from NuRadioReco.detector.webinterface.utils.helper import build_success_page, single_S_data_validation, create_double_plot
+from NuRadioReco.detector.webinterface.utils.helper_cable import select_cable, validate_global_cable, insert_cable_to_db
 from NuRadioReco.utilities import units
 
 page_name = 'surface_cable'

@@ -3,7 +3,8 @@ import pandas as pd
 from plotly import subplots
 import plotly.graph_objs as go
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
-from NuRadioReco.detector.webinterface.utils.helper import build_success_page, create_single_plot, validate_global, single_S_data_validation, select_antenna_name, insert_to_db
+from NuRadioReco.detector.webinterface.utils.helper import build_success_page, create_single_plot, single_S_data_validation
+from NuRadioReco.detector.webinterface.utils.helper_antenna import select_antenna_name, validate_global, insert_to_db
 from NuRadioReco.utilities import units
 
 page_name = 'hpol'
