@@ -77,12 +77,12 @@ class Detector(object):
         # self.update(datetime.datetime.now())
 
 
-
+    # TODO copy to new
     def update(self, timestamp):
         logger.info("updating detector time to {}".format(timestamp))
         self.__current_time = timestamp
         self._update_buffer()
-
+    # TODO copy to new
     def export_detector(self, filename="detector.json"):
         """ export the detector to file """
 
@@ -94,6 +94,7 @@ class Detector(object):
                 fp.write(json_util.dumps(self.__db, indent=4, sort_keys=True))
                 #Note: some output/timezone options can be set in bson.json_util.DEFAULT_JSON_OPTIONS
             logger.info("Output written to {}.".format(filename))
+    # TODO copy to new            
     def import_detector(self, filename):
         """ import the detector from file """
         if os.path.isfile(filename):
@@ -265,7 +266,7 @@ class Detector(object):
                                    }}
                                })
 
-
+    # TODO copy to new
     def _update_buffer(self, force=False):
         """
         updates the buffer if need be
@@ -288,7 +289,7 @@ class Detector(object):
             self._buffer_stations()
             self._buffer_hardware_components()
 
-
+    # TODO copy to new
     def _buffer_stations(self):
         """ write stations and channels for the current time to the buffer """
 
@@ -315,7 +316,7 @@ class Detector(object):
         # convert nested lists of dicts to nested dicts of dicts
         self.__db["stations"] = dictionarize_nested_lists(stations_for_buffer, parent_key="id", nested_field="channels", nested_key="id")
 
-
+    # TODO copy to new
     def _find_hardware_components(self):
         """
         returns hardware component names grouped by hardware type at the current detector time
@@ -355,6 +356,7 @@ class Detector(object):
             logger.info(f"found {len(components[key])} hardware components in {key}: {components[key]}")
         return components
 
+    # TODO copy to new, probably needs some modification
     def _buffer_hardware_components(self, S_parameters = ["S21"]):
         """
         buffer all the components which appear in the current detector
@@ -405,6 +407,7 @@ class Detector(object):
 
         print("done...")
 
+    # TODO copy to new
     # TODO this is probably not used, unless we want to update on a per-station level
     def _query_modification_timestamps_per_station(self):
         """
@@ -437,6 +440,8 @@ class Detector(object):
             modification_timestamp_dict[station_id]= [mod_t.timestamp() for mod_t in mod_set]
         return modification_timestamp_dict
 
+
+    # TODO copy to new
     def _query_modification_timestamps(self):
         """
         collects all the timestamps from the database for which some modifications happened
@@ -462,6 +467,7 @@ class Detector(object):
         modification_timestamps = [mod_t.timestamp() for mod_t in mod_set]
         return modification_timestamps
 
+# TODO copy to new
 def dictionarize_nested_lists(nested_lists, parent_key="id", nested_field="channels", nested_key="id"):
     """ mongodb aggregate returns lists of dicts, which can be converted to dicts of dicts """
     res = {}
@@ -479,7 +485,7 @@ def dictionarize_nested_lists(nested_lists, parent_key="id", nested_field="chann
             res[parent[parent_key]][nested_field] = daughter_dict
     return res
 
-
+# TODO copy to new
 def dictionarize_nested_lists_as_tuples(nested_lists, parent_key="name", nested_field="measurements", nested_keys=("channel_id","S_parameter")):
     """ mongodb aggregate returns lists of dicts, which can be converted to dicts of dicts """
     res = {}
@@ -503,6 +509,7 @@ def dictionarize_nested_lists_as_tuples(nested_lists, parent_key="name", nested_
             res[parent[parent_key]][nested_field] = daughter_dict
     return res
 
+# TODO probably not needed in new detector_mongo
 def get_measurement_from_buffer(hardware_db, S_parameter="S21", channel_id=None):
     if channel_id is None:
         measurements = list(filter(lambda document: document['S_parameter'] == S_parameter, hardware_db["measurements"]))
