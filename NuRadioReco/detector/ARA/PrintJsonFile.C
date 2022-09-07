@@ -1,7 +1,7 @@
-/*#include <iostream>
+#include <iostream>
 #include "AraGeomTool.h"
 #include <fstream>
-*/
+
 void PrintJsonFile(){
 
   ofstream aout("ara_detector_db.json");
