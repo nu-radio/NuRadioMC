@@ -8,7 +8,7 @@ import numpy as np
 from NuRadioReco.detector.detector_mongo import Detector
 from datetime import datetime
 
-det = Detector(database_connection='test')
+det = Detector(database_connection='env_pw_user')
 
 
 def select_drab(page_name, main_container, warning_container):

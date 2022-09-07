@@ -30,7 +30,7 @@ def build_main_page(main_cont):
     input_units[0] = col11.selectbox('Units:', ['Hz', 'GHz', 'MHz'])
     input_units[1] = col22.selectbox('', ['MAG','V', 'mV'])
     input_units[2] = col33.selectbox('', ['deg', 'rad'])
-    protocol = main_cont.selectbox('Specify the measurement protocol:', ['Chicago2020', 'Erlangen2020', 'Chicago2022', 'Erlangen2022'])
+    protocol = main_cont.selectbox('Specify the measurement protocol:', ['Chicago2022', 'Chicago2020', 'Erlangen2020', 'Erlangen2022'])
     group_delay = main_cont.number_input('Enter group delay correction [ns] at around 200 MHz:', value=0, step=1, help='Read off the group delay from the left group delay plot below (after inserting data) and input the result here. A plot for the group delay corrected plot will be shown below on the right.')
     group_delay_arr = [0, 0, group_delay, 0]
     # upload the data
