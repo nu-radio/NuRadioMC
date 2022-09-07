@@ -8,8 +8,10 @@ page_configuration()
 
 old_name = st.text_input('input old name:')
 st.markdown(old_name)
-new_name = st.text_input('input new name:')
-st.markdown(new_name)
+# new_name = st.text_input('input new name:')
+# st.markdown(new_name)
 rename = st.button('Rename')
-if rename:
-    det.rename_database_collection(old_name, new_name)
+# if rename:
+    # det.rename_database_collection(old_name, new_name)
+    # print(det.is_primary_working('vpol', old_name))
+    # det.help_function()
