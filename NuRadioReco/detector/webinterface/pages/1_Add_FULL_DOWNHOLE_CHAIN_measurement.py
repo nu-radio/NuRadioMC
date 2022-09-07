@@ -5,7 +5,8 @@ import pandas as pd
 from plotly import subplots
 import plotly.graph_objs as go
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
-from NuRadioReco.detector.webinterface.utils.helper import build_success_page, select_downhole, single_S_data_validation, create_ten_plots, validate_global_downhole, insert_downhole_to_db, read_measurement_time
+from NuRadioReco.detector.webinterface.utils.helper import build_success_page, single_S_data_validation, create_ten_plots, read_measurement_time
+from NuRadioReco.detector.webinterface.utils.helper_downhole_chain import select_downhole, validate_global_downhole, insert_downhole_to_db
 from NuRadioReco.utilities import units
 
 page_name = 'downhole_chain'
