@@ -104,33 +104,6 @@ class Detector(object):
         else:
             logger.error("Cannot import detector. File {} does not exist.".format(filename))
 
-    def surface_board_channel_set_not_working(self, board_name, channel_id):
-        """
-        inserts a new S parameter measurement of one channel of an amp board
-        If the board dosn't exist yet, it will be created.
-
-        Parameters
-        ---------
-        board_name: string
-            the unique identifier of the board
-        channel_id: int
-            the channel id
-        S_data: array of floats
-            1st collumn: frequencies
-            2nd/3rd collumn: S11 mag/phase
-            4th/5th collumn: S12 mag/phase
-            6th/7th collumn: S21 mag/phase
-            8th/9th collumn: S22 mag/phase
-
-        """
-        self.db.SURFACE.update_one({'name': board_name},
-                                      {"$push":{'measurements': {
-                                          'channel_id': channel_id,
-                                          'last_updated': datetime.datetime.utcnow(),
-                                          'function_test': False,
-                                          }}},
-                                     upsert=True)
-
     def IGLU_board_channel_add_Sparameters_without_DRAB(self, board_name, temp,
                                                         S_data, measurement_time,
                                                         primary_measurement, time_delay, protocol):
@@ -463,7 +436,6 @@ class Detector(object):
             # store timestamps, which can be used with np.digitize
             modification_timestamp_dict[station_id]= [mod_t.timestamp() for mod_t in mod_set]
         return modification_timestamp_dict
-
 
     def _query_modification_timestamps(self):
         """

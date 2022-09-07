@@ -115,7 +115,7 @@ class Detector(object):
         """
         self.db[old_name].rename(new_name)
 
-    def set_not_working(self, type, name):
+    def set_not_working(self, type, name, primary_measurement, channel_id=None):
         """
         inserts that the input unit is broken.
         If the input unit dosn't exist yet, it will be created.
@@ -126,13 +126,54 @@ class Detector(object):
             type of the input unit (HPol, VPol, surfCABLE, ...)
         name: string
             the unique identifier of the input unit
+        primary_measurement: boolean
+            specifies if this measurement is used as the primary measurement
+        channel_id: int
+            channel-id of the measured object
         """
-        self.db[type].insert_one({'name': name, 'function_test': False})
 
-        self.db[type].update_one({'name':name},
-                                 {'$push':{'measurements': {
-                                     'last_updated': datetime.datetime.utcnow()
-                                 }}})
+        if channel_id is None:
+            self.db[type].update_one({'name':name},
+                             {'$push':{'measurements': {
+                                 'last_updated': datetime.datetime.utcnow(),
+                                 'function_test': False,
+                                 'primary_measurement': primary_measurement
+                             }}}, upsert=True)
+        else:
+            self.db[type].update_one({'name': name},
+                                     {'$push': {'measurements': {
+                                         'last_updated': datetime.datetime.utcnow(),
+                                         'function_test': False,
+                                         'primary_measurement': primary_measurement,
+                                         'channel_id': channel_id
+                                     }}}, upsert=True)
+
+    def is_primary_working(self, type, name):
+        """
+        checks if the primary measurement is set not working.
+
+        Parameters
+        ---------
+        type: string
+            type of the input unit (HPol, VPol, surfCABLE, ...)
+        name: string
+            the unique identifier of the input unit
+        """
+
+        component_filter = [{'$match': {'name': name}},
+                            {'$unwind': '$measurements'},
+                            {'$match': {'measurements.function_test': True,
+                             'measurements.primary_measurement': True}}]
+
+        entries = list(self.db[type].aggregate(component_filter))
+        if len(entries) == 1:
+            if entries[0]['name'] == name:
+                return True
+        elif len(entries) > 1:
+            logger.error('More than one entry is found.')
+            return False
+        else:
+            return False
 
     def update_primary(self, type, name, temperature=None, channel_id=None):
         """
@@ -149,32 +190,41 @@ class Detector(object):
         channel_id: int
             channel-id of the object
         """
-        if temperature is None and channel_id is None:
-            self.db[type].update_one({'name': name},
-                                     {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
-                                     array_filters=[{"updateIndex.primary_measurement": True}])
-        elif temperature is not None and channel_id is None:
-            # a measured temperature is given, only update the entries with the same temperature
-            self.db[type].update_one({'name': name},
-                                     {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
-                                     array_filters=[{"updateIndex.measurement_temp": temperature}])
-        elif temperature is None and channel_id is not None:
-            # a channel-id is given, only update the entries with the same channel-id
-            self.db[type].update_one({'name': name},
-                                     {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
-                                     array_filters=[{"updateIndex.channel_id": channel_id}])
+        if self.is_primary_working(type, name):
+            if temperature is None and channel_id is None:
+                self.db[type].update_one({'name': name},
+                                         {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+                                         array_filters=[{"updateIndex.primary_measurement": True}])
+            elif temperature is not None and channel_id is None:
+                # a measured temperature is given, only update the entries with the same temperature
+                self.db[type].update_one({'name': name},
+                                         {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+                                         array_filters=[{"updateIndex.measurement_temp": temperature}])
+            elif temperature is None and channel_id is not None:
+                # a channel-id is given, only update the entries with the same channel-id
+                self.db[type].update_one({'name': name},
+                                         {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+                                         array_filters=[{"updateIndex.channel_id": channel_id}])
+            else:
+                # a measured temperature and channel-id is given, only update the entries with the same temperature and channel-id
+                self.db[type].update_one({'name': name},
+                                         {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+                                         array_filters=[{"updateIndex.measurement_temp": temperature, "updateIndex.channel_id": channel_id}])
         else:
-            # a measured temperature and channel-id is given, only update the entries with the same temperature and channel-id
-            self.db[type].update_one({'name': name},
-                                     {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
-                                     array_filters=[{"updateIndex.measurement_temp": temperature, "updateIndex.channel_id": channel_id}])
+            if channel_id is not None:
+                # a channel-id is given, only update the entries with the same channel-id
+                self.db[type].update_one({'name': name},
+                                         {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+                                         array_filters=[{"updateIndex.channel_id": channel_id}])
+            else:
+                self.db[type].update_one({'name': name},
+                                         {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+                                         array_filters=[{"updateIndex.primary_measurement": True}])
+
+    def get_object_names(self, object_type):
+        return self.db[object_type].distinct('name')
 
     # antenna (VPol / HPol)
-
-    def get_Antenna_names(self, antenna_type):
-        names = self.db[antenna_type].distinct('name')
-        names.insert(0, f'new {antenna_type}')
-        return names
 
     def antenna_add_Sparameter(self, antenna_type, antenna_name, S_parameter, S_data, primary_measurement, protocol, units_arr):
         """
@@ -198,13 +248,11 @@ class Detector(object):
         units_arr: list of strings
             list of the input units (only y unit will be saved)
         """
-        # create an entry with the name and function test
-        if antenna_name not in self.db[antenna_type].distinct('name'):
-            self.db[antenna_type].insert_one({'name': antenna_name, 'function_test': True})
-        # update the entry with the measurement
+        # update the entry with the measurement (if the entry doesn't exist it will be created)
         for spara in S_parameter:
             self.db[antenna_type].update_one({'name': antenna_name},
                                              {'$push': {'measurements': {
+                                                    'function_test': True,
                                                     'last_updated': datetime.datetime.utcnow(),
                                                     'primary_measurement': primary_measurement,
                                                     'measurement_protocol': protocol,
@@ -215,9 +263,6 @@ class Detector(object):
                                              }}}, upsert=True)
 
     # cables
-
-    def get_cable_names(self, cable_type):
-        return self.db[cable_type].distinct('name')
 
     def cable_add_Sparameter(self, cable_type, cable_name, S_parameter, Sm_data, Sp_data, units_arr, primary_measurement, protocol):
         """
@@ -244,13 +289,11 @@ class Detector(object):
             details of the testing environment
         """
 
-        # create an entry with the name and function test
-        if cable_name not in self.db[cable_type].distinct('name'):
-            self.db[cable_type].insert_one({'name': cable_name, 'function_test': True})
-        # update the entry with the measurement
+        # update the entry with the measurement (if the entry doesn't exist it will be created)
         for spara in S_parameter:
             self.db[cable_type].update_one({'name': cable_name},
                                              {'$push': {'measurements': {
+                                                 'function_test': True,
                                                  'last_updated': datetime.datetime.utcnow(),
                                                  'primary_measurement': primary_measurement,
                                                  'measurement_protocol': protocol,
@@ -263,15 +306,18 @@ class Detector(object):
 
     # IGLU/DRAB
 
-    def get_board_names(self, type):
-        names = self.db[type].distinct('name')
-        return names
-
     def load_board_information(self, type, board_name, info_names):
         infos = []
-        if self.db[type].find_one({'name': board_name})['function_test']:
-            for name in info_names:
-                infos.append(self.db[type].find_one({'name': board_name})['measurements'][0][name])
+        # if self.db[type].find_one({'name': board_name})['function_test']:
+        #     for name in info_names:
+        #         infos.append(self.db[type].find_one({'name': board_name})['measurements'][0][name])
+
+        #
+        for i in range(len(self.db[type].find_one({'name': board_name})['measurements'])):
+            if self.db[type].find_one({'name': board_name})['measurements'][i]['function_test']:
+                for name in info_names:
+                    infos.append(self.db[type].find_one({'name': board_name})['measurements'][i][name])
+                break
 
         return infos
 
@@ -309,13 +355,11 @@ class Detector(object):
             details of the testing enviornment
 
         """
-        # create an entry with the name and function test
-        if board_name not in self.db[page_name].distinct('name'):
-            self.db[page_name].insert_one({'name': board_name, 'function_test': True})
-        # update the entry with the measurement
+        # update the entry with the measurement (if the entry doesn't exist it will be created)
         for i, spara in enumerate(S_names):
             self.db[page_name].update_one({'name': board_name},
                                             {'$push': {'measurements': {
+                                               'function_test': True,
                                                'last_updated': datetime.datetime.utcnow(),
                                                'primary_measurement': primary_measurement,
                                                'measurement_protocol': protocol,
@@ -365,13 +409,11 @@ class Detector(object):
             details of the testing enviornment
 
         """
-        # create an entry with the name and function test
-        if board_name not in self.db[page_name].distinct('name'):
-            self.db[page_name].insert_one({'name': board_name, 'function_test': True})
-        # update the entry with the measurement
+        # update the entry with the measurement (if the entry doesn't exist it will be created)
         for i, spara in enumerate(S_names):
             self.db[page_name].update_one({'name': board_name},
                                            {'$push': {'measurements': {
+                                                'function_test': True,
                                                 'last_updated': datetime.datetime.utcnow(),
                                                 'primary_measurement': primary_measurement,
                                                 'measurement_protocol': protocol,
@@ -422,13 +464,11 @@ class Detector(object):
             details of the testing enviornment
 
         """
-        # create an entry with the name and function test
-        if board_name not in self.db[page_name].distinct('name'):
-            self.db[page_name].insert_one({'name': board_name, 'function_test': True})
-        # update the entry with the measurement
+        # update the entry with the measurement (if the entry doesn't exist it will be created)
         for i, spara in enumerate(S_names):
             self.db[page_name].update_one({'name': board_name},
                                            {'$push': {'measurements': {
+                                                'function_test': True,
                                                 'last_updated': datetime.datetime.utcnow(),
                                                 'primary_measurement': primary_measurement,
                                                 'measurement_protocol': protocol,
@@ -477,13 +517,11 @@ class Detector(object):
             details of the testing enviornment
 
         """
-        # create an entry with the name and function test
-        if board_name not in self.db[page_name].distinct('name'):
-            self.db[page_name].insert_one({'name': board_name, 'function_test': True})
-        # update the entry with the measurement
+        # update the entry with the measurement (if the entry doesn't exist it will be created)
         for i, spara in enumerate(S_names):
             self.db[page_name].update_one({'name': board_name},
                                            {'$push': {'measurements': {
+                                                'function_test': True,
                                                 'last_updated': datetime.datetime.utcnow(),
                                                 'primary_measurement': primary_measurement,
                                                 'measurement_protocol': protocol,
@@ -500,6 +538,15 @@ class Detector(object):
                                                 'mag': list(S_data[2 * i + 1]),
                                                 'phase': list(S_data[2 * i + 2])
                                            }}}, upsert=True)
+
+
+
+    def help_function(self):
+        for name in self.db['downhole_chain'].distinct('name'):
+            for i in range(4):
+                self.db['downhole_chain'].update_one({'name': name},
+                                               {'$set': {f'measurements.{i}.function_test': True
+                                               }})
 
     # other
 
