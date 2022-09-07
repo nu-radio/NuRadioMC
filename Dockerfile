@@ -24,4 +24,5 @@ RUN useradd nuradio
 USER nuradio
 EXPOSE 8050
 WORKDIR /usr/local/lib/NuRadioMC/NuRadioReco/detector/webinterface
-CMD streamlit run home.py
+
+ENTRYPOINT ["streamlit", "run", "home.py", "--server.port=8050", "--server.address=0.0.0.0"]
