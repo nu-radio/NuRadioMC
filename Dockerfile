@@ -10,7 +10,7 @@ COPY . /usr/local/lib/NuRadioMC
 RUN python /usr/local/lib/NuRadioMC/install_dev.py --install --no-interactive
 
 # Install optional dependencies #TODO: add to pyproject.toml
-RUN pip install dnspython gunicorn DateTime pandas
+RUN pip install dnspython gunicorn DateTime pandas streamlit
 
 #Uninstall and reinstall werkzeug bug
 #RUN pip uninstall Werkzeug
@@ -24,4 +24,4 @@ RUN useradd nuradio
 USER nuradio
 EXPOSE 8050
 WORKDIR /usr/local/lib/NuRadioMC/NuRadioReco/detector/webinterface
-CMD python index.py
+CMD streamlit run home.py
