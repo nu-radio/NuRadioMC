@@ -10,6 +10,7 @@ import NuRadioReco.utilities.metaclasses
 import json
 from bson import json_util #bson dicts are used by pymongo
 import numpy as np
+from NuRadioReco.detector.webinterface import config
 logging.basicConfig()
 logger = logging.getLogger("database")
 logger.setLevel(logging.DEBUG)
@@ -19,7 +20,7 @@ logger.setLevel(logging.DEBUG)
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class Detector(object):
 
-    def __init__(self, database_connection="test", database_name=None):
+    def __init__(self, database_connection="env_pw_user", database_name=None):
 
         if database_connection == "local":
             MONGODB_URL = "localhost"
@@ -574,6 +575,7 @@ class Detector(object):
         return modification_timestamps
 
 
+det = Detector(config.DATABASE_TARGET)
 
 if __name__ == "__main__":
      test = sys.argv[1]
