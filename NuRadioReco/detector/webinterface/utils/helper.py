@@ -214,7 +214,9 @@ def create_ten_plots(S_names, plot_info_cont, data, xlabels, ylabels, input_unit
 def select_antenna_name(antenna_type, container, warning_container):
     selected_antenna_name = ''
     # update the dropdown menu
-    antenna_names = det.get_Antenna_names(antenna_type)
+    antenna_names = det.get_object_names(antenna_type)
+    antenna_names.insert(0, f'new {antenna_type}')
+
     col1, col2 = container.columns([1, 1])
     antenna_dropdown = col1.selectbox('Select existing antenna or enter unique name of new antenna:', antenna_names)
     # checking which antenna is selected
@@ -264,7 +266,9 @@ def validate_global(page_name, container_bottom, antenna_name, new_antenna_name,
 
 def insert_to_db(page_name, s_name, antenna_name, data, working, primary, protocol, input_units):
     if not working:
-        det.set_not_working(page_name, antenna_name)
+        if primary and antenna_name in det.get_Antenna_names(page_name):
+            det.update_primary(page_name, antenna_name)
+        det.set_not_working(page_name, antenna_name, primary)
     else:
         if primary and antenna_name in det.get_Antenna_names(page_name):
             det.update_primary(page_name, antenna_name)
@@ -298,7 +302,7 @@ def select_cable(page_name, main_container, warning_container_top):
     elif page_name == 'CABLE':
         cable_name = cable_station[len('stations'): len('stations') + 2] + cable_channel[:1] + cable_type[cable_type.find('(')+1:cable_type.find(')')-1]
 
-    if cable_name in det.get_cable_names(page_name):
+    if cable_name in det.get_object_names(page_name):
         if page_name == 'surfCABLE':
             warning_container_top.warning(f'You are about to override the {page_name} unit \'{cable_name[-2:]} meter, station {cable_name[:2]}, channel {cable_name[2:-2]}\'!')
         elif page_name == 'CABLE':
@@ -343,7 +347,9 @@ def validate_global_cable(container_bottom, cable_type, cable_sta, cable_cha, ch
 
 def insert_cable_to_db(page_name, s_name, cable_name, data_m, data_p, input_units, working, primary, protocol):
     if not working:
-        det.set_not_working(page_name, cable_name)
+        if primary and cable_name in det.get_cable_names(page_name):
+            det.update_primary(page_name, cable_name)
+        det.set_not_working(page_name, cable_name, primary)
     else:
         if primary and cable_name in det.get_cable_names(page_name):
             det.update_primary(page_name, cable_name)
@@ -356,9 +362,9 @@ def select_iglu(page_name, main_container, warning_container):
     col1_I, col2_I, col3_I, col4_I, col5_I = main_container.columns([1,1,1,1,1])
 
     selected_iglu_name = ''
-    iglu_names = det.get_board_names(page_name)
+    iglu_names = det.get_object_names(page_name)
     iglu_names.insert(0, f'new {page_name}')
-    drab_names = det.get_board_names('drab_board')
+    drab_names = det.get_object_names('drab_board')
 
     iglu_dropdown = col1_I.selectbox('Select existing board or enter unique name of new board:', iglu_names)
     if iglu_dropdown == f'new {page_name}':
@@ -452,7 +458,10 @@ def validate_global_iglu(page_name, container_bottom, iglu_name, new_iglu_name, 
 
 def insert_iglu_to_db(page_name, s_names, iglu_name, data, input_units, working, primary, protocol, drab_id, laser_id, temp, measurement_time, time_delay):
     if not working:
-        det.set_not_working(page_name, iglu_name)
+        if primary and iglu_name in det.get_board_names(page_name):
+            # temperature is not used for update_primary (if the board doesn't work, it will not work for every temperature)
+            det.update_primary(page_name, iglu_name)
+        det.set_not_working(page_name, iglu_name, primary)
     else:
         if primary and iglu_name in det.get_board_names(page_name):
             det.update_primary(page_name, iglu_name, temp)
@@ -465,9 +474,9 @@ def select_drab(page_name, main_container, warning_container):
     col1_I, col2_I, col3_I, col4_I, col5_I, col6_I = main_container.columns([1.2,1,1,0.8,1,1])
 
     selected_drab_name = ''
-    drab_names = det.get_board_names(page_name)
+    drab_names = det.get_object_names(page_name)
     drab_names.insert(0, f'new {page_name}')
-    iglu_names = det.get_board_names('iglu_board')
+    iglu_names = det.get_object_names('iglu_board')
 
     drab_dropdown = col1_I.selectbox('Select existing board or enter unique name of new board:', drab_names)
     if drab_dropdown == f'new {page_name}':
@@ -569,7 +578,10 @@ def validate_global_drab(page_name, container_bottom, drab_name, new_drab_name, 
 
 def insert_drab_to_db(page_name, s_names, drab_name, data, input_units, working, primary, protocol, iglu_id, photodiode_id, channel_id, temp, measurement_time, time_delay):
     if not working:
-        det.set_not_working(page_name, drab_name)
+        if primary and drab_name in det.get_board_names(page_name):
+            # temperature is not used for update_primary (if the board doesn't work, it will not work for every temperature)
+            det.update_primary(page_name, drab_name, channel_id=int(channel_id))
+        det.set_not_working(page_name, drab_name, primary, int(channel_id))
     else:
         if primary and drab_name in det.get_board_names(page_name):
             det.update_primary(page_name, drab_name, temp, int(channel_id))
@@ -581,7 +593,7 @@ def select_surface(page_name, main_container, warning_container):
     col1_I, col2_I, col3_I, col4_I = main_container.columns([1,1,1,1])
 
     selected_surface_name = ''
-    surface_names = det.get_board_names(page_name)
+    surface_names = det.get_object_names(page_name)
     surface_names.insert(0, f'new {page_name}')
 
     surface_dropdown = col1_I.selectbox('Select existing board or enter unique name of new board:', surface_names)
@@ -666,8 +678,8 @@ def validate_global_surface(page_name, container_bottom, surface_name, new_surfa
 def insert_surface_to_db(page_name, s_names, surface_name, data, input_units, working, primary, protocol, channel_id, temp, measurement_time, time_delay):
     if not working:
         if primary and surface_name in det.get_board_names(page_name):
-            det.update_primary(page_name, surface_name, temp, int(channel_id))
-        det.set_not_working(page_name, surface_name)
+            det.update_primary(page_name, surface_name, channel_id=int(channel_id))
+        det.set_not_working(page_name, surface_name, primary, int(channel_id))
     else:
         if primary and surface_name in det.get_board_names(page_name):
             det.update_primary(page_name, surface_name, temp, int(channel_id))
@@ -679,7 +691,7 @@ def select_downhole(page_name, main_container, warning_container):
     col1_I, col2_I, col3_I, col4_I, col5_I, col6_I, col7_I = main_container.columns([1.35,1.1,0.9,0.9,1,1,0.75])
 
     selected_downhole_name = ''
-    downhole_names = det.get_board_names(page_name)
+    downhole_names = det.get_object_names(page_name)
     downhole_names.insert(0, f'new fiber')
 
     downhole_dropdown = col1_I.selectbox('Select existing fiber or enter unique name of new fiber:', downhole_names)
@@ -716,7 +728,7 @@ def select_downhole(page_name, main_container, warning_container):
     selected_breakout_cha_id = col4_I.selectbox('', breakout_cha_ids)
 
     # if an exiting fiber is selected, change the default option to the saved IGLU
-    iglu_names = det.get_board_names('iglu_board')
+    iglu_names = det.get_object_names('iglu_board')
     if selected_downhole_infos != []:
         iglu_index = iglu_names.index(selected_downhole_infos[2])
         iglu_names.pop(iglu_index)
@@ -729,7 +741,7 @@ def select_downhole(page_name, main_container, warning_container):
     selected_IGLU = col5_I.selectbox('', iglu_names)
 
     # if an exiting fiber is selected, change the default option to the saved DRAB
-    drab_names = det.get_board_names('drab_board')
+    drab_names = det.get_object_names('drab_board')
     if selected_downhole_infos != []:
         drab_index = drab_names.index(selected_downhole_infos[3])
         drab_names.pop(drab_index)
@@ -798,8 +810,8 @@ def validate_global_downhole(page_name, container_bottom, surface_name, new_surf
 def insert_downhole_to_db(page_name, s_names, downhole_name, data, input_units, working, primary, protocol, breakout_id, breakout_cha_id, iglu_id, drab_id, temp, measurement_time, time_delay):
     if not working:
         if primary and downhole_name in det.get_board_names(page_name):
-            det.update_primary(page_name, downhole_name, temp)
-        det.set_not_working(page_name, downhole_name)
+            det.update_primary(page_name, downhole_name)
+        det.set_not_working(page_name, downhole_name, primary)
     else:
         if primary and downhole_name in det.get_board_names(page_name):
             det.update_primary(page_name, downhole_name, temp)
