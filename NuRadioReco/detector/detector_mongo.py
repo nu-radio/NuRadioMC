@@ -72,7 +72,6 @@ class Detector(object):
         # logger.info("setting detector time to current time")
         # self.update(datetime.datetime.now())
 
-
     def update(self, timestamp):
         logger.info("updating detector time to {}".format(timestamp))
         self.__current_time = timestamp
@@ -540,14 +539,229 @@ class Detector(object):
                                                 'phase': list(S_data[2 * i + 2])
                                            }}}, upsert=True)
 
-    def help_function(self):
-        for name in self.db['downhole_chain'].distinct('name'):
-            for i in range(4):
-                self.db['downhole_chain'].update_one({'name': name},
-                                               {'$set': {f'measurements.{i}.function_test': True
-                                               }})
+    # stations
+
+    def add_station(self,
+                    station_id,
+                    station_name,
+                    position,  # in GPS UTM coordinates
+                    commission_time,
+                    decommission_time=datetime.datetime(2080, 1, 1)):
+        if(self.db.station.count_documents({'id': station_id}) > 0):
+            logger.error(f"station with id {station_id} already exists. Doing nothing.")
+        else:
+            self.db.station.insert_one({'id': station_id,
+                                        'name': station_name,
+                                        'position': list(position),
+                                        'commission_time': commission_time,
+                                        'decommission_time': decommission_time
+                                        })
+
+    def add_channel_to_station(self,
+                               station_id,
+                               channel_id,
+                               signal_chain,
+                               ant_name,
+                               ant_ori_theta,
+                               ant_ori_phi,
+                               ant_rot_theta,
+                               ant_rot_phi,
+                               ant_position,
+                               channel_type,
+                               commission_time,
+                               decommission_time=datetime.datetime(2080, 1, 1)):
+        unique_station_id = self.db.station.find_one({'id': station_id})['_id']
+        if(self.db.station.count_documents({'id': station_id, "channels.id": channel_id}) > 0):
+            logger.error(f"channel with id {channel_id} already exists. Doing nothing.")
+            return 1
+
+        self.db.station.update_one({'_id': unique_station_id},
+                               {"$push": {'channels': {
+                                   'id': channel_id,
+                                   'ant_name': ant_name,
+                                   'ant_position': list(ant_position),
+                                   'ant_ori_theta': ant_ori_theta,
+                                   'ant_ori_phi': ant_ori_phi,
+                                   'ant_rot_theta': ant_rot_theta,
+                                   'ant_rot_phi': ant_rot_phi,
+                                   'type': channel_type,
+                                   'commission_time': commission_time,
+                                   'decommission_time': decommission_time,
+                                   'signal_ch': signal_chain
+                                   }}
+                               })
 
     # other
+
+    def _update_buffer(self, force=False):
+        """
+        updates the buffer if need be
+
+        Parameters
+        ---------
+        force: bool
+            update even if the period has already been buffered
+        """
+
+        # digitize the current time of the detector to check if this period is already buffered or not
+        current_period = np.digitize(self.__current_time.timestamp(), self.__modification_timestamps)
+        if self.__buffered_period == current_period:
+            logger.info("period already buffered")
+        else:
+            logger.info("buffering new period")
+            self.__buffered_period = current_period
+            #TODO do buffering, needs to be implemented, take whole db for now
+            self.__db = {}
+            self._buffer_stations()
+            self._buffer_hardware_components()
+
+    def _buffer_stations(self):
+        """ write stations and channels for the current time to the buffer """
+
+        # grouping dictionary is needed to undo the unwind
+        grouping_dict = {"_id": "$_id", "channels": {"$push": "$channels"}}
+        # add other keys that belong to a station
+        for key in list(self.db.station.find_one().keys()):
+            if key in grouping_dict:
+                continue
+            else:
+                grouping_dict[key] = {"$first": "${}".format(key)}
+
+        time = self.__current_time
+        time_filter = [{"$match": {
+                            'commission_time': {"$lte" : time},
+                            'decommission_time': {"$gte" : time}}},
+                       {"$unwind": '$channels'},
+                       {"$match": {
+                            'channels.commission_time': {"$lte" : time},
+                            'channels.decommission_time': {"$gte" : time}}},
+                       { "$group": grouping_dict}]
+        stations_for_buffer = list(self.db.station.aggregate(time_filter))
+
+        # convert nested lists of dicts to nested dicts of dicts
+        self.__db["stations"] = dictionarize_nested_lists(stations_for_buffer, parent_key="id", nested_field="channels", nested_key="id")
+
+    def _find_hardware_components(self):
+        """
+        returns hardware component names grouped by hardware type at the current detector time
+
+        Return
+        -------------
+        dict with hardware component names grouped by hardware type
+        """
+        time = self.__current_time
+        # filter for current time, and return only hardware component types and names
+        component_filter = [{"$match": {
+                              'commission_time': {"$lte" : time},
+                              'decommission_time': {"$gte" : time}}},
+                         {"$unwind": '$channels'},
+                         {"$match": {
+                              'channels.commission_time': {"$lte" : time},
+                              'channels.decommission_time': {"$gte" : time}}},
+                         {"$unwind": '$channels.signal_ch'},
+                         {"$project": {"_id": False, "channels.signal_ch.uname": True,  "channels.signal_ch.type": True}}]
+
+        # convert result to the dict of hardware types / names
+        components = {}
+        for item in list(self.db.station.aggregate(component_filter)):
+            if not 'signal_ch' in item['channels']:
+                ## continue silently
+                #logger.debug("'signal_ch' not in db entry, continuing")
+                continue
+            ch_type = item['channels']['signal_ch']['type']
+            ch_uname = item['channels']['signal_ch']['uname']
+            # only add each component once
+            if ch_type not in components:
+                components[ch_type] = set([])
+            components[ch_type].add(ch_uname)
+        # convert sets to lists
+        for key in components.keys():
+            components[key] = list(components[key])
+            logger.info(f"found {len(components[key])} hardware components in {key}: {components[key]}")
+        return components
+
+    # TODO probably needs some modification
+    def _buffer_hardware_components(self, S_parameters = ["S21"]):
+        """
+        buffer all the components which appear in the current detector
+
+        Parameters
+        ----------
+        S_parameters: list
+            list of S-parameters to buffer
+        """
+        component_dict = self._find_hardware_components()
+
+        nested_key_dict = {"SURFACE": "surface_channel_id", "DRAB": "drab_channel_id"}
+        for hardware_type in component_dict:
+            # grouping dictionary is needed to undo the unwind
+            grouping_dict = {"_id": "$_id", "measurements": {"$push": "$measurements"}}
+
+            if self.db[hardware_type].find_one() is None:
+                print(f"DB for {hardware_type} is empty. Skipping...")
+                continue
+            # add other keys that belong to a station
+            for key in list(self.db[hardware_type].find_one().keys()):
+                if key in grouping_dict:
+                    continue
+                else:
+                    grouping_dict[key] = {"$first": "${}".format(key)}
+
+            #TODO select more accurately. is there a "primary" mesurement field? is S_parameter_XXX matching possible to reduce data?
+            matching_components = list(self.db[hardware_type].aggregate([{"$match": {"name": {"$in": component_dict[hardware_type]}}},
+                                                                         {"$unwind": "$measurements"},
+                                                                         {"$match": {"measurements.primary_measurement": True,
+                                                                                     "measurements.S_parameter": {"$in": S_parameters}}},
+                                                                         {"$group": grouping_dict}]))
+            #TODO wind #only S21?
+            #list to dict conversion using "name" as keys
+            print(f"Component entries found in {hardware_type}: {len(matching_components)}")
+            if len(matching_components)==0:
+                continue
+            try:
+                self.__db[hardware_type] = dictionarize_nested_lists_as_tuples(matching_components,
+                        parent_key="name",
+                        nested_field="measurements",
+                        nested_keys=("channel_id","S_parameter"))
+            except:
+                continue
+
+            #print("there")
+            #self.__db[hardware_type] = dictionarize_nested_lists(matching_components, parent_key="name", nested_field=None, nested_key=None)
+
+        print("done...")
+
+    # TODO this is probably not used, unless we want to update on a per-station level
+    def _query_modification_timestamps_per_station(self):
+        """
+        collects all the timestamps from the database for which some modifications happened
+        ((de)commissioning of stations and channels).
+
+        Return
+        -------------
+        dict with modification timestamps per station.id
+        """
+        # get distinct set of stations:
+        station_ids = self.db.station.distinct("id")
+        modification_timestamp_dict = {}
+
+        for station_id in station_ids:
+            # get set of (de)commission times for stations
+            station_times_comm = self.db.station.distinct("commission_time", {"id": station_id})
+            station_times_decomm = self.db.station.distinct("decommission_time", {"id": station_id})
+
+            # get set of (de)commission times for channels
+            channel_times_comm = self.db.station.distinct("channels.commission_time", {"id": station_id})
+            channel_times_decomm = self.db.station.distinct("channels.decommission_time", {"id": station_id})
+
+            mod_set = np.unique([*station_times_comm,
+                                 *station_times_decomm,
+                                 *channel_times_comm,
+                                 *channel_times_decomm])
+            mod_set.sort()
+            # store timestamps, which can be used with np.digitize
+            modification_timestamp_dict[station_id]= [mod_t.timestamp() for mod_t in mod_set]
+        return modification_timestamp_dict
 
     def _query_modification_timestamps(self):
         """
@@ -573,6 +787,58 @@ class Detector(object):
         # store timestamps, which can be used with np.digitize
         modification_timestamps = [mod_t.timestamp() for mod_t in mod_set]
         return modification_timestamps
+
+
+def dictionarize_nested_lists(nested_lists, parent_key="id", nested_field="channels", nested_key="id"):
+    """ mongodb aggregate returns lists of dicts, which can be converted to dicts of dicts """
+    res = {}
+    for parent in nested_lists:
+        res[parent[parent_key]] = parent
+        if nested_field in parent and (nested_field is not None):
+            daughter_list = parent[nested_field]
+            daughter_dict = {}
+            for daughter in daughter_list:
+                if nested_key in daughter:
+                    daughter_dict[daughter[nested_key]] = daughter
+                #else:
+                #    logger.warning(f"trying to access unavailable nested key {nested_key} in field {nested_field}. Nothing to be done.")
+            # replace list with dict
+            res[parent[parent_key]][nested_field] = daughter_dict
+    return res
+
+
+def dictionarize_nested_lists_as_tuples(nested_lists, parent_key="name", nested_field="measurements", nested_keys=("channel_id","S_parameter")):
+    """ mongodb aggregate returns lists of dicts, which can be converted to dicts of dicts """
+    res = {}
+    for parent in nested_lists:
+        res[parent[parent_key]] = parent
+        if nested_field in parent and (nested_field is not None):
+            daughter_list = parent[nested_field]
+            daughter_dict = {}
+            for daughter in daughter_list:
+                # measurements do not have a unique column which can be used as key for the dictionnary, so use a tuple instead for indexing
+                dict_key = []
+                for nested_key in nested_keys:
+                    if nested_key in daughter:
+                        dict_key.append(daughter[nested_key])
+                    else:
+                        dict_key.append(None)
+                daughter_dict[tuple(dict_key)] = daughter
+                #else:
+                #    logger.warning(f"trying to access unavailable nested key {nested_key} in field {nested_field}. Nothing to be done.")
+            # replace list with dict
+            res[parent[parent_key]][nested_field] = daughter_dict
+    return res
+
+
+def get_measurement_from_buffer(hardware_db, S_parameter="S21", channel_id=None):
+    if channel_id is None:
+        measurements = list(filter(lambda document: document['S_parameter'] == S_parameter, hardware_db["measurements"]))
+    else:
+        measurements = list(filter(lambda document: (document['S_parameter'] == S_parameter) & (document["channel_id"] == channel_id), hardware_db["measurements"]))
+    if len(measurements)>1:
+        print("WARNING: more than one match for requested measurement found")
+    return measurements
 
 
 det = Detector(config.DATABASE_TARGET)
