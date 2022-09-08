@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 from Cython.Build import cythonize
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     ]
 
     setup(
-        ext_modules=cythonize(extensions),
+        ext_modules=cythonize(extensions, language_level=3),
         cmdclass = {'build_ext': build_ext}
     # extra_compile_args=["-mfpmath=sse"]
     )

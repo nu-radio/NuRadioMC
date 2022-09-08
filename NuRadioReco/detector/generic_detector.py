@@ -2,8 +2,8 @@ import logging
 import json
 from tinydb import Query
 from tinydb_serialization import SerializationMiddleware
-import NuRadioReco.detector.detector
-from NuRadioReco.detector.detector import DateTimeSerializer
+import NuRadioReco.detector.detector_base
+from NuRadioReco.detector.detector_base import DateTimeSerializer
 import copy
 
 logger = logging.getLogger('NuRadioReco.genericDetector')
@@ -12,7 +12,7 @@ serialization = SerializationMiddleware()
 serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
 
 
-class GenericDetector(NuRadioReco.detector.detector.Detector):
+class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
     """
     Used the same way as the main detector class, but works with incomplete
     detector descriptions.
@@ -30,7 +30,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
     """
 
     def __init__(self, json_filename, default_station=None, default_channel=None, default_device=None, source='json',
-                 dictionary=None,
+                 dictionary=None, log_level=logging.WARNING,
                  assume_inf=True, antenna_by_depth=False):
         """
         Initialize the stations detector properties.
@@ -80,6 +80,8 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             This is done by appending e.g. '_InfFirn' to the antenna model name.
             if False, the antenna model as specified in the database is used.
         """
+        self.__logger = logging.getLogger('NuRadioReco.genericDetector')
+        self.__logger.setLevel(log_level)
 
         if (default_station is None) and (default_channel is None) and (default_device is None):
             # load detector
