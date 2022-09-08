@@ -108,6 +108,9 @@ venv.bak/
 # dolphin
 .directory
 
+# VSCode
+.vscode/
+
 # eclipse
 .project
 .pydevproject
