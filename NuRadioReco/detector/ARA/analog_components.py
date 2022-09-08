@@ -1,6 +1,5 @@
 import numpy as np
 import os
-import pandas as pd
 import datetime
 from NuRadioReco.utilities import units
 from scipy.interpolate import interp1d
@@ -29,7 +28,7 @@ def load_system_response(path=os.path.dirname(os.path.realpath(__file__)), **kwa
        data = np.loadtxt(os.path.join(path, "HardwareResponses/In_situ_Electronics_A"+str(station_id)+"_"+str(config)+".txt"),
                skiprows=3, delimiter=' ') # individual hardware response for A2 and A3 channels taken from[https://github.com/MyoungchulK/MF_filters/tree/main/data/in_situ_sc_gain]
     
-    number_of_columns = len((pd.DataFrame(data)).columns)
+    number_of_columns = data.shape[1]
     default = {}
     default['gain'] = []
     default['phase'] = []
