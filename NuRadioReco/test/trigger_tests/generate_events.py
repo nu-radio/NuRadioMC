@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelResampler
