@@ -1,3 +1,8 @@
+#############################################################
+# Keep in might that sub-directories might contain additional
+# .gitignore files to exclude specific files.
+#############################################################
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
