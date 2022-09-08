@@ -19,7 +19,8 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
     Returns the antenna response to a radio signal coming from a specific direction
 
     Parameters
-    ---------------
+    ----------
+    
     station: Station
     frequencies: array of complex
         frequencies of the radio signal for which the antenna response is needed
@@ -68,7 +69,8 @@ def get_channel_voltage_from_efield(station, electric_field, channels, detector,
     Returns the voltage traces that would result in the channels from the station's E-field.
 
     Parameters
-    ------------------------
+    ----------
+
     station: Station
     electric_field: ElectricField
     channels: array of int
@@ -118,6 +120,7 @@ def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2 ** 
 
     Parameters
     ----------
+    
     trace: array of floats
         Trace to be upsampled
     original_sampling_frequency: float
@@ -165,6 +168,7 @@ def butterworth_filter_trace(trace, sampling_frequency, passband, order=8):
 
     Parameters
     ----------
+
     trace: array of floats
         Trace to be filtered
     sampling_frequency: float
@@ -175,7 +179,8 @@ def butterworth_filter_trace(trace, sampling_frequency, passband, order=8):
         Filter order
 
     Returns
-    ------
+    -------
+
     filtered_trace: array of floats
         The filtered trace
     """

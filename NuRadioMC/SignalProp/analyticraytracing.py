@@ -35,9 +35,10 @@ except:
                                  "install.sh"))
         from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
         cpp_available = True
-        print("compilation was sucessful, using CPP version of ray tracer")
+        print("compilation was successful, using CPP version of ray tracer")
     except:
-        print("compilation was not sucessful, using python version of ray tracer")
+        print("compilation was not successful, using python version of ray tracer")
+        print("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
         cpp_available = False
 
 """
@@ -1383,10 +1384,10 @@ class ray_tracing_2D(ray_tracing_base):
         ----------
         x1, x2: arrays
             Arrays with x and z positions of emitter x1 and receiver x2
-        infirn: Boolean. 
+        infirn: Boolean.
             Set to True if surface ray travels in the firn, set to False (default) if it travels
             in air.
-        angle:  String 
+        angle:  String
             specifying angle at which ray reaches/leaves the surface. Can be 'Brewster' or 'critical'
             If neither of these is chosen, a warning is printed and angle is set to 'critical'
         chdraw: string or None
@@ -1524,9 +1525,9 @@ class ray_tracing(ray_tracing_base):
     utility class (wrapper around the 2D analytic ray tracing code) to get
     ray tracing solutions in 3D for two arbitrary points x1 and x2
     """
-    
+
     def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
-                 n_frequencies_integration=100, n_reflections=0, config=None, 
+                 n_frequencies_integration=100, n_reflections=0, config=None,
                  detector=None):
         """
         class initilization
@@ -1546,7 +1547,7 @@ class ray_tracing(ray_tracing_base):
             * logging.WARNING
             * logging.INFO
             * logging.DEBUG
-            
+
             default is WARNING
         n_frequencies_integration: int
             the number of frequencies for which the frequency dependent attenuation
@@ -1573,12 +1574,12 @@ class ray_tracing(ray_tracing_base):
             self.__logger.error("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
             raise TypeError("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
 
-        super().__init__(medium=medium, 
+        super().__init__(medium=medium,
                          attenuation_model=attenuation_model,
                          log_level=log_level,
-                         n_frequencies_integration=n_frequencies_integration, 
+                         n_frequencies_integration=n_frequencies_integration,
                          n_reflections=n_reflections,
-                         config=config, 
+                         config=config,
                          detector=detector)
         self.set_config(config=config)
         self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
@@ -1589,7 +1590,7 @@ class ray_tracing(ray_tracing_base):
         self._R = None
         self._x1 = None
         self._x2 = None
-        
+
     def reset_solutions(self):
         """
         Resets the raytracing solutions back to None. This is useful to do when changing the start and end
@@ -1636,7 +1637,7 @@ class ray_tracing(ray_tracing_base):
         self._x1 = np.array([X1r[0], X1r[2]])
         self._x2 = np.array([X2r[0], X2r[2]])
         self.__logger.debug("2D points {} {}".format(self._x1, self._x2))
-        
+
     def set_solution(self, raytracing_results):
         """
         Read an already calculated raytracing solution from the input array
@@ -1994,9 +1995,9 @@ class ray_tracing(ray_tracing_base):
         ]
 
     def get_raytracing_output(self, i_solution):
-        if self._config['propagation']['focusing']:    
+        if self._config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
-        else: 
+        else:
             focusing = 1
         output_dict = {
             'ray_tracing_C0': self.get_results()[i_solution]['C0'],

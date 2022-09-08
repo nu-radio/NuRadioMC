@@ -6,8 +6,27 @@ logger = logging.getLogger("attenuation")
 logging.basicConfig()
 logger.setLevel(logging.INFO)
 
-model_to_int = {"SP1" : 1, "GL1" : 2, "MB1" : 3, "GL2": 4}
+import scipy.interpolate
+import os
 
+model_to_int = {"SP1": 1, "GL1": 2, "MB1": 3, "GL2": 4, "GL3": 5}
+
+gl3_parameters = np.genfromtxt(
+            os.path.join(os.path.dirname(__file__), 'data/GL3_params.csv'),
+            delimiter=','
+        )
+gl3_slope_interpolation = scipy.interpolate.interp1d(
+    gl3_parameters[:, 0],
+    gl3_parameters[:, 1],
+    bounds_error=False,
+    fill_value=(gl3_parameters[0, 1], gl3_parameters[-1, 1])
+)
+gl3_offset_interpolation = scipy.interpolate.interp1d(
+    gl3_parameters[:, 0],
+    gl3_parameters[:, 2],
+    bounds_error=False,
+    fill_value=(gl3_parameters[0, 2], gl3_parameters[-1, 2])
+)
 
 def fit_GL1(z):
     """
@@ -68,7 +87,10 @@ def get_attenuation_length(z, frequency, model):
         
         * SP1: South Pole model, see various compilation
         * GL1: Greenland model, see https://arxiv.org/abs/1409.5413
-        * GL2: 2021 Greenland model, see: https://arxiv.org/abs/2201.07846
+        * GL2: 2021 Greenland model, using the Bogorodsky model for depth dependence
+                see: https://arxiv.org/abs/2201.07846, specifically Fig. 7
+        * GL3: 2021 Greenland model, using the MacGregor model for depth dependence
+                see: https://arxiv.org/abs/2201.07846, specifically Fig. 7
         * MB1: Moore's Bay Model, from 10.3189/2015JoG14J214 and
             Phd Thesis C. Persichilli (depth dependence)
         
@@ -124,6 +146,11 @@ def get_attenuation_length(z, frequency, model):
                 att_length_f = min_length
         else:
             att_length_f[att_length_f < min_length] = min_length
+
+    elif model == 'GL3':
+        slopes = gl3_slope_interpolation(-z)
+        offsets = gl3_offset_interpolation(-z)
+        att_length_f = slopes * frequency + offsets
 
     elif(model == "MB1"):
         # 10.3189/2015JoG14J214 measured the depth-averaged attenuation length as a function of frequency
