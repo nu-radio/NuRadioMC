@@ -64,8 +64,8 @@ efield_template = NuRadioReco.framework.base_trace.BaseTrace()
 efield_template.set_frequency_spectrum(spec, sampling_rate)
 efield_template.apply_time_shift(20. * units.ns, True)
 
-if not os.isdir('plots/efield_reco'):
-    os.mkdir('plots/efield_reco')
+if not os.path.isdir('plots/efield_reco'):
+    os.makedirs('plots/efield_reco')
 ift_efield_reconstructor = NuRadioReco.modules.iftElectricFieldReconstructor.iftElectricFieldReconstructor.IftElectricFieldReconstructor()
 ift_efield_reconstructor.begin(
     electric_field_template=efield_template,

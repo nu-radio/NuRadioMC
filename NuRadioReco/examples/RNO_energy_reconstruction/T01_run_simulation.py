@@ -3,7 +3,6 @@ import argparse
 import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
-import NuRadioReco.modules.channelGenericNoiseAdder
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation
 import logging
@@ -50,8 +49,6 @@ args = parser.parse_args()
 highLowThreshold = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 hardware_response = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
-noise_adder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-noise_adder.begin()
 noise_level = args.noise_level * units.mV
 
 
@@ -64,7 +61,7 @@ class mySimulation(simulation.simulation):
         highLowThreshold.run(evt, station, det,
                                     threshold_high=2. * noise_level,
                                     threshold_low=-2. * noise_level,
-                                    triggered_channels=[0, 1],  # select the LPDA channels
+                                    triggered_channels=[0, 1],
                                     number_concidences=2,  # 2/4 majority logic
                                     trigger_name='main_trigger'
                              )
