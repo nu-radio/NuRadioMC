@@ -1,6 +1,5 @@
 #include <math.h>
 #include <units.h>
-#include <limits>
 
 using namespace std;
 
@@ -49,7 +48,7 @@ double get_temperature(double z){
 
 double get_attenuation_length(double z, double frequency, int model){
 	if (z>0) {
-		double inf = std::numeric_limits<double>::infinity();
+		double inf = 1e130;
 		return inf;
 	}
 	if(model == 1) {
