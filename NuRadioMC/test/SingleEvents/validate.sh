@@ -6,4 +6,4 @@ python T03validate.py 1e18_output.hdf5 1e18_output_reference.hdf5
 
 
 # cleanup 
-rm -v 1e18_output.hdf5
+rm -v NuRadioMC/test/SingleEvents/1e18_output.hdf5
