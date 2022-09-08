@@ -8,4 +8,4 @@ python3 NuRadioMC/test/SingleEvents/T02RunSimulation.py NuRadioMC/test/SingleEve
 python3 NuRadioMC/test/SingleEvents/T04validate_allmost_equal.py NuRadioMC/test/SingleEvents/1e18_output_noise.hdf5 NuRadioMC/test/SingleEvents/1e18_output_noise_reference.hdf5
 
 # cleanup 
-rm -v 1e18_output_noise.hdf5 1e18_output.hdf5 1e18_output.nur
+rm -v NuRadioMC/test/SingleEvents/{1e18_output_noise.hdf5,1e18_output.hdf5,1e18_output.nur}

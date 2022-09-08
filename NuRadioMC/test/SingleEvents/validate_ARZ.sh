@@ -4,4 +4,4 @@ NuRadioMC/test/SingleEvents/T02RunSimulation.py NuRadioMC/test/SingleEvents/1e18
 NuRadioMC/test/SingleEvents/T04validate_allmost_equal.py NuRadioMC/test/SingleEvents/1e18_output_ARZ.hdf5 NuRadioMC/test/SingleEvents/1e18_output_ARZ_reference.hdf5
 
 # cleanup 
-rm -v 1e18_output_ARZ.hdf5
+rm -v NuRadioMC/test/SingleEvents/1e18_output_ARZ.hdf5
