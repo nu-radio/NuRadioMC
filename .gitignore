@@ -91,7 +91,6 @@ celerybeat-schedule
 # Environments
 .env
 .venv
-env/
 venv/
 ENV/
 env.bak/
@@ -132,9 +131,8 @@ venv.bak/
 # this should not apply for NuRadioReco/examples/example_data/
 NuRadioReco/examples/*.nur
 
-# ignore test output (not include input files here!)
-NuRadioMC/test/SingleEvents/1e18_output.nur
-NuRadioMC/test/SingleEvents/1e18_output_ARZ.hdf5
-NuRadioMC/test/SingleEvents/1e18_output_noise.hdf5
-NuRadioMC/test/SingleEvents/MB_1e18_output.hdf5
-NuRadioMC/test/Veff/1e18eV/output.nur
+# ignore test output (not include input or reference files here!)
+*output*.nur
+*output*.hdf5
+!*reference*.nur
+!*reference*.hdf5
