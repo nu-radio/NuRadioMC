@@ -51,6 +51,15 @@ class neutrinoEnergyReconstructor():
         pass
 
     def run(self, event, station, detector):
+        """
+        Runs the reconstruction. Reconstructed energies are stored in a new shower object that is added to the event.
+
+        Parameters
+        ------------
+        event
+        station
+        detector
+        """
         if not station.has_parameter(stnp.nu_vertex):
             raise ValueError('Cannot run energy reconstruction without a reconstructed vertex!')
         rec_vertex = station.get_parameter(stnp.nu_vertex)

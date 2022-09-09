@@ -53,7 +53,10 @@ det = NuRadioReco.detector.generic_detector.GenericDetector(
 channel_bandpass_filter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 efield_bandpass_filter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
 channel_pulse_finder = NuRadioReco.modules.channelPulseFinderSimulator.channelPulseFinderSimulator()
-channel_pulse_finder.begin(noise_level=noise_level)
+channel_pulse_finder.begin(
+    noise_level=noise_level,
+    min_snr=2.5
+)
 """
 We create an electric field template to be used to find the radio pulse. Pretty much any
 short pulse will do, so we create a delta pulse by setting a constant spectrum, apply a filter, and shift the pulse to
