@@ -144,7 +144,5 @@ if __name__ == "__main__":
                        outputfilename=args.outputfilename,
                        detectorfile=args.detectordescription,
                        outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
-                       config_file=args.config,
-                       default_detector_station=101,
-                       default_detector_channel=0)
+                       config_file=args.config)
     sim.run()
