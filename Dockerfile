@@ -25,4 +25,4 @@ USER nuradio
 EXPOSE 8050
 WORKDIR /usr/local/lib/NuRadioMC/NuRadioReco/detector/webinterface
 
-ENTRYPOINT ["streamlit", "run", "home.py", "--server.port=8050", "--server.address=0.0.0.0", --server.enableCORS=false]
+ENTRYPOINT ["streamlit", "run", "home.py", "--server.port=8050", "--server.address=0.0.0.0", "--server.enableCORS=false"]
