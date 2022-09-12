@@ -9,6 +9,8 @@ new features:
 +inf for positive z
 - adding minimize mode to the radiopropa propagation module & more configurable settings in config file
 - add uniform ice model with 1.78 refractive index
+- Uproot readout for ARIANNA .root files (ROOT install not needed to read)
+- Uproot noise importer to import ARIANNA noise
 
 bugfixes:
 
