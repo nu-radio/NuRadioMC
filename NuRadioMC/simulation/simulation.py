@@ -967,7 +967,8 @@ class simulation():
                         self._detector_simulation_filter_amp(self._evt, self._station, self._det)
 
                         self._detector_simulation_trigger(self._evt, self._station, self._det)
-                    if(not self._station.has_triggered()):
+                    
+                    if not self._station.has_triggered() and not self._cfg['save_all']:
                         continue
 
                     event_group_has_triggered = True
