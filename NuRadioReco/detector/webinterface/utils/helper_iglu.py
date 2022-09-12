@@ -51,8 +51,9 @@ def select_iglu(page_name, main_container, warning_container):
         drab_names.insert(0, selected_iglu_infos[1])
     else:
         # select golden DRAB as the default option
-        golden_drab_index = drab_names.index('Golden_DRAB')
-        drab_names.pop(golden_drab_index)
+        if 'Golden_DRAB' in drab_names:
+            golden_drab_index = drab_names.index('Golden_DRAB')
+            drab_names.pop(golden_drab_index)
         drab_names.insert(0, f'Golden_DRAB')
     selected_DRAB = col4_I.selectbox('', drab_names)
 
