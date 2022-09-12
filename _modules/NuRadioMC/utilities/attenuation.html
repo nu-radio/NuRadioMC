@@ -548,6 +548,12 @@
   <h1>Source code for NuRadioMC.utilities.attenuation</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;attenuation&quot;</span><span class="p">)</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
 <span class="kn">import</span> <span class="nn">scipy.interpolate</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
@@ -661,9 +667,9 @@
             <span class="n">a</span><span class="p">[</span><span class="n">frequency</span> <span class="o">&lt;</span> <span class="mf">1.</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">b1</span> <span class="o">*</span> <span class="n">w0</span> <span class="o">-</span> <span class="n">b0</span> <span class="o">*</span> <span class="n">w1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">w0</span> <span class="o">-</span> <span class="n">w1</span><span class="p">)</span>
             <span class="n">bb</span><span class="p">[</span><span class="n">frequency</span> <span class="o">&lt;</span> <span class="mf">1.</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">b1</span> <span class="o">-</span> <span class="n">b0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">w1</span> <span class="o">-</span> <span class="n">w0</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">bb</span> <span class="o">*</span> <span class="n">w</span><span class="p">)</span>
-    <span class="k">elif</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;GL1&quot;</span><span class="p">):</span>
+        <span class="n">att_length_f</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">bb</span> <span class="o">*</span> <span class="n">w</span><span class="p">)</span>
 
+    <span class="k">elif</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;GL1&quot;</span><span class="p">):</span>
         <span class="n">att_length_75</span> <span class="o">=</span> <span class="n">fit_GL1</span><span class="p">(</span><span class="n">z</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">)</span>
         <span class="n">att_length_f</span> <span class="o">=</span> <span class="n">att_length_75</span> <span class="o">-</span> <span class="mf">0.55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">*</span> <span class="p">(</span><span class="n">frequency</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span> <span class="o">-</span> <span class="mi">75</span><span class="p">)</span>
 
@@ -674,9 +680,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">att_length_f</span><span class="p">[</span> <span class="n">att_length_f</span> <span class="o">&lt;</span> <span class="n">min_length</span> <span class="p">]</span> <span class="o">=</span> <span class="n">min_length</span>
 
-        <span class="k">return</span> <span class="n">att_length_f</span>
-    <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;GL2&#39;</span><span class="p">:</span>
-
+    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;GL2&#39;</span><span class="p">:</span>
         <span class="n">fit_values_GL2</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.20547286e+00</span><span class="p">,</span> <span class="mf">1.58815679e-05</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.58901767e-07</span><span class="p">,</span> <span class="o">-</span><span class="mf">5.16435542e-10</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.89124473e-13</span><span class="p">,</span> <span class="o">-</span><span class="mf">4.58987344e-17</span><span class="p">]</span>
         <span class="n">freq_slope</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.54</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span>
         <span class="n">freq_inter</span> <span class="o">=</span> <span class="mf">852.0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
@@ -690,14 +694,11 @@
                 <span class="n">att_length_f</span> <span class="o">=</span> <span class="n">min_length</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">att_length_f</span><span class="p">[</span><span class="n">att_length_f</span> <span class="o">&lt;</span> <span class="n">min_length</span><span class="p">]</span> <span class="o">=</span> <span class="n">min_length</span>
-        <span class="k">return</span> <span class="n">att_length_f</span>
 
-    <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;GL3&#39;</span><span class="p">:</span>
-
+    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;GL3&#39;</span><span class="p">:</span>
         <span class="n">slopes</span> <span class="o">=</span> <span class="n">gl3_slope_interpolation</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">)</span>
         <span class="n">offsets</span> <span class="o">=</span> <span class="n">gl3_offset_interpolation</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">slopes</span> <span class="o">*</span> <span class="n">frequency</span> <span class="o">+</span> <span class="n">offsets</span>
-
+        <span class="n">att_length_f</span> <span class="o">=</span> <span class="n">slopes</span> <span class="o">*</span> <span class="n">frequency</span> <span class="o">+</span> <span class="n">offsets</span>
 
     <span class="k">elif</span><span class="p">(</span><span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;MB1&quot;</span><span class="p">):</span>
         <span class="c1"># 10.3189/2015JoG14J214 measured the depth-averaged attenuation length as a function of frequency</span>
@@ -706,8 +707,8 @@
         <span class="c1"># attenution length (correction factor below)</span>
         <span class="n">R</span> <span class="o">=</span> <span class="mf">0.82</span>
         <span class="n">d_ice</span> <span class="o">=</span> <span class="mi">576</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
-        <span class="n">att_length</span> <span class="o">=</span> <span class="mi">460</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">-</span> <span class="mi">180</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span> <span class="o">*</span> <span class="n">frequency</span>
-        <span class="n">att_length</span> <span class="o">*=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">att_length</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">d_ice</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">R</span><span class="p">))</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># additional correction for reflection coefficient being less than 1.</span>
+        <span class="n">att_length_f</span> <span class="o">=</span> <span class="mi">460</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">-</span> <span class="mi">180</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span> <span class="o">*</span> <span class="n">frequency</span>
+        <span class="n">att_length_f</span> <span class="o">*=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">att_length_f</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">d_ice</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">R</span><span class="p">))</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># additional correction for reflection coefficient being less than 1.</span>
 
         <span class="c1"># The temperature dependence of the attenuation length is independent of the frequency dependence</span>
         <span class="c1"># the relationship between temparature and L is from 10.1063/1.363582</span>
@@ -719,11 +720,42 @@
         <span class="c1"># this differs from the equation published in F. Wu PhD thesis UCI.</span>
         <span class="c1"># 262m is supposed to be the depth averaged attenuation length but the</span>
         <span class="c1"># integral (int(1/L, 420, 0)/420) ^ -1 = 231.21m and NOT 262m.</span>
-        <span class="n">att_length</span> <span class="o">*=</span> <span class="n">L</span> <span class="o">/</span> <span class="mf">231.21</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
+        <span class="n">att_length_f</span> <span class="o">*=</span> <span class="n">L</span> <span class="o">/</span> <span class="mf">231.21</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
 
-        <span class="k">return</span> <span class="n">att_length</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;attenuation model </span><span class="si">{}</span><span class="s2"> is not implemented.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model</span><span class="p">))</span></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;attenuation model </span><span class="si">{}</span><span class="s2"> is not implemented.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model</span><span class="p">))</span>
+
+    <span class="c1"># mask for positive z and mask for &lt;~0 attenuation length</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">z</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Attenuation length is set to inf for positive z (above ice surface)&quot;</span><span class="p">)</span>
+
+
+    <span class="n">min_length</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">frequency</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">att_length_f</span> <span class="o">&lt;</span> <span class="n">min_length</span><span class="p">:</span>
+            <span class="n">att_length_f</span> <span class="o">=</span> <span class="n">min_length</span>
+        <span class="k">if</span> <span class="n">z</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">att_length_f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">att_length_f</span><span class="p">[</span><span class="n">att_length_f</span> <span class="o">&lt;</span> <span class="n">min_length</span><span class="p">]</span> <span class="o">=</span> <span class="n">min_length</span>
+        <span class="n">att_length_f</span><span class="p">[</span><span class="n">z</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="k">return</span> <span class="n">att_length_f</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+    <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="p">,</span><span class="o">-</span><span class="mi">3</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="p">,</span><span class="mi">1000</span><span class="p">)</span>
+    <span class="n">frequencies</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">]</span> <span class="c1">#np.linspace(0,1*units.GHz,10)</span>
+    <span class="k">for</span> <span class="n">frequency</span> <span class="ow">in</span> <span class="n">frequencies</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;SP1&quot;</span><span class="p">,</span> <span class="s2">&quot;GL1&quot;</span><span class="p">,</span> <span class="s2">&quot;GL2&quot;</span><span class="p">,</span> <span class="s2">&quot;MB1&quot;</span><span class="p">]:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">get_attenuation_length</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">frequency</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">posinf</span><span class="o">=</span><span class="mi">3333</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;depth [m]&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;attenuation length [m]&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;attenuation length (inf masked to +3333m)&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;attenuation_length_models.png&quot;</span><span class="p">)</span>
 </pre></div>
 
            </div>
