@@ -203,6 +203,8 @@ class simulation():
 
         self._antenna_pattern_provider = antennapattern.AntennaPatternProvider()
 
+        self.__number_of_skipped_events = 0
+
         # initialize propagation module
         self._prop = propagation.get_propagation_module(self._cfg['propagation']['module'])
 
@@ -493,6 +495,7 @@ class simulation():
             # simulate neutrino that propagate through the Earth
             if(self._mout['weights'][self._primary_index] < self._cfg['speedup']['minimum_weight_cut']):
                 logger.debug("neutrino weight is smaller than {}, skipping event".format(self._cfg['speedup']['minimum_weight_cut']))
+                self.__number_of_skipped_events += 1
                 continue
 
             # these quantities get computed to apply the distance cut as a function of shower energies
@@ -514,6 +517,8 @@ class simulation():
                 triggered_showers[self._station_id] = []
                 logger.debug(f"simulating station {self._station_id}")
 
+                candidate_station = False
+
                 if self._cfg['speedup']['distance_cut']:
                     # perform a quick cut to reject event group completely if no shower is close enough to the station
                     t_tmp = time.time()
@@ -524,9 +529,9 @@ class simulation():
                         distance_cut_time += time.time() - t_tmp
                         iCounter += len(shower_energies)
                         continue
+
                     distance_cut_time += time.time() - t_tmp
 
-                candidate_station = False
                 self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
 #                 logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
                 self._n_samples = self._det.get_number_of_samples(self._station_id, 0) / self._sampling_rate_detector / self._dt
@@ -850,9 +855,11 @@ class simulation():
                 # now perform first part of detector simulation -> convert each efield to voltage
                 # (i.e. apply antenna response) and apply additional simulation of signal chain (such as cable delays,
                 # amp response etc.)
-                if(not candidate_station):
+                if not candidate_station:
                     logger.debug("electric field amplitude too small in all channels, skipping to next event")
+                    self.__number_of_skipped_events += 1
                     continue
+                
                 t1 = time.time()
                 self._station = NuRadioReco.framework.station.Station(self._station_id)
                 self._station.set_sim_station(self._sim_station)
@@ -1042,7 +1049,9 @@ class simulation():
         # Create trigger structures if there are no triggering events.
         # This is done to ensure that files with no triggering n_events
         # merge properly.
-#         self._create_empty_multiple_triggers()
+        # self._create_empty_multiple_triggers()
+        
+        logger.status("Skipped {:d} events to speed up the simulation.".format(self.__number_of_skipped_events))
 
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
