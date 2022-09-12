@@ -1,5 +1,11 @@
 import numpy as np
 from NuRadioReco.utilities import units
+
+import logging
+logger = logging.getLogger("attenuation")
+logging.basicConfig()
+logger.setLevel(logging.INFO)
+
 import scipy.interpolate
 import os
 
@@ -113,9 +119,9 @@ def get_attenuation_length(z, frequency, model):
             a[frequency < 1. * units.GHz] = (b1 * w0 - b0 * w1) / (w0 - w1)
             bb[frequency < 1. * units.GHz] = (b1 - b0) / (w1 - w0)
 
-        return 1. / np.exp(a + bb * w)
-    elif(model == "GL1"):
+        att_length_f = 1. / np.exp(a + bb * w)
 
+    elif(model == "GL1"):
         att_length_75 = fit_GL1(z / units.m)
         att_length_f = att_length_75 - 0.55 * units.m * (frequency / units.MHz - 75)
 
@@ -126,9 +132,7 @@ def get_attenuation_length(z, frequency, model):
         else:
             att_length_f[ att_length_f < min_length ] = min_length
 
-        return att_length_f
-    if model == 'GL2':
-
+    elif model == 'GL2':
         fit_values_GL2 = [1.20547286e+00, 1.58815679e-05, -2.58901767e-07, -5.16435542e-10, -2.89124473e-13, -4.58987344e-17]
         freq_slope = -0.54 * units.m / units.MHz
         freq_inter = 852.0 * units.m
@@ -142,14 +146,11 @@ def get_attenuation_length(z, frequency, model):
                 att_length_f = min_length
         else:
             att_length_f[att_length_f < min_length] = min_length
-        return att_length_f
 
-    if model == 'GL3':
-
+    elif model == 'GL3':
         slopes = gl3_slope_interpolation(-z)
         offsets = gl3_offset_interpolation(-z)
-        return slopes * frequency + offsets
-
+        att_length_f = slopes * frequency + offsets
 
     elif(model == "MB1"):
         # 10.3189/2015JoG14J214 measured the depth-averaged attenuation length as a function of frequency
@@ -158,8 +159,8 @@ def get_attenuation_length(z, frequency, model):
         # attenution length (correction factor below)
         R = 0.82
         d_ice = 576 * units.m
-        att_length = 460 * units.m - 180 * units.m / units.GHz * frequency
-        att_length *= (1 + att_length / (2 * d_ice) * np.log(R)) ** -1  # additional correction for reflection coefficient being less than 1.
+        att_length_f = 460 * units.m - 180 * units.m / units.GHz * frequency
+        att_length_f *= (1 + att_length_f / (2 * d_ice) * np.log(R)) ** -1  # additional correction for reflection coefficient being less than 1.
 
         # The temperature dependence of the attenuation length is independent of the frequency dependence
         # the relationship between temparature and L is from 10.1063/1.363582
@@ -171,8 +172,39 @@ def get_attenuation_length(z, frequency, model):
         # this differs from the equation published in F. Wu PhD thesis UCI.
         # 262m is supposed to be the depth averaged attenuation length but the
         # integral (int(1/L, 420, 0)/420) ^ -1 = 231.21m and NOT 262m.
-        att_length *= L / 231.21 * units.m
+        att_length_f *= L / 231.21 * units.m
 
-        return att_length
     else:
         raise NotImplementedError("attenuation model {} is not implemented.".format(model))
+
+    # mask for positive z and mask for <~0 attenuation length
+    if np.any(z > 0):
+        logger.warning("Attenuation length is set to inf for positive z (above ice surface)")
+
+
+    min_length = 1 * units.m
+    if (not hasattr(frequency, '__len__') and not hasattr(z, '__len__')):
+        if att_length_f < min_length:
+            att_length_f = min_length
+        if z > 0:
+            att_length_f = np.inf
+    else:
+        att_length_f[att_length_f < min_length] = min_length
+        att_length_f[z > 0] = np.inf
+    return att_length_f
+
+
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+
+    z = np.linspace(1*units.km,-3*units.km,1000)
+    frequencies = [0.5*units.GHz] #np.linspace(0,1*units.GHz,10)
+    for frequency in frequencies:
+        for model in ["SP1", "GL1", "GL2", "MB1"]:
+            plt.plot(-z/units.m, np.nan_to_num(get_attenuation_length(z, frequency, model)/units.m, posinf=3333), label=f"{model}")
+    plt.xlabel("depth [m]")
+    plt.ylabel("attenuation length [m]")
+    plt.ylim(0,None)
+    plt.title("attenuation length (inf masked to +3333m)")
+    plt.legend()
+    plt.savefig("attenuation_length_models.png")
