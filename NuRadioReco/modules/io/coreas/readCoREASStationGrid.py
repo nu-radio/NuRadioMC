@@ -4,6 +4,7 @@ import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
 from radiotools import coordinatesystems as cstrafo
+from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.utilities import units
 import numpy as np
@@ -76,8 +77,9 @@ class readCoREAS:
         detector: Detector object
             Detector description of the detector that shall be simulated
         output_mode: integer (default 0)
-            0: only the event object is returned
-            1: the function reuturns the event object, the current inputfilename, the distance between the choosen station and the requested core position,
+            
+            * 0: only the event object is returned
+            * 1: the function reuturns the event object, the current inputfilename, the distance between the choosen station and the requested core position,
                and the area in which the core positions are randomly distributed
 
 
@@ -130,10 +132,10 @@ class readCoREAS:
                 t = time.time()
                 evt = NuRadioReco.framework.event.Event(self.__current_input_file, iCore)  # create empty event
                 sim_shower = coreas.make_sim_shower(corsika)
+                sim_shower.set_parameter(shp.core, core)
                 evt.add_sim_shower(sim_shower)
                 rd_shower = NuRadioReco.framework.radio_shower.RadioShower(station_ids=station_ids)
                 evt.add_shower(rd_shower)
-
                 for station_id in station_ids:
                     # convert into vxvxB frame to calculate closests simulated station to detecor station
                     det_station_position = detector.get_absolute_position(station_id)

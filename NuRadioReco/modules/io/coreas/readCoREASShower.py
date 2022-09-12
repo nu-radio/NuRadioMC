@@ -122,7 +122,8 @@ class readCoREASShower:
                             'station_id': station_id,
                             'pos_easting': antenna_position[0],
                             'pos_northing': antenna_position[1],
-                            'pos_altitude': antenna_position[2]
+                            'pos_altitude': antenna_position[2],
+                            'reference_station': self.__det.get_reference_station_ids()[0]
                         })
                     else:
                         self.__det.add_station_properties_for_event({

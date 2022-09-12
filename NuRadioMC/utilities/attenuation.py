@@ -1,8 +1,26 @@
 import numpy as np
 from NuRadioReco.utilities import units
+import scipy.interpolate
+import os
 
-model_to_int = {"SP1" : 1, "GL1" : 2, "MB1" : 3}
+model_to_int = {"SP1": 1, "GL1": 2, "MB1": 3, "GL2": 4, "GL3": 5}
 
+gl3_parameters = np.genfromtxt(
+            os.path.join(os.path.dirname(__file__), 'data/GL3_params.csv'),
+            delimiter=','
+        )
+gl3_slope_interpolation = scipy.interpolate.interp1d(
+    gl3_parameters[:, 0],
+    gl3_parameters[:, 1],
+    bounds_error=False,
+    fill_value=(gl3_parameters[0, 1], gl3_parameters[-1, 1])
+)
+gl3_offset_interpolation = scipy.interpolate.interp1d(
+    gl3_parameters[:, 0],
+    gl3_parameters[:, 2],
+    bounds_error=False,
+    fill_value=(gl3_parameters[0, 2], gl3_parameters[-1, 2])
+)
 
 def fit_GL1(z):
     """
@@ -59,11 +77,17 @@ def get_attenuation_length(z, frequency, model):
     frequency: float
         frequency of signal in default units
     model: string
-        Ice model for attenuation length
-        SP1: South Pole model, see various compilation
-        GL1: Greenland model, see https://arxiv.org/abs/1409.5413
-        MB1: Moore's Bay Model, from 10.3189/2015JoG14J214 and
+        Ice model for attenuation length. Options:
+        
+        * SP1: South Pole model, see various compilation
+        * GL1: Greenland model, see https://arxiv.org/abs/1409.5413
+        * GL2: 2021 Greenland model, using the Bogorodsky model for depth dependence
+                see: https://arxiv.org/abs/2201.07846, specifically Fig. 7
+        * GL3: 2021 Greenland model, using the MacGregor model for depth dependence
+                see: https://arxiv.org/abs/2201.07846, specifically Fig. 7
+        * MB1: Moore's Bay Model, from 10.3189/2015JoG14J214 and
             Phd Thesis C. Persichilli (depth dependence)
+        
     """
     if(model == "SP1"):
         t = get_temperature(z)
@@ -95,7 +119,7 @@ def get_attenuation_length(z, frequency, model):
         att_length_75 = fit_GL1(z / units.m)
         att_length_f = att_length_75 - 0.55 * units.m * (frequency / units.MHz - 75)
 
-        min_length = 100 * units.m
+        min_length = 1 * units.m
         if(not hasattr(frequency, '__len__') and not hasattr(z, '__len__')):
             if (att_length_f < min_length):
                 att_length_f = min_length
@@ -103,6 +127,30 @@ def get_attenuation_length(z, frequency, model):
             att_length_f[ att_length_f < min_length ] = min_length
 
         return att_length_f
+    if model == 'GL2':
+
+        fit_values_GL2 = [1.20547286e+00, 1.58815679e-05, -2.58901767e-07, -5.16435542e-10, -2.89124473e-13, -4.58987344e-17]
+        freq_slope = -0.54 * units.m / units.MHz
+        freq_inter = 852.0 * units.m
+
+        bulk_att_length_f = freq_inter + freq_slope * frequency
+        att_length_f = bulk_att_length_f * np.poly1d(np.flip(fit_values_GL2))(z)
+
+        min_length = 1 * units.m
+        if (not hasattr(frequency, '__len__') and not hasattr(z, '__len__')):
+            if att_length_f < min_length:
+                att_length_f = min_length
+        else:
+            att_length_f[att_length_f < min_length] = min_length
+        return att_length_f
+
+    if model == 'GL3':
+
+        slopes = gl3_slope_interpolation(-z)
+        offsets = gl3_offset_interpolation(-z)
+        return slopes * frequency + offsets
+
+
     elif(model == "MB1"):
         # 10.3189/2015JoG14J214 measured the depth-averaged attenuation length as a function of frequency
         # the derived parameterization assumed a reflection coefficient of 1

@@ -1,7 +1,9 @@
 from __future__ import absolute_import, division, print_function
 import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_serialization
+from radiotools import helper as hp, coordinatesystems
 import pickle
+
 import logging
 logger = logging.getLogger('Shower')
 
@@ -38,6 +40,56 @@ class BaseShower:
             logger.error("parameter key needs to be of type NuRadioReco.framework.parameters.showerParameters")
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.showerParameters")
         return key in self._parameters
+
+    def get_axis(self):
+        """
+        Returns the (shower) axis. 
+        
+        The axis is antiparallel to the movement of the shower particla and point
+        towards the origin of the shower.
+
+        Returns
+        -------
+
+        np.array(3,)  
+            Shower axis
+        
+        """
+        if not self.has_parameter(parameters.showerParameters.azimuth) or \
+           not self.has_parameter(parameters.showerParameters.zenith):
+            logger.error(
+                "Azimuth or zenith angle not set! Can not return shower axis.")
+            raise ValueError(
+                "Azimuth or zenith angle not set! Can not return shower axis.")
+
+        return hp.spherical_to_cartesian(self.get_parameter(parameters.showerParameters.zenith),
+                                         self.get_parameter(parameters.showerParameters.azimuth))
+
+    def get_coordinatesystem(self):
+        """ 
+        Returns radiotools.coordinatesystem.cstrafo for shower geometry.
+        
+        Can be used to transform the radio pulses or the observer coordiates
+        in the shower frame. Requieres the shower arrival direction 
+        (azimuth and zenith angle) and magnetic field vector (parameters.showerParameters).
+
+        Returns
+        -------
+
+        radiotools.coordinatesystem.cstrafo
+        
+        """
+        if not self.has_parameter(parameters.showerParameters.azimuth) or \
+           not self.has_parameter(parameters.showerParameters.zenith) or \
+           not self.has_parameter(parameters.showerParameters.magnetic_field_vector):
+            logger.error(
+                "Magnetic field vector, azimuth or zenith angle not set! Can not return shower coordinatesystem.")
+            raise ValueError(
+                "Magnetic field vector, azimuth or zenith angle not set! Can not return shower coordinatesystem.")
+
+        return coordinatesystems.cstrafo(self.get_parameter(parameters.showerParameters.zenith),
+                                         self.get_parameter(parameters.showerParameters.azimuth),
+                                         self.get_parameter(parameters.showerParameters.magnetic_field_vector))
 
     def serialize(self):
         data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),

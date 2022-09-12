@@ -50,7 +50,7 @@ def get_filter_response_mini_circuits2(frequencies, filter_name):
 
     get_group_delay = intp.interp1d(ff2, group_delay)
     df = 1 * units.MHz
-    fff2 = np.linspace(ff2.min(), ff2.max(), np.int(np.ceil((ff2.max() - ff2.min()) / (1 * units.MHz))))
+    fff2 = np.linspace(ff2.min(), ff2.max(), int(np.ceil((ff2.max() - ff2.min()) / (1 * units.MHz))))
     phase2 = -2 * np.pi * np.cumsum(get_group_delay(fff2) * df)
     get_phase = intp.interp1d(fff2, phase2)
 
