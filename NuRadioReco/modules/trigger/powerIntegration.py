@@ -89,26 +89,31 @@ class triggerSimulator:
 
         sampling_rate = station.get_channel(station.get_channel_ids()[0]).get_sampling_rate()
         dt = 1. / sampling_rate
-        triggerd_bins_channels = []
+
         if triggered_channels is None:
             for channel in station.iter_channels():
                 channel_trace_start_time = channel.get_trace_start_time()
                 break
         else:
             channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
+        
+        triggerd_bins_channels = []
         channels_that_passed_trigger = []
         for channel in station.iter_channels():
             channel_id = channel.get_id()
             if triggered_channels is not None and channel_id not in triggered_channels:
                 logger.debug("skipping channel {}".format(channel_id))
                 continue
+            
             if channel.get_trace_start_time() != channel_trace_start_time:
                 logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
+            
             trace = channel.get_trace()
-            if(isinstance(threshold, dict)):
+            if isinstance(threshold, dict):
                 threshold_tmp = threshold[channel_id]
             else:
                 threshold_tmp = threshold
+            
             triggerd_bins = get_power_int_triggers(trace, threshold_tmp, integration_window, dt=dt)
             triggerd_bins_channels.append(triggerd_bins)
             if True in triggerd_bins:
@@ -116,12 +121,14 @@ class triggerSimulator:
 
         has_triggered, triggered_bins, triggered_times = get_majority_logic(
             triggerd_bins_channels, number_concidences, coinc_window, dt)
+        
         # set maximum signal aplitude
         max_signal = 0
-        if(has_triggered):
+        if has_triggered:
             for channel in station.iter_channels():
                 max_signal = max(max_signal, np.abs(channel.get_trace()[triggered_bins]).max())
             station.set_parameter(stnp.channels_max_amplitude, max_signal)
+        
         trigger = IntegratedPowerTrigger(trigger_name, threshold, triggered_channels,
                                          number_concidences, integration_window=integration_window)
         trigger.set_triggered_channels(channels_that_passed_trigger)
