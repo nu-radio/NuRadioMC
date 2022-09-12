@@ -9,6 +9,8 @@ split_event_time_diff: 1e6  # the minimal time difference (in ns) between two vo
 
 seed: 1235
 
+save_all: False  # If True store all (also non-triggered) events
+
 speedup:
   minimum_weight_cut: 1.e-5
   delta_C_cut: 0.698  # 40 degree
