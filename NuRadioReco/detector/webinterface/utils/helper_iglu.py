@@ -5,10 +5,13 @@ import pandas as pd
 from NuRadioReco.detector.webinterface.utils.units_helper import str_to_unit
 from NuRadioReco.utilities import units
 import numpy as np
-from NuRadioReco.detector.detector_mongo import det
+# from NuRadioReco.detector.detector_mongo import det
+from NuRadioReco.detector.detector_mongo import Detector
+from NuRadioReco.detector.webinterface import config
 # from NuRadioReco.detector.detector_mongo import Detector
 from datetime import datetime
 
+det = Detector(config.DATABASE_TARGET)
 # det = Detector(database_connection='env_pw_user')
 # det = Detector(database_connection='test')
 
@@ -46,8 +49,9 @@ def select_iglu(page_name, main_container, warning_container):
 
     # if an exiting IGLU is selected, change the default option to the saved DRAB
     if selected_iglu_infos != []:
-        drab_index = drab_names.index(selected_iglu_infos[1])
-        drab_names.pop(drab_index)
+        if selected_iglu_infos[1] in drab_names:
+            drab_index = drab_names.index(selected_iglu_infos[1])
+            drab_names.pop(drab_index)
         drab_names.insert(0, selected_iglu_infos[1])
     else:
         # select golden DRAB as the default option
