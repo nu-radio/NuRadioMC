@@ -2,17 +2,81 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
-version 2.1.0
+version 2.2.0
+new features:
+- add attenuation model from the 2021 measurements taken at Summit Station
+- print warning for positive z in attenuation, and set attenuation length to
++inf for positive z
+- adding minimize mode to the radiopropa propagation module & more configurable settings in config file
+- add uniform ice model with 1.78 refractive index
+
+bugfixes:
+
+
+version 2.1.6
+bugfixes:
+- the n_interaction parameter was accidentally overridden. n_interaction counts the number of interactions of taus and 
+muons generated in the corresponding CC interactions. The bug resulted in the following behaviour: The n_interaction value of the primary
+neutrino interaction was overridden with the n_interaction value of the last shower of the previous event group. If the previous event group
+was a CC interaction, the n_interaction value of the primary interaction was set to a value larger than 1. If that happened, and if the primary
+shower did not trigger the detector, this shower is not added to the output hdf5 file. This has consquences for analyzing hdf5 files for 
+secondary interactions. With this bug, the initial interaction needs to be idenfified with np.abs(flavor) == 14 or 16.  
+This bug does not effect any effective volume calculation. 
+
+new features:
+- add hvsp1, update idl1 model for emitter simulation (from KU lab measurements) and remove
+hvsp2(no longer in use for experiment)
+- add CalPulser data for emitter simulation
+version 2.1.5
+new features:
+
+bugfixes:
+- the phased array trigger module did not calculate the trigger time.
+  The trigger time was always set to the trace start time. This got fixed in this version. 
+
+version 2.1.4
+
+bugfixes:
+- fix passing hdf5 files in memory (generation attributes were not set which resulted in a crash)
+
+version 2.1.3
+bugfixes:
+- PROPOSAL energy cut (min_energy_cut_nu) assumed wrong units (before: 1e-6*units.eV)
+
+version 2.1.2
+bugfixes:
+- Fixes that the generic detector crashes for certain detector files. 
+
+version 2.1.1
 new features:
 - add a numerical raytracer depending on the radiopropa code
 - major change in the declaration of mediums at the back end, at the front end nothing changed.
+- Added neutrino direction reconstruction module and example on how to use it.
+- inheritance of ray tracers form a base class
+- changes to the eventbrowser in order to read RNO-G data
+- add sphericalWaveFitter module
+- add directory RNO_data with an example reconstruction for RNO data and the calculation of the cable delays
+- add Genie HEDIS (BGR18) cross section as an optional cross sec model
+- add handling of multiple reference channels and stations to generic detector
+- add thermal noise generator that fulfills phased array trigger
+- add a basic uproot data reader for RNO-G data
+- add option to simulate emitters
+- added helper function for cosmic ray flux models
+- speed improvements of ARZ model through use of numba  
 
+bugfixes:
+- correct volume extension depending on zenith angle range when running with
+secondaries
+- corrected get_hilbert_envelope(_mag) in BaseTrace to actually return the Hilbert envelope and simplified resamle function
 
 version 2.0.1
-new features
+new features:
 - Veff utility can now calculate effective volumes for fine zenith angle binning
+- Monte Carlo info introduced in .nur files via Particle and generator_info
+
 bugfixes:
 - fixed rare cases where the Cpp implementation of the analytic ray tracer did not find a solution
+
 
 
 version 2.0.0

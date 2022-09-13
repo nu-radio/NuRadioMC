@@ -19,7 +19,8 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
     Returns the antenna response to a radio signal coming from a specific direction
 
     Parameters
-    ---------------
+    ----------
+    
     station: Station
     frequencies: array of complex
         frequencies of the radio signal for which the antenna response is needed
@@ -68,7 +69,8 @@ def get_channel_voltage_from_efield(station, electric_field, channels, detector,
     Returns the voltage traces that would result in the channels from the station's E-field.
 
     Parameters
-    ------------------------
+    ----------
+
     station: Station
     electric_field: ElectricField
     channels: array of int
@@ -111,13 +113,14 @@ def get_electric_field_energy_fluence(electric_field_trace, times, signal_window
     return f_signal * dt * conversion_factor_integrated_signal
 
 
-def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2**7):
+def upsampling_fir(trace, original_sampling_frequency, int_factor=2, ntaps=2 ** 7):
     """
     This function performs an upsampling by inserting a number of zeroes
     between samples and then applying a finite impulse response (FIR) filter.
 
     Parameters
     ----------
+    
     trace: array of floats
         Trace to be upsampled
     original_sampling_frequency: float
@@ -165,6 +168,7 @@ def butterworth_filter_trace(trace, sampling_frequency, passband, order=8):
 
     Parameters
     ----------
+
     trace: array of floats
         Trace to be filtered
     sampling_frequency: float
@@ -175,7 +179,8 @@ def butterworth_filter_trace(trace, sampling_frequency, passband, order=8):
         Filter order
 
     Returns
-    ------
+    -------
+
     filtered_trace: array of floats
         The filtered trace
     """
@@ -224,7 +229,7 @@ def apply_butterworth(spectrum, frequencies, passband, order=8):
     return filtered_spectrum
 
 
-def delay_trace(trace, sampling_frequency, time_delay, delayed_samples):
+def delay_trace(trace, sampling_frequency, time_delay, delayed_samples=None):
     """
     Delays a trace by transforming it to frequency and multiplying by phases.
     Since this method is cyclic, the trace has to be cropped. It only accepts
@@ -240,8 +245,9 @@ def delay_trace(trace, sampling_frequency, time_delay, delayed_samples):
         Sampling rate for the trace
     time_delay: float
         Time delay used for transforming the trace. Must be positive or 0
-    delayed_samples: integer
+    delayed_samples: integer or None
         Number of samples that the delayed trace must contain
+        if None: the trace is not cut
 
     Returns
     -------
@@ -264,7 +270,8 @@ def delay_trace(trace, sampling_frequency, time_delay, delayed_samples):
 
     init_sample = int(time_delay * sampling_frequency) + 1
 
-    delayed_trace = delayed_trace[init_sample:None]
-    delayed_trace = delayed_trace[:delayed_samples]
+    if delayed_samples is not None:
+        delayed_trace = delayed_trace[init_sample:None]
+        delayed_trace = delayed_trace[:delayed_samples]
 
     return delayed_trace

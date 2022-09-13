@@ -25,6 +25,7 @@ def get_power_int_triggers(trace, threshold, window=10 * units.ns, dt=1 * units.
         the time binning of the trace
     full_output: bool (default False)
         if True, the integrated power is returned as second argument
+    
     Returns
     -------
     triggered bins: array of bools
@@ -86,7 +87,7 @@ class triggerSimulator:
         """
         t = time.time()
 
-        sampling_rate = station.get_channel(0).get_sampling_rate()
+        sampling_rate = station.get_channel(station.get_channel_ids()[0]).get_sampling_rate()
         dt = 1. / sampling_rate
         triggerd_bins_channels = []
         if triggered_channels is None:

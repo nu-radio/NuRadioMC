@@ -1,6 +1,6 @@
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+from dash import html
 from dash.dependencies import Input, Output, State
 from NuRadioReco.detector.detector_browser.app import app
 import NuRadioReco.detector.detector_browser.detector_provider
@@ -57,6 +57,23 @@ layout = html.Div([
                     className='btn btn-primary'
                 )
             ], className='input-group'),
+            html.Div([
+                html.Div([
+                    dcc.Checklist(
+                        id='need-defaults-checkbox',
+                        options=[{'label': 'specify defaults', 'value': 1}],
+                        labelStyle={'margin': '2px 10px'},
+                        value=[]
+                    ),
+                    html.Div([
+                        html.Div([
+                            html.Div('?', className='tooltip-questionmark')
+                        ], className='popup-symbol'),
+                        html.Div(('Normally, default stations and channels are specified in the detector descriptions, '
+                                  'but older detector description may require you to set them manually.'), className='popup-box')
+                    ], className='popup-container', style={'flex': 'none'})
+                ], id='need-defaults-input-group', className='need-defaults-input-group')
+            ], className='.input-group'),
             html.Div([
                 dcc.Input(
                     id='default-station-input',
@@ -201,6 +218,7 @@ def update_file_name_options(folder_dummy, refresh_button, file_type, folder_inp
      State('file-type-dropdown', 'value'),
      State('default-station-input', 'value'),
      State('default-channel-input', 'value'),
+     State('need-defaults-checkbox', 'value'),
      State('detector-time-slider', 'value'),
      State('detector-event-slider', 'value'),
      State('antenna-options-checklist', 'value')])
@@ -212,6 +230,7 @@ def open_detector(
         detector_type,
         default_station,
         default_channel,
+        need_defaults,
         detector_time,
         i_event,
         antenna_options
@@ -253,17 +272,32 @@ def open_detector(
         detector_provider.set_time_periods(unix_times, datetimes)
         detector.update(np.array(datetimes)[np.argmin(unix_times)])
     elif detector_type == 'generic_detector':
-        detector_provider.set_generic_detector(filename, default_station, default_channel, assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
+        if len(need_defaults) > 0:
+            detector_provider.set_generic_detector(filename, default_station, default_channel, assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
+        else:
+            detector_provider.set_generic_detector(filename, default_station=None, default_channel=None, assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
     elif detector_type == 'event_file':
         detector_provider.set_event_file(filename)
     return n_clicks
 
 
 @app.callback(
-    Output('default-settings-div', 'style'),
+    Output('need-defaults-input-group', 'style'),
     [Input('file-type-dropdown', 'value')]
 )
-def show_default_settings_div(detector_type):
+def show_defaults_checklist(detector_type):
+    if detector_type == 'generic_detector':
+        return {'z-index': '0'}
+    else:
+        return {'display': 'none'}
+
+
+@app.callback(
+    Output('default-settings-div', 'style'),
+    [Input('file-type-dropdown', 'value'),
+     Input('need-defaults-checkbox', 'value')]
+)
+def show_default_settings_div(detector_type, need_defaults):
     """
     Controls if the inputs to set default station and default channel
     are shown
@@ -273,7 +307,7 @@ def show_default_settings_div(detector_type):
     detector_type: string
         Value of the detector type selection dropdown
     """
-    if detector_type == 'generic_detector':
+    if detector_type == 'generic_detector' and len(need_defaults) > 0:
         return {'z-index': '0'}
     else:
         return {'display': 'none'}
@@ -283,9 +317,10 @@ def show_default_settings_div(detector_type):
     Output('load-detector-button', 'disabled'),
     [Input('detector-file-dropdown', 'value'),
      Input('file-type-dropdown', 'value'),
-     Input('default-station-input', 'value')]
+     Input('default-station-input', 'value'),
+     Input('need-defaults-checkbox', 'value')]
 )
-def toggle_open_button_active(filename, detector_type, default_station):
+def toggle_open_button_active(filename, detector_type, default_station, need_defaults):
     """
     Controls if the button to open the selected detector file is active
 
@@ -300,7 +335,7 @@ def toggle_open_button_active(filename, detector_type, default_station):
     """
     if filename is None:
         return True
-    if detector_type == 'generic_detector' and default_station is None:
+    if detector_type == 'generic_detector' and (default_station is None and len(need_defaults) > 0):
         return True
     return False
 
