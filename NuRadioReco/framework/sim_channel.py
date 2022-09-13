@@ -23,7 +23,7 @@ class SimChannel(NuRadioReco.framework.channel.Channel):
         Initializes SimChannel object
 
         Parameters
-        --------
+        ----------
         channel_id: int
             id of channel
         shower_id: int or None

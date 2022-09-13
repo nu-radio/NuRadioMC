@@ -79,6 +79,7 @@ def generate_my_events(filename, n_events):
     # give each shower a unique id (we can also have multiple showers for a single event by just giving several showers
     # the same event_group_id)
     data_sets["event_group_ids"] = np.arange(n_events)
+    data_sets["shower_ids"] = np.arange(n_events)
 
     # there are a couple of additional parameters that are required to run a NuRadioMC simulations. These parameters
     # don't influence the simulated radio signals but are required for other post analysis tasks. If these parameters
@@ -86,13 +87,13 @@ def generate_my_events(filename, n_events):
 
     # specify which interaction it is (only relevant if multiple showers from the same initial neutrino are simulated)
     # here it is just 1 for all events.
-    data_sets["n_interaction"] = np.ones(n_events, dtype=np.int)
+    data_sets["n_interaction"] = np.ones(n_events, dtype=int)
 
     # the neutrino flavor. Here we only generate electron neutinos which have the integer code 12.
     # the neutrino flavor is only used in the calculation of the "weight", i.e. the probability of the neutrino reaching
     # the detector. If other particles than a neutrino are simulated, just set the flavor to the corresponding particle code
     # following https://pdg.lbl.gov/2019/reviews/rpp2019-rev-monte-carlo-numbering.pdf or just set it to zero.
-    data_sets["flavors"] = 12 * np.ones(n_events, dtype=np.int)
+    data_sets["flavors"] = 12 * np.ones(n_events, dtype=int)
     # the neutrino energy. This field is also only used for the weight calculation.
     data_sets["energies"] = np.ones(n_events) * 1 * units.EeV
 

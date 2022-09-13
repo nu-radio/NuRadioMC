@@ -30,10 +30,12 @@ class triggerSimulator:
         and minimum values to a tunnel diode noise signal. Triggers if one of
         the maximum or minimum values exceed the noise mean +/- the noise rms
         times the power threshold.
+        
         Parameters
         ----------
         channel : Channel
-            ``Channel`` object on which to test the trigger condition.
+            `Channel` object on which to test the trigger condition.
+        
         Returns
         -------
         boolean

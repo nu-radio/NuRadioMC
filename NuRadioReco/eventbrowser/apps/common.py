@@ -1,4 +1,4 @@
-import dash_html_components as html
+from dash import html
 import numbers
 
 
@@ -27,7 +27,7 @@ def get_properties_divs(obj, props_dic):
                         dict_entries.append(
                             html.Div([
                                 html.Div(key, className='custom-table-td'),
-                                html.Div('{:.2f}'.format(dic[key]), className='custom-table-td custom-table-td-last')
+                                html.Div('{:.3g}'.format(dic[key]), className='custom-table-td custom-table-td-last')
                             ], className='custom-table-row')
                         )
                 prop = html.Div(dict_entries, className='custom-table-td')
@@ -37,7 +37,7 @@ def get_properties_divs(obj, props_dic):
                 else:
                     v = obj.get_parameter(display_prop['param'])
                 if isinstance(v, float) or isinstance(v, int):
-                    prop = html.Div('{:.2f}'.format(v), className='custom-table-td custom-table-td-last')
+                    prop = html.Div('{:.3g}'.format(v), className='custom-table-td custom-table-td-last')
                 else:
                     prop = html.Div('{}'.format(v), className='custom-table-td custom-table-td-last')
             props.append(html.Div([

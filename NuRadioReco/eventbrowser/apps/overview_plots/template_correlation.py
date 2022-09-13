@@ -1,7 +1,7 @@
 import json
 import plotly.subplots
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import html
+from dash import dcc
 from dash.dependencies import Input, Output, State
 from NuRadioReco.eventbrowser.app import app
 from NuRadioReco.utilities import units
@@ -74,27 +74,27 @@ def plot_corr(xcorr_type, filename, jcurrent_selection, station_id, event_type, 
     if filename is None or station_id is None or xcorr_type is None:
         return {}
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
+    nurio = provider.get_file_handler(user_id, filename)
     fig = plotly.subplots.make_subplots(rows=1, cols=1)
-    keys = ariio.get_header()[station_id].keys()
+    keys = nurio.get_header()[station_id].keys()
     if event_type == 'nu':
         if stnp.nu_xcorrelations not in keys:
             return {}
-        xcorrs = ariio.get_header()[station_id][stnp.nu_xcorrelations]
+        xcorrs = nurio.get_header()[station_id][stnp.nu_xcorrelations]
     else:
         if stnp.cr_xcorrelations not in keys:
             return {}
-        xcorrs = ariio.get_header()[station_id][stnp.cr_xcorrelations]
+        xcorrs = nurio.get_header()[station_id][stnp.cr_xcorrelations]
     if stnp.station_time in keys:
         times = []
-        for time in ariio.get_header()[station_id][stnp.station_time]:
+        for time in nurio.get_header()[station_id][stnp.station_time]:
             times.append(time.value)
         current_selection = json.loads(jcurrent_selection)
         fig.append_trace(plotly.graph_objs.Scatter(
             x=times,
             y=[xcorrs[i][xcorr_type] for i in range(len(xcorrs))],
-            text=[str(x) for x in ariio.get_event_ids()],
-            customdata=[x for x in range(ariio.get_n_events())],
+            text=[str(x) for x in nurio.get_event_ids()],
+            customdata=[x for x in range(nurio.get_n_events())],
             mode='markers',
             opacity=1,
             selectedpoints=current_selection
@@ -119,24 +119,24 @@ def plot_corr_amplitude(xcorr_type, filename, jcurrent_selection, event_type, st
     if filename is None or station_id is None or xcorr_type is None:
         return {}
     user_id = json.loads(juser_id)
-    ariio = provider.get_arianna_io(user_id, filename)
+    nurio = provider.get_file_handler(user_id, filename)
     fig = plotly.subplots.make_subplots(rows=1, cols=1)
-    keys = ariio.get_header()[station_id].keys()
+    keys = nurio.get_header()[station_id].keys()
     if event_type == 'nu':
         if stnp.nu_xcorrelations not in keys:
             return {}
-        xcorrs = ariio.get_header()[station_id][stnp.nu_xcorrelations]
+        xcorrs = nurio.get_header()[station_id][stnp.nu_xcorrelations]
     else:
         if stnp.cr_xcorrelations not in keys:
             return {}
-        xcorrs = ariio.get_header()[station_id][stnp.cr_xcorrelations]
+        xcorrs = nurio.get_header()[station_id][stnp.cr_xcorrelations]
     if stnp.channels_max_amplitude in keys:
         current_selection = json.loads(jcurrent_selection)
         fig.append_trace(plotly.graph_objs.Scatter(
-            x=ariio.get_header()[station_id][stnp.channels_max_amplitude] / units.mV,
+            x=nurio.get_header()[station_id][stnp.channels_max_amplitude] / units.mV,
             y=[xcorrs[i][xcorr_type] for i in range(len(xcorrs))],
-            text=[str(x) for x in ariio.get_event_ids()],
-            customdata=[x for x in range(ariio.get_n_events())],
+            text=[str(x) for x in nurio.get_event_ids()],
+            customdata=[x for x in range(nurio.get_n_events())],
             mode='markers',
             opacity=1,
             selectedpoints=current_selection
