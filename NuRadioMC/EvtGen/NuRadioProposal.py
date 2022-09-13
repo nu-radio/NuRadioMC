@@ -1,6 +1,6 @@
 import proposal as pp
 import numpy as np
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, particle_names
 import os
 import six
 import json
@@ -120,40 +120,6 @@ proposal_interaction_codes = { 1000000001: 80,
                                1000000010: 90,
                                1000000011: 91 }
 
-# NuRadioMC internal particle names organised using the PDG codes as keys
-particle_name = { 0 : 'gamma',
-                 11 : 'e-',
-                -11 : 'e+',
-                 12 : 'nu_e',
-                -12 : 'nu_e_bar',
-                 13 : 'mu-',
-                -13 : 'mu+',
-                 14 : 'nu_mu',
-                -14 : 'nu_mu_bar',
-                 15 : 'tau-',
-                -15 : 'tau+',
-                 16 : 'nu_tau',
-                -16 : 'nu_tau_bar',
-                 80 : 'particle',
-                 81 : 'brems',
-                 82 : 'ionized_e',
-                 83 : 'e_pair',
-                 84 : 'hadrons',
-                 85 : 'nucl_int',
-                 86 : 'decay_bundle',
-                 87 : 'mu_pair',
-                 88 : 'cont_loss',
-                 89 : 'weak_int',
-                 90 : 'compton',
-                 91 : 'decay',
-                111 : 'pi0',
-                211 : 'pi+',
-               -211 : 'pi-',
-                311 : 'K0',
-                321 : 'K+',
-               -321 : 'K-',
-               2212 : 'p+',
-              -2212 : 'p-' }
 
 em_primary_names = [ 'gamma', 'e-', 'e+', 'brems', 'ionized_e', 'e_pair', 'weak_int', 'compton' ]
 
@@ -175,13 +141,13 @@ def particle_code (particle):
 
     Returns
     -------
-    integer with the particle code. None if the argument is not a particle
+    integer with the PDG particle code. None if the argument is not a particle
     """
     particle_type = particle.type
 
     if particle_type in proposal_interaction_codes:
         return proposal_interaction_codes[particle_type]
-    elif particle_type in particle_name:
+    elif particle_type in particle_names.particle_names:
         return particle_type
     else:
         print(particle_type)
@@ -194,7 +160,7 @@ def is_em_primary (particle):
     can be an electromagnetic shower primary and False otherwise
     """
     code = particle_code(particle)
-    name = particle_name[code]
+    name = particle_names.particle_name(code)
     if name in em_primary_names:
         return True
     else:
@@ -207,7 +173,7 @@ def is_had_primary(particle):
     can be a hadronic shower primary and False otherwise
     """
     code = particle_code(particle)
-    name = particle_name[code]
+    name = particle_names.particle_name(code)
     if name in had_primary_names:
         return True
     else:
@@ -220,7 +186,7 @@ def is_shower_primary(particle):
     a shower primary and False otherwise
     """
     code = particle_code(particle)
-    name = particle_name[code]
+    name = particle_names.particle_name(code)
     if name in primary_names:
         return True
     else:
@@ -439,7 +405,7 @@ class ProposalFunctions(object):
         if is_had_primary(particle):
             shower_type = 'had'
 
-        name = particle_name[code]
+        name = particle_names.particle_name(code)
 
         return shower_type, code, name
 
@@ -653,7 +619,7 @@ class ProposalFunctions(object):
                 last_decay_prod = shower_inducing_prods.pop(-1)
                 shower_inducing_prods[-1].energy += last_decay_prod.energy
                 shower_inducing_prods[-1].code = 86
-                shower_inducing_prods[-1].name = particle_name[86]
+                shower_inducing_prods[-1].name = particle_names.particle_name(86)
 
             secondaries_array.append(shower_inducing_prods)
 
