@@ -72,10 +72,10 @@ class Detector(object):
         # logger.info("setting detector time to current time")
         # self.update(datetime.datetime.now())
 
-    def update(self, timestamp):
+    def update(self, timestamp, collection_name):
         logger.info("updating detector time to {}".format(timestamp))
         self.__current_time = timestamp
-        self._update_buffer()
+        self._update_buffer(collection_name)
 
     def export_detector(self, filename="detector.json"):
         """ export the detector to file """
@@ -223,6 +223,15 @@ class Detector(object):
 
     def get_object_names(self, object_type):
         return self.db[object_type].distinct('name')
+
+    def get_collection_names(self):
+        return self.db.list_collection_names()
+
+    def create_empty_collection(self, collection_name):
+        self.db.create_collection(collection_name)
+
+    def clone_colletion_to_colletion(self, old_colletion, new_colletion):
+        self.db[old_colletion].aggregate([{ '$match': {} }, { '$out': new_colletion}])
 
     # antenna (VPol / HPol)
 
@@ -591,13 +600,17 @@ class Detector(object):
                                    }}
                                })
 
-    def get_station_information(self, station_id):
+    def get_station_information(self, collection, station_id):
         """ get information from one station """
+
+        # if the collection is empty, return an empty dict
+        if self.db[collection].count_documents({'id': station_id}) == 0:
+            return {}
 
         # grouping dictionary is needed to undo the unwind
         grouping_dict = {"_id": "$_id", "channels": {"$push": "$channels"}}
         # add other keys that belong to a station
-        for key in list(self.db.station.find_one().keys()):
+        for key in list(self.db[collection].find_one().keys()):
             if key in grouping_dict:
                 continue
             else:
@@ -612,7 +625,7 @@ class Detector(object):
             {"$unwind": '$channels'},
             {"$group": grouping_dict}]
         # get all stations which fit the filter (should only be one)
-        stations_for_buffer = list(self.db.station.aggregate(time_filter))
+        stations_for_buffer = list(self.db[collection].aggregate(time_filter))
 
         # transform the output of db.aggregate to a dict
         station_info = dictionarize_nested_lists(stations_for_buffer, parent_key="id", nested_field="channels", nested_key="id")
@@ -621,7 +634,7 @@ class Detector(object):
 
     # other
 
-    def _update_buffer(self, force=False):
+    def _update_buffer(self, collection_name, force=False):
         """
         updates the buffer if need be
 
@@ -640,16 +653,16 @@ class Detector(object):
             self.__buffered_period = current_period
             #TODO do buffering, needs to be implemented, take whole db for now
             self.__db = {}
-            self._buffer_stations()
+            self._buffer_stations(collection_name)
             self._buffer_hardware_components()
 
-    def _buffer_stations(self):
+    def _buffer_stations(self, collection_name):
         """ write stations and channels for the current time to the buffer """
 
         # grouping dictionary is needed to undo the unwind
         grouping_dict = {"_id": "$_id", "channels": {"$push": "$channels"}}
         # add other keys that belong to a station
-        for key in list(self.db.station.find_one().keys()):
+        for key in list(self.db[collection_name].find_one().keys()):
             if key in grouping_dict:
                 continue
             else:
@@ -664,7 +677,7 @@ class Detector(object):
                             'channels.commission_time': {"$lte" : time},
                             'channels.decommission_time': {"$gte" : time}}},
                        { "$group": grouping_dict}]
-        stations_for_buffer = list(self.db.station.aggregate(time_filter))
+        stations_for_buffer = list(self.db[collection_name].aggregate(time_filter))
 
         # convert nested lists of dicts to nested dicts of dicts
         self.__db["stations"] = dictionarize_nested_lists(stations_for_buffer, parent_key="id", nested_field="channels", nested_key="id")
