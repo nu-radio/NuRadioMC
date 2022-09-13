@@ -589,7 +589,7 @@ class ProposalFunctions(object):
 
                 for sec in secondaries:
 
-                    if (sec.type not in proposal_interaction_codes) or (sec.type not in particle_name):
+                    if (sec.type not in proposal_interaction_codes) or (sec.type not in particle_names.particle_names):
                         continue
 
                     if (sec.particle_def == pp.particle.MuMinusDef()) or (sec.particle_def == pp.particle.MuPlusDef()):
