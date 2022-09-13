@@ -39,6 +39,15 @@ particle_names = \
       -321: "Kaon (negative)",
       2212: "Proton",
      -2212: "Antiproton"}
+    
+em_primary_names = ['Gamma (photon)', 'Electron', 'Positron', 'Bremsstrahlung photon',
+                    'Ionised electron', 'Electron-positron pair', 'Weak interaction', 'Compton']
+
+had_primary_names = ['Hadron blundle', 'Nuclear interaction products', 'Hadronic Decay bundle', "Pion (neutral)", "Pion (positive)",
+                     "Pion (negative)", "Kaon (neutral)", "Kaon (positive)", "Kaon (negative)", "Proton", "Antiproton"]
+
+primary_names = em_primary_names + had_primary_names
+
 
 def particle_name(id):
     if not isinstance(id, (int, np.int_)):
