@@ -121,15 +121,7 @@ proposal_interaction_codes = { 1000000001: 80,
                                1000000011: 91 }
 
 
-em_primary_names = [ 'gamma', 'e-', 'e+', 'brems', 'ionized_e', 'e_pair', 'weak_int', 'compton' ]
-
-had_primary_names = [ 'hadrons', 'nucl_int', 'decay_bundle', 'pi0', 'pi+', 'pi-',
-                      'K0', 'K+', 'K-', 'p+', 'p-' ]
-
-primary_names = em_primary_names + had_primary_names
-
-
-def particle_code (particle):
+def particle_code(particle):
     """
     If a particle object from PROPOSAL is passed as input, it returns the
     corresponding PDG particle code. DynamicData objects are not considered
@@ -144,7 +136,6 @@ def particle_code (particle):
     integer with the PDG particle code. None if the argument is not a particle
     """
     particle_type = particle.type
-
     if particle_type in proposal_interaction_codes:
         return proposal_interaction_codes[particle_type]
     elif particle_type in particle_names.particle_names:
@@ -161,7 +152,8 @@ def is_em_primary (particle):
     """
     code = particle_code(particle)
     name = particle_names.particle_name(code)
-    if name in em_primary_names:
+    
+    if name in particle_names.em_primary_names:
         return True
     else:
         return False
@@ -174,7 +166,8 @@ def is_had_primary(particle):
     """
     code = particle_code(particle)
     name = particle_names.particle_name(code)
-    if name in had_primary_names:
+
+    if name in particle_names.had_primary_names:
         return True
     else:
         return False
@@ -187,7 +180,8 @@ def is_shower_primary(particle):
     """
     code = particle_code(particle)
     name = particle_names.particle_name(code)
-    if name in primary_names:
+    
+    if name in particle_names.primary_names:
         return True
     else:
         return False
