@@ -591,6 +591,34 @@ class Detector(object):
                                    }}
                                })
 
+    def get_station_information(self, station_id):
+        """ get information from one station """
+
+        # grouping dictionary is needed to undo the unwind
+        grouping_dict = {"_id": "$_id", "channels": {"$push": "$channels"}}
+        # add other keys that belong to a station
+        for key in list(self.db.station.find_one().keys()):
+            if key in grouping_dict:
+                continue
+            else:
+                grouping_dict[key] = {"$first": "${}".format(key)}
+
+        # filter to get all information from one station with station_id and with akitve commission time
+        time = self.__current_time
+        time_filter = [{"$match": {
+            'commission_time': {"$lte": time},
+            'decommission_time': {"$gte": time},
+            'id': station_id}},
+            {"$unwind": '$channels'},
+            {"$group": grouping_dict}]
+        # get all stations which fit the filter (should only be one)
+        stations_for_buffer = list(self.db.station.aggregate(time_filter))
+
+        # transform the output of db.aggregate to a dict
+        station_info = dictionarize_nested_lists(stations_for_buffer, parent_key="id", nested_field="channels", nested_key="id")
+
+        return station_info
+
     # other
 
     def _update_buffer(self, force=False):
@@ -841,7 +869,7 @@ def get_measurement_from_buffer(hardware_db, S_parameter="S21", channel_id=None)
     return measurements
 
 
-det = Detector(config.DATABASE_TARGET)
+# det = Detector(config.DATABASE_TARGET)
 
 if __name__ == "__main__":
      test = sys.argv[1]

@@ -5,10 +5,13 @@ import pandas as pd
 from NuRadioReco.detector.webinterface.utils.units_helper import str_to_unit
 from NuRadioReco.utilities import units
 import numpy as np
-from NuRadioReco.detector.detector_mongo import det
+# from NuRadioReco.detector.detector_mongo import det
+from NuRadioReco.detector.detector_mongo import Detector
+from NuRadioReco.detector.webinterface import config
 # from NuRadioReco.detector.detector_mongo import Detector
 from datetime import datetime
 
+det = Detector(config.DATABASE_TARGET)
 # det = Detector(database_connection='env_pw_user')
 # det = Detector(database_connection='test')
 
@@ -55,8 +58,9 @@ def select_downhole(page_name, main_container, warning_container):
     # if an exiting fiber is selected, change the default option to the saved IGLU
     iglu_names = det.get_object_names('iglu_board')
     if selected_downhole_infos != []:
-        iglu_index = iglu_names.index(selected_downhole_infos[2])
-        iglu_names.pop(iglu_index)
+        if selected_downhole_infos[2] in iglu_names:
+            iglu_index = iglu_names.index(selected_downhole_infos[2])
+            iglu_names.pop(iglu_index)
         iglu_names.insert(0, selected_downhole_infos[2])
     else:
         # select golden IGLU as the default option
@@ -69,8 +73,9 @@ def select_downhole(page_name, main_container, warning_container):
     # if an exiting fiber is selected, change the default option to the saved DRAB
     drab_names = det.get_object_names('drab_board')
     if selected_downhole_infos != []:
-        drab_index = drab_names.index(selected_downhole_infos[3])
-        drab_names.pop(drab_index)
+        if selected_downhole_infos[3] in drab_names:
+            drab_index = drab_names.index(selected_downhole_infos[3])
+            drab_names.pop(drab_index)
         drab_names.insert(0, selected_downhole_infos[3])
     else:
         # select golden DRAB as the default option
