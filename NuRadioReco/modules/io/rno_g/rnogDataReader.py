@@ -82,7 +82,7 @@ class RNOGDataReader:
                 station.set_is_neutrino()
 
                 if 'header' in file:
-                    unix_time = file['header']['trigger_time'].array(library='np', entry_start=i_event_in_file, entry_stop=(i_event_in_file+1))[0]
+                    unix_time = file['header']['readout_time'].array(library='np', entry_start=i_event_in_file, entry_stop=(i_event_in_file+1))[0]
                     event_time = astropy.time.Time(unix_time, format='unix')
                     station.set_station_time(event_time)
                     ### read in basic trigger data
