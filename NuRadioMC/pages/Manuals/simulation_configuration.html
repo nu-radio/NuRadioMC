@@ -720,7 +720,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">adc_sampling_frequency</span></code>, the sampling frequency for the analog-to-digital converter, which can be used for resampling traces.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ant_type</span></code>, the antenna type. For instance, ‘bicone_v8’ or ‘createLPDA_100MHz’.</p></li>
 <li><dl class="simple">
-<dt>These positions are referred to the altitude, northing, and easting of the associated station.</dt><dd><ul>
+<dt>These positions are relative to the altitude, northing, and easting of the associated station.</dt><dd><ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">ant_position_x</span></code>, the x coordinate of the antenna in metres</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ant_position_y</span></code>, the y coordinate of the antenna in metres</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ant_position_z</span></code>, the z coordinate of the antenna in metres.</p></li>
@@ -886,7 +886,6 @@
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">argparse</span>
 <span class="c1"># import detector simulation modules</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.modules.efieldToVoltageConverter</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.modules.trigger.simpleThreshold</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.modules.trigger.highLowThreshold</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.modules.channelResampler</span>
@@ -898,219 +897,138 @@
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
-<span class="n">results_folder</span> <span class="o">=</span> <span class="s1">&#39;results&#39;</span>
-<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">results_folder</span><span class="p">):</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">results_folder</span><span class="p">)</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">results_folder</span> <span class="o">=</span> <span class="s1">&#39;results&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">results_folder</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">results_folder</span><span class="p">)</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This file is a steering file that runs a simple NuRadioMC simulation. If one</span>
-<span class="sd">wants to run it with the default parameters, one just needs to type:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This file is a steering file that runs a simple NuRadioMC simulation. If one</span>
+<span class="sd">    wants to run it with the default parameters, one just needs to type:</span>
 
-<span class="sd">python W02RunSimulation.py</span>
+<span class="sd">    python W02RunSimulation.py</span>
 
-<span class="sd">Otherwise, the arguments need to be specified as follows:</span>
+<span class="sd">    Otherwise, the arguments need to be specified as follows:</span>
 
-<span class="sd">python W02RunSimulation.py --inputfilename input.hdf5 --detectordescription detector.json</span>
-<span class="sd">--config config.yaml --outputfilename out.hdf5 --outputfilenameNuRadioReco out.nur</span>
+<span class="sd">    python W02RunSimulation.py --inputfilename input.hdf5 --detectordescription detector.json</span>
+<span class="sd">    --config config.yaml --outputfilename out.hdf5 --outputfilenameNuRadioReco out.nur</span>
 
-<span class="sd">The last argument is optional, only needed if the user wants a nur file. nur files</span>
-<span class="sd">contain lots of information on triggering events, so they&#39;re a great tool for</span>
-<span class="sd">reconstruction (see NuRadioReco documentation and Christoph&#39;s webinar). However,</span>
-<span class="sd">because of their massive amount of information, they can be really heavy. So, when</span>
-<span class="sd">running NuRadioMC with millions of events, most of the time nur files should not</span>
-<span class="sd">be created.</span>
+<span class="sd">    The last argument is optional, only needed if the user wants a nur file. nur files</span>
+<span class="sd">    contain lots of information on triggering events, so they&#39;re a great tool for</span>
+<span class="sd">    reconstruction (see NuRadioReco documentation and Christoph&#39;s webinar). However,</span>
+<span class="sd">    because of their massive amount of information, they can be really heavy. So, when</span>
+<span class="sd">    running NuRadioMC with millions of events, most of the time nur files should not</span>
+<span class="sd">    be created.</span>
 
-<span class="sd">Be sure to read the comments in the config.yaml file and also the file</span>
-<span class="sd">comments_detector.txt to understand how the detector.json function is structured.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Be sure to read the comments in the config.yaml file and also the file</span>
+<span class="sd">    comments_detector.txt to understand how the detector.json function is structured.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-<span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Run NuRadioMC simulation&#39;</span><span class="p">)</span>
-<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--inputfilename&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;input_3.2e+19_1.0e+20.hdf5&#39;</span><span class="p">,</span>
-                    <span class="n">help</span><span class="o">=</span><span class="s1">&#39;path to NuRadioMC input event list&#39;</span><span class="p">)</span>
-<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--detectordescription&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;detector.json&#39;</span><span class="p">,</span>
-                    <span class="n">help</span><span class="o">=</span><span class="s1">&#39;path to file containing the detector description&#39;</span><span class="p">)</span>
-<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--config&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;config.yaml&#39;</span><span class="p">,</span>
-                    <span class="n">help</span><span class="o">=</span><span class="s1">&#39;NuRadioMC yaml config file&#39;</span><span class="p">)</span>
-<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--outputfilename&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">results_folder</span><span class="p">,</span> <span class="s1">&#39;NuMC_output.hdf5&#39;</span><span class="p">),</span>
-                    <span class="n">help</span><span class="o">=</span><span class="s1">&#39;hdf5 output filename&#39;</span><span class="p">)</span>
-<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--outputfilenameNuRadioReco&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                    <span class="n">help</span><span class="o">=</span><span class="s1">&#39;outputfilename of NuRadioReco detector sim file&#39;</span><span class="p">)</span>
-<span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Run NuRadioMC simulation&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--inputfilename&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;input_3.2e+19_1.0e+20.hdf5&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;path to NuRadioMC input event list&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--detectordescription&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;detector.json&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;path to file containing the detector description&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--config&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;config.yaml&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;NuRadioMC yaml config file&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--outputfilename&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">results_folder</span><span class="p">,</span> <span class="s1">&#39;NuMC_output.hdf5&#39;</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;hdf5 output filename&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--outputfilenameNuRadioReco&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;outputfilename of NuRadioReco detector sim file&#39;</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">First we initialise the modules we are going to use. For our simulation, we are</span>
-<span class="sd">going to need the following ones, which are explained below.</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="n">efieldToVoltageConverter</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">efieldToVoltageConverter</span><span class="o">.</span><span class="n">efieldToVoltageConverter</span><span class="p">()</span>
-<span class="n">simpleThreshold</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">simpleThreshold</span><span class="o">.</span><span class="n">triggerSimulator</span><span class="p">()</span>
-<span class="n">highLowThreshold</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">highLowThreshold</span><span class="o">.</span><span class="n">triggerSimulator</span><span class="p">()</span>
-<span class="n">channelResampler</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelResampler</span><span class="o">.</span><span class="n">channelResampler</span><span class="p">()</span>
-<span class="n">channelBandPassFilter</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">channelBandPassFilter</span><span class="p">()</span>
-<span class="n">channelGenericNoiseAdder</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelGenericNoiseAdder</span><span class="o">.</span><span class="n">channelGenericNoiseAdder</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    First we initialise the modules we are going to use. For our simulation, we are</span>
+<span class="sd">    going to need the following ones, which are explained below.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">simpleThreshold</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">simpleThreshold</span><span class="o">.</span><span class="n">triggerSimulator</span><span class="p">()</span>
+    <span class="n">highLowThreshold</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">highLowThreshold</span><span class="o">.</span><span class="n">triggerSimulator</span><span class="p">()</span>
+    <span class="n">channelResampler</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelResampler</span><span class="o">.</span><span class="n">channelResampler</span><span class="p">()</span>
+    <span class="n">channelBandPassFilter</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">channelBandPassFilter</span><span class="p">()</span>
+    <span class="n">channelGenericNoiseAdder</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelGenericNoiseAdder</span><span class="o">.</span><span class="n">channelGenericNoiseAdder</span><span class="p">()</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">A typical NuRadioMC simulation uses the simulation class from the simulation</span>
-<span class="sd">module. This class is incomplete by design, since it lacks the _detector_simulation</span>
-<span class="sd">function that controls what the detector does after the electric field arrives</span>
-<span class="sd">at the antenna. That allows us to create our own class that inherits from</span>
-<span class="sd">the simulation class that we will call mySimulation, and define in it a</span>
-<span class="sd">_detector_simulation function with all the characteristics of our detector setup.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A typical NuRadioMC simulation uses the simulation class from the simulation</span>
+<span class="sd">    module. This class is incomplete by design, since it lacks the detector simulation</span>
+<span class="sd">    functions that controls what the detector does after the electric field arrives</span>
+<span class="sd">    at the antenna. That allows us to create our own class that inherits from</span>
+<span class="sd">    the simulation class that we will call mySimulation, and define in it a</span>
+<span class="sd">    _detector_simulation_filter_amp and _detector_simulation_trigger</span>
+<span class="sd">    function with all the characteristics of our detector setup.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-<span class="k">class</span> <span class="nc">mySimulation</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">simulation</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">_detector_simulation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">mySimulation</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">simulation</span><span class="p">):</span>
 
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        First we convolve the electric field with the antenna pattern to obtain</span>
-<span class="sd">        the voltage at the antenna terminals. This is done by the efieldtoVoltageConverter.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">efieldToVoltageConverter</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">)</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Our simulation uses the default sampling rate of 5 GHz, or 5 GS/s, or</span>
-<span class="sd">        equivalently, a time step of 0.2 ns. Such a high resolution, while needed</span>
-<span class="sd">        during simulations to capture all the details of the radio wave, is not common</span>
-<span class="sd">        at all in radio experiments after the wave has been digitised, with</span>
-<span class="sd">        sampling rates around the gigahertz. However, we are going to suppose</span>
-<span class="sd">        that our trigger is analog, so it sees a continuous waveform.</span>
+        <span class="k">def</span> <span class="nf">_detector_simulation_filter_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            This function defines the signal chain, i.e., typically the filters and amplifiers.</span>
+<span class="sd">            (The antenna response will be applied automatically using the antenna model defined</span>
+<span class="sd">            in the detector description.)</span>
+<span class="sd">            In our case,</span>
+<span class="sd">            we will only implement a couple of filters, one that acts as a low-pass</span>
+<span class="sd">            and another one that acts as a high-pass.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span>
+                                    <span class="n">passband</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">700</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">],</span> <span class="n">filter_type</span><span class="o">=</span><span class="s2">&quot;butter&quot;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+            <span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span>
+                                    <span class="n">passband</span><span class="o">=</span><span class="p">[</span><span class="mi">150</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">800</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">],</span> <span class="n">filter_type</span><span class="o">=</span><span class="s2">&quot;butter&quot;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
 
-<span class="sd">        If the trigger were digital and we needed a sampling rate of, for instance,</span>
-<span class="sd">        2 GHz, which is what is specified in the detector file, we could use the</span>
-<span class="sd">        channelResampler module to perform a downsampling as follows:</span>
-
-<span class="sd">        new_sampling_rate = self._sampling_rate_detector</span>
-<span class="sd">        channelResampler.run(self._evt, self._station, self._det, sampling_rate=new_sampling_rate)</span>
-
-<span class="sd">        In this case, we are just going to use the resampler with the same sampling</span>
-<span class="sd">        rate as the simulation, which will leave the trace intact, but we will</span>
-<span class="sd">        do it for illustration purposes.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">new_sampling_rate</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt</span>
-        <span class="n">channelResampler</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="n">new_sampling_rate</span><span class="p">)</span>
-
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        If our config file has specified &#39;noise: True&#39;, this steering file will add</span>
-<span class="sd">        noise to the simulation. Keep in mind that adding noise can cause some</span>
-<span class="sd">        events to trigger on noise, while they should not be triggering at all.</span>
-<span class="sd">        This problem is partially mitigated by a speed-up cut that can be</span>
-<span class="sd">        controlled with the config file. As default, we have:</span>
-<span class="sd">        speedup:</span>
-<span class="sd">            min_efield_amplitude: 2</span>
-<span class="sd">        This means that if the electric field amplitude is less than twice the</span>
-<span class="sd">        noise voltage RMS (assuming an antenna effective height of 1), the trigger</span>
-<span class="sd">        will not be calculated to save time. Thus, we only simulate noise and calculate</span>
-<span class="sd">        the full trigger for events which have a good chance of triggering. This largely</span>
-<span class="sd">        reduces the chance of randomly triggering on a thermal noise fluctuation.</span>
-
-<span class="sd">        This is a typical problem with detectors. The solution would be to find</span>
-<span class="sd">        a threshold to trigger on as many signals as possible while keeping the</span>
-<span class="sd">        noise trigger rate as low as possible. This can be studied setting</span>
-<span class="sd">        &#39;signal: zerosignal: True&#39; in the yaml config file. The detector will</span>
-<span class="sd">        try to trigger on noise only and that will give an estimate on the noise</span>
-<span class="sd">        trigger rate and how many events are not triggering on signal.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_simulate_noise</span><span class="p">():</span>
+        <span class="k">def</span> <span class="nf">_detector_simulation_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span>
 
             <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            The noise level depends on the bandwidth, so we must specify a correct</span>
-<span class="sd">            level for our bandwidth. Fortunately, NuRadioMC offers a convenient</span>
-<span class="sd">            solution. We can generate noise for the band [0; new_sampling_rate/2]</span>
-<span class="sd">            and then use the detector filters to get the actual noise we would</span>
-<span class="sd">            have at the end of our electronics chain. First, we set the maximum</span>
-<span class="sd">            frequency.</span>
+<span class="sd">            This function defines the trigger</span>
+<span class="sd">            to know when an event has triggered. NuRadioMC and NuRadioReco support multiple</span>
+<span class="sd">            triggers per detector. As an example, we will use a high-low threshold trigger</span>
+<span class="sd">            with a high level of 5 times the noise RMS, and a low level of minus</span>
+<span class="sd">            5 times the noise RMS, a coincidence window of 40 nanoseconds and request</span>
+<span class="sd">            a coincidence of 2 out of 4 antennas. We can also choose which subset of</span>
+<span class="sd">            channels we want to use for triggering (we will use the four channels in</span>
+<span class="sd">            detector.json) by specifying their channel ids, defined in the detector file.</span>
+<span class="sd">            It is also important to give a descriptive name to the trigger.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">max_freq</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">new_sampling_rate</span>
+            <span class="n">highLowThreshold</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span>
+                                <span class="n">threshold_high</span><span class="o">=</span><span class="mi">5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vrms</span><span class="p">,</span>
+                                <span class="n">threshold_low</span><span class="o">=-</span><span class="mi">5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vrms</span><span class="p">,</span>
+                                <span class="n">coinc_window</span><span class="o">=</span><span class="mi">40</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
+                                <span class="n">triggered_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+                                <span class="n">number_concidences</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>  <span class="c1"># 2/4 majority logic</span>
+                                <span class="n">trigger_name</span><span class="o">=</span><span class="s1">&#39;hilo_2of4_5_sigma&#39;</span><span class="p">)</span>
             <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Then, we use the function _get_noise_normalization from the simulation</span>
-<span class="sd">            class, which gives us the effective bandwidth for our detector taking</span>
-<span class="sd">            into account antenna, filters, and other electronic components.</span>
+<span class="sd">            We can add as well a simple trigger threshold of 10 sigma, or 10 times</span>
+<span class="sd">            the noise RMS. If the absolute value of the voltage goes above that</span>
+<span class="sd">            threshold, the event triggers.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">det_bandwidth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_noise_normalization</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_station</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            After that, we calculate the noise level for the [0; max_freq] band,</span>
-<span class="sd">            which is given by the noise RMS in the actual detector band (self._Vrms,</span>
-<span class="sd">            calculated by NuRadioMC), and then divided by the square root of</span>
-<span class="sd">            the actual detector bandwidth and the extended [0; max_freq] bandwidth.</span>
-<span class="sd">            Remember that the noise RMS formula is</span>
-<span class="sd">            noise_RMS = sqrt( k_B * T * R * bandwidth ),</span>
-<span class="sd">            with k_B the Boltzmann constant, T the effective system temperature,</span>
-<span class="sd">            and R the output resistance.</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">Vrms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vrms</span> <span class="o">/</span> <span class="p">(</span><span class="n">det_bandwidth</span> <span class="o">/</span> <span class="n">max_freq</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            We can now use the channelGenericNoiseAdder, with Rayleigh noise, for</span>
-<span class="sd">            instance. This module creates noise in a window-like bandwidth, with</span>
-<span class="sd">            a sharp cut at the edges.</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">channelGenericNoiseAdder</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="n">Vrms</span><span class="p">,</span>
-                                         <span class="n">min_freq</span><span class="o">=</span><span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span>
-                                         <span class="n">max_freq</span><span class="o">=</span><span class="n">max_freq</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;rayleigh&#39;</span><span class="p">)</span>
+            <span class="n">simpleThreshold</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span>
+                                <span class="n">threshold</span><span class="o">=</span><span class="mi">10</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vrms</span><span class="p">,</span>
+                                <span class="n">triggered_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+                                <span class="n">trigger_name</span><span class="o">=</span><span class="s1">&#39;simple_10_sigma&#39;</span><span class="p">)</span>
 
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        After the signal has been converted to voltage, downsampled, and the noise</span>
-<span class="sd">        has been added, we can apply the rest of the electronics chain. In our case,</span>
-<span class="sd">        we will only implement a couple of filters, one that acts as a low-pass</span>
-<span class="sd">        and another one that acts as a high-pass.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">,</span>
-                                  <span class="n">passband</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">700</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">],</span> <span class="n">filter_type</span><span class="o">=</span><span class="s2">&quot;butter&quot;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-        <span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">,</span>
-                                  <span class="n">passband</span><span class="o">=</span><span class="p">[</span><span class="mi">150</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">800</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">],</span> <span class="n">filter_type</span><span class="o">=</span><span class="s2">&quot;butter&quot;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Now that the detector response has been written, we create an instance of</span>
+<span class="sd">    mySimulation with the following arguments:</span>
+<span class="sd">    - The input file name, with the neutrino events</span>
+<span class="sd">    - The output file name</span>
+<span class="sd">    - The name of detector description file</span>
+<span class="sd">    - The name of the output nur file (can be None if we don&#39;t want nur files)</span>
+<span class="sd">    - The name of the config file</span>
 
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Once the signal has been completely processed, we need no define a triggerf</span>
-<span class="sd">        to know when an event has triggered. NuRadioMC and NuRadioReco support multiple</span>
-<span class="sd">        triggers per detector. As an example, we will use a high-low threshold trigger</span>
-<span class="sd">        with a high level of 5 times the noise RMS, and a low level of minus</span>
-<span class="sd">        5 times the noise RMS, a coincidence window of 40 nanoseconds and request</span>
-<span class="sd">        a coincidence of 2 out of 4 antennas. We can also choose which subset of</span>
-<span class="sd">        channels we want to use for triggering (we will use the four channels in</span>
-<span class="sd">        detector.json) by specifying their channel ids, defined in the detector file.</span>
-<span class="sd">        It is also important to give a descriptive name to the trigger.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">highLowThreshold</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">,</span>
-                             <span class="n">threshold_high</span><span class="o">=</span><span class="mi">5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vrms</span><span class="p">,</span>
-                             <span class="n">threshold_low</span><span class="o">=-</span><span class="mi">5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vrms</span><span class="p">,</span>
-                             <span class="n">coinc_window</span><span class="o">=</span><span class="mi">40</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
-                             <span class="n">triggered_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-                             <span class="n">number_concidences</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>  <span class="c1"># 2/4 majority logic</span>
-                             <span class="n">trigger_name</span><span class="o">=</span><span class="s1">&#39;hilo_2of4_5_sigma&#39;</span><span class="p">)</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        We can add as well a simple trigger threshold of 10 sigma, or 10 times</span>
-<span class="sd">        the noise RMS. If the absolute value of the voltage goes above that</span>
-<span class="sd">        threshold, the event triggers.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">simpleThreshold</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det</span><span class="p">,</span>
-                            <span class="n">threshold</span><span class="o">=</span><span class="mi">10</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vrms</span><span class="p">,</span>
-                            <span class="n">triggered_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-                            <span class="n">trigger_name</span><span class="o">=</span><span class="s1">&#39;simple_10_sigma&#39;</span><span class="p">)</span>
+<span class="sd">    We have also used here two optional arguments, which are default_detector_station</span>
+<span class="sd">    and default_detector channel. If we define a complete detector station with all</span>
+<span class="sd">    of its channels (101 in our case) and we want to add more stations, we can define</span>
+<span class="sd">    these with fewer parameters than needed. Then, making default_detector_station=101,</span>
+<span class="sd">    all the missing necessary parameters will be taken from the station 101, along</span>
+<span class="sd">    with all of the channels from station 101. A similar thing happens if we define</span>
+<span class="sd">    channels with incomplete information and set default_detector_station=0 - the</span>
+<span class="sd">    incomplete channels will be completed using the characteristics from channel 0.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Now that the detector response has been written, we create an instance of</span>
-<span class="sd">mySimulation with the following arguments:</span>
-<span class="sd">- The input file name, with the neutrino events</span>
-<span class="sd">- The output file name</span>
-<span class="sd">- The name of detector description file</span>
-<span class="sd">- The name of the output nur file (can be None if we don&#39;t want nur files)</span>
-<span class="sd">- The name of the config file</span>
-
-<span class="sd">We have also used here two optional arguments, which are default_detector_station</span>
-<span class="sd">and default_detector channel. If we define a complete detector station with all</span>
-<span class="sd">of its channels (101 in our case) and we want to add more stations, we can define</span>
-<span class="sd">these with fewer parameters than needed. Then, making default_detector_station=101,</span>
-<span class="sd">all the missing necessary parameters will be taken from the station 101, along</span>
-<span class="sd">with all of the channels from station 101. A similar thing happens if we define</span>
-<span class="sd">channels with incomplete information and set default_detector_channel=0 - the</span>
-<span class="sd">incomplete channels will be completed using the characteristics from channel 0.</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="n">sim</span> <span class="o">=</span> <span class="n">mySimulation</span><span class="p">(</span><span class="n">inputfilename</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">inputfilename</span><span class="p">,</span>
-                   <span class="n">outputfilename</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">outputfilename</span><span class="p">,</span>
-                   <span class="n">detectorfile</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">detectordescription</span><span class="p">,</span>
-                  <span class="n">outputfilenameNuRadioReco</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">outputfilenameNuRadioReco</span><span class="p">,</span>
-                   <span class="n">config_file</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">config</span><span class="p">,</span>
-                   <span class="n">default_detector_station</span><span class="o">=</span><span class="mi">101</span><span class="p">,</span>
-                   <span class="n">default_detector_channel</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="n">sim</span> <span class="o">=</span> <span class="n">mySimulation</span><span class="p">(</span><span class="n">inputfilename</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">inputfilename</span><span class="p">,</span>
+                    <span class="n">outputfilename</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">outputfilename</span><span class="p">,</span>
+                    <span class="n">detectorfile</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">detectordescription</span><span class="p">,</span>
+                    <span class="n">outputfilenameNuRadioReco</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">outputfilenameNuRadioReco</span><span class="p">,</span>
+                    <span class="n">config_file</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
 </div>
 </div></blockquote>
