@@ -667,8 +667,6 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generator_info</span></div>
 
-
-
 <div class="viewcode-block" id="Event.get_id"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span></div>
 
@@ -690,22 +688,47 @@
 
 <div class="viewcode-block" id="Event.set_station"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.set_station">[docs]</a>    <span class="k">def</span> <span class="nf">set_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="p">[</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span> <span class="o">=</span> <span class="n">station</span></div>
+        
+<div class="viewcode-block" id="Event.has_triggered"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.has_triggered">[docs]</a>    <span class="k">def</span> <span class="nf">has_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trigger_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns true if any station has been triggered.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        trigger_name: string or None (default None)</span>
+<span class="sd">            * if None: The function returns False if not trigger was set. If one or multiple triggers were set,</span>
+<span class="sd">                       it returns True if any of those triggers triggered</span>
+<span class="sd">            * if trigger name is set: return if the trigger with name &#39;trigger_name&#39; has a trigger</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        </span>
+<span class="sd">        has_triggered : bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_stations</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">station</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">(</span><span class="n">trigger_name</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        
+        <span class="c1"># if it reaches this point, no station has a trigger</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Event.add_particle"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.add_particle">[docs]</a>    <span class="k">def</span> <span class="nf">add_particle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds a MC particle to the event</span>
 
 <span class="sd">        Parameters</span>
-<span class="sd">        ------------------------</span>
-<span class="sd">        particle: Particle object</span>
+<span class="sd">        ----------</span>
+<span class="sd">        particle : NuRadioReco.framework.particle.Particle</span>
 <span class="sd">            The MC particle to be added to the event</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">particle</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Particle</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Requested to add non-Particle item to the list of particles. </span><span class="si">{particle}</span><span class="s2"> needs to be an instance of Particle.&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Requested to add non-Particle item to the list of particles. </span><span class="si">{particle}</span><span class="s2">   needs to be an instance of Particle.&quot;</span><span class="p">)</span>
+        
         <span class="k">if</span> <span class="n">particle</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__particles</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event&quot;</span><span class="p">)</span>
+        
         <span class="bp">self</span><span class="o">.</span><span class="n">__particles</span><span class="p">[</span><span class="n">particle</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span> <span class="o">=</span> <span class="n">particle</span></div>
 
 <div class="viewcode-block" id="Event.get_particles"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_particles">[docs]</a>    <span class="k">def</span> <span class="nf">get_particles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

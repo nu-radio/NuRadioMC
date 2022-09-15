@@ -618,13 +618,16 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_sim_shower" title="NuRadioReco.framework.event.Event.has_sim_shower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_sim_shower</span></code></a>([shower_id])</p></td>
 <td><p>Returns true if at least one simulated shower is stored in the event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.iter_modules" title="NuRadioReco.framework.event.Event.iter_modules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_modules</span></code></a>([station_id])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.has_triggered" title="NuRadioReco.framework.event.Event.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
+<td><p>Returns true if any station has been triggered.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.iter_modules" title="NuRadioReco.framework.event.Event.iter_modules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_modules</span></code></a>([station_id])</p></td>
 <td><p>returns an interator that loops over all modules.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_event" title="NuRadioReco.framework.event.Event.register_module_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_event</span></code></a>(instance, name, kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_event" title="NuRadioReco.framework.event.Event.register_module_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_event</span></code></a>(instance, name, kwargs)</p></td>
 <td><p>registers modules applied to this event</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_station" title="NuRadioReco.framework.event.Event.register_module_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_station</span></code></a>(station_id, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.register_module_station" title="NuRadioReco.framework.event.Event.register_module_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module_station</span></code></a>(station_id, ...)</p></td>
 <td><p>registers modules applied to this event</p></td>
 </tr>
 </tbody>
@@ -689,7 +692,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>particle: Particle object</strong></dt><dd><p>The MC particle to be added to the event</p>
+<dt><strong>particle</strong><span class="classifier">NuRadioReco.framework.particle.Particle</span></dt><dd><p>The MC particle to be added to the event</p>
 </dd>
 </dl>
 </dd>
@@ -904,6 +907,32 @@ all stations in the list are returned</p>
 <span class="sig-name descname"><span class="pre">has_sim_shower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shower_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.has_sim_shower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.has_sim_shower" title="Permalink to this definition"></a></dt>
 <dd><p>Returns true if at least one simulated shower is stored in the event</p>
 <p>If shower_id is given, it checks if this particular shower exists</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.event.Event.has_triggered">
+<span class="sig-name descname"><span class="pre">has_triggered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.has_triggered"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.has_triggered" title="Permalink to this definition"></a></dt>
+<dd><p>Returns true if any station has been triggered.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_name: string or None (default None)</strong></dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>if None: The function returns False if not trigger was set. If one or multiple triggers were set,</dt><dd><p>it returns True if any of those triggers triggered</p>
+</dd>
+</dl>
+</li>
+<li><p>if trigger name is set: return if the trigger with name ‘trigger_name’ has a trigger</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>has_triggered</strong><span class="classifier">bool</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
