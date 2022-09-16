@@ -5,6 +5,8 @@ from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import units
 from NuRadioReco.framework import base_trace
 
+'''File with functions that either prints or plots metrics/characteristics for the data versus the signals generated from the generator'''
+
 def metrics(data, generated_signals):
     print(f"Mean generated: {np.mean(generated_signals)}")
     print(f"Mean data: {np.mean(data)}\n")
