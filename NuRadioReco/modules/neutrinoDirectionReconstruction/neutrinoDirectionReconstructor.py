@@ -349,8 +349,9 @@ class neutrinoDirectionReconstructor:
                     )
                 )
 
+<<<<<<< HEAD
         elif restricted_input:
-            d_angle = 5
+            d_angle = 10
             zenith_start =  simulated_zenith - np.deg2rad(d_angle)
             zenith_end =simulated_zenith +  np.deg2rad(d_angle)
             azimuth_start =simulated_azimuth - np.deg2rad(d_angle)
@@ -531,6 +532,22 @@ class neutrinoDirectionReconstructor:
             ### chi squared grid from opt.brute:
             # plt.rc('xtick',)
             # plt.rc('ytick', labelsize = 10)
+=======
+            elif restricted_input:
+                d_angle = 10
+                zenith_start =  simulated_zenith - np.deg2rad(d_angle)
+                zenith_end =simulated_zenith +  np.deg2rad(d_angle)
+                azimuth_start =simulated_azimuth - np.deg2rad(d_angle)
+                azimuth_end = simulated_azimuth + np.deg2rad(d_angle)
+                energy_start = np.log10(simulated_energy) - 1
+                energy_end = np.log10(simulated_energy) + 1
+                results = opt.brute(self.minimizer, ranges=(slice(zenith_start, zenith_end, np.deg2rad(.5)), slice(azimuth_start, azimuth_end, np.deg2rad(.5)), slice(energy_start, energy_end, .05)), finish = opt.fmin, full_output = True, args = (reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], True, False, False, False, False, ch_Vpol, ch_Hpol, full_station))
+
+            print('start datetime', cop)
+            print("end datetime", datetime.datetime.now() - cop)
+            # print("cache statistics for analytic_pulse ray tracer")
+            # print(self._simulation._raytracer.cache_info())
+>>>>>>> change minimization from mean to sum
             if not only_simulation:
                 min_energy_index = np.unravel_index(np.argmin(chi2_grid), vw_grid.shape)[-1]
                 extent = (
@@ -925,7 +942,12 @@ class neutrinoDirectionReconstructor:
                                 if SNR > 3.5:
                                     echannel[i_trace] = 1
 
-                            chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms)**2))
+<<<<<<< HEAD
+=======
+                            # compute chi squared. We take the mean rather than the sum to avoid an unjustified preference
+                            # for traces which are only partially contained in the data window
+>>>>>>> change minimization from mean to sum
+                            chi2s[i_trace] = np.mean((rec_trace - data_trace_timing)**2 / ((Vrms)**2))
 
                             if (single_pulse):
                                 if ((channel_id == ch_Vpol) and (i_trace == trace_ref)):
