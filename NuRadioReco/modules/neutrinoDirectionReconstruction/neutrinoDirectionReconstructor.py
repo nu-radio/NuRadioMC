@@ -919,9 +919,7 @@ class neutrinoDirectionReconstructor:
                                 if SNR > 3.5:
                                     echannel[i_trace] = 1
 
-                            # compute chi squared. We take the mean rather than the sum to avoid an unjustified preference
-                            # for traces which are only partially contained in the data window
-                            chi2s[i_trace] = np.mean((rec_trace - data_trace_timing)**2 / ((Vrms)**2))
+                            chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms)**2))
 
                             if (single_pulse):
                                 if ((channel_id == ch_Vpol) and (i_trace == trace_ref)):
