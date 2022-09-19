@@ -129,9 +129,17 @@ class IceModel():
     
     def compute_default_ice_model_radiopropa(self):
         """
-        if radiopropa is installed this will a RadioPropaIceWrapper object
-        which can then be used to insert in the radiopropa tracer
+        Computes a default object holding the radiopropa scalarfield and necessary radiopropa 
+        moduldes that define the medium in radiopropa. It uses the parameters of the medium 
+        object to contruct some modules, like a discontinuity object for the air boundary. 
+        Additional modules can be added in this function
+        
+        Overwrites function of the mother class
 
+        Returns
+        -------
+        ice_model_radiopropa:   RadioPropaIceWrapper
+                                object holding the radiopropa scalarfield and modules
         """
         if not radiopropa_is_imported:
             logger.error('The radiopropa dependancy was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
