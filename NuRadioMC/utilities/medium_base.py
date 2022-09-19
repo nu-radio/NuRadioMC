@@ -139,6 +139,8 @@ class IceModel():
 
         # when implementing a new ice_model this part of the function should be ice model specific
         # if the new ice_model cannot be used in RadioPropa, this function should throw an error
+        logger.error('function not defined')
+        raise NotImplementedError('function not defined')
 
     def get_ice_model_radiopropa(self):
         """
