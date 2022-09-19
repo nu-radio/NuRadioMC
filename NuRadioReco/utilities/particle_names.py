@@ -39,6 +39,10 @@ particle_names = \
       -321: "Kaon (negative)",
       2212: "Proton",
      -2212: "Antiproton"}
+
+particle_ids = {}
+for key, value in particle_names.items():
+    particle_ids[value] = key
     
 em_primary_names = ['Gamma (photon)', 'Electron', 'Positron', 'Bremsstrahlung photon',
                     'Ionised electron', 'Electron-positron pair', 'Weak interaction', 'Compton']
@@ -59,3 +63,23 @@ def particle_name(id):
         raise ValueError("Particle id: {:d} unknown".format(id))
             
     return particle_names[id]
+
+
+def particle_id(name):
+    if not isinstance(name, str):
+        logger.error("This function only takes strings.")
+        raise TypeError("This function only takes strings.")
+
+    if not name in particle_ids.keys():
+        logger.error("Particle name: {} unknown".format(name))
+        print("The following names are implemented: ",
+              ", ".join(particle_ids.keys()))
+        raise ValueError("Particle name: {} unknown".format(name))
+
+    return particle_ids[name]
+
+
+if __name__ == "__main__":
+    print("The following particles are implemented: ")
+    for key, value in particle_names.items():
+        print("\t {:5d} : {}".format(key, value))
