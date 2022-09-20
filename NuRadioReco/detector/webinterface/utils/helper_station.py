@@ -118,42 +118,263 @@ def input_station_information(cont, warning_top, coll_name):
     comm_date = col11.date_input('commission time', value=value_comm, min_value=datetime(2018, 1, 1), max_value=datetime(2080, 1, 1))
     decomm_date = col22.date_input('decommission time', value=value_decomm, min_value=datetime(2018, 1, 1), max_value=datetime(2100, 1, 1))
 
-    return selected_station_name, selected_station_id, position, comm_date, decomm_date
+    # plain text input -> a general comment about the station can be given to be saved in the database (e.g.: Wind turbine)
+    comment = cont.text_area('General comments about the station:')
+
+    return selected_station_name, selected_station_id, position, comm_date, decomm_date, comment
 
 
-def build_individual_container(cont):
-    col1_iglu, col2_iglu = cont.columns([1, 1])
-    iglu_name = col1_iglu.selectbox('IGLU name:', ['Choose a name', 'test'])
-    iglu_weight = col2_iglu.number_input('weight:', value=1.0, key='IGLU')
-    col1_cable, col2_cable = cont.columns([1, 1])
-    cable_name = col1_cable.selectbox('cable name:', ['Choose a name', 'test'])
-    cable_weight = col2_cable.number_input('weight:', value=1.0, key='CABLE')
-    col1_drab, col2_drab = cont.columns([1, 1])
-    drab_name = col1_drab.selectbox('DRAB name:', ['Choose a name', 'test'])
-    drab_weigth = col2_drab.number_input('weight:', value=1.0, key='DRAB')
+def build_individual_container(cont, channel, db_signal_chain):
+    cont_warning = cont.container()
+    if channel in [12,13,14,15,16,17,18,19,20]:
+        # get all possible surface board names from the data base:
+        db_surf_board_names = det.get_object_names('surface_board')
+        # get all possible surface cable names from the db:
+        db_surf_cable_names = det.get_object_names('surface_cable')
+        # if channel exist, put the information of the existing channel as the default
+        if db_signal_chain != []:
+            db_cha_surf_board = db_signal_chain[0]['uname']
+            db_cha_surf_board_weight = db_signal_chain[0]['weight']
+            db_cha_surf_cable = db_signal_chain[1]['uname']
+            db_cha_surf_cable_weight = db_signal_chain[1]['weight']
 
-    return [iglu_name, iglu_weight, cable_name, cable_weight, drab_name, drab_weigth]
+            # put the cable and board names at the front of the name lists
+            if db_cha_surf_board in db_surf_board_names:
+                db_cha_surf_board_index = np.where(np.asarray(db_surf_board_names) == db_cha_surf_board)[0][0]
+                db_surf_board_names.pop(db_cha_surf_board_index)
+            else:
+                cont_warning.warning('The chosen SURFACE BOARD is not part of the database!')
+            db_surf_board_names.insert(0, db_cha_surf_board)
+
+            if db_cha_surf_cable in db_surf_cable_names:
+                db_cha_surf_cable_index = np.where(np.asarray(db_surf_cable_names) == db_cha_surf_cable)[0][0]
+                db_surf_cable_names.pop(db_cha_surf_cable_index)
+            else:
+                cont_warning.warning('The chosen SURFACE CABLE is not part of the database!')
+            db_surf_cable_names.insert(0, db_cha_surf_cable)
+        else:
+            db_surf_board_names.insert(0, 'Choose a name')
+            db_surf_cable_names.insert(0, 'Choose a name')
+            db_cha_surf_board_weight = 1
+            db_cha_surf_cable_weight = 1
+
+        col1_surf, col2_surf = cont.columns([1, 1])
+        surface_board_name = col1_surf.selectbox('surface board name:', db_surf_board_names)
+        surface_board_weight = col2_surf.number_input('weight:', value=db_cha_surf_board_weight, key='SURFACE_board')
+        col1_cable, col2_cable = cont.columns([1, 1])
+        surface_cable_name = col1_cable.selectbox('surface cable name:', db_surf_cable_names)
+        surface_cable_weight = col2_cable.number_input('weight:', value=db_cha_surf_cable_weight, key='CABLE')
+
+        return ['surface_board', surface_board_name, surface_board_weight, 'surface_cable', surface_cable_name, surface_cable_weight]
+    else:
+        # get all possible iglu board names from the database:
+        db_iglu_board_names = det.get_object_names('iglu_board')
+        # get all possible drab board names from the database:
+        db_drab_board_names = det.get_object_names('drab_board')
+        # get all possible downhole cable names from the db:
+        db_down_cable_names = det.get_object_names('downhole_cable')
+        # if channel exist, put the information of the existing channel as the default
+        if db_signal_chain != []:
+            db_cha_iglu = db_signal_chain[0]['uname']
+            db_cha_iglu_weight = db_signal_chain[0]['weight']
+            db_cha_drab = db_signal_chain[2]['uname']
+            db_cha_drab_weight = db_signal_chain[2]['weight']
+            db_cha_down_cable = db_signal_chain[1]['uname']
+            db_cha_down_cable_weight = db_signal_chain[1]['weight']
+
+            # put the cable and board names at the front of the name lists
+            if db_cha_iglu in db_iglu_board_names:
+                db_cha_iglu_index = np.where(np.asarray(db_iglu_board_names) == db_cha_iglu)[0][0]
+                db_iglu_board_names.pop(db_cha_iglu_index)
+            else:
+                cont_warning.warning('The chosen IGLU BOARD is not part of the database!')
+            db_iglu_board_names.insert(0, db_cha_iglu)
+
+            if db_cha_drab in db_drab_board_names:
+                db_cha_drab_index = np.where(np.asarray(db_drab_board_names) == db_cha_drab)[0][0]
+                db_drab_board_names.pop(db_cha_drab_index)
+            else:
+                cont_warning.warning('The chosen DRAB BOARD is not part of the database!')
+            db_drab_board_names.insert(0, db_cha_drab)
+
+            if db_cha_down_cable in db_down_cable_names:
+                db_cha_down_cable_index = np.where(np.asarray(db_down_cable_names) == db_cha_down_cable)[0][0]
+                db_down_cable_names.pop(db_cha_down_cable_index)
+            else:
+                cont_warning.warning('The chosen DOWNHOLE CABLE is not part of the database!')
+            db_down_cable_names.insert(0, db_cha_down_cable)
+        else:
+            db_iglu_board_names.insert(0, 'Choose a name')
+            db_drab_board_names.insert(0, 'Choose a name')
+            db_down_cable_names.insert(0, 'Choose a name')
+            db_cha_iglu_weight = 1
+            db_cha_down_cable_weight = 1
+            db_cha_drab_weight = 1
+
+        col1_iglu, col2_iglu = cont.columns([1, 1])
+        iglu_name = col1_iglu.selectbox('iglu name:', db_iglu_board_names)
+        iglu_weight = col2_iglu.number_input('weight:', value=db_cha_iglu_weight, key='IGLU')
+        col1_cable, col2_cable = cont.columns([1, 1])
+        cable_name = col1_cable.selectbox('downhole cable name:', db_down_cable_names)
+        cable_weight = col2_cable.number_input('weight:', value=db_cha_down_cable_weight, key='CABLE')
+        col1_drab, col2_drab = cont.columns([1, 1])
+        drab_name = col1_drab.selectbox('drab name:', db_drab_board_names)
+        drab_weigth = col2_drab.number_input('weight:', value=db_cha_drab_weight, key='DRAB')
+
+        return ['iglu_board', iglu_name, iglu_weight, 'downhole_cable', cable_name, cable_weight, 'drab_board', drab_name, drab_weigth]
+
+def build_complete_container(cont, channel, db_signal_chain):
+    cont_warning = cont.container()
+    if channel in [12, 13, 14, 15, 16, 17, 18, 19, 20]:
+        surface_chain = cont.selectbox('surface chain: Not existing yet', [])
+        return []
+    else:
+        # get all possible downhole chain names from the database
+        db_down_chain_name = det.get_object_names('downhole_chain')
+        if db_signal_chain != []:
+            if len(db_signal_chain) == 1:
+                db_cha_down = db_signal_chain[0]['uname']
+                # put the cable and board names at the front of the name lists
+                if db_cha_down in db_down_chain_name:
+                    db_cha_down_index = np.where(np.asarray(db_down_chain_name) == db_cha_down)[0][0]
+                    db_down_chain_name.pop(db_cha_down_index)
+                else:
+                    cont_warning.warning('The chosen DOWNHOLE CHAIN is not part of the database!')
+                db_down_chain_name.insert(0, db_cha_down)
+            else:
+                db_down_chain_name.insert(0, 'Choose a name')
+        else:
+            db_down_chain_name.insert(0, 'Choose a name')
+
+        downhole_name = cont.selectbox('downhole chain name:', db_down_chain_name)
+        return ['downhole_chain', downhole_name]
 
 
-def build_complete_container(cont):
-    downhole_name = cont.selectbox('downhole chain name:', ['Choose a name', 'test'])
+def build_both_container(cont, channel, db_signal_chain):
+    cont_warning = cont.container()
+    if channel in [12, 13, 14, 15, 16, 17, 18, 19, 20]:
+        # get all possible surface board names from the data base:
+        db_surf_board_names = det.get_object_names('surface_board')
+        # get all possible surface cable names from the db:
+        db_surf_cable_names = det.get_object_names('surface_cable')
+        # if channel exist, put the information of the existing channel as the default
+        if db_signal_chain != []:
+            db_cha_surf_board = db_signal_chain[0]['uname']
+            db_cha_surf_board_weight = db_signal_chain[0]['weight']
+            db_cha_surf_cable = db_signal_chain[1]['uname']
+            db_cha_surf_cable_weight = db_signal_chain[1]['weight']
 
-    return [downhole_name]
+            # put the cable and board names at the front of the name lists
+            if db_cha_surf_board in db_surf_board_names:
+                db_cha_surf_board_index = np.where(np.asarray(db_surf_board_names) == db_cha_surf_board)[0][0]
+                db_surf_board_names.pop(db_cha_surf_board_index)
+            else:
+                cont_warning.warning('The chosen SURFACE BOARD is not part of the database!')
+            db_surf_board_names.insert(0, db_cha_surf_board)
+
+            if db_cha_surf_cable in db_surf_cable_names:
+                db_cha_surf_cable_index = np.where(np.asarray(db_surf_cable_names) == db_cha_surf_cable)[0][0]
+                db_surf_cable_names.pop(db_cha_surf_cable_index)
+            else:
+                cont_warning.warning('The chosen SURFACE CABLE is not part of the database!')
+            db_surf_cable_names.insert(0, db_cha_surf_cable)
+        else:
+            db_surf_board_names.insert(0, 'Choose a name')
+            db_surf_cable_names.insert(0, 'Choose a name')
+            db_cha_surf_board_weight = 1
+            db_cha_surf_cable_weight = 1
+
+        col1_surf, col2_surf = cont.columns([1, 1])
+        surface_board_name = col1_surf.selectbox('surface board name:', db_surf_board_names)
+        surface_board_weight = col2_surf.number_input('weight:', value=db_cha_surf_board_weight, key='SURFACE_board')
+        col1_cable, col2_cable = cont.columns([1, 1])
+        surface_cable_name = col1_cable.selectbox('surface cable name:', db_surf_cable_names)
+        surface_cable_weight = col2_cable.number_input('weight:', value=db_cha_surf_cable_weight, key='CABLE')
+        surface_chain = cont.selectbox('surface chain: Not existing yet', [])
+
+        return ['surface_board', surface_board_name, surface_board_weight, 'surface_cable', surface_cable_name, surface_cable_weight]
+    else:
+        # get all possible iglu board names from the database:
+        db_iglu_board_names = det.get_object_names('iglu_board')
+        # get all possible drab board names from the database:
+        db_drab_board_names = det.get_object_names('drab_board')
+        # get all possible downhole cable names from the db:
+        db_down_cable_names = det.get_object_names('downhole_cable')
+        # get all possible downhole chain names from the database
+        db_down_chain_name = det.get_object_names('downhole_chain')
+        # if channel exist, put the information of the existing channel as the default
+        if db_signal_chain != []:
+            # this if/else allows to display the individual or complete chain without the necessity that both are in the db
+            if len(db_signal_chain) == 3:
+                db_cha_iglu = db_signal_chain[0]['uname']
+                db_cha_iglu_weight = db_signal_chain[0]['weight']
+                db_cha_drab = db_signal_chain[2]['uname']
+                db_cha_drab_weight = db_signal_chain[2]['weight']
+                db_cha_down_cable = db_signal_chain[1]['uname']
+                db_cha_down_cable_weight = db_signal_chain[1]['weight']
 
 
-def build_both_container(cont):
-    col1_iglu, col2_iglu = cont.columns([1, 1])
-    iglu_name = col1_iglu.selectbox('IGLU name:', ['Choose a name', 'test'])
-    iglu_weight = col2_iglu.number_input('weight:', value=1.0, key='IGLU')
-    col1_cable, col2_cable = cont.columns([1, 1])
-    cable_name = col1_cable.selectbox('cable name:', ['Choose a name', 'test'])
-    cable_weight = col2_cable.number_input('weight:', value=1.0, key='CABLE')
-    col1_drab, col2_drab = cont.columns([1, 1])
-    drab_name = col1_drab.selectbox('DRAB name:', ['Choose a name', 'test'])
-    drab_weigth = col2_drab.number_input('weight:', value=1.0, key='DRAB')
-    downhole_name = cont.selectbox('downhole chain name:', ['Choose a name', 'test'])
+                # put the cable and board names at the front of the name lists
+                if db_cha_iglu in db_iglu_board_names:
+                    db_cha_iglu_index = np.where(np.asarray(db_iglu_board_names) == db_cha_iglu)[0][0]
+                    db_iglu_board_names.pop(db_cha_iglu_index)
+                else:
+                    cont_warning.warning('The chosen IGLU BOARD is not part of the database!')
+                db_iglu_board_names.insert(0, db_cha_iglu)
 
-    return [iglu_name, iglu_weight, cable_name, cable_weight, drab_name, drab_weigth, downhole_name]
+                if db_cha_drab in db_drab_board_names:
+                    db_cha_drab_index = np.where(np.asarray(db_drab_board_names) == db_cha_drab)[0][0]
+                    db_drab_board_names.pop(db_cha_drab_index)
+                else:
+                    cont_warning.warning('The chosen DRAB BOARD is not part of the database!')
+                db_drab_board_names.insert(0, db_cha_drab)
+
+                if db_cha_down_cable in db_down_cable_names:
+                    db_cha_down_cable_index = np.where(np.asarray(db_down_cable_names) == db_cha_down_cable)[0][0]
+                    db_down_cable_names.pop(db_cha_down_cable_index)
+                else:
+                    cont_warning.warning('The chosen DOWNHOLE CABLE is not part of the database!')
+                db_down_cable_names.insert(0, db_cha_down_cable)
+            else:
+                db_iglu_board_names.insert(0, 'Choose a name')
+                db_drab_board_names.insert(0, 'Choose a name')
+                db_down_cable_names.insert(0, 'Choose a name')
+                db_cha_iglu_weight = 1
+                db_cha_down_cable_weight = 1
+                db_cha_drab_weight = 1
+
+            # this if/else allows to display the individual or complete chain without the necessity that both are in the db
+            if len(db_signal_chain) == 1:
+                db_cha_down = db_signal_chain[3]['uname']
+                if db_cha_down in db_down_chain_name:
+                    db_cha_down_index = np.where(np.asarray(db_down_chain_name) == db_cha_down)[0][0]
+                    db_down_chain_name.pop(db_cha_down_index)
+                else:
+                    cont_warning.warning('The chosen DOWNHOLE CHAIN is not part of the database!')
+                db_down_chain_name.insert(0, db_cha_down)
+            else:
+                db_down_chain_name.insert(0, 'Choose a name')
+        else:
+            db_iglu_board_names.insert(0, 'Choose a name')
+            db_drab_board_names.insert(0, 'Choose a name')
+            db_down_cable_names.insert(0, 'Choose a name')
+            db_down_chain_name.insert(0, 'Choose a name')
+            db_cha_iglu_weight = 1
+            db_cha_down_cable_weight = 1
+            db_cha_drab_weight = 1
+
+        col1_iglu, col2_iglu = cont.columns([1, 1])
+        iglu_name = col1_iglu.selectbox('iglu name:', db_iglu_board_names)
+        iglu_weight = col2_iglu.number_input('weight:', value=db_cha_iglu_weight, key='IGLU')
+        col1_cable, col2_cable = cont.columns([1, 1])
+        cable_name = col1_cable.selectbox('downhole cable name:', db_down_cable_names)
+        cable_weight = col2_cable.number_input('weight:', value=db_cha_down_cable_weight, key='CABLE')
+        col1_drab, col2_drab = cont.columns([1, 1])
+        drab_name = col1_drab.selectbox('drab name:', db_drab_board_names)
+        drab_weigth = col2_drab.number_input('weight:', value=db_cha_drab_weight, key='DRAB')
+        downhole_name = cont.selectbox('downhole chain name:', db_down_chain_name)
+
+        return ['iglu_board', iglu_name, iglu_weight, 'downhole_cable', cable_name, cable_weight, 'drab_board', drab_name, drab_weigth, 'downhole_chain', downhole_name]
 
 
 def input_channel_information(cont, station_id, coll_name):
@@ -188,47 +409,106 @@ def input_channel_information(cont, station_id, coll_name):
     else:
         channel_info = station_info[station_id]['channels'][selected_channel]
 
+    # tranform the channel number from a string into an int
+    selected_channel = int(selected_channel)
 
-    # if the channel exist
+    # if the channel exist make the existing antenna name the default argument, else display the names as listed here
     antenna_names = ['Phased Array Vpol', 'Power String Hpol', "Power String Vpol", "Helper String B Vpol", "Helper String B Hpol", 'rno_surface, Power String', 'rno_surface, Helper B', 'rno_surface, Helper C',
                      'Helper String C Vpol', 'Helper String C Hpol']
+    if channel_info != {}:
+        db_ant_name = channel_info['ant_name']
+        db_ant_name_index = np.where(np.asarray(antenna_names) == db_ant_name)[0][0]
+
+        # add the existing antenna name to the front of the list
+        antenna_names.pop(db_ant_name_index)
+        antenna_names.insert(0, db_ant_name)
+
     selected_antenna_name = col33.selectbox('Select a antenna name:', antenna_names)
 
+    # insert the position of the antenna; if the channel already exist enter the position of the existing channel
     col111, col222, col333 = cont.columns([1, 1, 1])
-    x_pos_ant = col111.text_input('x position', key='x_antenna')
-    y_pos_ant = col222.text_input('y position', key='y_antenna')
-    z_pos_ant = col333.text_input('z position', key='z_antenna')
+    if channel_info != {}:
+        db_ant_position = channel_info['ant_position']
+    else:
+        db_ant_position = [0,0,0]
+
+    x_pos_ant = col111.text_input('x position', key='x_antenna', value=db_ant_position[0])
+    y_pos_ant = col222.text_input('y position', key='y_antenna', value=db_ant_position[1])
+    z_pos_ant = col333.text_input('z position', key='z_antenna', value=db_ant_position[2])
     position = [x_pos_ant, y_pos_ant, z_pos_ant]
 
+    # input the orientation, rotation of the antenna; if the channel already exist, insert the values from the database
     col1a, col2a, col3a, col4a = cont.columns([1, 1, 1, 1])
-    ant_ori_theta = col1a.text_input('orientation (theta):')
-    ant_ori_phi = col2a.text_input('orientation (phi):')
-    ant_rot_theta = col3a.text_input('rotation (theta):')
-    ant_rot_phi = col4a.text_input('rotation (phi):')
+    if channel_info != {}:
+        db_ant_ori_theta = channel_info['ant_ori_theta']
+        db_ant_ori_phi = channel_info['ant_ori_phi']
+        db_ant_rot_theta = channel_info['ant_rot_theta']
+        db_ant_rot_phi = channel_info['ant_rot_phi']
+
+        db_ori_rot = [db_ant_ori_theta, db_ant_ori_phi, db_ant_rot_theta, db_ant_rot_phi]
+    else:
+        db_ori_rot = [0,0,0,0]
+    ant_ori_theta = col1a.text_input('orientation (theta):', value=db_ori_rot[0])
+    ant_ori_phi = col2a.text_input('orientation (phi):', value=db_ori_rot[1])
+    ant_rot_theta = col3a.text_input('rotation (theta):', value=db_ori_rot[2])
+    ant_rot_phi = col4a.text_input('rotation (phi):', value=db_ori_rot[3])
     ori_rot = [ant_ori_theta, ant_ori_phi, ant_rot_theta, ant_rot_phi]
 
+    # select the antenna type; if the channel exists, the antenna type of the db will be used as default otherwise the antenna types as shown in the list will be given
     diff_antenna_types = ["RNOG_vpol_4inch_center_1.73", "RNOG_quadslot_v3_air_rescaled_to_n1.74", "createLPDA_100MHz_InfFirn_n1.4"]
+    if channel_info != {}:
+        db_ant_type = channel_info['type']
+        db_type_index = np.where(np.asarray(diff_antenna_types) == db_ant_type)[0][0]
+        # isert the antenna type as the defalut
+        diff_antenna_types.pop(db_type_index)
+        diff_antenna_types.insert(0, db_ant_type)
     selected_antenna_type = cont.selectbox('Select antenna type:', diff_antenna_types)
 
+    # input the (de)commisschon time of the channel (can be used to set a channel to be broken); if the channel exist the dates from the db will be used as a default
     coltime1, coltime2 = cont.columns([1, 1])
-    comm_date_ant = coltime1.date_input('commission time', min_value=datetime(2018, 1, 1), max_value=datetime(2080, 1, 1), key='comm_time_antenna')
-    decomm_date_ant = coltime2.date_input('decommission time', value=datetime(2035, 1, 1), min_value=datetime(2018, 1, 1), max_value=datetime(2100, 1, 1), key='decomm_time_antenna')
+    if channel_info != {}:
+        comm_starting_date = channel_info['commission_time']
+        decomm_starting_date = channel_info['decommission_time']
+    else:
+        comm_starting_date = datetime.now()
+        decomm_starting_date = datetime(2080, 1, 1)
+    comm_date_ant = coltime1.date_input('commission time', value=comm_starting_date, min_value=datetime(2018, 1, 1), max_value=datetime(2080, 1, 1), key='comm_time_antenna')
+    decomm_date_ant = coltime2.date_input('decommission time', value=decomm_starting_date, min_value=datetime(2018, 1, 1), max_value=datetime(2100, 1, 1), key='decomm_time_antenna')
 
+    # input the signal chain; if the channel already exists the entries from the db will be used as the default
     cont.markdown('Signal chain:')
-    type_signal_chain = cont.radio('Input form of the signal chain:', ['individual components', 'complete chain', 'both'], horizontal=True)
+
+    # get the signal chain from the db
+    if channel_info != {}:
+        db_signal_chain = channel_info['signal_ch']
+        if len(db_signal_chain) == 1:
+            radio_index = 1
+        elif len(db_signal_chain) == 3 or len(db_signal_chain) == 2:
+            radio_index = 0
+        else:
+            radio_index = 2
+    else:
+        radio_index = 0
+        db_signal_chain = []
+
+    type_signal_chain = cont.radio('Input form of the signal chain:', ['individual components', 'complete chain', 'both'], horizontal=True, index=radio_index)
     signal_chain_cont = cont.container()
     signal_chain = []
     if type_signal_chain == 'individual components':
         signal_chain_cont.empty()
-        signal_chain = build_individual_container(signal_chain_cont)
+        signal_chain = build_individual_container(signal_chain_cont, selected_channel, db_signal_chain)
     elif type_signal_chain == 'complete chain':
         signal_chain_cont.empty()
-        signal_chain = build_complete_container(signal_chain_cont)
+        signal_chain = build_complete_container(signal_chain_cont, selected_channel, db_signal_chain)
     elif type_signal_chain == 'both':
         signal_chain_cont.empty()
-        signal_chain = build_both_container(signal_chain_cont)
+        signal_chain = build_both_container(signal_chain_cont, selected_channel, db_signal_chain)
 
-    return selected_channel, selected_antenna_name, position, ori_rot, selected_antenna_type, comm_date_ant, decomm_date_ant, signal_chain
+    # plain text input -> a comment about the channel can be given to be saved in the database
+    cont.markdown('Comments:')
+    comment = cont.text_area('Comment about the channel performance:')
+
+    return selected_channel, selected_antenna_name, position, ori_rot, selected_antenna_type, comm_date_ant, decomm_date_ant, signal_chain, comment
 
 
 def test(station_id):
