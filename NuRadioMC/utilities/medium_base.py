@@ -184,8 +184,8 @@ class IceModel():
 
         DO NOT OVERRIDE THIS FUNCTION
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         ice_model_radioprop:    RadioPropaIceWrapper
                                 object holding the radiopropa scalarfield and modules
 
