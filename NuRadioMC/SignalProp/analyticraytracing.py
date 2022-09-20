@@ -14,7 +14,9 @@ except ImportError:
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
 
-from NuRadioMC.utilities.medium import birefringence_index
+#from NuRadioMC.utilities.medium import birefringence_index
+from NuRadioMC.utilities.medium import birefringence_medium
+
 
 from radiotools import coordinatesystems as cstrans
 from radiotools import helper as hp
@@ -1542,9 +1544,8 @@ class ray_tracing(ray_tracing_base):
     def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  
                  n_frequencies_integration=100,
-                 n_reflections=0, config=None, detector=None, birefringence_model = birefringence_index()):
-     
-
+                 #n_reflections=0, config=None, detector=None, birefringence_model = birefringence_medium()):     
+                 n_reflections=0, config=None, detector=None):
         """
         class initilization
 
@@ -1587,7 +1588,7 @@ class ray_tracing(ray_tracing_base):
 
         
         self.__medium = medium
-        self.__birefringence_model = birefringence_model
+        #self.__birefringence_model = birefringence_model
         
 
 
@@ -1737,6 +1738,28 @@ class ray_tracing(ray_tracing_base):
 
     def get_effective_index_fast(self, nx, ny, nz, direction):
         
+        """
+        Function to find the analytical solutions for the effective refractive indices.
+    
+        Parameters
+        ------------   
+        direction: numpy.array
+            propagation direction of the wave              
+        nx: float
+            the index of refraction into the x direction        
+        ny: float
+            the index of refraction into the y direction        
+        nz: float
+            the index of refraciton into the z direction         
+        rounding: int
+            the precision of the comparison between n and nx, ny, nz for the special cases  
+            
+        Returns
+        ------------
+        output format: tuple: (n1, n2)  
+        meaning:       effective refractive indices   
+        """ 
+                
         sx = direction[0]
         sy = direction[1]
         sz = direction[2]
@@ -1772,6 +1795,41 @@ class ray_tracing(ray_tracing_base):
         output format: list: [px, py, pz]  
         meaning:       normalized e-field vector   
         """ 
+        
+        """
+
+        #n = round(n, rounding)
+        #nx = round(nx, rounding)
+        #ny = round(ny, rounding)
+        #nz = round(nz, rounding)
+        
+        
+        eps = 1e-8
+
+        if (np.isclose(n,nx)):
+            
+            p = np.array([1,0,0])
+            
+            
+        elif (np.isclose(n,ny)):
+            
+            p = np.array([0,1,0])            
+            
+        elif (np.isclose(n,nz)):
+            
+            p = np.array([0,0,1])            
+            
+        
+        else:
+            p = np.array([direction[0] / (n ** 2 - nx ** 2), direction[1] / (n ** 2 - ny ** 2), direction[2] / (n ** 2 - nz ** 2)])
+            
+   
+            
+            #print('good')
+            #print(p)
+        return p / np.linalg.norm(p)
+        
+        """
         
         if(np.round(n, rounding) in [np.round(nx, rounding), np.round(ny, rounding), np.round(nz, rounding)]):
         # treat special cases here
@@ -1815,6 +1873,8 @@ class ray_tracing(ray_tracing_base):
 
             else:
                 
+                print('fail')
+                
                 try:
                     p = np.array([direction[0] / (n ** 2 - nx ** 2), direction[1] / (n ** 2 - ny ** 2), direction[2] / (n ** 2 - nz ** 2)])
                     return p / np.linalg.norm(p)
@@ -1826,6 +1886,9 @@ class ray_tracing(ray_tracing_base):
         else:
             p = np.array([direction[0] / (n ** 2 - nx ** 2), direction[1] / (n ** 2 - ny ** 2), direction[2] / (n ** 2 - nz ** 2)])
             return p / np.linalg.norm(p)
+
+        
+
 
     def get_3d_trace(self, source, antenna, acc = 1000):
         
@@ -1850,8 +1913,7 @@ class ray_tracing(ray_tracing_base):
         """    
 
         p = [] 
-        
-        
+               
         self.set_start_and_end_point(source, antenna)
         self.find_solutions()
 
@@ -1861,7 +1923,7 @@ class ray_tracing(ray_tracing_base):
                 p.append(path)
     
         else:
-            print('error: no solution from the ray tracer')
+            self.__logger.error('error: no solution from the ray tracer')
                 
         return(np.array(p))              
     
@@ -1892,7 +1954,8 @@ class ray_tracing(ray_tracing_base):
         """   
         
 
-        ice_n = self.__birefringence_model
+        #ice_n = self.__birefringence_model
+        ice_n = self.__medium
 
         p = self.get_3d_trace(source, antenna, acc)
         c = speed_of_light * units.m / units.ns
@@ -1923,7 +1986,7 @@ class ray_tracing(ray_tracing_base):
                 dz = p[1,i+1,2] - p[1,i,2]
                 
             else:
-                print('error: wrong path type')
+                self.__logger.error('error: wrong path type')
                               
             direction = np.array([ dx, dy, dz])  
             l = np.linalg.norm(direction)
@@ -1965,7 +2028,8 @@ class ray_tracing(ray_tracing_base):
                                 [2] - l_path (numpy.array) - lenth of the path increment        
         """    
 
-        ice_n = self.__birefringence_model
+        #ice_n = self.__birefringence_model
+        ice_n = self.__medium
 
         p = self.get_3d_trace(source, antenna, acc)
     
@@ -1983,6 +2047,8 @@ class ray_tracing(ray_tracing_base):
 
         
         for i in range(acc-1):
+            
+            #print(i)
 
             if path_type == 0:   
                                 
@@ -2127,6 +2193,7 @@ class ray_tracing(ray_tracing_base):
             
             R = np.matrix([[a, b],[c, d]])    
 
+            #print(R)
             
             th = t_theta.get_frequency_spectrum()
             ph = t_phi.get_frequency_spectrum()        
