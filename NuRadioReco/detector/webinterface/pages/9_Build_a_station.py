@@ -34,15 +34,15 @@ def build_main_page(main_cont):
     if st.session_state.collection == '1':
         collection_name = st.session_state.collection_name
         print(collection_name)
-        main_cont.info(f'You are now chaning/writing to collection: {collection_name}')
+        main_cont.info(f'You are now changing/writing to collection: {collection_name}')
         cont_warning_top = main_cont.container()
         main_cont.subheader('Input general station information')
         cont_station = main_cont.container()
         main_cont.subheader('Input channel information')
         cont_channel = main_cont.container()
 
-        selected_station_name, selected_station_id, station_position, station_comm_date, station_decomm_date = input_station_information(cont_station, cont_warning_top, collection_name)
-        selected_channel, selected_antenna_name, position_ant, ori_rot_ant, selected_antenna_type, comm_date_ant, decomm_date_ant, signal_chain_ant = input_channel_information(cont_channel, selected_station_id, collection_name)
+        selected_station_name, selected_station_id, station_position, station_comm_date, station_decomm_date, sta_comment = input_station_information(cont_station, cont_warning_top, collection_name)
+        selected_channel, selected_antenna_name, position_ant, ori_rot_ant, selected_antenna_type, comm_date_ant, decomm_date_ant, signal_chain_ant, cha_comment = input_channel_information(cont_channel, selected_station_id, collection_name)
 
         col1_button, col2_button = main_cont.columns([1,1])
         insert_button = col1_button.button('INSERT TO DB')
