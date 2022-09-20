@@ -132,6 +132,10 @@ class showerParameters(Enum):
     k_L = 110  # the k_L parameter of the Alvarez2009 parameter that controls the longitudional width of the charge excess profile
     flavor = 111  # the flavor of the particle initiating the shower
 
+    interferometric_shower_maximum = 120  # depth of the maximum of the longitudinal profile of the beam-formed signal
+    interferometric_shower_axis = 121  # shower axis (direction) derived from beam-formed signal
+    interferometric_core = 122  # core (intersection of shower axis with obs plane) derived from beam-formed signal
+
 class particleParameters(Enum):
     parent_id = 1 # the entry number of the parent particle, None if primary.
     zenith = 2  # the zenith angle of the incoming neutrino direction

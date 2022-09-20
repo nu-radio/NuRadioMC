@@ -1,6 +1,7 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 from NuRadioReco.framework.trigger import EnvelopeTrigger
+import NuRadioReco.framework.base_trace as base_trace
 import NuRadioReco.utilities.fft
 import numpy as np
 import scipy.signal
@@ -22,7 +23,7 @@ def get_envelope_triggers(trace, threshold):  # define trigger constraint for ea
         the signal trace
     threshold: float
         the threshold
-        
+
     Returns
     -------
     triggered bins: array of bools
@@ -47,10 +48,10 @@ class triggerSimulator:
     @register_run()
     def run(self, evt, station, det, passband, order, threshold, coinc_window, number_coincidences=2, triggered_channels=None, trigger_name='envelope_trigger'):
         """
-        Simulates simple threshold trigger based on an Hilbert-envelope of the trace. 
-        
-        Passband of the trigger, coincidence window within which different channels 
-        should have triggered, and the number of channels needed to trigger 
+        Simulates simple threshold trigger based on an Hilbert-envelope of the trace.
+
+        Passband of the trigger, coincidence window within which different channels
+        should have triggered, and the number of channels needed to trigger
         can be specified.
 
         Parameters
@@ -94,6 +95,9 @@ class triggerSimulator:
             channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
 
         for channel in station.iter_channels():
+            trace = channel.base_trace.get_filtered_trace(passband, 'butter', order)
+
+            # apply envelope trigger to each channel
             channel_id = channel.get_id()
             if triggered_channels is not None and channel_id not in triggered_channels:
                 logger.debug("skipping channel {}".format(channel_id))

@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
+from scipy import integrate, linalg
 from NuRadioReco.utilities import units
 import logging
 logging.basicConfig()
@@ -93,8 +94,18 @@ class IceModel():
         n_average:  float
                     averaged index of refraction between the two points
         """
-        logger.error('function not defined')
-        raise NotImplementedError('function not defined')
+        logger.warning('Using general implementation of function which might be slow. For faster calculation, overwrite with an ice model specific function')
+
+        def get_index_of_refraction(x,y,z):
+            pos = np.array([x,y,z])
+            return self.get_index_of_refraction(pos)
+
+        ranges = [[position1[0],position2[0]],
+                  [position1[1],position2[1]],
+                  [position1[2],position2[2]]]
+        int_result = integrate.nquad(get_index_of_refraction,ranges)
+        n_average = int_result[0] / linalg.norm(position2-position1)
+        return n_average
 
     def get_gradient_of_index_of_refraction(self, position):
         """
@@ -185,18 +196,25 @@ class IceModelSimple(IceModel):
 
         Parameters
         ----------
-        position:  3dim np.array
-                    point
+        position:  1D or 2D numpy array
+                    Either one position or an array
+                    of positions for which the indices
+                    of refraction are returned
 
         Returns
         -------
         n:  float
             index of refraction
         """
-        if (position[2] - self.z_air_boundary) <=0:
-            return self.n_ice - self.delta_n * np.exp((position[2] - self.z_shift) / self.z_0)
+        if isinstance(position, list) or position.ndim == 1:
+            if (position[2] - self.z_air_boundary) <= 0:
+                return self.n_ice - self.delta_n * np.exp((position[2] - self.z_shift) / self.z_0)
+            else:
+                return 1
         else:
-            return 1
+            ior = self.n_ice - self.delta_n * np.exp((position[:, 2] - self.z_shift) / self.z_0)
+            ior[position[:, 2] >= 0] = 1.
+            return ior
 
     def get_average_index_of_refraction(self, position1, position2):
         """
@@ -215,11 +233,21 @@ class IceModelSimple(IceModel):
         n_average:  float
                     averaged index of refraction between the two points
         """
-        if ((position1[2] - self.z_air_boundary) <=0) and ((position2[2] - self.z_air_boundary) <=0):
-            return (self.n_ice - self.delta_n * self.z_0 / (position2[2] - position1[2]) 
-                    * (np.exp((position2[2]-self.z_shift) / self.z_0) - np.exp((position1[2]-self.z_shift) / self.z_0)))
+        zmax = max(position1[2], position2[2])
+        zmin = min(position1[2], position2[2])
+
+        def exp_average(z_max, z_min):
+            return (self.n_ice - self.delta_n * self.z_0 / (z_max - z_min) 
+                    * (np.exp((z_max-self.z_shift) / self.z_0) - np.exp((z_min-self.z_shift) / self.z_0)))
+
+        if ((zmax - self.z_air_boundary) <=0):
+            return exp_average(zmax, zmin)
+        elif ((zmin - self.z_air_boundary) <=0):
+            n1 = exp_average(self.z_air_boundary, zmin)
+            n2 = 1
+            return (n1 * (self.z_air_boundary - zmin) + n2 * (zmax - self.z_air_boundary)) / (zmax - zmin)
         else:
-            return None
+            return 1
 
     def get_gradient_of_index_of_refraction(self, position):
         """
