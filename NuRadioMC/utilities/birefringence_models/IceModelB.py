@@ -20,7 +20,6 @@ logger = logging.getLogger('raytracing')
 
 model = 'B'
 
-
 c = constants.c
 e_p = 3.157                 #given in Jordan
 e_d = 0.034                 #given in Jordan
@@ -29,10 +28,7 @@ m = southpole_2015()
 comp = m.get_index_of_refraction(np.array([0, 0, -2500]))
 
 
-
 def get_index_of_refraction(z):
-    
-
     
     n1 = m.get_index_of_refraction(z) + f1_rec(-z[2]) - comp
     n2 = m.get_index_of_refraction(z) + f2_rec(-z[2]) - comp
@@ -48,8 +44,7 @@ def get_index_of_refraction_all(z):
     
     Parameters
     ---------
-    z:    numpy.array (int as entries), position of the interaction (only the z-coordinate matters)
-    
+    z:    numpy.array (int as entries), position of the interaction (only the z-coordinate matters)    
     n:    numpy.array, every entry is a list with the three indices of refrection at the specific depth
       
     """
@@ -143,8 +138,6 @@ f2_rec = interpolate.UnivariateSpline._from_tck(tck2)
 tck3 = f3._eval_args
 f3_rec = interpolate.UnivariateSpline._from_tck(tck3)
 
-
-
 interpolation = np.array([tck1, tck2, tck3])
 
 if 0:
@@ -178,15 +171,12 @@ if 1:
     plt.show()
 
 
-
 #-------------Jordan + Southpole
 if 1:
     p = [0, 0, -2500]
     
     i_all = get_index_of_refraction_all(p)
-    
-    
-    
+
     plt.plot(i_all[1], i_all[0][:,0], label = 'nx - model')
     plt.plot(i_all[1], i_all[0][:,1], label = 'ny - model')
     plt.plot(i_all[1], i_all[0][:,2], label = 'nz - model')
@@ -201,42 +191,3 @@ if 1:
     plt.show()
     
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
