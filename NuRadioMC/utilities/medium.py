@@ -247,7 +247,7 @@ class greenland_firn(medium_base.IceModel):
         return self._scalarfield.getGradient(pos) * (1 / (units.meter/RP.meter))
 
     
-    def compute_default_ice_model_radiopropa(self):
+    def _compute_default_ice_model_radiopropa(self):
         """
         Computes a default object holding the radiopropa scalarfield and necessary radiopropa 
         moduldes that define the medium in radiopropa. It uses the parameters of the medium 
@@ -267,7 +267,7 @@ class greenland_perturbation(greenland_firn):
     def __init__(self):
         greenland_firn.__init__(self)
         
-    def compute_default_ice_model_radiopropa(self,discontinuity=False):
+    def _compute_default_ice_model_radiopropa(self,discontinuity=False):
         """
         Computes a default object holding the radiopropa scalarfield and necessary radiopropa 
         moduldes that define the medium in radiopropa. It uses the parameters of the medium 
@@ -281,7 +281,7 @@ class greenland_perturbation(greenland_firn):
         ice_model_radiopropa:   RadioPropaIceWrapper
                                 object holding the radiopropa scalarfield and modules
         """
-        ice = greenland_firn.compute_default_ice_model_radiopropa(self)
+        ice = greenland_firn._compute_default_ice_model_radiopropa(self)
         #fraction from ArXiv 1805.12576 table IV last row
         perturbation_horz = RP.PerturbationHorizontal(-100*RP.meter,2*RP.meter, fraction=1)
         ice.add_module('horizontal perturbation',perturbation_horz)

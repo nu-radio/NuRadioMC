@@ -127,14 +127,15 @@ class IceModel():
         raise NotImplementedError('function not defined')
 
     
-    def compute_default_ice_model_radiopropa(self):
+    def _compute_default_ice_model_radiopropa(self):
         """
         Computes a default object holding the radiopropa scalarfield and necessary radiopropa 
         moduldes that define the medium in radiopropa. It uses the parameters of the medium 
         object to contruct some modules, like a discontinuity object for the air boundary. 
         Additional modules can be added in this function
-        
-        Overwrites function of the mother class
+
+        This is the default and should always be overriden/implemented in new ice model!
+
 
         Returns
         -------
@@ -153,7 +154,13 @@ class IceModel():
     def get_ice_model_radiopropa(self):
         """
         Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
-        that define the medium in radiopropa. 
+        that define the medium in radiopropa. If no specific model is set by the user it returns
+        the default implemented model using the '_compute_default_ice_model_radiopropa' function.
+
+        This seperation allows having the posibility to set a more specific/adjusted radiopropa 
+        ice model in case they need it, without losing the access to the default model. 
+
+        DO NOT OVERRIDE THIS FUNCTION
 
         Returns
         -------
@@ -165,7 +172,7 @@ class IceModel():
             raise ImportError('RadioPropa could not be imported')
 
         if self._ice_model_radiopropa is None:
-            self._ice_model_radiopropa = self.compute_default_ice_model_radiopropa()
+            self._ice_model_radiopropa = self._compute_default_ice_model_radiopropa()
         
         return self._ice_model_radiopropa
 
@@ -174,6 +181,8 @@ class IceModel():
         If radiopropa is installed, this function can be used
         to set a specific RadioPropaIceWrapper object as the
         ice model used for RadioPropa.
+
+        DO NOT OVERRIDE THIS FUNCTION
 
         Parameters:
         -----------
@@ -315,13 +324,13 @@ class IceModelSimple(IceModel):
             gradient[2] = -self.delta_n / self.z_0 * np.exp((position[2] - self.z_shift) / self.z_0)
         return gradient
 
-    def compute_default_ice_model_radiopropa(self):
+    def _compute_default_ice_model_radiopropa(self):
         """
         If radiopropa is installed this will compute and return a default object holding the 
         radiopropa scalarfield and necessary radiopropa moduldes that define the medium in 
         radiopropa. It uses the parameters of the medium object to contruct the scalar field 
         using the simple ice model implementation in radiopropa and some modules, like a 
-        discontinuity object for the air boundary
+        discontinuity object for the air boundary.
         
         Overwrites function of the mother class
 
