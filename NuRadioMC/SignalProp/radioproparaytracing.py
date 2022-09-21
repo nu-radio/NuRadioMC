@@ -1138,7 +1138,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         self._max_traj_length = self._config['propagation']['radiopropa']['max_traj_length'] * units.meter
         self.set_iterative_sphere_sizes(np.array(self._config['propagation']['radiopropa']['iter_steps_channel']) * units.meter)
         self._auto_step = self._config['propagation']['radiopropa']['auto_step_size']
-        self.activate_auto_step_size(np.array(self._config['propagation']['radiopropa']['iter_steps_zenith']) * units.degree)
+        self.set_iterative_step_sizes(np.array(self._config['propagation']['radiopropa']['iter_steps_zenith']) * units.degree)
 
     ## helper functions
     def delta_theta_direct(self, dz):
