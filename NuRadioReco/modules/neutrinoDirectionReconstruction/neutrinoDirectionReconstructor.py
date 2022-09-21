@@ -86,14 +86,13 @@ class neutrinoDirectionReconstructor:
 
     def run(self, event, station, det, shower_ids = None,
             use_channels=[6, 14], filenumber = 1, PA_channels = [0,1,2,3],
-            single_pulse = False, debug_plots = False, template = False,
+            debug_plots = False, template = False,
             sim_vertex = True, Vrms_Vpol = 0.01, Vrms_Hpol = 0.01,
             only_simulation = False, ch_Vpol = 6, ch_Hpol = 13,
-            full_station = True, brute_force = True, fixed_timing = False,
-            restricted_input = True, starting_values = False,
+            full_station = True, brute_force = True,
+            restricted_input = False, starting_values = False,
             debugplots_path = None, PA_cluster_channels = [0,1,2,3, 7,8],
-            Hpol_channels = [7,8], window_Hpol = [10, +40],
-            window_Vpol = [-10, +50], single_pulse_fit = False,
+            Hpol_channels = [7,8], single_pulse_fit = False,
             Hpol_lower_band = 50,  Hpol_upper_band = 700):
 
         """
@@ -798,10 +797,10 @@ class neutrinoDirectionReconstructor:
                     corr_window_end = len(corr)#int(len(corr)/2 + 30 * self._sampling_rate)
 
                     max_cor = np.arange(corr_window_start,corr_window_end, 1)[np.argmax(corr[corr_window_start:corr_window_end])]
-                    dt = max_cor - len(corr)/2
-                    rec_trace_1 = np.roll(rec_trace, math.ceil(-dt + len(corr)/2))[:len(data_trace_timing_1)]
+                    dt = max_cor
+                    rec_trace_1 = np.roll(rec_trace, math.ceil(-dt))[:len(data_trace_timing_1)]
                     chi2_dt1 = np.sum((rec_trace_1  - data_trace_timing_1)**2 )/ ((self._Vrms)**2)/len(rec_trace)
-                    rec_trace_2 = np.roll(rec_trace, math.ceil(-dt + len(corr)/2 - 1))[:len(data_trace_timing_1)]
+                    rec_trace_2 = np.roll(rec_trace, math.ceil(-dt - 1))[:len(data_trace_timing_1)]
                     chi2_dt2 = np.sum((rec_trace_2 - data_trace_timing_1)**2) / ((self._Vrms)**2)/len(rec_trace)
                     if chi2_dt2 < chi2_dt1:
                         dt = dt + 1
@@ -874,7 +873,7 @@ class neutrinoDirectionReconstructor:
 
 
                             dt = dict_dt[channel_id][i_trace]
-                            rec_trace = np.roll(rec_trace, math.ceil(-dt + len(corr)/2))[:len(data_trace_timing_1)]
+                            rec_trace = np.roll(rec_trace, math.ceil(-dt))[:len(data_trace_timing_1)]
 
 
 
@@ -995,36 +994,6 @@ class neutrinoDirectionReconstructor:
             return [rec_traces, data_traces, data_timing, all_chi2, [reduced_chi2_Vpol, reduced_chi2_Hpol], over_reconstructed, extra_channel]
 
         return chi2
-        """
-                ### helper functions for plotting
-        def mollweide_azimuth(az):
-            az -= (simulated_azimuth - np.deg2rad(180)) ## put simulated azimuth at 180 degrees
-            az = np.remainder(az, np.deg2rad(360)) ## rotate values such that they are between 0 and 360
-            az -= np.deg2rad(180)
-            return az
-
-        def mollweide_zenith(zen):
-            zen -= (simulated_zenith  - np.deg2rad(90)) ## put simulated azimuth at 90 degrees
-            zen = np.remainder(zen, np.deg2rad(180)) ## rotate values such that they are between 0 and 180
-            zen -= np.deg2rad(90) ## hisft to mollweide projection
-            return zen
-
-
-        def get_normalized_angle(angle, degree=False, interval=np.deg2rad([0, 360])):
-            import collections
-            if degree:
-                interval = np.rad2deg(interval)
-            delta = interval[1] - interval[0]
-            if(isinstance(angle, (collections.Sequence, np.ndarray))):
-                angle[angle >= interval[1]] -= delta
-                angle[angle < interval[0]] += delta
-            else:
-                while (angle >= interval[1]):
-                    angle -= delta
-                while (angle < interval[0]):
-                    angle += delta
-            return angle
-        """
     def end(self):
         pass
 

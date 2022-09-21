@@ -86,8 +86,7 @@ class simulation():
 
 	def begin(
 			self, det, station, use_channels, raytypesolution = False,
-			ch_Vpol = None, Hpol_channels = None,
-			Hpol_lower_band = 50, Hpol_upper_band = 700,
+			ch_Vpol = None,
 			passband = [96 * units.MHz, 1000 * units.MHz],
 			ice_model="greenland_simple", att_model = 'GL1',
 			propagation_module="analytic", propagation_config=None):
@@ -131,12 +130,12 @@ class simulation():
 		polarization_direction /= np.linalg.norm(polarization_direction)
 		cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["launch vector"]))
 		return cs.transform_from_ground_to_onsky(polarization_direction)
-	
+
 	def _theta_to_thetaprime(self, theta, xmax, R):
 		b = R*np.sin(theta)
 		a = R*np.cos(theta) - xmax
 		return np.arctan2(b, a)
-	
+
 	def _xmax(self, energy):
 		return 0.25 * np.log(energy) - 2.78
 
@@ -246,7 +245,7 @@ class simulation():
 				timing[channel_id][iS] = {}
 				viewing_angle = hp.get_angle(self._shower_axis,raytracing[channel_id][iS]["launch vector"])
 				if self._template:
-					
+
 
 
 					template_viewingangle = self._templates_viewingangles[np.abs(np.array(self._templates_viewingangles) - np.rad2deg(viewing_angle)).argmin()] ### viewing angle template which is closest to wanted viewing angle
@@ -258,14 +257,14 @@ class simulation():
 					spectrum *= self._templates_R
 					spectrum /= raytracing[channel_id][iS]["trajectory length"]
 
-					spectrum *= energy#template_energy 
+					spectrum *= energy#template_energy
 					spectrum /= template_energy
-					
+
 					spectrum= fft.time2freq(spectrum, 1/self._dt)
 
 				else:
-					
-				
+
+
 					xmax = self._xmax(energy)
 					theta_prime = self._theta_to_thetaprime (viewing_angle, xmax, raytracing[channel_id][iS]["trajectory length"])
 					spectrum = signalgen.get_frequency_spectrum(
@@ -321,7 +320,7 @@ class simulation():
 				#ax.plot(np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), -int(np.argmax(abs(fft.freq2time(analytic_trace_fft, self._sampling_rate)))-0.5*len(fft.freq2time(analytic_trace_fft, self._sampling_rate)))))
 				#fig.savefig("/lustre/fs22/group/radio/plaisier/software/simulations/full_reco/Penalty/test_2.pdf")
                                 ## shift such that maximum is in middle
-				
+
 				traces[channel_id][iS] = np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), int(self._n_samples /4))#-int(np.argmax(abs(fft.freq2time(analytic_trace_fft, self._sampling_rate)))-0.5*len(fft.freq2time(analytic_trace_fft, self._sampling_rate))))# np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), int(self._n_samples / 4))
 
 				timing[channel_id][iS] =raytracing[channel_id][iS]["travel time"]
