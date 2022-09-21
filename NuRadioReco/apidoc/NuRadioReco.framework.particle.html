@@ -555,9 +555,20 @@
 <span id="nuradioreco-framework-particle-module"></span><h1>NuRadioReco.framework.particle module<a class="headerlink" href="#module-NuRadioReco.framework.particle" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.framework.particle.Particle">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.particle.</span></span><span class="sig-name descname"><span class="pre">Particle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">particle_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/particle.html#Particle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.particle.Particle" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.framework.particle.</span></span><span class="sig-name descname"><span class="pre">Particle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">particle_index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/particle.html#Particle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.particle.Particle" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.particle.Particle.get_id" title="NuRadioReco.framework.particle.Particle.get_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_id</span></code></a>()</p></td>
+<td><p>Returns hierarchical index</p></td>
+</tr>
+</tbody>
+</table>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 63%" />
@@ -570,19 +581,16 @@
 <tr class="row-even"><td><p><strong>deserialize</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_id</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_parameter</strong></p></td>
+<tr class="row-even"><td><p><strong>has_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>has_parameter</strong></p></td>
+<tr class="row-odd"><td><p><strong>serialize</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>serialize</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>set_parameter</strong></p></td>
+<tr class="row-even"><td><p><strong>set_parameter</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -600,7 +608,8 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.particle.Particle.get_id">
 <span class="sig-name descname"><span class="pre">get_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/particle.html#Particle.get_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.particle.Particle.get_id" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Returns hierarchical index</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.particle.Particle.get_parameter">

@@ -557,8 +557,10 @@
 
 <div class="viewcode-block" id="Particle"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle">[docs]</a><span class="k">class</span> <span class="nc">Particle</span><span class="p">:</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">particle_id</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle_index</span><span class="p">):</span>
+        <span class="c1"># &quot;_id&quot; is not the PDG code but a hierarchical index </span>
+        <span class="c1"># (PDG code is stored in _parameters[&quot;flavor&quot;])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">particle_index</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="p">{}</span>
     
     <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
@@ -568,6 +570,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Particle.get_id"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.get_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns hierarchical index &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span></div>
 
 <div class="viewcode-block" id="Particle.get_parameter"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.particle.html#NuRadioReco.framework.particle.Particle.get_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">get_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
