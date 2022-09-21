@@ -24,6 +24,8 @@ def deserialize(triggers_pkl):
             trigger = IntegratedPowerTrigger(None, None, None)
         elif trigger_type == 'envelope_phased':
             trigger  = EnvelopePhasedTrigger(None, None, None, None)
+        elif(trigger_type == 'rnog_surface_trigger'):
+            trigger = RNOGSurfaceTrigger(None, None, None, None)
         else:
             raise ValueError("unknown trigger type")
         trigger.deserialize(data_pkl)
@@ -341,3 +343,36 @@ class EnvelopeTrigger(Trigger):
         self._threshold = threshold
         self._number_of_coincidences = number_of_coincidences
         self._coinc_window = channel_coincidence_window
+
+class RNOGSurfaceTrigger(Trigger):
+    from NuRadioReco.utilities import units
+    def __init__(self, name, threshold, number_of_coincidences=1,
+                 channel_coincidence_window=60*units.ns, channels=[13, 16, 19], temperature=250*units.kelvin, Vbias=2*units.volt):
+        """
+        initialize trigger class
+
+        Parameters
+        ----------
+        name: string
+            unique name of the trigger
+        threshold: float
+            the threshold
+        number_of_coincidences: int
+            the number of channels that need to fulfill the trigger condition
+            default: 1
+        channel_coincidence_window: float or None (default)
+            the coincidence time between triggers of different channels
+        channels: array of ints or None
+            the channels that are involved in the trigger
+            default: None, i.e. all channels
+        temperature: float
+            temperature of the trigger board
+        Vbias: float
+            bias voltage on the trigger board
+        """
+        Trigger.__init__(self, name, channels, 'rnog_surface_trigger')
+        self._threshold = threshold
+        self._number_of_coincidences = number_of_coincidences
+        self._coinc_window = channel_coincidence_window
+        self._temperature = temperature
+        self._Vbias = Vbias

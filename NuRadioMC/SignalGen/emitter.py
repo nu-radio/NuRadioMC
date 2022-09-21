@@ -32,9 +32,9 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         * cw : a sinusoidal wave of given frequency
         * square : a rectangular pulse of given amplituede and width
         * tone_burst : a short sine wave pulse of given frequency and desired width
-        * idl & hvsp2 : these are the waveforms generated in KU lab and stored in hdf5 files
+        * idl1 & hvsp1 : these are the waveforms generated in KU lab and stored in hdf5 files
         * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
-
+        * ARA02-calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02
     full_output: bool (default False)
         if True, can return additional output
 
@@ -75,12 +75,14 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         sigma = half_width / (np.sqrt(2 * np.log(2)))
         trace = 1 / (sigma * np.sqrt(2 * np.pi)) * np.exp(-1 / 2 * ((time - 500) / sigma) ** 2)
         trace = amplitude * 1 / np.max(np.abs(trace)) * trace
-    elif(model == 'idl' or model == 'hvsp2'):  # the idl & hvsp2 waveforms gemerated in KU Lab stored in hdf5 file
+    elif(model == 'idl1' or model == 'hvsp1' or model == 'ARA02_calPulser'):  # the idl1 & hvsp1 waveforms gemerated in KU Lab stored in hdf5 file
         path = os.path.dirname(os.path.dirname(__file__))
-        if(model == 'idl'):
-            input_file = os.path.join(path, 'data/idl_data.hdf5')
+        if(model == 'idl1'):
+            input_file = os.path.join(path, 'data/idl1_data.hdf5')
+        elif(model == 'hvsp1'):
+            input_file = os.path.join(path, 'data/hvsp1_data.hdf5')
         else:
-            input_file = os.path.join(path, 'data/hvsp2_data.hdf5')
+            input_file = os.path.join(path, 'data/ARA02_Cal_data.hdf5')
         read_file = h5py.File(input_file, 'r')
         time_original = read_file.get('time')
         voltage_original = read_file.get('voltage')
@@ -103,7 +105,6 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         trace = amplitude * trace / np.max(np.abs(trace))  # trace now has dimension of amplitude given from event generation file
         peak_amplitude_index_new = np.where(np.abs(trace) == np.max(np.abs(trace)))[0][0]
         trace = np.roll(trace, int(N / 2) - peak_amplitude_index_new)  # this rolls the array(trace) to keep peak amplitude at center
-
     else:
         raise NotImplementedError("model {} unknown".format(model))
     if(full_output):
@@ -131,9 +132,9 @@ def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs)
         * cw : a sinusoidal wave of given frequency
         * square : a rectangular pulse of given amplituede and width
         * tone_burst : a short sine wave pulse of given frequency and desired width
-        * idl & hvsp2 : these are the waveforms generated in KU lab and stored in hdf5 files
+        * idl1 & hvsp1 : these are the waveforms generated in KU lab and stored in hdf5 files
         * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
-
+        * ARA02-calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02
     full_output: bool (default False)
         if True, can return additional output
 
