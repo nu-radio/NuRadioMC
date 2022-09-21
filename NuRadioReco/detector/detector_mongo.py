@@ -550,55 +550,110 @@ class Detector(object):
 
     # stations
 
-    def add_station(self,
-                    station_id,
-                    station_name,
-                    position,  # in GPS UTM coordinates
-                    commission_time,
-                    decommission_time=datetime.datetime(2080, 1, 1)):
-        if(self.db.station.count_documents({'id': station_id}) > 0):
-            logger.error(f"station with id {station_id} already exists. Doing nothing.")
-        else:
-            self.db.station.insert_one({'id': station_id,
-                                        'name': station_name,
-                                        'position': list(position),
-                                        'commission_time': commission_time,
-                                        'decommission_time': decommission_time
-                                        })
+    def decommission_a_station(self, collection, station_id, decomm_time):
+        """
+        function to decommission an active station in the db
 
-    def add_channel_to_station(self,
-                               station_id,
-                               channel_id,
-                               signal_chain,
-                               ant_name,
-                               ant_ori_theta,
-                               ant_ori_phi,
-                               ant_rot_theta,
-                               ant_rot_phi,
-                               ant_position,
-                               channel_type,
-                               commission_time,
-                               decommission_time=datetime.datetime(2080, 1, 1)):
-        unique_station_id = self.db.station.find_one({'id': station_id})['_id']
-        if(self.db.station.count_documents({'id': station_id, "channels.id": channel_id}) > 0):
-            logger.error(f"channel with id {channel_id} already exists. Doing nothing.")
+        Parameters
+        ---------
+        collection: string
+            name of the collection
+        station_id: int
+            the unique identifier of the station
+        decomm_time: datetime
+            time which should be used for updating the decommission time
+        """
+        # get the entry of the aktive station
+        if self.db[collection].count_documents({'id': station_id}) == 0:
+            logger.error(f'No active station {station_id} in the database')
+        else:
+            # filter to get all active stations with the correct id
+            time = self.__current_time
+            time_filter = [{"$match": {
+                'commission_time': {"$lte": time},
+                'decommission_time': {"$gte": time},
+                'id': station_id}}]
+            # get all stations which fit the filter (should only be one)
+            stations = list(self.db[collection].aggregate(time_filter))
+            if len(stations) > 1:
+                logger.error('More than one active station was found.')
+            else:
+                object_id = stations[0]['_id']
+
+                # change the commission/decomission time
+                self.db[collection].update_one({'_id': object_id}, {'$set': {'decommission_time': decomm_time}})
+
+    def add_station(self, collection, station_id, station_name, position, station_comment, commission_time, decommission_time=datetime.datetime(2080, 1, 1)):
+        # check if an active station exist; if true, the active station will be decommissioned
+        # filter to get all active stations with the correct id
+        time = self.__current_time
+        time_filter = [{"$match": {
+            'commission_time': {"$lte": time},
+            'decommission_time': {"$gte": time},
+            'id': station_id}}]
+        # get all stations which fit the filter (should only be one)
+        stations = list(self.db[collection].aggregate(time_filter))
+
+        if len(stations) > 0:
+            self.decommission_a_station(collection, station_id, commission_time)
+
+        # insert the new station
+        self.db[collection].insert_one({'id': station_id,
+                                    'name': station_name,
+                                    'position': list(position),
+                                    'commission_time': commission_time,
+                                    'decommission_time': decommission_time,
+                                    'station_comment': station_comment
+                                    })
+
+    def add_channel_to_station(self, collection, station_id, channel_id):
+        # , signal_chain, ant_name, ant_ori_theta, ant_ori_phi, ant_rot_theta, ant_rot_phi, ant_position, channel_type, channel_comment, commission_time, decommission_time=datetime.datetime(2080, 1, 1)
+        # get the current active station
+        # filter to get all active stations with the correct id
+        time = self.__current_time
+        time_filter = [{"$match": {
+            'commission_time': {"$lte": time},
+            'decommission_time': {"$gte": time},
+            'id': station_id}}]
+        # get all stations which fit the filter (should only be one)
+        stations = list(self.db[collection].aggregate(time_filter))
+
+        if len(stations) != 1:
+            logger.error('More than one or no active stations in the database')
             return 1
 
-        self.db.station.update_one({'_id': unique_station_id},
-                               {"$push": {'channels': {
-                                   'id': channel_id,
-                                   'ant_name': ant_name,
-                                   'ant_position': list(ant_position),
-                                   'ant_ori_theta': ant_ori_theta,
-                                   'ant_ori_phi': ant_ori_phi,
-                                   'ant_rot_theta': ant_rot_theta,
-                                   'ant_rot_phi': ant_rot_phi,
-                                   'type': channel_type,
-                                   'commission_time': commission_time,
-                                   'decommission_time': decommission_time,
-                                   'signal_ch': signal_chain
-                                   }}
-                               })
+        unique_station_id = stations[0]['_id']
+
+        # check if for this channel an entry already exists
+        component_filter = [{'$match': {'_id': unique_station_id}},
+                            {'$unwind': '$channels'},
+                            {'$match': {'channels.id': channel_id}}]
+
+        entries = list(self.db[collection].aggregate(component_filter))
+
+        print(entries)
+
+        # if the channel already exist -> decommission the channel
+
+        # self.db.station.update_one({'_id': unique_station_id},
+        #                        {"$push": {'channels': {
+        #                            'id': channel_id,
+        #                            'ant_name': ant_name,
+        #                            'ant_position': list(ant_position),
+        #                            'ant_ori_theta': ant_ori_theta,
+        #                            'ant_ori_phi': ant_ori_phi,
+        #                            'ant_rot_theta': ant_rot_theta,
+        #                            'ant_rot_phi': ant_rot_phi,
+        #                            'type': channel_type,
+        #                            'commission_time': commission_time,
+        #                            'decommission_time': decommission_time,
+        #                            'signal_ch': signal_chain,
+        #                            'channel_commment': channel_comment
+        #                            }}
+        #                        })
+
+    def decommission_a_channel(self):
+        pass
 
     def get_station_information(self, collection, station_id):
         """ get information from one station """
@@ -607,28 +662,38 @@ class Detector(object):
         if self.db[collection].count_documents({'id': station_id}) == 0:
             return {}
 
-        # grouping dictionary is needed to undo the unwind
-        grouping_dict = {"_id": "$_id", "channels": {"$push": "$channels"}}
-        # add other keys that belong to a station
-        for key in list(self.db[collection].find_one().keys()):
-            if key in grouping_dict:
-                continue
-            else:
-                grouping_dict[key] = {"$first": "${}".format(key)}
+        # # grouping dictionary is needed to undo the unwind
+        # grouping_dict = {"_id": "$_id", "channels": {"$push": "$channels"}}
+        # # add other keys that belong to a station
+        # for key in list(self.db[collection].find_one().keys()):
+        #     if key in grouping_dict:
+        #         continue
+        #     else:
+        #         grouping_dict[key] = {"$first": "${}".format(key)}
+        # print(grouping_dict)
+        # filter to get all information from one station with station_id and with akitve commission time
+        # time = self.__current_time
+        # time_filter = [{"$match": {
+        #     'commission_time': {"$lte": time},
+        #     'decommission_time': {"$gte": time},
+        #     'id': station_id}},
+        #     {"$unwind": '$channels'},
+        #     {"$group": grouping_dict}]
 
         # filter to get all information from one station with station_id and with akitve commission time
         time = self.__current_time
         time_filter = [{"$match": {
             'commission_time': {"$lte": time},
             'decommission_time': {"$gte": time},
-            'id': station_id}},
-            {"$unwind": '$channels'},
-            {"$group": grouping_dict}]
+            'id': station_id}}]
         # get all stations which fit the filter (should only be one)
         stations_for_buffer = list(self.db[collection].aggregate(time_filter))
 
         # transform the output of db.aggregate to a dict
         station_info = dictionarize_nested_lists(stations_for_buffer, parent_key="id", nested_field="channels", nested_key="id")
+
+        if 'channels' not in station_info[station_id].keys():
+            station_info[station_id]['channels'] = {}
 
         return station_info
 
