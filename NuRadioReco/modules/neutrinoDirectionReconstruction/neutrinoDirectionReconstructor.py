@@ -92,8 +92,7 @@ class neutrinoDirectionReconstructor:
             full_station = True, brute_force = True,
             restricted_input = False, starting_values = False,
             debugplots_path = None, PA_cluster_channels = [0,1,2,3, 7,8],
-            Hpol_channels = [7,8], single_pulse_fit = False,
-            Hpol_lower_band = 50,  Hpol_upper_band = 700):
+            Hpol_channels = [7,8], single_pulse_fit = False,):
 
         """
         Module to reconstruct the direction of the event.
@@ -193,8 +192,7 @@ class neutrinoDirectionReconstructor:
             rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1
             simulation.begin(
                 det, station, use_channels, raytypesolution = rt,
-                ch_Vpol = ch_Vpol, Hpol_channels = Hpol_channels,
-                Hpol_lower_band = Hpol_lower_band, Hpol_upper_band = Hpol_upper_band,
+                ch_Vpol = ch_Vpol,
                 ice_model=self._ice_model, att_model=self._att_model,
                 passband=self._passband, propagation_config=self._prop_config)
             tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(
@@ -248,8 +246,7 @@ class neutrinoDirectionReconstructor:
 
         simulation.begin(
             det, station, use_channels, raytypesolution = rt,
-            ch_Vpol = ch_Vpol, Hpol_channels = Hpol_channels,
-            Hpol_lower_band = Hpol_lower_band, Hpol_upper_band = Hpol_upper_band,
+            ch_Vpol = ch_Vpol,
             ice_model=self._ice_model, att_model=self._att_model,
             passband=self._passband, propagation_config=self._prop_config
             )
