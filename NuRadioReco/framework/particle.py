@@ -9,8 +9,10 @@ logger = logging.getLogger('Particle')
 
 class Particle:
 
-    def __init__(self, particle_id=0):
-        self._id = particle_id
+    def __init__(self, particle_index):
+        # "_id" is not the PDG code but a hierarchical index 
+        # (PDG code is stored in _parameters["flavor"])
+        self._id = particle_index
         self._parameters = {}
     
     def __setitem__(self, key, value):
@@ -20,6 +22,7 @@ class Particle:
         return self.get_parameter(key)
 
     def get_id(self):
+        """ Returns hierarchical index """
         return self._id
 
     def get_parameter(self, key):
