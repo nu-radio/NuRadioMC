@@ -8,6 +8,7 @@ import numpy as np
 from NuRadioReco.detector.detector_mongo import Detector
 from NuRadioReco.detector.webinterface import config
 from datetime import datetime
+from datetime import time
 
 # det = Detector(config.DATABASE_TARGET)
 det = Detector(database_connection='test')
@@ -43,7 +44,7 @@ def build_collection_input(cont):
         pholder = 'Insert new collection name'
     new_collection_name = col2.text_input('', placeholder=pholder, disabled=disable_txt_input, help='Collection name must contain "station"!')
 
-    # create layout depending if a new collection is created or an existing is used
+    # create layout depending on if a new collection is created or an existing is used
     empty_button = False
     copy_button = False
     existing_button = False
@@ -52,7 +53,7 @@ def build_collection_input(cont):
         # create an empty one or copy an existing
         selected_collection = new_collection_name
         disable_buttons = True
-        if new_collection_name != '':
+        if new_collection_name != '' and 'station' in new_collection_name:
             disable_buttons = False
 
         col1_new, col2_new = cont.columns([1, 1])
@@ -118,8 +119,16 @@ def input_station_information(cont, warning_top, coll_name):
     comm_date = col11.date_input('commission time', value=value_comm, min_value=datetime(2018, 1, 1), max_value=datetime(2080, 1, 1))
     decomm_date = col22.date_input('decommission time', value=value_decomm, min_value=datetime(2018, 1, 1), max_value=datetime(2100, 1, 1))
 
+    # the commission and decommission date are only give as dates, but the input should be date + time
+    comm_date = datetime.combine(comm_date, time(0, 0, 0))
+    decomm_date = datetime.combine(decomm_date, time(0, 0, 0))
+
     # plain text input -> a general comment about the station can be given to be saved in the database (e.g.: Wind turbine)
-    comment = cont.text_area('General comments about the station:')
+    if station_info != {} and 'station_comment' in station_info[selected_station_id].keys():
+        initial_comment = station_info[selected_station_id]['station_comment']
+    else:
+        initial_comment = ''
+    comment = cont.text_area('General comments about the station:', value=initial_comment)
 
     return selected_station_name, selected_station_id, position, comm_date, decomm_date, comment
 
@@ -223,11 +232,12 @@ def build_individual_container(cont, channel, db_signal_chain):
 
         return ['iglu_board', iglu_name, iglu_weight, 'downhole_cable', cable_name, cable_weight, 'drab_board', drab_name, drab_weigth]
 
+
 def build_complete_container(cont, channel, db_signal_chain):
     cont_warning = cont.container()
     if channel in [12, 13, 14, 15, 16, 17, 18, 19, 20]:
         surface_chain = cont.selectbox('surface chain: Not existing yet', [])
-        return []
+        return ['surface_chain', 'not existing yet']
     else:
         # get all possible downhole chain names from the database
         db_down_chain_name = det.get_object_names('downhole_chain')
@@ -292,7 +302,7 @@ def build_both_container(cont, channel, db_signal_chain):
         surface_cable_weight = col2_cable.number_input('weight:', value=db_cha_surf_cable_weight, key='CABLE')
         surface_chain = cont.selectbox('surface chain: Not existing yet', [])
 
-        return ['surface_board', surface_board_name, surface_board_weight, 'surface_cable', surface_cable_name, surface_cable_weight]
+        return ['surface_board', surface_board_name, surface_board_weight, 'surface_cable', surface_cable_name, surface_cable_weight, 'surface_chain', 'not existing yet']
     else:
         # get all possible iglu board names from the database:
         db_iglu_board_names = det.get_object_names('iglu_board')
@@ -410,7 +420,8 @@ def input_channel_information(cont, station_id, coll_name):
         channel_info = station_info[station_id]['channels'][selected_channel]
 
     # tranform the channel number from a string into an int
-    selected_channel = int(selected_channel)
+    if selected_channel != '':
+        selected_channel = int(selected_channel)
 
     # if the channel exist make the existing antenna name the default argument, else display the names as listed here
     antenna_names = ['Phased Array Vpol', 'Power String Hpol', "Power String Vpol", "Helper String B Vpol", "Helper String B Hpol", 'rno_surface, Power String', 'rno_surface, Helper B', 'rno_surface, Helper C',
@@ -474,6 +485,13 @@ def input_channel_information(cont, station_id, coll_name):
         decomm_starting_date = datetime(2080, 1, 1)
     comm_date_ant = coltime1.date_input('commission time', value=comm_starting_date, min_value=datetime(2018, 1, 1), max_value=datetime(2080, 1, 1), key='comm_time_antenna')
     decomm_date_ant = coltime2.date_input('decommission time', value=decomm_starting_date, min_value=datetime(2018, 1, 1), max_value=datetime(2100, 1, 1), key='decomm_time_antenna')
+    # the commission and decommission date are only give as dates, but the input should be date + time
+    comm_date_ant = datetime.combine(comm_date_ant, time(0, 0, 0))
+    decomm_date_ant = datetime.combine(decomm_date_ant, time(0, 0, 0))
+
+    # input if a channel is broken
+    cont.markdown('Is the channel working normally?')
+    function_channel = cont.checkbox('Channel is working', value=True)
 
     # input the signal chain; if the channel already exists the entries from the db will be used as the default
     cont.markdown('Signal chain:')
@@ -504,56 +522,97 @@ def input_channel_information(cont, station_id, coll_name):
         signal_chain_cont.empty()
         signal_chain = build_both_container(signal_chain_cont, selected_channel, db_signal_chain)
 
+    signal_chain.insert(0, type_signal_chain)
+
     # plain text input -> a comment about the channel can be given to be saved in the database
     cont.markdown('Comments:')
+    if station_info != {} and 'channel_comment' in station_info[station_id].keys():
+        initial_comment = station_info[station_id]['channel_comment']
+    else:
+        initial_comment = ''
     comment = cont.text_area('Comment about the channel performance:')
 
-    return selected_channel, selected_antenna_name, position, ori_rot, selected_antenna_type, comm_date_ant, decomm_date_ant, signal_chain, comment
+    return selected_channel, selected_antenna_name, position, ori_rot, selected_antenna_type, comm_date_ant, decomm_date_ant, signal_chain, comment, function_channel
 
 
-def test(station_id):
-    det.update(datetime.now())
-    station_info = det.get_station_information(station_id)
-    print(station_info)
-    # print(station_info[station_id]['name'])
-    # print(station_info[station_id]['channels'].keys())
+def validate_station_inputs(container_bottom, comm_date_station, decomm_date_station):
+    dates_station_correct = False
 
-
-def validate_global(page_name, container_bottom, antenna_name, new_antenna_name, channel_working, Sdata_validated, uploaded_data):
     disable_insert_button = True
-    name_validation = False
-    # if nothing is chosen, a warning is given and the INSERT button stays disabled
-    if antenna_name == '':
-        container_bottom.error('Antenna name is not set')
-    elif antenna_name == f'new {page_name}' and (new_antenna_name is None or new_antenna_name == ''):
-        container_bottom.error(f'Antenna name dropdown is set to \'new {page_name}\', but no new antenna name was entered.')
-    else:
-        name_validation = True
 
-    if name_validation:
-        if not Sdata_validated and uploaded_data is not None:
-            container_bottom.error('There is a problem with the input data')
-            disable_insert_button = True
-        elif Sdata_validated:
-            disable_insert_button = False
-            container_bottom.success('Input fields are validated')
-
-        if not channel_working:
-            container_bottom.warning('The channel is set to not working')
-            disable_insert_button = False
-            container_bottom.success('Input fields are validated')
+    # validate that decomm_date > comm_date
+    if decomm_date_station > comm_date_station:
+        dates_station_correct = True
     else:
-        disable_insert_button = True
+        container_bottom.error('The decommission date of the station must be later than the commissionn date.')
+
+    if dates_station_correct:
+        disable_insert_button = False
 
     return disable_insert_button
 
 
-def insert_to_db(page_name, s_name, antenna_name, data, working, primary, protocol, input_units):
-    if not working:
-        if primary and antenna_name in det.get_object_names(page_name):
-            det.update_primary(page_name, antenna_name)
-        det.set_not_working(page_name, antenna_name, primary)
+def validate_channel_inputs(collection, container_bottom, station_name, comm_date_channel, deomm_date_channel, channel, signal_chain):
+    dates_channel_correct = False
+    channel_correct = False
+    signal_chain_correct = False
+    station_in_db = False
+
+    disable_insert_button = True
+    # validate that decomm_date > comm_date
+    if deomm_date_channel > comm_date_channel:
+        dates_channel_correct = True
     else:
-        if primary and antenna_name in det.get_object_names(page_name):
-            det.update_primary(page_name, antenna_name)
-        det.antenna_add_Sparameter(page_name, antenna_name, [s_name], data, primary, protocol, input_units)
+        container_bottom.error('The decommission date of the channel must be later than the commission date.')
+
+    # validate that a valid channel is given
+    possible_channel_ids = np.arange(0,24,1)
+    if channel in possible_channel_ids:
+        channel_correct = True
+    else:
+        container_bottom.error('The channel number must be between 0 and 23.')
+
+    # validate that signal chain input is given
+    if 'Choose a name' not in signal_chain and 'not existing yet' not in signal_chain:
+        signal_chain_correct = True
+    else:
+        container_bottom.error('Not all options for the signal chain are filled.')
+
+    # check if there is an entry for the station in the db
+    if station_name in det.get_object_names(collection):
+        station_in_db = True
+    else:
+        container_bottom.error('There is no corresponding entry for the station in the database.')
+
+    if dates_channel_correct and channel_correct and signal_chain_correct and station_in_db:
+        disable_insert_button = False
+
+    return disable_insert_button
+
+
+def insert_station_to_db(station_id, collection_name, station_name, station_position, station_comment, station_comm_time, station_decomm_time):
+    det.add_station(collection_name, station_id, station_name, station_position, station_comment, station_comm_time, station_decomm_time)
+
+
+def insert_channel_to_db(station_id, collection_name, station_name, station_position, station_comment, station_comm_time, station_decomm_time, channel_id):
+    station_info = load_station_infos(station_id, collection_name)
+    if station_info != {}:
+        db_channels = list(station_info[station_id]['channels'].keys())
+    else:
+        db_channels = []
+    # det.add_station(collection_name, station_id, station_name, station_position, station_comment, station_comm_time, station_decomm_time)
+    det.add_channel_to_station(collection_name, station_id, channel_id)
+
+    # if channel already in database
+    # get a warning that you override the channel and if you really want to do this (button)
+    # 'older' channel will be decommissioned automatically (also give this as an information
+    # inform what will be changed
+    # get a success information
+
+    # else
+    # get a success information
+
+    #
+    # if primary and antenna_name in det.get_object_names(page_name):
+    #     det.update_primary(page_name, antenna_name)
+    # det.antenna_add_Sparameter(page_name, antenna_name, [s_name], data, primary, protocol, input_units)
