@@ -95,16 +95,13 @@ class triggerSimulator:
             channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
 
         for channel in station.iter_channels():
-            trace = channel.base_trace.get_filtered_trace(passband, 'butter', order)
+            trace = channel.get_filtered_trace(passband, 'butter', order)
 
             # apply envelope trigger to each channel
             channel_id = channel.get_id()
             if triggered_channels is not None and channel_id not in triggered_channels:
                 logger.debug("skipping channel {}".format(channel_id))
                 continue
-
-            # we bandpass filter the trace before running the trigger
-            trace = channel.get_filtered_trace(passband, filter_type='butter', order=order)
             if channel.get_trace_start_time() != channel_trace_start_time:
                 logger.warning('Channel has a trace_start_time that differs from '
                                '        the other channels. The trigger simulator may not work properly')
