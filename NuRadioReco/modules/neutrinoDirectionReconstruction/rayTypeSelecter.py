@@ -83,32 +83,30 @@ class rayTypeSelecter:
                 if (len(template) < len(total_trace)):
                     template = np.pad(template, (0, len(total_trace) - len(template)))
             corr_total = np.zeros(len(total_trace) + len(template) - 1)
-            for channel in station.iter_channels():
-                if channel.get_id() in use_channels:##[0,1,2,3]:
-                   # channel = station.get_channel(channelid) # if channel in phased array
-                    channel_id = channel.get_id()
-                    x2 = det.get_relative_position(station_id, channel_id) + det.get_absolute_position(station_id)
-                    r = prop( ice, att_model)
-                    r.set_start_and_end_point(vertex, x2)
-                    r.find_solutions()
-                    for iS in range(r.get_number_of_solutions()):
-                        if r.get_solution_type(iS) == raytype:
-                            type_exist= 1
-                            T = r.get_travel_time(iS)
-                            if channel_id == use_channels[0]:
-                                T_ref[iS] = T
-                                trace_start_time_ref = channel.get_trace_start_time()
+            for channel_id in use_channels:
+                channel = station.get_channel(channel_id)
+                x2 = det.get_relative_position(station_id, channel_id) + det.get_absolute_position(station_id)
+                r = prop( ice, att_model)
+                r.set_start_and_end_point(vertex, x2)
+                r.find_solutions()
+                for iS in range(r.get_number_of_solutions()):
+                    if r.get_solution_type(iS) == raytype:
+                        type_exist= 1
+                        T = r.get_travel_time(iS)
+                        if channel_id == use_channels[0]:
+                            T_ref[iS] = T
+                            trace_start_time_ref = channel.get_trace_start_time()
 
-                            dt = T - T_ref[iS] - (channel.get_trace_start_time() - trace_start_time_ref)
-                            dn_samples = -1*dt * sampling_rate
-                            dn_samples = math.ceil(dn_samples)
-                            cp_trace = np.copy(channel.get_trace())
-                            cp_trace_roll = np.roll(cp_trace, dn_samples)
-                            corr = scipy.signal.correlate(cp_trace_roll*(1/(max(cp_trace_roll))), template*(1/(max(template))))
-                            corr_total += abs(corr)
+                        dt = T - T_ref[iS] - (channel.get_trace_start_time() - trace_start_time_ref)
+                        dn_samples = -1*dt * sampling_rate
+                        dn_samples = math.ceil(dn_samples)
+                        cp_trace = np.copy(channel.get_trace())
+                        cp_trace_roll = np.roll(cp_trace, dn_samples)
+                        corr = scipy.signal.correlate(cp_trace_roll*(1/(max(cp_trace_roll))), template*(1/(max(template))))
+                        corr_total += abs(corr)
 
-                            time_shifts[channel_id] = dn_samples
-                            traces[channel_id] = cp_trace
+                        time_shifts[channel_id] = dn_samples
+                        traces[channel_id] = cp_trace
 
             if not type_exist:
                 continue # no solutions for this ray type
