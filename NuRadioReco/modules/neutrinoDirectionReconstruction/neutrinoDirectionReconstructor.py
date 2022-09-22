@@ -541,7 +541,8 @@ class neutrinoDirectionReconstructor:
                 )
 
                 fig = plt.figure(figsize=(6,6))
-                vmax = np.percentile(np.where(chi2_grid < np.inf, chi2_grid, 0)[:,:,min_energy_index], 20)
+                chi2_grid_min_energy = chi2_grid[:,:,min_energy_index]
+                vmax = np.percentile(chi2_grid_min_energy[np.where(chi2_grid_min_energy < np.inf)], 20)
                 plt.imshow(
                     (chi2_grid[:,:,min_energy_index].T),
                     extent=extent,
@@ -573,7 +574,7 @@ class neutrinoDirectionReconstructor:
                 plt.xlabel(xlabel)
                 plt.ylabel(ylabel)
                 plt.legend()
-                plt.title("E=1e{:.1f} eV".format(vw_grid[2,0,0,min_energy_index]))
+                plt.title("E=1e{:.2f} eV".format(vw_grid[2,0,0,min_energy_index]))
                 cbar = plt.colorbar(label=r"$\chi^2$")
                 vmax = cbar.vmax
                 vmin = cbar.vmin
