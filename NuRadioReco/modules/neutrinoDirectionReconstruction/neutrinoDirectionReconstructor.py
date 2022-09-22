@@ -73,7 +73,6 @@ class neutrinoDirectionReconstructor:
         if not sim: rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
         simulation.begin(
             det, station, use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol,
-            Hpol_channels = Hpol_channels,
             ice_model=self._ice_model, att_model=self._att_model,
             passband=self._passband, propagation_config=self._prop_config
         )
