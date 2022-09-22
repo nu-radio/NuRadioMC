@@ -801,8 +801,8 @@ class neutrinoDirectionReconstructor:
                 # pulse position of the reference Vpol
                 if channel_id in self._PA_cluster_channels and not channel_id == ch_Vpol:
                     if i_trace == trace_ref:
-                        corr_window_start = np.max([0, len(corr) + dict_dt[ch_Vpol][trace_ref] - int(5*self._sampling_rate)])
-                        corr_window_end = np.min([len(corr), len(corr) + dict_dt[ch_Vpol][trace_ref] + int(5*self._sampling_rate)])
+                        corr_window_start = np.max([0, len(corr) + dict_dt[ch_Vpol][trace_ref] - int(2*self._sampling_rate)])
+                        corr_window_end = np.min([len(corr), len(corr) + dict_dt[ch_Vpol][trace_ref] + int(2*self._sampling_rate)])
 
                 max_cor = np.arange(corr_window_start,corr_window_end, 1)[np.argmax(corr[corr_window_start:corr_window_end])]
                 dt = max_cor - len(corr)
