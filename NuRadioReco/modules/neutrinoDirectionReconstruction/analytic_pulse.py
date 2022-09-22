@@ -321,7 +321,7 @@ class simulation():
 				#fig.savefig("/lustre/fs22/group/radio/plaisier/software/simulations/full_reco/Penalty/test_2.pdf")
                                 ## shift such that maximum is in middle
 
-				traces[channel_id][iS] = np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), int(self._n_samples /4))#-int(np.argmax(abs(fft.freq2time(analytic_trace_fft, self._sampling_rate)))-0.5*len(fft.freq2time(analytic_trace_fft, self._sampling_rate))))# np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), int(self._n_samples / 4))
+				traces[channel_id][iS] = np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), -int(self._n_samples /4))#-int(np.argmax(abs(fft.freq2time(analytic_trace_fft, self._sampling_rate)))-0.5*len(fft.freq2time(analytic_trace_fft, self._sampling_rate))))# np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), int(self._n_samples / 4))
 
 				timing[channel_id][iS] =raytracing[channel_id][iS]["travel time"]
 				raytype[channel_id][iS] = raytracing[channel_id][iS]["raytype"]
