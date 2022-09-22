@@ -541,8 +541,7 @@ class neutrinoDirectionReconstructor:
                 )
 
                 fig = plt.figure(figsize=(6,6))
-                max_chi2_plot = np.max(np.where(chi2_grid < np.inf, chi2_grid, 0)[:,:,min_energy_index])
-                vmax = np.min([4*np.min(chi2_grid), max_chi2_plot])
+                vmax = np.percentile(np.where(chi2_grid < np.inf, chi2_grid, 0)[:,:,min_energy_index], 20)
                 plt.imshow(
                     (chi2_grid[:,:,min_energy_index].T),
                     extent=extent,
@@ -973,10 +972,13 @@ class neutrinoDirectionReconstructor:
                             chi2 += chi2s[trace_ref]
                             all_chi2[channel_id][trace_ref] = chi2s[trace_ref]
                             dof += 1
+                            extra_channel += 1
                         if (channel_id == ch_Hpol):
                             if 'Hpol_ref' in locals(): #Hpol_ref is only defined when this is supposed to be included in the fit
                                 chi2 += chi2s[trace_ref]
                                 all_chi2[channel_id][trace_ref] = chi2s[trace_ref]
+                                extra_channel += 1
+                                dof += 1
 
                 else:
                     extra_channel += echannel[0]
