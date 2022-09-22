@@ -312,15 +312,13 @@ class neutrinoDirectionReconstructor:
 
         viewing_start = self._cherenkov_angle - np.deg2rad(10) # 15 degs
         viewing_end = self._cherenkov_angle + np.deg2rad(10)
-        d_viewing_grid = .5 * units.deg # originally .5 deg
+        # d_viewing_grid = .5 * units.deg # originally .5 deg
         energy_start = 1e17 * units.eV
         energy_end = 1e19 * units.eV + 1e14 * units.eV
-        d_log_energy = .2
-        # energy_start = simulated_energy / 3
-        # energy_end = simulated_energy * 3
+        # d_log_energy = .2
         theta_start = np.deg2rad(-180) #-180
         theta_end =  np.deg2rad(180) #180
-        d_theta_grid = 5 * units.deg # originally 1 degree
+        # d_theta_grid = 5 * units.deg # originally 1 degree
 
         d_viewing_grid, d_theta_grid, d_log_energy = self.__minimization_grid_spacings
 
@@ -875,17 +873,9 @@ class neutrinoDirectionReconstructor:
                             data_timing_timing = data_timing_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)] ## 800 samples, like the simulation
                             data_trace_timing = data_trace_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)]
 
-                            # dt = dict_dt[channel_id][i_trace]
-                            # if channel_id in self._PA_cluster_channels:
-                            #     if i_trace == trace_ref:
-                            #         dt_ref_vpol = dict_dt[ch_Vpol][trace_ref]
-                            #         if np.abs(dt - dt_ref_vpol) > 5 * self._sampling_rate:
-                            #             dt = dt_ref_vpol
+                            dt = dict_dt[channel_id][i_trace]
 
                             rec_trace = np.roll(rec_trace, math.ceil(-dt))[:len(data_trace_timing_1)]
-
-
-
 
                             #### select fitting time-window ####
                             if channel_id in self._Hpol_channels:
