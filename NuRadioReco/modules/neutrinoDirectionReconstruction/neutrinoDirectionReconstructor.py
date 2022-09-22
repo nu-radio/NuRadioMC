@@ -146,7 +146,14 @@ class neutrinoDirectionReconstructor:
         self._Vrms = Vrms_Vpol
         self._Vrms_Hpol = Vrms_Hpol
         self._station = station
+        # We sort the channels such that the reference Vpol (ch_Vpol)
+        # is the first entry. This is used in the minimizer, which
+        # constrains some pulse positions based on the reference Vpol
+        use_channels_sorted = np.concatenate([[ch_Vpol], use_channels])
+        _, idx = np.unique(use_channels_sorted, return_index=True)
+        use_channels = use_channels_sorted[np.sort(idx)]
         self._use_channels = use_channels
+
         self._det = det
         self._PA_cluster_channels = PA_cluster_channels
         self._Hpol_channels = Hpol_channels
@@ -743,78 +750,81 @@ class neutrinoDirectionReconstructor:
             dict_dt[ch] = {}
 
         ### 1. Set timings of fit windows
-        for channel in self._station.iter_channels(): ### FIRST SET TIMINGS
-            channel_id = channel.get_id()
-            if (channel_id in self._use_channels):
+        for channel_id in self._use_channels: ### FIRST SET TIMINGS
+            channel = self._station.get_channel(channel_id)
 
-                ich += 1 ## number of channel
-                data_trace = np.copy(channel.get_trace())
-                rec_traces[channel_id] = {}
-                data_traces[channel_id] = {}
-                data_timing[channel_id] = {}
-                all_chi2[channel_id] = np.zeros(2)
-                ### if no solution exist, than analytic voltage is zero
-                rec_trace = np.zeros(len(data_trace))# if there is no raytracing solution, the trace is only zeros
+            ich += 1 ## number of channel
+            data_trace = np.copy(channel.get_trace())
+            rec_traces[channel_id] = {}
+            data_traces[channel_id] = {}
+            data_timing[channel_id] = {}
+            all_chi2[channel_id] = np.zeros(2)
+            ### if no solution exist, than analytic voltage is zero
+            rec_trace = np.zeros(len(data_trace))# if there is no raytracing solution, the trace is only zeros
 
-                delta_k = [] ## if no solution type exist then channel is not included
-                num = 0
-                chi2s = np.zeros(2)
-                for i_trace, key in enumerate(traces[channel_id]):#get dt for phased array pulse
-                    rec_trace = traces[channel_id][key]
+            delta_k = [] ## if no solution type exist then channel is not included
+            for i_trace, key in enumerate(traces[channel_id]): # get dt for phased array pulse
+                rec_trace = traces[channel_id][key]
 
-                    delta_T =  timing[channel_id][key] - T_ref
-                    if (channel_id == ch_Vpol) & (key == solution_number):
-                        trace_ref = i_trace
+                delta_T =  timing[channel_id][key] - T_ref
+                if (channel_id == ch_Vpol) & (key == solution_number):
+                    trace_ref = i_trace
 
-                    ## before correlating, set values around maximum voltage trace data to zero
-                    delta_toffset = delta_T * self._sampling_rate
-                    # take into account unequal trace start times
-                    delta_toffset -= (channel.get_trace_start_time() - trace_start_time_ref) * self._sampling_rate
+                ## before correlating, set values around maximum voltage trace data to zero
+                delta_toffset = delta_T * self._sampling_rate
+                # take into account unequal trace start times
+                delta_toffset -= (channel.get_trace_start_time() - trace_start_time_ref) * self._sampling_rate
 
-                    ### figuring out the time offset for specfic trace
-                    dk = int(k_ref + delta_toffset )# where do we expect the pulse to be wrt channel 6 main pulse and rec vertex position
+                ### figuring out the time offset for specfic trace
+                dk = int(k_ref + delta_toffset )# where do we expect the pulse to be wrt channel 6 main pulse and rec vertex position
 
-                    data_trace_timing = np.copy(data_trace) ## cut data around timing
-                    ## DETERMIINE PULSE REGION DUE TO REFERENCE TIMING
+                data_trace_timing = np.copy(data_trace) ## cut data around timing
+                ## DETERMIINE PULSE REGION DUE TO REFERENCE TIMING
 
-                    data_timing_timing = channel.get_times()#np.arange(0, len(channel.get_trace()), 1)#
+                data_timing_timing = channel.get_times()#np.arange(0, len(channel.get_trace()), 1)#
 
-                    data_window = [30 * self._sampling_rate, 50 * self._sampling_rate] # window around pulse in samples
-                    include_samples = np.arange(int(dk - data_window[0]), int(dk + data_window[1]))
-                    first_sample = np.max([include_samples[0], 0]) # make sure the first index is non-negative
-                    mask = (include_samples >= 0) & (include_samples < len(data_trace_timing))
-                    data_timing_timing_1, data_trace_timing_1 = np.zeros((2,len(include_samples)))
-                    if np.sum(mask):
-                        data_timing_timing_1[mask] = data_timing_timing[first_sample:include_samples[-1] + 1]
-                        data_trace_timing_1[mask] = data_trace_timing[first_sample:include_samples[-1] + 1]
-                    data_timing_timing = data_timing_timing_1
-                    corr = signal.correlate(rec_trace, data_trace_timing_1)
+                data_window = [30 * self._sampling_rate, 50 * self._sampling_rate] # window around pulse in samples
+                include_samples = np.arange(int(dk - data_window[0]), int(dk + data_window[1]))
+                first_sample = np.max([include_samples[0], 0]) # make sure the first index is non-negative
+                mask = (include_samples >= 0) & (include_samples < len(data_trace_timing))
+                data_timing_timing_1, data_trace_timing_1 = np.zeros((2,len(include_samples)))
+                if np.sum(mask):
+                    data_timing_timing_1[mask] = data_timing_timing[first_sample:include_samples[-1] + 1]
+                    data_trace_timing_1[mask] = data_trace_timing[first_sample:include_samples[-1] + 1]
+                data_timing_timing = data_timing_timing_1
+                corr = signal.correlate(rec_trace, data_trace_timing_1)
 
-                    corr_window_start = 0#int(len(corr)/2 - 30 * self._sampling_rate)
-                    corr_window_end = len(corr)#int(len(corr)/2 + 30 * self._sampling_rate)
+                corr_window_start = 0#int(len(corr)/2 - 30 * self._sampling_rate)
+                corr_window_end = len(corr)#int(len(corr)/2 + 30 * self._sampling_rate)
+                # for the PA cluster, we constrain the pulse position to be close to the
+                # pulse position of the reference Vpol
+                if channel_id in self._PA_cluster_channels and not channel_id == ch_Vpol:
+                    if i_trace == trace_ref:
+                        corr_window_start = np.max([0, len(corr) + dict_dt[ch_Vpol][trace_ref] - int(5*self._sampling_rate)])
+                        corr_window_end = np.min([len(corr), len(corr) + dict_dt[ch_Vpol][trace_ref] + int(5*self._sampling_rate)])
 
-                    max_cor = np.arange(corr_window_start,corr_window_end, 1)[np.argmax(corr[corr_window_start:corr_window_end])]
-                    dt = max_cor
-                    rec_trace_1 = np.roll(rec_trace, math.ceil(-dt))[:len(data_trace_timing_1)]
-                    chi2_dt1 = np.sum((rec_trace_1  - data_trace_timing_1)**2 )/ ((self._Vrms)**2)/len(rec_trace)
-                    rec_trace_2 = np.roll(rec_trace, math.ceil(-dt - 1))[:len(data_trace_timing_1)]
-                    chi2_dt2 = np.sum((rec_trace_2 - data_trace_timing_1)**2) / ((self._Vrms)**2)/len(rec_trace)
-                    if chi2_dt2 < chi2_dt1:
-                        dt = dt + 1
-                    else:
-                        dt = dt
+                max_cor = np.arange(corr_window_start,corr_window_end, 1)[np.argmax(corr[corr_window_start:corr_window_end])]
+                dt = max_cor - len(corr)
+                rec_trace_1 = np.roll(rec_trace, math.ceil(-dt))[:len(data_trace_timing_1)]
+                chi2_dt1 = np.sum((rec_trace_1  - data_trace_timing_1)**2 )/ ((self._Vrms)**2)/len(rec_trace)
+                rec_trace_2 = np.roll(rec_trace, math.ceil(-dt - 1))[:len(data_trace_timing_1)]
+                chi2_dt2 = np.sum((rec_trace_2 - data_trace_timing_1)**2) / ((self._Vrms)**2)/len(rec_trace)
+                if chi2_dt2 < chi2_dt1:
+                    dt = dt + 1
+                else:
+                    dt = dt
 
-                    dict_dt[channel_id][i_trace] = dt
+                dict_dt[channel_id][i_trace] = dt
 
-                    #TODO - REMOVE (used for debugging)
-                    # if self._ultradebug:
-                    #     fig, axs = plt.subplots(2,1,)
-                    #     fig.subplots_adjust(hspace=0)
-                    #     axs[0].plot(np.roll(rec_trace, math.ceil(-dt)), color='g')
-                    #     axs[0].plot(data_trace_timing_1, color='k')
-                    #     axs[1].plot(corr)
-                    #     axs[0].set_title(f'{channel_id} / {i_trace} / {dt:.1f} / {chi2_dt1:.2f}')
-                    #     plt.show()
+                #TODO - REMOVE (used for debugging)
+                # if self._ultradebug:
+                #     fig, axs = plt.subplots(2,1,)
+                #     fig.subplots_adjust(hspace=0)
+                #     axs[0].plot(np.roll(rec_trace, math.ceil(-dt)), color='g')
+                #     axs[0].plot(data_trace_timing_1, color='k')
+                #     axs[1].plot(corr)
+                #     axs[0].set_title(f'{channel_id} / {i_trace} / {dt:.1f} / {chi2_dt1:.2f}')
+                #     plt.show()
 
         # TODO - REMOVE!
         # logger.debug("time shifts (channel / trace / shift):")
@@ -862,14 +872,13 @@ class neutrinoDirectionReconstructor:
                             data_timing_timing = data_timing_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)] ## 800 samples, like the simulation
                             data_trace_timing = data_trace_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)]
 
-                            fixed_timing_PA_cluster = True
-                            if fixed_timing_PA_cluster:
-                                if channel_id in self._PA_cluster_channels:
-                                    if i_trace == trace_ref:
-                                        dict_dt[channel_id][trace_ref] = dict_dt[ch_Vpol][trace_ref]
+                            # dt = dict_dt[channel_id][i_trace]
+                            # if channel_id in self._PA_cluster_channels:
+                            #     if i_trace == trace_ref:
+                            #         dt_ref_vpol = dict_dt[ch_Vpol][trace_ref]
+                            #         if np.abs(dt - dt_ref_vpol) > 5 * self._sampling_rate:
+                            #             dt = dt_ref_vpol
 
-
-                            dt = dict_dt[channel_id][i_trace]
                             rec_trace = np.roll(rec_trace, math.ceil(-dt))[:len(data_trace_timing_1)]
 
 
