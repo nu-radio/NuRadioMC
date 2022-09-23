@@ -561,14 +561,14 @@ class neutrinoDirectionReconstructor:
 
                 plt.plot(
                     x_sim, y_sim,
-                    marker='o', label='{:.1f}, {:.1f} (simulated)'.format(
-                        x_sim, y_sim,
+                    marker='o', label='{:.1f}, {:.1f}, 1e{:.2f} (simulated)'.format(
+                        x_sim, y_sim, np.log10(simulated_energy)
                     ), color='red', ls='none'
                 )
                 plt.plot(
                     x_rec, y_rec,
-                    marker='x', label='{:.1f}, {:.1f} (reconstructed)'.format(
-                        x_rec, y_rec
+                    marker='x', label='{:.1f}, {:.1f}, 1e{:.2f} (reconstructed)'.format(
+                        x_rec, y_rec, np.log10(rec_energy)
                     ), color='magenta', ms=8, mfc='magenta', ls='none'
                 )
                 plt.xlabel(xlabel)
@@ -743,7 +743,6 @@ class neutrinoDirectionReconstructor:
         if not sim and not self._sim_vertex:  k_ref = self._station[stnp.pulse_position]
         ks = {}
 
-        ich = -1
         reduced_chi2_Vpol = 0
         reduced_chi2_Hpol = 0
         dict_dt = {}
@@ -754,7 +753,6 @@ class neutrinoDirectionReconstructor:
         for channel_id in self._use_channels: ### FIRST SET TIMINGS
             channel = self._station.get_channel(channel_id)
 
-            ich += 1 ## number of channel
             data_trace = np.copy(channel.get_trace())
             rec_traces[channel_id] = {}
             data_traces[channel_id] = {}
@@ -801,8 +799,8 @@ class neutrinoDirectionReconstructor:
                 # pulse position of the reference Vpol
                 if channel_id in self._PA_cluster_channels and not channel_id == ch_Vpol:
                     if i_trace == trace_ref:
-                        corr_window_start = np.max([0, len(corr) + dict_dt[ch_Vpol][trace_ref] - int(2*self._sampling_rate)])
-                        corr_window_end = np.min([len(corr), len(corr) + dict_dt[ch_Vpol][trace_ref] + int(2*self._sampling_rate)])
+                        corr_window_start = np.max([0, len(corr) + dict_dt[ch_Vpol][trace_ref] - 5])
+                        corr_window_end = np.min([len(corr), len(corr) + dict_dt[ch_Vpol][trace_ref] + 5])
 
                 max_cor = np.arange(corr_window_start,corr_window_end, 1)[np.argmax(corr[corr_window_start:corr_window_end])]
                 dt = max_cor - len(corr)
@@ -873,10 +871,6 @@ class neutrinoDirectionReconstructor:
                             data_timing_timing = data_timing_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)] ## 800 samples, like the simulation
                             data_trace_timing = data_trace_timing[int(dk - self._sampling_rate*30) : int(dk + self._sampling_rate*50)]
 
-                            dt = dict_dt[channel_id][i_trace]
-
-                            rec_trace = np.roll(rec_trace, math.ceil(-dt))[:len(data_trace_timing_1)]
-
                             #### select fitting time-window ####
                             if channel_id in self._Hpol_channels:
                                 indices = [i for i, x in enumerate(data_timing_timing) if (x > (dk_1 + self._window_Hpol[0])  and (x < (dk_1 + self._window_Hpol[1]) ))]
@@ -889,21 +883,13 @@ class neutrinoDirectionReconstructor:
                                 data_timing[channel_id][i_trace] = np.zeros(int(80 * self._sampling_rate))
                                 continue
 
-
-                            rec_trace = rec_trace[indices]
                             data_trace_timing = data_trace_timing[indices]
                             data_timing_timing = data_timing_timing[indices]
-
-
-                            ks[channel_id] = delta_k
-                            rec_traces[channel_id][i_trace] = rec_trace
-                            data_traces[channel_id][i_trace] = data_trace_timing
-                            data_timing[channel_id][i_trace] = data_timing_timing
 
                             ### set vrms and time_window for channel
                             # we check the pulse SNR in the data window
                             # for channels other than the PA cluster,
-                            # we only include channels with SNR > 3.5 (make this customizable?)
+                            # we only include channels with SNR > 3.5 (TODO make this customizable?)
                             if channel_id in self._Hpol_channels:
                                 Vrms = self._Vrms_Hpol
                             else:
@@ -912,6 +898,19 @@ class neutrinoDirectionReconstructor:
                                 SNR = abs(max(data_trace_timing) - min(data_trace_timing) ) / (2*Vrms)
                             else: # we are apparently outside the recorded trace
                                 SNR = 0
+
+                            dt = dict_dt[channel_id][i_trace]
+                            if channel_id in self._PA_cluster_channels and SNR < 3.5:
+                                if i_trace == trace_ref:
+                                    dt = dict_dt[ch_Vpol][i_trace]
+
+                            rec_trace = np.roll(rec_trace, math.ceil(-dt))[:len(data_trace_timing_1)]
+                            rec_trace = rec_trace[indices]
+
+                            ks[channel_id] = delta_k
+                            rec_traces[channel_id][i_trace] = rec_trace
+                            data_traces[channel_id][i_trace] = data_trace_timing
+                            data_timing[channel_id][i_trace] = data_timing_timing
 
                             if fixed_timing:
                                 if SNR > 3.5:
@@ -996,6 +995,7 @@ class neutrinoDirectionReconstructor:
             return [rec_traces, data_traces, data_timing, all_chi2, [reduced_chi2_Vpol, reduced_chi2_Hpol], over_reconstructed, extra_channel]
 
         return chi2
+
     def end(self):
         pass
 
