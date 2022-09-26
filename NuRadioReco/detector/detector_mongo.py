@@ -233,6 +233,9 @@ class Detector(object):
     def clone_colletion_to_colletion(self, old_colletion, new_colletion):
         self.db[old_colletion].aggregate([{ '$match': {} }, { '$out': new_colletion}])
 
+    def get_station_ids(self, collection):
+        return self.db[collection].distinct('id')
+
     # antenna (VPol / HPol)
 
     def antenna_add_Sparameter(self, antenna_type, antenna_name, S_parameter, S_data, primary_measurement, protocol, units_arr):
@@ -684,7 +687,7 @@ class Detector(object):
                                    'commission_time': commission_time,
                                    'decommission_time': decommission_time,
                                    'signal_ch': signal_chain,
-                                   'channel_commment': channel_comment
+                                   'channel_comment': channel_comment
                                    }}
                                })
 
