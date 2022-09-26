@@ -461,7 +461,6 @@ PUEO100 *= (4 / np.log(10))  # see discussion above about anita binning
 PUEO100 *= 2.44  # convert from single event sensitivty to 90% confidence level
 PUEO100 *= energyBinsPerDecade
 
-
 # TAROGE-M
 # 10 stations, 5 year exposure, nutau only
 # Log(Energy) GeV       Sensitivity*E^2 (GeV/cm^2 s sr)
@@ -690,12 +689,12 @@ def get_E2_limit_figure(diffuse=True,
 
             vanVliet_max = np.maximum(vanVliet_max_1[1,:], vanVliet_max_2[1,:])
 
-            prot10, = ax.plot(vanVliet_reas[0,:] * units.GeV / plotUnitsEnergy, vanVliet_reas[1,:],
-                              label=r'10% protons in UHECRs (Auger), m=3.4, van Vliet et al.', linestyle='--', color='k')
+            # prot10, = ax.plot(vanVliet_reas[0,:] * units.GeV / plotUnitsEnergy, vanVliet_reas[1,:],
+                              # label=r'10% protons in UHECRs (Auger), m=3.4, van Vliet et al.', linestyle='--', color='k')
+            # legends.append(prot10)
 
             prot = ax.fill_between(vanVliet_max_1[0,:] * units.GeV / plotUnitsEnergy, vanVliet_max,
                                    vanVliet_reas[1,:] / 50, color='0.9', label=r'allowed from UHECRs (Auger), van Vliet et al.', zorder=-2)
-            legends.append(prot10)
             legends.append(prot)
 
         if(show_Heinze):
@@ -778,10 +777,12 @@ def get_E2_limit_figure(diffuse=True,
                 horizontalalignment='left', va="top", color='saddlebrown', rotation=47, fontsize=legendfontsize)
 
     if show_grand_200k:
-        ax.plot(GRAND_energy / plotUnitsEnergy, GRAND_200k / plotUnitsFlux, linestyle=":", color='saddlebrown')
+        ax.plot(GRAND_energy / plotUnitsEnergy, GRAND_200k / plotUnitsFlux, linestyle=":", color='saddlebrown',
+                lw=2)
         ax.annotate('GRAND 200k',
-                    xy=(1e10 * units.GeV / plotUnitsEnergy, 6e-9), xycoords='data',
-                    horizontalalignment='left', color='saddlebrown', rotation=40, fontsize=legendfontsize)
+                    xy=(1e10 * units.GeV / plotUnitsEnergy, 5e-10), xycoords='data',
+                    horizontalalignment='left', color='saddlebrown', rotation=35, fontsize=legendfontsize,
+                    )
     if show_radar:
         ax.fill_between(Radar[:, 0] / plotUnitsEnergy, Radar[:, 1] / plotUnitsFlux,
                         Radar[:, 2] / plotUnitsFlux, facecolor='None', hatch='x', edgecolor='0.8')
@@ -876,7 +877,7 @@ def get_E2_limit_figure(diffuse=True,
                         horizontalalignment='left', color='darkorange', fontsize=legendfontsize)
         else:
             ax.annotate('ANITA I - IV',
-                        xy=(7e9 * units.GeV / plotUnitsEnergy, 5e-7), xycoords='data',
+                        xy=(1e19 * units.eV / plotUnitsEnergy, 1.2e-6), xycoords='data',
                         horizontalalignment='left', color='darkorange', fontsize=legendfontsize)
 
     if show_auger_limit:
@@ -910,7 +911,7 @@ def get_E2_limit_figure(diffuse=True,
                         horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('ARA',
-                    xy=(2e10 * units.GeV / plotUnitsEnergy, 1.05e-6), xycoords='data',
+                    xy=(1e18* units.eV / plotUnitsEnergy, 0.7e-6), xycoords='data',
                     horizontalalignment='left', color='indigo', rotation=0, fontsize=legendfontsize)
     if show_ara_2023:
         ax.plot(ara_2023_E / plotUnitsEnergy, ara_2023_limit / plotUnitsFlux, color='grey', linestyle='--')
@@ -943,8 +944,8 @@ def get_E2_limit_figure(diffuse=True,
                         horizontalalignment='left', color='red', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('ARIANNA',
-                    xy=(1e8 * units.GeV / plotUnitsEnergy, 1.05e-6), xycoords='data',
-                    horizontalalignment='right', color='red', rotation=0, fontsize=legendfontsize)
+                    xy=(1e7 * units.GeV / plotUnitsEnergy, 2e-6), xycoords='data',
+                    horizontalalignment='left', color='red', rotation=0, fontsize=legendfontsize)
 
     if show_IceCubeGen2_whitepaper:
         # flux limit for 5 years
@@ -968,8 +969,7 @@ def get_E2_limit_figure(diffuse=True,
                  7.15178112e-10, 7.64935941e-10, 8.08811879e-10, 8.58068389e-10,
                  9.13675213e-10, 9.87276891e-10, 1.06320301e-09, 1.15183347e-09,
                  1.25627989e-09, 1.36100197e-09, 1.49171667e-09]) * plotUnitsFlux
-        ax.plot(gen2_E / plotUnitsEnergy, gen2_flux / 2 / plotUnitsFlux, color='purple', linestyle=":")
-#         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
+        ax.plot(gen2_E / plotUnitsEnergy, gen2_flux / 2 / plotUnitsFlux, color='purple', linestyle="--")
         ax.annotate('IceCube-Gen2 radio',
                     xy=(.8e8 * units.GeV / plotUnitsEnergy, 1.6e-10), xycoords='data',
                     horizontalalignment='left', color='purple', rotation=0, fontsize=legendfontsize)
@@ -980,10 +980,9 @@ def get_E2_limit_figure(diffuse=True,
         gen2_E, gen2_flux = np.loadtxt(os.path.join(os.path.dirname(__file__), "data/Gen2radio_sensitivity_ICRC2021.txt"))
         gen2_E *= units.eV
         gen2_flux *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
-        ax.plot(gen2_E / plotUnitsEnergy, gen2_flux / plotUnitsFlux, color='purple', linestyle=":")
-#         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
+        ax.plot(gen2_E / plotUnitsEnergy, gen2_flux / plotUnitsFlux, color='purple', linestyle="--")
         ax.annotate('IceCube-Gen2 radio',
-                    xy=(.8e8 * units.GeV / plotUnitsEnergy, 1.6e-10), xycoords='data',
+                    xy=(.8e8 * units.GeV / plotUnitsEnergy, 1.3e-10), xycoords='data',
                     horizontalalignment='left', color='purple', rotation=0, fontsize=legendfontsize)
     if show_RNOG:
         # flux limit for 5 years
@@ -992,9 +991,8 @@ def get_E2_limit_figure(diffuse=True,
         RNOG_flux = np.array([4.51342568e-08, 1.57748718e-08, 1.03345333e-08, 7.98437261e-09,
                               7.22245212e-09, 7.62588582e-09, 9.28033358e-09, 1.28698605e-08]) * plotUnitsFlux
         ax.plot(RNOG_E / plotUnitsEnergy, RNOG_flux / 0.7 / 2 / plotUnitsFlux, color='red', linestyle="-.")  # uses 70% uptime from RNO-G whitepaper and resacling to 10years
-#         ax.plot(ara_4year[:,0]/plotUnitsEnergy,ara_4year[:,1]/ plotUnitsFlux,color='indigo',linestyle='--')
         ax.annotate('RNO-G',
-                    xy=(8e18 * units.eV / plotUnitsEnergy, 1e-8), xycoords='data',
+                    xy=(8e18 * units.eV / plotUnitsEnergy, 1.5e-8), xycoords='data',
                     horizontalalignment='left', va="top", color='red', rotation=10, fontsize=legendfontsize)
 
     if show_prediction_arianna_200:
@@ -1011,16 +1009,19 @@ def get_E2_limit_figure(diffuse=True,
 
 #         labels.append(_plt4)
     if show_PUEO_100:
-        ax.annotate('PUEO (3 flights, 100 days)',xy=(1.5e11, 4.e-8), xycoords='data',horizontalalignment='left', color='goldenrod', rotation=15)
-        ax.plot(PUEO100_energy / plotUnitsEnergy, PUEO100 / plotUnitsFlux, linestyle=(0, (3, 1, 1, 1, 1, 1)), color='#EA5A06', label='PUEO (3 flights, 100 days)')
-    
-    if show_beacon:
-        beaconleg, = ax.plot(BEACON_energy / plotUnitsEnergy, BEACON_LF_1000/plotUnitsFlux, linestyle="-.", color='#F97807', label='BEACON 1k')
-        ax.annotate('BEACON-1k',
-                    xy=(7e9, 4e-10), xycoords='data',
-                    horizontalalignment='left', color='#F97807', rotation=35, fontsize=1.3*legendfontsize)
-        # second_legend.append(beaconleg)
+        ax.annotate('PUEO (3 flights)', xy=(3e18 * units.eV / plotUnitsEnergy, 2.1e-8),
+                    xycoords='data', horizontalalignment='left', color='goldenrod', rotation=0, fontsize=legendfontsize)
+        ax.plot(PUEO100_energy / plotUnitsEnergy, PUEO100 / plotUnitsFlux, linestyle=(0, (3, 1, 1, 1, 1, 1)), color='#EA5A06', label='PUEO (3 flights, 100 days)',
+                lw=2)
 
+    if show_beacon:
+        beaconleg, = ax.plot(BEACON_energy / plotUnitsEnergy, BEACON_LF_1000 / plotUnitsFlux,
+                             linestyle="-.", color='#F97807', label='BEACON 1k',
+                             lw=2)
+        ax.annotate('BEACON-1k',
+                    xy=(7e18 * units.eV / plotUnitsEnergy, 9e-10), xycoords='data', 
+                    horizontalalignment='left', verticalalignment="bottom", color='#F97807', rotation=35, fontsize=legendfontsize)
+        # second_legend.append(beaconleg)
 
     ax.set_yscale('log')
     ax.set_xscale('log')
