@@ -1542,10 +1542,8 @@ class ray_tracing(ray_tracing_base):
     """
 
     def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
-                 
-                 n_frequencies_integration=100,
-                 #n_reflections=0, config=None, detector=None, birefringence_model = birefringence_medium()):     
-                 n_reflections=0, config=None, detector=None):
+                 n_frequencies_integration=100, n_reflections=0, config=None, detector=None):
+        
         """
         class initilization
 
@@ -1613,6 +1611,8 @@ class ray_tracing(ray_tracing_base):
         self._R = None
         self._x1 = None
         self._x2 = None
+        self._source = None
+        self._antenna = None
 
 
     def reset_solutions(self):
@@ -1627,6 +1627,8 @@ class ray_tracing(ray_tracing_base):
         self._swap = None
         self._dPhi = None
         self._R = None
+        self._source = None
+        self._antenna = None
 
     def set_start_and_end_point(self, x1, x2):
         """
@@ -1640,7 +1642,11 @@ class ray_tracing(ray_tracing_base):
             stop point of the ray
         """
 
+
         super().set_start_and_end_point(x1, x2)
+        
+        self._source = x1
+        self._antenna = x2
 
         self._swap = False
         if(self._X2[2] < self._X1[2]):
@@ -1872,6 +1878,8 @@ class ray_tracing(ray_tracing_base):
 
         p = self.get_3d_trace(source, antenna, acc)
         c = speed_of_light * units.m / units.ns
+        
+        #print(p)
 
         t_0 = []
         t_1 = []
@@ -2021,7 +2029,7 @@ class ray_tracing(ray_tracing_base):
 
         return(sky_0, sky_1, l_path, N0, N1)
            
-    def get_pulse_trace_fast(self, source, antenna, pulse, path_type=0, acc=1000):
+    def get_pulse_trace_fast(self, source, antenna, pulse, path_type=0, acc=1000, samp_rate = 0.01):
 
         """
         Function for the time trace propagation according to the polarization change.
@@ -2048,14 +2056,53 @@ class ray_tracing(ray_tracing_base):
                                 [3] - end_phi (list) - final pulse for the phi component
                                 [4] - TT (list) - time stamps of the  starting theta pulse
         """
-        data = np.load(pulse)
 
-        time = data[0] * units.ns
-        etheta = data[1] * units.V / units.m
-        ephi = data[2] * units.V / units.m
-        dt = time[1] - time[0]
+        t_slow = base_trace.BaseTrace()
+        t_fast = base_trace.BaseTrace()
 
-        # r = ray_tracing(southpole_2015())
+        t_theta = base_trace.BaseTrace()
+        t_phi = base_trace.BaseTrace()
+        
+        f_spectrum = base_trace.BaseTrace()
+
+        if type(pulse) == str:
+            style = 'single pulse'
+
+            data = np.load(pulse)
+            
+            time = data[0] * units.ns
+            etheta = data[1] * units.V / units.m
+            ephi = data[2] * units.V / units.m
+            dt = time[1] - time[0]
+
+            t_theta.set_trace(etheta, sampling_rate=1/ dt)
+            t_phi.set_trace(ephi, sampling_rate=1/dt)
+
+        elif type(pulse) == np.ndarray:
+            style = 'simulation pulse'
+
+            f_spectrum.set_frequency_spectrum(pulse, sampling_rate=samp_rate)
+
+            etheta = f_spectrum.get_trace()[1]* units.V / units.m
+            ephi = f_spectrum.get_trace()[2]* units.V / units.m
+            
+            dt = 1/ samp_rate* units.ns
+            
+            t_theta.set_trace(etheta, sampling_rate=samp_rate)
+            t_phi.set_trace(ephi, sampling_rate=samp_rate)
+
+        else:
+            print('error: wrong data type')
+
+        TT = t_theta.get_times()
+
+        shift = TT[t_theta.get_trace() == max(t_theta.get_trace())]
+
+        t_theta.set_trace_start_time(-shift)
+        t_phi.set_trace_start_time(-shift)
+
+        TT = t_theta.get_times()
+
         time_delay_short = self.get_birefringence_time_delay(source, antenna, path_type=path_type, acc=acc)
         polar_short = self.get_path_polarization(source, antenna, path_type=path_type, acc=acc)
 
@@ -2066,24 +2113,6 @@ class ray_tracing(ray_tracing_base):
         polar_phi1 = polar_short[1][:, 2]
 
         diff =  time_delay_short[2] - time_delay_short[1]
-
-        t_theta = base_trace.BaseTrace()
-        t_phi = base_trace.BaseTrace()
-
-        t_slow = base_trace.BaseTrace()
-        t_fast = base_trace.BaseTrace()
-
-        t_theta.set_trace(etheta, sampling_rate=1/ dt)
-        t_phi.set_trace(ephi, sampling_rate=1/dt)
-
-        TT = t_theta.get_times()
-
-        shift = TT[t_theta.get_trace() == max(t_theta.get_trace())]
-
-        t_theta.set_trace_start_time(-shift)
-        t_phi.set_trace_start_time(-shift)
-
-        TT = t_theta.get_times()
 
         start_theta = t_theta.get_trace()
         start_phi = t_phi.get_trace()
@@ -2126,10 +2155,15 @@ class ray_tracing(ray_tracing_base):
 
         h_th = signal.hilbert(end_theta)
         h_ph = signal.hilbert(end_phi)
-
-        t_delay = TT[h_th == max(h_th)] - TT[h_ph == max(h_ph)]
-
-        return(start_theta, start_phi, end_theta, end_phi, TT, t_delay)
+        
+        if style == 'single pulse':
+            t_delay = TT[h_th == max(h_th)] - TT[h_ph == max(h_ph)]
+            return(start_theta, start_phi, end_theta, end_phi, TT, t_delay)
+        
+        elif style == 'simulation pulse':
+            el_field = np.vstack((f_spectrum.get_frequency_spectrum()[0], t_theta.get_frequency_spectrum(), t_phi.get_frequency_spectrum()))
+            return el_field
+            
 
     def get_launch_vector(self, iS):
         """
@@ -2448,6 +2482,7 @@ class ray_tracing(ray_tracing_base):
         efield: ElectricField object
             The modified ElectricField object
         """
+        s_rate = efield.get_sampling_rate()
         spec = efield.get_frequency_spectrum()
         apply_attenuation = self._config['propagation']['attenuate_ice']
         if apply_attenuation:
@@ -2491,6 +2526,11 @@ class ray_tracing(ray_tracing_base):
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
             spec[1:] *= focusing
 
+        # apply the birefringence effect
+        if self._config['propagation']['birefringence']:
+
+            spec = self.get_pulse_trace_fast(self._source, self._antenna, spec, samp_rate = s_rate)
+
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
 
@@ -2509,5 +2549,6 @@ class ray_tracing(ray_tracing_base):
             self._config['propagation']['attenuate_ice'] = True
             self._config['propagation']['focusing_limit'] = 2
             self._config['propagation']['focusing'] = False
+            self._config['propagation']['birefringence'] = False
         else:
             self._config = config
