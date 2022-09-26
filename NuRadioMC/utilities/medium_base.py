@@ -297,18 +297,16 @@ class IceModelSimple(IceModel):
             raise ImportError('RadioPropa could not be imported')
 
 
-
-
 class IceModelBirefringence(IceModelSimple):
     """
     predefined ice model (to inherit from) including different indieces of refraction for differnt directions (birefringence)
     """
-    def __init__(self, 
+    def __init__(self,
                  exp_model,
                  bir_model,
                  n_ice,
-                 delta_n, 
-                 z_0, 
+                 delta_n,
+                 z_0,
                  z_shift
                  ):
 
@@ -349,7 +347,7 @@ class IceModelBirefringence(IceModelSimple):
         self.f1 = interpolate.UnivariateSpline._from_tck(self.bir_model[0])
         self.f2 = interpolate.UnivariateSpline._from_tck(self.bir_model[1])
         self.f3 = interpolate.UnivariateSpline._from_tck(self.bir_model[2])
-        
+
         self.comp = self.exp_model.get_index_of_refraction(np.array([0, 0, -2500]))
 
     def get_index_of_refraction(self, position):
@@ -367,17 +365,13 @@ class IceModelBirefringence(IceModelSimple):
         n:  float
             index of refraction
         """
-        
-
-        
 
         nx = self.exp_model.get_index_of_refraction(position) + self.f1(-position[2]) - self.comp
         ny = self.exp_model.get_index_of_refraction(position) + self.f2(-position[2]) - self.comp
-        nz = self.exp_model.get_index_of_refraction(position) + self.f3(-position[2]) - self.comp 
-                
+        nz = self.exp_model.get_index_of_refraction(position) + self.f3(-position[2]) - self.comp
+
         return nx, ny, nz
-        #return 1.78, 1.78, 1.782
-        
+
     def get_average_index_of_refraction(self, position1, position2):
         """
         returns the average index of refraction between two points
@@ -438,7 +432,7 @@ class IceModelBirefringence(IceModelSimple):
         It uses the parameters of the medium object to contruct the scalar field using the 
         simple ice model implementation in radiopropa and some modules, like a discontinuity 
         object for the air boundary
-        
+
         Overwrites function of the mother class
 
         Returns
@@ -456,9 +450,6 @@ class IceModelBirefringence(IceModelSimple):
             logger.error('The radiopropa dependency was not import and can therefore not be used.'
                         +'\nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('RadioPropa could not be imported')
-        
-        
-        
 
 
 if radiopropa_is_imported:
