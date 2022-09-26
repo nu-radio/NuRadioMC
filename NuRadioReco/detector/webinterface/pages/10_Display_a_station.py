@@ -29,14 +29,16 @@ def build_main_page(cont):
     # get the station information
     station_info = load_station_infos(selected_station_id, selected_collection)
     cont.subheader('station info')
+    # TODO display the station information
     cont.subheader('channel info')
-    # load and cache the data (is only loaded once)
+
+    channel_dic = station_info[selected_station_id]['channels']
+
+    # load and cache the channel information (is only loaded once)
     @st.experimental_memo
     def get_channel_table():
         if 'channels' in list(station_info[selected_station_id].keys()):
             # transform the channel data in a dataframe
-            channel_dic = station_info[selected_station_id]['channels']
-
             antenna_name = []
             antenna_position = []
             orientation = []
@@ -59,12 +61,45 @@ def build_main_page(cont):
                     comments.append(channel_dic[cha]['channel_comment'])
                 else:
                     comments.append('')
-            df = pd.DataFrame({'id': channel_ids, 'antenna name': antenna_name, 'antenna position (x,y,z)': antenna_position, 'orientation (theta, phi)': orientation, 'rotation (theta, phi)': rotation, 'antenna type': antenna_type, 'commission': commission_time, 'decommission': decommission_time, 'comment': comments})
-            print(df)
-
+            df = pd.DataFrame({'id': channel_ids, 'antenna name': antenna_name, 'antenna type': antenna_type, 'antenna position (x,y,z)': antenna_position, 'orientation (theta, phi)': orientation, 'rotation (theta, phi)': rotation, 'commission': commission_time, 'decommission': decommission_time, 'comment': comments})
         else:
             df = pd.DataFrame({'A': []})
 
+        return df
+
+    # load and cache the signal chain information (is only loaded once)
+    #TODO add the complete chain measurement
+    @st.experimental_memo
+    def get_signal_chain_table():
+        if 'channels' in list(station_info[selected_station_id].keys()):
+            # transform the channel data in a dataframe
+            channel_ids = []
+            comp_type = {'comp1': [], 'comp2': [], 'comp3': []}
+            comp_name = {'comp1': [], 'comp2': [], 'comp3': []}
+            comp_weight = {'comp1': [], 'comp2': [], 'comp3': []}
+            for cha in channel_dic.keys():
+                channel_ids.append(cha)
+                # transform the signal chain data
+                signal_chain = channel_dic[cha]['signal_ch']
+                # TODO: also consider the case where only the complete chain is in the db
+                if len(signal_chain) < 3:
+                    for i_sig, sig_dic in enumerate(signal_chain):
+                        comp_type[f'comp{i_sig + 1}'].append(sig_dic['type'])
+                        comp_name[f'comp{i_sig + 1}'].append(sig_dic['uname'])
+                        comp_weight[f'comp{i_sig + 1}'].append(int(sig_dic['weight']))
+                    comp_type[f'comp{3}'].append(None)
+                    comp_name[f'comp{3}'].append(None)
+                    comp_weight[f'comp{3}'].append(None)
+                else:
+                    for i_sig, sig_dic in enumerate(signal_chain):
+                        comp_type[f'comp{i_sig + 1}'].append(sig_dic['type'])
+                        comp_name[f'comp{i_sig + 1}'].append(sig_dic['uname'])
+                        comp_weight[f'comp{i_sig + 1}'].append(int(sig_dic['weight']))
+            # TODO add the display of the complete chain measurement (see comment below)
+            #df = pd.DataFrame({'id': channel_ids, 'comp1 type': 0, 'comp1 name': 0, 'comp1 weight': 0, 'comp2 type': 0, 'comp2 name': 0, 'comp2 weight': 0, 'comp3 type': 0, 'comp3 name': 0, 'comp3 weight': 0, 'type complete chain': 0, 'name': 0})
+            df = pd.DataFrame({'id': channel_ids, 'comp1 type': comp_type['comp1'], 'comp1 name': comp_name['comp1'], 'comp1 weight': comp_weight['comp1'], 'comp2 type': comp_type['comp2'], 'comp2 name': comp_name['comp2'], 'comp2 weight': comp_weight['comp2'], 'comp3 type': comp_type['comp3'], 'comp3 name': comp_name['comp3'], 'comp3 weight': comp_weight['comp3']})
+        else:
+            df = pd.DataFrame({'A': []})
         return df
 
     channel_data = get_channel_table()
@@ -75,15 +110,9 @@ def build_main_page(cont):
     cont.table(channel_data.style.applymap(highlight_cols, subset=pd.IndexSlice[:, ['id']]))
 
     cont.subheader('Signal chain')
-    # display the information
-    # current favourite:
-    # station infos as disabled text inputs, or just markdowns?
-    # channel infos as pd dataframe -> can search the data frame, can resize the column, can highlight stuff
-    # two ideas:
-    # 0) or use st.dataframe (can use the highlight tool from pandas)
-    # 1) put everything in a table and display this table
-    # 2) second use the inputs and disable them to display the data
-    # IMPORTANT! I don't want to change something on this page
+    signal_data = get_signal_chain_table()
+
+    cont.table(signal_data.style.applymap(highlight_cols, subset=pd.IndexSlice[:, ['id']]))
 
 
 # main page setup
