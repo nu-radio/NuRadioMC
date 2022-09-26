@@ -43,6 +43,40 @@ def insert_station_info(cont_station_warning, cont_station_info, selected_statio
         st.session_state.station_success = False
 
 
+def insert_channel_info(collection_name, warning_cont, info_cont, selected_station_id, selected_channel, signal_chain, ant_name, ant_ori_theta, ant_ori_phi, ant_rot_theta, ant_rot_phi, ant_position, channel_type, channel_comment, commission_time, decommission_time):
+    if st.session_state.insert_channel:
+        station_info = load_station_infos(selected_station_id, collection_name)
+        if station_info != {}:
+            channel_info = station_info[selected_station_id]['channels']
+            if selected_channel in channel_info.keys():
+                warning_cont.warning('YOU ARE ABOUT TO CHANGE AN EXISTING CHANNEL!')
+                warning_cont.markdown('Do you really want to change an existing channel?')
+                col_b1, col_b2, phold = warning_cont.columns([0.2, 0.2, 1.6])
+                yes_button = col_b1.button('YES')
+                no_button = col_b2.button('NO')
+                if yes_button:
+                    insert_channel_to_db(selected_station_id, collection_name, selected_channel, signal_chain, ant_name, ant_ori_theta, ant_ori_phi, ant_rot_theta, ant_rot_phi, ant_position, channel_type, channel_comment, commission_time, decommission_time)
+                    st.session_state.insert_channel = False
+                    st.session_state.channel_success = True
+                    st.experimental_rerun()
+
+                if no_button:
+                    st.session_state.insert_channel = False
+                    st.session_state.channel_success = False
+                    st.experimental_rerun()
+            else:
+                # information will be inserted into the database, without requiring any action
+                insert_channel_to_db(selected_station_id, collection_name, selected_channel, signal_chain, ant_name, ant_ori_theta, ant_ori_phi, ant_rot_theta, ant_rot_phi, ant_position, channel_type, channel_comment, commission_time, decommission_time)
+                st.session_state.insert_channel = False
+                st.session_state.channel_success = True
+
+    if st.session_state.channel_success:
+        info_cont.success('Channel successfully added to the database!')
+        st.session_state.channel_success = False
+
+        # if there is no corresponding station in the database -> the insert button is disabled (see validate_channel_inputs())
+
+
 def build_main_page(main_cont):
     main_cont.title('Build a station')
     main_cont.markdown(page_name)
@@ -104,29 +138,20 @@ def build_main_page(main_cont):
 
         insert_channel = main_cont.button('INSERT CHANNEL TO DB', disabled=disable_insert_button)
 
+        cont_channel_warning = main_cont.container()
+
         if insert_channel:
             st.session_state.insert_channel = True
-        if st.session_state.insert_channel:
-            station_info = load_station_infos(selected_station_id, collection_name)
-            if station_info != {}:
-                channel_info = station_info[selected_station_id]['channels']
-                if selected_channel in channel_info.keys():
-                    # there is already an existing one
-                    # decommission first and then update
-                    pass
-                else:
-                    # insert channel to db
-                    # insert_channel_to_db(selected_station_id, collection_name, selected_station_name, station_position, sta_comment, station_comm_date, station_decomm_date, selected_channel)
-                    pass
-            else:
-                print('THERE IS NO FITTING STATION IN THE DB')
-                # maybe put disable insert button and print error
+        insert_channel_info(collection_name, cont_channel_warning, cont_warning_bottom, selected_station_id, selected_channel, signal_chain_ant, selected_antenna_name, ori_rot_ant[0], ori_rot_ant[1], ori_rot_ant[2], ori_rot_ant[3], position_ant, selected_antenna_type, cha_comment, comm_date_ant, decomm_date_ant)
 
 # main page setup
 page_configuration()
 
 if 'station_success' not in st.session_state:
     st.session_state['station_success'] = False
+
+if 'channel_success' not in st.session_state:
+    st.session_state['channel_success'] = False
 
 # initialize the session key (will be used to display different pages depending on the button clicked)
 if 'key' not in st.session_state:
@@ -144,5 +169,3 @@ if st.session_state.key == '0':
 
 if st.session_state.key == '1':
     build_success_page(success_container, page_name)  # after clicking the 'add another measurement' button, the session key is set to '0' and the page is rerun
-
-print(st.session_state)

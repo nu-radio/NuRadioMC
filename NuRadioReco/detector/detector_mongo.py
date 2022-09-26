@@ -606,8 +606,43 @@ class Detector(object):
                                     'station_comment': station_comment
                                     })
 
-    def add_channel_to_station(self, collection, station_id, channel_id):
-        # , signal_chain, ant_name, ant_ori_theta, ant_ori_phi, ant_rot_theta, ant_rot_phi, ant_position, channel_type, channel_comment, commission_time, decommission_time=datetime.datetime(2080, 1, 1)
+    def decommission_a_channel(self, collection, station_id, channel_id, decomm_time):
+        """
+        function to decommission an active channel in the db
+
+        Parameters
+        ---------
+        collection: string
+            name of the collection
+        station_id: int
+            the unique identifier of the station
+        channel_id: int
+            the unique identifier of the channel
+        decomm_time: datetime
+            time which should be used for updating the decommission time
+        """
+        # get the entry of the aktive station
+        if self.db[collection].count_documents({'id': station_id}) == 0:
+            logger.error(f'No active station {station_id} in the database')
+        else:
+            # filter to get all active stations with the correct id
+            time = self.__current_time
+            time_filter = [{"$match": {
+                'commission_time': {"$lte": time},
+                'decommission_time': {"$gte": time},
+                'id': station_id}}]
+            # get all stations which fit the filter (should only be one)
+            stations = list(self.db[collection].aggregate(time_filter))
+            if len(stations) > 1:
+                logger.error('More than one active station was found.')
+            else:
+                object_id = stations[0]['_id']
+
+                # change the decommission time of a specific channel
+                self.db[collection].update_one({'_id': object_id}, {'$set': {'channels.$[updateIndex].decommission_time': decomm_time}},
+                                               array_filters=[{"updateIndex.id": channel_id}])
+
+    def add_channel_to_station(self, collection, station_id, channel_id, signal_chain, ant_name, ant_ori_theta, ant_ori_phi, ant_rot_theta, ant_rot_phi, ant_position, channel_type, channel_comment, commission_time, decommission_time=datetime.datetime(2080, 1, 1)):
         # get the current active station
         # filter to get all active stations with the correct id
         time = self.__current_time
@@ -631,29 +666,27 @@ class Detector(object):
 
         entries = list(self.db[collection].aggregate(component_filter))
 
-        print(entries)
+        # check if the channel already exist, decommission the active channel first
+        if entries != []:
+            self.decommission_a_channel(collection, station_id, channel_id, commission_time)
 
-        # if the channel already exist -> decommission the channel
-
-        # self.db.station.update_one({'_id': unique_station_id},
-        #                        {"$push": {'channels': {
-        #                            'id': channel_id,
-        #                            'ant_name': ant_name,
-        #                            'ant_position': list(ant_position),
-        #                            'ant_ori_theta': ant_ori_theta,
-        #                            'ant_ori_phi': ant_ori_phi,
-        #                            'ant_rot_theta': ant_rot_theta,
-        #                            'ant_rot_phi': ant_rot_phi,
-        #                            'type': channel_type,
-        #                            'commission_time': commission_time,
-        #                            'decommission_time': decommission_time,
-        #                            'signal_ch': signal_chain,
-        #                            'channel_commment': channel_comment
-        #                            }}
-        #                        })
-
-    def decommission_a_channel(self):
-        pass
+        # insert the channel information
+        self.db[collection].update_one({'_id': unique_station_id},
+                               {"$push": {'channels': {
+                                   'id': channel_id,
+                                   'ant_name': ant_name,
+                                   'ant_position': list(ant_position),
+                                   'ant_ori_theta': ant_ori_theta,
+                                   'ant_ori_phi': ant_ori_phi,
+                                   'ant_rot_theta': ant_rot_theta,
+                                   'ant_rot_phi': ant_rot_phi,
+                                   'type': channel_type,
+                                   'commission_time': commission_time,
+                                   'decommission_time': decommission_time,
+                                   'signal_ch': signal_chain,
+                                   'channel_commment': channel_comment
+                                   }}
+                               })
 
     def get_station_information(self, collection, station_id):
         """ get information from one station """
