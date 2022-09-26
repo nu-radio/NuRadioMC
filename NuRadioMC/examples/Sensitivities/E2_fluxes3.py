@@ -186,16 +186,14 @@ nu_mu_data[:, 0] = 10 ** nu_mu_data[:, 0] * units.GeV
 # ApJ slope=-2.13, offset=0.9 (https://arxiv.org/pdf/1607.08006.pdf)
 # ICR2017 slope=-2.19, offset=1.01 (https://pos.sissa.it/301/1005/)
 # ICRC2019 slope=2.28, offset=1.44
-# 9.5 years analysis 2.37+0.08-0.09, offset 1.36 + 0.24 - 0.25, Astrophysical normalization @ 100TeV: 1.36 × 10−8GeV−1cm−2s−1sr−1
-
-# using ICRC2019 results for now which are the last published results. No Piecewise-Unfolding was already done at that time, so we don't have "data points".
-nu_mu_slope = -2.28
-nu_mu_slope_up = -(2.28 + 0.08)
-nu_mu_slope_down = -(2.28 - 0.09)
+# 9.5 years analysis 2.37+0.09−0.09, offset 1.44 + 0.25 - 0.26, Astrophysical normalization @ 100TeV: 1.44+0.25−0.26 × 10−18 GeV−1cm−2s−1 sr−1
+nu_mu_slope = -2.37
+nu_mu_slope_up = -(2.37 + 0.09)
+nu_mu_slope_down = -(2.37 - 0.09)
 nu_mu_offset = 1.44
 nu_mu_offset_up = 1.44 + 0.25
-nu_mu_offset_down = 1.44 - 0.24
-nu_mu_show_data_points = False
+nu_mu_offset_down = 1.44 - 0.26
+nu_mu_show_data_points = True
 
 
 def ice_cube_nu_fit(energy, slope=nu_mu_slope, offset=nu_mu_offset):
