@@ -23,6 +23,7 @@ Submodules
    NuRadioReco.utilities.io_utilities
    NuRadioReco.utilities.metaclasses
    NuRadioReco.utilities.noise
+   NuRadioReco.utilities.particle_names
    NuRadioReco.utilities.templates
    NuRadioReco.utilities.timing
    NuRadioReco.utilities.traceWindows

@@ -16,6 +16,7 @@
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -331,6 +332,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.io_utilities.html">NuRadioReco.utilities.io_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
@@ -548,7 +550,7 @@
   <h1>Source code for NuRadioMC.EvtGen.NuRadioProposal</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">proposal</span> <span class="k">as</span> <span class="nn">pp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">particle_names</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">json</span>
@@ -668,50 +670,8 @@
                                <span class="mi">1000000010</span><span class="p">:</span> <span class="mi">90</span><span class="p">,</span>
                                <span class="mi">1000000011</span><span class="p">:</span> <span class="mi">91</span> <span class="p">}</span>
 
-<span class="c1"># NuRadioMC internal particle names organised using the PDG codes as keys</span>
-<span class="n">particle_name</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">0</span> <span class="p">:</span> <span class="s1">&#39;gamma&#39;</span><span class="p">,</span>
-                 <span class="mi">11</span> <span class="p">:</span> <span class="s1">&#39;e-&#39;</span><span class="p">,</span>
-                <span class="o">-</span><span class="mi">11</span> <span class="p">:</span> <span class="s1">&#39;e+&#39;</span><span class="p">,</span>
-                 <span class="mi">12</span> <span class="p">:</span> <span class="s1">&#39;nu_e&#39;</span><span class="p">,</span>
-                <span class="o">-</span><span class="mi">12</span> <span class="p">:</span> <span class="s1">&#39;nu_e_bar&#39;</span><span class="p">,</span>
-                 <span class="mi">13</span> <span class="p">:</span> <span class="s1">&#39;mu-&#39;</span><span class="p">,</span>
-                <span class="o">-</span><span class="mi">13</span> <span class="p">:</span> <span class="s1">&#39;mu+&#39;</span><span class="p">,</span>
-                 <span class="mi">14</span> <span class="p">:</span> <span class="s1">&#39;nu_mu&#39;</span><span class="p">,</span>
-                <span class="o">-</span><span class="mi">14</span> <span class="p">:</span> <span class="s1">&#39;nu_mu_bar&#39;</span><span class="p">,</span>
-                 <span class="mi">15</span> <span class="p">:</span> <span class="s1">&#39;tau-&#39;</span><span class="p">,</span>
-                <span class="o">-</span><span class="mi">15</span> <span class="p">:</span> <span class="s1">&#39;tau+&#39;</span><span class="p">,</span>
-                 <span class="mi">16</span> <span class="p">:</span> <span class="s1">&#39;nu_tau&#39;</span><span class="p">,</span>
-                <span class="o">-</span><span class="mi">16</span> <span class="p">:</span> <span class="s1">&#39;nu_tau_bar&#39;</span><span class="p">,</span>
-                 <span class="mi">80</span> <span class="p">:</span> <span class="s1">&#39;particle&#39;</span><span class="p">,</span>
-                 <span class="mi">81</span> <span class="p">:</span> <span class="s1">&#39;brems&#39;</span><span class="p">,</span>
-                 <span class="mi">82</span> <span class="p">:</span> <span class="s1">&#39;ionized_e&#39;</span><span class="p">,</span>
-                 <span class="mi">83</span> <span class="p">:</span> <span class="s1">&#39;e_pair&#39;</span><span class="p">,</span>
-                 <span class="mi">84</span> <span class="p">:</span> <span class="s1">&#39;hadrons&#39;</span><span class="p">,</span>
-                 <span class="mi">85</span> <span class="p">:</span> <span class="s1">&#39;nucl_int&#39;</span><span class="p">,</span>
-                 <span class="mi">86</span> <span class="p">:</span> <span class="s1">&#39;decay_bundle&#39;</span><span class="p">,</span>
-                 <span class="mi">87</span> <span class="p">:</span> <span class="s1">&#39;mu_pair&#39;</span><span class="p">,</span>
-                 <span class="mi">88</span> <span class="p">:</span> <span class="s1">&#39;cont_loss&#39;</span><span class="p">,</span>
-                 <span class="mi">89</span> <span class="p">:</span> <span class="s1">&#39;weak_int&#39;</span><span class="p">,</span>
-                 <span class="mi">90</span> <span class="p">:</span> <span class="s1">&#39;compton&#39;</span><span class="p">,</span>
-                 <span class="mi">91</span> <span class="p">:</span> <span class="s1">&#39;decay&#39;</span><span class="p">,</span>
-                <span class="mi">111</span> <span class="p">:</span> <span class="s1">&#39;pi0&#39;</span><span class="p">,</span>
-                <span class="mi">211</span> <span class="p">:</span> <span class="s1">&#39;pi+&#39;</span><span class="p">,</span>
-               <span class="o">-</span><span class="mi">211</span> <span class="p">:</span> <span class="s1">&#39;pi-&#39;</span><span class="p">,</span>
-                <span class="mi">311</span> <span class="p">:</span> <span class="s1">&#39;K0&#39;</span><span class="p">,</span>
-                <span class="mi">321</span> <span class="p">:</span> <span class="s1">&#39;K+&#39;</span><span class="p">,</span>
-               <span class="o">-</span><span class="mi">321</span> <span class="p">:</span> <span class="s1">&#39;K-&#39;</span><span class="p">,</span>
-               <span class="mi">2212</span> <span class="p">:</span> <span class="s1">&#39;p+&#39;</span><span class="p">,</span>
-              <span class="o">-</span><span class="mi">2212</span> <span class="p">:</span> <span class="s1">&#39;p-&#39;</span> <span class="p">}</span>
 
-<span class="n">em_primary_names</span> <span class="o">=</span> <span class="p">[</span> <span class="s1">&#39;gamma&#39;</span><span class="p">,</span> <span class="s1">&#39;e-&#39;</span><span class="p">,</span> <span class="s1">&#39;e+&#39;</span><span class="p">,</span> <span class="s1">&#39;brems&#39;</span><span class="p">,</span> <span class="s1">&#39;ionized_e&#39;</span><span class="p">,</span> <span class="s1">&#39;e_pair&#39;</span><span class="p">,</span> <span class="s1">&#39;weak_int&#39;</span><span class="p">,</span> <span class="s1">&#39;compton&#39;</span> <span class="p">]</span>
-
-<span class="n">had_primary_names</span> <span class="o">=</span> <span class="p">[</span> <span class="s1">&#39;hadrons&#39;</span><span class="p">,</span> <span class="s1">&#39;nucl_int&#39;</span><span class="p">,</span> <span class="s1">&#39;decay_bundle&#39;</span><span class="p">,</span> <span class="s1">&#39;pi0&#39;</span><span class="p">,</span> <span class="s1">&#39;pi+&#39;</span><span class="p">,</span> <span class="s1">&#39;pi-&#39;</span><span class="p">,</span>
-                      <span class="s1">&#39;K0&#39;</span><span class="p">,</span> <span class="s1">&#39;K+&#39;</span><span class="p">,</span> <span class="s1">&#39;K-&#39;</span><span class="p">,</span> <span class="s1">&#39;p+&#39;</span><span class="p">,</span> <span class="s1">&#39;p-&#39;</span> <span class="p">]</span>
-
-<span class="n">primary_names</span> <span class="o">=</span> <span class="n">em_primary_names</span> <span class="o">+</span> <span class="n">had_primary_names</span>
-
-
-<div class="viewcode-block" id="particle_code"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.particle_code">[docs]</a><span class="k">def</span> <span class="nf">particle_code</span> <span class="p">(</span><span class="n">particle</span><span class="p">):</span>
+<div class="viewcode-block" id="particle_code"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.particle_code">[docs]</a><span class="k">def</span> <span class="nf">particle_code</span><span class="p">(</span><span class="n">particle</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    If a particle object from PROPOSAL is passed as input, it returns the</span>
 <span class="sd">    corresponding PDG particle code. DynamicData objects are not considered</span>
@@ -723,13 +683,12 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    integer with the particle code. None if the argument is not a particle</span>
+<span class="sd">    integer with the PDG particle code. None if the argument is not a particle</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">particle_type</span> <span class="o">=</span> <span class="n">particle</span><span class="o">.</span><span class="n">type</span>
-
     <span class="k">if</span> <span class="n">particle_type</span> <span class="ow">in</span> <span class="n">proposal_interaction_codes</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">proposal_interaction_codes</span><span class="p">[</span><span class="n">particle_type</span><span class="p">]</span>
-    <span class="k">elif</span> <span class="n">particle_type</span> <span class="ow">in</span> <span class="n">particle_name</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">particle_type</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_names</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">particle_type</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">particle_type</span><span class="p">)</span>
@@ -742,8 +701,9 @@
 <span class="sd">    can be an electromagnetic shower primary and False otherwise</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">code</span> <span class="o">=</span> <span class="n">particle_code</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">particle_name</span><span class="p">[</span><span class="n">code</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">em_primary_names</span><span class="p">:</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_name</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">em_primary_names</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span></div>
@@ -755,8 +715,9 @@
 <span class="sd">    can be a hadronic shower primary and False otherwise</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">code</span> <span class="o">=</span> <span class="n">particle_code</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">particle_name</span><span class="p">[</span><span class="n">code</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">had_primary_names</span><span class="p">:</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_name</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">had_primary_names</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span></div>
@@ -768,8 +729,9 @@
 <span class="sd">    a shower primary and False otherwise</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">code</span> <span class="o">=</span> <span class="n">particle_code</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">particle_name</span><span class="p">[</span><span class="n">code</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">primary_names</span><span class="p">:</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_name</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">primary_names</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span></div>
@@ -987,7 +949,7 @@
         <span class="k">if</span> <span class="n">is_had_primary</span><span class="p">(</span><span class="n">particle</span><span class="p">):</span>
             <span class="n">shower_type</span> <span class="o">=</span> <span class="s1">&#39;had&#39;</span>
 
-        <span class="n">name</span> <span class="o">=</span> <span class="n">particle_name</span><span class="p">[</span><span class="n">code</span><span class="p">]</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_name</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">shower_type</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">name</span>
 
@@ -1171,7 +1133,7 @@
 
                 <span class="k">for</span> <span class="n">sec</span> <span class="ow">in</span> <span class="n">secondaries</span><span class="p">:</span>
 
-                    <span class="k">if</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">proposal_interaction_codes</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">particle_name</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">proposal_interaction_codes</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_names</span><span class="p">):</span>
                         <span class="k">continue</span>
 
                     <span class="k">if</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">particle_def</span> <span class="o">==</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuMinusDef</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">particle_def</span> <span class="o">==</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuPlusDef</span><span class="p">()):</span>
@@ -1201,7 +1163,7 @@
                 <span class="n">last_decay_prod</span> <span class="o">=</span> <span class="n">shower_inducing_prods</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
                 <span class="n">shower_inducing_prods</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">energy</span> <span class="o">+=</span> <span class="n">last_decay_prod</span><span class="o">.</span><span class="n">energy</span>
                 <span class="n">shower_inducing_prods</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="mi">86</span>
-                <span class="n">shower_inducing_prods</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">particle_name</span><span class="p">[</span><span class="mi">86</span><span class="p">]</span>
+                <span class="n">shower_inducing_prods</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_name</span><span class="p">(</span><span class="mi">86</span><span class="p">)</span>
 
             <span class="n">secondaries_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shower_inducing_prods</span><span class="p">)</span>
 

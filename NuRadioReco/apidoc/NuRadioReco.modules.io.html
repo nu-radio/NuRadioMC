@@ -17,6 +17,7 @@
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -334,6 +335,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.io_utilities.html">NuRadioReco.utilities.io_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
@@ -551,9 +553,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioReco.modules.io">
-<span id="nuradioreco-modules-io-package"></span><h1>NuRadioReco.modules.io package<a class="headerlink" href="#module-NuRadioReco.modules.io" title="Permalink to this heading"></a></h1>
-<section id="subpackages">
+  <section id="nuradioreco-modules-io-package">
+<h1>NuRadioReco.modules.io package<a class="headerlink" href="#nuradioreco-modules-io-package" title="Permalink to this heading"></a></h1>
+<span class="target" id="module-NuRadioReco.modules.io"></span><section id="subpackages">
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
@@ -566,36 +568,76 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.coreas.html">NuRadioReco.modules.io.coreas package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.io.coreas.html#submodules">Submodules</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.coreas.coreas.html">NuRadioReco.modules.io.coreas.coreas module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.coreas.readCoREAS.html">NuRadioReco.modules.io.coreas.readCoREAS module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.coreas.readCoREASShower.html">NuRadioReco.modules.io.coreas.readCoREASShower module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.coreas.readCoREASStation.html">NuRadioReco.modules.io.coreas.readCoREASStation module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.coreas.readCoREASStationGrid.html">NuRadioReco.modules.io.coreas.readCoREASStationGrid module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.coreas.simulationSelector.html">NuRadioReco.modules.io.coreas.simulationSelector module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.coreas.coreas.html">NuRadioReco.modules.io.coreas.coreas module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.calculate_simulation_weights"><code class="docutils literal notranslate"><span class="pre">calculate_simulation_weights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.get_angles"><code class="docutils literal notranslate"><span class="pre">get_angles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.make_sim_shower"><code class="docutils literal notranslate"><span class="pre">make_sim_shower()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.make_sim_station"><code class="docutils literal notranslate"><span class="pre">make_sim_station()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.coreas.readCoREAS.html">NuRadioReco.modules.io.coreas.readCoREAS module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.coreas.readCoREAS.html#NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS"><code class="docutils literal notranslate"><span class="pre">readCoREAS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.coreas.readCoREASShower.html">NuRadioReco.modules.io.coreas.readCoREASShower module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.antenna_id"><code class="docutils literal notranslate"><span class="pre">antenna_id()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.coreas.readCoREASShower.html#NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower"><code class="docutils literal notranslate"><span class="pre">readCoREASShower</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.coreas.readCoREASStation.html">NuRadioReco.modules.io.coreas.readCoREASStation module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.coreas.readCoREASStation.html#NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation"><code class="docutils literal notranslate"><span class="pre">readCoREASStation</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.coreas.readCoREASStationGrid.html">NuRadioReco.modules.io.coreas.readCoREASStationGrid module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.coreas.readCoREASStationGrid.html#NuRadioReco.modules.io.coreas.readCoREASStationGrid.readCoREAS"><code class="docutils literal notranslate"><span class="pre">readCoREAS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.coreas.simulationSelector.html">NuRadioReco.modules.io.coreas.simulationSelector module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.coreas.simulationSelector.html#NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector"><code class="docutils literal notranslate"><span class="pre">simulationSelector</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.noise.html">NuRadioReco.modules.io.noise package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.io.noise.html#submodules">Submodules</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.noise.noiseImporter.html">NuRadioReco.modules.io.noise.noiseImporter module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.noise.noiseImporterROOT.html">NuRadioReco.modules.io.noise.noiseImporterROOT module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.noise.noiseImporter.html">NuRadioReco.modules.io.noise.noiseImporter module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.noise.noiseImporter.html#NuRadioReco.modules.io.noise.noiseImporter.noiseImporter"><code class="docutils literal notranslate"><span class="pre">noiseImporter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.noise.noiseImporterROOT.html">NuRadioReco.modules.io.noise.noiseImporterROOT module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.noise.noiseImporterROOT.html#NuRadioReco.modules.io.noise.noiseImporterROOT.noiseImporter"><code class="docutils literal notranslate"><span class="pre">noiseImporter</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.rno_g.html">NuRadioReco.modules.io.rno_g package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.io.rno_g.html#submodules">Submodules</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.rno_g.readRNOGData.html">NuRadioReco.modules.io.rno_g.readRNOGData module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.rno_g.rnogDataReader.html">NuRadioReco.modules.io.rno_g.rnogDataReader module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.rno_g.readRNOGData.html">NuRadioReco.modules.io.rno_g.readRNOGData module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.rno_g.readRNOGData.html#NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData"><code class="docutils literal notranslate"><span class="pre">readRNOGData</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.rno_g.rnogDataReader.html">NuRadioReco.modules.io.rno_g.rnogDataReader module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.rno_g.rnogDataReader.html#NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader"><code class="docutils literal notranslate"><span class="pre">RNOGDataReader</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.snowshovel.html">NuRadioReco.modules.io.snowshovel package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.io.snowshovel.html#submodules">Submodules</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.snowshovel.readARIANNAData.html">NuRadioReco.modules.io.snowshovel.readARIANNAData module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.snowshovel.readARIANNADataCalib.html">NuRadioReco.modules.io.snowshovel.readARIANNADataCalib module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.snowshovel.readARIANNAData.html">NuRadioReco.modules.io.snowshovel.readARIANNAData module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.snowshovel.readARIANNAData.html#NuRadioReco.modules.io.snowshovel.readARIANNAData.readARIANNAData"><code class="docutils literal notranslate"><span class="pre">readARIANNAData</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.snowshovel.readARIANNADataCalib.html">NuRadioReco.modules.io.snowshovel.readARIANNADataCalib module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.snowshovel.readARIANNADataCalib.html#NuRadioReco.modules.io.snowshovel.readARIANNADataCalib.readARIANNAData"><code class="docutils literal notranslate"><span class="pre">readARIANNAData</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -607,10 +649,48 @@
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.NuRadioRecoio.html">NuRadioReco.modules.io.NuRadioRecoio module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.eventReader.html">NuRadioReco.modules.io.eventReader module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.eventWriter.html">NuRadioReco.modules.io.eventWriter module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.event_parser_factory.html">NuRadioReco.modules.io.event_parser_factory module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.NuRadioRecoio.html">NuRadioReco.modules.io.NuRadioRecoio module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio"><code class="docutils literal notranslate"><span class="pre">NuRadioRecoio</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.close_files"><code class="docutils literal notranslate"><span class="pre">NuRadioRecoio.close_files()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_detector"><code class="docutils literal notranslate"><span class="pre">NuRadioRecoio.get_detector()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event"><code class="docutils literal notranslate"><span class="pre">NuRadioRecoio.get_event()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event_i"><code class="docutils literal notranslate"><span class="pre">NuRadioRecoio.get_event_i()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event_ids"><code class="docutils literal notranslate"><span class="pre">NuRadioRecoio.get_event_ids()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_events"><code class="docutils literal notranslate"><span class="pre">NuRadioRecoio.get_events()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_filenames"><code class="docutils literal notranslate"><span class="pre">NuRadioRecoio.get_filenames()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_header"><code class="docutils literal notranslate"><span class="pre">NuRadioRecoio.get_header()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_n_events"><code class="docutils literal notranslate"><span class="pre">NuRadioRecoio.get_n_events()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.NuRadioRecoio.html#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.openFile"><code class="docutils literal notranslate"><span class="pre">NuRadioRecoio.openFile()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.eventReader.html">NuRadioReco.modules.io.eventReader module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.io.eventReader.html#NuRadioReco.modules.io.eventReader.eventReader"><code class="docutils literal notranslate"><span class="pre">eventReader</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.eventReader.html#NuRadioReco.modules.io.eventReader.eventReader.begin"><code class="docutils literal notranslate"><span class="pre">eventReader.begin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.eventReader.html#NuRadioReco.modules.io.eventReader.eventReader.end"><code class="docutils literal notranslate"><span class="pre">eventReader.end()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.eventReader.html#NuRadioReco.modules.io.eventReader.eventReader.get_detector"><code class="docutils literal notranslate"><span class="pre">eventReader.get_detector()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.eventReader.html#NuRadioReco.modules.io.eventReader.eventReader.get_header"><code class="docutils literal notranslate"><span class="pre">eventReader.get_header()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.eventReader.html#NuRadioReco.modules.io.eventReader.eventReader.run"><code class="docutils literal notranslate"><span class="pre">eventReader.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.eventWriter.html">NuRadioReco.modules.io.eventWriter module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.io.eventWriter.html#NuRadioReco.modules.io.eventWriter.eventWriter"><code class="docutils literal notranslate"><span class="pre">eventWriter</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.eventWriter.html#NuRadioReco.modules.io.eventWriter.eventWriter.begin"><code class="docutils literal notranslate"><span class="pre">eventWriter.begin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.eventWriter.html#NuRadioReco.modules.io.eventWriter.eventWriter.end"><code class="docutils literal notranslate"><span class="pre">eventWriter.end()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.eventWriter.html#NuRadioReco.modules.io.eventWriter.eventWriter.run"><code class="docutils literal notranslate"><span class="pre">eventWriter.run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.io.eventWriter.html#NuRadioReco.modules.io.eventWriter.get_header"><code class="docutils literal notranslate"><span class="pre">get_header()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.event_parser_factory.html">NuRadioReco.modules.io.event_parser_factory module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.io.event_parser_factory.html#NuRadioReco.modules.io.event_parser_factory.iter_events_function"><code class="docutils literal notranslate"><span class="pre">iter_events_function()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.io.event_parser_factory.html#NuRadioReco.modules.io.event_parser_factory.scan_files_function"><code class="docutils literal notranslate"><span class="pre">scan_files_function()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </div>
 </section>

@@ -1,0 +1,7 @@
+NuRadioReco.utilities.particle\_names module
+============================================
+
+.. automodule:: NuRadioReco.utilities.particle_names
+   :members:
+   :undoc-members:
+   :show-inheritance:

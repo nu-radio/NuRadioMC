@@ -17,6 +17,7 @@
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -334,6 +335,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.io_utilities.html">NuRadioReco.utilities.io_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.metaclasses.html">NuRadioReco.utilities.metaclasses module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.noise.html">NuRadioReco.utilities.noise module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.traceWindows.html">NuRadioReco.utilities.traceWindows module</a></li>
@@ -551,19 +553,79 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioReco.modules.trigger">
-<span id="nuradioreco-modules-trigger-package"></span><h1>NuRadioReco.modules.trigger package<a class="headerlink" href="#module-NuRadioReco.modules.trigger" title="Permalink to this heading"></a></h1>
-<section id="submodules">
+  <section id="nuradioreco-modules-trigger-package">
+<h1>NuRadioReco.modules.trigger package<a class="headerlink" href="#nuradioreco-modules-trigger-package" title="Permalink to this heading"></a></h1>
+<span class="target" id="module-NuRadioReco.modules.trigger"></span><section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.trigger.calc_parameters_for_rnog_surface_trigger.html">NuRadioReco.modules.trigger.calc_parameters_for_rnog_surface_trigger module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.trigger.envelopeTrigger.html">NuRadioReco.modules.trigger.envelopeTrigger module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.trigger.highLowThreshold.html">NuRadioReco.modules.trigger.highLowThreshold module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.trigger.multiHighLowThreshold.html">NuRadioReco.modules.trigger.multiHighLowThreshold module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.trigger.powerIntegration.html">NuRadioReco.modules.trigger.powerIntegration module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.trigger.rnog_surface_trigger.html">NuRadioReco.modules.trigger.rnog_surface_trigger module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.trigger.simpleThreshold.html">NuRadioReco.modules.trigger.simpleThreshold module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.trigger.calc_parameters_for_rnog_surface_trigger.html">NuRadioReco.modules.trigger.calc_parameters_for_rnog_surface_trigger module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.trigger.calc_parameters_for_rnog_surface_trigger.html#NuRadioReco.modules.trigger.calc_parameters_for_rnog_surface_trigger.linear_fit"><code class="docutils literal notranslate"><span class="pre">linear_fit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.trigger.envelopeTrigger.html">NuRadioReco.modules.trigger.envelopeTrigger module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.trigger.envelopeTrigger.html#NuRadioReco.modules.trigger.envelopeTrigger.get_envelope_triggers"><code class="docutils literal notranslate"><span class="pre">get_envelope_triggers()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.trigger.envelopeTrigger.html#NuRadioReco.modules.trigger.envelopeTrigger.triggerSimulator"><code class="docutils literal notranslate"><span class="pre">triggerSimulator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.envelopeTrigger.html#NuRadioReco.modules.trigger.envelopeTrigger.triggerSimulator.begin"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.begin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.envelopeTrigger.html#NuRadioReco.modules.trigger.envelopeTrigger.triggerSimulator.end"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.end()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.envelopeTrigger.html#NuRadioReco.modules.trigger.envelopeTrigger.triggerSimulator.run"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.trigger.highLowThreshold.html">NuRadioReco.modules.trigger.highLowThreshold module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.trigger.highLowThreshold.html#NuRadioReco.modules.trigger.highLowThreshold.get_high_low_triggers"><code class="docutils literal notranslate"><span class="pre">get_high_low_triggers()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.trigger.highLowThreshold.html#NuRadioReco.modules.trigger.highLowThreshold.get_majority_logic"><code class="docutils literal notranslate"><span class="pre">get_majority_logic()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.trigger.highLowThreshold.html#NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator"><code class="docutils literal notranslate"><span class="pre">triggerSimulator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.highLowThreshold.html#NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator.begin"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.begin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.highLowThreshold.html#NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator.end"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.end()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.highLowThreshold.html#NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator.run"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.trigger.multiHighLowThreshold.html">NuRadioReco.modules.trigger.multiHighLowThreshold module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.trigger.multiHighLowThreshold.html#NuRadioReco.modules.trigger.multiHighLowThreshold.get_high_triggers"><code class="docutils literal notranslate"><span class="pre">get_high_triggers()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.trigger.multiHighLowThreshold.html#NuRadioReco.modules.trigger.multiHighLowThreshold.get_low_triggers"><code class="docutils literal notranslate"><span class="pre">get_low_triggers()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.trigger.multiHighLowThreshold.html#NuRadioReco.modules.trigger.multiHighLowThreshold.get_multiple_high_low_trigger"><code class="docutils literal notranslate"><span class="pre">get_multiple_high_low_trigger()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.trigger.multiHighLowThreshold.html#NuRadioReco.modules.trigger.multiHighLowThreshold.triggerSimulator"><code class="docutils literal notranslate"><span class="pre">triggerSimulator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.multiHighLowThreshold.html#NuRadioReco.modules.trigger.multiHighLowThreshold.triggerSimulator.begin"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.begin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.multiHighLowThreshold.html#NuRadioReco.modules.trigger.multiHighLowThreshold.triggerSimulator.end"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.end()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.multiHighLowThreshold.html#NuRadioReco.modules.trigger.multiHighLowThreshold.triggerSimulator.run"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.trigger.powerIntegration.html">NuRadioReco.modules.trigger.powerIntegration module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.trigger.powerIntegration.html#NuRadioReco.modules.trigger.powerIntegration.get_power_int_triggers"><code class="docutils literal notranslate"><span class="pre">get_power_int_triggers()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.trigger.powerIntegration.html#NuRadioReco.modules.trigger.powerIntegration.triggerSimulator"><code class="docutils literal notranslate"><span class="pre">triggerSimulator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.powerIntegration.html#NuRadioReco.modules.trigger.powerIntegration.triggerSimulator.begin"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.begin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.powerIntegration.html#NuRadioReco.modules.trigger.powerIntegration.triggerSimulator.end"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.end()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.powerIntegration.html#NuRadioReco.modules.trigger.powerIntegration.triggerSimulator.run"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.trigger.rnog_surface_trigger.html">NuRadioReco.modules.trigger.rnog_surface_trigger module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.trigger.rnog_surface_trigger.html#NuRadioReco.modules.trigger.rnog_surface_trigger.schottky_diode"><code class="docutils literal notranslate"><span class="pre">schottky_diode()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.trigger.rnog_surface_trigger.html#NuRadioReco.modules.trigger.rnog_surface_trigger.triggerSimulator"><code class="docutils literal notranslate"><span class="pre">triggerSimulator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.rnog_surface_trigger.html#NuRadioReco.modules.trigger.rnog_surface_trigger.triggerSimulator.begin"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.begin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.rnog_surface_trigger.html#NuRadioReco.modules.trigger.rnog_surface_trigger.triggerSimulator.end"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.end()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.rnog_surface_trigger.html#NuRadioReco.modules.trigger.rnog_surface_trigger.triggerSimulator.run"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.trigger.simpleThreshold.html">NuRadioReco.modules.trigger.simpleThreshold module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.trigger.simpleThreshold.html#NuRadioReco.modules.trigger.simpleThreshold.get_threshold_triggers"><code class="docutils literal notranslate"><span class="pre">get_threshold_triggers()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.trigger.simpleThreshold.html#NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator"><code class="docutils literal notranslate"><span class="pre">triggerSimulator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.simpleThreshold.html#NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator.begin"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.begin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.simpleThreshold.html#NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator.end"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.end()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.trigger.simpleThreshold.html#NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator.run"><code class="docutils literal notranslate"><span class="pre">triggerSimulator.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </div>
 </section>
