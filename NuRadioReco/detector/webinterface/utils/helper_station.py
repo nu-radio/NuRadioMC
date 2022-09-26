@@ -544,7 +544,7 @@ def validate_station_inputs(container_bottom, comm_date_station, decomm_date_sta
     if decomm_date_station > comm_date_station:
         dates_station_correct = True
     else:
-        container_bottom.error('The decommission date of the station must be later than the commissionn date.')
+        container_bottom.error('The decommission date of the station must be later than the commission date.')
 
     if dates_station_correct:
         disable_insert_button = False
@@ -594,25 +594,19 @@ def insert_station_to_db(station_id, collection_name, station_name, station_posi
     det.add_station(collection_name, station_id, station_name, station_position, station_comment, station_comm_time, station_decomm_time)
 
 
-def insert_channel_to_db(station_id, collection_name, station_name, station_position, station_comment, station_comm_time, station_decomm_time, channel_id):
-    station_info = load_station_infos(station_id, collection_name)
-    if station_info != {}:
-        db_channels = list(station_info[station_id]['channels'].keys())
-    else:
-        db_channels = []
-    # det.add_station(collection_name, station_id, station_name, station_position, station_comment, station_comm_time, station_decomm_time)
-    det.add_channel_to_station(collection_name, station_id, channel_id)
+def insert_channel_to_db(station_id, collection_name, channel_id, signal_chain, ant_name, ant_ori_theta, ant_ori_phi, ant_rot_theta, ant_rot_phi, ant_position, channel_type, channel_comment, commission_time, decommission_time):
+    # convert the signal chain to the correct format
+    converted_signal_chain = []
+    if signal_chain[0] == 'individual components':
+        for i in range(int(len(signal_chain[1:])/3)):
+            converted_signal_chain.append({'type': signal_chain[3*i + 1], 'uname': signal_chain[3*i + 2], 'weight': signal_chain[3*i + 3]})
+    elif signal_chain[0] == 'complete chain':
+        converted_signal_chain.append({'type': signal_chain[1], 'uname': signal_chain[2]})
+    elif signal_chain[0] == 'both':
+        for i in range(int(len(signal_chain[1:-2])/3)):
+            converted_signal_chain.append({'type': signal_chain[3*i + 1], 'uname': signal_chain[3*i + 2], 'weight': signal_chain[3*i + 3]})
+        converted_signal_chain.append({'type': signal_chain[-2], 'uname': signal_chain[-1]})
 
-    # if channel already in database
-    # get a warning that you override the channel and if you really want to do this (button)
-    # 'older' channel will be decommissioned automatically (also give this as an information
-    # inform what will be changed
-    # get a success information
+    # the check if the channel already exists happens in add_channel_to_station
+    det.add_channel_to_station(collection_name, station_id, channel_id, converted_signal_chain, ant_name, ant_ori_theta, ant_ori_phi, ant_rot_theta, ant_rot_phi, ant_position, channel_type, channel_comment, commission_time, decommission_time)
 
-    # else
-    # get a success information
-
-    #
-    # if primary and antenna_name in det.get_object_names(page_name):
-    #     det.update_primary(page_name, antenna_name)
-    # det.antenna_add_Sparameter(page_name, antenna_name, [s_name], data, primary, protocol, input_units)
