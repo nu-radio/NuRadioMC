@@ -30,6 +30,7 @@ propagation:
   focusing: False  # if True apply the focusing effect.
   focusing_limit: 2  # the maximum amplification factor of the focusing correction
   n_reflections: 0  # the maximum number of reflections off a reflective layer at the bottom of the ice layer
+  birefringence: False  # if True applay birefringence effects
 
   radiopropa:  #every module can have its own addition settings
     mode: iterative  # can also be "minimizing" but these ray tracing solution are not accurate yet
