@@ -1734,186 +1734,101 @@ class ray_tracing(ray_tracing_base):
         path = MM.T + self._X1
         return path
 
-
-
     def get_effective_index_fast(self, nx, ny, nz, direction):
-        
+
         """
         Function to find the analytical solutions for the effective refractive indices.
-    
+
         Parameters
-        ------------   
+        ------------
         direction: numpy.array
-            propagation direction of the wave              
+            propagation direction of the wave
         nx: float
-            the index of refraction into the x direction        
+            the index of refraction into the x direction
         ny: float
-            the index of refraction into the y direction        
+            the index of refraction into the y direction
         nz: float
-            the index of refraciton into the z direction         
-        rounding: int
-            the precision of the comparison between n and nx, ny, nz for the special cases  
-            
+            the index of refraciton into the z direction
+
         Returns
         ------------
-        output format: tuple: (n1, n2)  
-        meaning:       effective refractive indices   
-        """ 
-                
+        output format: tuple: (n1, n2)
+        meaning:       effective refractive indices
+        """
+
         sx = direction[0]
         sy = direction[1]
         sz = direction[2]
-                
-        n1=np.sqrt((-2*nx**2*ny**2*nz**2)/(ny**2*nz**2*(-1 + sx**2) + nx**2*(nz**2*(-1 + sy**2) + ny**2*(-1 + sz**2)) - np.sqrt(4*nx**2*ny**2*nz**2*(nz**2*(-1 + sx**2 + sy**2) + ny**2*(-1 + sx**2 + sz**2) + nx**2*(-1 + sy**2 + sz**2)) + (ny**2*nz**2*(-1 + sx**2) + nx**2*(nz**2*(-1 + sy**2) + ny**2*(-1 + sz**2)))**2)))
-        n2=np.sqrt((-2*nx**2*ny**2*nz**2)/(ny**2*nz**2*(-1 + sx**2) + nx**2*(nz**2*(-1 + sy**2) + ny**2*(-1 + sz**2)) + np.sqrt(4*nx**2*ny**2*nz**2*(nz**2*(-1 + sx**2 + sy**2) + ny**2*(-1 + sx**2 + sz**2) + nx**2*(-1 + sy**2 + sz**2)) + (ny**2*nz**2*(-1 + sx**2) + nx**2*(nz**2*(-1 + sy**2) + ny**2*(-1 + sz**2)))**2)))
-        
+
+        n1 = np.sqrt((-2*nx**2*ny**2*nz**2)/(ny**2*nz**2*(-1 + sx**2) + nx**2*(nz**2*(-1 + sy**2) + ny**2*(-1 + sz**2)) - np.sqrt(4*nx**2*ny**2*nz**2*(nz**2*(-1 + sx**2 + sy**2) + ny**2*(-1 + sx**2 + sz**2) + nx**2*(-1 + sy**2 + sz**2)) + (ny**2*nz**2*(-1 + sx**2) + nx**2*(nz**2*(-1 + sy**2) + ny**2*(-1 + sz**2)))**2)))
+        n2 = np.sqrt((-2*nx**2*ny**2*nz**2)/(ny**2*nz**2*(-1 + sx**2) + nx**2*(nz**2*(-1 + sy**2) + ny**2*(-1 + sz**2)) + np.sqrt(4*nx**2*ny**2*nz**2*(nz**2*(-1 + sx**2 + sy**2) + ny**2*(-1 + sx**2 + sz**2) + nx**2*(-1 + sy**2 + sz**2)) + (ny**2*nz**2*(-1 + sx**2) + nx**2*(nz**2*(-1 + sy**2) + ny**2*(-1 + sz**2)))**2)))
+
         return(n1, n2)
 
+    def get_polarization(self, n, direction, nx, ny, nz, rounding=1e-08):
 
-    def get_polarization(self, n, direction, nx, ny, nz, rounding=20):
-        
         """
         Function for the normalized e-field vector of a wave for the direction of propagation in cartesian coordinates.
-    
+
         Parameters
         ------------
         n: float
-            the index of effective refraction into the x direction calculated by get_effective_index        
+            the index of effective refraction into the x direction calculated by get_effective_index
         direction: numpy.array
-            propagation direction of the wave              
+            propagation direction of the wave
         nx: float
-            the index of refraction into the x direction        
+            the index of refraction into the x direction
         ny: float
-            the index of refraction into the y direction        
+            the index of refraction into the y direction
         nz: float
-            the index of refraciton into the z direction         
+            the index of refraciton into the z direction
         rounding: int
-            the precision of the comparison between n and nx, ny, nz for the special cases  
-            
+            the precision of the comparison between n and nx, ny, nz for the special cases
+
         Returns
         ------------
-        output format: list: [px, py, pz]  
-        meaning:       normalized e-field vector   
-        """ 
-        
+        output format: list: [px, py, pz]
+        meaning:       normalized e-field vector
         """
 
-        #n = round(n, rounding)
-        #nx = round(nx, rounding)
-        #ny = round(ny, rounding)
-        #nz = round(nz, rounding)
-        
-        
-        eps = 1e-8
+        if (np.isclose(n, nx, atol=rounding)):
+            p = np.array([1, 0, 0])
 
-        if (np.isclose(n,nx)):
-            
-            p = np.array([1,0,0])
-            
-            
-        elif (np.isclose(n,ny)):
-            
-            p = np.array([0,1,0])            
-            
-        elif (np.isclose(n,nz)):
-            
-            p = np.array([0,0,1])            
-            
-        
+        elif (np.isclose(n, ny, atol=rounding)):
+            p = np.array([0, 1, 0])
+
+        elif (np.isclose(n, nz, atol=rounding)):
+            p = np.array([0, 0, 1])
+
         else:
             p = np.array([direction[0] / (n ** 2 - nx ** 2), direction[1] / (n ** 2 - ny ** 2), direction[2] / (n ** 2 - nz ** 2)])
-            
-   
-            
-            #print('good')
-            #print(p)
+
         return p / np.linalg.norm(p)
-        
-        """
-        
-        if(np.round(n, rounding) in [np.round(nx, rounding), np.round(ny, rounding), np.round(nz, rounding)]):
-        # treat special cases here
-            if(np.isclose(direction[0], 1)):  # propagation into x
-                print(f"propagating into x")
-                if(np.isclose(n, ny)):
-                    return np.array([0, 1, 0])
-                elif(np.isclose(n, nz)):
-                    return np.array([0, 0, 1])
-            elif(np.isclose(direction[1], 1)):  # propagation into y
-                print(f"propagating into y")
-                if(np.isclose(n, nx)):
-                    return np.array([1, 0, 0])
-                elif(np.isclose(n, nz)):
-                    return np.array([0, 0, 1])
-            elif(np.isclose(direction[2], 1)):  # propagation into z
-                print(f"propagating into z")
-                if(np.isclose(n, nx)):
-                    return np.array([1, 0, 0])
-                elif(np.isclose(n, ny)):
-                    return np.array([0, 1, 0])
-        # now treat the cases where the direction is perpendicular to just one of the principal axes
-            elif(np.isclose(np.dot(direction, np.array([1, 0, 0])), 0)):  # direction perpendicular to x-axis
-                if(np.isclose(n, nx)):
-                    return np.array([1, 0, 0])
-                else:
-                    print(f"ERROR: propagation direction perpendicular to x-axis but n not equal to n_x {n}")
-                    return [0, 0, 0]
-            elif(np.isclose(np.dot(direction, np.array([0, 1, 0])), 0)):  # direction perpendicular to y-axis
-                if(np.isclose(n, ny)):
-                    return np.array([0, 1, 0])
-                else:
-                    print(f"ERROR: propagation direction perpendicular to y-axis but n not equal to n_y")
-                    return [0, 0, 0]
-            elif(np.isclose(np.dot(direction, np.array([0, 0, 1])), 0)):  # direction perpendicular to z-axis
-                if(np.isclose(n, nz)):
-                    return np.array([0, 0, 1])
-                else:
-                    print(f"ERROR: propagation direction perpendicular to z-axis but n not equal to n_z")
-                    return [0, 0, 0]
 
-            else:
-                
-                print('fail')
-                
-                try:
-                    p = np.array([direction[0] / (n ** 2 - nx ** 2), direction[1] / (n ** 2 - ny ** 2), direction[2] / (n ** 2 - nz ** 2)])
-                    return p / np.linalg.norm(p)
-                
-                except:
-                    print(f"ERROR: non of the special cases worked")
-                    print(n, direction, nx, ny, nz)
-                    return [0, 0, 0]
-        else:
-            p = np.array([direction[0] / (n ** 2 - nx ** 2), direction[1] / (n ** 2 - ny ** 2), direction[2] / (n ** 2 - nz ** 2)])
-            return p / np.linalg.norm(p)
+    def get_3d_trace(self, source, antenna, acc=1000):
 
-        
-
-
-    def get_3d_trace(self, source, antenna, acc = 1000):
-        
         """
         Function  for the trace of the two possible solutions provided by get_path.
-    
+
         Parameters
         ------------
         source: numpy.array
-            position of the interaction        
+            position of the interaction
         antenna: numpy.array
-            position of the receiving antenna        
+            position of the receiving antenna
         acc: int
-            step number of the ray tracer   
-            
+            step number of the ray tracer
+
         Returns
         ------------
         output format: numpy.array
         meaning:       ray trace of    * [0] - direct
                                        * [1] - refracted or reflected
-        
-        """    
 
-        p = [] 
-               
+        """
+
+        p = []
+
         self.set_start_and_end_point(source, antenna)
         self.find_solutions()
 
@@ -1921,14 +1836,14 @@ class ray_tracing(ray_tracing_base):
             for iS in range(self.get_number_of_solutions()):
                 path = self.get_path(iS, n_points=acc)
                 p.append(path)
-    
+
         else:
             self.__logger.error('error: no solution from the ray tracer')
-                
-        return(np.array(p))              
-    
-    def get_birefringence_time_delay(self, source, antenna, path_type=0, acc =1000):
-        
+
+        return(np.array(p))
+
+    def get_birefringence_time_delay(self, source, antenna, path_type=0, acc=1000):
+
         """
         Function for the calculated time delay between the two birefringence states and the time stamps of the ordinary and extraordinary state at every step.
         The path of the two rays is approximated to be equal.
@@ -1936,74 +1851,72 @@ class ray_tracing(ray_tracing_base):
         Parameters
         ------------
         source: numpy.array
-            position of the interaction        
+            position of the interaction
         antenna: numpy.array
-            position of the receiving antenna        
+            position of the receiving antenna
         path_type: int
-            refers to the short or long path of the radio wave (0 for short, 1 for long)        
+            refers to the short or long path of the radio wave (0 for short, 1 for long)
         acc: int
-            step number of the ray tracer   
-            
+            step number of the ray tracer
+
         Returns
         ------------
         solution_type: list:    [Dt, t_o, t_e]
         meaning:                [0] - Dt (float) - total time delay between ordinary and extraordinary ray
                                 [1] - t_o (numpy.array) - time stamps from interaction to antenna for the ordinary ray
                                 [2] - t_e (numpy.array) - time stamps from interaction to antenna for the extraordinary ray
-         
-        """   
-        
 
-        #ice_n = self.__birefringence_model
+        """
+
         ice_n = self.__medium
 
         p = self.get_3d_trace(source, antenna, acc)
         c = speed_of_light * units.m / units.ns
-        
-        t_0 = [] 
-        t_1 = [] 
-    
+
+        t_0 = []
+        t_1 = []
+
         for i in range(acc-1):
-            
-            if path_type == 0:   
-                                
-                n1 = ice_n.get_index_of_refraction(p[0,i])[0]
-                n2 = ice_n.get_index_of_refraction(p[0,i])[1]
-                n3 = ice_n.get_index_of_refraction(p[0,i])[2]                               
-                       
-                dx = p[0,i+1,0] - p[0,i,0]
-                dy = p[0,i+1,1] - p[0,i,1]
-                dz = p[0,i+1,2] - p[0,i,2]
-            
+
+            if path_type == 0:
+
+                n1 = ice_n.get_index_of_refraction(p[0, i])[0]
+                n2 = ice_n.get_index_of_refraction(p[0, i])[1]
+                n3 = ice_n.get_index_of_refraction(p[0, i])[2]
+
+                dx = p[0, i+1, 0] - p[0, i, 0]
+                dy = p[0, i+1, 1] - p[0, i, 1]
+                dz = p[0, i+1, 2] - p[0, i, 2]
+
             elif path_type == 1:
 
-                n1 = ice_n.get_index_of_refraction(p[1,i])[0]
-                n2 = ice_n.get_index_of_refraction(p[1,i])[1]
-                n3 = ice_n.get_index_of_refraction(p[1,i])[2]
-                       
-                dx = p[1,i+1,0] - p[1,i,0]
-                dy = p[1,i+1,1] - p[1,i,1]
-                dz = p[1,i+1,2] - p[1,i,2]
-                
+                n1 = ice_n.get_index_of_refraction(p[1, i])[0]
+                n2 = ice_n.get_index_of_refraction(p[1, i])[1]
+                n3 = ice_n.get_index_of_refraction(p[1, i])[2]
+
+                dx = p[1, i+1, 0] - p[1, i, 0]
+                dy = p[1, i+1, 1] - p[1, i, 1]
+                dz = p[1, i+1, 2] - p[1, i, 2]
+
             else:
                 self.__logger.error('error: wrong path type')
-                              
-            direction = np.array([ dx, dy, dz])  
-            l = np.linalg.norm(direction)
-            direction = direction / l
+
+            direction = np.array([dx, dy, dz])
+            len_diff = np.linalg.norm(direction)
+            direction = direction / len_diff
 
             s = self.get_effective_index_fast(n1, n2, n3, direction)
-            
+
             n_0 = s[0]
-            n_1 = s[1] 
+            n_1 = s[1]
 
-            t_0.append(l * n_0 / c)
-            t_1.append(l * n_1 / c)
-           
-        Dt = np.sum(t_0) - np.sum(t_1) 
+            t_0.append(len_diff * n_0 / c)
+            t_1.append(len_diff * n_1 / c)
 
-        return(Dt, np.array(t_0), np.array(t_1))     
-        
+        Dt = np.sum(t_0) - np.sum(t_1)
+
+        return(Dt, np.array(t_0), np.array(t_1))
+
     def get_path_polarization(self, source, antenna, path_type=0, acc=1000):
 
         """
@@ -2012,211 +1925,210 @@ class ray_tracing(ray_tracing_base):
         Parameters
         ------------
         source: numpy.array
-            position of the interaction       
+            position of the interaction
         antenna: numpy.array
-            position of the receiving antenna        
+            position of the receiving antenna
         path_type: int
-            refers to the short or long path of the radio wave (0 for short, 1 for long)        
+            refers to the short or long path of the radio wave (0 for short, 1 for long)
         acc: int
-            step number of the ray tracer   
-            
+            step number of the ray tracer
+
         Returns
         ------------
         solution_type: list:    [sky_e, sky_o, l_path]
         meaning:                [0] - sky_e (numpy.array) - polarization vectors of the extraordinary ray along the trace
                                 [1] - sky_o (numpy.array) - polarization vectors of the ordinary ray along the trace
-                                [2] - l_path (numpy.array) - lenth of the path increment        
-        """    
+                                [2] - l_path (numpy.array) - lenth of the path increment
+        """
 
-        #ice_n = self.__birefringence_model
         ice_n = self.__medium
-
         p = self.get_3d_trace(source, antenna, acc)
-    
+
         l_path = []
         dist = 0
-    
+
         sky_0 = []
         sky_1 = []
-        
+
         p_0 = []
         p_1 = []
-        
+
         N0 = []
         N1 = []
 
-        
         for i in range(acc-1):
-            
-            #print(i)
 
-            if path_type == 0:   
-                                
-                n1 = ice_n.get_index_of_refraction(p[0,i])[0]
-                n2 = ice_n.get_index_of_refraction(p[0,i])[1]
-                n3 = ice_n.get_index_of_refraction(p[0,i])[2]                               
-                       
-                dx = p[0,i+1,0] - p[0,i,0]
-                dy = p[0,i+1,1] - p[0,i,1]
-                dz = p[0,i+1,2] - p[0,i,2]
-            
+            if path_type == 0:
+
+                n1 = ice_n.get_index_of_refraction(p[0, i])[0]
+                n2 = ice_n.get_index_of_refraction(p[0, i])[1]
+                n3 = ice_n.get_index_of_refraction(p[0, i])[2]
+
+                dx = p[0, i+1, 0] - p[0, i, 0]
+                dy = p[0, i+1, 1] - p[0, i, 1]
+                dz = p[0, i+1, 2] - p[0, i, 2]
+
             elif path_type == 1:
 
-                n1 = ice_n.get_index_of_refraction(p[1,i])[0]
-                n2 = ice_n.get_index_of_refraction(p[1,i])[1]
-                n3 = ice_n.get_index_of_refraction(p[1,i])[2]
-                       
-                dx = p[1,i+1,0] - p[1,i,0]
-                dy = p[1,i+1,1] - p[1,i,1]
-                dz = p[1,i+1,2] - p[1,i,2]
-          
-            direction = np.array([ dx, dy, dz])
-            l = np.linalg.norm(direction)
-            direction = direction / l        
-        
-            dist = dist + l
+                n1 = ice_n.get_index_of_refraction(p[1, i])[0]
+                n2 = ice_n.get_index_of_refraction(p[1, i])[1]
+                n3 = ice_n.get_index_of_refraction(p[1, i])[2]
+
+                dx = p[1, i+1, 0] - p[1, i, 0]
+                dy = p[1, i+1, 1] - p[1, i, 1]
+                dz = p[1, i+1, 2] - p[1, i, 2]
+
+            direction = np.array([dx, dy, dz])
+            len_diff = np.linalg.norm(direction)
+            direction = direction / len_diff
+
+            dist = dist + len_diff
             l_path.append(dist)
-            
+
             s = self.get_effective_index_fast(n1, n2, n3, direction)
-            
 
             p0 = self.get_polarization(s[0], direction, n1, n2, n3)
             p1 = self.get_polarization(s[1], direction, n1, n2, n3)
-  
-            N0.append(s[0])         
+
+            N0.append(s[0])
             N1.append(s[1])
 
             p_0.append(p0)
             p_1.append(p1)
-            
 
             zenith, azimuth = hp.cartesian_to_spherical(*(direction))
-            cs = cstrans.cstrafo(zenith,azimuth)
-        
+            cs = cstrans.cstrafo(zenith, azimuth)
+
             sky0 = cs.transform_from_ground_to_onsky(p0)
             sky1 = cs.transform_from_ground_to_onsky(p1)
-        
+
             #sky_o.append(np.abs(np.round(sky1, 10)))
             #sky_e.append(np.abs(np.round(sky2, 10)))
-            
+
             sky_0.append(sky0)
             sky_1.append(sky1)
-                 
+
         sky_0 = np.array(sky_0)
         sky_1 = np.array(sky_1)
-        
+
         p_0 = np.array(p_0)
-        p_1 = np.array(p_1)        
-        
+        p_1 = np.array(p_1)
+
         N0 = np.array(N0)
         N1 = np.array(N1)
-        
+
         l_path = np.array(l_path)
 
-        return(sky_0, sky_1, l_path, N0, N1)         
+        return(sky_0, sky_1, l_path, N0, N1)
            
     def get_pulse_trace_fast(self, source, antenna, pulse, path_type=0, acc=1000):
-        
+
         """
         Function for the time trace propagation according to the polarization change.
 
         Parameters
         ------------
         source: numpy.array
-            position of the interaction       
+            position of the interaction
         antenna: numpy.array
-            position of the receiving antenna      
+            position of the receiving antenna
         pulse: string
             .npy file name of the starting pulse shape ([0] - time stamp, [1] - theta component, [2] - phi component)
         path_type: int
-            refers to the short or long path of the radio wave (0 for short, 1 for long)        
+            refers to the short or long path of the radio wave (0 for short, 1 for long)
         acc: int
-            step number of the ray tracer   
-            
+            step number of the ray tracer
+
         Returns
         ------------
         solution_type: list:    [start_theta, start_phi, end_theta, end_phi, dt]
         meaning:                [0] - start_theta (list) - starting pulse for the theta component
                                 [1] - start_phi (list) - starting pulse for the phi component
-                                [2] - end_theta (list) - final pulse for the theta componentnt        
-                                [3] - end_phi (list) - final pulse for the phi component 
+                                [2] - end_theta (list) - final pulse for the theta componentnt
+                                [3] - end_phi (list) - final pulse for the phi component
                                 [4] - TT (list) - time stamps of the  starting theta pulse
-        """           
+        """
         data = np.load(pulse)
-        
+
         time = data[0] * units.ns
         etheta = data[1] * units.V / units.m
         ephi = data[2] * units.V / units.m
-        dt = time[1] - time[0] 
-      
-        #r = ray_tracing(southpole_2015())   
+        dt = time[1] - time[0]
+
+        # r = ray_tracing(southpole_2015())
         time_delay_short = self.get_birefringence_time_delay(source, antenna, path_type=path_type, acc=acc)
         polar_short = self.get_path_polarization(source, antenna, path_type=path_type, acc=acc)
 
-        polar_theta0 = polar_short[0][:,1]
-        polar_phi0 = polar_short[0][:,2]
-        
-        polar_theta1 = polar_short[1][:,1]
-        polar_phi1 = polar_short[1][:,2]
-        
+        polar_theta0 = polar_short[0][:, 1]
+        polar_phi0 = polar_short[0][:, 2]
+
+        polar_theta1 = polar_short[1][:, 1]
+        polar_phi1 = polar_short[1][:, 2]
+
         diff =  time_delay_short[2] - time_delay_short[1]
-         
+
         t_theta = base_trace.BaseTrace()
         t_phi = base_trace.BaseTrace()
-    
+
         t_slow = base_trace.BaseTrace()
-        t_fast = base_trace.BaseTrace()    
-    
-        t_theta.set_trace(etheta, sampling_rate= 1/ dt)
-        t_phi.set_trace(ephi, sampling_rate=1/dt)    
-        
-    
+        t_fast = base_trace.BaseTrace()
+
+        t_theta.set_trace(etheta, sampling_rate=1/ dt)
+        t_phi.set_trace(ephi, sampling_rate=1/dt)
+
         TT = t_theta.get_times()
-    
-        shift = TT[t_theta.get_trace() == max(t_theta.get_trace())]   
-         
+
+        shift = TT[t_theta.get_trace() == max(t_theta.get_trace())]
+
         t_theta.set_trace_start_time(-shift)
         t_phi.set_trace_start_time(-shift)
-    
+
         TT = t_theta.get_times()
-    
+
         start_theta = t_theta.get_trace()
-        start_phi = t_phi.get_trace()        
-    
+        start_phi = t_phi.get_trace()
+
         for i in range(len(diff)):
-            
+
             a = polar_theta0[i]
             b = polar_phi0[i]
-            
+
             c = polar_theta1[i]
             d = polar_phi1[i]
-            
-            R = np.matrix([[a, b],[c, d]])    
 
-            #print(R)
-            
+            if np.isclose(a*d - b*c, 0):
+                print('error caught')
+                print(i)
+
+                R = np.matrix([[1, 0],[0, 1]])
+                time_shift = 0
+
+            else:
+                R = np.matrix([[a, b],[c, d]])
+                time_shift = diff[i]
+
             th = t_theta.get_frequency_spectrum()
-            ph = t_phi.get_frequency_spectrum()        
+            ph = t_phi.get_frequency_spectrum()
             t_slow.set_frequency_spectrum(th * R[0, 0] + ph * R[0, 1], sampling_rate=1 / dt)
             t_fast.set_frequency_spectrum(th * R[1, 0] + ph * R[1, 1], sampling_rate=1 / dt)
-    
-            t_fast.apply_time_shift(diff[i])
-            
+
+            t_fast.apply_time_shift(time_shift)
+
             Rinv = np.linalg.inv(R)
 
             fa = t_fast.get_frequency_spectrum()
-            sl = t_slow.get_frequency_spectrum()           
+            sl = t_slow.get_frequency_spectrum()
             t_theta.set_frequency_spectrum(sl * Rinv[0, 0] + fa * Rinv[0, 1], sampling_rate=1 / dt)
             t_phi.set_frequency_spectrum(sl * Rinv[1, 0] + fa * Rinv[1, 1], sampling_rate=1 / dt)
-            
+
         end_theta = t_theta.get_trace()
         end_phi = t_phi.get_trace()
-        
+
         h_th = signal.hilbert(end_theta)
-        h_ph = signal.hilbert(end_phi)     
-        
+        h_ph = signal.hilbert(end_phi)
+
         t_delay = TT[h_th == max(h_th)] - TT[h_ph == max(h_ph)]
-    
+
         return(start_theta, start_phi, end_theta, end_phi, TT, t_delay)
 
     def get_launch_vector(self, iS):
