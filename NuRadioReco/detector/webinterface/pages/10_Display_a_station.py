@@ -29,7 +29,28 @@ def build_main_page(cont):
     # get the station information
     station_info = load_station_infos(selected_station_id, selected_collection)
     cont.subheader('station info')
-    # TODO display the station information
+    cont.markdown('**position**')
+    coll1, coll2, coll3 = cont.columns([1, 1, 1])
+    coll1.code(f'x: {station_info[selected_station_id]["position"][0]}')
+    coll2.code(f'y: {station_info[selected_station_id]["position"][1]}')
+    coll3.code(f'z: {station_info[selected_station_id]["position"][2]}')
+
+    coll1_t, coll2_t = cont.columns([1, 1])
+    coll1_t1, coll2_t1 = cont.columns([1, 1])
+    coll1_t.markdown('**commission time:**')
+    coll2_t.markdown('**decommission time:**')
+    coll1_t1.code(f'{station_info[selected_station_id]["commission_time"].date()}')
+    coll2_t1.code(f'{station_info[selected_station_id]["decommission_time"].date()}')
+
+    cont.markdown('**comments:**')
+    if 'station_comment' in station_info[selected_station_id].keys():
+        comment = f'{station_info[selected_station_id]["station_comment"]}'
+        if comment == '':
+            comment = 'No comments'
+    else:
+        comment = 'No comments'
+    cont.text(comment)
+
     cont.subheader('channel info')
 
     channel_dic = station_info[selected_station_id]['channels']
@@ -107,13 +128,14 @@ def build_main_page(cont):
     def highlight_cols(s):
         color = 'yellow'
         return 'background-color: %s' % color
-    cont.table(channel_data.style.applymap(highlight_cols, subset=pd.IndexSlice[:, ['id']]))
+    # cont.table(channel_data.style.applymap(highlight_cols, subset=pd.IndexSlice[:, ['id']]))
+    cont.dataframe(channel_data.style.applymap(highlight_cols, subset=pd.IndexSlice[:, ['id']]), use_container_width=True)
 
-    cont.subheader('Signal chain')
+    cont.subheader('signal chain')
     signal_data = get_signal_chain_table()
 
-    cont.table(signal_data.style.applymap(highlight_cols, subset=pd.IndexSlice[:, ['id']]))
-
+    cont.dataframe(signal_data.style.applymap(highlight_cols, subset=pd.IndexSlice[:, ['id']]), use_container_width=True)
+    #, height=int(len(signal_data.index+1)/3*200)
 
 # main page setup
 page_configuration()
