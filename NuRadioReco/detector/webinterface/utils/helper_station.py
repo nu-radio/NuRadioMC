@@ -35,14 +35,14 @@ def build_collection_input(cont):
 
     # select which collection should be used
     list_help.insert(0, 'Create a new collection')
-    collection_name = col1.selectbox('Select a existing collection or create a new one:', list_help)
+    collection_name = col1.selectbox('Select a existing collection or create a new one:', list_help, label_visibility='collapsed')
     # also a new collection can be created
     disable_txt_input = True
     pholder = ''
     if collection_name == 'Create a new collection':
         disable_txt_input = False
         pholder = 'Insert new collection name'
-    new_collection_name = col2.text_input('', placeholder=pholder, disabled=disable_txt_input, help='Collection name must contain "station"!')
+    new_collection_name = col2.text_input('', placeholder=pholder, disabled=disable_txt_input, help='Collection name must contain "station"!', label_visibility='collapsed')
 
     # create layout depending on if a new collection is created or an existing is used
     empty_button = False
@@ -60,7 +60,7 @@ def build_collection_input(cont):
         col1_new.markdown('Create a copy of an existing collection:')
         col2_new.markdown('Create empty collection:')
         empty_button = col2_new.button('CREATE EMPTY COLLECTION', disabled=disable_buttons)
-        copy_collection = col1_new.selectbox('Create a copy of the following collection:', sta_coll_names)
+        copy_collection = col1_new.selectbox('Create a copy of the following collection:', sta_coll_names, label_visibility='collapsed')
         copy_button = col1_new.button('CREATE COPY', disabled=disable_buttons)
     else:
         # use an existing one
@@ -530,7 +530,7 @@ def input_channel_information(cont, station_id, coll_name):
         initial_comment = station_info[station_id]['channel_comment']
     else:
         initial_comment = ''
-    comment = cont.text_area('Comment about the channel performance:')
+    comment = cont.text_area('Comment about the channel performance:', label_visibility='collapsed')
 
     return selected_channel, selected_antenna_name, position, ori_rot, selected_antenna_type, comm_date_ant, decomm_date_ant, signal_chain, comment, function_channel
 
@@ -567,10 +567,11 @@ def validate_channel_inputs(collection, container_bottom, station_name, comm_dat
 
     # validate that a valid channel is given
     possible_channel_ids = np.arange(0,24,1)
-    if channel in possible_channel_ids:
-        channel_correct = True
-    else:
-        container_bottom.error('The channel number must be between 0 and 23.')
+    if channel != '':
+        if channel in possible_channel_ids:
+            channel_correct = True
+        else:
+            container_bottom.error('The channel number must be between 0 and 23.')
 
     # validate that signal chain input is given
     if 'Choose a name' not in signal_chain and 'not existing yet' not in signal_chain:
