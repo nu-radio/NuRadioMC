@@ -1830,7 +1830,6 @@ class ray_tracing(ray_tracing_base):
         output format: numpy.array
         meaning:       ray trace of    * [0] - direct
                                        * [1] - refracted or reflected
-
         """
 
         p = []
@@ -1871,15 +1870,12 @@ class ray_tracing(ray_tracing_base):
         meaning:                [0] - Dt (float) - total time delay between ordinary and extraordinary ray
                                 [1] - t_o (numpy.array) - time stamps from interaction to antenna for the ordinary ray
                                 [2] - t_e (numpy.array) - time stamps from interaction to antenna for the extraordinary ray
-
         """
 
         ice_n = self.__medium
 
         p = self.get_3d_trace(source, antenna, acc)
         c = speed_of_light * units.m / units.ns
-        
-        #print(p)
 
         t_0 = []
         t_1 = []
@@ -1943,10 +1939,12 @@ class ray_tracing(ray_tracing_base):
 
         Returns
         ------------
-        solution_type: list:    [sky_e, sky_o, l_path]
-        meaning:                [0] - sky_e (numpy.array) - polarization vectors of the extraordinary ray along the trace
-                                [1] - sky_o (numpy.array) - polarization vectors of the ordinary ray along the trace
-                                [2] - l_path (numpy.array) - lenth of the path increment
+        solution_type: list:    [sky_e, sky_o, l_path, N0, N1]
+        meaning:                [0] - sky_0 (numpy.array) - polarization vectors of the ordinary ray along the trace
+                                [1] - sky_1 (numpy.array) - polarization vectors of the extraordinary ray along the trace
+                                [2] - l_path (numpy.array) - length of the path increment
+                                [3] - N0 (numpy.array) - effective refractive index vectors of the ordinary ray along the trace
+                                [4] - N1 (numpy.array) - effective refractive index vectors of the extraordinary ray along the trace
         """
 
         ice_n = self.__medium
@@ -2010,9 +2008,6 @@ class ray_tracing(ray_tracing_base):
             sky0 = cs.transform_from_ground_to_onsky(p0)
             sky1 = cs.transform_from_ground_to_onsky(p1)
 
-            #sky_o.append(np.abs(np.round(sky1, 10)))
-            #sky_e.append(np.abs(np.round(sky2, 10)))
-
             sky_0.append(sky0)
             sky_1.append(sky1)
 
@@ -2028,7 +2023,7 @@ class ray_tracing(ray_tracing_base):
         l_path = np.array(l_path)
 
         return(sky_0, sky_1, l_path, N0, N1)
-           
+
     def get_pulse_trace_fast(self, source, antenna, pulse, path_type=0, acc=1000, samp_rate = 0.01):
 
         """
@@ -2040,21 +2035,32 @@ class ray_tracing(ray_tracing_base):
             position of the interaction
         antenna: numpy.array
             position of the receiving antenna
-        pulse: string
-            .npy file name of the starting pulse shape ([0] - time stamp, [1] - theta component, [2] - phi component)
+        pulse: string or np.ndarray
+            as str:           .npy file name of the starting pulse shape ([0] - time stamp, [1] - theta component, [2] - phi component)
+            as np.ndarray:    3d array with the frequency spectrum of np.array([eR, eTheta, ePhi]), 
+                                usually provided by the apply_propagation_effects function
         path_type: int
             refers to the short or long path of the radio wave (0 for short, 1 for long)
         acc: int
             step number of the ray tracer
+        samp_rate: float
+            only important when using apply_propagation_effects as it provides the sampling rate of the time traces
 
         Returns
         ------------
-        solution_type: list:    [start_theta, start_phi, end_theta, end_phi, dt]
-        meaning:                [0] - start_theta (list) - starting pulse for the theta component
-                                [1] - start_phi (list) - starting pulse for the phi component
-                                [2] - end_theta (list) - final pulse for the theta componentnt
-                                [3] - end_phi (list) - final pulse for the phi component
-                                [4] - TT (list) - time stamps of the  starting theta pulse
+        single pulse:
+            solution_type: list:    [start_theta, start_phi, end_theta, end_phi, TT, t_delay]
+            meaning:                [0] - start_theta (list) - starting pulse for the theta component
+                                    [1] - start_phi (list) - starting pulse for the phi component
+                                    [2] - end_theta (list) - final pulse for the theta componentnt
+                                    [3] - end_phi (list) - final pulse for the phi component
+                                    [4] - TT (list) - time stamps of the  starting theta pulse
+                                    [5] - t_delay (float) - theoretically calculated time delay
+        simulated pulse:
+            solution_type: np.ndarray:    [eR, eTheta, ePhi]
+            meaning:                [0] - eR (np.array) - final frequency spectrum of the radial component
+                                    [1] - eTheta (np.array) - final frequency spectrum of the theta componentnt
+                                    [2] - ePhi (np.array) - final frequency spectrum of the phi component
         """
 
         t_slow = base_trace.BaseTrace()
@@ -2062,20 +2068,20 @@ class ray_tracing(ray_tracing_base):
 
         t_theta = base_trace.BaseTrace()
         t_phi = base_trace.BaseTrace()
-        
+
         f_spectrum = base_trace.BaseTrace()
 
         if type(pulse) == str:
             style = 'single pulse'
 
             data = np.load(pulse)
-            
+
             time = data[0] * units.ns
             etheta = data[1] * units.V / units.m
             ephi = data[2] * units.V / units.m
             dt = time[1] - time[0]
 
-            t_theta.set_trace(etheta, sampling_rate=1/ dt)
+            t_theta.set_trace(etheta, sampling_rate=1/dt)
             t_phi.set_trace(ephi, sampling_rate=1/dt)
 
         elif type(pulse) == np.ndarray:
@@ -2083,16 +2089,16 @@ class ray_tracing(ray_tracing_base):
 
             f_spectrum.set_frequency_spectrum(pulse, sampling_rate=samp_rate)
 
-            etheta = f_spectrum.get_trace()[1]* units.V / units.m
-            ephi = f_spectrum.get_trace()[2]* units.V / units.m
-            
-            dt = 1/ samp_rate* units.ns
-            
+            etheta = f_spectrum.get_trace()[1] * units.V / units.m
+            ephi = f_spectrum.get_trace()[2] * units.V / units.m
+
+            dt = 1 / samp_rate * units.ns
+
             t_theta.set_trace(etheta, sampling_rate=samp_rate)
             t_phi.set_trace(ephi, sampling_rate=samp_rate)
 
         else:
-            print('error: wrong data type')
+            self.__logger.error("error: wrong data type")
 
         TT = t_theta.get_times()
 
@@ -2112,7 +2118,7 @@ class ray_tracing(ray_tracing_base):
         polar_theta1 = polar_short[1][:, 1]
         polar_phi1 = polar_short[1][:, 2]
 
-        diff =  time_delay_short[2] - time_delay_short[1]
+        diff = time_delay_short[2] - time_delay_short[1]
 
         start_theta = t_theta.get_trace()
         start_phi = t_phi.get_trace()
@@ -2125,15 +2131,14 @@ class ray_tracing(ray_tracing_base):
             c = polar_theta1[i]
             d = polar_phi1[i]
 
-            if np.isclose(a*d - b*c, 0):
-                print('error caught')
-                print(i)
+            if np.isclose(a*d - b*c, 0) or np.isnan([a, b, c, d]).any():
+                self.__logger.error("warning: Polarization vectors similar, R-matrix not invertible, iteration" + str(i))
 
-                R = np.matrix([[1, 0],[0, 1]])
+                R = np.matrix([[1, 0], [0, 1]])
                 time_shift = 0
 
             else:
-                R = np.matrix([[a, b],[c, d]])
+                R = np.matrix([[a, b], [c, d]])
                 time_shift = diff[i]
 
             th = t_theta.get_frequency_spectrum()
@@ -2155,15 +2160,14 @@ class ray_tracing(ray_tracing_base):
 
         h_th = signal.hilbert(end_theta)
         h_ph = signal.hilbert(end_phi)
-        
+
         if style == 'single pulse':
             t_delay = TT[h_th == max(h_th)] - TT[h_ph == max(h_ph)]
             return(start_theta, start_phi, end_theta, end_phi, TT, t_delay)
-        
+
         elif style == 'simulation pulse':
             el_field = np.vstack((f_spectrum.get_frequency_spectrum()[0], t_theta.get_frequency_spectrum(), t_phi.get_frequency_spectrum()))
             return el_field
-            
 
     def get_launch_vector(self, iS):
         """
@@ -2528,8 +2532,7 @@ class ray_tracing(ray_tracing_base):
 
         # apply the birefringence effect
         if self._config['propagation']['birefringence']:
-
-            spec = self.get_pulse_trace_fast(self._source, self._antenna, spec, samp_rate = s_rate)
+            spec = self.get_pulse_trace_fast(self._source, self._antenna, spec, path_type=i_solution, samp_rate = s_rate)
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
