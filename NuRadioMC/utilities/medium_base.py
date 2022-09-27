@@ -324,10 +324,10 @@ class IceModelBirefringence(IceModelSimple):
 
         Parameters
         ----------
-        z_air_boundary:  float, NuRadio length units
-                         z coordinate of the surface of the glacier
-        z_bottom:  float, NuRadio length units
-                   z coordinate of the bedrock/bottom of the glacier.
+        exp_model:    pointer
+                        exponential parametrisation of the density effect on the refractive index
+        bir_model:    str
+                        choice for the birefringence model, 'southpole_A', 'southpole_B', ...
         n_ice:  float, dimensionless
                 refractive index of the deep bulk ice
         delta_n:  float, NuRadio length units
@@ -362,8 +362,8 @@ class IceModelBirefringence(IceModelSimple):
 
         Returns
         -------
-        n:  float
-            index of refraction
+        n:  list [nx, ny, nz]
+            index of refraction for every direction
         """
 
         nx = self.exp_model.get_index_of_refraction(position) + self.f1(-position[2]) - self.comp
@@ -407,6 +407,7 @@ class IceModelBirefringence(IceModelSimple):
 
     def get_gradient_of_index_of_refraction(self, position):
         """
+        (same as in IceModelSimple)
         returns the gradient of index of refraction at position
         Overwrites function of the mother class
 
@@ -427,6 +428,7 @@ class IceModelBirefringence(IceModelSimple):
 
     def get_ice_model_radiopropa(self):
         """
+        (same as in IceModelSimple)
         If radiopropa is installed this will return an object holding the radiopropa
         scalarfield and necessary radiopropa moduldes that define the medium in radiopropa. 
         It uses the parameters of the medium object to contruct the scalar field using the 
