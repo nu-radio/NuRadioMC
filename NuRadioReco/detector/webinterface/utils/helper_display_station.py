@@ -10,8 +10,8 @@ from NuRadioReco.detector.webinterface import config
 from datetime import datetime
 from datetime import time
 
-# det = Detector(config.DATABASE_TARGET)
-det = Detector(database_connection='test')
+det = Detector(config.DATABASE_TARGET)
+# det = Detector(database_connection='test')
 
 
 def load_station_infos(station_id, coll_name):
