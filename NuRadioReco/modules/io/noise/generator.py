@@ -2,9 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow import keras
 import tensorflow as tf
-import warnings 
-import tensorflow as tf
-
 class Generator():
     '''Discriminator (critic) model used in the WGAN'''
 
