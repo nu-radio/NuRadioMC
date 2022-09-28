@@ -10,8 +10,8 @@ from NuRadioReco.detector.webinterface import config
 from datetime import datetime
 from datetime import time
 
-# det = Detector(config.DATABASE_TARGET)
-det = Detector(database_connection='test')
+det = Detector(config.DATABASE_TARGET)
+# det = Detector(database_connection='test')
 
 
 def load_station_infos(station_id, coll_name):
@@ -35,14 +35,14 @@ def build_collection_input(cont):
 
     # select which collection should be used
     list_help.insert(0, 'Create a new collection')
-    collection_name = col1.selectbox('Select a existing collection or create a new one:', list_help, label_visibility='collapsed')
+    collection_name = col1.selectbox('Select a existing collection or create a new one:', list_help)
     # also a new collection can be created
     disable_txt_input = True
     pholder = ''
     if collection_name == 'Create a new collection':
         disable_txt_input = False
         pholder = 'Insert new collection name'
-    new_collection_name = col2.text_input('', placeholder=pholder, disabled=disable_txt_input, help='Collection name must contain "station"!', label_visibility='collapsed')
+    new_collection_name = col2.text_input('', placeholder=pholder, disabled=disable_txt_input, help='Collection name must contain "station"!')
 
     # create layout depending on if a new collection is created or an existing is used
     empty_button = False
