@@ -35,15 +35,15 @@ def select_cable(page_name, main_container, warning_container_top):
     cable_channel = col3_cable.selectbox('', cable_channels)
 
     cable_name = ""
-    if page_name == 'surfCABLE':
+    if page_name == 'surface_cable':
         cable_name = cable_station[cable_station.find('(')+1:cable_station.find('(')+3] + cable_channel[cable_channel.find('(')+1:cable_channel.rfind(')')] + cable_type[:cable_type.find(' meter')]
-    elif page_name == 'CABLE':
+    elif page_name == 'downhole_cable':
         cable_name = cable_station[len('stations'): len('stations') + 2] + cable_channel[:1] + cable_type[cable_type.find('(')+1:cable_type.find(')')-1]
 
     if cable_name in det.get_object_names(page_name):
-        if page_name == 'surfCABLE':
+        if page_name == 'surface_cable':
             warning_container_top.warning(f'You are about to override the {page_name} unit \'{cable_name[-2:]} meter, station {cable_name[:2]}, channel {cable_name[2:-2]}\'!')
-        elif page_name == 'CABLE':
+        elif page_name == 'downhole_cable':
             warning_container_top.warning(f'You are about to override the {page_name} unit \'{cable_name[-1:]} meter, station {cable_name[:2]}, string {cable_name[2:-1]}\'!')
 
 
