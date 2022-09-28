@@ -1,0 +1,33 @@
+{
+    "_default": {},
+    "channels": {
+        "0": {
+          "amp_type": "rno_surface",
+          "ant_comment": "triangle east, upward",
+          "ant_orientation_phi": 0.0,
+          "ant_orientation_theta": 0.0,
+          "ant_position_x": 0.0,
+          "ant_position_y": 0.0,
+          "ant_position_z": -3.0,
+          "ant_rotation_phi": 180.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz_InfFirn",
+          "channel_id": 0,
+          "station_id": 101
+        }
+    },
+    "positions": {},
+        "stations": {
+        "01": {
+            "pos_altitude": 3247.834,
+            "pos_easting": 0,
+            "pos_northing": 0,
+            "pos_site": "summit",
+            "station_id": 101,
+            "commission_time": "{TinyDate}:2021-07-01T00:00:00",
+            "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
+            "station_type": "Nanoq",
+            "reference_station": 101
+        }
+    }
+}
