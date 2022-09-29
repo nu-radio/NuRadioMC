@@ -281,7 +281,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 launch_upper.append(np.pi)
         
         for s,sphere_size in enumerate(self._sphere_sizes):
-
             sphere_size = sphere_size * (radiopropa.meter/units.meter)
             detected_rays = []
             results = []
@@ -297,7 +296,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
             obs = radiopropa.Observer()
             obs.setDeactivateOnDetection(True)
             channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(*X2), sphere_size)) ## when making the radius larger than 2 meters, somethimes three solution times are found
-             
             obs.add(channel)
             sim.add(obs)
 
@@ -350,6 +348,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
                             for secondary in ray.secondaries:
                                 next_rays.append(secondary)
                         current_rays = next_rays
+
             #loop over previous rays to find the upper and lower theta of each bundle of rays
             #uses step, but because step is initialized after this loop this ios the previous step size as intented
             if len(detected_rays) > 0:
@@ -681,6 +680,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
         def cot(x):
             return 1/np.tan(x)
+        
         def arccot(x):
             return np.arctan(-x) + np.pi/2
 
@@ -695,7 +695,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
         
         #we minimize the cotangens of the zenith to reflect the same resolution in z to the different angles (vertical vs horizontal) 
         root1 = optimize.minimize(delta_z_squared,x0=cot(theta_direct),method='Nelder-Mead',options={'xatol':self.__xtol**2,'fatol':self.__ztol**2})
-        t2 = time.time()
         if root1.success:# and np.sqrt(root1.fun) < 1e-2*units.meter:
             #if root1.fun > self.__ztol**2: print(root1,'\n',20*'#')
             theta1 = arccot(root1.x)
@@ -771,8 +770,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         
         if self._config['propagation']['radiopropa']['mode'] == 'minimizing':
             has_reflec = (hasattr(self._medium,'reflection') or (self.__ice_model_nuradio.reflection is not None))
-            if isinstance(self._medium, medium_base.IceModelSimple): #and not has_reflec:
-                #TDWFSR
+            if isinstance(self._medium, medium_base.IceModelSimple) and not has_reflec:
                 self.raytracer_minimizer(n_reflections=self._n_reflections)
                 results = []
                 for iS in range(len(self._rays)):
@@ -1463,3 +1461,4 @@ class radiopropa_ray_tracing(ray_tracing_base):
             else:
                 ice_thickness = self._medium.z_air_boundary - self._medium.reflection
         return -dz * rho / ((self._X1[2] + self._X2[2] + 2*n_bottom_reflections*ice_thickness)**2 + rho**2) * units.radian
+
