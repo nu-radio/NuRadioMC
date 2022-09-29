@@ -1461,4 +1461,3 @@ class radiopropa_ray_tracing(ray_tracing_base):
             else:
                 ice_thickness = self._medium.z_air_boundary - self._medium.reflection
         return -dz * rho / ((self._X1[2] + self._X2[2] + 2*n_bottom_reflections*ice_thickness)**2 + rho**2) * units.radian
-
