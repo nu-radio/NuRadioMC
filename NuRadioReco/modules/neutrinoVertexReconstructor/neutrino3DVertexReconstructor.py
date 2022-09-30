@@ -87,6 +87,7 @@ class neutrino3DVertexReconstructor:
             z_step_3d=2 * units.m,
             passband=None,
             min_antenna_distance=5. * units.m,
+            use_maximum_filter=True,
             debug_folder='.',
             sampling_rate=None,
             debug_formats='.png'
@@ -141,6 +142,7 @@ class neutrino3DVertexReconstructor:
         self.__detector = detector
         self.__channel_ids = channel_ids
         self.__station_id = station_id
+        self.__use_maximum_filter = use_maximum_filter
         self.__debug_folder = debug_folder
         self.__channel_pairs = []
         for i in range(len(channel_ids) - 1):
@@ -684,34 +686,34 @@ class neutrino3DVertexReconstructor:
         delta_t = t_1 - t_2
         delta_start_time = self.__start_times[self.__channel_pair[1]] - self.__start_times[self.__channel_pair[0]]
         delta_t = delta_t.astype(float)
+        if self.__use_maximum_filter:
+            t_offset_1 = self.get_signal_travel_time(d_hor[0] - self.__distance_step_3d / 2., z, self.__current_ray_types[0], self.__channel_pair[0])
+            t_offset_2 = self.get_signal_travel_time(d_hor[1] - self.__distance_step_3d / 2., z, self.__current_ray_types[1], self.__channel_pair[1])
+            delta_t_offset = t_offset_1 - t_offset_2
+            delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
+            delta_t_offset = delta_t_offset.astype(float)
+            time_deviations = np.abs(delta_t - delta_t_offset)
 
-        t_offset_1 = self.get_signal_travel_time(d_hor[0] - self.__distance_step_3d / 2., z, self.__current_ray_types[0], self.__channel_pair[0])
-        t_offset_2 = self.get_signal_travel_time(d_hor[1] - self.__distance_step_3d / 2., z, self.__current_ray_types[1], self.__channel_pair[1])
-        delta_t_offset = t_offset_1 - t_offset_2
-        delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
-        delta_t_offset = delta_t_offset.astype(float)
-        time_deviations = np.abs(delta_t - delta_t_offset)
+            t_offset_1 = self.get_signal_travel_time(d_hor[0] + self.__distance_step_3d / 2., z, self.__current_ray_types[0], self.__channel_pair[0])
+            t_offset_2 = self.get_signal_travel_time(d_hor[1] + self.__distance_step_3d / 2., z, self.__current_ray_types[1], self.__channel_pair[1])
+            delta_t_offset = t_offset_1 - t_offset_2
+            delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
+            delta_t_offset = delta_t_offset.astype(float)
+            time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
 
-        t_offset_1 = self.get_signal_travel_time(d_hor[0] + self.__distance_step_3d / 2., z, self.__current_ray_types[0], self.__channel_pair[0])
-        t_offset_2 = self.get_signal_travel_time(d_hor[1] + self.__distance_step_3d / 2., z, self.__current_ray_types[1], self.__channel_pair[1])
-        delta_t_offset = t_offset_1 - t_offset_2
-        delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
-        delta_t_offset = delta_t_offset.astype(float)
-        time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
+            t_offset_1 = self.get_signal_travel_time(d_hor[0], z + self.__z_step_3d / 2., self.__current_ray_types[0], self.__channel_pair[0])
+            t_offset_2 = self.get_signal_travel_time(d_hor[1], z + self.__z_step_3d / 2., self.__current_ray_types[1], self.__channel_pair[1])
+            delta_t_offset = t_offset_1 - t_offset_2
+            delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
+            delta_t_offset = delta_t_offset.astype(float)
+            time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
 
-        t_offset_1 = self.get_signal_travel_time(d_hor[0], z + self.__z_step_3d / 2., self.__current_ray_types[0], self.__channel_pair[0])
-        t_offset_2 = self.get_signal_travel_time(d_hor[1], z + self.__z_step_3d / 2., self.__current_ray_types[1], self.__channel_pair[1])
-        delta_t_offset = t_offset_1 - t_offset_2
-        delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
-        delta_t_offset = delta_t_offset.astype(float)
-        time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
-
-        t_offset_1 = self.get_signal_travel_time(d_hor[0], z - self.__z_step_3d / 2., self.__current_ray_types[0], self.__channel_pair[0])
-        t_offset_2 = self.get_signal_travel_time(d_hor[1], z - self.__z_step_3d / 2., self.__current_ray_types[1], self.__channel_pair[1])
-        delta_t_offset = t_offset_1 - t_offset_2
-        delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
-        delta_t_offset = delta_t_offset.astype(float)
-        time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
+            t_offset_1 = self.get_signal_travel_time(d_hor[0], z - self.__z_step_3d / 2., self.__current_ray_types[0], self.__channel_pair[0])
+            t_offset_2 = self.get_signal_travel_time(d_hor[1], z - self.__z_step_3d / 2., self.__current_ray_types[1], self.__channel_pair[1])
+            delta_t_offset = t_offset_1 - t_offset_2
+            delta_t_offset[np.isnan(delta_t_offset) | np.isnan(delta_t)] = 0
+            delta_t_offset = delta_t_offset.astype(float)
+            time_deviations = np.maximum(time_deviations, np.abs(delta_t - delta_t_offset))
 
         corr_index = self.__correlation.shape[0] / 2 + np.round((delta_t + delta_start_time) * self.__sampling_rate)
         corr_index[np.isnan(delta_t)] = -1
@@ -719,19 +721,22 @@ class neutrino3DVertexReconstructor:
         corr_index[~mask] = 0
 
         res = np.zeros_like(corr_index)
-        step_size_x = int(np.ceil(res.shape[0] / 10)) # we subdivide into a roughly
-        step_size_y = int(np.ceil(res.shape[1] / 10)) # 10x10 grid
-        for i_x in range(int(np.ceil(res.shape[0] / step_size_x))):
-            for i_y in range(int(np.ceil(res.shape[1] / step_size_y))):
-                i_x_0 = i_x * step_size_x
-                i_x_1 = i_x_0 + step_size_x
-                i_y_0 = i_y * step_size_y
-                i_y_1 = i_y_0 + step_size_y
-                maximized_correlation = scipy.ndimage.maximum_filter(
-                            np.abs(self.__correlation),
-                            size=np.median(np.abs(time_deviations[i_x_0:i_x_1, i_y_0:i_y_1])) * self.__sampling_rate / 2.
-                        )
-                res[i_x_0:i_x_1, i_y_0:i_y_1] = np.take(maximized_correlation, corr_index[i_x_0:i_x_1, i_y_0:i_y_1].astype(int))
+        if self.__use_maximum_filter:
+            step_size_x = int(np.ceil(res.shape[0] / 10)) # we subdivide into a roughly
+            step_size_y = int(np.ceil(res.shape[1] / 10)) # 10x10 grid
+            for i_x in range(int(np.ceil(res.shape[0] / step_size_x))):
+                for i_y in range(int(np.ceil(res.shape[1] / step_size_y))):
+                    i_x_0 = i_x * step_size_x
+                    i_x_1 = i_x_0 + step_size_x
+                    i_y_0 = i_y * step_size_y
+                    i_y_1 = i_y_0 + step_size_y
+                    maximized_correlation = scipy.ndimage.maximum_filter(
+                                np.abs(self.__correlation),
+                                size=np.median(np.abs(time_deviations[i_x_0:i_x_1, i_y_0:i_y_1])) * self.__sampling_rate / 2.
+                            )
+                    res[i_x_0:i_x_1, i_y_0:i_y_1] = np.take(maximized_correlation, corr_index[i_x_0:i_x_1, i_y_0:i_y_1].astype(int))
+        else:
+            res = np.abs(self.__correlation)[corr_index]
         res[~mask] = 0
         """
         corr_index = self.__correlation.shape[0] / 2 + np.round(delta_t * self.__sampling_rate)
