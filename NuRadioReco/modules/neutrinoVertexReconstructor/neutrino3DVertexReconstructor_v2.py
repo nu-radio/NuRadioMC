@@ -779,7 +779,7 @@ class neutrino3DVertexReconstructor:
                             )
                     res[i_x_0:i_x_1, i_y_0:i_y_1] = np.take(maximized_correlation, corr_index[i_x_0:i_x_1, i_y_0:i_y_1].astype(int))
         else:
-            res = np.abs(self.__correlation)[corr_index]
+            res = np.abs(self.__correlation)[corr_index.astype(int)]
         res[~mask] = 0
         res[np.isnan(res)] = 0
         # print(time_deviations)
