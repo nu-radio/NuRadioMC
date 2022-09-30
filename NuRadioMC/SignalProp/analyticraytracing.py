@@ -1133,7 +1133,7 @@ class ray_tracing_2D(ray_tracing_base):
                 import matplotlib.pyplot as plt
                 plt.show()
 
-            return sorted(results, key=itemgetter('type'))
+            return sorted(results, key=itemgetter('C0'))
 
     def plot_result(self, x1, x2, C_0, ax):
         """
