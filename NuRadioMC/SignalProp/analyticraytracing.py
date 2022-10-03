@@ -1884,9 +1884,9 @@ class ray_tracing(ray_tracing_base):
 
             if path_type == 0:
 
-                n1 = ice_n.get_index_of_refraction(p[0, i])[0]
-                n2 = ice_n.get_index_of_refraction(p[0, i])[1]
-                n3 = ice_n.get_index_of_refraction(p[0, i])[2]
+                n1 = ice_n.get_birefringence_index_of_refraction(p[0, i])[0]
+                n2 = ice_n.get_birefringence_index_of_refraction(p[0, i])[1]
+                n3 = ice_n.get_birefringence_index_of_refraction(p[0, i])[2]
 
                 dx = p[0, i+1, 0] - p[0, i, 0]
                 dy = p[0, i+1, 1] - p[0, i, 1]
@@ -1894,9 +1894,9 @@ class ray_tracing(ray_tracing_base):
 
             elif path_type == 1:
 
-                n1 = ice_n.get_index_of_refraction(p[1, i])[0]
-                n2 = ice_n.get_index_of_refraction(p[1, i])[1]
-                n3 = ice_n.get_index_of_refraction(p[1, i])[2]
+                n1 = ice_n.get_birefringence_index_of_refraction(p[1, i])[0]
+                n2 = ice_n.get_birefringence_index_of_refraction(p[1, i])[1]
+                n3 = ice_n.get_birefringence_index_of_refraction(p[1, i])[2]
 
                 dx = p[1, i+1, 0] - p[1, i, 0]
                 dy = p[1, i+1, 1] - p[1, i, 1]
@@ -1966,9 +1966,9 @@ class ray_tracing(ray_tracing_base):
 
             if path_type == 0:
 
-                n1 = ice_n.get_index_of_refraction(p[0, i])[0]
-                n2 = ice_n.get_index_of_refraction(p[0, i])[1]
-                n3 = ice_n.get_index_of_refraction(p[0, i])[2]
+                n1 = ice_n.get_birefringence_index_of_refraction(p[0, i])[0]
+                n2 = ice_n.get_birefringence_index_of_refraction(p[0, i])[1]
+                n3 = ice_n.get_birefringence_index_of_refraction(p[0, i])[2]
 
                 dx = p[0, i+1, 0] - p[0, i, 0]
                 dy = p[0, i+1, 1] - p[0, i, 1]
@@ -1976,9 +1976,9 @@ class ray_tracing(ray_tracing_base):
 
             elif path_type == 1:
 
-                n1 = ice_n.get_index_of_refraction(p[1, i])[0]
-                n2 = ice_n.get_index_of_refraction(p[1, i])[1]
-                n3 = ice_n.get_index_of_refraction(p[1, i])[2]
+                n1 = ice_n.get_birefringence_index_of_refraction(p[1, i])[0]
+                n2 = ice_n.get_birefringence_index_of_refraction(p[1, i])[1]
+                n3 = ice_n.get_birefringence_index_of_refraction(p[1, i])[2]
 
                 dx = p[1, i+1, 0] - p[1, i, 0]
                 dy = p[1, i+1, 1] - p[1, i, 1]
@@ -2552,6 +2552,6 @@ class ray_tracing(ray_tracing_base):
             self._config['propagation']['attenuate_ice'] = True
             self._config['propagation']['focusing_limit'] = 2
             self._config['propagation']['focusing'] = False
-            self._config['propagation']['birefringence'] = False
+            self._config['propagation']['birefringence'] = True
         else:
             self._config = config
