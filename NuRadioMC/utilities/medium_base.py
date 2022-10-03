@@ -350,7 +350,37 @@ class IceModelBirefringence(IceModelSimple):
 
         self.comp = self.exp_model.get_index_of_refraction(np.array([0, 0, -2500]))
 
+
     def get_index_of_refraction(self, position):
+        """
+        returns the index of refraction at position.
+        Overwrites function of the mother class
+
+        Parameters
+        ----------
+        position:  1D or 2D numpy array
+                    Either one position or an array
+                    of positions for which the indices
+                    of refraction are returned
+
+        Returns
+        -------
+        n:  float
+            index of refraction
+        """
+        if isinstance(position, list) or position.ndim == 1:
+            if (position[2] - self.z_air_boundary) <= 0:
+                return self.n_ice - self.delta_n * np.exp((position[2] - self.z_shift) / self.z_0)
+            else:
+                return 1
+        else:
+            ior = self.n_ice - self.delta_n * np.exp((position[:, 2] - self.z_shift) / self.z_0)
+            ior[position[:, 2] >= 0] = 1.
+            return ior
+    
+    
+    #def get_birefringence_index_of_refraction(self, position):
+    def get_birefringence_index_of_refraction(self, position):
         """
         returns the index of refraction at position.
         Overwrites function of the mother class
