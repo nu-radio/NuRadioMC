@@ -449,7 +449,7 @@ class neutrino3DVertexReconstructor:
                 # mask_phi = np.abs(thetaphi[1,None] - thetaphi_mask[1,:,None]) * np.sin(thetaphi[0])[None] < 2.1 * dTheta
                 # print(f'phi mask: {np.sum(mask_phi)} / {mask_phi.shape}')
                 # mask = np.where(np.any(mask_theta & mask_phi, axis=0))[0]
-                print(f'total mask: {mask.shape}')
+                logger.debug(f'total mask: {mask.shape}')
                 thetaphi = thetaphi[:,mask]
 
                 # we also need to find the corresponding 'nearest neighbour' indices
@@ -526,7 +526,6 @@ class neutrino3DVertexReconstructor:
             )
             max_corr = np.nanmax(combined_correlations, axis=0)
             mean_corr[np.isnan(mean_corr)] = 0
-            print(max_corr)
             i_max_dnr = np.unravel_index(np.argmax(combined_correlations), combined_correlations.shape)
             vertex_x = x_coords[i_max_dnr]
             vertex_y = y_coords[i_max_dnr]
@@ -560,39 +559,40 @@ class neutrino3DVertexReconstructor:
             theta_sim = np.pi/2 - np.arctan2(sim_vertex[2] + 5 * units.m, np.linalg.norm(sim_vertex[:2]))
             distance_sim = np.linalg.norm(sim_vertex)
 
-            self.__draw_correlation_map_polar(
-                event, thetaphi, mean_corr,
-                thetaphi_sim = [theta_sim, phi_sim],
-                thetaphi_fit = [theta_fit, phi_fit],
-                filetag=f'_mean_{i_iteration}'
-            )
-            self.__draw_correlation_map_polar(
-                event, thetaphi, max_corr,
-                thetaphi_sim = [theta_sim, phi_sim],
-                thetaphi_fit = [theta_fit, phi_fit],
-                filetag=f'_max_{i_iteration}'
-            )
+            if debug:
+                self.__draw_correlation_map_polar(
+                    event, thetaphi, mean_corr,
+                    thetaphi_sim = [theta_sim, phi_sim],
+                    thetaphi_fit = [theta_fit, phi_fit],
+                    filetag=f'_mean_{i_iteration}'
+                )
+                self.__draw_correlation_map_polar(
+                    event, thetaphi, max_corr,
+                    thetaphi_sim = [theta_sim, phi_sim],
+                    thetaphi_fit = [theta_fit, phi_fit],
+                    filetag=f'_max_{i_iteration}'
+                )
 
-            zoom_fit = (np.abs(thetaphi[0] - theta_fit) < 10 * dTheta) & (np.abs((thetaphi[1] - phi_fit + np.pi) % (2*np.pi) - np.pi) < 10 * dTheta)
-            self.__draw_correlation_distance(
-                event, thetaphi[:,zoom_fit], distances_3d,
-                combined_correlations[:, zoom_fit],
-                fit=[distance_fit, theta_fit, phi_fit],
-                sim=[distance_sim, theta_sim, phi_sim],
-                filetag=f'_fit_{i_iteration}'
-            )
-
-            zoom_sim = (np.abs(thetaphi[0] - theta_sim) < 10 * dTheta) & (np.abs((thetaphi[1] - phi_sim + np.pi) % (2*np.pi) - np.pi) < 10 * dTheta)
-            if not np.sum(zoom_sim):
-                logger.debug("Simulated vertex outside search area - skipping simulated vertex debug plot")
-            else:
+                zoom_fit = (np.abs(thetaphi[0] - theta_fit) < 10 * dTheta) & (np.abs((thetaphi[1] - phi_fit + np.pi) % (2*np.pi) - np.pi) < 10 * dTheta)
                 self.__draw_correlation_distance(
-                    event, thetaphi[:,zoom_sim], distances_3d,
-                    combined_correlations[:, zoom_sim],
+                    event, thetaphi[:,zoom_fit], distances_3d,
+                    combined_correlations[:, zoom_fit],
                     fit=[distance_fit, theta_fit, phi_fit],
                     sim=[distance_sim, theta_sim, phi_sim],
-                    filetag=f'_sim_{i_iteration}'
+                    filetag=f'_fit_{i_iteration}'
                 )
+
+                zoom_sim = (np.abs(thetaphi[0] - theta_sim) < 10 * dTheta) & (np.abs((thetaphi[1] - phi_sim + np.pi) % (2*np.pi) - np.pi) < 10 * dTheta)
+                if not np.sum(zoom_sim):
+                    logger.debug("Simulated vertex outside search area - skipping simulated vertex debug plot")
+                else:
+                    self.__draw_correlation_distance(
+                        event, thetaphi[:,zoom_sim], distances_3d,
+                        combined_correlations[:, zoom_sim],
+                        fit=[distance_fit, theta_fit, phi_fit],
+                        sim=[distance_sim, theta_sim, phi_sim],
+                        filetag=f'_sim_{i_iteration}'
+                    )
 
             mean_cutoff = np.percentile(mean_corr, 90)
             max_cutoff = np.percentile(max_corr, 95)
