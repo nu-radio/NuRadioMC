@@ -8,7 +8,6 @@ import math
 from NuRadioMC.utilities import medium
 from NuRadioMC.SignalProp import propagation
 import scipy
-from NuRadioReco.utilities import log
 import logging
 logging.basicConfig()
 
