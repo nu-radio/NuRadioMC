@@ -542,7 +542,12 @@ class neutrinoDirectionReconstructor:
 
                 fig = plt.figure(figsize=(6,6))
                 chi2_grid_min_energy = chi2_grid[:,:,min_energy_index]
-                vmax = np.percentile(chi2_grid_min_energy[np.where(chi2_grid_min_energy < np.inf)], 20)
+                try:
+                    vmax = np.percentile(chi2_grid_min_energy[np.where(chi2_grid_min_energy < np.inf)], 20)
+                except IndexError:
+                    # we probably don't have any valid results... but let's not throw an error
+                    # because of the debug plot
+                    vmax = None
                 plt.imshow(
                     (chi2_grid[:,:,min_energy_index].T),
                     extent=extent,
@@ -730,12 +735,16 @@ class neutrinoDirectionReconstructor:
 
 
         #get timing and pulse position for raytype of triggered pulse
+        solution_number = None
         for iS in raytypes[ch_Vpol]:
             if sim or self._sim_vertex: raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1
             if not sim and not self._sim_vertex: raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
 
             if raytypes[ch_Vpol][iS] == raytype:
                 solution_number = iS
+        if solution_number is None:
+            logger.warning(f"No solution for reference ch_Vpol ({ch_Vpol}) with ray type {raytype}!")
+            return np.inf
         T_ref = timing[ch_Vpol][solution_number]
         trace_start_time_ref = self._station.get_channel(ch_Vpol).get_trace_start_time()
 

@@ -8,7 +8,11 @@ import math
 from NuRadioMC.utilities import medium
 from NuRadioMC.SignalProp import propagation
 import scipy
+from NuRadioReco.utilities import log
+import logging
+logging.basicConfig()
 
+logger = logging.getLogger('NuRadioReco.neutrinoDirectionReconstruction')
 
 class rayTypeSelecter:
 
@@ -83,6 +87,7 @@ class rayTypeSelecter:
                 if (len(template) < len(total_trace)):
                     template = np.pad(template, (0, len(total_trace) - len(template)))
             corr_total = np.zeros(len(total_trace) + len(template) - 1)
+            trace_start_time_ref = None
             for channel_id in use_channels:
                 channel = station.get_channel(channel_id)
                 x2 = det.get_relative_position(station_id, channel_id) + det.get_absolute_position(station_id)
@@ -93,9 +98,13 @@ class rayTypeSelecter:
                     if r.get_solution_type(iS) == raytype:
                         type_exist= 1
                         T = r.get_travel_time(iS)
-                        if channel_id == use_channels[0]:
+                        if trace_start_time_ref is None:
                             T_ref[iS] = T
                             trace_start_time_ref = channel.get_trace_start_time()
+                            if not channel_id == use_channels[0]:
+                                logger.warning(
+                                    f"No solution for reference channel {use_channels[0]}, using channel {channel_id} instead..."
+                                    )
 
                         dt = T - T_ref[iS] - (channel.get_trace_start_time() - trace_start_time_ref)
                         dn_samples = -1*dt * sampling_rate
