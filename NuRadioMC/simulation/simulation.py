@@ -178,7 +178,7 @@ class simulation():
                 self._cfg = new_cfg
 
         if(self._cfg['seed'] is None):
-            # the config seeting None means a random seed. To have the simulation be reproducable, we generate a new
+            # the config seeding None means a random seed. To have the simulation be reproducible, we generate a new
             # random seed once and save this seed to the config setting. If the simulation is rerun, we can get
             # the same random sequence.
             self._cfg['seed'] = np.random.randint(0, 2 ** 32 - 1)
@@ -236,7 +236,7 @@ class simulation():
         self._station_ids = self._det.get_station_ids()
         self._event_ids_counter = {}
         for station_id in self._station_ids:
-            self._event_ids_counter[station_id] = -1  # we initialize with -1 becaue we increment the counter before we use it the first time
+            self._event_ids_counter[station_id] = -1  # we initialize with -1 because we increment the counter before we use it the first time
 
         # print noise information
         logger.status("running with noise {}".format(bool(self._cfg['noise'])))
@@ -269,7 +269,7 @@ class simulation():
             return
 
         ################################
-        # perfom a dummy detector simulation to determine how the signals are filtered
+        # perform a dummy detector simulation to determine how the signals are filtered
         self._bandwidth_per_channel = {}
         self._amplification_per_channel = {}
         self.__noise_adder_normalization = {}
@@ -419,8 +419,7 @@ class simulation():
             detector=self._det
         )
         for shower_index, shower_id in enumerate(self._shower_ids):
-            self._shower_index_array[shower_id] = shower_index
-
+            self._shower_index_array[shower_id] = shower_index        
         self._create_meta_output_datastructures()
 
         # check if the same detector was simulated before (then we can save the ray tracing part)
@@ -455,15 +454,15 @@ class simulation():
                 logger.debug(f"skipping event group {event_group_id} because it is not in the event group list provided to the __init__ function")
                 continue
             event_indices = np.atleast_1d(np.squeeze(np.argwhere(self._fin['event_group_ids'] == event_group_id)))
-
+            
             # the weight calculation is independent of the station, so we do this calculation only once
             # the weight also depends just on the "mother" particle, i.e. the incident neutrino which determines
-            # the propability of arriving at our simulation volume. All subsequent showers have the same weight. So
+            # the probability of arriving at our simulation volume. All subsequent showers have the same weight. So
             # we calculate it just once and save it to all subshowers.
             t1 = time.time()
 
             self._primary_index = event_indices[0]
-            # determine if a particle (neutrinos, or a secondary interaction of a neutrino, or surfaec muons) is simulated
+            # determine if a particle (neutrinos, or a secondary interaction of a neutrino, or surface muons) is simulated
             particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
             self._mout['weights'][event_indices] = np.ones(len(event_indices))  # for a pulser simulation, every event has the same weight
             if particle_mode:
@@ -596,7 +595,7 @@ class simulation():
                         distance_cut_time += time.time() - t_tmp
 
                     # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
-                    # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
+                    # if daughters (e.g. tau decay) have their vertex in the fiducial volume
                     if not self._is_in_fiducial_volume():
                         logger.debug(f"event is not in fiducial volume, skipping simulation {self._fin['xx'][self._shower_index]}, {self._fin['yy'][self._shower_index]}, {self._fin['zz'][self._shower_index]}")
                         continue
@@ -952,7 +951,7 @@ class simulation():
                         # start detector simulation
                         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
                         # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
-                        # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
+                        # 20 GHz by default to achieve a good time resolution when the two signals from the two signal paths are added)
                         channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
 
                         if self._is_simulate_noise():
@@ -975,37 +974,16 @@ class simulation():
                     triggered_showers[self._station_id].extend(self._get_shower_index(self._shower_ids_of_sub_event))
                     self._calculate_signal_properties()
 
-                    def find_indices(x, y):
-                        """
-                        finds the indices for the values `x` in array `y`
+                    def find_indices(shower_indices_of_triggered_showers, event_indices):
+                  
+                        return  np.atleast_1d(np.squeeze([np.argwhere(event_indices==gix) for gix in shower_indices_of_triggered_showers]))
 
-                        modified from https://stackoverflow.com/questions/8251541/numpy-for-every-element-in-one-array-find-the-index-in-another-array
-                        the original solution returned a masked array which also indicated the elements in y that were
-                        not available in x. We don't need that. x will be always a subset of y, and we want only the
-                        indices in y for the subset x.
 
-                        Parameters
-                        ----------
-                        x: array
-                            the values for which the indices should be found
-                        y: array
-                            the larger array with many values
+                    
+                    shower_indices_of_triggered_showers = self._get_shower_index(self._shower_ids_of_sub_event)
+                    event_indices_of_triggered_shower_in_eventgroup = find_indices(shower_indices_of_triggered_showers, event_indices)
+                    self._save_triggers_to_hdf5(sg, event_indices_of_triggered_shower_in_eventgroup, shower_indices_of_triggered_showers)
 
-                        Returns: array of integers
-                        """
-
-                        index = np.argsort(x)
-                        sorted_x = x[index]
-                        sorted_index = np.searchsorted(sorted_x, y)
-
-                        yindex = np.take(index, sorted_index, mode="clip")
-                        mask = x[yindex] != y
-                        result2 = yindex[~mask]
-                        return result2
-
-                    global_shower_indices = self._get_shower_index(self._shower_ids_of_sub_event)
-                    local_shower_index = find_indices(global_shower_indices, event_indices)
-                    self._save_triggers_to_hdf5(sg, local_shower_index, global_shower_indices)
                     if(self._outputfilenameNuRadioReco is not None):
                         # downsample traces to detector sampling rate to save file size
                         channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
@@ -1099,10 +1077,10 @@ class simulation():
 
     def _is_in_fiducial_volume(self):
         """
-        checks wether a vertex is in the fiducial volume
+        checks weather a vertex is in the fiducial volume
 
         if the fiducial volume is not specified in the input file, True is returned (this is required for the simulation
-        of pulser calibration measuremens)
+        of pulser calibration measurements)
         """
         tt = ['fiducial_rmin', 'fiducial_rmax', 'fiducial_zmin', 'fiducial_zmax']
         has_fiducial = True
@@ -1221,11 +1199,12 @@ class simulation():
 #                 sg['multiple_triggers'] = tmp
         return extend_array
 
-    def _save_triggers_to_hdf5(self, sg, local_shower_index, global_shower_index):
-
+    def _save_triggers_to_hdf5(self, sg, event_indices_of_triggered_shower_in_eventgroup, shower_indices_of_triggered_showers):
+        
         extend_array = self._create_trigger_structures()
         # now we also need to create the trigger structure also in the sg (station group) dictionary that contains
         # the information fo the current station and event group
+        # n_showers refers to the number of triggered showers within one event group, e.g. events with the same event_group_id
         n_showers = sg['launch_vectors'].shape[0]
         if('multiple_triggers' not in sg):
             sg['multiple_triggers'] = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
@@ -1241,12 +1220,12 @@ class simulation():
         for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
             if(self._station.has_trigger(trigger_name)):
                 multiple_triggers[iT] = self._station.get_trigger(trigger_name).has_triggered()
-                for iSh in local_shower_index:  # now save trigger information per shower of the current station
+                for iSh in event_indices_of_triggered_shower_in_eventgroup:
                     sg['multiple_triggers'][iSh][iT] = self._station.get_trigger(trigger_name).has_triggered()
-        for iSh, iSh2 in zip(local_shower_index, global_shower_index):  # now save trigger information per shower of the current station
-            sg['triggered'][iSh2] = np.any(sg['multiple_triggers'][iSh2])
-            self._mout['triggered'][iSh] |= sg['triggered'][iSh2]
-            self._mout['multiple_triggers'][iSh] |= sg['multiple_triggers'][iSh2]
+        for iSh, iSh2 in zip(event_indices_of_triggered_shower_in_eventgroup, shower_indices_of_triggered_showers):
+            sg['triggered'][iSh] = np.any(sg['multiple_triggers'][iSh])
+            self._mout['triggered'][iSh2] |= sg['triggered'][iSh]
+            self._mout['multiple_triggers'][iSh2] |= sg['multiple_triggers'][iSh]
         self._output_multiple_triggers_station[self._station_id].append(multiple_triggers)
         self._output_triggered_station[self._station_id].append(np.any(multiple_triggers))
 
@@ -1339,7 +1318,7 @@ class simulation():
         self.input_particle[simp.n_interaction] = self._fin['n_interaction'][idx]
         if self._fin['n_interaction'][idx] <= 1:
             # parents before the neutrino and outgoing daughters without shower are currently not
-            # simulated. The parent_id is therefore at the moment only rudimentarily populated.
+            # simulated. The parent_id is therefore at the moment only rudimentary populated.
             self.input_particle[simp.parent_id] = None  # primary does not have a parent
 
         self.input_particle[simp.vertex_time] = 0
@@ -1432,7 +1411,7 @@ class simulation():
                         sg['maximum_amplitudes_envelope'] = np.array(self._output_maximum_amplitudes_envelope[station_id])
                         sg['triggered_per_event'] = np.array(self._output_triggered_station[station_id])
 
-                        # the multiple triggeres 2d array might have different number of entries per event
+                        # the multiple triggers 2d array might have different number of entries per event
                         # because the number of different triggers can increase dynamically
                         # therefore we first create an array with the right size and then fill it
                         tmp = np.zeros((n_events_for_station, n_triggers), dtype=np.bool)
@@ -1476,7 +1455,7 @@ class simulation():
             for key in self._fin.keys():
                 if(key.startswith("station_")):
                     continue
-                if(not key in fout.keys()):  # only save data sets that havn't been recomputed and saved already
+                if(not key in fout.keys()):  # only save data sets that haven't been recomputed and saved already
                     if np.array(self._fin[key]).dtype.char == 'U':
                         fout[key] = np.array(self._fin[key], dtype=h5py.string_dtype(encoding='utf-8'))[saved]
 
@@ -1484,7 +1463,7 @@ class simulation():
                         fout[key] = np.array(self._fin[key])[saved]
 
         for key in self._fin_attrs.keys():
-            if(not key in fout.attrs.keys()):  # only save atrributes sets that havn't been recomputed and saved already
+            if(not key in fout.attrs.keys()):  # only save attributes sets that haven't been recomputed and saved already
                 if(key not in ["trigger_names", "Tnoise", "Vrms", "bandwidth", "n_samples", "dt", "detector", "config"]):  # don't write trigger names from input to output file, this will lead to problems with incompatible trigger names when merging output files
                     fout.attrs[key] = self._fin_attrs[key]
         fout.close()
@@ -1518,3 +1497,32 @@ class simulation():
             msg = "{} for config.signal.polarization is not a valid option".format(self._cfg['signal']['polarization'])
             logger.error(msg)
             raise ValueError(msg)
+        
+    def _save_triggers_to_hdf5_LP(self, sg, shower_index_sub_events):
+
+        extend_array = self._create_trigger_structures()
+        # now we also need to create the trigger structure also in the sg (station group) dictionary that contains
+        # the information fo the current station and event group
+        n_showers = sg['launch_vectors'].shape[0]
+        if ('multiple_triggers' not in sg):
+            sg['multiple_triggers'] = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+        elif (extend_array):
+            tmp = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            nx, ny = sg['multiple_triggers'].shape
+            tmp[:, 0:ny] = sg['multiple_triggers']
+            sg['multiple_triggers'] = tmp
+
+        self._output_event_group_ids[self._station_id].append(self._evt.get_run_number())
+        self._output_sub_event_ids[self._station_id].append(self._evt.get_id())
+        multiple_triggers = np.zeros(len(self._mout_attrs['trigger_names']), dtype=np.bool)
+        for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
+            if (self._station.has_trigger(trigger_name)):
+                multiple_triggers[iT] = self._station.get_trigger(trigger_name).has_triggered()
+                for iSh in shower_index_sub_events:  # now save trigger information per shower of the current station
+                    sg['multiple_triggers'][iSh][iT] = self._station.get_trigger(trigger_name).has_triggered()
+        for iSh in shower_index_sub_events:  # now save trigger information per shower of the current station
+            sg['triggered'][iSh] = np.any(sg['multiple_triggers'][iSh])
+            self._mout['triggered'][iSh] |= sg['triggered'][iSh]
+            self._mout['multiple_triggers'][iSh] |= sg['multiple_triggers'][iSh]
+        self._output_multiple_triggers_station[self._station_id].append(multiple_triggers)
+        self._output_triggered_station[self._station_id].append(np.any(multiple_triggers))
