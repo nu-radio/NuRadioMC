@@ -68,7 +68,6 @@ assert isinstance(logger, NuRadioMCLogger)
 # ch.setFormatter(formatter)
 # logger.addHandler(ch)
 
-
 def pretty_time_delta(seconds):
     seconds = int(seconds)
     days, seconds = divmod(seconds, 86400)
@@ -141,7 +140,7 @@ class simulation():
             * 'full' (default): the full event content is written to disk
             * 'mini': only station traces are written to disc
             * 'micro': no traces are written to disc
-            
+
         evt_time: datetime object
             the time of the events, default 1/1/2018
         config_file: string
@@ -162,7 +161,7 @@ class simulation():
         log_level_propagation: logging.LEVEL
             the log level of the propagation module
         ice_model: medium object (default None)
-            allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom". 
+            allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom".
         """
         logger.setLevel(log_level)
         self._log_level = log_level
@@ -290,7 +289,8 @@ class simulation():
             self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
 
             self._create_sim_station()
-            for channel_id in range(self._det.get_number_of_channels(self._station_id)):
+            sta = self._det.get_station(self._station_id)
+            for channel_id in self._det.get_channel_ids(self._station_id):
                 electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id], self._det.get_relative_position(self._sim_station.get_id(), channel_id))
                 trace = np.zeros_like(self._tt)
                 trace[self._n_samples // 2] = 100 * units.V  # set a signal that will satisfy any high/low trigger
@@ -310,7 +310,7 @@ class simulation():
             self._detector_simulation_filter_amp(self._evt, self._station, self._det)
             self._bandwidth_per_channel[self._station_id] = {}
             self._amplification_per_channel[self._station_id] = {}
-            for channel_id in range(self._det.get_number_of_channels(self._station_id)):
+            for channel_id in self._det.get_channel_ids(self._station_id):
                 ff = np.linspace(0, 0.5 / self._dt, 10000)
                 filt = np.ones_like(ff, dtype=np.complex)
                 for i, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station_id)):
@@ -444,7 +444,7 @@ class simulation():
         self._station_barycenter = np.zeros((len(self._station_ids), 3))
         for iSt, station_id in enumerate(self._station_ids):
             pos = []
-            for channel_id in range(self._det.get_number_of_channels(station_id)):
+            for channel_id in self._det.get_channel_ids(self._station_id):
                 pos.append(self._det.get_relative_position(station_id, channel_id))
             self._station_barycenter[iSt] = np.mean(np.array(pos), axis=0) + self._det.get_absolute_position(station_id)
 
@@ -546,7 +546,7 @@ class simulation():
                 self._create_sim_station()
                 # loop over all showers in event group
                 # create output data structure for this channel
-                sg = self._create_station_output_structure(len(event_indices), self._det.get_number_of_channels(self._station_id))
+                sg = self._create_station_output_structure(len(event_indices), self._det.get_number_of_channels(self._station_id)) #n_shower, n_antennas
                 for iSh, self._shower_index in enumerate(event_indices):
                     sg['shower_id'][iSh] = self._shower_ids[self._shower_index]
                     iCounter += 1
@@ -633,7 +633,7 @@ class simulation():
                     t2 = time.time()
 #                     input_time += (time.time() - t1)
 
-                    for channel_id in range(self._det.get_number_of_channels(self._station_id)):
+                    for channel_id in self._det.get_channel_ids(self._station_id):
                         x2 = self._det.get_relative_position(self._station_id, channel_id) + self._det.get_absolute_position(self._station_id)
                         logger.debug(f"simulating channel {channel_id} at {x2}")
 
@@ -658,6 +658,7 @@ class simulation():
                                 logger.error('Presimulation can not be used with the radiopropa ray tracer module')
                                 raise Exception('Presimulation can not be used with the radiopropa ray tracer module')
                             sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
+
                             ray_tracing_solution = {}
                             for output_parameter in self._raytracer.get_output_parameters():
                                 ray_tracing_solution[output_parameter['name']] = sg_pre[output_parameter['name']][self._shower_index, channel_id]
@@ -788,7 +789,7 @@ class simulation():
                                 VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
                                 c = constants.c * units.m / units.s
                                 eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c)
-                                ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c) 
+                                ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / (c)
                                 eR = np.zeros_like(eTheta)
                                 # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
                                 eTheta *= 1 / R
@@ -1174,9 +1175,9 @@ class simulation():
             self._channelSignalReconstructor.run(self._evt, self._station, self._det)
             amplitudes = np.zeros(self._station.get_number_of_channels())
             amplitudes_envelope = np.zeros(self._station.get_number_of_channels())
-            for channel in self._station.iter_channels():
-                amplitudes[channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
-                amplitudes_envelope[channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
+            for i_ch, channel in enumerate(self._station.iter_channels()):
+                amplitudes[i_ch] = channel.get_parameter(chp.maximum_amplitude)
+                amplitudes_envelope[i_ch] = channel.get_parameter(chp.maximum_amplitude_envelope)
             self._output_maximum_amplitudes[self._station.get_id()].append(amplitudes)
             self._output_maximum_amplitudes_envelope[self._station.get_id()].append(amplitudes_envelope)
 
@@ -1243,9 +1244,9 @@ class simulation():
                 for iSh in local_shower_index:  # now save trigger information per shower of the current station
                     sg['multiple_triggers'][iSh][iT] = self._station.get_trigger(trigger_name).has_triggered()
         for iSh, iSh2 in zip(local_shower_index, global_shower_index):  # now save trigger information per shower of the current station
-            sg['triggered'][iSh] = np.any(sg['multiple_triggers'][iSh])
-            self._mout['triggered'][iSh2] |= sg['triggered'][iSh]
-            self._mout['multiple_triggers'][iSh2] |= sg['multiple_triggers'][iSh]
+            sg['triggered'][iSh2] = np.any(sg['multiple_triggers'][iSh2])
+            self._mout['triggered'][iSh] |= sg['triggered'][iSh2]
+            self._mout['multiple_triggers'][iSh] |= sg['multiple_triggers'][iSh2]
         self._output_multiple_triggers_station[self._station_id].append(multiple_triggers)
         self._output_triggered_station[self._station_id].append(np.any(multiple_triggers))
 
@@ -1451,8 +1452,8 @@ class simulation():
             for station_id in self._mout_groups:
                 n_channels = self._det.get_number_of_channels(station_id)
                 positions = np.zeros((n_channels, 3))
-                for channel_id in range(n_channels):
-                    positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
+                for i_ch, channel_id in enumerate(self._det.get_channel_ids(self._station_id)):
+                    positions[i_ch] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
                 fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
                 fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
                 fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._bandwidth_per_channel[station_id].values())
