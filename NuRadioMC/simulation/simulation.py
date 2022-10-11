@@ -1497,32 +1497,3 @@ class simulation():
             msg = "{} for config.signal.polarization is not a valid option".format(self._cfg['signal']['polarization'])
             logger.error(msg)
             raise ValueError(msg)
-        
-    def _save_triggers_to_hdf5_LP(self, sg, shower_index_sub_events):
-
-        extend_array = self._create_trigger_structures()
-        # now we also need to create the trigger structure also in the sg (station group) dictionary that contains
-        # the information fo the current station and event group
-        n_showers = sg['launch_vectors'].shape[0]
-        if ('multiple_triggers' not in sg):
-            sg['multiple_triggers'] = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
-        elif (extend_array):
-            tmp = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
-            nx, ny = sg['multiple_triggers'].shape
-            tmp[:, 0:ny] = sg['multiple_triggers']
-            sg['multiple_triggers'] = tmp
-
-        self._output_event_group_ids[self._station_id].append(self._evt.get_run_number())
-        self._output_sub_event_ids[self._station_id].append(self._evt.get_id())
-        multiple_triggers = np.zeros(len(self._mout_attrs['trigger_names']), dtype=np.bool)
-        for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
-            if (self._station.has_trigger(trigger_name)):
-                multiple_triggers[iT] = self._station.get_trigger(trigger_name).has_triggered()
-                for iSh in shower_index_sub_events:  # now save trigger information per shower of the current station
-                    sg['multiple_triggers'][iSh][iT] = self._station.get_trigger(trigger_name).has_triggered()
-        for iSh in shower_index_sub_events:  # now save trigger information per shower of the current station
-            sg['triggered'][iSh] = np.any(sg['multiple_triggers'][iSh])
-            self._mout['triggered'][iSh] |= sg['triggered'][iSh]
-            self._mout['multiple_triggers'][iSh] |= sg['multiple_triggers'][iSh]
-        self._output_multiple_triggers_station[self._station_id].append(multiple_triggers)
-        self._output_triggered_station[self._station_id].append(np.any(multiple_triggers))
