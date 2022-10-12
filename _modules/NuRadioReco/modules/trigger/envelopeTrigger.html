@@ -548,16 +548,15 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.trigger.envelopeTrigger</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">NuRadioReco.modules.base.module</span> <span class="kn">import</span> <span class="n">register_run</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.modules.trigger.highLowThreshold</span> <span class="kn">import</span> <span class="n">get_majority_logic</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.trigger</span> <span class="kn">import</span> <span class="n">EnvelopeTrigger</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.framework.base_trace</span> <span class="k">as</span> <span class="nn">base_trace</span>
-<span class="kn">import</span> <span class="nn">NuRadioReco.utilities.fft</span>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy.signal</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">NuRadioReco.framework.trigger</span> <span class="kn">import</span> <span class="n">EnvelopeTrigger</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.modules.base.module</span> <span class="kn">import</span> <span class="n">register_run</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.modules.trigger.highLowThreshold</span> <span class="kn">import</span> <span class="n">get_majority_logic</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;envelopeTrigger&#39;</span><span class="p">)</span>
 
@@ -579,7 +578,6 @@
 <span class="sd">    triggered bins: array of bools</span>
 <span class="sd">        the bins where the trigger condition is satisfied</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">hilbert</span><span class="p">(</span><span class="n">trace</span><span class="p">))</span> <span class="o">&gt;</span> <span class="n">threshold</span></div>
 
 
@@ -598,7 +596,7 @@
 <div class="viewcode-block" id="triggerSimulator.run"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.envelopeTrigger.html#NuRadioReco.modules.trigger.envelopeTrigger.triggerSimulator.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">coinc_window</span><span class="p">,</span> <span class="n">number_coincidences</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trigger_name</span><span class="o">=</span><span class="s1">&#39;envelope_trigger&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Simulates simple threshold trigger based on an Hilbert-envelope of the trace. Passband of the trigger, coincidence</span>
+<span class="sd">        Simulates simple threshold trigger based on a Hilbert-envelope of the trace. Passband of the trigger, coincidence</span>
 <span class="sd">        window within different channels should have triggered, and the number of channels needed to trigger can be specified.</span>
 
 <span class="sd">        Parameters</span>
@@ -625,7 +623,6 @@
 <span class="sd">        trigger_name: string</span>
 <span class="sd">            a unique name of this particular trigger</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>  <span class="c1"># absolute time of system</span>
 
         <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">det</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
@@ -642,13 +639,12 @@
             <span class="n">channel_trace_start_time</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">triggered_channels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
-            <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">get_filtered_trace</span><span class="p">(</span><span class="n">passband</span><span class="p">,</span> <span class="s1">&#39;butter&#39;</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
-
-            <span class="c1"># apply envelope trigger to each channel</span>
             <span class="n">channel_id</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">triggered_channels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">channel_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">triggered_channels</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;skipping channel </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_id</span><span class="p">))</span>
                 <span class="k">continue</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_filtered_trace</span><span class="p">(</span><span class="n">passband</span><span class="p">,</span> <span class="s1">&#39;butter&#39;</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+
             <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">!=</span> <span class="n">channel_trace_start_time</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Channel has a trace_start_time that differs from &#39;</span>
                                <span class="s1">&#39;        the other channels. The trigger simulator may not work properly&#39;</span><span class="p">)</span>
@@ -662,7 +658,6 @@
 
             <span class="k">if</span> <span class="kc">True</span> <span class="ow">in</span> <span class="n">triggered_bins</span><span class="p">:</span>
                 <span class="n">channels_that_passed_trigger</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
-
         <span class="c1"># check for coincidences with get_majority_logic(tts, number_of_coincidences=2,</span>
         <span class="c1"># time_coincidence=32 * units.ns, dt=1 * units.ns)</span>
         <span class="c1"># returns:</span>
