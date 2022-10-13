@@ -1,4 +1,4 @@
-from select import select
+# Imports
 import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow import keras
@@ -7,53 +7,48 @@ import tensorflow.keras.backend as K
 layers = keras.layers
 tf.compat.v1.disable_eager_execution()  # gp loss won't work with eager
 from functools import partial
-from NuRadioReco.utilities import fft
-from NuRadioReco.utilities import units
-from NuRadioReco.framework import base_trace
 from generator import Generator
 from discriminator import Discriminator
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath("analyze.py"))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath("current_noise.npy"))))
 sys.path.insert(1, '/lustre/fs22/group/radio/dhjelm/')
 import analyze
 
 
 class WGAN():
-    def __init__(self, time_flag, fft_flag, wavelet_flag, mini_flag):
+    def __init__(self, trace_length, time_flag=True, fft_flag=True, wavelet_flag=True, envelope_flag=False, mini_flag=False):
 
         '''Wasserstein GAN with Gradient Penalty'''
 
+        # Settings for latent size and trace_length
         self.latent_size = 128
-        self.channels = 1
-        self.conv_activation = "relu"
-        self.activation_function = "tanh"
-        self.trace_length = 512
-        self.shape = (self.trace_length, self.channels)
-        self.sliding_window = 10
+        self.trace_length = trace_length
+        
+        # Training settings 
         self.batch_size = 64
-        self.dropout_rate = 0.2
-        # self.epochs = 50
+        self.learning_rate = 0.0001
 
         # Discriminator settings
         self.time_flag = time_flag
         self.fft_flag = fft_flag 
         self.wavelet_flag = wavelet_flag
         self.mini_flag = mini_flag
+        self.envelope_flag = envelope_flag
 
         #-------------------------------
         # Create the networks
         #-------------------------------
 
         # Create generator
-        self.generator = Generator().model
-        # self.generator.summary()
-        # print(self.generator)
+        self.generator = Generator(trace_length = self.trace_length, latent_size = self.latent_size).model
+        self.generator.summary()
        
 
         # Create critic
-        self.critic = Discriminator(self.time_flag, self.fft_flag, self.wavelet_flag, self.mini_flag).model
+        self.critic = Discriminator(self.trace_length, self.latent_size, self.time_flag, self.fft_flag, self.wavelet_flag, self.envelope_flag, self.mini_flag).model
         self.critic.summary()
-
+        
         #-------------------------------
         # Construct Computational Graph
         #         for the GAN
@@ -63,15 +58,12 @@ class WGAN():
         self.make_trainable(self.critic, False) 
         self.make_trainable(self.generator, True)
 
-        # Stack the generator o top of the critic and finiliaze the training pipeline of the generator
+        # Stack the generator on top of the critic and finiliaze the training pipeline of the generator
         gen_input = self.generator.inputs
         self.generator_training = keras.models.Model(gen_input, self.critic(self.generator(gen_input)))
-        # self.generator_training.summary()
-        # keras.utils.plot_model(generator_training, show_shapes=True)
 
         # Compile generator for training using the Wasserstein loss as loss function
-        self.generator_training.compile(keras.optimizers.Adam(
-            0.0001, beta_1=0.5, beta_2=0.9, decay=0.0), loss=[self.wasserstein_loss])
+        self.generator_training.compile(keras.optimizers.Adam(self.learning_rate, beta_1=0.5, beta_2=0.9, decay=0.0), loss=[self.wasserstein_loss])
 
         self.make_trainable(self.critic, True)  # unfreeze the critic during the critic training
         self.make_trainable(self.generator, False)  # freeze the generator during the critic training
@@ -82,7 +74,6 @@ class WGAN():
         averaged_batch = UniformLineSampler(self.batch_size)([g_out, self.critic.inputs[0]])
         averaged_batch_out = self.critic(averaged_batch)
         self.critic_training = keras.models.Model(inputs=[self.generator.inputs, self.critic.inputs], outputs=[critic_out_fake_samples, critic_out_data_samples, averaged_batch_out])
-        # self.critic_training.summary()
 
         # Construct the gradient penalty
         gradient_penalty_weight = 1
@@ -90,21 +81,24 @@ class WGAN():
         gradient_penalty.__name__ = 'gradient_penalty'
 
         # Compile critic with gradient penalty
-        self.critic_training.compile(keras.optimizers.Adam(0.00005, beta_1=0.5, beta_2=0.9, decay=0.0), loss=[self.wasserstein_loss, self.wasserstein_loss, gradient_penalty])
+        self.critic_training.compile(keras.optimizers.Adam(self.learning_rate/2, beta_1=0.5, beta_2=0.9, decay=0.0), loss=[self.wasserstein_loss, self.wasserstein_loss, gradient_penalty])
 
-    def train(self, data, epochs = 50):
+    def train(self, data, epochs = 50, monitor = True):
 
         '''
         Function training the network
         
         Args: 
             data: Data to be trained on
+            epochs: How many epochs the network should be trained
+            monitor: Turns on/off the plotting every 5th epoch
 
         Outputs:
             generator_loss: A list of generator loss
             critic_loss: A list of critic loss
         '''
-        
+
+
         # Create arrays for generator and critic loss
         generator_loss = []
         critic_loss = []
@@ -136,7 +130,6 @@ class WGAN():
                 noise_batch = np.random.randn(len(bunch), self.latent_size)
                 noise_batch = np.expand_dims(noise_batch, axis=-1) 
 
-
                 # Train critic
                 critic_loss.append(self.critic_training.train_on_batch([noise_batch, bunch], [negative_y, positive_y, dummy]))
                 
@@ -157,9 +150,10 @@ class WGAN():
 
             
             # Loss printing and plotting
-            if epoch % 5 == 0:
+            if monitor and epoch % 5 == 0:
                 
                 # Loss
+                print("\n")
                 print("Critic loss:", critic_loss[-1])
                 print("Generator loss:", generator_loss[-1])
                 
@@ -169,33 +163,16 @@ class WGAN():
                 generated_signals = self.generator.predict_on_batch(noise)
                 generated_signals = generated_signals[:,:,0]
 
-                # Plotting
-                fig, (ax1, ax2) = plt.subplots(1, 2)
-                fig.set_size_inches(18.5, 10.5, forward=True)
-                ax1.title.set_text('Time domain')
-                ax2.title.set_text('Frequency domain')
+                # Analyze the generator's performance
+                self.analyze_generator(data)
 
-
-
-                ax1.plot(data[0], label = "Example trace")
-            #             plt.plot(np.random.randn(trace_length), label = 'Random noise')
-                for i in range(3):
-                    ax1.plot(generated_signals[i], alpha=0.3)
-
-
-                # Plot frequency
-                ax2.plot(abs(fft.time2freq(data[0], 3.2*units.GHz)), label = "Example trace")
-                for i in range(3):
-                    ax2.plot(abs(fft.time2freq(generated_signals[i], 3.2*units.GHz)),alpha=0.3)
-
-                ax1.legend()
-                ax2.legend()
-                plt.show()
 
         return  generator_loss, critic_loss
 
     def plot_loss(self, generator_loss, critic_loss):
         '''Plot the loss for generator and critic as a function of iterations '''
+
+        # Critic loss
         critic_loss = np.array(critic_loss)
         plt.subplots(1, figsize=(10, 5))
         plt.plot(np.arange(len(critic_loss)), critic_loss[:,0], color='red', markersize=12, label=r'Total')
@@ -204,17 +181,16 @@ class WGAN():
         plt.legend(loc='upper right')
         plt.xlabel(r'Iterations')
         plt.ylabel(r'Critic Loss')
-        #plt.ylim(-6, 3)
 
+        # Generator loss
         generator_loss = np.array(generator_loss)
-
         plt.subplots(1, figsize=(10, 5))
         plt.plot(np.arange(len(generator_loss)), generator_loss, color='red', markersize=12, label=r'Total')
         plt.legend(loc='upper right')
         plt.xlabel(r'Iterations')
         plt.ylabel(r'Loss')
 
-    def analyze_generator(self, data, current_noise):
+    def analyze_generator(self, data):
 
         '''
         Analyzes the generator's ability to generate realistic noise
@@ -235,20 +211,17 @@ class WGAN():
         generated_traces = generated_traces[:,:,0]
 
         # Print metrics
-        analyze.metrics(data, generated_traces, current_noise)
+        analyze.mean_std(data, generated_traces)
 
-        # Plot example traces
-        analyze.plot_traces(data, generated_traces, current_noise)
+        # FFT MSE
+        analyze.fft_mse(data, generated_traces)
 
-        # Plot histograms in time domain (amplitude distribution)
-        analyze.plot_histograms_time(data, generated_traces, current_noise)
+        # Plot distributions
+        analyze.plot_distributions(data, generated_traces)
 
-        # Average frequency plot
-        analyze.avg_frequencies(data, generated_traces, current_noise)
-
-        # Quantile frequencies plot
-        analyze.quantile_frequencies(data, generated_traces, current_noise)
-
+        # Plot average, median and quantile frequencies
+        analyze.avg_med_quantile_freq(data, generated_traces)
+       
     def make_trainable(self, model, trainable):
         ''' Freezes/unfreezes the weights in the given model '''
         for layer in model.layers:
@@ -283,7 +256,14 @@ class WGAN():
         gradient_penalty = penalty_weight * K.square(1 - gradient_l2_norm)
         
         return K.mean(gradient_penalty)
-        
+    
+    def plot_critic(self):
+        '''Plots the critic using Keras utils'''
+        return keras.utils.plot_model(self.critic, show_layer_names=False)
+    
+    def plot_generator(self):
+        '''Plots the generator using Keras utils'''
+        return keras.utils.plot_model(self.generator, show_layer_names=False)
 
 
 
