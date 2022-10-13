@@ -7,8 +7,19 @@ import glob, os
 
 path_to_data = "../shallman/data/rno_g/forced_triggers/inbox/"
 
-def CreateData(path_to_data, station, channel):
-    '''Takes a .root file as input and outputs the traces for a specific station and channel'''
+def GetData(path_to_data, station, channels):
+
+    '''
+        Function creating a dataset with traces
+        
+        Args: 
+            path_to_data: Path to folder with .root files
+            station: Which station to collect data from
+            channels: Which channels to collect data from
+
+        Outputs:
+            Returns and saves .npy file with data
+        '''
 
     # Save original directory
     owd = os.getcwd()
@@ -36,16 +47,20 @@ def CreateData(path_to_data, station, channel):
             # Fetch the force_triggered events
             trigger_flag = np.array(f["combined"]['header/trigger_info/trigger_info.force_trigger'], dtype=bool)
             forced_data = np.array(f["combined"]['waveforms/radiant_data[24][2048]'])[trigger_flag, :, :]
+            # print(np.shape(forced_data))
 
-            # Fetch the data for the specific channel
-            channel_data = forced_data[:,channel-1,:]
+            for channel in channels:
+                # Fetch the data for the specific channel
+                channel_data = forced_data[:,channel-1,:]
+                # print(f"{channel-1}, data : {np.shape(channel_data)}")
 
-            # Add to data array
-            data = np.append(data, channel_data, axis=0)
+                # Add to data array
+                data = np.append(data, channel_data, axis=0)
 
-            if np.shape(data)[0] > 5000:
+            if np.shape(data)[0] > 15000:
                 break
-            print(np.shape(data))
+            print(np.shape(data)[0])
+            
     
     # Go back to original directory
     os.chdir(owd)
@@ -58,7 +73,7 @@ def CreateData(path_to_data, station, channel):
 
 if __name__ == "__main__":
     path_to_data = "../shallman/data/rno_g/forced_triggers/inbox/"
-    data = CreateData(path_to_data,24,13)
+    data = GetData(path_to_data,24,[13,16,19])
     plt.plot(data[23])
     plt.show()
 
