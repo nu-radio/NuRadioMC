@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import units
 from NuRadioReco.framework import base_trace
-# from sklearn.preprocessing import MinMaxScaler
+
 
 
 def l1_scores(frequency_spectrum, averages=5, spacing=1, min_power=40**2):
@@ -55,7 +55,7 @@ def vectorized_l1s(frequency_spectrum, averages=5, spacing=1, min_power=40**2):
     """Calculate l1_scores for N events, frequency spectrum is expected to be of shape (Nevents, Nfrequencies)"""
     return np.apply_along_axis(l1_scores, axis=1, arr=frequency_spectrum, averages=averages, spacing=spacing, min_power=min_power)
 
-def l1_preprocessing(data, averages=10, spacing=1, min_power = 50**2, low_freq=80, high_freq=700, cut_off = 20):
+def l1_preprocessing(data, averages=10, spacing=1, min_power = 50**2, low_freq=80, high_freq=700, cut_off = 10):
     """
     Function that applies L1 score preprocessing on data
     See l1_scores and vectorized_l1s for details on L1 score.
@@ -75,22 +75,6 @@ def l1_preprocessing(data, averages=10, spacing=1, min_power = 50**2, low_freq=8
 
     # Pick the indices of the traces which have a maximum L1 greater than cut_off
     indices = [idx for idx,l1 in enumerate(np.amax(l1_array, axis=1)) if l1 > cut_off]
-
-    #### Plotting ####
-    # # Plot histogram of the max L1 score to find a good cutoff for 
-    # plt.hist(np.amax(l1_array, axis=1), bins=500)
-    # plt.title("L1 score histogram of the traces in the data")
-    # plt.xlim([0,40])
-    # plt.semilogy()
-
-    # np.shape(np.amax(l1_array, axis=1)), np.shape(l1_array)
-    # plt.show()
-
-    # for idx in indices:
-    #     plt.plot(abs(fft.time2freq(data[idx], 3.2*units.GHz)))
-    #     #     plt.plot(l1_array(idx))
-    #     plt.show()
-    #### Plotting ####
 
     # Delete the indices found above from data
     pre_processed_data = np.delete(data, indices, axis=0)
@@ -124,22 +108,8 @@ def rms_preprocessing(data, sigma=5):
 
     return pre_processed_data
 
-# def minmax_scaling(data):
-
-#     # Create the MinMaxScaler:
-#     scaler = MinMaxScaler()
-    
-#     # Fit the scaler to the data
-#     scaler.fit(data)
-
-#     # Scale the data
-#     scaled_data = scaler.transform(data)
-
-#     # Return both the scaled data and scaler so you can inverse scale at afterwards
-#     return scaled_data, scaler
-
-def normalize(data):
-    '''Normalizes the data to 0 mean and unit variance'''
+def standardize(data):
+    '''Standardize the data to 0 mean and unit variance'''
 
     # Calculate mean and std 
     mean, std = data.mean(), data.std()
@@ -148,46 +118,67 @@ def normalize(data):
     normalize = (data - mean)/std
 
     return normalize
-        
+
+def normalize(data):
+    '''Normalize traces between -1 and 1'''
+    normalized = np.ndarray(shape=(np.shape(data)[0], np.shape(data)[1]))
+    for i, trace in enumerate(data):
+        trace_normalized = 2*(trace-np.min(trace))/(np.max(trace)-np.min(trace))-1
+        normalized[i] = trace_normalized
+
+    return normalized
 
 def preprocess(data):
-    '''Function using all the above preprocessing techniques. Returns the data and saves it to a numpy array'''
+
+    '''Function applying the data preprocessing using the functions above'''
 
     # Shuffle
+    print("Shuffling")
     np.random.shuffle(data)
 
     # RMS
+    print("RMS")
     rms = rms_preprocessing(data)
 
     # L1
+    print("L1")
     l1 = l1_preprocessing(rms)
 
     # Remove DC-offset
+    print("DC-offset")
     fft_traces = fft.time2freq(l1, 3.2*units.GHz)
-    # no_offset = fft_traces[:,1:len(fft_traces[0])]
-    fft_traces[:,0] = 0
-    data_no_offset = fft.freq2time(fft_traces, 3.2*units.GHz)
+    no_offset = fft_traces[:,1:len(fft_traces[0])]
+
+    # For 2048 traces:
+    # for i in range(len(fft_traces)):
+    #     print(fft_traces[i,0])
+    #     fft_traces[i,0] = abs(fft_traces[i,1])
+    #     print(fft_traces[i,0])
+    # # print(fft_traces[:,0])
+
+    data_no_offset = fft.freq2time(no_offset, 3.2*units.GHz)
 
     # Shorten the trace
+    print("Shorten")
     short = data_no_offset[:,0:512]
     # short = data_no_offset
 
-    # Normalization
-    normalized = normalize(short)
+    # Normalization/Standardization
+    print("Normalization/Standardization")
+    # normalized = normalize(short)
+    standardized = standardize(short)
 
-    # Set data to the normailzed data
-    data = normalize
+    # Set data 
+    # data = normalized
+    data = standardized
 
     # Save data to file
+    print("Saving")
     np.save("data_preprocessed",data)
 
     return data
 
-
-
-
-
 if __name__ == "__main__":
     data = np.load('data.npy')
-    data = preprocess(data)
-    plt.plot(data[0])
+    test = preprocess(data)
+    plt.plot(test[0])
