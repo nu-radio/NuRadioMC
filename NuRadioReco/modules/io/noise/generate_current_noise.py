@@ -10,10 +10,10 @@ from NuRadioReco.detector import detector
 import datetime
 
 noise_adder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-#channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 hardware_response = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
 
 def empty_event(run_number=1, event_number=1, station=11):
+    '''Fucntion creating empty event'''
     evt = NuRadioReco.framework.event.Event(run_number, event_number)
     station = NuRadioReco.framework.station.Station(station)
     # Loop over all requested channels in data
@@ -25,6 +25,7 @@ def empty_event(run_number=1, event_number=1, station=11):
     return evt
 
 def get_sim_noise():
+    '''Function to get simulated noise'''
     evt = empty_event()
     det = detector.Detector(json_filename="RNO_G/RNO_season_2021.json")
     det.update(datetime.datetime.now())
@@ -34,6 +35,7 @@ def get_sim_noise():
 
 
 def generate_current_noise(number_of_events, trace_length):
+    '''Function that generates noise used in current simulations'''
     events = np.zeros(shape=(number_of_events,trace_length))
     for i in range (number_of_events):
         evt = get_sim_noise()
