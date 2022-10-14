@@ -1,12 +1,12 @@
 # Noise generation for neutrino simulations using Generative Adversarial Networks 
 
-This repository contains all the code for the Noise generation for neutrino simulations using Generative Adversarial Networks project [report](https://github.com/nu-radio/NuRadioMC)
+This repository contains all the code for the Noise generation for neutrino simulations using Generative Adversarial Networks project. Report available here: [report](https://github.com/nu-radio/NuRadioMC)
 
 
 ## Installation
 
 ```bash
-$ git https://github.com/nu-radio/NuRadioMC/tree/feature/noise_gan/NuRadioReco/modules/io/noise
+$ git clone https://github.com/nu-radio/NuRadioMC/tree/feature/noise_gan/NuRadioReco/modules/io/noise
 $ cd noise/
 $ sudo pip3 install -r requirements.txt
 ```
@@ -15,8 +15,8 @@ $ sudo pip3 install -r requirements.txt
 
 ### Data
 
-An small subset of the actual data is available in the data.npy and data_preprocessed.npy
-They consist of 100 traces respectively and will not be enough to train the network but gives on what
+An small subset of the actual raw and preprocessed data is available in the data folder.
+There is not enough to train the network but it at least gives an good overview on how
 the data looks like.
 
 ### Models
