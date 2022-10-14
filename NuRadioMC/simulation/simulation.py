@@ -354,9 +354,11 @@ class simulation():
 
                     # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
                     self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k * self._bandwidth_per_channel[station_id][channel_id] / units.Hz) ** 0.5
-                    logger.status(f'station {station_id} channel {channel_id} noise temperature = {noise_temp_channel}, bandwidth = {self._bandwidth_per_channel[station_id][channel_id] / units.MHz:.2f} MHz -> Vrms = {self._Vrms_per_channel[station_id][channel_id] / units.V / units.micro:.2f} muV')
+                    logger.status(
+                        f'station {station_id} channel {channel_id} noise temperature = {noise_temp_channel}, bandwidth = {self._bandwidth_per_channel[station_id][channel_id] / units.MHz:.2f} MHz -> Vrms = {self._Vrms_per_channel[station_id][channel_id] / units.V / units.micro:.2f} muV')
             self._Vrms = next(iter(next(iter(self._Vrms_per_channel.values())).values()))
-            logger.status('(if same bandwidth for all stations/channels is assumed:) noise temperature = {}, bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV'.format(
+            logger.status(
+                '(if same bandwidth for all stations/channels is assumed:) noise temperature = {}, bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV'.format(
                     self._noise_temp, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
         elif Vrms is not None:
             self._Vrms = float(Vrms) * units.V
@@ -368,12 +370,11 @@ class simulation():
         for station_id in self._bandwidth_per_channel:
             self._Vrms_efield_per_channel[station_id] = {}
             for channel_id in self._bandwidth_per_channel[station_id]:
-                self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / \
-                                                                        self._amplification_per_channel[station_id][
-                                                                            channel_id] / units.m
+                self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / self._amplification_per_channel[station_id][channel_id] / units.m
         self._Vrms_efield = next(iter(next(iter(self._Vrms_efield_per_channel.values())).values()))
         tmp_cut = float(self._cfg['speedup']['min_efield_amplitude'])
-        logger.status(f"final Vrms {self._Vrms / units.V:.2g}V corresponds to an efield of {self._Vrms_efield / units.V / units.m / units.micro:.2g} muV/m for a VEL = 1m (amplification factor of system is {amplification:.1f}).\n -> all signals with less then {tmp_cut:.1f} x Vrms_efield = {tmp_cut * self._Vrms_efield / units.m / units.V / units.micro:.2g}muV/m will be skipped")
+        logger.status(
+            f"final Vrms {self._Vrms / units.V:.2g}V corresponds to an efield of {self._Vrms_efield / units.V / units.m / units.micro:.2g} muV/m for a VEL = 1m (amplification factor of system is {amplification:.1f}).\n -> all signals with less then {tmp_cut:.1f} x Vrms_efield = {tmp_cut * self._Vrms_efield / units.m / units.V / units.micro:.2g}muV/m will be skipped")
 
         self._distance_cut_polynomial = None
         if self._cfg['speedup']['distance_cut']:
@@ -532,7 +533,8 @@ class simulation():
                     distance_cut = self._get_distance_cut(np.sum(shower_energies)) + 100 * units.m
                     # 100m safety margin is added to account for extent of station around bary center.
                     if vertex_distances_to_station.min() > distance_cut:
-                        logger.debug(f"skipping station {self._station_id} because minimal distance {vertex_distances_to_station.min() / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {self._station_barycenter[iSt]}")
+                        logger.debug(
+                            f"skipping station {self._station_id} because minimal distance {vertex_distances_to_station.min() / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {self._station_barycenter[iSt]}")
                         distance_cut_time += time.time() - t_tmp
                         iCounter += len(shower_energies)
                         continue
@@ -569,25 +571,27 @@ class simulation():
                         total_time_sum = input_time + rayTracingTime + detSimTime + outputTime + weightTime + distance_cut_time  # askaryan time is part of the ray tracing time, so it is not counted here.
                         total_time = time.time() - t_start
                         if total_time > 0:
-                            logger.status("processing event group {}/{} and shower {}/{} ({} showers triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}%, askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
-                                            i_event_group_id,
-                                            len(unique_event_group_ids),
-                                            iCounter,
-                                            n_shower_station,
-                                            np.sum(self._mout['triggered']),
-                                            100. * iCounter / n_shower_station,
-                                            eta,
-                                            100. * (rayTracingTime - askaryan_time) / total_time,
-                                            100. * askaryan_time / total_time,
-                                            100. * detSimTime / total_time,
-                                            100. * input_time / total_time,
-                                            100. * weightTime / total_time,
-                                            100 * distance_cut_time / total_time,
-                                            100 * (total_time - total_time_sum) / total_time))
+                            logger.status(
+                                "processing event group {}/{} and shower {}/{} ({} showers triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}%, askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
+                                    i_event_group_id,
+                                    len(unique_event_group_ids),
+                                    iCounter,
+                                    n_shower_station,
+                                    np.sum(self._mout['triggered']),
+                                    100. * iCounter / n_shower_station,
+                                    eta,
+                                    100. * (rayTracingTime - askaryan_time) / total_time,
+                                    100. * askaryan_time / total_time,
+                                    100. * detSimTime / total_time,
+                                    100. * input_time / total_time,
+                                    100. * weightTime / total_time,
+                                    100 * distance_cut_time / total_time,
+                                    100 * (total_time - total_time_sum) / total_time))
 
                     self._read_input_shower_properties()
                     if particle_mode:
-                        logger.debug(f"simulating shower {self._shower_index}: {self._fin['shower_type'][self._shower_index]} with E = {self._fin['shower_energies'][self._shower_index] / units.eV:.2g}eV")
+                        logger.debug(
+                            f"simulating shower {self._shower_index}: {self._fin['shower_type'][self._shower_index]} with E = {self._fin['shower_energies'][self._shower_index] / units.eV:.2g}eV")
                     x1 = self._shower_vertex  # the interaction point
 
                     if self._cfg['speedup']['distance_cut']:
@@ -599,9 +603,11 @@ class simulation():
                         distance_to_station = np.linalg.norm(x1 - self._station_barycenter[iSt])
                         # 100m safety margin is added to account for extent of station around bary center.
                         distance_cut = self._get_distance_cut(shower_energy_sum) + 100 * units.m
-                        logger.debug(f"calculating distance cut. Current event has energy {self._fin['shower_energies'][self._shower_index]:.4g}, it is event number {iSh} and {np.sum(mask_shower_sum)} are within {self._cfg['speedup']['distance_cut_sum_length'] / units.m:.1f}m -> {shower_energy_sum:.4g}")
+                        logger.debug(
+                            f"calculating distance cut. Current event has energy {self._fin['shower_energies'][self._shower_index]:.4g}, it is event number {iSh} and {np.sum(mask_shower_sum)} are within {self._cfg['speedup']['distance_cut_sum_length'] / units.m:.1f}m -> {shower_energy_sum:.4g}")
                         if distance_to_station > distance_cut:
-                            logger.debug(f"skipping station {self._station_id} because distance {distance_to_station / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {self._fin['shower_energies'][self._shower_index]:.2g}eV) between vertex {x1} and bary center of station {self._station_barycenter[iSt]}")
+                            logger.debug(
+                                f"skipping station {self._station_id} because distance {distance_to_station / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {self._fin['shower_energies'][self._shower_index]:.2g}eV) between vertex {x1} and bary center of station {self._station_barycenter[iSt]}")
                             distance_cut_time += time.time() - t_tmp
                             continue
                         distance_cut_time += time.time() - t_tmp
@@ -609,7 +615,8 @@ class simulation():
                     # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
                     # if daughters (e.g. tau decay) have their vertex in the fiducial volume
                     if not self._is_in_fiducial_volume():
-                        logger.debug(f"event is not in fiducial volume, skipping simulation {self._fin['xx'][self._shower_index]}, {self._fin['yy'][self._shower_index]}, {self._fin['zz'][self._shower_index]}")
+                        logger.debug(
+                            f"event is not in fiducial volume, skipping simulation {self._fin['xx'][self._shower_index]}, {self._fin['yy'][self._shower_index]}, {self._fin['zz'][self._shower_index]}")
                         continue
 
                     # for special cases where only EM or HAD showers are simulated, skip all events that don't fulfill this criterion
@@ -750,13 +757,11 @@ class simulation():
                                     # check if the shower was already simulated (e.g. for a different channel or ray tracing solution)
                                     if self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]:
                                         if self._sim_shower.has_parameter(shp.charge_excess_profile_id):
-                                            kwargs = {
-                                                'iN': self._sim_shower.get_parameter(shp.charge_excess_profile_id)}
+                                            kwargs = {'iN': self._sim_shower.get_parameter(shp.charge_excess_profile_id)}
                                     if self._cfg['signal']['model'] == "Alvarez2009":
                                         if self._sim_shower.has_parameter(shp.k_L):
                                             kwargs = {'k_L': self._sim_shower.get_parameter(shp.k_L)}
-                                            logger.debug(
-                                                f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
+                                            logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
 
                                 spectrum, additional_output = askaryan.get_frequency_spectrum(
                                     self._fin['shower_energies'][self._shower_index], viewing_angles[iS],
@@ -767,10 +772,8 @@ class simulation():
                                     if 'shower_realization_ARZ' not in self._mout:
                                         self._mout['shower_realization_ARZ'] = np.zeros(self._n_showers)
                                     if not self._sim_shower.has_parameter(shp.charge_excess_profile_id):
-                                        self._sim_shower.set_parameter(shp.charge_excess_profile_id,
-                                                                       additional_output['iN'])
-                                        self._mout['shower_realization_ARZ'][self._shower_index] = additional_output[
-                                            'iN']
+                                        self._sim_shower.set_parameter(shp.charge_excess_profile_id, additional_output['iN'])
+                                        self._mout['shower_realization_ARZ'][self._shower_index] = additional_output['iN']
                                         logger.debug(
                                             f"setting shower profile for ARZ shower library to i = {additional_output['iN']}")
                                 if self._cfg['signal']['model'] == "Alvarez2009":
@@ -778,19 +781,20 @@ class simulation():
                                         self._mout['shower_realization_Alvarez2009'] = np.zeros(self._n_showers)
                                     if not self._sim_shower.has_parameter(shp.k_L):
                                         self._sim_shower.set_parameter(shp.k_L, additional_output['k_L'])
-                                        self._mout['shower_realization_Alvarez2009'][self._shower_index] = \
-                                        additional_output['k_L']
+                                        self._mout['shower_realization_Alvarez2009'][self._shower_index] = additional_output['k_L']
                                         logger.debug(
                                             f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
                                 askaryan_time += (time.time() - t_ask)
 
                                 polarization_direction_onsky = self._calculate_polarization_vector()
                                 cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
-                                polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
-                                logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
-                                                zenith / units.deg, azimuth / units.deg, polarization_direction_onsky[0],
-                                                polarization_direction_onsky[1], polarization_direction_onsky[2],
-                                                *polarization_direction_at_antenna))
+                                polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(
+                                    polarization_direction_onsky)
+                                logger.debug(
+                                    'receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
+                                        zenith / units.deg, azimuth / units.deg, polarization_direction_onsky[0],
+                                        polarization_direction_onsky[1], polarization_direction_onsky[2],
+                                        *polarization_direction_at_antenna))
                                 sg['polarization'][iSh, channel_id, iS] = polarization_direction_at_antenna
                                 eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
 
@@ -813,8 +817,7 @@ class simulation():
                                 # source voltage given to the emitter
                                 voltage_spectrum_emitter = emitter.get_frequency_spectrum(amplitude, self._n_samples,
                                                                                           self._dt,
-                                                                                          self._fin['emitter_model'][
-                                                                                              self._shower_index],
+                                                                                          self._fin['emitter_model'][self._shower_index],
                                                                                           half_width=half_width,
                                                                                           emitter_frequency=emitter_frequency)
                                 # convolve voltage output with antenna response to obtain emitted electric field
@@ -877,7 +880,7 @@ class simulation():
                             # apply a simple threshold cut to speed up the simulation,
                             # application of antenna response will just decrease the
                             # signal amplitude
-                            if (np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[self._station_id][channel_id]):
+                            if np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[self._station_id][channel_id]:
                                 candidate_station = True
                         # end of ray tracing solutions loop
                     t3 = time.time()
@@ -1003,8 +1006,7 @@ class simulation():
                             for channel_id in channel_ids:
                                 norm = self._bandwidth_per_channel[self._station.get_id()][channel_id]
                                 # normalize noise level to the bandwidth its generated for
-                                Vrms[channel_id] = self._Vrms_per_channel[self._station.get_id()][channel_id] / (
-                                        norm / max_freq) ** 0.5
+                                Vrms[channel_id] = self._Vrms_per_channel[self._station.get_id()][channel_id] / (norm / max_freq) ** 0.5
                             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms,
                                                          min_freq=0 * units.MHz,
                                                          max_freq=max_freq, type='rayleigh',
@@ -1029,12 +1031,9 @@ class simulation():
 
                     if self._outputfilenameNuRadioReco is not None:
                         # downsample traces to detector sampling rate to save file size
-                        channelResampler.run(self._evt, self._station, self._det,
-                                             sampling_rate=self._sampling_rate_detector)
-                        channelResampler.run(self._evt, self._station.get_sim_station(), self._det,
-                                             sampling_rate=self._sampling_rate_detector)
-                        electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det,
-                                                   sampling_rate=self._sampling_rate_detector)
+                        channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
+                        channelResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
+                        electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
 
                         output_mode = {'Channels': self._cfg['output']['channel_traces'],
                                        'ElectricFields': self._cfg['output']['electric_field_traces'],
@@ -1234,9 +1233,9 @@ class simulation():
         if 'multiple_triggers' not in self._mout:
             self._mout['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])),
                                                        dtype=np.bool)
-        # for station_id in self._station_ids:
-        #     sg = self._mout_groups[station_id]
-        #     sg['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            # for station_id in self._station_ids:
+            #     sg = self._mout_groups[station_id]
+            #     sg['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
         elif extend_array:
             tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
             nx, ny = self._mout['multiple_triggers'].shape
@@ -1490,8 +1489,10 @@ class simulation():
                 for i_ch, channel_id in enumerate(self._det.get_channel_ids(self._station_id)):
                     positions[i_ch] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
                 fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
-                fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
-                fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._bandwidth_per_channel[station_id].values())
+                fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(
+                    self._Vrms_per_channel[station_id].values())
+                fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(
+                    self._bandwidth_per_channel[station_id].values())
 
             fout.attrs.create("Tnoise", self._noise_temp, dtype=np.float)
             fout.attrs.create("Vrms", self._Vrms, dtype=np.float)
@@ -1522,8 +1523,8 @@ class simulation():
             # only save attributes sets that haven't been recomputed and saved already
             if not key in fout.attrs.keys():
                 # don't write trigger names from input to output file, this will lead to problems with incompatible trigger names when merging output files
-                if (key not in ["trigger_names", "Tnoise", "Vrms", "bandwidth", "n_samples", "dt", "detector",
-                                "config"]):
+                if key not in ["trigger_names", "Tnoise", "Vrms", "bandwidth", "n_samples", "dt", "detector",
+                               "config"]:
                     fout.attrs[key] = self._fin_attrs[key]
         fout.close()
 
