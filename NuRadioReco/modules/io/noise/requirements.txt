@@ -1,0 +1,8 @@
+keras
+tensorflow
+matplotlib
+NuRadioMC
+kapre
+numpy
+scipy
+git+https://github.com/fversaci/WaveTF
