@@ -47,10 +47,7 @@ import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 
 STATUS = 31
-
-
 # logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
-
 
 class NuRadioMCLogger(logging.Logger):
 
@@ -240,8 +237,8 @@ class simulation():
         self._station_ids = self._det.get_station_ids()
         self._event_ids_counter = {}
         for station_id in self._station_ids:
-            self._event_ids_counter[
-                station_id] = -1  # we initialize with -1 because we increment the counter before we use it the first time
+            # we initialize with -1 because we increment the counter before we use it the first time
+            self._event_ids_counter[station_id] = -1
 
         # print noise information
         logger.status("running with noise {}".format(bool(self._cfg['noise'])))
@@ -287,7 +284,7 @@ class simulation():
             self._evt = NuRadioReco.framework.event.Event(0, self._primary_index)
 
             self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
-            #                 logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
+            #  logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
             self._n_samples = self._det.get_number_of_samples(self._station_id,
                                                               0) / self._sampling_rate_detector / self._dt
             self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)  # round to nearest even integer
@@ -297,10 +294,7 @@ class simulation():
             self._create_sim_station()
             sta = self._det.get_station(self._station_id)
             for channel_id in self._det.get_channel_ids(self._station_id):
-                electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id],
-                                                                                    self._det.get_relative_position(
-                                                                                        self._sim_station.get_id(),
-                                                                                        channel_id))
+                electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id], self._det.get_relative_position(self._sim_station.get_id(), channel_id))
                 trace = np.zeros_like(self._tt)
                 trace[self._n_samples // 2] = 100 * units.V  # set a signal that will satisfy any high/low trigger
                 trace[self._n_samples // 2 + 1] = -100 * units.V
@@ -359,14 +353,11 @@ class simulation():
                     if self._det.is_channel_noiseless(station_id, channel_id):
                         self._noiseless_channels[station_id].append(channel_id)
 
-                    self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k *
-                                                                      self._bandwidth_per_channel[station_id][
-                                                                          channel_id] / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
-                    logger.status(
-                        f'station {station_id} channel {channel_id} noise temperature = {noise_temp_channel}, bandwidth = {self._bandwidth_per_channel[station_id][channel_id] / units.MHz:.2f} MHz -> Vrms = {self._Vrms_per_channel[station_id][channel_id] / units.V / units.micro:.2f} muV')
+                    # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
+                    self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k * self._bandwidth_per_channel[station_id][channel_id] / units.Hz) ** 0.5
+                    logger.status(f'station {station_id} channel {channel_id} noise temperature = {noise_temp_channel}, bandwidth = {self._bandwidth_per_channel[station_id][channel_id] / units.MHz:.2f} MHz -> Vrms = {self._Vrms_per_channel[station_id][channel_id] / units.V / units.micro:.2f} muV')
             self._Vrms = next(iter(next(iter(self._Vrms_per_channel.values())).values()))
-            logger.status(
-                '(if same bandwidth for all stations/channels is assumed:) noise temperature = {}, bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV'.format(
+            logger.status('(if same bandwidth for all stations/channels is assumed:) noise temperature = {}, bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV'.format(
                     self._noise_temp, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
         elif (Vrms is not None):
             self._Vrms = float(Vrms) * units.V
@@ -378,13 +369,10 @@ class simulation():
         for station_id in self._bandwidth_per_channel:
             self._Vrms_efield_per_channel[station_id] = {}
             for channel_id in self._bandwidth_per_channel[station_id]:
-                self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / \
-                                                                        self._amplification_per_channel[station_id][
-                                                                            channel_id] / units.m
+                self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / self._amplification_per_channel[station_id][channel_id] / units.m
         self._Vrms_efield = next(iter(next(iter(self._Vrms_efield_per_channel.values())).values()))
         tmp_cut = float(self._cfg['speedup']['min_efield_amplitude'])
-        logger.status(
-            f"final Vrms {self._Vrms / units.V:.2g}V corresponds to an efield of {self._Vrms_efield / units.V / units.m / units.micro:.2g} muV/m for a VEL = 1m (amplification factor of system is {amplification:.1f}).\n -> all signals with less then {tmp_cut:.1f} x Vrms_efield = {tmp_cut * self._Vrms_efield / units.m / units.V / units.micro:.2g}muV/m will be skipped")
+        logger.status(f"final Vrms {self._Vrms / units.V:.2g}V corresponds to an efield of {self._Vrms_efield / units.V / units.m / units.micro:.2g} muV/m for a VEL = 1m (amplification factor of system is {amplification:.1f}).\n -> all signals with less then {tmp_cut:.1f} x Vrms_efield = {tmp_cut * self._Vrms_efield / units.m / units.V / units.micro:.2g}muV/m will be skipped")
 
         self._distance_cut_polynomial = None
         if self._cfg['speedup']['distance_cut']:
@@ -469,8 +457,7 @@ class simulation():
         for i_event_group_id, event_group_id in enumerate(unique_event_group_ids):
             logger.debug(f"simulating event group id {event_group_id}")
             if (self._event_group_list is not None and event_group_id not in self._event_group_list):
-                logger.debug(
-                    f"skipping event group {event_group_id} because it is not in the event group list provided to the __init__ function")
+                logger.debug(f"skipping event group {event_group_id} because it is not in the event group list provided to the __init__ function")
                 continue
             event_indices = np.atleast_1d(np.squeeze(np.argwhere(self._fin['event_group_ids'] == event_group_id)))
 
@@ -483,11 +470,11 @@ class simulation():
             self._primary_index = event_indices[0]
             # determine if a particle (neutrinos, or a secondary interaction of a neutrino, or surface muons) is simulated
             particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
-            self._mout['weights'][event_indices] = np.ones(
-                len(event_indices))  # for a pulser simulation, every event has the same weight
+            # for a pulser simulation, every event has the same weight
+            self._mout['weights'][event_indices] = np.ones(len(event_indices))
             if particle_mode:
-                self._read_input_particle_properties(
-                    self._primary_index)  # this sets the self.input_particle for self._primary_index
+                # this sets the self.input_particle for self._primary_index
+                self._read_input_particle_properties(self._primary_index)
                 # calculate the weight for the primary particle
                 self.primary = self.input_particle
                 if (self._cfg['weights']['weight_mode'] == "existing"):
@@ -542,8 +529,8 @@ class simulation():
                     t_tmp = time.time()
                     vertex_distances_to_station = np.linalg.norm(vertex_positions - self._station_barycenter[iSt],
                                                                  axis=1)
-                    distance_cut = self._get_distance_cut(np.sum(
-                        shower_energies)) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
+                    distance_cut = self._get_distance_cut(np.sum(shower_energies)) + 100 * units.m
+                    # 100m safety margin is added to account for extent of station around bary center.
                     if vertex_distances_to_station.min() > distance_cut:
                         logger.debug(
                             f"skipping station {self._station_id} because minimal distance {vertex_distances_to_station.min() / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {self._station_barycenter[iSt]}")
@@ -554,10 +541,9 @@ class simulation():
 
                 candidate_station = False
                 self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
-                #                 logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
-                self._n_samples = self._det.get_number_of_samples(self._station_id,
-                                                                  0) / self._sampling_rate_detector / self._dt
-                self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)  # round to nearest even integer
+                # logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
+                self._n_samples = self._det.get_number_of_samples(self._station_id, 0) / self._sampling_rate_detector / self._dt
+                self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)  # round to the nearest even integer
                 self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
                 self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
 
@@ -579,7 +565,7 @@ class simulation():
                 for iSh, self._shower_index in enumerate(event_indices):
                     sg['shower_id'][iSh] = self._shower_ids[self._shower_index]
                     iCounter += 1
-                    #                     if(iCounter % max(1, int(n_shower_station / 100.)) == 0):
+                    # if(iCounter % max(1, int(n_shower_station / 100.)) == 0):
                     if ((time.time() - t_last_update) > 60):
                         t_last_update = time.time()
                         eta = pretty_time_delta((time.time() - t_start) * (n_shower_station - iCounter) / iCounter)
@@ -606,25 +592,21 @@ class simulation():
 
                     self._read_input_shower_properties()
                     if particle_mode:
-                        logger.debug(
-                            f"simulating shower {self._shower_index}: {self._fin['shower_type'][self._shower_index]} with E = {self._fin['shower_energies'][self._shower_index] / units.eV:.2g}eV")
+                        logger.debug(f"simulating shower {self._shower_index}: {self._fin['shower_type'][self._shower_index]} with E = {self._fin['shower_energies'][self._shower_index] / units.eV:.2g}eV")
                     x1 = self._shower_vertex  # the interaction point
 
                     if self._cfg['speedup']['distance_cut']:
                         t_tmp = time.time()
                         # calculate the sum of shower energies for all showers within self._cfg['speedup']['distance_cut_sum_length']
-                        mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup'][
-                            'distance_cut_sum_length']
+                        mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup']['distance_cut_sum_length']
                         shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
                         # quick speedup cut using barycenter of station as position
                         distance_to_station = np.linalg.norm(x1 - self._station_barycenter[iSt])
-                        distance_cut = self._get_distance_cut(
-                            shower_energy_sum) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
-                        logger.debug(
-                            f"calculating distance cut. Current event has energy {self._fin['shower_energies'][self._shower_index]:.4g}, it is event number {iSh} and {np.sum(mask_shower_sum)} are within {self._cfg['speedup']['distance_cut_sum_length'] / units.m:.1f}m -> {shower_energy_sum:.4g}")
+                        # 100m safety margin is added to account for extent of station around bary center.
+                        distance_cut = self._get_distance_cut(shower_energy_sum) + 100 * units.m
+                        logger.debug(f"calculating distance cut. Current event has energy {self._fin['shower_energies'][self._shower_index]:.4g}, it is event number {iSh} and {np.sum(mask_shower_sum)} are within {self._cfg['speedup']['distance_cut_sum_length'] / units.m:.1f}m -> {shower_energy_sum:.4g}")
                         if distance_to_station > distance_cut:
-                            logger.debug(
-                                f"skipping station {self._station_id} because distance {distance_to_station / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {self._fin['shower_energies'][self._shower_index]:.2g}eV) between vertex {x1} and bary center of station {self._station_barycenter[iSt]}")
+                            logger.debug(f"skipping station {self._station_id} because distance {distance_to_station / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {self._fin['shower_energies'][self._shower_index]:.2g}eV) between vertex {x1} and bary center of station {self._station_barycenter[iSt]}")
                             distance_cut_time += time.time() - t_tmp
                             continue
                         distance_cut_time += time.time() - t_tmp
@@ -632,8 +614,7 @@ class simulation():
                     # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
                     # if daughters (e.g. tau decay) have their vertex in the fiducial volume
                     if not self._is_in_fiducial_volume():
-                        logger.debug(
-                            f"event is not in fiducial volume, skipping simulation {self._fin['xx'][self._shower_index]}, {self._fin['yy'][self._shower_index]}, {self._fin['zz'][self._shower_index]}")
+                        logger.debug(f"event is not in fiducial volume, skipping simulation {self._fin['xx'][self._shower_index]}, {self._fin['yy'][self._shower_index]}, {self._fin['zz'][self._shower_index]}")
                         continue
 
                     # for special cases where only EM or HAD showers are simulated, skip all events that don't fulfill this criterion
@@ -670,9 +651,7 @@ class simulation():
                     #                     input_time += (time.time() - t1)
 
                     for channel_id in self._det.get_channel_ids(self._station_id):
-                        x2 = self._det.get_relative_position(self._station_id,
-                                                             channel_id) + self._det.get_absolute_position(
-                            self._station_id)
+                        x2 = self._det.get_relative_position(self._station_id, channel_id) + self._det.get_absolute_position(self._station_id)
                         logger.debug(f"simulating channel {channel_id} at {x2}")
 
                         if self._cfg['speedup']['distance_cut']:
@@ -682,8 +661,7 @@ class simulation():
 
                             if distance > distance_cut:
                                 logger.debug('A distance speed up cut has been applied')
-                                logger.debug('Shower energy: {:.2e} eV'.format(
-                                    self._fin['shower_energies'][self._shower_index] / units.eV))
+                                logger.debug('Shower energy: {:.2e} eV'.format(self._fin['shower_energies'][self._shower_index] / units.eV))
                                 logger.debug('Distance cut: {:.2f} m'.format(distance_cut / units.m))
                                 logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
                                 distance_cut_time += time.time() - t_tmp
@@ -692,8 +670,8 @@ class simulation():
 
                         self._raytracer.set_start_and_end_point(x1, x2)
                         self._raytracer.use_optional_function('set_shower_axis', self._shower_axis)
-                        if (pre_simulated and ray_tracing_performed and not self._cfg['speedup'][
-                            'redo_raytracing']):  # check if raytracing was already performed
+                        # check if raytracing was already performed
+                        if (pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):
                             if self._cfg['propagation']['module'] == 'radiopropa':
                                 logger.error('Presimulation can not be used with the radiopropa ray tracer module')
                                 raise Exception('Presimulation can not be used with the radiopropa ray tracer module')
@@ -708,8 +686,7 @@ class simulation():
                             self._raytracer.find_solutions()
 
                         if (not self._raytracer.has_solution()):
-                            logger.debug(
-                                "event {} and station {}, channel {} does not have any ray tracing solution ({} to {})".format(
+                            logger.debug("event {} and station {}, channel {} does not have any ray tracing solution ({} to {})".format(
                                     self._event_group_id, self._station_id, channel_id, x1, x2))
                             continue
                         delta_Cs = []
@@ -739,11 +716,9 @@ class simulation():
                             # skip individual channels where the viewing angle difference is too large
                             # discard event if delta_C (angle off cherenkov cone) is too large
                             if (np.abs(delta_Cs[iS]) > self._cfg['speedup']['delta_C_cut']):
-                                logger.debug(
-                                    'delta_C too large, ray tracing solution unlikely to be observed, skipping event')
+                                logger.debug('delta_C too large, ray tracing solution unlikely to be observed, skipping event')
                                 continue
-                            if (pre_simulated and ray_tracing_performed and not self._cfg['speedup'][
-                                'redo_raytracing']):
+                            if (pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']):
                                 sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
                                 R = sg_pre['travel_distances'][self._shower_index, channel_id, iS]
                                 T = sg_pre['travel_times'][self._shower_index, channel_id, iS]
@@ -763,31 +738,25 @@ class simulation():
                             # get neutrino pulse from Askaryan module
                             t_ask = time.time()
 
-                            if ("simulation_mode" not in self._fin_attrs or self._fin_attrs[
-                                'simulation_mode'] == "neutrino"):
+                            if ("simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] == "neutrino"):
                                 # first consider in-ice showers
                                 kwargs = {}
                                 # if the input file specifies a specific shower realization, use that realization
-                                if (self._cfg['signal']['model'] in ["ARZ2019",
-                                                                     "ARZ2020"] and "shower_realization_ARZ" in self._fin):
+                                if (self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"] and "shower_realization_ARZ" in self._fin):
                                     kwargs['iN'] = self._fin['shower_realization_ARZ'][self._shower_index]
                                     logger.debug(f"reusing shower {kwargs['iN']} ARZ shower library")
-                                elif (self._cfg['signal'][
-                                          'model'] == "Alvarez2009" and "shower_realization_Alvarez2009" in self._fin):
+                                elif (self._cfg['signal']['model'] == "Alvarez2009" and "shower_realization_Alvarez2009" in self._fin):
                                     kwargs['k_L'] = self._fin['shower_realization_Alvarez2009'][self._shower_index]
-                                    logger.debug(
-                                        f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
+                                    logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
                                 else:
                                     # check if the shower was already simulated (e.g. for a different channel or ray tracing solution)
                                     if (self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]):
                                         if (self._sim_shower.has_parameter(shp.charge_excess_profile_id)):
-                                            kwargs = {
-                                                'iN': self._sim_shower.get_parameter(shp.charge_excess_profile_id)}
+                                            kwargs = {'iN': self._sim_shower.get_parameter(shp.charge_excess_profile_id)}
                                     if (self._cfg['signal']['model'] == "Alvarez2009"):
                                         if (self._sim_shower.has_parameter(shp.k_L)):
                                             kwargs = {'k_L': self._sim_shower.get_parameter(shp.k_L)}
-                                            logger.debug(
-                                                f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
+                                            logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
 
                                 spectrum, additional_output = askaryan.get_frequency_spectrum(
                                     self._fin['shower_energies'][self._shower_index], viewing_angles[iS],
@@ -798,29 +767,22 @@ class simulation():
                                     if ('shower_realization_ARZ' not in self._mout):
                                         self._mout['shower_realization_ARZ'] = np.zeros(self._n_showers)
                                     if (not self._sim_shower.has_parameter(shp.charge_excess_profile_id)):
-                                        self._sim_shower.set_parameter(shp.charge_excess_profile_id,
-                                                                       additional_output['iN'])
-                                        self._mout['shower_realization_ARZ'][self._shower_index] = additional_output[
-                                            'iN']
-                                        logger.debug(
-                                            f"setting shower profile for ARZ shower library to i = {additional_output['iN']}")
+                                        self._sim_shower.set_parameter(shp.charge_excess_profile_id, additional_output['iN'])
+                                        self._mout['shower_realization_ARZ'][self._shower_index] = additional_output['iN']
+                                        logger.debug(f"setting shower profile for ARZ shower library to i = {additional_output['iN']}")
                                 if (self._cfg['signal']['model'] == "Alvarez2009"):
                                     if ('shower_realization_Alvarez2009' not in self._mout):
                                         self._mout['shower_realization_Alvarez2009'] = np.zeros(self._n_showers)
                                     if (not self._sim_shower.has_parameter(shp.k_L)):
                                         self._sim_shower.set_parameter(shp.k_L, additional_output['k_L'])
-                                        self._mout['shower_realization_Alvarez2009'][self._shower_index] = \
-                                            additional_output['k_L']
-                                        logger.debug(
-                                            f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
+                                        self._mout['shower_realization_Alvarez2009'][self._shower_index] = additional_output['k_L']
+                                        logger.debug(f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
                                 askaryan_time += (time.time() - t_ask)
 
                                 polarization_direction_onsky = self._calculate_polarization_vector()
                                 cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
-                                polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(
-                                    polarization_direction_onsky)
-                                logger.debug(
-                                    'receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
+                                polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
+                                logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
                                         zenith / units.deg, azimuth / units.deg, polarization_direction_onsky[0],
                                         polarization_direction_onsky[1], polarization_direction_onsky[2],
                                         *polarization_direction_at_antenna))
@@ -831,10 +793,8 @@ class simulation():
                                 # NuRadioMC also supports the simulation of emitters. In this case, the signal model specifies the electric field polarization
                                 amplitude = self._fin['emitter_amplitudes'][self._shower_index]
                                 # following two lines used only for few models( not for all)
-                                emitter_frequency = self._fin['emitter_frequency'][
-                                    self._shower_index]  # the frequency of cw and tone_burst signal
-                                half_width = self._fin['emitter_half_width'][
-                                    self._shower_index]  # defines width of square and tone_burst signals
+                                emitter_frequency = self._fin['emitter_frequency'][self._shower_index]  # the frequency of cw and tone_burst signal
+                                half_width = self._fin['emitter_half_width'][self._shower_index]  # defines width of square and tone_burst signals
                                 # get emitting antenna properties
                                 antenna_model = self._fin['emitter_antenna_type'][self._shower_index]
                                 antenna_pattern = self._antenna_pattern_provider.load_antenna_pattern(antenna_model)
@@ -870,8 +830,7 @@ class simulation():
                                 from matplotlib import pyplot as plt
                                 fig, (ax, ax2) = plt.subplots(1, 2)
                                 ax.plot(self._ff, np.abs(eTheta) / units.micro / units.V * units.m)
-                                ax2.plot(self._tt,
-                                         fft.freq2time(eTheta, 1. / self._dt) / units.micro / units.V * units.m)
+                                ax2.plot(self._tt, fft.freq2time(eTheta, 1. / self._dt) / units.micro / units.V * units.m)
                                 ax2.set_ylabel("amplitude [$\mu$V/m]")
                                 fig.tight_layout()
                                 fig.suptitle("$E_C$ = {:.1g}eV $\Delta \Omega$ = {:.1f}deg, R = {:.0f}m".format(
@@ -906,8 +865,7 @@ class simulation():
                             electric_field.set_trace_start_time(trace_start_time)
                             electric_field[efp.azimuth] = azimuth
                             electric_field[efp.zenith] = zenith
-                            electric_field[efp.ray_path_type] = propagation.solution_types[
-                                self._raytracer.get_solution_type(iS)]
+                            electric_field[efp.ray_path_type] = propagation.solution_types[self._raytracer.get_solution_type(iS)]
                             electric_field[efp.nu_vertex_distance] = sg['travel_distances'][iSh, channel_id, iS]
                             electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
                             self._sim_station.add_electric_field(electric_field)
@@ -915,9 +873,7 @@ class simulation():
                             # apply a simple threshold cut to speed up the simulation,
                             # application of antenna response will just decrease the
                             # signal amplitude
-                            if (np.max(np.abs(electric_field.get_trace())) > float(
-                                    self._cfg['speedup']['min_efield_amplitude']) *
-                                    self._Vrms_efield_per_channel[self._station_id][channel_id]):
+                            if (np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[self._station_id][channel_id]):
                                 candidate_station = True
                         # end of ray tracing solutions loop
                     t3 = time.time()
@@ -939,8 +895,8 @@ class simulation():
                     # we give the user the opportunity to define a custom detector simulation
                     self._detector_simulation_part1()
                 else:
-                    efieldToVoltageConverterPerEfield.run(self._evt, self._station,
-                                                          self._det)  # convolve efield with antenna pattern
+                    # convolve efield with antenna pattern
+                    efieldToVoltageConverterPerEfield.run(self._evt, self._station, self._det)
                     self._detector_simulation_filter_amp(self._evt, self._station.get_sim_station(), self._det)
                     channelAddCableDelay.run(self._evt, self._sim_station, self._det)
 
@@ -948,12 +904,8 @@ class simulation():
                     self._channelSignalReconstructor.run(self._evt, self._station.get_sim_station(), self._det)
                     for channel in self._station.get_sim_station().iter_channels():
                         tmp_index = np.argwhere(event_indices == self._get_shower_index(channel.get_shower_id()))[0]
-                        sg['max_amp_shower_and_ray'][
-                            tmp_index, channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(
-                            chp.maximum_amplitude_envelope)
-                        sg['time_shower_and_ray'][
-                            tmp_index, channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(
-                            chp.signal_time)
+                        sg['max_amp_shower_and_ray'][tmp_index, channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
+                        sg['time_shower_and_ray'][tmp_index, channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.signal_time)
                 start_times = []
                 channel_identifiers = []
                 for channel in self._sim_station.iter_channels():
@@ -961,14 +913,14 @@ class simulation():
                     start_times.append(channel.get_trace_start_time())
                 start_times = np.array(start_times)
                 start_times_sort = np.argsort(start_times)
-                delta_start_times = start_times[start_times_sort][1:] - start_times[start_times_sort][
-                                                                        :-1]  # this array is sorted in time
+                # this array is sorted in time
+                delta_start_times = start_times[start_times_sort][1:] - start_times[start_times_sort][:-1]
                 split_event_time_diff = float(self._cfg['split_event_time_diff'])
                 iSplit = np.atleast_1d(np.squeeze(np.argwhere(delta_start_times > split_event_time_diff)))
-                #                 print(f"start times {start_times}")
-                #                 print(f"sort array {start_times_sort}")
-                #                 print(f"delta times {delta_start_times}")
-                #                 print(f"split at indices {iSplit}")
+                # print(f"start times {start_times}")
+                # print(f"sort array {start_times_sort}")
+                # print(f"delta times {delta_start_times}")
+                # print(f"split at indices {iSplit}")
                 n_sub_events = len(iSplit) + 1
                 if (n_sub_events > 1):
                     logger.info(f"splitting event group id {self._event_group_id} into {n_sub_events} sub events")
@@ -989,8 +941,7 @@ class simulation():
                         for start_time in start_times[indices]:
                             tmp += f"{start_time / units.ns:.0f}, "
                         tmp = tmp[:-2] + " ns"
-                        logger.info(
-                            f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
+                        logger.info(f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
                     self._evt = NuRadioReco.framework.event.Event(self._event_group_id, iEvent)  # create new event
 
                     if particle_mode:
@@ -1011,8 +962,8 @@ class simulation():
                         if (shower_id not in self._shower_ids_of_sub_event):
                             self._shower_ids_of_sub_event.append(shower_id)
                         sim_station.add_channel(tmp_sim_station.get_channel(ch_uid))
-                        efield_uid = ([ch_uid[0]], ch_uid[1], ch_uid[
-                            2])  # the efield unique identifier has as first parameter an array of the channels it is valid for
+                        # the efield unique identifier has as first parameter an array of the channels it is valid for
+                        efield_uid = ([ch_uid[0]], ch_uid[1], ch_uid[2])
                         for efield in tmp_sim_station.get_electric_fields():
                             if (efield.get_unique_identifier() == efield_uid):
                                 sim_station.add_electric_field(efield)
@@ -1034,8 +985,8 @@ class simulation():
                         self._detector_simulation_part2()
                     else:
                         # start detector simulation
-                        efieldToVoltageConverter.run(self._evt, self._station,
-                                                     self._det)  # convolve efield with antenna pattern
+                        # convolve efield with antenna pattern
+                        efieldToVoltageConverter.run(self._evt, self._station, self._det)
                         # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
                         # 20 GHz by default to achieve a good time resolution when the two signals from the two signal paths are added)
                         channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
@@ -1046,9 +997,8 @@ class simulation():
                             Vrms = {}
                             for channel_id in channel_ids:
                                 norm = self._bandwidth_per_channel[self._station.get_id()][channel_id]
-                                Vrms[channel_id] = self._Vrms_per_channel[self._station.get_id()][channel_id] / (
-                                        norm / (
-                                    max_freq)) ** 0.5  # normalize noise level to the bandwidth its generated for
+                                # normalize noise level to the bandwidth its generated for
+                                Vrms[channel_id] = self._Vrms_per_channel[self._station.get_id()][channel_id] / (norm / (max_freq)) ** 0.5
                             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms,
                                                          min_freq=0 * units.MHz,
                                                          max_freq=max_freq, type='rayleigh',
@@ -1110,7 +1060,8 @@ class simulation():
         # Create trigger structures if there are no triggering events.
         # This is done to ensure that files with no triggering n_events
         # merge properly.
-        #         self._create_empty_multiple_triggers()
+
+        # self._create_empty_multiple_triggers()
 
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
@@ -1138,8 +1089,7 @@ class simulation():
             output_NuRadioRecoTime += f"{name}: {t} {trel:.1f}%\n"
         logger.status(output_NuRadioRecoTime)
 
-        logger.status(
-            "{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}% askaryan, {:.1f}% detector simulation, {:.1f}% output, {:.1f}% weights calculation)".format(
+        logger.status("{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}% askaryan, {:.1f}% detector simulation, {:.1f}% output, {:.1f}% weights calculation)".format(
                 self._n_showers,
                 pretty_time_delta(t_total), 1.e3 * t_total / self._n_showers,
                                             100 * input_time / t_total,
@@ -1184,8 +1134,7 @@ class simulation():
 
         r = (self._shower_vertex[0] ** 2 + self._shower_vertex[1] ** 2) ** 0.5
         if (r >= self._fin_attrs['fiducial_rmin'] and r <= self._fin_attrs['fiducial_rmax']):
-            if (self._shower_vertex[2] >= self._fin_attrs['fiducial_zmin'] and self._shower_vertex[2] <=
-                    self._fin_attrs['fiducial_zmax']):
+            if (self._shower_vertex[2] >= self._fin_attrs['fiducial_zmin'] and self._shower_vertex[2] <= self._fin_attrs['fiducial_zmax']):
                 return True
         return False
 
@@ -1264,7 +1213,6 @@ class simulation():
                 sg['triggered'] = np.zeros(n_showers, dtype=np.bool)
 
     def _create_trigger_structures(self):
-
         if ('trigger_names' not in self._mout_attrs):
             self._mout_attrs['trigger_names'] = []
         extend_array = False
@@ -1278,20 +1226,20 @@ class simulation():
         if ('multiple_triggers' not in self._mout):
             self._mout['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])),
                                                        dtype=np.bool)
-        #             for station_id in self._station_ids:
-        #                 sg = self._mout_groups[station_id]
-        #                 sg['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+        # for station_id in self._station_ids:
+        #     sg = self._mout_groups[station_id]
+        #     sg['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
         elif (extend_array):
             tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
             nx, ny = self._mout['multiple_triggers'].shape
             tmp[:, 0:ny] = self._mout['multiple_triggers']
             self._mout['multiple_triggers'] = tmp
-        #             for station_id in self._station_ids:
-        #                 sg = self._mout_groups[station_id]
-        #                 tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
-        #                 nx, ny = sg['multiple_triggers'].shape
-        #                 tmp[:, 0:ny] = sg['multiple_triggers']
-        #                 sg['multiple_triggers'] = tmp
+        # for station_id in self._station_ids:
+        #     sg = self._mout_groups[station_id]
+        #     tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+        #     nx, ny = sg['multiple_triggers'].shape
+        #     tmp[:, 0:ny] = sg['multiple_triggers']
+        #     sg['multiple_triggers'] = tmp
         return extend_array
 
     def _save_triggers_to_hdf5(self, sg, event_indices_of_triggered_shower_in_eventgroup,
@@ -1380,8 +1328,8 @@ class simulation():
         nS = self._raytracer.get_number_of_raytracing_solutions()  # number of possible ray-tracing solutions
         sg = {}
         sg['triggered'] = np.zeros(n_showers, dtype=np.bool)
-        sg['shower_id'] = np.zeros(n_showers,
-                                   dtype=int) * -1  # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
+        # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
+        sg['shower_id'] = np.zeros(n_showers, dtype=int) * -1
         sg['event_id_per_shower'] = np.zeros(n_showers, dtype=int) * -1
         sg['launch_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
         sg['receive_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
@@ -1531,9 +1479,7 @@ class simulation():
                 n_channels = self._det.get_number_of_channels(station_id)
                 positions = np.zeros((n_channels, 3))
                 for i_ch, channel_id in enumerate(self._det.get_channel_ids(self._station_id)):
-                    positions[i_ch] = self._det.get_relative_position(station_id,
-                                                                      channel_id) + self._det.get_absolute_position(
-                        station_id)
+                    positions[i_ch] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
                 fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
                 fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(
                     self._Vrms_per_channel[station_id].values())
@@ -1566,10 +1512,10 @@ class simulation():
                         fout[key] = np.array(self._fin[key])[saved]
 
         for key in self._fin_attrs.keys():
-            if (
-                    not key in fout.attrs.keys()):  # only save attributes sets that haven't been recomputed and saved already
-                if (key not in ["trigger_names", "Tnoise", "Vrms", "bandwidth", "n_samples", "dt", "detector",
-                                "config"]):  # don't write trigger names from input to output file, this will lead to problems with incompatible trigger names when merging output files
+            # only save attributes sets that haven't been recomputed and saved already
+            if (not key in fout.attrs.keys()):
+                # don't write trigger names from input to output file, this will lead to problems with incompatible trigger names when merging output files
+                if (key not in ["trigger_names", "Tnoise", "Vrms", "bandwidth", "n_samples", "dt", "detector", "config"]):
                     fout.attrs[key] = self._fin_attrs[key]
         fout.close()
 
@@ -1579,13 +1525,10 @@ class simulation():
         n_triggered = np.sum(triggered)
         n_triggered_weighted = np.sum(self._mout['weights'][triggered])
         n_events = self._fin_attrs['n_events']
-        logger.status(
-            f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} = {n_triggered / self._n_showers:.3f} (sum of weights = {n_triggered_weighted:.2f})')
-
+        logger.status(f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} = {n_triggered / self._n_showers:.3f} (sum of weights = {n_triggered_weighted:.2f})')
         V = self._fin_attrs['volume']
         Veff = V * n_triggered_weighted / n_events
-        logger.status(
-            f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi / units.km ** 3:.4g} km^3 sr")
+        logger.status(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi / units.km ** 3:.4g} km^3 sr")
 
     def _calculate_polarization_vector(self):
         """ calculates the polarization vector in spherical coordinates (eR, eTheta, ePhi)
