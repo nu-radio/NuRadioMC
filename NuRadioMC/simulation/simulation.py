@@ -1219,6 +1219,8 @@ class simulation():
             sg['triggered'][iSh] = np.any(sg['multiple_triggers'][iSh])
             self._mout['triggered'][iSh2] |= sg['triggered'][iSh]
             self._mout['multiple_triggers'][iSh2] |= sg['multiple_triggers'][iSh]
+        sg['event_id_per_shower'][local_shower_index] = self._evt.get_id()
+        sg['event_group_id_per_shower'][local_shower_index] = self._evt.get_run_number()
         self._output_multiple_triggers_station[self._station_id].append(multiple_triggers)
         self._output_triggered_station[self._station_id].append(np.any(multiple_triggers))
 
@@ -1276,7 +1278,10 @@ class simulation():
         nS = self._raytracer.get_number_of_raytracing_solutions()  # number of possible ray-tracing solutions
         sg = {}
         sg['triggered'] = np.zeros(n_showers, dtype=np.bool)
-        sg['shower_id'] = np.zeros(n_showers, dtype=int) * -1  # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
+        # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
+        sg['shower_id'] = np.zeros(n_showers, dtype=int) * -1
+        sg['event_id_per_shower'] = np.zeros(n_showers, dtype=int) * -1
+        sg['event_group_id_per_shower'] = np.zeros(n_showers, dtype=int) * -1
         sg['launch_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
         sg['receive_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
         sg['polarization'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
