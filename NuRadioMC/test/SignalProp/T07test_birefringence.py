@@ -34,36 +34,33 @@ x_receiver = np.array([0., 0., -5.])
 
 stamps = 200000
 
-try:
-    test_pulse = np.load('test_pulse.npy')
-    
-except:
-    T_start = -50
-    T_final = 50
-    th_max = 3
 
-    T = np.linspace(T_start, T_final, stamps)
-    dt = T[1] - T[0]
+T_start = -50
+T_final = 50
+th_max = 3
 
-    t_theta = base_trace.BaseTrace()
-    t_phi = base_trace.BaseTrace()
+T = np.linspace(T_start, T_final, stamps)
+dt = T[1] - T[0]
 
-    delta_pulse_theta = np.zeros(stamps)
-    delta_pulse_theta[int(stamps/2)] = 1
+t_theta = base_trace.BaseTrace()
+t_phi = base_trace.BaseTrace()
 
-    t_theta.set_trace(delta_pulse_theta, sampling_rate=1 / dt)
+delta_pulse_theta = np.zeros(stamps)
+delta_pulse_theta[int(stamps/2)] = 1
 
-    ff = t_theta.get_frequencies()
-    spectrum = t_theta.get_frequency_spectrum()
-    spectrum[ff > 300 * units.MHz] = 0
-    spectrum[ff < 80 * units.MHz] = 0
-    t_theta.set_frequency_spectrum(spectrum, sampling_rate=1 / dt)
+t_theta.set_trace(delta_pulse_theta, sampling_rate=1 / dt)
 
-    Th = th_max * t_theta.get_trace() / max(t_theta.get_trace())
-    Ph = th_max * t_theta.get_trace() / max(t_theta.get_trace())
+ff = t_theta.get_frequencies()
+spectrum = t_theta.get_frequency_spectrum()
+spectrum[ff > 300 * units.MHz] = 0
+spectrum[ff < 80 * units.MHz] = 0
+t_theta.set_frequency_spectrum(spectrum, sampling_rate=1 / dt)
 
-    test_pulse= np.array([T, Th, Ph])
-    np.save('test_pulse.npy', test_pulse)
+Th = th_max * t_theta.get_trace() / max(t_theta.get_trace())
+Ph = th_max * t_theta.get_trace() / max(t_theta.get_trace())
+
+test_pulse = np.array([T, Th, Ph])
+np.save('test_pulse.npy', test_pulse)
 
 results_theta = np.array([test_pulse[1]])
 results_phi = np.array([test_pulse[2]])
