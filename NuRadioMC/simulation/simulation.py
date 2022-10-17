@@ -31,7 +31,6 @@ import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.particle
 import NuRadioReco.framework.event
 from NuRadioReco.detector import antennapattern
-from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
@@ -173,7 +172,7 @@ class simulation:
                 self._cfg = new_cfg
 
         if self._cfg['seed'] is None:
-            # the config seeting None means a random seed. To have the simulation be reproducable, we generate a new
+            # the config seeding None means a random seed. To have the simulation be reproducible, we generate a new
             # random seed once and save this seed to the config setting. If the simulation is rerun, we can get
             # the same random sequence.
             self._cfg['seed'] = np.random.randint(0, 2 ** 32 - 1)
@@ -258,13 +257,13 @@ class simulation:
             if enum_entry.name in self._fin_attrs:
                 self._generator_info[enum_entry] = self._fin_attrs[enum_entry.name]
 
-        # check if the input file contains events, if not save empty output file (for book keeping) and terminate simulation
+        # check if the input file contains events, if not save empty output file (for bookkeeping) and terminate simulation
         if len(self._fin['xx']) == 0:
             logger.status(f"input file {self._inputfilename} is empty")
             return
 
         ################################
-        # perfom a dummy detector simulation to determine how the signals are filtered
+        # perform a dummy detector simulation to determine how the signals are filtered
         self._bandwidth_per_channel = {}
         self._amplification_per_channel = {}
         self.__noise_adder_normalization = {}
@@ -279,7 +278,7 @@ class simulation:
             self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
 #                 logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
             self._n_samples = self._det.get_number_of_samples(self._station_id, 0) / self._sampling_rate_detector / self._dt
-            self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)  # round to nearest even integer
+            self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)  # round to the nearest even integer
             self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
             self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
 
@@ -374,6 +373,7 @@ class simulation:
 
             self._get_distance_cut = get_distance_cut
 
+    @property
     def run(self):
         """
         run the NuRadioMC simulation
@@ -452,12 +452,12 @@ class simulation:
 
             # the weight calculation is independent of the station, so we do this calculation only once
             # the weight also depends just on the "mother" particle, i.e. the incident neutrino which determines
-            # the propability of arriving at our simulation volume. All subsequent showers have the same weight. So
+            # the probability of arriving at our simulation volume. All subsequent showers have the same weight. So
             # we calculate it just once and save it to all subshowers.
             t1 = time.time()
 
             self._primary_index = event_indices[0]
-            # determine if a particle (neutrinos, or a secondary interaction of a neutrino, or surfaec muons) is simulated
+            # determine if a particle (neutrinos, or a secondary interaction of a neutrino, or surface muons) is simulated
             particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
             self._mout['weights'][event_indices] = np.ones(len(event_indices))  # for a pulser simulation, every event has the same weight
             if particle_mode:
@@ -504,7 +504,6 @@ class simulation:
 
             # loop over all stations (each station is treated independently)
             for iSt, self._station_id in enumerate(self._station_ids):
-                t1 = time.time()
                 triggered_showers[self._station_id] = []
                 logger.debug(f"simulating station {self._station_id}")
 
@@ -524,7 +523,7 @@ class simulation:
                 self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
 #                 logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
                 self._n_samples = self._det.get_number_of_samples(self._station_id, 0) / self._sampling_rate_detector / self._dt
-                self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)  # round to nearest even integer
+                self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)  # round to the nearest even integer
                 self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
                 self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
 
@@ -540,17 +539,16 @@ class simulation:
                 self._create_sim_station()
                 # loop over all showers in event group
                 # create output data structure for this channel
-                sg = self._create_station_output_structure(len(event_indices), self._det.get_number_of_channels(self._station_id))
+                sg = self._create_station_output_structure(len(event_indices), self._det.get_number_of_channels(self._station_id))  # n_shower, n_antennas
                 for iSh, self._shower_index in enumerate(event_indices):
                     sg['shower_id'][iSh] = self._shower_ids[self._shower_index]
                     iCounter += 1
 #                     if(iCounter % max(1, int(n_shower_station / 100.)) == 0):
-                    if (time.time() - t_last_update) > 60 :
+                    if (time.time() - t_last_update) > 60:
                         t_last_update = time.time()
                         eta = pretty_time_delta((time.time() - t_start) * (n_shower_station - iCounter) / iCounter)
                         total_time_sum = input_time + rayTracingTime + detSimTime + outputTime + weightTime + distance_cut_time  # askaryan time is part of the ray tracing time, so it is not counted here.
                         total_time = time.time() - t_start
-                        tmp_att = 0
                         if total_time > 0:
                             logger.status(
                                 "processing event group {}/{} and shower {}/{} ({} showers triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}%, askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
@@ -564,7 +562,7 @@ class simulation:
                                     100. * (rayTracingTime - askaryan_time) / total_time,
                                     100. * askaryan_time / total_time,
                                     100. * detSimTime / total_time,
-                                    100.*input_time / total_time,
+                                    100. * input_time / total_time,
                                     100. * weightTime / total_time,
                                     100 * distance_cut_time / total_time,
                                     100 * (total_time - total_time_sum) / total_time))
@@ -590,7 +588,7 @@ class simulation:
                         distance_cut_time += time.time() - t_tmp
 
                     # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
-                    # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
+                    # if daughters (e.g. tau decay) have their vertex in the fiducial volume
                     if not self._is_in_fiducial_volume():
                         logger.debug(f"event is not in fiducial volume, skipping simulation {self._fin['xx'][self._shower_index]}, {self._fin['yy'][self._shower_index]}, {self._fin['zz'][self._shower_index]}")
                         continue
@@ -806,8 +804,6 @@ class simulation:
                             electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id],
                                                 position=self._det.get_relative_position(self._sim_station.get_id(), channel_id),
                                                 shower_id=self._shower_ids[self._shower_index], ray_tracing_id=iS)
-                            if iS is None:
-                                a = 1 / 0
                             electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / self._dt)
                             electric_field = self._raytracer.apply_propagation_effects(electric_field, iS)
                             # Trace start time is equal to the interaction time relative to the first
@@ -898,7 +894,7 @@ class simulation:
                     if n_sub_events > 1:
                         tmp = ""
                         for start_time in start_times[indices]:
-                            tmp += f"{start_time/units.ns:.0f}, "
+                            tmp += f"{start_time / units.ns:.0f}, "
                         tmp = tmp[:-2] + " ns"
                         logger.info(f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
                     self._evt = NuRadioReco.framework.event.Event(self._event_group_id, iEvent)  # create new event
@@ -945,7 +941,7 @@ class simulation:
                         # start detector simulation
                         efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
                         # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
-                        # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
+                        # 20 GHz by default to achieve a good time resolution when the two signals from the two signal paths are added)
                         channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
 
                         if self._is_simulate_noise():
@@ -1064,10 +1060,10 @@ class simulation:
 
     def _is_in_fiducial_volume(self):
         """
-        checks wether a vertex is in the fiducial volume
+        checks weather a vertex is in the fiducial volume
 
         if the fiducial volume is not specified in the input file, True is returned (this is required for the simulation
-        of pulser calibration measuremens)
+        of pulser calibration measurements)
         """
         tt = ['fiducial_rmin', 'fiducial_rmax', 'fiducial_zmin', 'fiducial_zmax']
         has_fiducial = True
@@ -1078,8 +1074,8 @@ class simulation:
             return True
 
         r = (self._shower_vertex[0] ** 2 + self._shower_vertex[1] ** 2) ** 0.5
-        if r >= self._fin_attrs['fiducial_rmin'] and r <= self._fin_attrs['fiducial_rmax']:
-            if self._shower_vertex[2] >= self._fin_attrs['fiducial_zmin'] and self._shower_vertex[2] <= self._fin_attrs['fiducial_zmax']:
+        if self._fin_attrs['fiducial_rmin'] <= r <= self._fin_attrs['fiducial_rmax']:
+            if self._fin_attrs['fiducial_zmin'] <= self._shower_vertex[2] <= self._fin_attrs['fiducial_zmax']:
                 return True
         return False
 
@@ -1199,7 +1195,6 @@ class simulation:
         n_showers = sg['launch_vectors'].shape[0]
         if 'multiple_triggers' not in sg:
             sg['multiple_triggers'] = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
-            sg['trigger_times'] = np.nan * np.zeros_like(sg['multiple_triggers'], dtype=float)
         elif extend_array:
             tmp = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
             nx, ny = sg['multiple_triggers'].shape
@@ -1276,7 +1271,6 @@ class simulation:
 
         for station_id in self._station_ids:
             self._mout_groups[station_id] = {}
-            sg = self._mout_groups[station_id]
             self._output_event_group_ids[station_id] = []
             self._output_sub_event_ids[station_id] = []
             self._output_triggered_station[station_id] = []
@@ -1327,7 +1321,7 @@ class simulation:
         self.input_particle[simp.n_interaction] = self._fin['n_interaction'][idx]
         if self._fin['n_interaction'][idx] <= 1:
             # parents before the neutrino and outgoing daughters without shower are currently not
-            # simulated. The parent_id is therefore at the moment only rudimentarily populated.
+            # simulated. The parent_id is therefore at the moment only rudimentary populated.
             self.input_particle[simp.parent_id] = None  # primary does not have a parent
 
         self.input_particle[simp.vertex_time] = 0
@@ -1412,7 +1406,6 @@ class simulation:
                 for station_id in self._mout_groups:
                     n_events_for_station = len(self._output_triggered_station[station_id])
                     if n_events_for_station > 0:
-                        n_channels = self._det.get_number_of_channels(station_id)
                         sg = fout["station_{:d}".format(station_id)]
                         sg['event_group_ids'] = np.array(self._output_event_group_ids[station_id])
                         sg['event_ids'] = np.array(self._output_sub_event_ids[station_id])
@@ -1420,7 +1413,7 @@ class simulation:
                         sg['maximum_amplitudes_envelope'] = np.array(self._output_maximum_amplitudes_envelope[station_id])
                         sg['triggered_per_event'] = np.array(self._output_triggered_station[station_id])
 
-                        # the multiple triggeres 2d array might have different number of entries per event
+                        # the multiple triggers 2d array might have different number of entries per event
                         # because the number of different triggers can increase dynamically
                         # therefore we first create an array with the right size and then fill it
                         tmp = np.zeros((n_events_for_station, n_triggers), dtype=np.bool)
@@ -1469,7 +1462,7 @@ class simulation:
             for key in self._fin.keys():
                 if key.startswith("station_"):
                     continue
-                if not key in fout.keys():  # only save data sets that havn't been recomputed and saved already
+                if not key in fout.keys():  # only save data sets that haven't been recomputed and saved already
                     if np.array(self._fin[key]).dtype.char == 'U':
                         fout[key] = np.array(self._fin[key], dtype=h5py.string_dtype(encoding='utf-8'))[saved]
 
@@ -1477,7 +1470,7 @@ class simulation:
                         fout[key] = np.array(self._fin[key])[saved]
 
         for key in self._fin_attrs.keys():
-            if not key in fout.attrs.keys():  # only save atrributes sets that havn't been recomputed and saved already
+            if not key in fout.attrs.keys():  # only save attributes sets that haven't been recomputed and saved already
                 if key not in ["trigger_names", "Tnoise", "Vrms", "bandwidth", "n_samples", "dt", "detector", "config"]:  # don't write trigger names from input to output file, this will lead to problems with incompatible trigger names when merging output files
                     fout.attrs[key] = self._fin_attrs[key]
         fout.close()
