@@ -290,7 +290,7 @@ class simulation():
             self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
 
             self._create_sim_station()
-            for channel_id in self._det.get_channel_ids(self._station_id):
+            for i_ch, channel_id in enumerate(self._det.get_channel_ids(self._station_id)):
                 electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id], self._det.get_relative_position(self._sim_station.get_id(), channel_id))
                 trace = np.zeros_like(self._tt)
                 trace[self._n_samples // 2] = 100 * units.V  # set a signal that will satisfy any high/low trigger
@@ -317,9 +317,9 @@ class simulation():
                     if hasattr(instance, "get_filter"):
                         filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
 
-                self._amplification_per_channel[self._station_id][channel_id] = np.abs(filt).max()
+                self._amplification_per_channel[self._station_id][i_ch] = np.abs(filt).max()
                 bandwidth = np.trapz(np.abs(filt) ** 2, ff)
-                self._bandwidth_per_channel[self._station_id][channel_id] = bandwidth
+                self._bandwidth_per_channel[self._station_id][i_ch] = bandwidth
                 logger.status(f"bandwidth of station {self._station_id} channel {channel_id} is {bandwidth/units.MHz:.1f}MHz")
 
         ################################
