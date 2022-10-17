@@ -1922,10 +1922,10 @@ class ray_tracing(ray_tracing_base):
         return(Dt, np.array(t_0), np.array(t_1))
 
     def get_path_polarization(self, source, antenna, path_type=0, acc=1000):
-
+        
         """
         Function for the polarization of the two states of the wave along its path and the path length
-
+        
         Parameters
         ------------
         source: numpy.array
@@ -1936,7 +1936,7 @@ class ray_tracing(ray_tracing_base):
             refers to the short or long path of the radio wave (0 for short, 1 for long)
         acc: int
             step number of the ray tracer
-
+        
         Returns
         ------------
         solution_type: list:    [sky_e, sky_o, l_path, N0, N1]
@@ -1946,7 +1946,7 @@ class ray_tracing(ray_tracing_base):
                                 [3] - N0 (numpy.array) - effective refractive index vectors of the ordinary ray along the trace
                                 [4] - N1 (numpy.array) - effective refractive index vectors of the extraordinary ray along the trace
         """
-
+        
         ice_n = self.__medium
         p = self.get_3d_trace(source, antenna, acc)
 
@@ -1963,9 +1963,9 @@ class ray_tracing(ray_tracing_base):
         N1 = []
 
         for i in range(acc-1):
-
+            
             if path_type == 0:
-
+                
                 n1 = ice_n.get_birefringence_index_of_refraction(p[0, i])[0]
                 n2 = ice_n.get_birefringence_index_of_refraction(p[0, i])[1]
                 n3 = ice_n.get_birefringence_index_of_refraction(p[0, i])[2]
@@ -1975,7 +1975,7 @@ class ray_tracing(ray_tracing_base):
                 dz = p[0, i+1, 2] - p[0, i, 2]
 
             elif path_type == 1:
-
+                
                 n1 = ice_n.get_birefringence_index_of_refraction(p[1, i])[0]
                 n2 = ice_n.get_birefringence_index_of_refraction(p[1, i])[1]
                 n3 = ice_n.get_birefringence_index_of_refraction(p[1, i])[2]
@@ -2062,113 +2062,113 @@ class ray_tracing(ray_tracing_base):
                                     [1] - eTheta (np.array) - final frequency spectrum of the theta componentnt
                                     [2] - ePhi (np.array) - final frequency spectrum of the phi component
         """
-
+        
         t_slow = base_trace.BaseTrace()
         t_fast = base_trace.BaseTrace()
-
+        
         t_theta = base_trace.BaseTrace()
         t_phi = base_trace.BaseTrace()
-
+        
         f_spectrum = base_trace.BaseTrace()
-
+        
         if type(pulse) == str:
             style = 'single pulse'
-
+            
             data = np.load(pulse)
-
+            
             time = data[0] * units.ns
             etheta = data[1] * units.V / units.m
             ephi = data[2] * units.V / units.m
             dt = time[1] - time[0]
-
+            
             t_theta.set_trace(etheta, sampling_rate=1/dt)
             t_phi.set_trace(ephi, sampling_rate=1/dt)
-
+            
         elif type(pulse) == np.ndarray:
             style = 'simulation pulse'
-
+            
             f_spectrum.set_frequency_spectrum(pulse, sampling_rate=samp_rate)
-
+            
             etheta = f_spectrum.get_trace()[1] * units.V / units.m
             ephi = f_spectrum.get_trace()[2] * units.V / units.m
-
+            
             dt = 1 / samp_rate * units.ns
-
+            
             t_theta.set_trace(etheta, sampling_rate=samp_rate)
             t_phi.set_trace(ephi, sampling_rate=samp_rate)
-
+            
         else:
             self.__logger.error("error: wrong data type")
-
+            
         TT = t_theta.get_times()
-
+        
         shift = TT[t_theta.get_trace() == max(t_theta.get_trace())]
-
+        
         t_theta.set_trace_start_time(-shift)
         t_phi.set_trace_start_time(-shift)
-
+        
         TT = t_theta.get_times()
-
+        
         time_delay_short = self.get_birefringence_time_delay(source, antenna, path_type=path_type, acc=acc)
         polar_short = self.get_path_polarization(source, antenna, path_type=path_type, acc=acc)
-
+        
         polar_theta0 = polar_short[0][:, 1]
         polar_phi0 = polar_short[0][:, 2]
-
+        
         polar_theta1 = polar_short[1][:, 1]
         polar_phi1 = polar_short[1][:, 2]
-
+        
         diff = time_delay_short[2] - time_delay_short[1]
-
+        
         start_theta = t_theta.get_trace()
         start_phi = t_phi.get_trace()
-
+        
         for i in range(len(diff)):
-
+            
             a = polar_theta0[i]
             b = polar_phi0[i]
-
+            
             c = polar_theta1[i]
             d = polar_phi1[i]
-
+            
             if np.isclose(a*d - b*c, 0) or np.isnan([a, b, c, d]).any():
                 self.__logger.error("warning: Polarization vectors similar, R-matrix not invertible, iteration" + str(i))
-
+                
                 R = np.matrix([[1, 0], [0, 1]])
                 time_shift = 0
-
+                
             else:
                 R = np.matrix([[a, b], [c, d]])
                 time_shift = diff[i]
-
+                
             th = t_theta.get_frequency_spectrum()
             ph = t_phi.get_frequency_spectrum()
             t_slow.set_frequency_spectrum(th * R[0, 0] + ph * R[0, 1], sampling_rate=1 / dt)
             t_fast.set_frequency_spectrum(th * R[1, 0] + ph * R[1, 1], sampling_rate=1 / dt)
-
+            
             t_fast.apply_time_shift(time_shift)
-
+            
             Rinv = np.linalg.inv(R)
-
+            
             fa = t_fast.get_frequency_spectrum()
             sl = t_slow.get_frequency_spectrum()
             t_theta.set_frequency_spectrum(sl * Rinv[0, 0] + fa * Rinv[0, 1], sampling_rate=1 / dt)
             t_phi.set_frequency_spectrum(sl * Rinv[1, 0] + fa * Rinv[1, 1], sampling_rate=1 / dt)
-
+            
         end_theta = t_theta.get_trace()
         end_phi = t_phi.get_trace()
-
+        
         h_th = signal.hilbert(end_theta)
         h_ph = signal.hilbert(end_phi)
-
+        
         if style == 'single pulse':
             t_delay = TT[h_th == max(h_th)] - TT[h_ph == max(h_ph)]
             return(start_theta, start_phi, end_theta, end_phi, TT, t_delay)
-
+            
         elif style == 'simulation pulse':
             el_field = np.vstack((f_spectrum.get_frequency_spectrum()[0], t_theta.get_frequency_spectrum(), t_phi.get_frequency_spectrum()))
             return el_field
-
+            
     def get_launch_vector(self, iS):
         """
         calculates the launch vector (in 3D) of solution iS
