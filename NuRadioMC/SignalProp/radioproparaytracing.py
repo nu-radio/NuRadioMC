@@ -428,8 +428,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             return delta_z(cot_theta)**2
 
         def MinimizeAble(lower,upper):
-            #if (index > 1):
-            #    return False
+            #This checks if there are 2 distinct regions, takes about 10^-6% of the total time
             if ((len(lower) == 2) and (len(upper)==2)):
                 if (lower[1] > upper[0]) and (lower[0] < upper[0]) and (lower[1] < upper[1]):
                     return True
@@ -475,7 +474,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 ## when reflection on the bottom are allowed, a initial region for theta from 180-alpha to 180 degrees is added
                 launch_lower.append(((np.pi/2 + alpha) - 2*abs(self.delta_theta_bottom(dz=self._sphere_sizes[0], z_refl=z_refl) / units.radian)))
                 launch_upper.append(np.pi)
-        
+        #we first do the same as in the iterative solver 
         for s,sphere_size in enumerate(self._sphere_sizes):
 
             sphere_size = sphere_size * (radiopropa.meter/units.meter)
@@ -492,7 +491,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             ## define observer for detection (channel)            
             obs = radiopropa.Observer()
             obs.setDeactivateOnDetection(True)
-            channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(*X2), sphere_size)) ## when making the radius larger than 2 meters, somethimes three solution times are found
+            channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(*X2), sphere_size)) ## when making the radius larger than 2 meters, sometimes three solution times are found
              
             obs.add(channel)
             sim.add(obs)
@@ -565,8 +564,9 @@ class radiopropa_ray_tracing(ray_tracing_base):
                     else:
                         pass
                     launch_theta_prev = launch_theta
-                isMinimizeAble = MinimizeAble(launch_lower,launch_upper)
-                if isMinimizeAble and (s < 1):
+                isMinimizeAble = MinimizeAble(launch_lower,launch_upper) 
+                #check if we have two distinct launch regions so we can minimize
+                if (s == 0) and isMinimizeAble: #only do this on the first try, otherwise takes too long.
                     LetsMinimize = True
                     break
 
@@ -580,7 +580,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             sim.add(radiopropa.PropagationCK(self._ice_model.get_scalar_field(), 1E-8, .001, 1.)) ## add propagation to module list
             for module in self._ice_model.get_modules().values():
                 sim.add(module)
-            sim.add(radiopropa.MaximumTrajectoryLength(self._max_traj_length * (radiopropa.meter/units.meter)))
+            sim.add(radiopropa.MaximumTrajectoryLength(self._max_traj_length*(radiopropa.meter/units.meter)))
 
             ## define observer for detection (channel)
             obs = radiopropa.Observer()
@@ -588,6 +588,20 @@ class radiopropa_ray_tracing(ray_tracing_base):
             plane_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*X2), radiopropa.Vector3d(*u)))
             obs.add(plane_channel)
             sim.add(obs)
+
+            # DEFINE BOUNDARY BEHIND CHANNEL (needed for correct time estimate)
+            obs2 = radiopropa.Observer()
+            obs2.setDeactivateOnDetection(True)
+            sphere_size = self._sphere_sizes[-1] * (radiopropa.meter/units.meter)
+            w = (u / np.linalg.norm(u)) * (sphere_size/100)
+            boundary_behind_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*(X2 + w)), radiopropa.Vector3d(*w)))
+            obs2.add(boundary_behind_channel)
+
+            # handy
+            boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0, 0, 1*radiopropa.meter), radiopropa.Vector3d(0, 0, 1)))
+            obs2.add(boundary_above_surface)
+            sim.add(obs2)
+ 
 
             detected_rays = []
             detected_theta = []
@@ -598,17 +612,20 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 lu = launch_upper[i]
                 cotll = cot(ll)
                 cotlu = cot(lu)
+                InitGuess = cot((ll+lu)/2)
                 if cotlu > cotll:
                     bounds = scipy.optimize.Bounds(lb=cotll, ub=cotlu, keep_feasible=False)
                 else:
                     bounds = scipy.optimize.Bounds(lb=cotlu, ub=cotll, keep_feasible=False)
-                root = optimize.minimize(delta_z_squared,x0=cot((ll+lu)/2),bounds=bounds,options={'xatol':self.__xtol**2,'fatol':self.__ztol**2},method='Nelder-Mead')
+
+                root = optimize.minimize(delta_z_squared,x0=InitGuess,bounds=bounds,options={'xatol':self.__xtol**2,'fatol':self.__ztol**2},method='Nelder-Mead')
                 theta = arccot(root.x)
                 detected_theta.append(theta)
-                detected_rays.append(shoot_ray(theta))
+                detected_rays.append(shoot_ray(theta)) #cause of problem? angle good, time bad.
+
             self._rays = detected_rays
-            self._results = results
-            launch_bundles = np.transpose([launch_lower, launch_upper])
+            self._results =  [{'reflection':0,'reflection_case':1} for ray in detected_rays]
+            launch_bundles = None 
             self.__used_method = 'hybrid minimizer'
             return launch_bundles,iterative
 
@@ -784,15 +801,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         elif self._config['propagation']['radiopropa']['mode'] == 'hybrid minimizing':
             launch_bundles,iterative = self.raytracer_hybrid_minimizer(self._n_reflections)
             
-            if not iterative:
-                results = []
-                for iS in range(len(self._rays)):
-                    results.append({'type':self.get_solution_type(iS), 
-                                    'reflection':0,
-                                    'reflection_case':1})
-                self._results = results
-
-            else:
+            if iterative:
                 launch_zeniths = []
                 iSs = np.array(np.arange(0, len(self._rays), 1))
 
@@ -823,9 +832,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 self._rays = rays_results
                 self._results = results
             
-
- 
-
         else:
             launch_bundles = self.raytracer_iterative(self._n_reflections)
 
@@ -1141,6 +1147,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         travel_time = self._rays[iS].getPropagationTime() * (units.second/radiopropa.second)
         if self.__used_method == 'iterator':
             travel_time += self.get_correction_travel_time(iS)
+
         return travel_time
 
 
