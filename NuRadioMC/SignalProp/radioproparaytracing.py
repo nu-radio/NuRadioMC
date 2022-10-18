@@ -566,13 +566,15 @@ class radiopropa_ray_tracing(ray_tracing_base):
                     launch_theta_prev = launch_theta
                 isMinimizeAble = MinimizeAble(launch_lower,launch_upper) 
                 #check if we have two distinct launch regions so we can minimize
-                if (s == 0) and isMinimizeAble: #only do this on the first try, otherwise takes too long.
+                #accuracy is chosen above time duration, so this will take a while
+                if isMinimizeAble: #and (s == 0): # only first one otherwise takes too long.
                     LetsMinimize = True
                     break
 
             else:
                 #if detected_rays is empty, no solutions where found and the tracer is terminated
                 break
+
         if LetsMinimize:
             iterative = False
             ##define module list for simulation, this needs to be redone to get rid of the spherical observer
@@ -592,8 +594,10 @@ class radiopropa_ray_tracing(ray_tracing_base):
             # DEFINE BOUNDARY BEHIND CHANNEL (needed for correct time estimate)
             obs2 = radiopropa.Observer()
             obs2.setDeactivateOnDetection(True)
-            sphere_size = self._sphere_sizes[-1] * (radiopropa.meter/units.meter)
-            w = (u / np.linalg.norm(u)) * (sphere_size/100)
+            #DeltaBoundary = self._sphere_sizes[-1]*(radiopropa.meter/units.meter)
+            DeltaBoundary = self.__ztol
+            #a bigger value makes the calculation faster, a smaller one more precise
+            w = (u / np.linalg.norm(u)) * DeltaBoundary
             boundary_behind_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*(X2 + w)), radiopropa.Vector3d(*w)))
             obs2.add(boundary_behind_channel)
 
