@@ -1288,10 +1288,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
             E_all_leptons = (1 - data_sets["inelasticity"]) * data_sets["energies"]
             lepton_codes = copy.copy(data_sets["flavors"])
-            lepton_codes[lepton_codes == 14] = 13
-            lepton_codes[lepton_codes == -14] = -13
-            lepton_codes[lepton_codes == 16] = 15
-            lepton_codes[lepton_codes == -16] = -15
+            # convert neutrino flavors (makes only sense for cc interaction which is ensured with "mask_leptons")
+            lepton_codes = lepton_codes - 1 * np.sign(lepton_codes)
 
             if("fiducial_rmax" in attributes):
                 mask_phi = mask_arrival_azimuth(data_sets, attributes['fiducial_rmax'])
