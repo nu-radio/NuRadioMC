@@ -1257,10 +1257,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             data_sets[key] = list(data_sets[key])
         n_inserted = 0
         for i in np.arange(n_events_batch, dtype=int)[em_shower_mask]:  # loop over all events where an EM shower needs to be inserted
+            idx_to_copy = i + n_inserted
+            idx_to_insert = idx_to_copy + 1
             for key in data_sets:
-                data_sets[key].insert(i + 1 + n_inserted, data_sets[key][i + n_inserted])  # copy event
-            data_sets['shower_energies'][i + 1 + n_inserted] = (1 - data_sets['inelasticity'][i + 1 + n_inserted]) * data_sets['energies'][i + 1 + n_inserted]
-            data_sets['shower_type'][i + 1 + n_inserted] = 'em'
+                data_sets[key].insert(idx_to_insert, data_sets[key][idx_to_copy])  # copy event
+            data_sets['shower_energies'][idx_to_insert] = (1 - data_sets['inelasticity'][idx_to_copy]) * data_sets['energies'][idx_to_copy]
+            data_sets['shower_type'][idx_to_insert] = 'em'
+            data_sets['flavors'][idx_to_insert] = data_sets['flavors'][idx_to_copy] - 1 * np.sign(data_sets['flavors'][idx_to_copy])
             n_inserted += 1
 
         logger.debug("converting to numpy arrays")
