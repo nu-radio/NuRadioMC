@@ -3,6 +3,13 @@
 # .gitignore files to exclude specific files.
 #############################################################
 
+# Ignore test output - this will also make sure that you do not accidentally add large files to your commit
+*output*.nur
+*output*.hdf5
+# Exclude reference files from being ignored here
+!*reference*.nur
+!*reference*.hdf5
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -130,9 +137,3 @@ venv.bak/
 # ignore .nur files in NuRadioReco/examples/
 # this should not apply for NuRadioReco/examples/example_data/
 NuRadioReco/examples/*.nur
-
-# ignore test output (not include input or reference files here!)
-*output*.nur
-*output*.hdf5
-!*reference*.nur
-!*reference*.hdf5
