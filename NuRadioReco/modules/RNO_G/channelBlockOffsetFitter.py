@@ -93,9 +93,6 @@ class channelBlockOffsets:
             How to remove the offsets. Options are:
 
             - 'fit': fit the offsets out of band
-            - 'guess': similar to 'fit', but just take
-              a first guess at the offsets from the out-of-band region
-              without actually performing the fit.
             - 'injected': if offsets were injected using the ``add_offsets``
               method, this removes those offsets. Otherwise, this does nothing.
 
@@ -109,8 +106,6 @@ class channelBlockOffsets:
             if not len(self._offset_fit):
                 self.fit_offsets(event, station, channel_ids)
             offsets = self._offset_fit
-        elif offsets=='guess':
-            offsets = self._offset_guess
         elif offsets=='injected':
             if not len(self._offset_inject):
                 offsets = np.zeros(16) #TODO - ensure this works for different trace lengths
@@ -243,7 +238,7 @@ def fit_block_offsets(
     # the block offsets, by simply averaging over each block.
     filtered_trace_fft = np.copy(spectrum)
     filtered_trace_fft[~mask] = 0
-    filtered_trace = fft.freq2time(filtered_trace_fft, dt)
+    filtered_trace = fft.freq2time(filtered_trace_fft, sampling_rate)
 
     # obtain guesses for block offsets
     a_guess = np.array([
@@ -271,7 +266,7 @@ def fit_block_offsets(
         / np.sin(np.pi*frequencies_oob*dt)[None]
     )
 
-    def pedestal_fit(self, a):
+    def pedestal_fit(a):
         fit = np.sum(a[:, None] * const_fft_term, axis=0)
         chi2 = np.sum(np.abs(fit-spectrum_oob)**2)
         return chi2
