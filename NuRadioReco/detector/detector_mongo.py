@@ -10,6 +10,7 @@ import NuRadioReco.utilities.metaclasses
 import json
 from bson import json_util #bson dicts are used by pymongo
 import numpy as np
+from bson import ObjectId
 from NuRadioReco.detector.webinterface import config
 logging.basicConfig()
 logger = logging.getLogger("database")
@@ -132,19 +133,28 @@ class Detector(object):
             channel-id of the measured object
         """
 
+        # close the time period of the old primary measurement
+        if primary_measurement and name in self.get_object_names(type):
+            self.update_current_primary(type, name)
+
+        # define the new primary measurement times
+        primary_measurement_times = [{'start': datetime.datetime.utcnow(), 'end': datetime.datetime(2100, 1, 1, 0, 0, 0)}]
+
         if channel_id is None:
             self.db[type].update_one({'name':name},
                              {'$push':{'measurements': {
+                                 'id_measurement': ObjectId(),
                                  'last_updated': datetime.datetime.utcnow(),
                                  'function_test': False,
-                                 'primary_measurement': primary_measurement
+                                 'primary_measurement': primary_measurement_times
                              }}}, upsert=True)
         else:
             self.db[type].update_one({'name': name},
                                      {'$push': {'measurements': {
+                                         'id_measurement': ObjectId(),
                                          'last_updated': datetime.datetime.utcnow(),
                                          'function_test': False,
-                                         'primary_measurement': primary_measurement,
+                                         'primary_measurement': primary_measurement_times,
                                          'channel_id': channel_id
                                      }}}, upsert=True)
 
@@ -175,9 +185,102 @@ class Detector(object):
         else:
             return False
 
-    def update_primary(self, type, name, temperature=None, channel_id=None):
+    # def update_primary(self, type, name, temperature=None, channel_id=None):
+    #     """
+    #     updates the primary_measurement of previous entries to False
+    #
+    #     Parameters
+    #     ---------
+    #     type: string
+    #         type of the input unit (HPol, VPol, surfCABLE, ...)
+    #     name: string
+    #         the unique identifier of the input unit
+    #     temperature: int
+    #         temperature at which the object was measured
+    #     channel_id: int
+    #         channel-id of the object
+    #     """
+    #     if self.is_primary_working(type, name):
+    #         if temperature is None and channel_id is None:
+    #             self.db[type].update_one({'name': name},
+    #                                      {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+    #                                      array_filters=[{"updateIndex.primary_measurement": True}])
+    #         elif temperature is not None and channel_id is None:
+    #             # a measured temperature is given, only update the entries with the same temperature
+    #             self.db[type].update_one({'name': name},
+    #                                      {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+    #                                      array_filters=[{"updateIndex.measurement_temp": temperature}])
+    #         elif temperature is None and channel_id is not None:
+    #             # a channel-id is given, only update the entries with the same channel-id
+    #             self.db[type].update_one({'name': name},
+    #                                      {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+    #                                      array_filters=[{"updateIndex.channel_id": channel_id}])
+    #         else:
+    #             # a measured temperature and channel-id is given, only update the entries with the same temperature and channel-id
+    #             self.db[type].update_one({'name': name},
+    #                                      {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+    #                                      array_filters=[{"updateIndex.measurement_temp": temperature, "updateIndex.channel_id": channel_id}])
+    #     else:
+    #         if channel_id is not None:
+    #             # a channel-id is given, only update the entries with the same channel-id
+    #             self.db[type].update_one({'name': name},
+    #                                      {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+    #                                      array_filters=[{"updateIndex.channel_id": channel_id}])
+    #         else:
+    #             self.db[type].update_one({'name': name},
+    #                                      {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
+    #                                      array_filters=[{"updateIndex.primary_measurement": True}])
+
+    def find_primary_measurement(self, type, name, primary_time):
         """
-        updates the primary_measurement of previous entries to False
+                find the object_id of entry with name 'name' and gives the measurement_id of the primary measurement, return the id of the object and the measurement
+
+                Parameters
+                ---------
+                type: string
+                    type of the input unit (HPol, VPol, surfCABLE, ...)
+                name: string
+                    the unique identifier of the input unit
+                primary_time: datetime.datetime
+                    timestamp for the primary measurement
+        """
+
+        # define search filter for the collection
+        filter_primary = [{'$match': {'name': name}},
+                          {'$unwind': '$measurements'},
+                          {'$unwind': '$measurements.primary_measurement'},
+                          {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
+                                      'measurements.primary_measurement.end': {'$gte': primary_time}}}]
+
+        # get all entries matching the search filter
+        matching_entries = list(self.db[type].aggregate(filter_primary))
+
+        # extract the object and measurement id
+        if len(matching_entries) > 1:
+            logger.error('More than one primary measurement found.')
+            # check if they are for different Sparameters
+            s_parameter = []
+            for entries in matching_entries:
+                s_parameter.append(entries['measurements']['S_parameter'])
+            if len(s_parameter) == len(set(s_parameter)):
+                # all S_parameter are different
+                object_id = matching_entries[0]['_id']
+                measurement_id = matching_entries[0]['measurements']['id_measurement']
+                return object_id, measurement_id
+            else:
+                # some S_parameter are the same
+                return None, None
+        elif len(matching_entries) == 0:
+            logger.error('No primary measurement found.')
+            return None, None
+        else:
+            object_id = matching_entries[0]['_id']
+            measurement_id = matching_entries[0]['measurements']['id_measurement']
+            return object_id, measurement_id
+
+    def update_current_primary(self, type, name):
+        """
+        updates the status of primary_measurement, set the timestamp of the current primary measurement to end at datetime.utcnow()
 
         Parameters
         ---------
@@ -185,41 +288,27 @@ class Detector(object):
             type of the input unit (HPol, VPol, surfCABLE, ...)
         name: string
             the unique identifier of the input unit
-        temperature: int
-            temperature at which the object was measured
-        channel_id: int
-            channel-id of the object
+
         """
-        if self.is_primary_working(type, name):
-            if temperature is None and channel_id is None:
-                self.db[type].update_one({'name': name},
-                                         {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
-                                         array_filters=[{"updateIndex.primary_measurement": True}])
-            elif temperature is not None and channel_id is None:
-                # a measured temperature is given, only update the entries with the same temperature
-                self.db[type].update_one({'name': name},
-                                         {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
-                                         array_filters=[{"updateIndex.measurement_temp": temperature}])
-            elif temperature is None and channel_id is not None:
-                # a channel-id is given, only update the entries with the same channel-id
-                self.db[type].update_one({'name': name},
-                                         {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
-                                         array_filters=[{"updateIndex.channel_id": channel_id}])
-            else:
-                # a measured temperature and channel-id is given, only update the entries with the same temperature and channel-id
-                self.db[type].update_one({'name': name},
-                                         {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
-                                         array_filters=[{"updateIndex.measurement_temp": temperature, "updateIndex.channel_id": channel_id}])
-        else:
-            if channel_id is not None:
-                # a channel-id is given, only update the entries with the same channel-id
-                self.db[type].update_one({'name': name},
-                                         {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
-                                         array_filters=[{"updateIndex.channel_id": channel_id}])
-            else:
-                self.db[type].update_one({'name': name},
-                                         {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
-                                         array_filters=[{"updateIndex.primary_measurement": True}])
+
+        present_time = datetime.datetime.utcnow()
+
+        # find the current primary measurement
+        obj_id, measurement_id = self.find_primary_measurement(type, name, present_time)
+
+        # get the old primary times
+        filter_primary_times = [{'$match': {'_id': obj_id}},
+                                {'$unwind': '$measurements'},
+                                {'$match': {'measurements.id_measurement': measurement_id}}]
+
+        info = list(self.db[type].aggregate(filter_primary_times))
+
+        primary_times = info[0]['measurements']['primary_measurement']
+
+        # update the 'end' time to the present time
+        primary_times[-1]['end'] = present_time
+
+        self.db[type].update_one({'_id': obj_id}, {"$set": {"measurements.$[updateIndex].primary_measurement": primary_times}}, array_filters=[{"updateIndex.id_measurement": measurement_id}])
 
     def get_object_names(self, object_type):
         return self.db[object_type].distinct('name')
@@ -260,19 +349,89 @@ class Detector(object):
         units_arr: list of strings
             list of the input units (only y unit will be saved)
         """
+
+        # close the time period of the old primary measurement
+        if primary_measurement and antenna_name in self.get_object_names(antenna_type):
+            self.update_current_primary(antenna_type, antenna_name)
+
+        # define the new primary measurement times
+        primary_measurement_times = [{'start': datetime.datetime.utcnow(), 'end': datetime.datetime(2100,1,1,0,0,0)}]
+
         # update the entry with the measurement (if the entry doesn't exist it will be created)
         for spara in S_parameter:
             self.db[antenna_type].update_one({'name': antenna_name},
                                              {'$push': {'measurements': {
+                                                    'id_measurement': ObjectId(),
                                                     'function_test': True,
                                                     'last_updated': datetime.datetime.utcnow(),
-                                                    'primary_measurement': primary_measurement,
+                                                    'primary_measurement': primary_measurement_times,
                                                     'measurement_protocol': protocol,
                                                     'S_parameter': spara,
-                                                    'y-axis units': [units_arr[1]],
+                                                    'y-axis_units': [units_arr[1]],
                                                     'frequencies': list(S_data[0]),
                                                     'mag': list(S_data[1])
                                              }}}, upsert=True)
+
+    # TODO: write part of this in a more generalized function to be used for the other entries
+    def change_primary_antenna_measurement(self, antenna_type, antenna_name, S_parameter, protocol, units_arr, function_test):
+        """
+        changes the current active primary measurement for a single antenna measurement
+
+        Parameters
+        ---------
+        antenna_type: string
+            specify if it is a VPol or HPol antenna
+        antenna_name: string
+            the unique identifier of the antenna
+        S_parameter: list of strings
+            specify which S_parameter is used (S11, ...)
+        protocol: string
+            details of the testing environment
+        units_arr: list of strings
+            list of the input units (only y unit will be saved)
+        function_test: boolean
+            describes if the channel is working or not
+        """
+
+        present_time = datetime.datetime.utcnow()
+
+        # find the entry specified by function arguments
+        search_filter = [{'$match': {'name': antenna_name}},
+                         {'$unwind': '$measurements'},
+                         {'$match': {'measurements.function_test': function_test,
+                                     'measurements.measurement_protocol': protocol,
+                                     'measurements.S_parameter': S_parameter,
+                                     'measurements.y-axis_units': units_arr}}]
+
+        search_results = list(self.db[antenna_type].aggregate(search_filter))
+
+        # extract the object and measurement id and current primary time array
+        if len(search_results) > 1:
+            logger.error('More than one primary measurement found.')
+            object_id = None
+            measurement_id = None
+        elif len(search_results) == 0:
+            logger.error('No primary measurement found.')
+            object_id = None
+            measurement_id = None
+        else:
+            object_id = search_results[0]['_id']
+            measurement_id = search_results[0]['measurements']['id_measurement']
+            primary_times = search_results[0]['measurements']['primary_measurement']
+
+        # check if specified measurement is already the primary measurement
+        current_obj_id, current_measurement_id = self.find_primary_measurement(antenna_type, antenna_name, present_time)
+
+        if current_measurement_id == measurement_id and current_obj_id == object_id:
+            logger.info('The specified measurement is already the primary measurement.')
+        else:
+            # update the old primary time
+            self.update_current_primary(antenna_type, antenna_name)
+
+            if object_id is not None:
+                # update the primary measurements of the specified measurements
+                primary_times.append({'start': present_time, 'end': datetime.datetime(2100,1,1,0,0,0)})
+                self.db[antenna_type].update_one({'_id': object_id}, {"$set": {"measurements.$[updateIndex].primary_measurement": primary_times}}, array_filters=[{"updateIndex.id_measurement": measurement_id}])
 
     # cables
 
@@ -310,7 +469,7 @@ class Detector(object):
                                                  'primary_measurement': primary_measurement,
                                                  'measurement_protocol': protocol,
                                                  'S_parameter': spara,
-                                                 'y-axis units': [units_arr[1], units_arr[2]],
+                                                 'y-axis_units': [units_arr[1], units_arr[2]],
                                                  'frequencies': list(Sm_data[0]),
                                                  'mag': list(Sm_data[1]),
                                                  'phase': list(Sp_data[1])
@@ -367,6 +526,7 @@ class Detector(object):
             details of the testing enviornment
 
         """
+        # TODO: IDEA: if multiple primary measurements are found, check if they are for different Sparameters, if this is the case -> everything is fine; if not -> error
         # update the entry with the measurement (if the entry doesn't exist it will be created)
         for i, spara in enumerate(S_names):
             self.db[page_name].update_one({'name': board_name},

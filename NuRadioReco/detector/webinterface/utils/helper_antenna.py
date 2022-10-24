@@ -70,10 +70,6 @@ def validate_global(page_name, container_bottom, antenna_name, new_antenna_name,
 
 def insert_to_db(page_name, s_name, antenna_name, data, working, primary, protocol, input_units):
     if not working:
-        if primary and antenna_name in det.get_object_names(page_name):
-            det.update_primary(page_name, antenna_name)
         det.set_not_working(page_name, antenna_name, primary)
     else:
-        if primary and antenna_name in det.get_object_names(page_name):
-            det.update_primary(page_name, antenna_name)
         det.antenna_add_Sparameter(page_name, antenna_name, [s_name], data, primary, protocol, input_units)
