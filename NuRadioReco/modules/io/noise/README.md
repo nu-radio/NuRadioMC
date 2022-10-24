@@ -22,14 +22,14 @@ the data looks like.
 ### Models
 
 Several models are available in the models folder. 
-Example on how to the models is in the notebooks folder
+
 
 ### Implementation
 
-Code the implementation of the GANs is in wgan.py, generator.py and discriminator.py files which are stored in the models folder.
+The code for the implementation of the GANs is in wgan.py, generator.py and discriminator.py.
 
-### Train
-Example on how to train an model from scrath is in the notebooks folder.
+### Example
+Example on how to train load, train and analyze the performance of a model is shown in the example.ipynb notebook in the notebooks folder
 
 
 
