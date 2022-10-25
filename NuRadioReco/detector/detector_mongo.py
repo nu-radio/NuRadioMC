@@ -158,6 +158,7 @@ class Detector(object):
                                          'channel_id': channel_id
                                      }}}, upsert=True)
 
+    # TODO: need to be adapted to the new structure
     def is_primary_working(self, type, name):
         """
         checks if the primary measurement is set not working.
@@ -257,26 +258,31 @@ class Detector(object):
 
         # extract the object and measurement id
         if len(matching_entries) > 1:
-            logger.error('More than one primary measurement found.')
             # check if they are for different Sparameters
             s_parameter = []
+            measurement_ids = []
             for entries in matching_entries:
                 s_parameter.append(entries['measurements']['S_parameter'])
+                measurement_ids.append(entries['measurements']['id_measurement'])
             if len(s_parameter) == len(set(s_parameter)):
                 # all S_parameter are different
                 object_id = matching_entries[0]['_id']
-                measurement_id = matching_entries[0]['measurements']['id_measurement']
+                measurement_id = measurement_ids
                 return object_id, measurement_id
             else:
+                logger.error('More than one primary measurement found.')
                 # some S_parameter are the same
                 return None, None
+        elif len(matching_entries) > 4:
+            logger.error('More primary measurements than Sparameters are found.')
+            return None, None
         elif len(matching_entries) == 0:
             logger.error('No primary measurement found.')
             return None, None
         else:
             object_id = matching_entries[0]['_id']
             measurement_id = matching_entries[0]['measurements']['id_measurement']
-            return object_id, measurement_id
+            return object_id, [measurement_id]
 
     def update_current_primary(self, type, name):
         """
@@ -296,19 +302,20 @@ class Detector(object):
         # find the current primary measurement
         obj_id, measurement_id = self.find_primary_measurement(type, name, present_time)
 
-        # get the old primary times
-        filter_primary_times = [{'$match': {'_id': obj_id}},
-                                {'$unwind': '$measurements'},
-                                {'$match': {'measurements.id_measurement': measurement_id}}]
+        for m_id in measurement_id:
+            # get the old primary times
+            filter_primary_times = [{'$match': {'_id': obj_id}},
+                                    {'$unwind': '$measurements'},
+                                    {'$match': {'measurements.id_measurement': m_id}}]
 
-        info = list(self.db[type].aggregate(filter_primary_times))
+            info = list(self.db[type].aggregate(filter_primary_times))
 
-        primary_times = info[0]['measurements']['primary_measurement']
+            primary_times = info[0]['measurements']['primary_measurement']
 
-        # update the 'end' time to the present time
-        primary_times[-1]['end'] = present_time
+            # update the 'end' time to the present time
+            primary_times[-1]['end'] = present_time
 
-        self.db[type].update_one({'_id': obj_id}, {"$set": {"measurements.$[updateIndex].primary_measurement": primary_times}}, array_filters=[{"updateIndex.id_measurement": measurement_id}])
+            self.db[type].update_one({'_id': obj_id}, {"$set": {"measurements.$[updateIndex].primary_measurement": primary_times}}, array_filters=[{"updateIndex.id_measurement": m_id}])
 
     def get_object_names(self, object_type):
         return self.db[object_type].distinct('name')
@@ -324,6 +331,71 @@ class Detector(object):
 
     def get_station_ids(self, collection):
         return self.db[collection].distinct('id')
+
+    def __change_primary_object_measurement(self, object_type, object_name, search_filter):
+        """
+
+        helper function to change the current active primary measurement for a single antenna measurement
+
+        Parameters
+        ---------
+        object_type: string
+            type of the input unit (HPol, VPol, surfCABLE, ...)
+        object_name: string
+            the unique identifier of the object
+        search_filter:
+            specify the filter pipeline used for aggregate to find the measurement
+        """
+
+        present_time = datetime.datetime.utcnow()
+
+        # get the information about the measurement specified in the search filter
+        search_results = list(self.db[object_type].aggregate(search_filter))
+
+        # extract the object and measurement id and current primary time array (only gives one measurement id)
+        if len(search_results) > 1:
+            logger.error('More than one measurement found.')
+            object_id = None
+            measurement_id = None
+        elif len(search_results) == 0:
+            logger.error('No measurement found.')
+            object_id = None
+            measurement_id = None
+        else:
+            object_id = search_results[0]['_id']
+            measurement_id = search_results[0]['measurements']['id_measurement']
+            primary_times = search_results[0]['measurements']['primary_measurement']
+
+        # check if specified measurement is already the primary measurement (could be up to 4 measurement ids)
+        current_obj_id, current_measurement_id = self.find_primary_measurement(object_type, object_name, present_time)
+        for c_m_id in current_measurement_id:
+            # find the current_measurement_id for the fitting S parameter
+            filter_primary_times = [{'$match': {'_id': current_obj_id}},
+                                    {'$unwind': '$measurements'},
+                                    {'$match': {'measurements.id_measurement': c_m_id}}]
+
+            info = list(self.db[object_type].aggregate(filter_primary_times))
+
+            if info[0]['measurements']['S_parameter'] == search_results[0]['measurements']['S_parameter']:
+                # the measurement id is fitting the S parameter
+
+                if c_m_id == measurement_id and current_obj_id == object_id and measurement_id is not None:
+                    logger.info('The specified measurement is already the primary measurement.')
+                elif measurement_id is None or current_measurement_id is None:
+                    pass
+                else:
+                    # update the old primary time (not using the 'update current primary measurement' function so that we can only update the entry of a single S parameter
+                    primary_times_old = info[0]['measurements']['primary_measurement']
+                    # # update the 'end' time to the present time
+                    primary_times_old[-1]['end'] = present_time
+                    self.db[object_type].update_one({'_id': object_id}, {"$set": {"measurements.$[updateIndex].primary_measurement": primary_times_old}}, array_filters=[{"updateIndex.id_measurement": c_m_id}])
+
+                    # update the primary measurements of the specified measurements
+                    if object_id is not None:
+                        primary_times.append({'start': present_time, 'end': datetime.datetime(2100, 1, 1, 0, 0, 0)})
+                        self.db[object_type].update_one({'_id': object_id}, {"$set": {"measurements.$[updateIndex].primary_measurement": primary_times}}, array_filters=[{"updateIndex.id_measurement": measurement_id}])
+            else:
+                logger.error('S parameter not selected to be changed.')
 
     # antenna (VPol / HPol)
 
@@ -372,7 +444,6 @@ class Detector(object):
                                                     'mag': list(S_data[1])
                                              }}}, upsert=True)
 
-    # TODO: write part of this in a more generalized function to be used for the other entries
     def change_primary_antenna_measurement(self, antenna_type, antenna_name, S_parameter, protocol, units_arr, function_test):
         """
         changes the current active primary measurement for a single antenna measurement
@@ -393,8 +464,6 @@ class Detector(object):
             describes if the channel is working or not
         """
 
-        present_time = datetime.datetime.utcnow()
-
         # find the entry specified by function arguments
         search_filter = [{'$match': {'name': antenna_name}},
                          {'$unwind': '$measurements'},
@@ -403,35 +472,7 @@ class Detector(object):
                                      'measurements.S_parameter': S_parameter,
                                      'measurements.y-axis_units': units_arr}}]
 
-        search_results = list(self.db[antenna_type].aggregate(search_filter))
-
-        # extract the object and measurement id and current primary time array
-        if len(search_results) > 1:
-            logger.error('More than one primary measurement found.')
-            object_id = None
-            measurement_id = None
-        elif len(search_results) == 0:
-            logger.error('No primary measurement found.')
-            object_id = None
-            measurement_id = None
-        else:
-            object_id = search_results[0]['_id']
-            measurement_id = search_results[0]['measurements']['id_measurement']
-            primary_times = search_results[0]['measurements']['primary_measurement']
-
-        # check if specified measurement is already the primary measurement
-        current_obj_id, current_measurement_id = self.find_primary_measurement(antenna_type, antenna_name, present_time)
-
-        if current_measurement_id == measurement_id and current_obj_id == object_id:
-            logger.info('The specified measurement is already the primary measurement.')
-        else:
-            # update the old primary time
-            self.update_current_primary(antenna_type, antenna_name)
-
-            if object_id is not None:
-                # update the primary measurements of the specified measurements
-                primary_times.append({'start': present_time, 'end': datetime.datetime(2100,1,1,0,0,0)})
-                self.db[antenna_type].update_one({'_id': object_id}, {"$set": {"measurements.$[updateIndex].primary_measurement": primary_times}}, array_filters=[{"updateIndex.id_measurement": measurement_id}])
+        self.__change_primary_object_measurement(antenna_type, antenna_name, search_filter)
 
     # cables
 
@@ -460,13 +501,21 @@ class Detector(object):
             details of the testing environment
         """
 
+        # close the time period of the old primary measurement
+        if primary_measurement and cable_name in self.get_object_names(cable_type):
+            self.update_current_primary(cable_type, cable_name)
+
+        # define the new primary measurement times
+        primary_measurement_times = [{'start': datetime.datetime.utcnow(), 'end': datetime.datetime(2100, 1, 1, 0, 0, 0)}]
+
         # update the entry with the measurement (if the entry doesn't exist it will be created)
         for spara in S_parameter:
             self.db[cable_type].update_one({'name': cable_name},
                                              {'$push': {'measurements': {
+                                                 'id_measurement': ObjectId(),
                                                  'function_test': True,
                                                  'last_updated': datetime.datetime.utcnow(),
-                                                 'primary_measurement': primary_measurement,
+                                                 'primary_measurement': primary_measurement_times,
                                                  'measurement_protocol': protocol,
                                                  'S_parameter': spara,
                                                  'y-axis_units': [units_arr[1], units_arr[2]],
@@ -474,6 +523,36 @@ class Detector(object):
                                                  'mag': list(Sm_data[1]),
                                                  'phase': list(Sp_data[1])
                                              }}}, upsert=True)
+
+    def change_primary_cable_measurement(self, cable_type, cable_name, S_parameter, protocol, units_arr, function_test):
+        """
+        changes the current active primary measurement for a single cable measurement
+
+        Parameters
+        ---------
+        cable_type: string
+            specify if it is a surface or downhole cable
+        cable_name: string
+            the unique identifier of the cable
+        S_parameter: list of strings
+            specify which S_parameter is used (S11, ...)
+        protocol: string
+            details of the testing environment
+        units_arr: list of strings
+            list of the input units (only y unit will be saved)
+        function_test: boolean
+            describes if the channel is working or not
+        """
+
+        # find the entry specified by function arguments
+        search_filter = [{'$match': {'name': cable_name}},
+                         {'$unwind': '$measurements'},
+                         {'$match': {'measurements.function_test': function_test,
+                                     'measurements.measurement_protocol': protocol,
+                                     'measurements.S_parameter': S_parameter,
+                                     'measurements.y-axis_units': units_arr}}]
+
+        self.__change_primary_object_measurement(cable_type, cable_name, search_filter)
 
     # IGLU/DRAB
 
@@ -526,14 +605,22 @@ class Detector(object):
             details of the testing enviornment
 
         """
-        # TODO: IDEA: if multiple primary measurements are found, check if they are for different Sparameters, if this is the case -> everything is fine; if not -> error
+
+        # close the time period of the old primary measurement
+        if primary_measurement and board_name in self.get_object_names(page_name):
+            self.update_current_primary(page_name, board_name)
+
+        # define the new primary measurement times
+        primary_measurement_times = [{'start': datetime.datetime.utcnow(), 'end': datetime.datetime(2100, 1, 1, 0, 0, 0)}]
+
         # update the entry with the measurement (if the entry doesn't exist it will be created)
         for i, spara in enumerate(S_names):
             self.db[page_name].update_one({'name': board_name},
                                             {'$push': {'measurements': {
+                                               'id_measurement': ObjectId(),
                                                'function_test': True,
                                                'last_updated': datetime.datetime.utcnow(),
-                                               'primary_measurement': primary_measurement,
+                                               'primary_measurement': primary_measurement_times,
                                                'measurement_protocol': protocol,
                                                'S_parameter': spara,
                                                'DRAB_id': drab_id,
@@ -541,11 +628,45 @@ class Detector(object):
                                                'measurement_temp': temp,
                                                'time_delay': time_delay[i],
                                                'measurement_time': measurement_time,
-                                               'y-axis units': [units_arr[1], units_arr[2]],
+                                               'y-axis_units': [units_arr[1], units_arr[2]],
                                                'frequencies': list(S_data[0]),
                                                'mag': list(S_data[2*i+1]),
                                                'phase': list(S_data[2*i+2])
                                            }}}, upsert=True)
+
+    def change_primary_iglu_measurement(self, board_type, board_name, S_parameter, protocol, units_arr, function_test, drab_id, laser_id, temperature):
+        """
+        changes the current active primary measurement for a single board measurement
+
+        Parameters
+        ---------
+        board_type: string
+            specify the board type
+        board_name: string
+            the unique identifier of the board
+        S_parameter: list of strings
+            specify which S_parameter is used (S11, ...)
+        protocol: string
+            details of the testing environment
+        units_arr: list of strings
+            list of the input units (only y unit will be saved)
+        function_test: boolean
+            describes if the channel is working or not
+        """
+
+        # find the entry specified by function arguments
+        search_filter = [{'$match': {'name': board_name}},
+                         {'$unwind': '$measurements'},
+                         {'$match': {'measurements.function_test': function_test,
+                                     'measurements.measurement_protocol': protocol,
+                                     'measurements.S_parameter': S_parameter,
+                                     'measurements.DRAB_id': drab_id,
+                                     'measurements.laser_id': laser_id,
+                                     'measurements.measurement_temp': temperature,
+                                     'measurements.y-axis_units': units_arr
+                                     }}]
+
+        self.__change_primary_object_measurement(board_type, board_name, search_filter)
 
     # DRAB
 
@@ -596,7 +717,7 @@ class Detector(object):
                                                 'measurement_temp': temp,
                                                 'time_delay': time_delay[i],
                                                 'measurement_time': measurement_time,
-                                                'y-axis units': [units_arr[1], units_arr[2]],
+                                                'y-axis_units': [units_arr[1], units_arr[2]],
                                                 'frequencies': list(S_data[0]),
                                                 'mag': list(S_data[2 * i + 1]),
                                                 'phase': list(S_data[2 * i + 2])
@@ -649,7 +770,7 @@ class Detector(object):
                                                 'measurement_temp': temp,
                                                 'time_delay': time_delay[i],
                                                 'measurement_time': measurement_time,
-                                                'y-axis units': [units_arr[1], units_arr[2]],
+                                                'y-axis_units': [units_arr[1], units_arr[2]],
                                                 'frequencies': list(S_data[0]),
                                                 'mag': list(S_data[2 * i + 1]),
                                                 'phase': list(S_data[2 * i + 2])
@@ -705,7 +826,7 @@ class Detector(object):
                                                 'measurement_temp': temp,
                                                 'time_delay': time_delay[i],
                                                 'measurement_time': measurement_time,
-                                                'y-axis units': [units_arr[1], units_arr[2]],
+                                                'y-axis_units': [units_arr[1], units_arr[2]],
                                                 'frequencies': list(S_data[0]),
                                                 'mag': list(S_data[2 * i + 1]),
                                                 'phase': list(S_data[2 * i + 2])

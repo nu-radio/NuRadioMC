@@ -117,11 +117,6 @@ def validate_global_iglu(page_name, container_bottom, iglu_name, new_iglu_name, 
 
 def insert_iglu_to_db(page_name, s_names, iglu_name, data, input_units, working, primary, protocol, drab_id, laser_id, temp, measurement_time, time_delay):
     if not working:
-        if primary and iglu_name in det.get_object_names(page_name):
-            # temperature is not used for update_primary (if the board doesn't work, it will not work for every temperature)
-            det.update_primary(page_name, iglu_name)
         det.set_not_working(page_name, iglu_name, primary)
     else:
-        if primary and iglu_name in det.get_object_names(page_name):
-            det.update_primary(page_name, iglu_name, temp)
         det.iglu_add_Sparameters(page_name, s_names, iglu_name, drab_id, laser_id, temp, data, measurement_time, primary, time_delay, protocol, input_units)

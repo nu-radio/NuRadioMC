@@ -85,10 +85,6 @@ def validate_global_cable(container_bottom, cable_type, cable_sta, cable_cha, ch
 
 def insert_cable_to_db(page_name, s_name, cable_name, data_m, data_p, input_units, working, primary, protocol):
     if not working:
-        if primary and cable_name in det.get_object_names(page_name):
-            det.update_primary(page_name, cable_name)
         det.set_not_working(page_name, cable_name, primary)
     else:
-        if primary and cable_name in det.get_object_names(page_name):
-            det.update_primary(page_name, cable_name)
         det.cable_add_Sparameter(page_name, cable_name, [s_name], data_m, data_p, input_units, primary, protocol)
