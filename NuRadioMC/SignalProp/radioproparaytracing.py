@@ -378,7 +378,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         launch_bundles = np.transpose([launch_lower, launch_upper])
         return launch_bundles
 
-    def set_minimizer_tolerance(self, xtol=1e-3*units.deg, ztol=1e-3*units.meter):
+    def set_minimizer_tolerance(self, xtol=2e-2*units.deg, ztol=5e-2*units.meter):
         self.__xtol = xtol
         self.__ztol = ztol
 
@@ -567,7 +567,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 isMinimizeAble = MinimizeAble(launch_lower,launch_upper) 
                 #check if we have two distinct launch regions so we can minimize
                 #accuracy is chosen above time duration, so this will take a while
-                if isMinimizeAble: #and (s == 0): # only first one otherwise takes too long.
+                if isMinimizeAble and (s == 0): # speed hack: Only check on first iteration
                     LetsMinimize = True
                     break
 
@@ -587,25 +587,17 @@ class radiopropa_ray_tracing(ray_tracing_base):
             ## define observer for detection (channel)
             obs = radiopropa.Observer()
             obs.setDeactivateOnDetection(True)
-            plane_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*X2), radiopropa.Vector3d(*u)))
+            #a bigger normal value makes the calculation faster, a smaller one more precise
+            #DeltaBoundary = self.__ztol
+            w = (u / np.linalg.norm(u)) #* DeltaBoundary
+            plane_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*X2), radiopropa.Vector3d(*w)))
             obs.add(plane_channel)
             sim.add(obs)
 
-            # DEFINE BOUNDARY BEHIND CHANNEL (needed for correct time estimate)
-            obs2 = radiopropa.Observer()
-            obs2.setDeactivateOnDetection(True)
-            #DeltaBoundary = self._sphere_sizes[-1]*(radiopropa.meter/units.meter)
-            DeltaBoundary = self.__ztol
-            #a bigger value makes the calculation faster, a smaller one more precise
-            w = (u / np.linalg.norm(u)) * DeltaBoundary
-            boundary_behind_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*(X2 + w)), radiopropa.Vector3d(*w)))
-            obs2.add(boundary_behind_channel)
-
-            # handy
+            # handy?
             boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0, 0, 1*radiopropa.meter), radiopropa.Vector3d(0, 0, 1)))
             obs2.add(boundary_above_surface)
             sim.add(obs2)
- 
 
             detected_rays = []
             detected_theta = []
@@ -625,7 +617,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 root = optimize.minimize(delta_z_squared,x0=InitGuess,bounds=bounds,options={'xatol':self.__xtol**2,'fatol':self.__ztol**2},method='Nelder-Mead')
                 theta = arccot(root.x)
                 detected_theta.append(theta)
-                detected_rays.append(shoot_ray(theta)) #cause of problem? angle good, time bad.
+                detected_rays.append(shoot_ray(theta)) 
 
             self._rays = detected_rays
             self._results =  [{'reflection':0,'reflection_case':1} for ray in detected_rays]
