@@ -1,170 +1,136 @@
+from NuRadioReco.utilities import units
 import numpy as np
-from NuRadioReco.utilities import units, io_utilities
-import scipy.interpolate as interpolate
-from scipy.integrate import quad
-from scipy.integrate import dblquad
 import os
+import glob
+import json
+import pickle
+from scipy.interpolate import interp1d
+from MCEq.core import MCEqRun
+import crflux.models as crf
+import crflux
+from functools import lru_cache
+from scipy.integrate import quad
+import logging
+logger = logging.getLogger('muon_flux')
 
-abspath = os.path.dirname(os.path.abspath(__file__))
+# define MCEq units
+mc_cm = 1.
+mc_m = 1e2
+mc_km = 1e3 * mc_m
 
-def get_flux(energy, file_surface_mu_flux=os.path.join(abspath, 'data/muon_flux_E_SIBYLL23c_GSF.pickle')):
-    '''
-    provides muon flux over the full zenith band as calculated with MCEq at a given energy. The CR model used
-    is the GlobalSplineFit and the hadronic interaction model is Sibyll 2.3c.
+mc_deg = 1.
+mc_rad = 180. / np.pi
 
-    Parameters
-    ----------
-    energy: float
-        energy at which flux is calculated (in eV)
-    file_surface_mu_flux: string
-        file with model for muon flux
+mc_eV = 1.e-9
+mc_GeV = 1
+mc_TeV = 1.e3
+mc_PeV = 1.e6
+mc_EeV = 1.e9
 
-    Returns
-    -------
-    flux of muon in NuRadio units. (GeV**-1 * m**-2 * ns**-1 sr**-1)
-    '''
-    data_surface_mu_flux = io_utilities.read_pickle(file_surface_mu_flux, encoding='latin1')
-    J_e3 = np.array(data_surface_mu_flux['mu_total']) * units.GeV**2 * units.cm**-2 * units.s**-1 *units.sr**-1
-    E_data = np.array(data_surface_mu_flux['e_grid']) * units.GeV
+mc_s = 1
+mc_ns = 1e-9
 
-    def get_flux_norm(E):
-        flux_E3 = interpolate.interp1d(E_data, J_e3, fill_value='extrapolate')
-        flux = flux_E3(E)/E**3
-        return flux
-
-    return get_flux_norm(energy)
+h_grid = np.linspace(50 * 1e3 * 1e2, 0, 500)  # altitudes from 0 to 50 km (in cm)
 
 
-def get_flux_per_energy_bin(energy_bin_edge_low, energy_bin_edge_high):
-    '''
-    integrates the flux over the energy bin from energy_bin_edge_low to energy_bin_edge_high.
-    The flux is defined in get_flux
+@lru_cache(maxsize=5000)
+def get_mu_flux(theta_deg,
+                altitude,
+                interaction_model='SIBYLL23C',  # High-energy hadronic interaction model
+                primary_model=(crf.GlobalSplineFitBeta, None),
+                particle_names=("total_mu+", "total_mu-")):  # cosmic ray flux at the top of the atmosphere
+    """
+    The function get_mu_flux_interp returns the mceq object containing the information for the total muon flux at a
+    given angle, altitude, interaction model, and cosmic ray model (primary model).
+    The following primary models are relevant:
 
-    Parameters
-    ----------
-    energy_bin_edge_low: float
-        lower edge of energy bin over which the flux is integrated (in eV)
+        (crf.GlobalSplineFitBeta, None), for the GSF model, the most complete and up-to-date.
 
-    energy_bin_edge_high: float
-        higher edge of energy bin over which the flux is integrated (in eV)
+    Returns flux in NuRadioReco units 1/(area * time * solid angle * energy)
+    """
 
-    Returns
-    -------
-    integrated flux of muon in NuRadio units.
-    '''
+    altitude *= mc_m
+    mceq = MCEqRun(interaction_model=interaction_model,
+                   primary_model=primary_model,
+                   theta_deg=theta_deg * mc_rad)
 
-    def flux(E):
-        return get_flux(E)
+    X_grid = mceq.density_model.h2X(h_grid)
 
-    int_flux = quad(flux, energy_bin_edge_low, energy_bin_edge_high)
+    alt_idx = np.abs(h_grid - altitude).argmin()
 
-    return int_flux[0]
+    mceq.solve(int_grid=X_grid)
 
-def get_flux_per_energy_and_zenith(energy, zenith, file_surface_mu_flux=os.path.join(abspath, 'data/muon_flux_E_theta_SIBYLL23c_GSF.pickle')):
-    '''
-    provides muon flux at a certain energy and zenith angle as calculated with MCEq at a given energy. The CR model used
-    is the GlobalSplineFit and the hadronic interaction model is Sibyll 2.3c.
+    flux = None
+    for particle_name in particle_names:
+        if flux is None:
+            flux = mceq.get_solution(particle_name, grid_idx=alt_idx, mag=0, integrate=False)
+        else:
+            flux += mceq.get_solution(particle_name, grid_idx=alt_idx, mag=0, integrate=False)
 
-    Parameters
-    ----------
-    energy: float
-        energy at which flux is calculated (in eV)
-    zenith: float
-        zenith angle at which flux is calculated (in rad)
-    file_surface_mu_flux: string
-        file with model for muon flux
+    flux *= mc_m ** 2 * mc_eV * mc_ns  # convert to NuRadioReco units
+    e_grid = mceq.e_grid / mc_eV
 
-    Returns
-    -------
-    flux of muon in NuRadio units
-    '''
-    data_surface_mu_flux = io_utilities.read_pickle(file_surface_mu_flux, encoding='latin1')
-    J_e3 = np.array(data_surface_mu_flux['mu_total']) * units.GeV**2 * units.cm**-2 * units.s**-1
-    E_data = np.array(data_surface_mu_flux['e_grid']) * units.GeV
-    zen = np.array(data_surface_mu_flux['zen_grid']) * units.deg
-    def get_flux_norm(E, cos_theta):
-        flux_E3 = interpolate.interp2d(E_data, np.cos(zen), J_e3)
-        flux = flux_E3(E, cos_theta)/E**3
-        return flux
+    return e_grid, flux
 
-    return get_flux_norm(energy, np.cos(zenith))
 
-def get_flux_per_energy_and_zenith_bin(energy_bin_edge_low, energy_bin_edge_high, zenith_bin_edge_low, zenith_bin_edge_high):
-    '''
-    integrates the flux over a certain energy and zenith bin.
-    The flux is defined in get_flux_per_zenith_and_energy.
+def get_int_angle_mu_flux(theta_min, theta_max, altitude, n_steps=3, primary_model=(crf.GlobalSplineFitBeta, None),
+                          interaction_model='SIBYLL23C', particle_names=("total_mu+", "total_mu-")):
+    """
+    The function get_int_angle_mu_flux returns the integrated muon flux from theta_min to theta_max,
+    for a given altitude, CR model, and hadronic interaction model. The integration is just a simple Riemannian sum
+    that should be enough, provided the band is small.
 
-    Parameters
-    ----------
-    energy_bin_edge_low: float
-        lower edge of energy bin over which the flux is integrated (in eV)
-    energy_bin_edge_high: float
-        higher edge of energy bin over which the flux is integrated (in eV)
-    zenith_bin_edge_low: float
-         lower edge of zenith bin over which flux is integrated (in rad)
-    zenith_bin_edge_high: float
-         higher edge of zenith bin over which flux is integrated (in rad)
+    Returns zenith angle integrated flux in NuRadioReco units 1/(area * time  * energy)
+    """
 
-    Returns
-    -------
-    integrated flux of muon in NuRadio units.
-    '''
+    angle_edges = np.linspace(theta_min, theta_max, n_steps + 1)
+    step_theta = np.abs(angle_edges[1] - angle_edges[0])
+    angles = 0.5 * (angle_edges[1:] + angle_edges[:-1])
+    logger.info(f"integrating the flux from {theta_min / units.deg:.1f} deg to {theta_max / units.deg:.1f} deg by adding the flux from {angles / units.deg}")
 
-    def flux(E, cos_theta):
-        return get_flux_per_energy_and_zenith(E, cos_theta)
+    flux = None
+    for angle in angles:
+        e_grid, flux_tmp = get_mu_flux(angle, altitude, primary_model=primary_model,
+                                       interaction_model=interaction_model, particle_names=particle_names)
+        flux_tmp *= np.sin(angle)
+        if flux is None:
+            flux = flux_tmp
+        else:
+            flux += flux_tmp
 
-    int_flux = dblquad(flux, np.cos(zenith_bin_edge_high), np.cos(zenith_bin_edge_low), lambda x: energy_bin_edge_low, lambda x: energy_bin_edge_high)
-    return int_flux[0]
+    flux_norm = step_theta * 2 * np.pi  # We also integrate in azimuth
+    flux *= flux_norm
 
-if __name__ == "__main__":
-    units_flux = units.GeV**2.7 * units.cm**-2 * units.s**-1 * units.sr**-1
+    return interp1d(e_grid, flux, kind='cubic')
 
-    import matplotlib.pyplot as plt
-    plt.style.use({'figure.facecolor':'white'})
 
-    data_surface_mu_flux_1D = io_utilities.read_pickle(os.path.join(abspath,'data/muon_flux_E_SIBYLL23c_GSF.pickle') , encoding='latin1')
-    J_e3_1D = np.array(data_surface_mu_flux_1D['mu_total']) * units.GeV**2 * units.cm**-2 * units.s**-1 *units.sr**-1
-    E_data_1D = np.array(data_surface_mu_flux_1D['e_grid']) * units.GeV
+buffer = {}
+file_buffer = "data/surface_muon_buffer.pkl"
+if os.path.exists(file_buffer):
+    fin = open(file_buffer, "rb")
+    buffer = pickle.load(fin)
+    fin.close()
 
-    data_surface_mu_flux_2D = io_utilities.read_pickle(os.path.join(abspath,'data/muon_flux_E_theta_SIBYLL23c_GSF.pickle') , encoding='latin1')
-    J_e3_2D = np.array(data_surface_mu_flux_2D['mu_total']) * units.GeV**2 * units.cm**-2 * units.s**-1 *units.sr**-1
-    E_data_2D = np.array(data_surface_mu_flux_2D['e_grid']) * units.GeV
-    zen_grid_2D = np.array(data_surface_mu_flux_2D['zen_grid']) * units.deg
 
-    energy_bins = np.logspace(14, 19.5, 24)
-    energy_bins_low = energy_bins[0:-1]
-    energy_bins_high = energy_bins[1:]
-    energy_bins_center = 0.5*(energy_bins_low+energy_bins_high)
+def get_int_energy_mu_flux(Emin, Emax, theta_min, theta_max, altitude, n_steps=3, primary_model=(crf.GlobalSplineFitBeta, None),
+                                    interaction_model='SIBYLL23C', particle_names=("total_mu+", "total_mu-")):
+    """
+    Returns zenith angle and energy integrated flux in NuRadioReco units 1/(area * time)
+    """
 
-    flux_1d = []
-    flux_2d = []
-    for i in np.arange(len(energy_bins_low)):
-       flux_1d.append(get_flux_per_energy_bin(energy_bins_low[i], energy_bins_high[i]))
-       flux_2d.append(get_flux_per_energy_and_zenith_bin(energy_bins_low[i], energy_bins_high[i], 50*units.deg, 70*units.deg))
+    params = (np.round(Emin), np.round(Emax), np.round(theta_min, 6), np.round(theta_max, 6), np.round(altitude),
+              n_steps, primary_model, interaction_model, particle_names)
 
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
-    ax1.set_title('Scaled muon flux from MCEq')
-    ax2.set_title('Unscaled muon flux from MCEq')
-    for i_zen, zen in enumerate(zen_grid_2D):
-        ax1.plot(E_data_2D, (J_e3_2D[i_zen]/E_data_2D**3) * E_data_1D**3.7 / units_flux, label=f'{zen/units.deg:.2f}$\degree$')
-        ax2.plot(E_data_2D, J_e3_2D[i_zen]/E_data_2D**3, label=f'{zen/units.deg:.2f}$\degree$')
+    if params not in buffer:
+        logger.info(f"calculating muon flux for {params}")
+        finterp = get_int_angle_mu_flux(theta_min, theta_max, altitude, n_steps=n_steps, primary_model=primary_model,
+                                        interaction_model=interaction_model, particle_names=particle_names)
+        flux = quad(finterp, Emin, Emax)[0]
+        buffer[params] = flux
 
-    ax1.plot(E_data_1D, (J_e3_1D/E_data_1D**3) * E_data_1D**3.7 / units_flux, color='k', label='total')
-    ax2.plot(E_data_1D, J_e3_1D/E_data_1D**3, color='k', label='total')
-    ax2.plot(1e16, get_flux(1e16), marker='x', label='test 1D')
-    ax2.plot(1e17, get_flux_per_energy_and_zenith(1e17, 60*units.deg), marker='x', label='test 2D')
-    ax3.step(energy_bins_center, flux_1d, label=r'Integrated flux 0$\degree$ - 90$\degree$')
-    ax4.step(energy_bins_center, flux_2d, label=r'Integrated flux 50$\degree$ - 70$\degree$')
+        os.makedirs('data', exist_ok=True)
+        with open(file_buffer, "wb") as fout:
+            pickle.dump(buffer, fout, protocol=4)
 
-    ax1.set_ylabel(r'$E^{3.7}$ J [$GeV^{2.7}$ $cm^{-2}$ $s^{-1}$ $sr^{-1}$]')
-    ax2.set_ylabel(r'J [$GeV^{-1}$ $cm^{-2}$ $s^{-1}$ $sr^{-1}$]')
-    ax3.set_ylabel(r'J [$GeV^{-1}$ $cm^{-2}$ $s^{-1}$ $sr^{-1}$]')
-    ax4.set_ylabel(r'J [$GeV^{-1}$ $cm^{-2}$ $s^{-1}$ $sr^{-1}$]')
-
-    for ax in fig.get_axes():
-        ax.set_xscale('log')
-        ax.set_yscale('log')
-        ax.set_xlabel('Muon energy [eV]')
-        ax.legend()
-    plt.show()
-    plt.close()
+    logger.info(f"muon flux from {Emin:.2g}eV to {Emax:.2g}eV and {theta_min / units.deg:.0f} to {theta_max / units.deg:.0f} deg = {buffer[params]:.2g} / m^2/ns")
+    return buffer[params]
