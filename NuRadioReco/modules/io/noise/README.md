@@ -23,13 +23,19 @@ the data looks like.
 
 Several models are available in the models folder. 
 
+How to generate noise with the models is displayed in generateNoise.ipynb in the same folder.
+
+Example on how to load, train and analyze the performance of a model is shown in the train.ipynb notebook in the same folder.
+
 
 ### Implementation
 
 The code for the implementation of the GANs is in wgan.py, generator.py and discriminator.py.
 
-### Example
-Example on how to train load, train and analyze the performance of a model is shown in the example.ipynb notebook in the notebooks folder
+## Contact
+
+If you have any questions related to the project and the code, feel free to contact via email [Daniel Hjelm](mailto:dnl1@live.se)
+
 
 
 
