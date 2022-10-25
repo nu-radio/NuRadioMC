@@ -23,6 +23,21 @@ If you have many HDF5 files, for example because you ran a simulation paralleliz
 NuRadioMC contains a convenience function to correctly merge these files - 
 see :ref:`here <NuRadioMC/pages/Manuals/running_on_a_cluster:4. Merge individual hdf5 output files>` for instructions.
 
+What's behind the HDF5 files
+--------------------
+The hdf5 file is created in NuRadioMC/simulation/simulation.py A list of vertices with different arrival direction
+(zenith and azimuth) and energy is provided by the event generator. Starting from the vertex, several sub-showers are
+created along the track. These are not simulated, but the electric field per sub-shower is provided. Sub-showers that
+happen within a certain time interval arrive at the antenna simultaneous and interfere constructively, therefore,
+they are summed up.
+
+The ``event_group_id`` is the same for all showers that follow the same first interaction.
+The ``shower_id`` is unique for every shower. Shower which interfere constructively are combined into one event and have
+the same ``event_id`` starting from 0.
+
+  .. image:: event_sketch.png
+    :width: 90%
+
 HDF5 file attributes
 --------------------
 The top-level attributes can be accessed using ``f.attrs``. These contain:
