@@ -378,7 +378,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         launch_bundles = np.transpose([launch_lower, launch_upper])
         return launch_bundles
 
-    def set_minimizer_tolerance(self, xtol=2e-2*units.deg, ztol=5e-2*units.meter):
+    def set_minimizer_tolerance(self, xtol=1e-3*units.deg, ztol=1e-3*units.meter):
         self.__xtol = xtol
         self.__ztol = ztol
 
@@ -588,8 +588,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
             obs = radiopropa.Observer()
             obs.setDeactivateOnDetection(True)
             #a bigger normal value makes the calculation faster, a smaller one more precise
-            #DeltaBoundary = self.__ztol
-            w = (u / np.linalg.norm(u)) #* DeltaBoundary
+            #NormalScale = 2.5
+            w = (u / np.linalg.norm(u)) #* NormalScale
             plane_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*X2), radiopropa.Vector3d(*w)))
             obs.add(plane_channel)
             sim.add(obs)
