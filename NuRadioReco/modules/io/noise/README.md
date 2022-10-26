@@ -21,7 +21,7 @@ the data looks like.
 
 ### Models
 
-Several models are available in the models folder. 
+Several models are available in the models folder. The model called 2048 is generating traces with 2048 samples. However, this model was not investigated in detail or optimized which is reflected in the performance.
 
 How to generate noise with the models is displayed in generateNoise.ipynb in the same folder.
 
