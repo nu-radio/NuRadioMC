@@ -33,10 +33,8 @@ Example on how to load, train and analyze the performance of a model is shown in
 
 The code for the implementation of the GANs is in wgan.py, generator.py and discriminator.py.
 
-<!-- ## Contact
-
-If you have any questions related to the project and the code, feel free to contact via email [Daniel Hjelm](mailto:dnl1@live.se) -->
-
+## Contact
+Created by [Daniel Hjelm](mailto:dnl1@live.se) - feel free to contact me!
 
 
 
