@@ -35,7 +35,7 @@ The code for the implementation of the GANs is in wgan.py, generator.py and disc
 
 ### Metrics
 
-The code for the statistical and visual metrics are in analyze.py
+The code for the statistical and visual metrics are in analyze.py.
 The code for the astroparticle tests are in the folders named template and threshold.
 
 ## Contact
