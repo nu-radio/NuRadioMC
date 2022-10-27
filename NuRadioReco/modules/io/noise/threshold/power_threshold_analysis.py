@@ -79,13 +79,24 @@ def get_current_noise_scaled(dataset, trace_length):
     
     return event
 
+def get_data_event(data, dataset, count):
+    '''Fetches an event from the dataset'''
+    event = data[count]
+    event = event*dataset.std() + dataset.mean()
+    
+    return event
+
 
 
 def threshold(path_to_files, lower, higher):
+    '''Function that performs the power trigger analysis'''
 
     file_names = get_file_names(path_to_files, 24)
 
     dataset = np.load('../data.npy')
+    
+    data_preproccessed = np.load("../data_preprocessed_512.npy")
+
 
     generator = keras.models.load_model('../kapre_lstm_generator_4')
 
@@ -105,7 +116,7 @@ def threshold(path_to_files, lower, higher):
     bandpass = channelBandPassFilter()
 
     # test threshold range
-    thresholds= np.logspace(-4,-1,200)[::-1]
+    thresholds= np.logspace(-3,-1,200)[::-1]
 
 
     results = []
@@ -116,19 +127,25 @@ def threshold(path_to_files, lower, higher):
     # dummy_file = "../../shallman/data/rno_g/forced_triggers/inbox/forced_triggers_station24_run117.root"
 
 
-
+    count = 0
+    
+    # Looping through the datafiles like this is unnessecary since we don't use them in the analysis.
+    # However, the approach of loading numpy array instead datafiles was found as a bug at the very end of
+    # the project and therefore this has not been changed. It does not affect the results but is not 
+    # most efficient way of doing this analysis.
     for rf_i, run_file in enumerate(file_names):
         if rf_i > 50:
             break
         reader.begin(run_file)
         for i, event in enumerate(reader.run()):
-            
+            count+=1
             # Data
             station = event.get_station(event.get_station_ids()[0])
             if not station.get_trigger('force_trigger').has_triggered():
                 continue
             channel = station.get_channel(surface_channel)
-            trace = channel.get_trace()[0:512]
+#             trace = channel.get_trace()[0:512]
+            trace = get_data_event(data_preproccessed, dataset, count)/1000
             channel.set_trace(trace, 3.2*units.GHz)
             
             station.add_channel(channel)
@@ -211,7 +228,6 @@ def threshold(path_to_files, lower, higher):
                     break
             
             
-            
             print(f"Data event {i}, triggered at threshold {triggered_threshold_any}")
             print(f"Generated event {i}, triggered at threshold {triggered_threshold_gen}")
             print(f"Current event {i}, triggered at threshold {triggered_threshold_current}")
@@ -222,16 +238,18 @@ def threshold(path_to_files, lower, higher):
                 "threshold": triggered_threshold_any, "threshold_generator": triggered_threshold_gen,
                 "threshold_current": triggered_threshold_current, "triggered": triggered_any}
             results.append(result)
+            print("\n")
             
     df = pd.DataFrame(results)
     df.to_hdf("power_trigger_threshold_scan.hdf5", "data")
 
 def analyze_threshold(lower, higher):
+    '''Plots the triggered threshold fraction versus trigger threshold for the power_trigger_threshold_scan.hdf5 file'''
     if lower < 1:
         lower = 0
     data = pd.read_hdf("power_trigger_threshold_scan.hdf5")
 
-    thresholds = np.logspace(-4,-1,200)
+    thresholds = np.logspace(-3,-1,200)
 
     n_triggers = np.zeros_like(thresholds)
     n_triggers_gen = np.zeros_like(thresholds)
