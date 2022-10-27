@@ -52,16 +52,16 @@ The code for how the data is created and preprocessed is in the files named [cre
 
 Several models are available in the models folder. The model called 2048 is generating traces with 2048 samples. However, this model was not investigated in detail or optimized which is reflected in the performance.
 
-Example on how to load, train and analyze the performance of a model is shown in the train.ipynb notebook in the same folder.
+Example on how to load, train and analyze the performance of a model is shown in the [train.ipynb](https://github.com/nu-radio/NuRadioMC/blob/feature/noise_gan/NuRadioReco/modules/io/noise/models/train.ipynb) notebook in the same folder.
 
 
 ### WGAN implementation
 
-The code for the implementation of the GANs is in wgan.py, generator.py and discriminator.py.
+The code for the implementation of the GANs is in [wgan.py](https://github.com/nu-radio/NuRadioMC/blob/feature/noise_gan/NuRadioReco/modules/io/noise/wgan.py), [generator.py](https://github.com/nu-radio/NuRadioMC/blob/feature/noise_gan/NuRadioReco/modules/io/noise/generator.py) and [discriminator.py](https://github.com/nu-radio/NuRadioMC/blob/feature/noise_gan/NuRadioReco/modules/io/noise/discriminator.py).
 
 ### Metrics
 
-The code for the statistical and visual metrics are in analyze.py.
+The code for the statistical and visual metrics are in [analyze.py](https://github.com/nu-radio/NuRadioMC/blob/feature/noise_gan/NuRadioReco/modules/io/noise/analyze.py).
 The code for the astroparticle tests are in the folders named template and threshold.
 
 ## Contact
