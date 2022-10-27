@@ -14,7 +14,8 @@ $ sudo pip3 install -r requirements.txt
 
 ## Usage
 
-### How to generate data using a NoiseGenerator class
+### How to generate noise
+
 ```python
 
 # Import NoiseGenerator class
