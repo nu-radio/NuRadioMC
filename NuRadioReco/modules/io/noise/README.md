@@ -14,29 +14,21 @@ $ sudo pip3 install -r requirements.txt
 
 ## Usage
 
-### How to generate data using a generator
+### How to generate data using a NoiseGenerator class
 ```python
 
-import numpy as np
-from tensorflow import keras
+# Import NoiseGenerator class
+from noiseGenerator import NoiseGenerator
 
-# Load data
-dataset = np.load('data/data_example.npy')
+# Create NoiseGenerator
+NoiseGenerator = NoiseGenerator(path_to_generator = 'models/best/', path_to_data='data/data_example.npy')
 
-# Load generator
-generator = keras.models.load_model('models/best/') 
+# Decide how many noise events to generate
+number_of_events = 100
 
-# Decide how many events to generate
-number_of_events = 1
+# Create noise using NoiseGenerator
+test = NoiseGenerator.generate_noise(number_of_events, normalized=False)
 
-# Generate signals using generator
-noise = np.random.randn(number_of_events, 128)
-noise = np.expand_dims(noise, axis=-1) 
-generated_traces = generator.predict_on_batch(noise)
-generated_traces = generated_traces[:,:,0]
-
-# Unnormalize
-generated_traces = generated_traces * dataset.std()+dataset.mean()
 ```
 This is also displayed in [generateNoise.ipynb](https://github.com/nu-radio/NuRadioMC/blob/feature/noise_gan/NuRadioReco/modules/io/noise/models/generateNoise.ipynb)
  in the [models](https://github.com/nu-radio/NuRadioMC/tree/feature/noise_gan/NuRadioReco/modules/io/noise/models) folder.
