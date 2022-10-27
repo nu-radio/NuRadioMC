@@ -14,6 +14,35 @@ $ sudo pip3 install -r requirements.txt
 
 ## Usage
 
+### Generate noise
+How to generate data using a generator
+
+```python
+
+import numpy as np
+from tensorflow import keras
+import analyze
+
+# Load data
+dataset = np.load('data/data_example.npy')
+
+# Load generator
+generator = keras.models.load_model('models/best/') 
+
+# Decide how many events to generate
+number_of_events = 1
+
+# Generate signals using generator
+noise = np.random.randn(number_of_events, 128)
+noise = np.expand_dims(noise, axis=-1) 
+generated_traces = generator.predict_on_batch(noise)
+generated_traces = generated_traces[:,:,0]
+
+# Scaling
+generated_traces = generated_traces * dataset.std()+dataset.mean()
+
+```
+
 ### Data
 
 An small subset of the actual raw and preprocessed data is available in the data folder.
@@ -25,8 +54,6 @@ The code for how the data is created and preprocessed is in the files named crea
 ### Models
 
 Several models are available in the models folder. The model called 2048 is generating traces with 2048 samples. However, this model was not investigated in detail or optimized which is reflected in the performance.
-
-How to generate noise with the models is displayed in generateNoise.ipynb in the same folder.
 
 Example on how to load, train and analyze the performance of a model is shown in the train.ipynb notebook in the same folder.
 
