@@ -27,7 +27,7 @@ noiseGenerator = NoiseGenerator(path_to_generator = 'models/best/', path_to_data
 # Decide how many noise events to generate
 number_of_events = 100
 
-# Create noise using NoiseGenerator
+# Generate noise using NoiseGenerator
 test = noiseGenerator.generate_noise(number_of_events, normalized=False)
 
 ```
