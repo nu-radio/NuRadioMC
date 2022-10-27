@@ -101,7 +101,6 @@ class simulation:
                  detectorfile,
                  outputfilenameNuRadioReco=None,
                  debug=False,
-                 write_mode='full',
                  evt_time=datetime.datetime(2018, 1, 1),
                  config_file=None,
                  log_level=logging.WARNING,
@@ -111,7 +110,8 @@ class simulation:
                  write_detector=True,
                  event_list=None,
                  log_level_propagation=logging.WARNING,
-                 ice_model=None):
+                 ice_model=None,
+                 **kwargs):
         """
         initialize the NuRadioMC end-to-end simulation
 
@@ -134,14 +134,6 @@ class simulation:
             effective volume calculations
         debug: bool
             True activates debug mode, default False
-        write_mode: str
-            Detail level of eventWriter
-            specifies the output mode:
-
-            * 'full' (default): the full event content is written to disk
-            * 'mini': only station traces are written to disc
-            * 'micro': no traces are written to disc
-            
         evt_time: datetime object
             the time of the events, default 1/1/2018
         config_file: string
@@ -165,6 +157,8 @@ class simulation:
             allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom". 
         """
         logger.setLevel(log_level)
+        if 'write_mode' in kwargs.keys():
+            logger.warning('Parameter write_mode is deprecated. Define the output format in the config file instead.')
         self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
