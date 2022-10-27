@@ -21,13 +21,13 @@ $ sudo pip3 install -r requirements.txt
 from noiseGenerator import NoiseGenerator
 
 # Create NoiseGenerator
-NoiseGenerator = NoiseGenerator(path_to_generator = 'models/best/', path_to_data='data/data_example.npy')
+noiseGenerator = NoiseGenerator(path_to_generator = 'models/best/', path_to_data='data/data_example.npy')
 
 # Decide how many noise events to generate
 number_of_events = 100
 
 # Create noise using NoiseGenerator
-test = NoiseGenerator.generate_noise(number_of_events, normalized=False)
+test = noiseGenerator.generate_noise(number_of_events, normalized=False)
 
 ```
 This is also displayed in [generateNoise.ipynb](https://github.com/nu-radio/NuRadioMC/blob/feature/noise_gan/NuRadioReco/modules/io/noise/models/generateNoise.ipynb)
