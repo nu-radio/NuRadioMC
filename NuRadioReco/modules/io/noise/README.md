@@ -42,7 +42,7 @@ This is also displayed in [generateNoise.ipynb](https://github.com/nu-radio/NuRa
  in the models folder.
 ### Data
 
-An small subset of the actual raw and preprocessed data is available in the data folder.
+An small subset of the actual raw and preprocessed data is available in the [data](https://github.com/nu-radio/NuRadioMC/tree/feature/noise_gan/NuRadioReco/modules/io/noise/data) folder.
 There is not enough to train the network but it at least gives an good overview on how
 the data looks like.
 
@@ -50,7 +50,7 @@ The code for how the data is created and preprocessed is in the files named [cre
 
 ### Models
 
-Several models are available in the models folder. The model called 2048 is generating traces with 2048 samples. However, this model was not investigated in detail or optimized which is reflected in the performance.
+Several models are available in the [models](https://github.com/nu-radio/NuRadioMC/tree/feature/noise_gan/NuRadioReco/modules/io/noise/models) folder. The model called 2048 is generating traces with 2048 samples. However, this model was not investigated in detail or optimized which is reflected in the performance.
 
 Example on how to load, train and analyze the performance of a model is shown in the [train.ipynb](https://github.com/nu-radio/NuRadioMC/blob/feature/noise_gan/NuRadioReco/modules/io/noise/models/train.ipynb) notebook in the same folder.
 
@@ -62,7 +62,7 @@ The code for the implementation of the GANs is in [wgan.py](https://github.com/n
 ### Metrics
 
 The code for the statistical and visual metrics are in [analyze.py](https://github.com/nu-radio/NuRadioMC/blob/feature/noise_gan/NuRadioReco/modules/io/noise/analyze.py).
-The code for the astroparticle tests are in the folders named template and threshold.
+The code for the astroparticle tests are in the folders [template](https://github.com/nu-radio/NuRadioMC/tree/feature/noise_gan/NuRadioReco/modules/io/noise/template) and [threshold](https://github.com/nu-radio/NuRadioMC/tree/feature/noise_gan/NuRadioReco/modules/io/noise/threshold).
 
 ## Contact
 Created by [Daniel Hjelm](mailto:dnl1@live.se) - feel free to contact me!
