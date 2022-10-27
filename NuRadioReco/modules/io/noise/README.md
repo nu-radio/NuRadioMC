@@ -31,7 +31,7 @@ number_of_events = 100
 test = noiseGenerator.generate_noise(number_of_events, normalized=False)
 
 ```
-Another way to generate noise without the NoiseGenerator class in [generateNoise.ipynb](https://github.com/nu-radio/NuRadioMC/blob/feature/noise_gan/NuRadioReco/modules/io/noise/models/generateNoise.ipynb)
+Another way to generate noise without the NoiseGenerator class is displayed in [generateNoise.ipynb](https://github.com/nu-radio/NuRadioMC/blob/feature/noise_gan/NuRadioReco/modules/io/noise/models/generateNoise.ipynb)
  in the [models](https://github.com/nu-radio/NuRadioMC/tree/feature/noise_gan/NuRadioReco/modules/io/noise/models) folder.
 ### Data
 
