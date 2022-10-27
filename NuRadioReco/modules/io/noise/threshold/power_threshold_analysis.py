@@ -121,11 +121,8 @@ def threshold(path_to_files, lower, higher):
 
     results = []
 
-    # which channels to trigger on
+    # Which channels to trigger on
     surface_channel = 13 #[12,13,14,15,16,17,18,19,20]
-
-    # dummy_file = "../../shallman/data/rno_g/forced_triggers/inbox/forced_triggers_station24_run117.root"
-
 
     count = 0
     
@@ -275,7 +272,7 @@ def analyze_threshold(lower, higher):
     
 
 if __name__ == "__main__":
-    path_to_files = "../../shallman/data/rno_g/forced_triggers/inbox/"
+    path_to_files = ""
     lower = 0.0000001
     higher = 1600
     threshold(path_to_files, lower, higher)

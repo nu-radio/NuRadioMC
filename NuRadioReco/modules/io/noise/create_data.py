@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 import uproot
 import glob, os
 
-path_to_data = "../shallman/data/rno_g/forced_triggers/inbox/"
-
 def GetData(path_to_data, station, channels):
 
     '''
@@ -71,7 +69,7 @@ def GetData(path_to_data, station, channels):
     return data
 
 if __name__ == "__main__":
-    path_to_data = "../shallman/data/rno_g/forced_triggers/inbox/"
+    path_to_data = ""
     data = GetData(path_to_data,24,[13,16,19])
     plt.plot(data[23])
     plt.show()
