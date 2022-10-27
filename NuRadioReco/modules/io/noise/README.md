@@ -46,7 +46,7 @@ An small subset of the actual raw and preprocessed data is available in the data
 There is not enough to train the network but it at least gives an good overview on how
 the data looks like.
 
-The code for how the data is created and preprocessed is in the files named create_data.py and data_preprocessing.py respectively.
+The code for how the data is created and preprocessed is in the files named [create_data.py](https://github.com/nu-radio/NuRadioMC/blob/feature/noise_gan/NuRadioReco/modules/io/noise/create_data.py) and [data_preprocessing.py](https://github.com/nu-radio/NuRadioMC/blob/feature/noise_gan/NuRadioReco/modules/io/noise/data_preprocessing.py) respectively.
 
 ### Models
 
