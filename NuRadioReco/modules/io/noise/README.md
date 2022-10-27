@@ -20,6 +20,8 @@ An small subset of the actual raw and preprocessed data is available in the data
 There is not enough to train the network but it at least gives an good overview on how
 the data looks like.
 
+The code for how the data is created and preprocessed is in the files named create_data.py and data_preprocessing.py respectively.
+
 ### Models
 
 Several models are available in the models folder. The model called 2048 is generating traces with 2048 samples. However, this model was not investigated in detail or optimized which is reflected in the performance.
@@ -29,7 +31,7 @@ How to generate noise with the models is displayed in generateNoise.ipynb in the
 Example on how to load, train and analyze the performance of a model is shown in the train.ipynb notebook in the same folder.
 
 
-### Implementation
+### WGAN implementation
 
 The code for the implementation of the GANs is in wgan.py, generator.py and discriminator.py.
 
