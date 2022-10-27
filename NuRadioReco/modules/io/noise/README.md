@@ -33,6 +33,11 @@ Example on how to load, train and analyze the performance of a model is shown in
 
 The code for the implementation of the GANs is in wgan.py, generator.py and discriminator.py.
 
+### Metrics
+
+The code for the statistical and visual metrics are in analyze.py
+The code for the astroparticle tests are in the folders named template and threshold.
+
 ## Contact
 Created by [Daniel Hjelm](mailto:dnl1@live.se) - feel free to contact me!
 
