@@ -39,7 +39,7 @@ generated_traces = generated_traces[:,:,0]
 generated_traces = generated_traces * dataset.std()+dataset.mean()
 ```
 This is also displayed in [generateNoise.ipynb](https://github.com/nu-radio/NuRadioMC/blob/feature/noise_gan/NuRadioReco/modules/io/noise/models/generateNoise.ipynb)
- in the models folder.
+ in the [models](https://github.com/nu-radio/NuRadioMC/tree/feature/noise_gan/NuRadioReco/modules/io/noise/models) folder.
 ### Data
 
 An small subset of the actual raw and preprocessed data is available in the [data](https://github.com/nu-radio/NuRadioMC/tree/feature/noise_gan/NuRadioReco/modules/io/noise/data) folder.
