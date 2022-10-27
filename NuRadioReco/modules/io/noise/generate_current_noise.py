@@ -1,4 +1,3 @@
-from re import S
 import numpy as np
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import fft

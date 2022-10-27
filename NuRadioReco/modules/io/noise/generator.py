@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from tensorflow import keras
 import tensorflow as tf
 import warnings 
-import tensorflow as tf
 tf.compat.v1.experimental.output_all_intermediates(True)
 
 class Generator():
