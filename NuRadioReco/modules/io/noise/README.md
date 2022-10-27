@@ -35,7 +35,7 @@ noise = np.expand_dims(noise, axis=-1)
 generated_traces = generator.predict_on_batch(noise)
 generated_traces = generated_traces[:,:,0]
 
-# Scaling
+# Unnormalize
 generated_traces = generated_traces * dataset.std()+dataset.mean()
 ```
 This is also displayed in [generateNoise.ipynb](https://github.com/nu-radio/NuRadioMC/blob/feature/noise_gan/NuRadioReco/modules/io/noise/models/generateNoise.ipynb)
