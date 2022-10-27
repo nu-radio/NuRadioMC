@@ -14,9 +14,7 @@ $ sudo pip3 install -r requirements.txt
 
 ## Usage
 
-### Generate noise
-How to generate data using a generator
-
+### How to generate data using a generator
 ```python
 
 import numpy as np
@@ -40,9 +38,8 @@ generated_traces = generated_traces[:,:,0]
 
 # Scaling
 generated_traces = generated_traces * dataset.std()+dataset.mean()
-
 ```
-
+This is also displayed in generateNoise.ipynb in the models folder.
 ### Data
 
 An small subset of the actual raw and preprocessed data is available in the data folder.
