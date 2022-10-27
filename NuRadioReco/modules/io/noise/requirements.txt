@@ -1,8 +1,10 @@
+numpy
+scipy
 keras
+uproot
 tensorflow
 matplotlib
 NuRadioMC
+astropy
 kapre
-numpy
-scipy
 git+https://github.com/fversaci/WaveTF
