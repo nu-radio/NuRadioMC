@@ -19,7 +19,6 @@ $ sudo pip3 install -r requirements.txt
 
 import numpy as np
 from tensorflow import keras
-import analyze
 
 # Load data
 dataset = np.load('data/data_example.npy')
