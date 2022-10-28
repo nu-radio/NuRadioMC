@@ -20,7 +20,7 @@ class NoiseGenerator():
 
     def generate_noise(self, number_of_events, normalized=False):
         '''Function which uses the generator to generate noise'''
-        noise = np.random.randn(number_of_events, 128)
+        noise = np.random.randn(number_of_events, self.generator.input_shape[1])
         noise = np.expand_dims(noise, axis=-1) 
         generated_traces = self.generator.predict_on_batch(noise)
         generated_traces = generated_traces[:,:,0]
