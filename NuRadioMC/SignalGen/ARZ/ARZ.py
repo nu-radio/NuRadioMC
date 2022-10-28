@@ -498,7 +498,7 @@ class ARZ(object):
             for small vertex distances but also slows down the calculation proportional to the interpolation factor.
         shift_for_xmax: bool (default False)
             if True the observer position is placed relative to the position of the shower maximum, if False it is placed
-            with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined 
+            with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined
             as the position of the maximum of the charge excess profile
         same_shower: bool (default False)
             if False, for each request a new random shower realization is choosen.
@@ -507,14 +507,18 @@ class ARZ(object):
         iN: int or None (default None)
             specify shower number
         output_mode: string
+
             * 'trace' (default): return only the electric field trace
             * 'Xmax': return trace and position of xmax in units of length
             * 'full' return trace, depth and charge_excess profile
+
         maximum_angle: float
             Maximum angular difference allowed between the observer angle and the Cherenkov angle.
             If the difference is greater, the function returns an empty trace.
 
-        Returns: array of floats
+        Returns
+        -------
+        efield_trace: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
         """
         if not shower_type in self._library.keys():
@@ -678,7 +682,7 @@ class ARZ(object):
             interpolation just around the peak of the form factor
         shift_for_xmax: bool (default False)
             if True the observer position is placed relative to the position of the shower maximum, if False it is placed
-            with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined 
+            with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined
             as the position of the maximum of the charge excess profile
         """
         logger.warning("This function has been deprecated - please use the module level ARZ.get_vector_potential_numba or ARZ.get_vector_potential instead")
@@ -1144,13 +1148,18 @@ class ARZ_tabulated(object):
         iN: int or None (default None)
             specify shower number
         output_mode: string
+
             * 'trace' (default): return only the electric field trace
             * 'Xmax': return trace and position of xmax in units of length
+
         theta_reference: string (default: X0)
+
             * 'X0': viewing angle relativ to start of the shower
             * 'Xmax': viewing angle is relativ to Xmax, internally it will be converted to be relative to X0
 
-        Returns: array of floats
+        Returns
+        -------
+        efield_trace: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
         """
         if not shower_type in self._library.keys():
