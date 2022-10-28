@@ -1,6 +1,6 @@
 # Noise generation for neutrino simulations using Generative Adversarial Networks 
 
-This repository contains all the code for the Noise generation for neutrino simulations using Generative Adversarial Networks project. The projected which was done as an Erasmus Internship between 29/8-28/10/22 by Daniel Hjelm. 
+This repository contains all the code for the Noise generation for neutrino simulations using Generative Adversarial Networks project. The projected which was done as an Erasmus Internship between 29/8-28/10/22 by Daniel Hjelm. The project outline was done within the guidelines of the course [Project in Embedded Systems](https://www.uu.se/en/admissions/freestanding-courses/course-syllabus/?kpid=29423&kKod=1TE721) and the report is available [here](https://drive.google.com/file/d/1ZfqVr4L8ocML3DDFMSNtupJ6pZiTY1Fk/view?usp=sharing)
 <!-- Report available here: [report](https://github.com/nu-radio/NuRadioMC) -->
 
 
