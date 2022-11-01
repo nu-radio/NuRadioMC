@@ -217,7 +217,7 @@ class ProposalFunctions(object):
     not be used from the outside to avoid mismatching units.
     """
 
-    def __init__(self, config_file='SouthPole', log_level=logging.INFO, tables_path="/tmp", seed=12):
+    def __init__(self, config_file='SouthPole', log_level=logging.INFO, tables_path="/tmp", seed=12, upper_energy_limit=1e14*units.MeV):
         """
         Parameters
         ----------
@@ -239,6 +239,10 @@ class ProposalFunctions(object):
             tables (which can take several minutes) every time the script is executed
         seed: int
             Seed to be used by PROPOSAL
+        upper_energy_limit: float
+            upper_energy_limit of tables that will be created by PROPOSAL, in NuRadioMC units (eV).
+            There will be an error if primaries with energies above this energy will be injected.
+            Note that PROPOSAL will have to regenerate tables for a new values of upper_energy_limit
 
         """
         self.__logger = logging.getLogger("proposal")
@@ -250,6 +254,7 @@ class ProposalFunctions(object):
         self.__propagators = {}
         self.__config_file = config_file
         self.__tables_path = tables_path
+        self.__upper_energy_limit = upper_energy_limit * pp_eV # convert to PROPOSAL units
 
     def __get_propagator(self,
                             particle_code=13):
@@ -293,7 +298,7 @@ class ProposalFunctions(object):
             pp.InterpolationSettings.tables_path = self.__tables_path
 
             # upper energy lim for proposal tables, in PROPOSAL units (MeV)
-            pp.InterpolationSettings.upper_energy_lim = 1e14 * pp_MeV
+            pp.InterpolationSettings.upper_energy_lim = self.__upper_energy_limit
 
             try:
                 p_def = pp.particle.get_ParticleDef_for_type(particle_code)
@@ -402,6 +407,10 @@ class ProposalFunctions(object):
         """
         x, y, z = lepton_position
         px, py, pz = lepton_direction
+
+        if (energy_lepton > self.__upper_energy_limit):
+            raise ValueError("Initial lepton energy higher than upper_energy_limit of PROPOSAL. Adjust upper_energy_limit when"
+                             " initialzing EvtGen.NuRadioProposal.ProposalFunctions.")
 
         initial_condition = pp.particle.ParticleState()
         initial_condition.type = lepton_code
