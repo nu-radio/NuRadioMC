@@ -141,10 +141,6 @@ def validate_global_downhole(page_name, container_bottom, surface_name, new_surf
 
 def insert_downhole_to_db(page_name, s_names, downhole_name, data, input_units, working, primary, protocol, breakout_id, breakout_cha_id, iglu_id, drab_id, temp, measurement_time, time_delay):
     if not working:
-        if primary and downhole_name in det.get_object_names(page_name):
-            det.update_primary(page_name, downhole_name)
-        det.set_not_working(page_name, downhole_name, primary)
+        det.set_not_working(page_name, downhole_name, primary, breakout_id=int(breakout_id), breakout_channel_id=breakout_cha_id)
     else:
-        if primary and downhole_name in det.get_object_names(page_name):
-            det.update_primary(page_name, downhole_name, temp)
         det.downhole_add_Sparameters(page_name, s_names, downhole_name, int(breakout_id), breakout_cha_id, iglu_id, drab_id, temp, data, measurement_time, primary, time_delay, protocol, input_units)
