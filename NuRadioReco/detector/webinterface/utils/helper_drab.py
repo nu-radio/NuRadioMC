@@ -125,11 +125,6 @@ def validate_global_drab(page_name, container_bottom, drab_name, new_drab_name, 
 
 def insert_drab_to_db(page_name, s_names, drab_name, data, input_units, working, primary, protocol, iglu_id, photodiode_id, channel_id, temp, measurement_time, time_delay):
     if not working:
-        if primary and drab_name in det.get_object_names(page_name):
-            # temperature is not used for update_primary (if the board doesn't work, it will not work for every temperature)
-            det.update_primary(page_name, drab_name, channel_id=int(channel_id))
-        det.set_not_working(page_name, drab_name, primary, int(channel_id))
+        det.set_not_working(page_name, drab_name, primary, channel_id=int(channel_id))
     else:
-        if primary and drab_name in det.get_object_names(page_name):
-            det.update_primary(page_name, drab_name, temp, int(channel_id))
         det.drab_add_Sparameters(page_name, s_names, drab_name, iglu_id, photodiode_id, int(channel_id), temp, data, measurement_time, primary, time_delay, protocol, input_units)

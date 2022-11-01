@@ -104,10 +104,6 @@ def validate_global_surface(page_name, container_bottom, surface_name, new_surfa
 
 def insert_surface_to_db(page_name, s_names, surface_name, data, input_units, working, primary, protocol, channel_id, temp, measurement_time, time_delay):
     if not working:
-        if primary and surface_name in det.get_object_names(page_name):
-            det.update_primary(page_name, surface_name, channel_id=int(channel_id))
-        det.set_not_working(page_name, surface_name, primary, int(channel_id))
+        det.set_not_working(page_name, surface_name, primary, channel_id=int(channel_id))
     else:
-        if primary and surface_name in det.get_object_names(page_name):
-            det.update_primary(page_name, surface_name, temp, int(channel_id))
         det.surface_add_Sparameters(page_name, s_names, surface_name, int(channel_id), temp, data, measurement_time, primary, time_delay, protocol, input_units)
