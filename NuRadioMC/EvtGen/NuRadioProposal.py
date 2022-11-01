@@ -283,7 +283,7 @@ class ProposalFunctions(object):
                 raise ValueError("Proposal config file is not valid. Please provide a valid option.")
 
             # TODO: What is this {}.sample, and what does it have to do with interpoation tables?
-            #if not os.path.exists(config_file_full_path):
+            if not os.path.exists(config_file_full_path):
                 error_message = "Proposal config file does not exist.\n"
                 error_message += "Please provide valid paths for the interpolation tables "
                 error_message += "in file {}.sample ".format(config_file_full_path)
