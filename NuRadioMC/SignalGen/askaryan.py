@@ -19,7 +19,7 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
     We implement only the time-domain solution and obtain the frequency spectrum
     via FFT (with the standard normalization of NuRadioMC). This approach assures
     that the units are interpreted correctly. In the time domain, the amplitudes
-    are well defined and not details about fourier transform normalizations needs
+    are well defined and no details about fourier transform normalizations needs
     to be known by the user.
 
     Parameters
@@ -34,7 +34,8 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
     dt: float
         time bin width, i.e. the inverse of the sampling rate
     shower_type: string (default "HAD")
-        type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+        type of shower, either "HAD" (hadronic), "EM" (electromagnetic)
+        or "TAU" (tau lepton induced)
         note that TAU showers are currently only implemented in the ARZ2019 model
     n_index: float
         index of refraction at interaction vertex
@@ -43,19 +44,42 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, interp_
     model: string
         specifies the signal model
 
-        * ZHS1992: the original ZHS parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992), doi:10.1103/PhysRevD.45.362, this parametrization does not contain any phase information
-        * Alvarez2000: parameterization based on ZHS mainly based on J. Alvarez-Muniz, R. A. V ́azquez, and E. Zas, Calculation methods for radio pulses from high energyshowers, Physical Review D62 (2000) https://doi.org/10.1103/PhysRevD.84.103003
-        * Alvarez2009: parameterization based on ZHS from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas, Coherent cherenkov radio pulses fromhadronic showers up to EeV energies, Astroparticle Physics 35 (2012), no. 6 287 – 299 and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas, Thinned simulations of extremely energeticshowers in dense media for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111
-        * HCRB2017: analytic model from J. Hanson, A. Connolly Astroparticle Physics 91 (2017) 75-89
-        * ARZ2019 semi MC time domain model from Alvarez-Muñiz, J., Romero-Wolf, A., & Zas, E. (2011). Practical and accurate calculations of Askaryan radiation. Physical Review D - Particles, Fields, Gravitation and Cosmology, 84(10). https://doi.org/10.1103/PhysRevD.84.103003
+        * ZHS1992: the original ZHS parametrization from
+          E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992),
+          https://doi.org/10.1103/PhysRevD.45.362,
+          this parametrization does not contain any phase information
+        * Alvarez2000: parameterization based on ZHS
+          mainly based on J. Alvarez-Muniz, R. A. Vazquez, and E. Zas,
+          Calculation methods for radio pulses from high energy showers,
+          Physical Review D62 (2000) https://doi.org/10.1103/PhysRevD.84.103003
+        * Alvarez2009: parameterization based on ZHS
+          from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas,
+          Coherent cherenkov radio pulses from hadronic showers up to EeV energies,
+          Astroparticle Physics 35 (2012), no. 6 287 – 299
+          and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas,
+          Thinned simulations of extremely energetic showers in dense media
+          for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111
+        * HCRB2017: analytic model from J. Hanson, A. Connolly
+          Astroparticle Physics 91 (2017) 75-89
+        * ARZ2019: semi MC time domain model
+          from Alvarez-Muñiz, J., Romero-Wolf, A., & Zas, E. (2011).
+          Practical and accurate calculations of Askaryan radiation.
+          Physical Review D - Particles, Fields, Gravitation and Cosmology, 84(10).
+          https://doi.org/10.1103/PhysRevD.84.103003
+        * ARZ2020: semi MC time domain model
+          updated version of ARZ2019 with parameters taken from
+          J. Alvarez-Muñiz, P.M. Hansen, A. Romero-Wolf and E. Zas,
+          Askaryan radiation from neutrino-induced showers in ice,
+          Phys. Rev. D 101 (2020) 083005.
+          https://doi.org/10.1103/PhysRevD.101.083005
 
     interp_factor: float or None
         controls the interpolation of the charge-excess profiles in the ARZ model
     interp_Factor2: float or None
         controls the second interpolation of the charge-excess profiles in the ARZ model
     same_shower: bool (default False)
-        controls the random behviour of picking a shower from the library in the ARZ model, see description there for
-        more details
+        controls the random behviour of picking a shower from the library in the ARZ model,
+        see description there for more details
     seed: None or int
         the random seed for the Askaryan modules
     full_output: bool (default False)
@@ -136,7 +160,8 @@ def get_frequency_spectrum(energy, theta, N, dt, shower_type, n_index, R, model,
     dt: float
         time bin width, i.e. the inverse of the sampling rate
     shower_type: string (default "HAD")
-        type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+        type of shower, either "HAD" (hadronic), "EM" (electromagnetic)
+        or "TAU" (tau lepton induced)
         note that TAU showers are currently only implemented in the ARZ2019 model
     n_index: float
         index of refraction at interaction vertex
@@ -145,11 +170,34 @@ def get_frequency_spectrum(energy, theta, N, dt, shower_type, n_index, R, model,
     model: string
         specifies the signal model
 
-        * ZHS1992: the original ZHS parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992), doi:10.1103/PhysRevD.45.362, this parametrization does not contain any phase information
-        * Alvarez2000: parameterization based on ZHS mainly based on J. Alvarez-Muniz, R. A. V ́azquez, and E. Zas, Calculation methods for radio pulses from high energyshowers, Physical Review D62 (2000) https://doi.org/10.1103/PhysRevD.84.103003
-        * Alvarez2009: parameterization based on ZHS from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas, Coherent cherenkov radio pulses fromhadronic showers up to EeV energies, Astroparticle Physics 35 (2012), no. 6 287 – 299 and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas, Thinned simulations of extremely energeticshowers in dense media for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111
-        * HCRB2017: analytic model from J. Hanson, A. Connolly Astroparticle Physics 91 (2017) 75-89
-        * ARZ2019 semi MC time domain model from Alvarez-Muñiz, J., Romero-Wolf, A., & Zas, E. (2011). Practical and accurate calculations of Askaryan radiation. Physical Review D - Particles, Fields, Gravitation and Cosmology, 84(10). https://doi.org/10.1103/PhysRevD.84.103003
+        * ZHS1992: the original ZHS parametrization from
+          E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992),
+          https://doi.org/10.1103/PhysRevD.45.362,
+          this parametrization does not contain any phase information
+        * Alvarez2000: parameterization based on ZHS
+          mainly based on J. Alvarez-Muniz, R. A. Vazquez, and E. Zas,
+          Calculation methods for radio pulses from high energy showers,
+          Physical Review D62 (2000) https://doi.org/10.1103/PhysRevD.84.103003
+        * Alvarez2009: parameterization based on ZHS
+          from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas,
+          Coherent cherenkov radio pulses from hadronic showers up to EeV energies,
+          Astroparticle Physics 35 (2012), no. 6 287 – 299
+          and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas,
+          Thinned simulations of extremely energetic showers in dense media
+          for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111
+        * HCRB2017: analytic model from J. Hanson, A. Connolly
+          Astroparticle Physics 91 (2017) 75-89
+        * ARZ2019: semi MC time domain model
+          from Alvarez-Muñiz, J., Romero-Wolf, A., & Zas, E. (2011).
+          Practical and accurate calculations of Askaryan radiation.
+          Physical Review D - Particles, Fields, Gravitation and Cosmology, 84(10).
+          https://doi.org/10.1103/PhysRevD.84.103003
+        * ARZ2020: semi MC time domain model
+          updated version of ARZ2019 with parameters taken from
+          J. Alvarez-Muñiz, P.M. Hansen, A. Romero-Wolf and E. Zas,
+          Askaryan radiation from neutrino-induced showers in ice,
+          Phys. Rev. D 101 (2020) 083005.
+          https://doi.org/10.1103/PhysRevD.101.083005
 
     full_output: bool (default False)
         if True, askaryan modules can return additional output
