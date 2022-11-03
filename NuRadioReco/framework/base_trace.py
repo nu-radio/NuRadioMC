@@ -25,11 +25,15 @@ class BaseTrace:
 
     def get_trace(self):
         """
-        returns the time trace. If the frequency spectrum was modified before,
+        returns the time trace.
+
+        If the frequency spectrum was modified before,
         an ifft is performed automatically to have the time domain representation
         up to date.
 
-        Returns: 1 or N dimensional np.array of floats
+        Returns
+        -------
+        trace: np.array of floats
             the time trace
         """
         if(not self.__time_domain_up_to_date):
@@ -94,7 +98,9 @@ class BaseTrace:
         """
         returns the sampling rate of the trace
 
-        Return: float
+        Returns
+        -------
+        sampling_rate: float
             sampling rate, i.e., the inverse of the bin width
         """
         return self._sampling_rate
@@ -137,7 +143,9 @@ class BaseTrace:
         """
         returns the number of samples in the time domain
 
-        Return: int
+        Returns
+        -------
+        n_samples: int
             number of samples in time domain
         """
         if(self.__time_domain_up_to_date):
