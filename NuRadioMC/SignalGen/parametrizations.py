@@ -27,7 +27,7 @@ _Alvarez2009_k_L = None
 
 def get_parametrizations():
     """ returns a list of all implemented parametrizations """
-    return ['ZHS1992', 'Alvarez2000', 'Alvarez2009', 'Alvarez2012']
+    return ['ZHS1992', 'Alvarez2000', 'Alvarez2009']
 
 
 def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=None, same_shower=False,
