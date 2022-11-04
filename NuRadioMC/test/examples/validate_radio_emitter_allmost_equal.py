@@ -22,7 +22,7 @@ accuracy = 0.0005
 def test_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error):
     for key in keys:
         try:
-            testing.assert_equal(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]))
+            testing.assert_equal(np.array(fin1['station_2'][key]), np.array(fin2['station_2'][key]))
 
         except AssertionError as e:
             print("\narray {} not almost equal".format(key))
@@ -45,10 +45,10 @@ def test_equal_keys(keys, fin1=fin1, fin2=fin2, error=error):
 
 
 def test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accuracy=accuracy):
-    gids = np.array(fin1["station_101"]['event_group_ids'])
+    gids = np.array(fin1["station_2"]['event_group_ids'])
     for key in keys:
-        arr1 = np.array(fin1['station_101'][key])
-        arr2 = np.array(fin2['station_101'][key])
+        arr1 = np.array(fin1['station_2'][key])
+        arr2 = np.array(fin2['station_2'][key])
         for i in range(arr1.shape[0]):
             zero_mask = arr2[i] == 0
             max_diff = np.max(np.abs((arr1[i][~zero_mask] - arr2[i][~zero_mask]) / arr2[i][~zero_mask]))
