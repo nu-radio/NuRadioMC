@@ -10,6 +10,7 @@ new features:
 - adding minimize mode to the radiopropa propagation module & more configurable settings in config file
 - add uniform ice model with 1.78 refractive index
 - update ARA detector description and add a file to Print ARA detector json file
+- add new gain measurements for ARA stations
 bugfixes:
 
 
