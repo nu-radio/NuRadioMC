@@ -975,8 +975,7 @@ class simulation():
                     self._calculate_signal_properties()
 
                     global_shower_indices = self._get_shower_index(self._shower_ids_of_sub_event)
-                    local_shower_index = np.atleast_1d(np.squeeze(
-                        [np.argwhere(event_indices == gix) for gix in global_shower_indices]))
+                    local_shower_index = np.atleast_1d(np.squeeze(np.argwhere(np.isin(event_indices, global_shower_indices, assume_unique=True))))
                     self._save_triggers_to_hdf5(sg, local_shower_index, global_shower_indices)
                     if(self._outputfilenameNuRadioReco is not None):
                         # downsample traces to detector sampling rate to save file size
