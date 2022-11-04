@@ -196,18 +196,25 @@ class IceModelSimple(IceModel):
 
         Parameters
         ----------
-        position:  3dim np.array
-                    point
+        position:  1D or 2D numpy array
+                    Either one position or an array
+                    of positions for which the indices
+                    of refraction are returned
 
         Returns
         -------
         n:  float
             index of refraction
         """
-        if (position[2] - self.z_air_boundary) <=0:
-            return self.n_ice - self.delta_n * np.exp((position[2] - self.z_shift) / self.z_0)
+        if isinstance(position, list) or position.ndim == 1:
+            if (position[2] - self.z_air_boundary) <= 0:
+                return self.n_ice - self.delta_n * np.exp((position[2] - self.z_shift) / self.z_0)
+            else:
+                return 1
         else:
-            return 1
+            ior = self.n_ice - self.delta_n * np.exp((position[:, 2] - self.z_shift) / self.z_0)
+            ior[position[:, 2] >= 0] = 1.
+            return ior
 
     def get_average_index_of_refraction(self, position1, position2):
         """
