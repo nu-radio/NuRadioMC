@@ -1421,17 +1421,18 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 class AntennaPatternProvider(object):
     __instance = None
 
-    def __new__(cls):
+    def __new__(cls, *args, **kwargs):
         if AntennaPatternProvider.__instance is None:
             AntennaPatternProvider.__instance = object.__new__(cls)
         return AntennaPatternProvider.__instance
 
-    def __init__(self):
+    def __init__(self, log_level=logging.WARNING):
         """
         Provider class for antenna pattern. The usage of antenna pattern through this class ensures
         that an antenna pattern is loaded only once into memory which takes a significant time and occupies a
         significant amount of memory.
         """
+        logger.setLevel(log_level)
         self._open_antenna_patterns = {}
         self._antenna_model_replacements = {}
 

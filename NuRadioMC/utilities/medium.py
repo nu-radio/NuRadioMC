@@ -264,8 +264,29 @@ class greenland_firn(medium_base.IceModel):
         ice = medium_base.RadioPropaIceWrapper(self, self._scalarfield)
         return ice
 
+class greenland_perturbation(greenland_firn):
+    def __init__(self):
+        greenland_firn.__init__(self)
+        
+    def get_ice_model_radiopropa(self,discontinuity=False):
+        ice = greenland_firn.get_ice_model_radiopropa(self,discontinuity=discontinuity)
+        #fraction from ArXiv 1805.12576 table IV last row
+        perturbation_horz = RP.PerturbationHorizontal(-100*RP.meter,2*RP.meter, fraction=1)
+        ice.add_module('horizontal perturbation',perturbation_horz)
+        return ice
 
 
+class uniform_ice(medium_base.IceModelSimple):
+    """
+    uniform ice with refractive index of typical deep ice (1.78)
+    """
+    def __init__(self, z_bottom=None):
+        super().__init__(
+            z_bottom = z_bottom, 
+            n_ice = 1.78, 
+            z_0 = 1*units.meter, 
+            delta_n = 0,
+            )
 
 
 def get_ice_model(name):
