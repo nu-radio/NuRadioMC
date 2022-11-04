@@ -42,7 +42,7 @@ class BaseTrace:
             self._frequency_spectrum = None
         return np.copy(self._time_trace)
 
-    def get_filtered_trace(self, passband, filter_type='butter', order=10):
+    def get_filtered_trace(self, passband, filter_type='butter', order=10, rp=None):
         """
         Returns the trace after applying a filter to it. This does not change the stored trace.
 
@@ -57,7 +57,7 @@ class BaseTrace:
         """
         spec = copy.copy(self.get_frequency_spectrum())
         freq = self.get_frequencies()
-        filter_response = bandpass_filter.get_filter_response(freq, passband, filter_type, order)
+        filter_response = bandpass_filter.get_filter_response(freq, passband, filter_type, order, rp)
         spec *= filter_response
         return fft.freq2time(spec, self.get_sampling_rate())
 
