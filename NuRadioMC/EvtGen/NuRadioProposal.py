@@ -590,9 +590,7 @@ class ProposalFunctions(object):
             # Checking if there is a muon in the decay products
             if propagate_decay_muons:
 
-                repropagated_muon_indices = [] # indices of muons that will be further propagated
-
-                for i, decay_particle in enumerate(decay_products):
+                for decay_particle in list(decay_products):
 
                     if (abs(decay_particle.type) == 13):
                         mu_energy = decay_particle.energy
@@ -610,16 +608,8 @@ class ProposalFunctions(object):
 
                         shower_inducing_prods.extend(shower_inducing_muon_secondaries)
 
-                        # TODO: Are we interested in muon decay products here? (i.e. the electron/positron?)
-
                         # We have already handled the muon, remove it to avoid double counting.
-                        # However, we can't remove the muon in-place from the decay_products list, 
-                        # therefore just save indices and pop items after loop
-                        repropagated_muon_indices.append(i)
-                
-                # remove muons that have already been propagated further
-                for i in repropagated_muon_indices:
-                    decay_products.pop(i)
+                        decay_products.remove(decay_particle)
 
             grouped_decay_products = self.__group_decay_products(decay_products, min_energy_loss, lepton_position)
 
