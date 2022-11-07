@@ -111,6 +111,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
@@ -362,9 +363,12 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../pages/welcome_page.html">NuRadioMC Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../pages/HDF5_structure.html">HDF5 output structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#station-data">Station data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-structure">HDF5 structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2 current"><a class="reference internal" href="../pages/code_documentation.html">Code Documentation</a><ul class="current">
@@ -539,11 +543,11 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../pages/welcome_page.html">NuRadioMC Documentation</a> &raquo;</li>
-          <li><a href="../pages/code_documentation.html">Code Documentation</a> &raquo;</li>
-          <li><a href="NuRadioMC.utilities.html">NuRadioMC.utilities package</a> &raquo;</li>
-      <li>NuRadioMC.utilities.runner module</li>
+      <li><a href="../../main.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioMC Documentation</a></li>
+          <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
+          <li class="breadcrumb-item"><a href="NuRadioMC.utilities.html">NuRadioMC.utilities package</a></li>
+      <li class="breadcrumb-item active">NuRadioMC.utilities.runner module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/NuRadioMC/apidoc/NuRadioMC.utilities.runner.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -558,7 +562,7 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.runner.NuRadioMCRunner">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.runner.</span></span><span class="sig-name descname"><span class="pre">NuRadioMCRunner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_worker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_runtime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">691200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_triggers_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_crashes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/runner.html#NuRadioMCRunner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.runner.NuRadioMCRunner" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>The purpose of this classe is to run NuRadioMC on a cluster using a full node submission, i.e., a full node with X cores is reserved. 
 As NuRadioMC is a single-core process, this class will start multiple NuRadioMC simulations and will distribute them on the X cores. As
 soon as one job is finished, a new one is started so that all X cores are kept busy. 

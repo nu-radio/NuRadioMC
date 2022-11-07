@@ -111,6 +111,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
@@ -362,9 +363,12 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../welcome_page.html">NuRadioMC Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../HDF5_structure.html">HDF5 output structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../HDF5_structure.html#station-data">Station data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../HDF5_structure.html#hdf5-structure">HDF5 structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../code_documentation.html">Code Documentation</a><ul>
@@ -539,10 +543,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../main.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../welcome_page.html">NuRadioMC Documentation</a> &raquo;</li>
-          <li><a href="../manuals.html">Manuals</a> &raquo;</li>
-      <li>Example: Calculating effective volume</li>
+      <li><a href="../../../main.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../welcome_page.html">NuRadioMC Documentation</a></li>
+          <li class="breadcrumb-item"><a href="../manuals.html">Manuals</a></li>
+      <li class="breadcrumb-item active">Example: Calculating effective volume</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../../_sources/NuRadioMC/pages/Manuals/veff_tutorial.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -554,13 +558,7 @@
              
   <section id="example-calculating-effective-volume">
 <h1>Example: Calculating effective volume<a class="headerlink" href="#example-calculating-effective-volume" title="Permalink to this heading"></a></h1>
-<p>This tutorial gives a full example to simulate the effective volume of a high-energy radio neutrino detector.
-.. comment:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Installation
-------------
-See :doc:`here &lt;/Introduction/pages/installation&gt;` for installation instructions.
-</pre></div>
-</div>
+<p>This tutorial gives a full example to simulate the effective volume of a high-energy radio neutrino detector.</p>
 <section id="run-an-effective-volume-simulation">
 <h2>Run an effective volume simulation<a class="headerlink" href="#run-an-effective-volume-simulation" title="Permalink to this heading"></a></h2>
 <p>An effective volume simulation consists of the following steps</p>
@@ -599,7 +597,8 @@ cp -r <span class="nv">$HOME</span>/software/NuRadioMC/NuRadioMC/examples/01_Vef
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python T02RunSimulation.py 1e19_n1e3.hdf5 surface_station_1GHz.json config.yaml 1e19_n1e3_output.hdf5
 </pre></div>
 </div>
-<p>The simulation only takes a few seconds (with the _C_ ray tracing implementation installed). The final output should be something like (small differences in the number of triggered events are expected because of random differences in the input data set)</p>
+<p>The simulation only takes a few seconds (with the _C_ ray tracing implementation installed).
+The final output should be something like (small differences in the number of triggered events are expected because of random differences in the input data set)</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>WARNING:sim:fraction of triggered <span class="nv">events</span> <span class="o">=</span> <span class="m">18</span>/1000 <span class="o">=</span> <span class="m">0</span>.018
 WARNING:sim:Veff <span class="o">=</span> <span class="m">22</span> km^3 sr
 WARNING:sim:1000 events processed <span class="k">in</span> <span class="m">35</span> <span class="nv">seconds</span> <span class="o">=</span> <span class="m">35</span>.26ms/event
@@ -611,7 +610,8 @@ If you also want to save the pulse forms just add another command line argument.
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python T02RunSimulation.py 1e19_n1e3.hdf5 surface_station_1GHz.json config.yaml 1e19_n1e3_output.hdf5 1e19_n1e3_output.nur
 </pre></div>
 </div>
-<p>The waveforms are saved in a custom binary format that serializes the complete NuRadioReco event structure into a file. This has the advantage that you can read it into NuRadioReco again to e.g. perform a reconstruction on the simulated data.</p>
+<p>The waveforms are saved in a <a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html"><span class="doc">custom binary format (.nur) that serializes the complete NuRadioReco event structure into a file</span></a>.
+This has the advantage that you can read it into NuRadioReco again to e.g. perform a reconstruction on the simulated data.</p>
 <p>You can run the same simulation on the other input file with 10,000 events</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python T02RunSimulation.py 1e18_n1e4.hdf5 surface_station_1GHz.json config.yaml 1e18_n1e4_output.hdf5
 </pre></div>
@@ -621,7 +621,8 @@ If you also want to save the pulse forms just add another command line argument.
 <h4>More details: the detector description<a class="headerlink" href="#more-details-the-detector-description" title="Permalink to this heading"></a></h4>
 <p>The detector is defined in a JSON file and allows you to specify every detail of your detector that can have a relevance for the simulation or later reconstruction.
 For our simple example though, it contains many parameters that we don’t need to worry about, e.g. details about the ADC, so just ignore those fields.
-The file <code class="docutils literal notranslate"><span class="pre">surface_station_1GHz.json</span></code> defines a ‘surface station’ consisting of 4 downward pointing LPDAs at -2m depth and 4 bicone antennas at -5m depth.</p>
+The file <code class="docutils literal notranslate"><span class="pre">surface_station_1GHz.json</span></code> defines a ‘surface station’ consisting of 4 downward pointing LPDAs at -2m depth and 4 bicone antennas at -5m depth.
+You can also use your own detector description, or one of the detector descriptions included with NuRadioMC under <code class="docutils literal notranslate"><span class="pre">NuRadioReco/detector/{detector_name}/</span></code>.</p>
 <p>More info about detector files can be found <a class="reference internal" href="../../../NuRadioReco/pages/detector/detector.html"><span class="doc">here</span></a>.</p>
 </section>
 <section id="more-details-the-config-file">

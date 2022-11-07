@@ -111,6 +111,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
@@ -362,9 +363,12 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../pages/welcome_page.html">NuRadioMC Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../pages/HDF5_structure.html">HDF5 output structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#station-data">Station data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-structure">HDF5 structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2 current"><a class="reference internal" href="../pages/code_documentation.html">Code Documentation</a><ul class="current">
@@ -539,11 +543,11 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../pages/welcome_page.html">NuRadioMC Documentation</a> &raquo;</li>
-          <li><a href="../pages/code_documentation.html">Code Documentation</a> &raquo;</li>
-          <li><a href="NuRadioMC.SignalGen.html">NuRadioMC.SignalGen package</a> &raquo;</li>
-      <li>NuRadioMC.SignalGen.parametrizations module</li>
+      <li><a href="../../main.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioMC Documentation</a></li>
+          <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
+          <li class="breadcrumb-item"><a href="NuRadioMC.SignalGen.html">NuRadioMC.SignalGen package</a></li>
+      <li class="breadcrumb-item active">NuRadioMC.SignalGen.parametrizations module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/NuRadioMC/apidoc/NuRadioMC.SignalGen.parametrizations.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -588,10 +592,12 @@ of sight between interaction and detector</p>
 </dd>
 <dt><strong>R: float</strong></dt><dd><p>distance from vertex to observer</p>
 </dd>
-<dt><strong>model: string</strong></dt><dd><p>specifies the signal model
-* ZHS1992: the original ZHS parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992), doi:10.1103/PhysRevD.45.362, this parametrization does not contain any phase information
-* Alvarez2000: parameterization based on ZHS mainly based on J. Alvarez-Muniz, R. A. Vazquez, and E. Zas, Calculation methods for radio pulses from high energyshowers,Physical Review D62 (2000) https://doi.org/10.1103/PhysRevD.84.103003
-* Alvarez2009: parameterization based on ZHS from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas, Coherent cherenkov radio pulses fromhadronic showers up to eev energies,Astroparticle Physics35(2012), no. 6 287 – 299 and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas, Thinned simulations of extremely energeticshowers in dense media for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111</p>
+<dt><strong>model: string</strong></dt><dd><p>specifies the signal model</p>
+<ul class="simple">
+<li><p>ZHS1992: the original ZHS parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992), doi:10.1103/PhysRevD.45.362, this parametrization does not contain any phase information</p></li>
+<li><p>Alvarez2000: parameterization based on ZHS mainly based on J. Alvarez-Muniz, R. A. Vazquez, and E. Zas, Calculation methods for radio pulses from high energyshowers,Physical Review D62 (2000) <a class="reference external" href="https://doi.org/10.1103/PhysRevD.84.103003">https://doi.org/10.1103/PhysRevD.84.103003</a></p></li>
+<li><p>Alvarez2009: parameterization based on ZHS from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas, Coherent cherenkov radio pulses fromhadronic showers up to eev energies,Astroparticle Physics35(2012), no. 6 287 – 299 and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas, Thinned simulations of extremely energeticshowers in dense media for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111</p></li>
+</ul>
 </dd>
 <dt><strong>seed: None or int</strong></dt><dd><p>the random seed for the Askaryan modules</p>
 </dd>
@@ -600,12 +606,14 @@ if True, the shower from the last request of the same shower type is used. This 
 signal for both ray tracing solutions from the same shower.</p>
 </dd>
 <dt><strong>k_L: None or float</strong></dt><dd><p>the k_L parameter for EM showers of the Alvarez2009 model. If a this parameter is provided, this value is used
-and the parameter will not be drawn from a random distribution. 
+and the parameter will not be drawn from a random distribution.
 This setting overrides the <cite>same_shower</cite> setting</p>
 </dd>
-<dt><strong>full_output: bool (default False)</strong></dt><dd><p>if True, askaryan modules can return additional output. The additional output is always a dictionary
-For Alvarez2009: dict containing the key ‘k_L’
-For ZHS1992 and ALvarez2000 the dict is empty.</p>
+<dt><strong>full_output: bool (default False)</strong></dt><dd><p>if True, askaryan modules can return additional output. The additional output is always a dictionary</p>
+<ul class="simple">
+<li><p>For Alvarez2009: dict containing the key ‘k_L’</p></li>
+<li><p>For ZHS1992 and ALvarez2000 the dict is empty.</p></li>
+</ul>
 </dd>
 <dt><strong>average_shower: bool (default False)</strong></dt><dd><p>if True, for the Alvarez2009 model electromagnetic showers, no random shower is generated, but the average shower is choosen.</p>
 </dd>

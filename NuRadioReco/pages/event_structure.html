@@ -111,6 +111,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#trigger">Trigger</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#simstation">SimStation</a></li>
@@ -362,9 +363,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../NuRadioMC/pages/welcome_page.html">NuRadioMC Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html">HDF5 output structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-structure">HDF5 structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../NuRadioMC/pages/code_documentation.html">Code Documentation</a><ul>
@@ -539,9 +543,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="welcome_page.html">NuRadioReco Documentation</a> &raquo;</li>
-      <li>Data Structure</li>
+      <li><a href="../../main.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="welcome_page.html">NuRadioReco Documentation</a></li>
+      <li class="breadcrumb-item active">Data Structure</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/NuRadioReco/pages/event_structure.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -553,12 +557,17 @@
              
   <section id="data-structure">
 <h1>Data Structure<a class="headerlink" href="#data-structure" title="Permalink to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This page explains the structure of NuRadioReco <code class="docutils literal notranslate"><span class="pre">.nur</span></code> files, which contain event-level data
+from simulation or reconstruction. For more information on the simpler <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code> files produced
+in a <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> simulation, see the page on <a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html"><span class="doc">HDF5 structure</span></a>.</p>
+</div>
 <section id="nur-files-and-how-to-use-them">
 <h2>.nur Files and How to Use Them<a class="headerlink" href="#nur-files-and-how-to-use-them" title="Permalink to this heading"></a></h2>
 <section id="philosophy-and-basic-structure">
 <h3>Philosophy and Basic Structure<a class="headerlink" href="#philosophy-and-basic-structure" title="Permalink to this heading"></a></h3>
-<blockquote>
-<div><p>NuRadioReco comes with its own input and output format, called <em>.nur</em>. With
+<p>NuRadioReco comes with its own input and output format, called <em>.nur</em>. With
 the obvious exception of reading in data from other file formats, like
 <em>CoREAS</em> or the <em>SnowShovel</em> format of the <em>ARIANNA</em> experiment, every
 processing step in an event reconstruction is done in this format. The big
@@ -566,7 +575,7 @@ advantage this provides, is that at any point the process can be interrupted
 and the current state of the event data can be saved. This makes it easy to
 split a reconstruction into several steps and to check the state of the data
 structure after every step.</p>
-<a class="reference internal image-reference" href="../../_images/event_structure.png"><img alt="../../_images/event_structure.png" src="../../_images/event_structure.png" style="width: 90%;" /></a>
+<a class="reference internal image-reference" href="../../_images/event_structure.png"><img alt="../../_images/event_structure.png" src="../../_images/event_structure.png" style="width: 100%;" /></a>
 <p>A NuRadioReco event is organized hierarchical, with an <code class="docutils literal notranslate"><span class="pre">Event</span></code> object at the
 top. Elements further down the hierarchy can be accessed via <em>get</em> functions or
 iterators from their parent object. For example, accessing the traces of a
@@ -578,13 +587,11 @@ station’s channels would work like this:</p>
   <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
 </pre></div>
 </div>
-</div></blockquote>
 </section>
 <section id="reading-and-writing-nur-files">
 <h3>Reading and Writing .nur Files<a class="headerlink" href="#reading-and-writing-nur-files" title="Permalink to this heading"></a></h3>
-<blockquote>
-<div><p>Reading and writing <em>.nur</em> files is done by dedicated IO modules.
-Writing events is done by the eventWriter module. To save disc space it offers
+<p>Reading and writing <em>.nur</em> files is done by dedicated IO modules.
+Writing events is done by the eventWriter module. To save disk space it offers
 the option to not store channel and electric field traces, in case only
 the higher-level parameters are needed. It is also possible to <a class="reference internal" href="detector/detector.html#writing-the-detector"><span class="std std-ref">write the
 detector description onto a *.nur* file</span></a>.</p>
@@ -595,10 +602,10 @@ detector description onto a *.nur* file</span></a>.</p>
 <span class="n">event_writer</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;full&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>To read <em>.nur</em> files, two different modules can be used: <code class="docutils literal notranslate"><span class="pre">NuRadioRecoio</span></code> is a
+<p>To read <em>.nur</em> files, two different modules can be used: <a class="reference internal" href="../apidoc/NuRadioReco.modules.io.NuRadioRecoio.html#module-NuRadioReco.modules.io.NuRadioRecoio" title="NuRadioReco.modules.io.NuRadioRecoio"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioRecoio</span></code></a> is a
 general-purpose reader that provides different ways to access events e.g. by
-ID or by event number. The <code class="docutils literal notranslate"><span class="pre">eventReader</span></code> is a more streamlined wrapper around
-<code class="docutils literal notranslate"><span class="pre">NuRadioRecoio</span></code> that provides an iterator over all events. Both modules provide
+ID or by event number. The <a class="reference internal" href="../apidoc/NuRadioReco.modules.io.eventReader.html#module-NuRadioReco.modules.io.eventReader" title="NuRadioReco.modules.io.eventReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">eventReader</span></code></a> is a more streamlined wrapper around
+<a class="reference internal" href="../apidoc/NuRadioReco.modules.io.NuRadioRecoio.html#module-NuRadioReco.modules.io.NuRadioRecoio" title="NuRadioReco.modules.io.NuRadioRecoio"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioRecoio</span></code></a> that provides an iterator over all events. Both modules provide
 as way to <a class="reference internal" href="detector/detector.html#reading-the-detector"><span class="std std-ref">read the detector description from a *.nur* file</span></a>.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">NuRadioReco.modules.io.NuRadioRecoio</span>
 <span class="n">nuradioreco_io</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">NuRadioRecoio</span><span class="o">.</span><span class="n">NuRadioRecoio</span><span class="p">([</span><span class="s1">&#39;path/to/file&#39;</span><span class="p">,</span> <span class="s1">&#39;/path/to/other/file&#39;</span><span class="p">])</span>
@@ -644,22 +651,20 @@ a <em>.nur</em> file the same is done in reverse, with each object calling the <
 function on its children. Thanks to this implementation, it is easy to extend
 the framework, since all that has to be done is to define <code class="docutils literal notranslate"><span class="pre">serialize</span></code> and
 <code class="docutils literal notranslate"><span class="pre">deserialize</span></code> functions and adjust the ones of the parent object.</p>
-</div></blockquote>
 </section>
 </section>
 <section id="parameter-storage">
 <h2>Parameter Storage<a class="headerlink" href="#parameter-storage" title="Permalink to this heading"></a></h2>
-<blockquote>
-<div><p>NuRadioReco offers a flexible way to store properties in the data structure via
-the parameter storage. Certain classes (<code class="docutils literal notranslate"><span class="pre">Station</span></code>, <code class="docutils literal notranslate"><span class="pre">SimStation</span></code>, <code class="docutils literal notranslate"><span class="pre">Channel</span></code>,
+<p>NuRadioReco offers a flexible way to store properties in the data structure via
+parameter storage. Certain classes (<code class="docutils literal notranslate"><span class="pre">Particle</span></code>, <code class="docutils literal notranslate"><span class="pre">Station</span></code>, <code class="docutils literal notranslate"><span class="pre">SimStation</span></code>, <code class="docutils literal notranslate"><span class="pre">Channel</span></code>,
 <code class="docutils literal notranslate"><span class="pre">ElectricField</span></code>, <code class="docutils literal notranslate"><span class="pre">RadioShower</span></code> and <code class="docutils literal notranslate"><span class="pre">HybridShower</span></code>) provide <code class="docutils literal notranslate"><span class="pre">get_parameter</span></code>
 and <code class="docutils literal notranslate"><span class="pre">set_parameter</span></code> functions that allow parameters to be stored in those
-objects along with their uncertainties and correlation to any other paramters.
+objects along with their uncertainties and correlation to any other parameters.
 The parameters are defined in an enumerated type <em>enum</em>, so to add a new parameter,
 it just needs to be added to the
 <a class="reference internal" href="../apidoc/NuRadioReco.framework.parameters.html#module-NuRadioReco.framework.parameters" title="NuRadioReco.framework.parameters"><code class="xref py py-mod docutils literal notranslate"><span class="pre">list</span> <span class="pre">of</span> <span class="pre">parameters</span></code></a>.</p>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
+<div class="admonition-for-developers admonition">
+<p class="admonition-title">For Developers</p>
 <p>New parameters should always be added to the bottom of the list. Do not re-use old Enums!</p>
 </div>
 <p>Additionally, parameters can be written and accessed via indexing, like one
@@ -679,62 +684,55 @@ would do to a dictionary:</p>
 <span class="n">zenith_uncertainty</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameter_error</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">cr_zenith</span><span class="p">)</span>
 </pre></div>
 </div>
-</div></blockquote>
 </section>
 <section id="list-of-data-classes">
 <h2>List of Data Classes<a class="headerlink" href="#list-of-data-classes" title="Permalink to this heading"></a></h2>
 <section id="event">
 <h3>Event<a class="headerlink" href="#event" title="Permalink to this heading"></a></h3>
-<blockquote>
-<div><p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-class docutils literal notranslate"><span class="pre">Event</span></code></a>
+<p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-class docutils literal notranslate"><span class="pre">Event</span></code></a>
 is the upper-most element of the event structure and holds all simulated and reconstructed
 showers and stations as well as the event ID and run number.</p>
-</div></blockquote>
 </section>
 <section id="radio-shower">
 <h3>Radio Shower<a class="headerlink" href="#radio-shower" title="Permalink to this heading"></a></h3>
-<blockquote>
-<div><p>A <a class="reference internal" href="../apidoc/NuRadioReco.framework.radio_shower.html#NuRadioReco.framework.radio_shower.RadioShower" title="NuRadioReco.framework.radio_shower.RadioShower"><code class="xref py py-class docutils literal notranslate"><span class="pre">Radio</span> <span class="pre">Shower</span></code></a> is used to
+<p>A <a class="reference internal" href="../apidoc/NuRadioReco.framework.radio_shower.html#NuRadioReco.framework.radio_shower.RadioShower" title="NuRadioReco.framework.radio_shower.RadioShower"><code class="xref py py-class docutils literal notranslate"><span class="pre">Radio</span> <span class="pre">Shower</span></code></a> is used to
 hold reconstructed shower parameters via the parameter storage. It should only be
 used for properties reconstructed from the radio signal, for properties from a simulated
 shower or reconstructed from another detector, the SimShower or HybridShower should be
 used, respectrively.</p>
 <p>It can be accessed by the <code class="docutils literal notranslate"><span class="pre">get_showers</span></code> and <code class="docutils literal notranslate"><span class="pre">get_first_shower</span></code> methods of the <a class="reference internal" href="../apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-class docutils literal notranslate"><span class="pre">Event</span></code></a> class.</p>
-</div></blockquote>
 </section>
 <section id="simshower">
 <h3>SimShower<a class="headerlink" href="#simshower" title="Permalink to this heading"></a></h3>
-<blockquote>
-<div><p>A Sim Shower is used to hold parameters of simulated showers via the parameter storage.
+<p>A Sim Shower is used to hold parameters of simulated showers via the parameter storage.
 They are the same class as <code class="docutils literal notranslate"><span class="pre">RadioShower</span></code>, but are stored separately to distinguish
 between simulated and reconstructed properties.</p>
 <p>It can be accessed by the <code class="docutils literal notranslate"><span class="pre">get_sim_showers</span></code> method of the <a class="reference internal" href="../apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event" title="NuRadioReco.framework.event.Event"><code class="xref py py-class docutils literal notranslate"><span class="pre">Event</span></code></a> class.</p>
-</div></blockquote>
+</section>
+<section id="particle">
+<h3>Particle<a class="headerlink" href="#particle" title="Permalink to this heading"></a></h3>
+<p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.particle.html#module-NuRadioReco.framework.particle" title="NuRadioReco.framework.particle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Particle</span></code></a> class stores information related to the particle that initiated the radio emission, such as flavour, energy and direction. A single <a class="reference internal" href="#event"><span class="std std-ref">Event</span></a> may contain multiple particles, e.g. in the case of tau regeneration.</p>
 </section>
 <section id="station">
 <h3>Station<a class="headerlink" href="#station" title="Permalink to this heading"></a></h3>
-<blockquote>
-<div><p>A <a class="reference internal" href="../apidoc/NuRadioReco.framework.station.html#module-NuRadioReco.framework.station" title="NuRadioReco.framework.station"><code class="xref py py-class docutils literal notranslate"><span class="pre">Station</span></code></a> is used to hold event properties
+<p>A <a class="reference internal" href="../apidoc/NuRadioReco.framework.station.html#module-NuRadioReco.framework.station" title="NuRadioReco.framework.station"><code class="xref py py-class docutils literal notranslate"><span class="pre">Station</span></code></a> is used to hold event properties
 reconstructed at the station level, i.e. reconstructed from the data of a single station.</p>
 <p>It can be accessed by the <code class="docutils literal notranslate"><span class="pre">get_station</span></code> and <code class="docutils literal notranslate"><span class="pre">get_stations</span></code> methods of the <code class="docutils literal notranslate"><span class="pre">Event</span></code> class</p>
-</div></blockquote>
 </section>
 <section id="trigger">
 <h3>Trigger<a class="headerlink" href="#trigger" title="Permalink to this heading"></a></h3>
+<p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.trigger.html#module-NuRadioReco.framework.trigger" title="NuRadioReco.framework.trigger"><code class="xref py py-class docutils literal notranslate"><span class="pre">Trigger</span></code></a> contains information about the station trigger - trigger type, threshold, trigger time and whether the trigger condition was satisfied.</p>
 </section>
 <section id="simstation">
 <h3>SimStation<a class="headerlink" href="#simstation" title="Permalink to this heading"></a></h3>
-<blockquote>
-<div><p>A <a class="reference internal" href="../apidoc/NuRadioReco.framework.sim_station.html#module-NuRadioReco.framework.sim_station" title="NuRadioReco.framework.sim_station"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimStation</span></code></a> can hold the same
+<p>A <a class="reference internal" href="../apidoc/NuRadioReco.framework.sim_station.html#module-NuRadioReco.framework.sim_station" title="NuRadioReco.framework.sim_station"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimStation</span></code></a> can hold the same
 properties as the <code class="docutils literal notranslate"><span class="pre">Station</span></code> (and inherits from it), but is used for the MC truth  of the simulation. This
 also implies that events from measured data typically do not have a <code class="docutils literal notranslate"><span class="pre">SimStation</span></code>.</p>
 <p>It can be accessed by the <code class="docutils literal notranslate"><span class="pre">get_sim_station</span></code> method of the <code class="docutils literal notranslate"><span class="pre">Station</span></code> class.</p>
-</div></blockquote>
 </section>
 <section id="basetrace">
 <h3>BaseTrace<a class="headerlink" href="#basetrace" title="Permalink to this heading"></a></h3>
-<blockquote>
-<div><p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#module-NuRadioReco.framework.base_trace" title="NuRadioReco.framework.base_trace"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTrace</span></code></a> class
+<p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.base_trace.html#module-NuRadioReco.framework.base_trace" title="NuRadioReco.framework.base_trace"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTrace</span></code></a> class
 is used to store waveforms, both for voltages in the channels and electric fields.
 While internally traces are stored in the time
 domain, where they can be accessed via the <code class="docutils literal notranslate"><span class="pre">get_trace</span></code> and <code class="docutils literal notranslate"><span class="pre">set_trace</span></code> method, it is also
@@ -753,12 +751,10 @@ the one with the lower sampling rate will be upsampled to match the other one.
 Since this property is inherited, + is defined for both channels and electric fields.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">Trace</span></code> class is not used by itself, but serves as parent class for both
 the <code class="docutils literal notranslate"><span class="pre">Channel</span></code> and <code class="docutils literal notranslate"><span class="pre">ElectricField</span></code> classes.</p>
-</div></blockquote>
 </section>
 <section id="electric-field">
 <h3>Electric Field<a class="headerlink" href="#electric-field" title="Permalink to this heading"></a></h3>
-<blockquote>
-<div><p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.electric_field.html#module-NuRadioReco.framework.electric_field" title="NuRadioReco.framework.electric_field"><code class="xref py py-class docutils literal notranslate"><span class="pre">ElectricField</span></code></a>
+<p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.electric_field.html#module-NuRadioReco.framework.electric_field" title="NuRadioReco.framework.electric_field"><code class="xref py py-class docutils literal notranslate"><span class="pre">ElectricField</span></code></a>
 is used to store information about electric fields, which can be accessed via the parameter storage
 and methods inherited from the <code class="docutils literal notranslate"><span class="pre">BaseTrace</span></code> class.</p>
 <p>Since radio stations for neutrino detection are often so spread out that the electric field
@@ -771,21 +767,17 @@ avoid ambiguity, the <code class="docutils literal notranslate"><span class="pre
 the station.</p>
 <p>A <code class="docutils literal notranslate"><span class="pre">Station</span></code> ´s or <code class="docutils literal notranslate"><span class="pre">SimStation</span></code> ´s <code class="docutils literal notranslate"><span class="pre">ElectricField</span></code> objects can be accessed via the <code class="docutils literal notranslate"><span class="pre">get_electric_fields</span></code>
 method or the <code class="docutils literal notranslate"><span class="pre">get_electric_fields_for_channels</span></code> method, which allows to filter by channel IDs and ray path types.</p>
-</div></blockquote>
 </section>
 <section id="channel">
 <h3>Channel<a class="headerlink" href="#channel" title="Permalink to this heading"></a></h3>
-<blockquote>
-<div><p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.channel.html#module-NuRadioReco.framework.channel" title="NuRadioReco.framework.channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a>
+<p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.channel.html#module-NuRadioReco.framework.channel" title="NuRadioReco.framework.channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a>
 is used to store information about the voltage traces recorded in a channel,
 which can be accessed via the parameter storage and methods inherited from
 the <code class="docutils literal notranslate"><span class="pre">BaseTrace</span></code> class.</p>
-</div></blockquote>
 </section>
 <section id="hybrid-information">
 <h3>Hybrid Information<a class="headerlink" href="#hybrid-information" title="Permalink to this heading"></a></h3>
-<blockquote>
-<div><p>As many radio detectors are built as part of a hybrid detector whose data may be used in the
+<p>As many radio detectors are built as part of a hybrid detector whose data may be used in the
 radio event reconstruction, a way to make this data accessible in NuRadioReco is needed. The
 <a class="reference internal" href="../apidoc/NuRadioReco.framework.hybrid_information.html#module-NuRadioReco.framework.hybrid_information" title="NuRadioReco.framework.hybrid_information"><code class="xref py py-class docutils literal notranslate"><span class="pre">HybridInformation</span></code></a>
 class provides this functionality and sections the information from the
@@ -795,22 +787,18 @@ which this data is stored. For each additional detector (or set of detector data
 object can be added via the <code class="docutils literal notranslate"><span class="pre">add_hybrid_shower</span></code> method or accessed via the <code class="docutils literal notranslate"><span class="pre">get_hybrid_shower</span></code>
 or <code class="docutils literal notranslate"><span class="pre">get_hybrid_showers</span></code> methods.</p>
 <p>It can be accessed via the <code class="docutils literal notranslate"><span class="pre">get_hybrid_information''</span> <span class="pre">method</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">``Event</span></code> class.</p>
-</div></blockquote>
 </section>
 <section id="hybrid-shower">
 <h3>Hybrid Shower<a class="headerlink" href="#hybrid-shower" title="Permalink to this heading"></a></h3>
-<blockquote>
-<div><p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.hybrid_shower.html#module-NuRadioReco.framework.hybrid_shower" title="NuRadioReco.framework.hybrid_shower"><code class="xref py py-class docutils literal notranslate"><span class="pre">HybridShower</span></code></a> is
+<p>The <a class="reference internal" href="../apidoc/NuRadioReco.framework.hybrid_shower.html#module-NuRadioReco.framework.hybrid_shower" title="NuRadioReco.framework.hybrid_shower"><code class="xref py py-class docutils literal notranslate"><span class="pre">HybridShower</span></code></a> is
 used to store information about a shower that was reconstructed with a complementary detector,
 mainly via the parameter storage.</p>
 <p>It can be accessed via the <code class="docutils literal notranslate"><span class="pre">get_hybrid_shower</span></code> and <code class="docutils literal notranslate"><span class="pre">get_hybrid_showers</span></code> methods of the
 <code class="docutils literal notranslate"><span class="pre">HybridInformation</span></code> class.</p>
-</div></blockquote>
 </section>
 <section id="hybrid-detector">
 <h3>Hybrid Detector<a class="headerlink" href="#hybrid-detector" title="Permalink to this heading"></a></h3>
-<blockquote>
-<div><p>A <code class="docutils literal notranslate"><span class="pre">HybridDetector</span></code> can be used to store more detailed and experiment-specific information
+<p>A <code class="docutils literal notranslate"><span class="pre">HybridDetector</span></code> can be used to store more detailed and experiment-specific information
 about a complementary detector. The diversity of hybrid radio detectors makes it
 impractical to provide this functionality inside NuRadioReco itself, but a custom
 <code class="docutils literal notranslate"><span class="pre">HybridDetector</span></code> class can be impemented inside an independent repository. This class
@@ -820,7 +808,6 @@ class and accessed via its <code class="docutils literal notranslate"><span clas
 well as a <code class="docutils literal notranslate"><span class="pre">serialize</span></code> and a <code class="docutils literal notranslate"><span class="pre">deserialize</span></code> function equivalent to the other framework elements.</p>
 <p>An example for the implementation of a custom <code class="docutils literal notranslate"><span class="pre">HybridDetector</span></code> can be found in the
 NuRadioReco/example folder.</p>
-</div></blockquote>
 </section>
 </section>
 </section>

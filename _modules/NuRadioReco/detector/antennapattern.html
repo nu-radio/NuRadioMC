@@ -108,6 +108,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
@@ -359,9 +360,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../NuRadioMC/pages/welcome_page.html">NuRadioMC Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html">HDF5 output structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-structure">HDF5 structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioMC/pages/code_documentation.html">Code Documentation</a><ul>
@@ -536,9 +540,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../main.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-      <li>NuRadioReco.detector.antennapattern</li>
+      <li><a href="../../../main.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">NuRadioReco.detector.antennapattern</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -579,10 +583,13 @@
 <span class="sd">        the second data point</span>
 <span class="sd">    interpolation_method: string</span>
 <span class="sd">        specifies if interpolation is in</span>
+
 <span class="sd">        * complex (default) i.e. real and imaginary part</span>
 <span class="sd">        * magnitude and phase</span>
 
-<span class="sd">    Returns: compex float</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    y: complex float</span>
 <span class="sd">        the interpolated value</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">x0</span> <span class="o">==</span> <span class="n">x1</span><span class="p">:</span>
@@ -642,7 +649,10 @@
 <span class="sd">    df: float</span>
 <span class="sd">        the size of a frequency bin</span>
 
-<span class="sd">    Returns: float (the group delay)</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dt: float</span>
+<span class="sd">        the group delay</span>
 
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -847,16 +857,25 @@
 <span class="sd">        determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).</span>
 
 <span class="sd">    Returns</span>
-<span class="sd">    ---------------</span>
-<span class="sd">        * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</span>
-<span class="sd">        * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</span>
-<span class="sd">        * rotation theta: rotation of the antenna, is perpendicular to &#39;orientation&#39;, for LPDAs: vector perpendicular to the plane containing the the tines</span>
-<span class="sd">        * rotation phi: rotation of the antenna, is perpendicular to &#39;orientation&#39;, for LPDAs: vector perpendicular to the plane containing the the tines</span>
-<span class="sd">        * ff2: array of frequencies</span>
-<span class="sd">        * theta: zenith angle of inicdent electric field</span>
-<span class="sd">        * phi: azimuth angle of incident electric field</span>
-<span class="sd">        * H_phi: the complex vector effective length of the ePhi polarization component</span>
-<span class="sd">        * H_theta: the complex vector effective length of the eTheta polarization component</span>
+<span class="sd">    -------</span>
+<span class="sd">    orientation theta: float</span>
+<span class="sd">        orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</span>
+<span class="sd">    orientation phi: float</span>
+<span class="sd">        orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</span>
+<span class="sd">    rotation theta: float</span>
+<span class="sd">        rotation of the antenna, is perpendicular to &#39;orientation&#39;, for LPDAs: vector perpendicular to the plane containing the the tines</span>
+<span class="sd">    rotation phi: float</span>
+<span class="sd">        rotation of the antenna, is perpendicular to &#39;orientation&#39;, for LPDAs: vector perpendicular to the plane containing the the tines</span>
+<span class="sd">    ff2: array of floats</span>
+<span class="sd">        array of frequencies</span>
+<span class="sd">    theta: float</span>
+<span class="sd">        zenith angle of inicdent electric field</span>
+<span class="sd">    phi: float</span>
+<span class="sd">        azimuth angle of incident electric field</span>
+<span class="sd">    H_phi: float</span>
+<span class="sd">        the complex vector effective length of the ePhi polarization component</span>
+<span class="sd">    H_theta: float</span>
+<span class="sd">        the complex vector effective length of the eTheta polarization component</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">s_parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">s_parameters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
@@ -932,16 +951,25 @@
 <span class="sd">        determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).</span>
 
 <span class="sd">    Returns</span>
-<span class="sd">    ------------</span>
-<span class="sd">        * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</span>
-<span class="sd">        * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</span>
-<span class="sd">        * rotation theta: rotation of the antenna, is perpendicular to &#39;orientation&#39;, for LPDAs: vector perpendicular to the plane containing the the tines</span>
-<span class="sd">        * rotation phi: rotation of the antenna, is perpendicular to &#39;orientation&#39;, for LPDAs: vector perpendicular to the plane containing the the tines</span>
-<span class="sd">        * ff2: array of frequencies</span>
-<span class="sd">        * theta: zenith angle of inicdent electric field</span>
-<span class="sd">        * phi: azimuth angle of incident electric field</span>
-<span class="sd">        * H_phi: the complex vector effective length of the ePhi polarization component</span>
-<span class="sd">        * H_theta: the complex vector effective length of the eTheta polarization component</span>
+<span class="sd">    -------</span>
+<span class="sd">    orientation theta: float</span>
+<span class="sd">        orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</span>
+<span class="sd">    orientation phi: float</span>
+<span class="sd">        orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</span>
+<span class="sd">    rotation theta: float</span>
+<span class="sd">        rotation of the antenna, is perpendicular to &#39;orientation&#39;, for LPDAs: vector perpendicular to the plane containing the the tines</span>
+<span class="sd">    rotation phi: float</span>
+<span class="sd">        rotation of the antenna, is perpendicular to &#39;orientation&#39;, for LPDAs: vector perpendicular to the plane containing the the tines</span>
+<span class="sd">    ff2: array of floats</span>
+<span class="sd">        array of frequencies</span>
+<span class="sd">    theta: float</span>
+<span class="sd">        zenith angle of inicdent electric field</span>
+<span class="sd">    phi: float</span>
+<span class="sd">        azimuth angle of incident electric field</span>
+<span class="sd">    H_phi: float</span>
+<span class="sd">        the complex vector effective length of the ePhi polarization component</span>
+<span class="sd">    H_theta: float</span>
+<span class="sd">        the complex vector effective length of the eTheta polarization component</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">s_parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">s_parameters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
@@ -1066,9 +1094,9 @@
 <div class="viewcode-block" id="get_pickle_antenna_response"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.get_pickle_antenna_response">[docs]</a><span class="k">def</span> <span class="nf">get_pickle_antenna_response</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    opens and return the pickle file containing the preprocessed WIPL-D antenna simulation</span>
+
 <span class="sd">    If the pickle file is not present on the local file system, or if the file is outdated (verified via a sha1 hash sum),</span>
 <span class="sd">    the file will be downloaded from a central data server</span>
-
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1249,16 +1277,17 @@
 <span class="sd">        path to the file</span>
 
 <span class="sd">    Returns</span>
-<span class="sd">        * ff: array of floats</span>
-<span class="sd">            frequencies</span>
-<span class="sd">        * thetas: array of floats</span>
-<span class="sd">            zenith angle of inicdent electric field</span>
-<span class="sd">        * phis: array of floats</span>
-<span class="sd">            azimuth angle of inicdent electric field</span>
-<span class="sd">        * gains: array of floats</span>
-<span class="sd">            corresponding linear gain values</span>
-<span class="sd">        * phases: array of floats</span>
-<span class="sd">            corresponding phases</span>
+<span class="sd">    -------</span>
+<span class="sd">    ff: array of floats</span>
+<span class="sd">        frequencies</span>
+<span class="sd">    thetas: array of floats</span>
+<span class="sd">        zenith angle of inicdent electric field</span>
+<span class="sd">    phis: array of floats</span>
+<span class="sd">        azimuth angle of inicdent electric field</span>
+<span class="sd">    gains: array of floats</span>
+<span class="sd">        corresponding linear gain values</span>
+<span class="sd">    phases: array of floats</span>
+<span class="sd">        corresponding phases</span>
 <span class="sd">     &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">ara</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
         <span class="n">ff</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1302,7 +1331,9 @@
 
 <div class="viewcode-block" id="preprocess_ARA"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.preprocess_ARA">[docs]</a><span class="k">def</span> <span class="nf">preprocess_ARA</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    preprocess an antenna pattern in the ARASim ASCII file format. The vector effective length is calculated and</span>
+<span class="sd">    preprocess an antenna pattern in the ARASim ASCII file format.</span>
+
+<span class="sd">    The vector effective length is calculated and</span>
 <span class="sd">    the output is saved to the NuRadioReco pickle format.</span>
 
 <span class="sd">    Parameters</span>
@@ -1340,20 +1371,21 @@
 <span class="sd">        path to the file</span>
 
 <span class="sd">    Returns</span>
-<span class="sd">        * ff: array of floats</span>
-<span class="sd">            frequencies</span>
-<span class="sd">        * thetas: array of floats</span>
-<span class="sd">            zenith angle of inicdent electric field</span>
-<span class="sd">        * phis: array of floats</span>
-<span class="sd">            azimuth angle of inicdent electric field</span>
-<span class="sd">        * magnitudes_theta: array of floats</span>
-<span class="sd">            corresponding logarithmic magnitude values theta component</span>
-<span class="sd">        * magnitudes_phi: array of floats</span>
-<span class="sd">            corresponding logarithmic magnitude values phi component</span>
-<span class="sd">        * phases_phi: array of floats</span>
-<span class="sd">            corresponding phases phi component</span>
-<span class="sd">        * phases_theta: array of floats</span>
-<span class="sd">            corresponding phases theta component</span>
+<span class="sd">    -------</span>
+<span class="sd">    ff: array of floats</span>
+<span class="sd">        frequencies</span>
+<span class="sd">    thetas: array of floats</span>
+<span class="sd">        zenith angle of inicdent electric field</span>
+<span class="sd">    phis: array of floats</span>
+<span class="sd">        azimuth angle of inicdent electric field</span>
+<span class="sd">    magnitudes_theta: array of floats</span>
+<span class="sd">        corresponding logarithmic magnitude values theta component</span>
+<span class="sd">    magnitudes_phi: array of floats</span>
+<span class="sd">        corresponding logarithmic magnitude values phi component</span>
+<span class="sd">    phases_phi: array of floats</span>
+<span class="sd">        corresponding phases phi component</span>
+<span class="sd">    phases_theta: array of floats</span>
+<span class="sd">        corresponding phases theta component</span>
 <span class="sd">     &quot;&quot;&quot;</span>
     <span class="n">ff</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">mag_phi</span><span class="p">,</span> <span class="n">mag_theta</span><span class="p">,</span> <span class="n">phase_phi</span><span class="p">,</span> <span class="n">phase_theta</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
     <span class="kn">import</span> <span class="nn">re</span>
@@ -1626,6 +1658,7 @@
 <span class="sd">            path to folder containing the antenna models</span>
 <span class="sd">        interpolation_mode: string</span>
 <span class="sd">            specify in which domain the interpolation should be performed, can be either</span>
+
 <span class="sd">            * &#39;complex&#39; (default) interpolate real and imaginary part of vector effective length</span>
 <span class="sd">            * &#39;magphase&#39; interpolate magnitude and phase of vector effective length</span>
 <span class="sd">        &quot;&quot;&quot;</span>

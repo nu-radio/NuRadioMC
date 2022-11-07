@@ -111,6 +111,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
@@ -362,9 +363,12 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../pages/welcome_page.html">NuRadioMC Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../pages/HDF5_structure.html">HDF5 output structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#station-data">Station data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-structure">HDF5 structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../pages/HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2 current"><a class="reference internal" href="../pages/code_documentation.html">Code Documentation</a><ul class="current">
@@ -539,12 +543,12 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../pages/welcome_page.html">NuRadioMC Documentation</a> &raquo;</li>
-          <li><a href="../pages/code_documentation.html">Code Documentation</a> &raquo;</li>
-          <li><a href="NuRadioMC.SignalGen.html">NuRadioMC.SignalGen package</a> &raquo;</li>
-          <li><a href="NuRadioMC.SignalGen.ARZ.html">NuRadioMC.SignalGen.ARZ package</a> &raquo;</li>
-      <li>NuRadioMC.SignalGen.ARZ.ARZ module</li>
+      <li><a href="../../main.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioMC Documentation</a></li>
+          <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
+          <li class="breadcrumb-item"><a href="NuRadioMC.SignalGen.html">NuRadioMC.SignalGen package</a></li>
+          <li class="breadcrumb-item"><a href="NuRadioMC.SignalGen.ARZ.html">NuRadioMC.SignalGen.ARZ package</a></li>
+      <li class="breadcrumb-item active">NuRadioMC.SignalGen.ARZ.ARZ module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/NuRadioMC/apidoc/NuRadioMC.SignalGen.ARZ.ARZ.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -559,7 +563,7 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.SignalGen.ARZ.ARZ.ARZ">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.ARZ.ARZ.</span></span><span class="sig-name descname"><span class="pre">ARZ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/ARZ/ARZ.html#ARZ"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -640,7 +644,7 @@ value is the index (int)</p>
 for small vertex distances but also slows down the calculation proportional to the interpolation factor.</p>
 </dd>
 <dt><strong>shift_for_xmax: bool (default False)</strong></dt><dd><p>if True the observer position is placed relative to the position of the shower maximum, if False it is placed
-with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined 
+with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined
 as the position of the maximum of the charge excess profile</p>
 </dd>
 <dt><strong>same_shower: bool (default False)</strong></dt><dd><p>if False, for each request a new random shower realization is choosen.
@@ -658,7 +662,11 @@ signal for both ray tracing solutions from the same shower.</p>
 <dt><strong>maximum_angle: float</strong></dt><dd><p>Maximum angular difference allowed between the observer angle and the Cherenkov angle.
 If the difference is greater, the function returns an empty trace.</p>
 </dd>
-<dt><strong>Returns: array of floats</strong></dt><dd><p>array of electric-field time trace in ‘on-sky’ coordinate system eR, eTheta, ePhi</p>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>efield_trace: array of floats</dt><dd><p>array of electric-field time trace in ‘on-sky’ coordinate system eR, eTheta, ePhi</p>
 </dd>
 </dl>
 </dd>
@@ -707,7 +715,7 @@ if None, the interpolation factor will be calculated from the distance</p>
 <dt><strong>interp_factor2: int (default 100)</strong></dt><dd><p>interpolation just around the peak of the form factor</p>
 </dd>
 <dt><strong>shift_for_xmax: bool (default False)</strong></dt><dd><p>if True the observer position is placed relative to the position of the shower maximum, if False it is placed
-with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined 
+with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined
 as the position of the maximum of the charge excess profile</p>
 </dd>
 </dl>
@@ -738,7 +746,7 @@ as the position of the maximum of the charge excess profile</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.SignalGen.ARZ.ARZ.ARZ_tabulated">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.ARZ.ARZ.</span></span><span class="sig-name descname"><span class="pre">ARZ_tabulated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1234</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">library</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/ARZ/ARZ.html#ARZ_tabulated"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ_tabulated" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -791,7 +799,11 @@ signal for both ray tracing solutions from the same shower.</p>
 <li><p>‘Xmax’: viewing angle is relativ to Xmax, internally it will be converted to be relative to X0</p></li>
 </ul>
 </dd>
-<dt><strong>Returns: array of floats</strong></dt><dd><p>array of electric-field time trace in ‘on-sky’ coordinate system eR, eTheta, ePhi</p>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>efield_trace: array of floats</dt><dd><p>array of electric-field time trace in ‘on-sky’ coordinate system eR, eTheta, ePhi</p>
 </dd>
 </dl>
 </dd>

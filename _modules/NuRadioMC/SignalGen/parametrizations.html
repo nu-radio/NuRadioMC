@@ -108,6 +108,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
@@ -359,9 +360,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../NuRadioMC/pages/welcome_page.html">NuRadioMC Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html">HDF5 output structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-structure">HDF5 structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioMC/pages/code_documentation.html">Code Documentation</a><ul>
@@ -536,9 +540,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../main.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-      <li>NuRadioMC.SignalGen.parametrizations</li>
+      <li><a href="../../../main.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">NuRadioMC.SignalGen.parametrizations</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -577,7 +581,7 @@
 
 <div class="viewcode-block" id="get_parametrizations"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.parametrizations.html#NuRadioMC.SignalGen.parametrizations.get_parametrizations">[docs]</a><span class="k">def</span> <span class="nf">get_parametrizations</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot; returns a list of all implemented parametrizations &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;ZHS1992&#39;</span><span class="p">,</span> <span class="s1">&#39;Alvarez2000&#39;</span><span class="p">,</span> <span class="s1">&#39;Alvarez2009&#39;</span><span class="p">,</span> <span class="s1">&#39;Alvarez2012&#39;</span><span class="p">]</span></div>
+    <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;ZHS1992&#39;</span><span class="p">,</span> <span class="s1">&#39;Alvarez2000&#39;</span><span class="p">,</span> <span class="s1">&#39;Alvarez2009&#39;</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="get_time_trace"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.parametrizations.html#NuRadioMC.SignalGen.parametrizations.get_time_trace">[docs]</a><span class="k">def</span> <span class="nf">get_time_trace</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">shower_type</span><span class="p">,</span> <span class="n">n_index</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">same_shower</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -610,9 +614,11 @@
 <span class="sd">        distance from vertex to observer</span>
 <span class="sd">    model: string</span>
 <span class="sd">        specifies the signal model</span>
+
 <span class="sd">        * ZHS1992: the original ZHS parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992), doi:10.1103/PhysRevD.45.362, this parametrization does not contain any phase information</span>
 <span class="sd">        * Alvarez2000: parameterization based on ZHS mainly based on J. Alvarez-Muniz, R. A. Vazquez, and E. Zas, Calculation methods for radio pulses from high energyshowers,Physical Review D62 (2000) https://doi.org/10.1103/PhysRevD.84.103003</span>
 <span class="sd">        * Alvarez2009: parameterization based on ZHS from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas, Coherent cherenkov radio pulses fromhadronic showers up to eev energies,Astroparticle Physics35(2012), no. 6 287 – 299 and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas, Thinned simulations of extremely energeticshowers in dense media for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111</span>
+
 <span class="sd">    seed: None or int</span>
 <span class="sd">        the random seed for the Askaryan modules</span>
 <span class="sd">    same_shower: bool (default False)</span>
@@ -621,14 +627,15 @@
 <span class="sd">        signal for both ray tracing solutions from the same shower.</span>
 <span class="sd">    k_L: None or float</span>
 <span class="sd">        the k_L parameter for EM showers of the Alvarez2009 model. If a this parameter is provided, this value is used</span>
-<span class="sd">        and the parameter will not be drawn from a random distribution. </span>
+<span class="sd">        and the parameter will not be drawn from a random distribution.</span>
 <span class="sd">        This setting overrides the `same_shower` setting</span>
-<span class="sd">    full_output: bool (default False)    </span>
+<span class="sd">    full_output: bool (default False)</span>
 <span class="sd">        if True, askaryan modules can return additional output. The additional output is always a dictionary</span>
-<span class="sd">        For Alvarez2009: dict containing the key &#39;k_L&#39;</span>
-<span class="sd">        For ZHS1992 and ALvarez2000 the dict is empty.</span>
+
+<span class="sd">        - For Alvarez2009: dict containing the key &#39;k_L&#39;</span>
+<span class="sd">        - For ZHS1992 and ALvarez2000 the dict is empty.</span>
 <span class="sd">    average_shower: bool (default False)</span>
-<span class="sd">        if True, for the Alvarez2009 model electromagnetic showers, no random shower is generated, but the average shower is choosen. </span>
+<span class="sd">        if True, for the Alvarez2009 model electromagnetic showers, no random shower is generated, but the average shower is choosen.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>

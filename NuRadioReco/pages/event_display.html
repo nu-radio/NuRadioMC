@@ -111,6 +111,7 @@
 <li class="toctree-l4"><a class="reference internal" href="event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="event_structure.html#trigger">Trigger</a></li>
 <li class="toctree-l4"><a class="reference internal" href="event_structure.html#simstation">SimStation</a></li>
@@ -362,9 +363,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../NuRadioMC/pages/welcome_page.html">NuRadioMC Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html">HDF5 output structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-structure">HDF5 structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../NuRadioMC/pages/code_documentation.html">Code Documentation</a><ul>
@@ -539,9 +543,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="welcome_page.html">NuRadioReco Documentation</a> &raquo;</li>
-      <li>Event Display</li>
+      <li><a href="../../main.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="welcome_page.html">NuRadioReco Documentation</a></li>
+      <li class="breadcrumb-item active">Event Display</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/NuRadioReco/pages/event_display.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -553,11 +557,11 @@
              
   <section id="event-display">
 <h1>Event Display<a class="headerlink" href="#event-display" title="Permalink to this heading"></a></h1>
-<p>We use Dash and plot.ly as a foundation, so you need to
-<a class="reference external" href="https://dash.plot.ly/installation">install it first.</a>.</p>
+<p>The eventbrowser uses <code class="docutils literal notranslate"><span class="pre">dash</span></code> and <code class="docutils literal notranslate"><span class="pre">plot.ly</span></code>, so make sure to
+<a class="reference external" href="https://dash.plot.ly/installation">install it first</a>.</p>
 <p>The eventbrowser is a web application, meaning that you can use your webbrowser
 to browse through the NuRadioReco events. You start the eventbrowser
-(in the subfolder eventbrowser) with
+(in the subfolder <code class="docutils literal notranslate"><span class="pre">NuRadioReco/eventbrowser</span></code>) with
 <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">index.py</span> <span class="pre">/path/to/folder/containing/nur/data/files</span></code>.
 If all dependencies are installed correctly you should see:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Running on http://127.0.0.1:8080/ (Press CTRL+C to quit)
@@ -568,8 +572,8 @@ Debugger PIN: 224-474-503
 </div>
 <p>Then just open <a class="reference external" href="http://127.0.0.1:8080/">http://127.0.0.1:8080/</a> in your favorite web browser and select the
 file you want to see.</p>
-<p>Alternatively, you can use the file <em>NuRadioViewer</em> in the <em>eventbrowser</em> directory.
-Add the directory to you system <em>$PATH</em> and you can open the eventbrowser by
+<p>Alternatively, you can use the file <code class="docutils literal notranslate"><span class="pre">NuRadioViewer</span></code> in the <code class="docutils literal notranslate"><span class="pre">eventbrowser</span></code> directory.
+Add the directory to your system <code class="docutils literal notranslate"><span class="pre">$PATH</span></code> and you can open the eventbrowser by
 typing <code class="docutils literal notranslate"><span class="pre">NuRadioViewer</span> <span class="pre">filename.nur</span></code>.</p>
 </section>
 

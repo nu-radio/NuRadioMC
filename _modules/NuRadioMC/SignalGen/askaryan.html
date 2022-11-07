@@ -108,6 +108,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
@@ -359,9 +360,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../NuRadioMC/pages/welcome_page.html">NuRadioMC Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html">HDF5 output structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-structure">HDF5 structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioMC/pages/code_documentation.html">Code Documentation</a><ul>
@@ -536,9 +540,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../main.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-      <li>NuRadioMC.SignalGen.askaryan</li>
+      <li><a href="../../../main.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">NuRadioMC.SignalGen.askaryan</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -569,7 +573,7 @@
 <span class="sd">    We implement only the time-domain solution and obtain the frequency spectrum</span>
 <span class="sd">    via FFT (with the standard normalization of NuRadioMC). This approach assures</span>
 <span class="sd">    that the units are interpreted correctly. In the time domain, the amplitudes</span>
-<span class="sd">    are well defined and not details about fourier transform normalizations needs</span>
+<span class="sd">    are well defined and no details about fourier transform normalizations needs</span>
 <span class="sd">    to be known by the user.</span>
 
 <span class="sd">    Parameters</span>
@@ -584,7 +588,8 @@
 <span class="sd">    dt: float</span>
 <span class="sd">        time bin width, i.e. the inverse of the sampling rate</span>
 <span class="sd">    shower_type: string (default &quot;HAD&quot;)</span>
-<span class="sd">        type of shower, either &quot;HAD&quot; (hadronic), &quot;EM&quot; (electromagnetic) or &quot;TAU&quot; (tau lepton induced)</span>
+<span class="sd">        type of shower, either &quot;HAD&quot; (hadronic), &quot;EM&quot; (electromagnetic)</span>
+<span class="sd">        or &quot;TAU&quot; (tau lepton induced)</span>
 <span class="sd">        note that TAU showers are currently only implemented in the ARZ2019 model</span>
 <span class="sd">    n_index: float</span>
 <span class="sd">        index of refraction at interaction vertex</span>
@@ -592,22 +597,46 @@
 <span class="sd">        distance from vertex to observer</span>
 <span class="sd">    model: string</span>
 <span class="sd">        specifies the signal model</span>
-<span class="sd">        * ZHS1992: the original ZHS parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992), doi:10.1103/PhysRevD.45.362, this parametrization does not contain any phase information</span>
-<span class="sd">        * Alvarez2000: parameterization based on ZHS mainly based on J. Alvarez-Muniz, R. A. V ́azquez, and E. Zas, Calculation methods for radio pulses from high energyshowers, Physical Review D62 (2000) https://doi.org/10.1103/PhysRevD.84.103003</span>
-<span class="sd">        * Alvarez2009: parameterization based on ZHS from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas, Coherent cherenkov radio pulses fromhadronic showers up to EeV energies, Astroparticle Physics 35 (2012), no. 6 287 – 299 and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas, Thinned simulations of extremely energeticshowers in dense media for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111</span>
-<span class="sd">        * HCRB2017: analytic model from J. Hanson, A. Connolly Astroparticle Physics 91 (2017) 75-89</span>
-<span class="sd">        * ARZ2019 semi MC time domain model from Alvarez-Muñiz, J., Romero-Wolf, A., &amp; Zas, E. (2011). Practical and accurate calculations of Askaryan radiation. Physical Review D - Particles, Fields, Gravitation and Cosmology, 84(10). https://doi.org/10.1103/PhysRevD.84.103003</span>
+
+<span class="sd">        * ZHS1992: the original ZHS parametrization from</span>
+<span class="sd">          E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992),</span>
+<span class="sd">          https://doi.org/10.1103/PhysRevD.45.362,</span>
+<span class="sd">          this parametrization does not contain any phase information</span>
+<span class="sd">        * Alvarez2000: parameterization based on ZHS</span>
+<span class="sd">          mainly based on J. Alvarez-Muniz, R. A. Vazquez, and E. Zas,</span>
+<span class="sd">          Calculation methods for radio pulses from high energy showers,</span>
+<span class="sd">          Physical Review D62 (2000) https://doi.org/10.1103/PhysRevD.84.103003</span>
+<span class="sd">        * Alvarez2009: parameterization based on ZHS</span>
+<span class="sd">          from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas,</span>
+<span class="sd">          Coherent cherenkov radio pulses from hadronic showers up to EeV energies,</span>
+<span class="sd">          Astroparticle Physics 35 (2012), no. 6 287 – 299</span>
+<span class="sd">          and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas,</span>
+<span class="sd">          Thinned simulations of extremely energetic showers in dense media</span>
+<span class="sd">          for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111</span>
+<span class="sd">        * HCRB2017: analytic model from J. Hanson, A. Connolly</span>
+<span class="sd">          Astroparticle Physics 91 (2017) 75-89</span>
+<span class="sd">        * ARZ2019: semi MC time domain model</span>
+<span class="sd">          from Alvarez-Muñiz, J., Romero-Wolf, A., &amp; Zas, E. (2011).</span>
+<span class="sd">          Practical and accurate calculations of Askaryan radiation.</span>
+<span class="sd">          Physical Review D - Particles, Fields, Gravitation and Cosmology, 84(10).</span>
+<span class="sd">          https://doi.org/10.1103/PhysRevD.84.103003</span>
+<span class="sd">        * ARZ2020: semi MC time domain model</span>
+<span class="sd">          updated version of ARZ2019 with parameters taken from</span>
+<span class="sd">          J. Alvarez-Muñiz, P.M. Hansen, A. Romero-Wolf and E. Zas,</span>
+<span class="sd">          Askaryan radiation from neutrino-induced showers in ice,</span>
+<span class="sd">          Phys. Rev. D 101 (2020) 083005.</span>
+<span class="sd">          https://doi.org/10.1103/PhysRevD.101.083005</span>
 
 <span class="sd">    interp_factor: float or None</span>
 <span class="sd">        controls the interpolation of the charge-excess profiles in the ARZ model</span>
 <span class="sd">    interp_Factor2: float or None</span>
 <span class="sd">        controls the second interpolation of the charge-excess profiles in the ARZ model</span>
 <span class="sd">    same_shower: bool (default False)</span>
-<span class="sd">        controls the random behviour of picking a shower from the library in the ARZ model, see description there for</span>
-<span class="sd">        more details</span>
+<span class="sd">        controls the random behviour of picking a shower from the library in the ARZ model,</span>
+<span class="sd">        see description there for more details</span>
 <span class="sd">    seed: None or int</span>
 <span class="sd">        the random seed for the Askaryan modules</span>
-<span class="sd">    full_output: bool (default False)    </span>
+<span class="sd">    full_output: bool (default False)</span>
 <span class="sd">        if True, askaryan modules can return additional output</span>
 
 <span class="sd">    Returns</span>
@@ -685,7 +714,8 @@
 <span class="sd">    dt: float</span>
 <span class="sd">        time bin width, i.e. the inverse of the sampling rate</span>
 <span class="sd">    shower_type: string (default &quot;HAD&quot;)</span>
-<span class="sd">        type of shower, either &quot;HAD&quot; (hadronic), &quot;EM&quot; (electromagnetic) or &quot;TAU&quot; (tau lepton induced)</span>
+<span class="sd">        type of shower, either &quot;HAD&quot; (hadronic), &quot;EM&quot; (electromagnetic)</span>
+<span class="sd">        or &quot;TAU&quot; (tau lepton induced)</span>
 <span class="sd">        note that TAU showers are currently only implemented in the ARZ2019 model</span>
 <span class="sd">    n_index: float</span>
 <span class="sd">        index of refraction at interaction vertex</span>
@@ -693,13 +723,39 @@
 <span class="sd">        distance from vertex to observer</span>
 <span class="sd">    model: string</span>
 <span class="sd">        specifies the signal model</span>
-<span class="sd">        * ZHS1992: the original ZHS parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992), doi:10.1103/PhysRevD.45.362, this parametrization does not contain any phase information</span>
-<span class="sd">        * Alvarez2000: parameterization based on ZHS mainly based on J. Alvarez-Muniz, R. A. V ́azquez, and E. Zas, Calculation methods for radio pulses from high energyshowers, Physical Review D62 (2000) https://doi.org/10.1103/PhysRevD.84.103003</span>
-<span class="sd">        * Alvarez2009: parameterization based on ZHS from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas, Coherent cherenkov radio pulses fromhadronic showers up to EeV energies, Astroparticle Physics 35 (2012), no. 6 287 – 299 and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas, Thinned simulations of extremely energeticshowers in dense media for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111</span>
-<span class="sd">        * HCRB2017: analytic model from J. Hanson, A. Connolly Astroparticle Physics 91 (2017) 75-89</span>
-<span class="sd">        * ARZ2019 semi MC time domain model from Alvarez-Muñiz, J., Romero-Wolf, A., &amp; Zas, E. (2011). Practical and accurate calculations of Askaryan radiation. Physical Review D - Particles, Fields, Gravitation and Cosmology, 84(10). https://doi.org/10.1103/PhysRevD.84.103003</span>
-<span class="sd">    full_output: bool (default False)    </span>
+
+<span class="sd">        * ZHS1992: the original ZHS parametrization from</span>
+<span class="sd">          E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992),</span>
+<span class="sd">          https://doi.org/10.1103/PhysRevD.45.362,</span>
+<span class="sd">          this parametrization does not contain any phase information</span>
+<span class="sd">        * Alvarez2000: parameterization based on ZHS</span>
+<span class="sd">          mainly based on J. Alvarez-Muniz, R. A. Vazquez, and E. Zas,</span>
+<span class="sd">          Calculation methods for radio pulses from high energy showers,</span>
+<span class="sd">          Physical Review D62 (2000) https://doi.org/10.1103/PhysRevD.84.103003</span>
+<span class="sd">        * Alvarez2009: parameterization based on ZHS</span>
+<span class="sd">          from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas,</span>
+<span class="sd">          Coherent cherenkov radio pulses from hadronic showers up to EeV energies,</span>
+<span class="sd">          Astroparticle Physics 35 (2012), no. 6 287 – 299</span>
+<span class="sd">          and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas,</span>
+<span class="sd">          Thinned simulations of extremely energetic showers in dense media</span>
+<span class="sd">          for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111</span>
+<span class="sd">        * HCRB2017: analytic model from J. Hanson, A. Connolly</span>
+<span class="sd">          Astroparticle Physics 91 (2017) 75-89</span>
+<span class="sd">        * ARZ2019: semi MC time domain model</span>
+<span class="sd">          from Alvarez-Muñiz, J., Romero-Wolf, A., &amp; Zas, E. (2011).</span>
+<span class="sd">          Practical and accurate calculations of Askaryan radiation.</span>
+<span class="sd">          Physical Review D - Particles, Fields, Gravitation and Cosmology, 84(10).</span>
+<span class="sd">          https://doi.org/10.1103/PhysRevD.84.103003</span>
+<span class="sd">        * ARZ2020: semi MC time domain model</span>
+<span class="sd">          updated version of ARZ2019 with parameters taken from</span>
+<span class="sd">          J. Alvarez-Muñiz, P.M. Hansen, A. Romero-Wolf and E. Zas,</span>
+<span class="sd">          Askaryan radiation from neutrino-induced showers in ice,</span>
+<span class="sd">          Phys. Rev. D 101 (2020) 083005.</span>
+<span class="sd">          https://doi.org/10.1103/PhysRevD.101.083005</span>
+
+<span class="sd">    full_output: bool (default False)</span>
 <span class="sd">        if True, askaryan modules can return additional output</span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    spectrum: array</span>

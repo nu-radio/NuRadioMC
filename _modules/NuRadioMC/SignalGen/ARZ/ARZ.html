@@ -108,6 +108,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
@@ -359,9 +360,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../NuRadioMC/pages/welcome_page.html">NuRadioMC Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioMC/pages/HDF5_structure.html">HDF5 output structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioMC/pages/HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioMC/pages/HDF5_structure.html#hdf5-structure">HDF5 structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioMC/pages/code_documentation.html">Code Documentation</a><ul>
@@ -536,9 +540,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../../main.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../../index.html">Module code</a> &raquo;</li>
-      <li>NuRadioMC.SignalGen.ARZ.ARZ</li>
+      <li><a href="../../../../main.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">NuRadioMC.SignalGen.ARZ.ARZ</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -1048,7 +1052,7 @@
 <span class="sd">            for small vertex distances but also slows down the calculation proportional to the interpolation factor.</span>
 <span class="sd">        shift_for_xmax: bool (default False)</span>
 <span class="sd">            if True the observer position is placed relative to the position of the shower maximum, if False it is placed</span>
-<span class="sd">            with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined </span>
+<span class="sd">            with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined</span>
 <span class="sd">            as the position of the maximum of the charge excess profile</span>
 <span class="sd">        same_shower: bool (default False)</span>
 <span class="sd">            if False, for each request a new random shower realization is choosen.</span>
@@ -1057,14 +1061,18 @@
 <span class="sd">        iN: int or None (default None)</span>
 <span class="sd">            specify shower number</span>
 <span class="sd">        output_mode: string</span>
+
 <span class="sd">            * &#39;trace&#39; (default): return only the electric field trace</span>
 <span class="sd">            * &#39;Xmax&#39;: return trace and position of xmax in units of length</span>
 <span class="sd">            * &#39;full&#39; return trace, depth and charge_excess profile</span>
+
 <span class="sd">        maximum_angle: float</span>
 <span class="sd">            Maximum angular difference allowed between the observer angle and the Cherenkov angle.</span>
 <span class="sd">            If the difference is greater, the function returns an empty trace.</span>
 
-<span class="sd">        Returns: array of floats</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        efield_trace: array of floats</span>
 <span class="sd">            array of electric-field time trace in &#39;on-sky&#39; coordinate system eR, eTheta, ePhi</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">shower_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_library</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -1228,7 +1236,7 @@
 <span class="sd">            interpolation just around the peak of the form factor</span>
 <span class="sd">        shift_for_xmax: bool (default False)</span>
 <span class="sd">            if True the observer position is placed relative to the position of the shower maximum, if False it is placed</span>
-<span class="sd">            with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined </span>
+<span class="sd">            with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined</span>
 <span class="sd">            as the position of the maximum of the charge excess profile</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;This function has been deprecated - please use the module level ARZ.get_vector_potential_numba or ARZ.get_vector_potential instead&quot;</span><span class="p">)</span>
@@ -1694,13 +1702,18 @@
 <span class="sd">        iN: int or None (default None)</span>
 <span class="sd">            specify shower number</span>
 <span class="sd">        output_mode: string</span>
+
 <span class="sd">            * &#39;trace&#39; (default): return only the electric field trace</span>
 <span class="sd">            * &#39;Xmax&#39;: return trace and position of xmax in units of length</span>
+
 <span class="sd">        theta_reference: string (default: X0)</span>
+
 <span class="sd">            * &#39;X0&#39;: viewing angle relativ to start of the shower</span>
 <span class="sd">            * &#39;Xmax&#39;: viewing angle is relativ to Xmax, internally it will be converted to be relative to X0</span>
 
-<span class="sd">        Returns: array of floats</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        efield_trace: array of floats</span>
 <span class="sd">            array of electric-field time trace in &#39;on-sky&#39; coordinate system eR, eTheta, ePhi</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">shower_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_library</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>

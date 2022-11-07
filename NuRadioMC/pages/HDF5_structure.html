@@ -111,6 +111,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
@@ -362,9 +363,12 @@
 <li class="toctree-l1 current"><a class="reference internal" href="welcome_page.html">NuRadioMC Documentation</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">HDF5 output structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#opening-the-hdf5-file">Opening the HDF5 file</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#hdf5-file-attributes">HDF5 file attributes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#hdf5-file-contents">HDF5 file contents</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#station-data">Station data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hdf5-structure">HDF5 structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#station-data">Station data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="code_documentation.html">Code Documentation</a><ul>
@@ -539,9 +543,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="welcome_page.html">NuRadioMC Documentation</a> &raquo;</li>
-      <li>HDF5 output structure</li>
+      <li><a href="../../main.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="welcome_page.html">NuRadioMC Documentation</a></li>
+      <li class="breadcrumb-item active">HDF5 output structure</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/NuRadioMC/pages/HDF5_structure.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -572,8 +576,16 @@ This page outlines the structure of the HDF5 files.</p>
 NuRadioMC contains a convenience function to correctly merge these files -
 see <a class="reference internal" href="Manuals/running_on_a_cluster.html#merge-individual-hdf5-output-files"><span class="std std-ref">here</span></a> for instructions.</p>
 </section>
+<section id="hdf5-structure">
+<h2>HDF5 structure<a class="headerlink" href="#hdf5-structure" title="Permalink to this heading"></a></h2>
+<p>The HDF5 files can be thought of as a structured dictionary:</p>
+<ul class="simple">
+<li><p>The top level <a class="reference internal" href="#hdf5-file-attributes"><span class="std std-ref">attributes</span></a>, which can be accessed through <code class="docutils literal notranslate"><span class="pre">f.attrs</span></code>, contain some top-level information about the simulation.</p></li>
+<li><p>The <a class="reference internal" href="#hdf5-file-contents"><span class="std std-ref">individual keys</span></a> contain some properties (energy, vertex, …) for each stored event or shower.</p></li>
+<li><p>Finally, the <code class="docutils literal notranslate"><span class="pre">station_&lt;station_id&gt;</span></code> key contains slightly more detailed information (triggers, propagation times, amplitudes…) at the level of individual channels <a class="reference internal" href="#station-data"><span class="std std-ref">for each station</span></a>.</p></li>
+</ul>
 <section id="hdf5-file-attributes">
-<h2>HDF5 file attributes<a class="headerlink" href="#hdf5-file-attributes" title="Permalink to this heading"></a></h2>
+<h3>HDF5 file attributes<a class="headerlink" href="#hdf5-file-attributes" title="Permalink to this heading"></a></h3>
 <p>The top-level attributes can be accessed using <code class="docutils literal notranslate"><span class="pre">f.attrs</span></code>. These contain:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">Emax</span></code>, <code class="docutils literal notranslate"><span class="pre">Emin</span></code></p>
@@ -622,7 +634,7 @@ This is not necessarily the same as the sampling rate of the simulated channels!
 </ul>
 </section>
 <section id="hdf5-file-contents">
-<h2>HDF5 file contents<a class="headerlink" href="#hdf5-file-contents" title="Permalink to this heading"></a></h2>
+<h3>HDF5 file contents<a class="headerlink" href="#hdf5-file-contents" title="Permalink to this heading"></a></h3>
 <p>The HDF5 file contains the following items. Listed are the <code class="docutils literal notranslate"><span class="pre">key</span></code> and the <code class="docutils literal notranslate"><span class="pre">shape</span></code> of
 each HDF5 dataset, where <code class="docutils literal notranslate"><span class="pre">n_events</span></code> is the number of events in the file, <code class="docutils literal notranslate"><span class="pre">n_showers</span></code>
 is the number of showers (which may be larger than the number of events), and <code class="docutils literal notranslate"><span class="pre">n_triggers</span></code>
@@ -655,7 +667,7 @@ was used for signal generation).</p>
 </ul>
 </section>
 <section id="station-data">
-<h2>Station data<a class="headerlink" href="#station-data" title="Permalink to this heading"></a></h2>
+<h3>Station data<a class="headerlink" href="#station-data" title="Permalink to this heading"></a></h3>
 <p>In addition, the HDF5 file contains a key for each station in the simulation.
 The station contains more detailed information for each event that triggered it:</p>
 <ul>
@@ -721,6 +733,7 @@ per shower and channel.</p>
 <p>Whether or not each event fulfilled any trigger condition.</p>
 </li>
 </ul>
+</section>
 </section>
 </section>
 

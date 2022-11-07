@@ -108,6 +108,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
@@ -359,9 +360,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../NuRadioMC/pages/welcome_page.html">NuRadioMC Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html">HDF5 output structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-structure">HDF5 structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioMC/pages/code_documentation.html">Code Documentation</a><ul>
@@ -536,9 +540,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../main.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-      <li>NuRadioMC.EvtGen.generator</li>
+      <li><a href="../../../main.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">NuRadioMC.EvtGen.generator</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -831,7 +835,10 @@
 <span class="sd">    rnd: random generator object</span>
 <span class="sd">        if None is provided, a new default random generator object is initialized</span>
 
-<span class="sd">    Returns: array of energies</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    energies: array of floats</span>
+<span class="sd">        array of energies</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span><span class="p">(</span><span class="n">rnd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">rnd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
@@ -891,7 +898,7 @@
 <span class="sd">        the maximum energy</span>
 <span class="sd">    spectrum_type: string</span>
 <span class="sd">        defines the probability distribution for which the neutrino energies are generated</span>
-<span class="sd">        </span>
+
 <span class="sd">        * &#39;log_uniform&#39;: uniformly distributed in the logarithm of energy</span>
 <span class="sd">        * &#39;E-?&#39;: E to the -? spectrum where ? can be any float</span>
 <span class="sd">        * &#39;IceCube-nu-2017&#39;: astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)</span>
@@ -1115,7 +1122,7 @@
 
 <div class="viewcode-block" id="generate_vertex_positions"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.generate_vertex_positions">[docs]</a><span class="k">def</span> <span class="nf">generate_vertex_positions</span><span class="p">(</span><span class="n">attributes</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    helper function that generates the vertex position randomly distributed in simulation volume. </span>
+<span class="sd">    helper function that generates the vertex position randomly distributed in simulation volume.</span>
 <span class="sd">    The relevant quantities are also saved into the hdf5 attributes</span>
 
 <span class="sd">    Parameters</span>
@@ -1305,7 +1312,7 @@
 <span class="sd">        * full_zmax: float (optional)</span>
 <span class="sd">            upper z coordinate of simulated volume (if not set it is set to the fiducial volume)</span>
 
-<span class="sd">        or a cube specified with </span>
+<span class="sd">        or a cube specified with</span>
 
 <span class="sd">        * fiducial_xmin: float</span>
 <span class="sd">            lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
@@ -1331,7 +1338,7 @@
 <span class="sd">            lower z coordinate of simulated volume (if not set it is set to the fiducial volume)</span>
 <span class="sd">        * full_zmax: float (optional)</span>
 <span class="sd">            upper z coordinate of simulated volume (if not set it is set to the fiducial volume)</span>
-<span class="sd">        </span>
+
 <span class="sd">    thetamin: float</span>
 <span class="sd">        lower zenith angle for neutrino arrival direction</span>
 <span class="sd">    thetamax: float</span>
@@ -1354,14 +1361,14 @@
 <span class="sd">        This is useful to split up the computing on multiple cores.</span>
 <span class="sd">    spectrum: string</span>
 <span class="sd">        defines the probability distribution for which the neutrino energies are generated</span>
-<span class="sd">        </span>
+
 <span class="sd">        * &#39;log_uniform&#39;: uniformly distributed in the logarithm of energy</span>
 <span class="sd">        * &#39;E-?&#39;: E to the -? spectrum where ? can be any float</span>
 <span class="sd">        * &#39;IceCube-nu-2017&#39;: astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)</span>
 <span class="sd">        * &#39;GZK-1&#39;: GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 </span>
 <span class="sd">          for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)</span>
 <span class="sd">        * &#39;GZK-1+IceCube-nu-2017&#39;: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</span>
-<span class="sd">        </span>
+
 <span class="sd">    start_file_id: int (default 0)</span>
 <span class="sd">        in case the data set is distributed over several files, this number specifies the id of the first file</span>
 <span class="sd">        (useful if an existing data set is extended)</span>
@@ -1369,7 +1376,7 @@
 <span class="sd">    config_file: string</span>
 <span class="sd">        The user can specify the path to their own config file or choose among</span>
 <span class="sd">        the three available options:</span>
-<span class="sd">        </span>
+
 <span class="sd">        * &#39;SouthPole&#39;, a config file for the South Pole (spherical Earth). It</span>
 <span class="sd">          consists of a 2.7 km deep layer of ice, bedrock below and air above.</span>
 <span class="sd">        * &#39;MooresBay&#39;, a config file for Moore&#39;s Bay (spherical Earth). It</span>
@@ -1378,14 +1385,14 @@
 <span class="sd">        * &#39;InfIce&#39;, a config file with a medium of infinite ice</span>
 <span class="sd">        * &#39;Greenland&#39;, a config file for Summit Station, Greenland (spherical Earth),</span>
 <span class="sd">          same as SouthPole but with a 3 km deep ice layer.</span>
-<span class="sd">        </span>
+
 <span class="sd">        .. Important:: If these options are used, the code is more efficient if the</span>
 <span class="sd">            user requests their own &quot;path_to_tables&quot; and &quot;path_to_tables_readonly&quot;,</span>
 <span class="sd">            pointing them to a writable directory</span>
 <span class="sd">            If one of these three options is chosen, the user is supposed to edit</span>
 <span class="sd">            the corresponding config_PROPOSAL_xxx.json.sample file to include valid</span>
 <span class="sd">            table paths and then copy this file to config_PROPOSAL_xxx.json.</span>
-<span class="sd">        </span>
+
 <span class="sd">    proposal_kwargs: dict</span>
 <span class="sd">        additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class</span>
 <span class="sd">    log_level: logging log level or None</span>
@@ -1622,7 +1629,7 @@
 <span class="sd">            lower z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)</span>
 <span class="sd">        * full_zmax: float (optional)</span>
 <span class="sd">            upper z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume , if second vertices are not activated it is set to the fiducial volume)</span>
-<span class="sd">        </span>
+
 <span class="sd">        or a cube specified with</span>
 
 <span class="sd">        * fiducial_xmin: float</span>
@@ -1649,7 +1656,7 @@
 <span class="sd">            lower z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)</span>
 <span class="sd">        * full_zmax: float (optional)</span>
 <span class="sd">            upper z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)</span>
-<span class="sd">    </span>
+
 <span class="sd">    thetamin: float</span>
 <span class="sd">        lower zenith angle for neutrino arrival direction (default 0deg)</span>
 <span class="sd">    thetamax: float</span>
@@ -1732,7 +1739,7 @@
 <span class="sd">    seed: None of int</span>
 <span class="sd">        seed of the random state</span>
 <span class="sd">    interaction_type: string</span>
-<span class="sd">        the interaction type. default is &quot;ccnc&quot; which randomly choses neutral current (NC) or charged-current (CC) interactions. </span>
+<span class="sd">        the interaction type. default is &quot;ccnc&quot; which randomly choses neutral current (NC) or charged-current (CC) interactions.</span>
 <span class="sd">        The use can also specify &quot;nc&quot; or &quot;cc&quot; to exclusively simulate NC or CC interactions</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">rnd</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">Philox</span><span class="p">(</span><span class="n">seed</span><span class="p">))</span>

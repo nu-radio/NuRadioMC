@@ -111,6 +111,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
@@ -362,9 +363,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../NuRadioMC/pages/welcome_page.html">NuRadioMC Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html">HDF5 output structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-structure">HDF5 structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../NuRadioMC/pages/code_documentation.html">Code Documentation</a><ul>
@@ -539,9 +543,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="welcome_page.html">Introduction</a> &raquo;</li>
-      <li>Installing NuRadioMC / NuRadioReco</li>
+      <li><a href="../../main.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="welcome_page.html">Introduction</a></li>
+      <li class="breadcrumb-item active">Installing NuRadioMC / NuRadioReco</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/Introduction/pages/installation.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -574,8 +578,8 @@ The pip installation will also install all core dependencies.</p>
 <p>Some optional dependencies cannot be installed using pip and
 <a class="reference internal" href="#not-pip-installable-packages"><span class="std std-ref">have to be installed manually</span></a>.</p>
 </div>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
 <p>If you want the current version or you want to contribute to NuRadioReco, you need to install it manually.</p>
 </div>
 </section>
@@ -730,18 +734,19 @@ feature, which tries to import all modules it documents. So if you are missing s
 <section id="not-pip-installable-packages">
 <h3>Not pip-installable packages<a class="headerlink" href="#not-pip-installable-packages" title="Permalink to this heading"></a></h3>
 <ul>
-<li><p>To read ARIANNA files, <a class="reference external" href="https://arianna.ps.uci.edu/mediawiki/index.php/Local_DAQ_Instructions">Snowshovel</a> needs to be installed.</p></li>
-<li><p>To read ARA files, <a class="reference external" href="http://www.hep.ucl.ac.uk/uhen/ara/araroot/branches/3.13/index.shtml">ARA ROOT</a> needs to be installed.</p></li>
 <li><p>To speed up the <a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#module-NuRadioMC.SignalProp.analyticraytracing" title="NuRadioMC.SignalProp.analyticraytracing"><code class="xref py py-mod docutils literal notranslate"><span class="pre">analytic</span> <span class="pre">ray</span> <span class="pre">tracing</span> <span class="pre">module</span></code></a>, <a class="reference external" href="https://www.gnu.org/software/gsl/">GSL</a> needs
 to be installed, and <code class="docutils literal notranslate"><span class="pre">$GSL_DIR</span></code> should point at the correct installation folder. On Linux, GSL can be installed using</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt-get install libgsl-dev
 </pre></div>
 </div>
-<p>With GSL installed, compile the CPP ray tracer by navigating to <cite>NuRadioMC/NuRadioMC/SignalProp</cite>
-and running the included <cite>install.sh</cite> script.</p>
+<p>(On MacOS, use <code class="docutils literal notranslate"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">gsl</span></code> instead - you may have to install <a class="reference external" href="https://brew.sh/">homebrew</a> first).
+With GSL installed, compile the CPP ray tracer by navigating to <code class="docutils literal notranslate"><span class="pre">NuRadioMC/NuRadioMC/SignalProp</span></code>
+and running the included <code class="docutils literal notranslate"><span class="pre">install.sh</span></code> script.</p>
 </li>
 <li><p>To use the <a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.SignalProp.radioproparaytracing.html#module-NuRadioMC.SignalProp.radioproparaytracing" title="NuRadioMC.SignalProp.radioproparaytracing"><code class="xref py py-mod docutils literal notranslate"><span class="pre">RadioPropa</span> <span class="pre">numerical</span> <span class="pre">ray</span> <span class="pre">tracing</span></code></a> module, <code class="docutils literal notranslate"><span class="pre">radiopropa</span></code> needs to be installed.
 The radiopropa github, with installation instructions, can be found <a class="reference external" href="https://github.com/nu-radio/RadioPropa">here</a>.</p></li>
+<li><p>To read ARIANNA files, <a class="reference external" href="https://arianna.ps.uci.edu/mediawiki/index.php/Local_DAQ_Instructions">Snowshovel</a> needs to be installed.</p></li>
+<li><p>To read ARA files, <a class="reference external" href="http://www.hep.ucl.ac.uk/uhen/ara/araroot/branches/3.13/index.shtml">ARA ROOT</a> needs to be installed.</p></li>
 </ul>
 </section>
 </section>

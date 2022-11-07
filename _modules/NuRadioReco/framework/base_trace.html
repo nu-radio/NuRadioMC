@@ -108,6 +108,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#event">Event</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#radio-shower">Radio Shower</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simshower">SimShower</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#particle">Particle</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#station">Station</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#trigger">Trigger</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html#simstation">SimStation</a></li>
@@ -359,9 +360,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../NuRadioMC/pages/welcome_page.html">NuRadioMC Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html">HDF5 output structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#opening-the-hdf5-file">Opening the HDF5 file</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-structure">HDF5 structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-attributes">HDF5 file attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#hdf5-file-contents">HDF5 file contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioMC/pages/HDF5_structure.html#station-data">Station data</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../NuRadioMC/pages/code_documentation.html">Code Documentation</a><ul>
@@ -536,9 +540,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../main.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-      <li>NuRadioReco.framework.base_trace</li>
+      <li><a href="../../../main.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">NuRadioReco.framework.base_trace</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -575,11 +579,15 @@
 
 <div class="viewcode-block" id="BaseTrace.get_trace"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace">[docs]</a>    <span class="k">def</span> <span class="nf">get_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        returns the time trace. If the frequency spectrum was modified before,</span>
+<span class="sd">        returns the time trace.</span>
+
+<span class="sd">        If the frequency spectrum was modified before,</span>
 <span class="sd">        an ifft is performed automatically to have the time domain representation</span>
 <span class="sd">        up to date.</span>
 
-<span class="sd">        Returns: 1 or N dimensional np.array of floats</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        trace: np.array of floats</span>
 <span class="sd">            the time trace</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span><span class="p">):</span>
@@ -644,7 +652,9 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the sampling rate of the trace</span>
 
-<span class="sd">        Return: float</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        sampling_rate: float</span>
 <span class="sd">            sampling rate, i.e., the inverse of the bin width</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span></div>
@@ -687,7 +697,9 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the number of samples in the time domain</span>
 
-<span class="sd">        Return: int</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        n_samples: int</span>
 <span class="sd">            number of samples in time domain</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span><span class="p">):</span>
