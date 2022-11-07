@@ -256,7 +256,7 @@ have to be set to ``True`` for  constructors of the ``NuRadioRecoio`` and
 Detector Viewer
 _________________
 NuRadioReco provides a visualization for detector description. It is stored in the folder
-``NuRadioReco/detector/detector_browser`` and works similar to the event viewer.
+``NuRadioReco/detector/detector_browser`` and works similar to the :doc:`event viewer</NuRadioReco/pages/event_display>`.
 
 To start it, execute the command ``python index.py /path/to/folder``. Then open
 a web browser and go to the URL printed on the terminal (http://127.0.0.1:8080/
