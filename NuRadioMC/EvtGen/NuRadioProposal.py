@@ -287,12 +287,10 @@ class ProposalFunctions(object):
             else:
                 raise ValueError("Proposal config file is not valid. Please provide a valid option.")
 
-            # TODO: What is this {}.sample, and what does it have to do with interpoation tables?
             if not os.path.exists(config_file_full_path):
-                error_message = "Proposal config file does not exist.\n"
-                error_message += "Please provide valid paths for the interpolation tables "
-                error_message += "in file {}.sample ".format(config_file_full_path)
-                error_message += "and copy the file to {}.".format(os.path.basename(config_file_full_path))
+                error_message = "Unable to find proposal config file.\n"
+                error_message += "Make sure that json configuration file under "
+                error_message += "path {} exists.".format(config_file_full_path)
                 raise ValueError(error_message)
 
             pp.InterpolationSettings.tables_path = self.__tables_path
