@@ -1003,7 +1003,7 @@
     <span class="k">return</span> <span class="n">out</span></div>
 
 
-<div class="viewcode-block" id="tmp"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.Veff.html#NuRadioMC.utilities.Veff.tmp">[docs]</a><span class="k">def</span> <span class="nf">tmp</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+<div class="viewcode-block" id="get_Veff_Aeff_single_wrapper"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.Veff.html#NuRadioMC.utilities.Veff.get_Veff_Aeff_single_wrapper">[docs]</a><span class="k">def</span> <span class="nf">get_Veff_Aeff_single_wrapper</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">get_Veff_Aeff_single</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
 
 
@@ -1088,11 +1088,14 @@
             <span class="k">elif</span> <span class="n">prev_deposited</span> <span class="o">!=</span> <span class="n">deposited</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;The deposited parameter is not consistent among the input files!&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span><span class="p">(</span><span class="s1">&#39;trigger_names&#39;</span> <span class="ow">in</span> <span class="n">fin</span><span class="o">.</span><span class="n">attrs</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">iF</span><span class="p">,</span> <span class="n">filename</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">filenames</span><span class="p">):</span>
+        <span class="n">fin</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;trigger_names&#39;</span> <span class="ow">in</span> <span class="n">fin</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
             <span class="n">trigger_names</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;trigger_names&#39;</span><span class="p">]</span>
-            <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trigger_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trigger_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">iT</span><span class="p">,</span> <span class="n">trigger_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trigger_names</span><span class="p">):</span>
                     <span class="n">trigger_names_dict</span><span class="p">[</span><span class="n">trigger_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">iT</span>
+                
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;first file with triggernames </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">trigger_names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">break</span>
 
@@ -1129,11 +1132,11 @@
     <span class="k">if</span> <span class="n">n_cores</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
-            <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp</span><span class="p">(</span><span class="n">arg</span><span class="p">))</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_Veff_Aeff_single_wrapper</span><span class="p">(</span><span class="n">arg</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">output</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">n_cores</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">get_Veff_Aeff_single_wrapper</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">output</span></div>
@@ -1295,23 +1298,23 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)):</span>
-        <span class="n">tmp</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">tmp_out</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span>  <span class="p">[</span><span class="s1">&#39;veffs&#39;</span><span class="p">,</span> <span class="s1">&#39;aeff_surface_muons&#39;</span><span class="p">]):</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">key</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">generic</span><span class="p">):</span>
-                    <span class="n">tmp</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                    <span class="n">tmp_out</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">tmp</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
+                    <span class="n">tmp_out</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;veffs&quot;</span><span class="p">,</span> <span class="s2">&quot;aeff_surface_muons&quot;</span><span class="p">]:</span>
             <span class="k">if</span><span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
-                <span class="n">tmp</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">tmp_out</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
                 <span class="k">for</span> <span class="n">trigger_name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">key</span><span class="p">]:</span>
                     <span class="k">if</span><span class="p">(</span><span class="n">trigger_names</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">trigger_name</span> <span class="ow">in</span> <span class="n">trigger_names</span><span class="p">):</span>
                         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">trigger_name</span><span class="p">)</span>
-                        <span class="n">tmp</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">trigger_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="n">tmp_out</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">trigger_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
                         <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">key</span><span class="p">][</span><span class="n">trigger_name</span><span class="p">]:</span>
-                            <span class="n">tmp</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">trigger_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
-        <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+                            <span class="n">tmp_out</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">trigger_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_out</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
         <span class="k">if</span><span class="p">(</span><span class="n">export_format</span> <span class="o">==</span> <span class="s1">&#39;yaml&#39;</span><span class="p">):</span>
