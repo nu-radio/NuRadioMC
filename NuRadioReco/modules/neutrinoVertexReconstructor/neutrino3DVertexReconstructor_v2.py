@@ -726,13 +726,18 @@ class neutrino3DVertexReconstructor:
         # we use a maximum filter. We determine the footprint of the filter
         # from the resolution of our grid in distance, theta and phi
         time_deviations = np.zeros_like(delta_t)
-        time_deviations[:-1] = np.abs(delta_t[1:] - delta_t[:-1])
+        mask_invalid = (delta_t[1:] == 0) | (delta_t[:-1] == 0)
+        delta_t_offset = np.abs(delta_t[1:] - delta_t[:-1])
+        delta_t_offset[mask_invalid] = 0
+        time_deviations[:-1] = delta_t_offset
         # dtdt = np.copy(time_deviations)
         # dtdt[dtdt==0] = np.nan
         # dtdt = np.nanmedian(dtdt, axis=0)
         # dtdt[np.isnan(dtdt)] = 0
         # self.__draw_correlation_map_polar(self.__event, self.__thetaphi, dtdt, percentile=10, filetag=f'_dt_distance_{self.__channel_pair}')
         delta_t_offset = np.abs(delta_t - delta_t[:, self.__nn_theta])
+        mask_invalid = (delta_t == 0) | (delta_t[:, self.__nn_theta] == 0)
+        delta_t_offset[mask_invalid] = 0
         time_deviations = np.maximum(time_deviations, delta_t_offset)
         # dtdt = np.copy(delta_t_offset)
         # dtdt[dtdt==0] = np.nan
@@ -740,6 +745,8 @@ class neutrino3DVertexReconstructor:
         # dtdt[np.isnan(dtdt)] = 0
         # self.__draw_correlation_map_polar(self.__event, self.__thetaphi, dtdt, percentile=10, filetag=f'_dt_theta_{self.__channel_pair}')
         delta_t_offset = np.abs(delta_t - delta_t[:, self.__nn_phi])
+        mask_invalid = (delta_t == 0) | (delta_t[:, self.__nn_phi] == 0)
+        delta_t_offset[mask_invalid] = 0
         time_deviations = np.maximum(time_deviations, delta_t_offset)
         # dtdt = np.copy(delta_t_offset)
         # dtdt[dtdt==0] = np.nan
