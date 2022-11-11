@@ -62,16 +62,22 @@ class neutrino3DVertexReconstructor:
         self.__self_correlations = None
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
         self.__ray_types = [
-            ['direct', 'direct'],
-            ['reflected', 'reflected'],
-            ['refracted', 'refracted'],
-            ['direct', 'reflected'],
-            ['reflected', 'direct'],
-            ['direct', 'refracted'],
-            ['refracted', 'direct'],
-            ['reflected', 'refracted'],
-            ['refracted', 'reflected']
+            ['D', 'D'],
+            ['D', 'R'],
+            ['R', 'D'],
+            ['R', 'R']
         ]
+        # self.__ray_types = [
+        #     ['direct', 'direct'],
+        #     ['reflected', 'reflected'],
+        #     ['refracted', 'refracted'],
+        #     ['direct', 'reflected'],
+        #     ['reflected', 'direct'],
+        #     ['direct', 'refracted'],
+        #     ['refracted', 'direct'],
+        #     ['reflected', 'refracted'],
+        #     ['refracted', 'reflected']
+        # ]
 
     def begin(
             self,
@@ -399,6 +405,7 @@ class neutrino3DVertexReconstructor:
         while self._dTheta_current > self._dTheta_goal:
             self._dTheta_current = dTheta
             distances_3d = np.logspace(np.log10(self.__distances_2d[0]), np.log10(self.__distances_2d[-1]), n_distance_steps)
+            self._d_distance_current = np.exp(1/(n_distance_steps - 1) * np.log(distances_3d[-1] / distances_3d[0])) - 1
             theta_grid = np.arange(np.pi/2, np.pi, dTheta)
             thetaphi = np.array([
                 (theta, phi)
@@ -449,7 +456,7 @@ class neutrino3DVertexReconstructor:
                 # mask_phi = np.abs(thetaphi[1,None] - thetaphi_mask[1,:,None]) * np.sin(thetaphi[0])[None] < 2.1 * dTheta
                 # print(f'phi mask: {np.sum(mask_phi)} / {mask_phi.shape}')
                 # mask = np.where(np.any(mask_theta & mask_phi, axis=0))[0]
-                logger.debug(f'total mask: {mask.shape}')
+                # logger.debug(f'total mask: {mask.shape}')
                 thetaphi = thetaphi[:,mask]
 
                 # we also need to find the corresponding 'nearest neighbour' indices
@@ -488,7 +495,10 @@ class neutrino3DVertexReconstructor:
             x_coords, y_coords, z_coords = xyz
 
             logger.debug(f'Fit iteration {i_iteration} - {z_coords.shape[0]} x {z_coords.shape[1]} points')
+            logger.debug(f'Current angular resolution {self._dTheta_current / units.deg:.2f} deg (goal: {self._dTheta_goal / units.deg:.2f})')
+            logger.debug(f'Current distance resolution {self._d_distance_current*100:.2f}% (goal: None)')
             correlation_sum = np.zeros_like(z_coords)
+            number_of_channel_pairs = np.zeros_like(z_coords, dtype=int)
 
             for i_pair, channel_pair in enumerate(self.__channel_pairs):
                 self.__correlation = self.__pair_correlations[i_pair]
@@ -503,10 +513,12 @@ class neutrino3DVertexReconstructor:
                         print(i_pair, channel_pair)
                         print(correlation_map)
                         raise ValueError
+                number_of_channel_pairs += correlation_map.astype(bool)
                 correlation_sum += correlation_map
             # <<--- DnR Reco --->> #
             logger.debug("Starting DnR correlation...")
             self_correlation_sum = np.zeros_like(z_coords)
+            number_of_dnr_channels = np.zeros_like(z_coords, dtype=int)
             for i_channel, channel_id in enumerate(self.__channel_ids):
                 self.__correlation = self.__self_correlations[i_channel]
                 self.__channel_pair = [channel_id, channel_id]
@@ -518,7 +530,11 @@ class neutrino3DVertexReconstructor:
                         self.__current_ray_types = self.__ray_types[i_ray]
                         correlation_map = np.maximum(self.get_correlation_array_3d(x_coords, y_coords, z_coords), correlation_map)
                 self_correlation_sum += correlation_map
-            combined_correlations = correlation_sum + self_correlation_sum
+                number_of_dnr_channels += correlation_map.astype(bool)
+            # set min number of channels / channel pairs to avoid division by 0 error
+            number_of_channel_pairs = 1#[number_of_channel_pairs==0] = 1
+            number_of_dnr_channels = .5#[number_of_dnr_channels==0] = 1
+            combined_correlations = correlation_sum / number_of_channel_pairs + 0.5 * self_correlation_sum / number_of_dnr_channels
 
             mean_corr = np.nanmean(
                 np.where(combined_correlations > 0, combined_correlations, np.nan),
@@ -646,7 +662,7 @@ class neutrino3DVertexReconstructor:
                 d_hor = np.atleast_2d(np.linalg.norm((fit_vertex-channel_pos)[:2]))
                 z = np.atleast_2d(fit_vertex[2])
                 fit_vx_times[channel_id] = dict()
-                for ray_type in ['direct', 'refracted', 'reflected']:
+                for ray_type in ['D', 'R']:#['direct', 'refracted', 'reflected']:
                     dt = self.get_signal_travel_time(
                         d_hor, z, ray_type, channel_id)[0,0]
                     if dt < 0.01 * units.ns:
@@ -656,7 +672,7 @@ class neutrino3DVertexReconstructor:
                 d_hor = np.atleast_2d([np.linalg.norm((sim_vertex-channel_pos)[:2])])
                 z = np.atleast_2d(sim_vertex[2])
                 sim_vx_times[channel_id] = dict()
-                for ray_type in ['direct', 'refracted', 'reflected']:
+                for ray_type in ['D','R']:#['direct', 'refracted', 'reflected']:
                     dt = self.get_signal_travel_time(
                         d_hor, z, ray_type, channel_id)[0,0]
                     if dt < 0.01 * units.ns:
@@ -729,6 +745,7 @@ class neutrino3DVertexReconstructor:
         mask_invalid = (delta_t[1:] == 0) | (delta_t[:-1] == 0)
         delta_t_offset = np.abs(delta_t[1:] - delta_t[:-1])
         delta_t_offset[mask_invalid] = 0
+        # np.savez(f'debug_dt_{self.__current_ray_types[0]}_{self.__current_ray_types[1]}', dt=delta_t_offset, d_hor=d_hor,z=z, t_1=t_1,t_2=t_2)
         time_deviations[:-1] = delta_t_offset
         # dtdt = np.copy(time_deviations)
         # dtdt[dtdt==0] = np.nan
@@ -766,8 +783,8 @@ class neutrino3DVertexReconstructor:
 
         res = np.zeros_like(corr_index)
         if self._use_maximum_filter:
-            step_size_x = int(np.ceil(res.shape[0] / 16))
-            step_size_y = int(np.ceil(res.shape[1] / 16))
+            step_size_x = int(np.ceil(res.shape[0] / 100))
+            step_size_y = int(np.ceil(res.shape[1]))
             for i_x in range(res.shape[0] // step_size_x + 1):
                 for i_y in range(res.shape[1] // step_size_y + 1):
                     i_x_0 = i_x * step_size_x
@@ -831,19 +848,27 @@ class neutrino3DVertexReconstructor:
         z_dist_2 = i_z_2 * self.__header[channel_type]['d_z'] + self.__header[channel_type]['z_min']
         i_x_1 = np.array(np.floor((d_hor - self.__header[channel_type]['x_min']) / self.__header[channel_type]['d_x'])).astype(int)
         cell_dist_1 = i_x_1 * self.__header[channel_type]['d_x'] + self.__header[channel_type]['x_min']
+        i_x_2 = np.array(np.ceil((d_hor - self.__header[channel_type]['x_min']) / self.__header[channel_type]['d_x'])).astype(int)
+        cell_dist_2 = i_x_2 * self.__header[channel_type]['d_x'] + self.__header[channel_type]['x_min']
         mask[i_x_1 > self.__lookup_table[channel_type][ray_type].shape[0] - 1] = False
+        mask[i_x_2 > self.__lookup_table[channel_type][ray_type].shape[0] - 1] = False
         mask[i_z_1 > self.__lookup_table[channel_type][ray_type].shape[1] - 1] = False
         mask[i_z_2 > self.__lookup_table[channel_type][ray_type].shape[1] - 1] = False
+        for ind in [i_x_1, i_x_2, i_z_1, i_z_2]:
+            mask[ind < 0] = False # make sure all indices are positive (=> not outside lookup table)
         i_x_1[~mask] = 0
+        i_x_2[~mask] = 0
         i_z_1[~mask] = 0
         i_z_2[~mask] = 0
         travel_times_1_1 = self.__lookup_table[channel_type][ray_type][(i_x_1, i_z_1)]
         travel_times_1_2 = self.__lookup_table[channel_type][ray_type][(i_x_1, i_z_2)]
-        i_x_2 = np.array(np.ceil((d_hor - self.__header[channel_type]['x_min']) / self.__header[channel_type]['d_x'])).astype(int)
-        cell_dist_2 = i_x_2 * self.__header[channel_type]['d_x'] + self.__header[channel_type]['x_min']
-        i_x_2[~mask] = 0
         travel_times_2_1 = self.__lookup_table[channel_type][ray_type][(i_x_2, i_z_1)]
         travel_times_2_2 = self.__lookup_table[channel_type][ray_type][(i_x_2, i_z_2)]
+        valid_mask = (
+            travel_times_1_1.astype(bool) & travel_times_1_2.astype(bool)
+            & travel_times_2_1.astype(bool) & travel_times_2_2.astype(bool)
+        )
+        mask[~valid_mask] = False
         z_slopes_1 = np.zeros_like(travel_times_1_1)
         z_slopes_2 = np.zeros_like(travel_times_1_1)
         z_slopes_1[i_z_1 < i_z_2] = (travel_times_1_1 - travel_times_1_2)[i_z_1 < i_z_2] / (z_dist_1 - z_dist_2)[i_z_1 < i_z_2]
@@ -969,8 +994,8 @@ class neutrino3DVertexReconstructor:
                 sim[2] = (sim[2] + np.pi) % (2 * np.pi) - np.pi
         else:
             phi = thetaphi[1]
-        thetamin = np.min(thetaphi[1])
-        thetamax = np.max(thetaphi[1])
+        thetamin = np.min(phi)
+        thetamax = np.max(phi)
         n_theta = int(np.round((thetamax - thetamin) / self._dTheta_current)) + 1
         theta = np.linspace(thetamin, thetamax, n_theta)
         # theta = np.arange(np.max(phi), np.min(phi)-self._dTheta_current, -self._dTheta_current)[::-1]
@@ -1010,7 +1035,7 @@ class neutrino3DVertexReconstructor:
             ax1_1 = fig1.add_subplot(len(self.__channel_pairs) // 2 + len(self.__channel_pairs) % 2, 2,
                                         i_pair + 1)
             # plot time offsets from fit / simulation
-            rt_dict = dict(direct=0,refracted=1,reflected=2)
+            rt_dict = dict(direct=0,refracted=1,reflected=2,D='D',R='R')
             ymax = np.max(correlation_product)
             if (channel_id1 in fit_times) & (channel_id2 in fit_times):
                 for ray_types in self.__ray_types:
@@ -1048,7 +1073,7 @@ class neutrino3DVertexReconstructor:
             ax1_1 = fig1.add_subplot(len(self.__channel_ids) // 2 + len(self.__channel_ids) % 2, 2,
                                         i_ch + 1)
             # plot time offsets from fit / simulation
-            rt_dict = dict(direct=0,refracted=1,reflected=2)
+            rt_dict = dict(direct=0,refracted=1,reflected=2,D='D',R='R')
             ymax = np.max(correlation_product)
             if (channel_id in fit_times):
                 for ray_types in self.__ray_types:

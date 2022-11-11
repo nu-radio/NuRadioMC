@@ -84,24 +84,20 @@ if __name__ == "__main__":
     }
     for channel_type in channel_types:
         print('Calculating lookup table for ' + channel_type['name'])
-        travel_times_direct = np.zeros((len(x_pos), len(z_pos)))
-        travel_times_refracted = np.zeros((len(x_pos), len(z_pos)))
-        travel_times_reflected = np.zeros((len(x_pos), len(z_pos)))
+        travel_times_D = np.zeros((len(x_pos), len(z_pos)))
+        travel_times_R = np.zeros((len(x_pos), len(z_pos)))
         for i_x, xx in enumerate(x_pos):
             for i_z, zz in enumerate(z_pos):
                 z_coords = sorted([zz, channel_type['z']]) # ensures that x2 is always higher up than x1
                 solutions = ray_tracing.find_solutions([-xx, z_coords[0]], [0, z_coords[1]])
-                for solution in solutions:
-                    if solution['type'] == 1:
-                        travel_times_direct[i_x][i_z] = ray_tracing.get_travel_time_analytic([-xx, z_coords[0]], [0, z_coords[1]], solution['C0'])
-                    if solution['type'] == 2:
-                        travel_times_refracted[i_x][i_z] = ray_tracing.get_travel_time_analytic([-xx, z_coords[0]], [0, z_coords[1]], solution['C0'])
-                    if solution['type'] == 3:
-                        travel_times_reflected[i_x][i_z] = ray_tracing.get_travel_time_analytic([-xx, z_coords[0]], [0, z_coords[1]], solution['C0'])
+                for iS, solution in enumerate(solutions):
+                    if iS == 0:
+                        travel_times_D[i_x][i_z] = ray_tracing.get_travel_time_analytic([-xx, z_coords[0]], [0, z_coords[1]], solution['C0'])
+                    elif iS == 1:
+                        travel_times_R[i_x][i_z] = ray_tracing.get_travel_time_analytic([-xx, z_coords[0]], [0, z_coords[1]], solution['C0'])
         lookup_table[channel_type['name']] = {
-            'direct': travel_times_direct,
-            'refracted': travel_times_refracted,
-            'reflected': travel_times_reflected
+            'D': travel_times_D,
+            'R': travel_times_R,
         }
 
     with open('{}/lookup_table_{:.0f}.p'.format(args.output_path, args.antenna_depth), 'wb') as f:
