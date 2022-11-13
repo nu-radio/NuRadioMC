@@ -379,8 +379,9 @@ class radiopropa_ray_tracing(ray_tracing_base):
         return launch_bundles
 
     def set_minimizer_tolerance(self, xtol=1e-3*units.deg, ztol=1e-3*units.meter):
+        ScaleZtol = 5
         self.__xtol = xtol
-        self.__ztol = ztol
+        self.__ztol = ztol*ScaleZtol
 
 
     def raytracer_hybrid_minimizer(self,n_reflections=0):
