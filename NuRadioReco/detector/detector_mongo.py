@@ -242,7 +242,7 @@ class Detector(object):
     #                                      {"$set": {"measurements.$[updateIndex].primary_measurement": False}},
     #                                      array_filters=[{"updateIndex.primary_measurement": True}])
 
-    def find_primary_measurement(self, type, name, primary_time, channel_id=None, breakout_id=None, breakout_channel_id=None):
+    def find_primary_measurement(self, type, name, primary_time, identification_label='name', channel_id=None, breakout_id=None, breakout_channel_id=None):
         """
                 find the object_id of entry with name 'name' and gives the measurement_id of the primary measurement, return the id of the object and the measurement
 
@@ -260,7 +260,7 @@ class Detector(object):
 
         # define search filter for the collection
         if breakout_channel_id is not None and breakout_id is not None:
-            filter_primary = [{'$match': {'name': name}},
+            filter_primary = [{'$match': {identification_label: name}},
                               {'$unwind': '$measurements'},
                               {'$unwind': '$measurements.primary_measurement'},
                               {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
@@ -268,14 +268,14 @@ class Detector(object):
                                           'measurements.breakout': breakout_id,
                                           'measurements.breakout_channel': breakout_channel_id}}]
         elif channel_id is not None:
-            filter_primary = [{'$match': {'name': name}},
+            filter_primary = [{'$match': {identification_label: name}},
                               {'$unwind': '$measurements'},
                               {'$unwind': '$measurements.primary_measurement'},
                               {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
                                           'measurements.primary_measurement.end': {'$gte': primary_time},
                                           'measurements.channel_id': channel_id}}]
         else:
-            filter_primary = [{'$match': {'name': name}},
+            filter_primary = [{'$match': {identification_label: name}},
                               {'$unwind': '$measurements'},
                               {'$unwind': '$measurements.primary_measurement'},
                               {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
@@ -313,7 +313,7 @@ class Detector(object):
             measurement_id = matching_entries[0]['measurements']['id_measurement']
             return object_id, [measurement_id]
 
-    def update_current_primary(self, type, name, channel_id=None, breakout_id=None, breakout_channel_id=None):
+    def update_current_primary(self, type, name, identification_label='name', channel_id=None, breakout_id=None, breakout_channel_id=None):
         """
         updates the status of primary_measurement, set the timestamp of the current primary measurement to end at datetime.utcnow()
 
@@ -330,7 +330,7 @@ class Detector(object):
         present_time = datetime.datetime.utcnow()
 
         # find the current primary measurement
-        obj_id, measurement_id = self.find_primary_measurement(type, name, present_time, channel_id=channel_id, breakout_id=breakout_id, breakout_channel_id=breakout_channel_id)
+        obj_id, measurement_id = self.find_primary_measurement(type, name, present_time, identification_label=identification_label, channel_id=channel_id, breakout_id=breakout_id, breakout_channel_id=breakout_channel_id)
 
         if obj_id is None and measurement_id[0] == 0:
             #  no primary measurement was found and thus there is no measurement to update
@@ -1012,7 +1012,7 @@ class Detector(object):
 
         self.__change_primary_object_measurement(board_type, board_name, search_filter, breakout_id=breakout_id, breakout_channel_id=breakout_cha_id)
 
-    # stations
+    # stations (general)
 
     def decommission_a_station(self, collection, station_id, decomm_time):
         """
@@ -1047,7 +1047,7 @@ class Detector(object):
                 # change the commission/decomission time
                 self.db[collection].update_one({'_id': object_id}, {'$set': {'decommission_time': decomm_time}})
 
-    def add_station(self, collection, station_id, station_name, position, station_comment, commission_time, decommission_time=datetime.datetime(2080, 1, 1)):
+    def add_general_station_info(self, collection, station_id, station_name, station_comment, commission_time, decommission_time=datetime.datetime(2080, 1, 1)):
         # check if an active station exist; if true, the active station will be decommissioned
         # filter to get all active stations with the correct id
         time = self.__current_time
@@ -1064,7 +1064,6 @@ class Detector(object):
         # insert the new station
         self.db[collection].insert_one({'id': station_id,
                                     'name': station_name,
-                                    'position': list(position),
                                     'commission_time': commission_time,
                                     'decommission_time': decommission_time,
                                     'station_comment': station_comment
@@ -1106,7 +1105,7 @@ class Detector(object):
                 self.db[collection].update_one({'_id': object_id}, {'$set': {'channels.$[updateIndex].decommission_time': decomm_time}},
                                                array_filters=[{"updateIndex.id": channel_id}])
 
-    def add_channel_to_station(self, collection, station_id, channel_id, signal_chain, ant_name, ant_ori_theta, ant_ori_phi, ant_rot_theta, ant_rot_phi, ant_position, channel_type, channel_comment, commission_time, decommission_time=datetime.datetime(2080, 1, 1)):
+    def add_general_channel_info_to_station(self, collection, station_id, channel_id, signal_chain, ant_name, channel_type, channel_comment, commission_time, decommission_time=datetime.datetime(2080, 1, 1)):
         # get the current active station
         # filter to get all active stations with the correct id
         time = self.__current_time
@@ -1139,11 +1138,6 @@ class Detector(object):
                                {"$push": {'channels': {
                                    'id': channel_id,
                                    'ant_name': ant_name,
-                                   'ant_position': list(ant_position),
-                                   'ant_ori_theta': ant_ori_theta,
-                                   'ant_ori_phi': ant_ori_phi,
-                                   'ant_rot_theta': ant_rot_theta,
-                                   'ant_rot_phi': ant_rot_phi,
                                    'type': channel_type,
                                    'commission_time': commission_time,
                                    'decommission_time': decommission_time,
@@ -1152,30 +1146,12 @@ class Detector(object):
                                    }}
                                })
 
-    def get_station_information(self, collection, station_id):
+    def get_general_station_information(self, collection, station_id):
         """ get information from one station """
 
         # if the collection is empty, return an empty dict
         if self.db[collection].count_documents({'id': station_id}) == 0:
             return {}
-
-        # # grouping dictionary is needed to undo the unwind
-        # grouping_dict = {"_id": "$_id", "channels": {"$push": "$channels"}}
-        # # add other keys that belong to a station
-        # for key in list(self.db[collection].find_one().keys()):
-        #     if key in grouping_dict:
-        #         continue
-        #     else:
-        #         grouping_dict[key] = {"$first": "${}".format(key)}
-        # print(grouping_dict)
-        # filter to get all information from one station with station_id and with akitve commission time
-        # time = self.__current_time
-        # time_filter = [{"$match": {
-        #     'commission_time': {"$lte": time},
-        #     'decommission_time': {"$gte": time},
-        #     'id': station_id}},
-        #     {"$unwind": '$channels'},
-        #     {"$group": grouping_dict}]
 
         # filter to get all information from one station with station_id and with akitve commission time
         time = self.__current_time
@@ -1193,6 +1169,225 @@ class Detector(object):
             station_info[station_id]['channels'] = {}
 
         return station_info
+
+    # stations (position)
+
+    def add_station_position(self, station_id, measurement_name, measurement_time, position, primary):
+        """
+        inserts a position measurement for a station into the database
+        If the station dosn't exist yet, it will be created.
+
+        Parameters
+        ---------
+        station_id: int
+            the unique identifier of the station
+        measurement_name: string
+            the unique name of the position measurement
+        measurement_time: string
+            the time when the measurement was conducted
+        position: list of floats
+            the measured position of the three strings
+        primary: bool
+            indicates if the measurement will be used as the primary measurement from now on
+        """
+        collection_name = 'station_position'
+        # close the time period of the old primary measurement
+        if primary and station_id in self.db[collection_name].distinct('id'):
+            self.update_current_primary(collection_name, station_id, identification_label='id')
+
+        # define the new primary measurement times
+        if primary:
+            primary_measurement_times = [{'start': datetime.datetime.utcnow(), 'end': datetime.datetime(2100, 1, 1, 0, 0, 0)}]
+        else:
+            primary_measurement_times = []
+
+        # update the entry with the measurement (if the entry doesn't exist it will be created)
+        self.db[collection_name].update_one({'id': station_id},
+                                      {'$push': {'measurements': {
+                                          'id_measurement': ObjectId(),
+                                          'measurement_name': measurement_name,
+                                          'last_updated': datetime.datetime.utcnow(),
+                                          'primary_measurement': primary_measurement_times,
+                                          'position': position,
+                                          'measurement_time': measurement_time
+                                      }}}, upsert=True)
+
+    def change_primary_station_measurement(self):
+        pass
+
+    def get_station_position_information(self, station_id, primary_time=None, measurement_name=None):
+        """
+        get the station position information
+        if the station does not exist, {} will be returned
+        default: primary_time = current time and no measurement_name
+
+        Parameters
+        ---------
+        station_id: int
+            the unique identifier of the station
+        primary_time: datetime.datetime
+            elements which are/were primary at this time are selected
+        measurement_name: string
+            the unique name of the position measurement
+
+        Returns
+        ---------
+        position_info
+        """
+        collection_name = 'station_position'
+        # if the collection is empty, return an empty dict
+        if self.db[collection_name].count_documents({'id': station_id}) == 0:
+            return {}
+
+        # define the search filter
+        if primary_time is not None and measurement_name is None:
+            search_filter = [{'$match': {'id': station_id}},
+                             {'$unwind': '$measurements'},
+                             {'$unwind': '$measurements.primary_measurement'},
+                             {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
+                                         'measurements.primary_measurement.end': {'$gte': primary_time}}}]
+        elif measurement_name is not None and primary_time is None:
+            search_filter = [{'$match': {'id': station_id}},
+                             {'$unwind': '$measurements'},
+                             {'$match': {'measurements.measurement_name': measurement_name}}]
+        elif measurement_name is not None and primary_time is not None:
+            search_filter = [{'$match': {'id': station_id}},
+                             {'$unwind': '$measurements'},
+                             {'$match': {'measurements.measurement_name': measurement_name}},
+                             {'$unwind': '$measurements.primary_measurement'},
+                             {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
+                                         'measurements.primary_measurement.end': {'$gte': primary_time}}}]
+        else:
+            # take the current time as primary time and do not specify measurement name
+            primary_time = datetime.datetime.utcnow()
+            search_filter = [{'$match': {'id': station_id}},
+                             {'$unwind': '$measurements'},
+                             {'$unwind': '$measurements.primary_measurement'},
+                             {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
+                                         'measurements.primary_measurement.end': {'$gte': primary_time}}}]
+        search_result = list(self.db[collection_name].aggregate(search_filter))
+
+        if search_result == []:
+            return search_result
+
+        # extract the measurement and object id
+        object_id = search_result[0]['_id']
+        measurement_id = search_result[0]['measurements']['id_measurement']
+
+        # extract the information using the object and measurements id
+        id_filter = [{'$match': {'_id': object_id}},
+                     {'$unwind': '$measurements'},
+                     {'$match': {'measurements.id_measurement': measurement_id}}]
+        position_info = list(self.db[collection_name].aggregate(id_filter))
+
+        return position_info
+
+    def get_quantity_names(self, collection_name, wanted_quantity):
+        """ returns a list with all measurement names, ids, ... or what is specified (example: wanted_quantity = measurements.measurement_name)"""
+        return self.db[collection_name].distinct(wanted_quantity)
+
+    # channels
+
+    def add_channel_position(self, station_id, channel_number, measurement_name, measurement_time, position, orientation, rotation, primary):
+        """
+        inserts a position measurement for a channel into the database
+        If the station dosn't exist yet, it will be created.
+
+        Parameters
+        ---------
+        station_id: int
+            the unique identifier of the station the channel belongs to
+        channel_number: int
+            unique identifier of the channel
+        measurement_name: string
+            the unique name of the position measurement
+        measurement_time: string
+            the time when the measurement was conducted
+        position: list of floats
+            the measured position of the channel
+        orientation: dict
+            orientation of the channel
+        rotation: dict
+            rotation of the channel
+        primary: bool
+            indicates if the measurement will be used as the primary measurement from now on
+        """
+        collection_name = 'channel_position'
+        # close the time period of the old primary measurement
+        if primary and station_id in self.db[collection_name].distinct('id'):
+            self.update_current_primary(collection_name, station_id, identification_label='id', channel_id=channel_number)
+
+        # define the new primary measurement times
+        if primary:
+            primary_measurement_times = [{'start': datetime.datetime.utcnow(), 'end': datetime.datetime(2100, 1, 1, 0, 0, 0)}]
+        else:
+            primary_measurement_times = []
+
+        # update the entry with the measurement (if the entry doesn't exist it will be created)
+        self.db[collection_name].update_one({'id': station_id},
+                                      {'$push': {'measurements': {
+                                          'id_measurement': ObjectId(),
+                                          'channel_id': channel_number,
+                                          'measurement_name': measurement_name,
+                                          'last_updated': datetime.datetime.utcnow(),
+                                          'primary_measurement': primary_measurement_times,
+                                          'position': position,
+                                          'rotation': rotation,
+                                          'orientation': orientation,
+                                          'measurement_time': measurement_time
+                                      }}}, upsert=True)
+
+    def change_primary_channel_measurement(self):
+        pass
+
+    def get_channel_position_information(self):
+        pass
+
+    def add_channel_signal_chain(self, station_id, channel_number, config_name, sig_chain, primary):
+        """
+        inserts a signal chain config for a channel into the database
+        If the station dosn't exist yet, it will be created.
+
+        Parameters
+        ---------
+        station_id: int
+            the unique identifier of the station the channel belongs to
+        channel_number: int
+            unique identifier of the channel
+        config_name: string
+            the unique name of the signal chain configuration
+        sig_chain: list of strings
+            list of strings describing the signal chain
+        primary: bool
+            indicates if the measurement will be used as the primary measurement from now on
+        """
+        collection_name = 'signal_chain'
+        # close the time period of the old primary measurement
+        if primary and station_id in self.db[collection_name].distinct('id'):
+            self.update_current_primary(collection_name, station_id, identification_label='id', channel_id=channel_number)
+
+        # define the new primary measurement times
+        if primary:
+            primary_measurement_times = [{'start': datetime.datetime.utcnow(), 'end': datetime.datetime(2100, 1, 1, 0, 0, 0)}]
+        else:
+            primary_measurement_times = []
+
+        # update the entry with the measurement (if the entry doesn't exist it will be created)
+        self.db[collection_name].update_one({'id': station_id},
+                                      {'$push': {'measurements': {
+                                          'id_measurement': ObjectId(),
+                                          'channel_id': channel_number,
+                                          'config_name': config_name,
+                                          'last_updated': datetime.datetime.utcnow(),
+                                          'primary_measurement': primary_measurement_times,
+                                          'sig_chain': sig_chain
+                                      }}}, upsert=True)
+
+    def change_primary_channel_signal_chain_configuration(self):
+        pass
+
+    def get_channel_signal_chain_information(self):
+        pass
 
     # other
 
