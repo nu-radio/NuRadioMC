@@ -65,8 +65,8 @@ class planeWaveFitterRNOG:
         if station.has_sim_station():
             for channel in station.iter_channels():
                 if channel.get_id() == 0:
-                    signal_zenith = channel[chp.signal_receiving_zenith]
-                    signal_azimuth = channel[chp.signal_receiving_azimuth]
+                    signal_zenith = channel[chp.signal_receiving_zeniths]
+                    signal_azimuth = channel[chp.signal_receiving_azimuths]
         else:
             signal_zenith = np.nan
             signal_azimuth = np.nan
