@@ -32,7 +32,7 @@ from scipy.optimize import fsolve
 from scipy.interpolate import RectBivariateSpline
 import h5py
 import time
-from NuRadioMC.simulation.simulation import pretty_time_delta
+from NuRadioMC.simulation.simulation_base import pretty_time_delta
 import os
 import math
 from numpy.random import Generator, Philox
