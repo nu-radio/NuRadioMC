@@ -236,6 +236,15 @@ class simulation_base:
 
             self._get_distance_cut = get_distance_cut
 
+        # initialize parameters to measure run times
+        self._input_time = 0.0
+        self._askaryan_time = 0.0
+        self._rayTracingTime = 0.0
+        self._detSimTime = 0.0
+        self._outputTime = 0.0
+        self._weightTime = 0.0
+        self._distance_cut_time = 0.0
+
     def _calculate_noise_rms(self):
         self._perform_dummy_detector_simulation()
         self._bandwidth = next(iter(next(iter(self._bandwidth_per_channel.values())).values()))

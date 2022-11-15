@@ -40,6 +40,7 @@ import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 import NuRadioMC.simulation.simulation_base
 import NuRadioMC.simulation.simulation_detector
+import NuRadioMC.simulation.simulation_emission
 
 STATUS = 31
 
@@ -57,7 +58,10 @@ assert isinstance(logger, NuRadioMC.simulation.simulation_base.NuRadioMCLogger)
 # logger.addHandler(ch)
 
 
-class simulation(NuRadioMC.simulation.simulation_detector.simulation_detector):
+class simulation(
+    NuRadioMC.simulation.simulation_detector.simulation_detector,
+    NuRadioMC.simulation.simulation_emission.simulation_emission
+):
 
 
 
@@ -98,13 +102,13 @@ class simulation(NuRadioMC.simulation.simulation_detector.simulation_detector):
         # Check if vertex_times exists:
         self._check_vertex_times()
 
-        input_time = 0.0
-        askaryan_time = 0.0
-        rayTracingTime = 0.0
-        detSimTime = 0.0
-        outputTime = 0.0
-        weightTime = 0.0
-        distance_cut_time = 0.0
+        self._input_time = 0.0
+        self._askaryan_time = 0.0
+        self._rayTracingTime = 0.0
+        self._detSimTime = 0.0
+        self._outputTime = 0.0
+        self._weightTime = 0.0
+        self._distance_cut_time = 0.0
 
         n_shower_station = len(self._station_ids) * self._n_showers
         iCounter = 0
@@ -157,7 +161,7 @@ class simulation(NuRadioMC.simulation.simulation_detector.simulation_detector):
                 # all entries for the event for this primary get the calculated primary's weight
                 self._mout['weights'][event_indices] = self.primary[simp.weight]
 
-            weightTime += time.time() - t1
+            self._weightTime += time.time() - t1
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
             if self._mout['weights'][self._primary_index] < self._cfg['speedup']['minimum_weight_cut']:
@@ -173,7 +177,7 @@ class simulation(NuRadioMC.simulation.simulation_detector.simulation_detector):
                                              np.array(self._fin['yy'])[event_indices],
                                              np.array(self._fin['zz'])[event_indices]]).T
                 vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
-                distance_cut_time += time.time() - t_tmp
+                self._distance_cut_time += time.time() - t_tmp
 
             triggered_showers = {}  # this variable tracks which showers triggered a particular station
 
@@ -190,10 +194,10 @@ class simulation(NuRadioMC.simulation.simulation_detector.simulation_detector):
                     distance_cut = self._get_distance_cut(np.sum(shower_energies)) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
                     if vertex_distances_to_station.min() > distance_cut:
                         logger.debug(f"skipping station {self._station_id} because minimal distance {vertex_distances_to_station.min()/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {self._station_barycenter[iSt]}")
-                        distance_cut_time += time.time() - t_tmp
+                        self._distance_cut_time += time.time() - t_tmp
                         iCounter += len(shower_energies)
                         continue
-                    distance_cut_time += time.time() - t_tmp
+                    self._distance_cut_time += time.time() - t_tmp
 
                 candidate_station = False
                 self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
@@ -223,7 +227,7 @@ class simulation(NuRadioMC.simulation.simulation_detector.simulation_detector):
                     if (time.time() - t_last_update) > 60 :
                         t_last_update = time.time()
                         eta = NuRadioMC.simulation.simulation_base.pretty_time_delta((time.time() - t_start) * (n_shower_station - iCounter) / iCounter)
-                        total_time_sum = input_time + rayTracingTime + detSimTime + outputTime + weightTime + distance_cut_time  # askaryan time is part of the ray tracing time, so it is not counted here.
+                        total_time_sum = self._input_time + self._rayTracingTime + self._detSimTime + self._outputTime + self._weightTime + self._distance_cut_time  # askaryan time is part of the ray tracing time, so it is not counted here.
                         total_time = time.time() - t_start
                         tmp_att = 0
                         if total_time > 0:
@@ -236,12 +240,12 @@ class simulation(NuRadioMC.simulation.simulation_detector.simulation_detector):
                                     np.sum(self._mout['triggered']),
                                     100. * iCounter / n_shower_station,
                                     eta,
-                                    100. * (rayTracingTime - askaryan_time) / total_time,
-                                    100. * askaryan_time / total_time,
-                                    100. * detSimTime / total_time,
-                                    100.*input_time / total_time,
-                                    100. * weightTime / total_time,
-                                    100 * distance_cut_time / total_time,
+                                    100. * (self._rayTracingTime - self._askaryan_time) / total_time,
+                                    100. * self._askaryan_time / total_time,
+                                    100. * self._detSimTime / total_time,
+                                    100. * self._input_time / total_time,
+                                    100. * self._weightTime / total_time,
+                                    100 * self._distance_cut_time / total_time,
                                     100 * (total_time - total_time_sum) / total_time))
 
                     self._read_input_shower_properties()
@@ -260,9 +264,9 @@ class simulation(NuRadioMC.simulation.simulation_detector.simulation_detector):
                         logger.debug(f"calculating distance cut. Current event has energy {self._fin['shower_energies'][self._shower_index]:.4g}, it is event number {iSh} and {np.sum(mask_shower_sum)} are within {self._cfg['speedup']['distance_cut_sum_length']/units.m:.1f}m -> {shower_energy_sum:.4g}")
                         if distance_to_station > distance_cut:
                             logger.debug(f"skipping station {self._station_id} because distance {distance_to_station/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {self._fin['shower_energies'][self._shower_index]:.2g}eV) between vertex {x1} and bary center of station {self._station_barycenter[iSt]}")
-                            distance_cut_time += time.time() - t_tmp
+                            self._distance_cut_time += time.time() - t_tmp
                             continue
-                        distance_cut_time += time.time() - t_tmp
+                        self._distance_cut_time += time.time() - t_tmp
 
                     # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
                     # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
@@ -300,7 +304,7 @@ class simulation(NuRadioMC.simulation.simulation_detector.simulation_detector):
 
                     # first step: perform raytracing to see if solution exists
                     t2 = time.time()
-#                     input_time += (time.time() - t1)
+#                     self._input_time += (time.time() - t1)
 
                     for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                         x2 = self._det.get_relative_position(self._station_id, channel_id) + self._det.get_absolute_position(self._station_id)
@@ -316,9 +320,9 @@ class simulation(NuRadioMC.simulation.simulation_detector.simulation_detector):
                                 logger.debug('Shower energy: {:.2e} eV'.format(self._fin['shower_energies'][self._shower_index] / units.eV))
                                 logger.debug('Distance cut: {:.2f} m'.format(distance_cut / units.m))
                                 logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
-                                distance_cut_time += time.time() - t_tmp
+                                self._distance_cut_time += time.time() - t_tmp
                                 continue
-                            distance_cut_time += time.time() - t_tmp
+                            self._distance_cut_time += time.time() - t_tmp
 
                         self._raytracer.set_start_and_end_point(x1, x2)
                         self._raytracer.use_optional_function('set_shower_axis', self._shower_axis)
@@ -381,139 +385,23 @@ class simulation(NuRadioMC.simulation.simulation_detector.simulation_detector):
                             receive_vector = self._raytracer.get_receive_vector(iS)
                             # save receive vector
                             sg['receive_vectors'][iSh, channel_id, iS] = receive_vector
-                            zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
 
                             # get neutrino pulse from Askaryan module
-                            t_ask = time.time()
 
-                            if "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] == "neutrino":
-                                # first consider in-ice showers
-                                kwargs = {}
-                                # if the input file specifies a specific shower realization, use that realization
-                                if self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"] and "shower_realization_ARZ" in self._fin:
-                                    kwargs['iN'] = self._fin['shower_realization_ARZ'][self._shower_index]
-                                    logger.debug(f"reusing shower {kwargs['iN']} ARZ shower library")
-                                elif self._cfg['signal']['model'] == "Alvarez2009" and "shower_realization_Alvarez2009" in self._fin:
-                                    kwargs['k_L'] = self._fin['shower_realization_Alvarez2009'][self._shower_index]
-                                    logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
-                                else:
-                                    # check if the shower was already simulated (e.g. for a different channel or ray tracing solution)
-                                    if self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]:
-                                        if self._sim_shower.has_parameter(shp.charge_excess_profile_id):
-                                            kwargs = {'iN': self._sim_shower.get_parameter(shp.charge_excess_profile_id)}
-                                    if self._cfg['signal']['model'] == "Alvarez2009":
-                                        if self._sim_shower.has_parameter(shp.k_L):
-                                            kwargs = {'k_L': self._sim_shower.get_parameter(shp.k_L)}
-                                            logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
-
-                                spectrum, additional_output = askaryan.get_frequency_spectrum(self._fin['shower_energies'][self._shower_index], viewing_angles[iS],
-                                                self._n_samples, self._dt, self._fin['shower_type'][self._shower_index], n_index, R,
-                                                self._cfg['signal']['model'], seed=self._cfg['seed'], full_output=True, **kwargs)
-                                # save shower realization to SimShower and hdf5 file
-                                if self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]:
-                                    if 'shower_realization_ARZ' not in self._mout:
-                                        self._mout['shower_realization_ARZ'] = np.zeros(self._n_showers)
-                                    if not self._sim_shower.has_parameter(shp.charge_excess_profile_id):
-                                        self._sim_shower.set_parameter(shp.charge_excess_profile_id, additional_output['iN'])
-                                        self._mout['shower_realization_ARZ'][self._shower_index] = additional_output['iN']
-                                        logger.debug(f"setting shower profile for ARZ shower library to i = {additional_output['iN']}")
-                                if self._cfg['signal']['model'] == "Alvarez2009":
-                                    if 'shower_realization_Alvarez2009' not in self._mout:
-                                        self._mout['shower_realization_Alvarez2009'] = np.zeros(self._n_showers)
-                                    if not self._sim_shower.has_parameter(shp.k_L):
-                                        self._sim_shower.set_parameter(shp.k_L, additional_output['k_L'])
-                                        self._mout['shower_realization_Alvarez2009'][self._shower_index] = additional_output['k_L']
-                                        logger.debug(f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
-                                askaryan_time += (time.time() - t_ask)
-
-                                polarization_direction_onsky = self._calculate_polarization_vector()
-                                cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*receive_vector))
-                                polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
-                                logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
-                                    zenith / units.deg, azimuth / units.deg, polarization_direction_onsky[0],
-                                    polarization_direction_onsky[1], polarization_direction_onsky[2],
-                                    *polarization_direction_at_antenna))
-                                sg['polarization'][iSh, channel_id, iS] = polarization_direction_at_antenna
-                                eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
-
-                            elif self._fin_attrs['simulation_mode'] == "emitter":
-                                # NuRadioMC also supports the simulation of emitters. In this case, the signal model specifies the electric field polarization
-                                amplitude = self._fin['emitter_amplitudes'][self._shower_index]
-                                # following two lines used only for few models( not for all)
-                                emitter_frequency = self._fin['emitter_frequency'][self._shower_index]  # the frequency of cw and tone_burst signal
-                                half_width = self._fin['emitter_half_width'][self._shower_index]  # defines width of square and tone_burst signals
-                                # get emitting antenna properties
-                                antenna_model = self._fin['emitter_antenna_type'][self._shower_index]
-                                antenna_pattern = self._antenna_pattern_provider.load_antenna_pattern(antenna_model)
-                                ori = [self._fin['emitter_orientation_theta'][self._shower_index], self._fin['emitter_orientation_phi'][self._shower_index],
-                                       self._fin['emitter_rotation_theta'][self._shower_index], self._fin['emitter_rotation_phi'][self._shower_index]]
-
-                                # source voltage given to the emitter
-                                voltage_spectrum_emitter = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
-                                                                                          self._fin['emitter_model'][self._shower_index], half_width=half_width, emitter_frequency=emitter_frequency)
-                                # convolve voltage output with antenna response to obtain emitted electric field
-                                frequencies = np.fft.rfftfreq(self._n_samples, d=self._dt)
-                                zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*self._launch_vector)
-                                VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
-                                c = constants.c * units.m / units.s
-                                eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
-                                ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
-                                eR = np.zeros_like(eTheta)
-                                # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
-                                eTheta *= 1 / R
-                                ePhi *= 1 / R
-                            else:
-                                logger.error(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
-                                raise AttributeError(f"simulation mode {self._fin_attrs['simulation_mode']} unknown.")
-
-                            if self._debug:
-                                from matplotlib import pyplot as plt
-                                fig, (ax, ax2) = plt.subplots(1, 2)
-                                ax.plot(self._ff, np.abs(eTheta) / units.micro / units.V * units.m)
-                                ax2.plot(self._tt, fft.freq2time(eTheta, 1. / self._dt) / units.micro / units.V * units.m)
-                                ax2.set_ylabel("amplitude [$\mu$V/m]")
-                                fig.tight_layout()
-                                fig.suptitle("$E_C$ = {:.1g}eV $\Delta \Omega$ = {:.1f}deg, R = {:.0f}m".format(
-                                    self._fin['shower_energies'][self._shower_index], viewing_angles[iS], R))
-                                fig.subplots_adjust(top=0.9)
-                                plt.show()
-
-                            electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id],
-                                                position=self._det.get_relative_position(self._sim_station.get_id(), channel_id),
-                                                shower_id=self._shower_ids[self._shower_index], ray_tracing_id=iS)
-                            if iS is None:
-                                a = 1 / 0
-                            electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / self._dt)
-                            electric_field = self._raytracer.apply_propagation_effects(electric_field, iS)
-                            # Trace start time is equal to the interaction time relative to the first
-                            # interaction plus the wave travel time.
-                            if hasattr(self, '_vertex_time'):
-                                trace_start_time = self._vertex_time + T
-                            else:
-                                trace_start_time = T
-
-                            # We shift the trace start time so that the trace time matches the propagation time.
-                            # The centre of the trace corresponds to the instant when the signal from the shower
-                            # vertex arrives at the observer. The next line makes sure that the centre time
-                            # of the trace is equal to vertex_time + T (wave propagation time)
-                            trace_start_time -= 0.5 * electric_field.get_number_of_samples() / electric_field.get_sampling_rate()
-
-                            electric_field.set_trace_start_time(trace_start_time)
-                            electric_field[efp.azimuth] = azimuth
-                            electric_field[efp.zenith] = zenith
-                            electric_field[efp.ray_path_type] = propagation.solution_types[self._raytracer.get_solution_type(iS)]
-                            electric_field[efp.nu_vertex_distance] = sg['travel_distances'][iSh, channel_id, iS]
-                            electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
-                            self._sim_station.add_electric_field(electric_field)
-
-                            # apply a simple threshold cut to speed up the simulation,
-                            # application of antenna response will just decrease the
-                            # signal amplitude
-                            if np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[self._station_id][channel_id]:
-                                candidate_station = True
+                            candidate_station, polarization_angle = self._simulate_radio_emission(
+                                channel_id,
+                                viewing_angles,
+                                iS,
+                                n_index,
+                                R,
+                                T,
+                                receive_vector,
+                                propagation.solution_types[self._raytracer.get_solution_type(iS)]
+                            )
+                            sg['polarization'][iSh, channel_id, iS] = polarization_angle
                         # end of ray tracing solutions loop
                     t3 = time.time()
-                    rayTracingTime += t3 - t2
+                    self._rayTracingTime += t3 - t2
                     # end of channels loop
                 # end of showers loop
                 # now perform first part of detector simulation -> convert each efield to voltage
@@ -643,7 +531,7 @@ class simulation(NuRadioMC.simulation.simulation_detector.simulation_detector):
                         else:
                             self._mout_groups[self._station_id][key].extend(sg[key])
 
-                detSimTime += time.time() - t1
+                self._detSimTime += time.time() - t1
 
             # end station loop
 
@@ -667,7 +555,7 @@ class simulation(NuRadioMC.simulation.simulation_detector.simulation_detector):
             logger.error("error in calculating effective volume")
 
         t_total = time.time() - t_start
-        outputTime = time.time() - t5
+        self._outputTime = time.time() - t5
 
         output_NuRadioRecoTime = "Timing of NuRadioReco modules \n"
         ts = []
@@ -682,12 +570,12 @@ class simulation(NuRadioMC.simulation.simulation_detector.simulation_detector):
 
         logger.status("{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}% askaryan, {:.1f}% detector simulation, {:.1f}% output, {:.1f}% weights calculation)".format(self._n_showers,
                                                                                          NuRadioMC.simulation.simulation_base.pretty_time_delta(t_total), 1.e3 * t_total / self._n_showers,
-                                                                                         100 * input_time / t_total,
-                                                                                         100 * (rayTracingTime - askaryan_time) / t_total,
-                                                                                         100 * askaryan_time / t_total,
-                                                                                         100 * detSimTime / t_total,
-                                                                                         100 * outputTime / t_total,
-                                                                                         100 * weightTime / t_total))
+                                                                                         100 * self._input_time / t_total,
+                                                                                         100 * (self._rayTracingTime - self._askaryan_time) / t_total,
+                                                                                         100 * self._askaryan_time / t_total,
+                                                                                         100 * self._detSimTime / t_total,
+                                                                                         100 * self._outputTime / t_total,
+                                                                                         100 * self._weightTime / t_total))
         triggered = remove_duplicate_triggers(self._mout['triggered'], self._fin['event_group_ids'])
         n_triggered = np.sum(triggered)
         return n_triggered
