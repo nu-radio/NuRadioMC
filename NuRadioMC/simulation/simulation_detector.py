@@ -7,7 +7,7 @@ import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.channelResampler
-
+from NuRadioReco.utilities import units
 class simulation_detector(NuRadioMC.simulation.simulation_base.simulation_base):
     def __init__(
             self,
