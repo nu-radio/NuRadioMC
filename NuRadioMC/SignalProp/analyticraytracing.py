@@ -556,7 +556,7 @@ class ray_tracing_2D(ray_tracing_base):
             self.__logger.debug(f"calculating attenuation for frequencies {freqs}")
             return freqs
 
-    def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq, reflection=0, reflection_case=1):
+    def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq, reflection=0, reflection_case=1, use_quad=True):
         tmp_attenuation = None
         output = f"calculating attenuation for n_ref = {int(reflection):d}: "
         for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
@@ -597,8 +597,21 @@ class ray_tracing_2D(ray_tracing_base):
                 points = None
                 if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
                     points = [z_turn]
-                tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(
-                    C_0, f), epsrel=1e-2, points=points)[0] for f in freqs])
+                if use_quad:
+                    tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(
+                        C_0, f), epsrel=1e-2, points=points)[0] for f in freqs])
+                else:
+                    tmp = np.zeros_like(freqs)
+                    ray_path = np.array(self.get_path(
+                        x1,
+                        x2_mirrored,
+                        C_0,
+                        200
+                    ))
+                    segment_length = np.sqrt(np.sum((ray_path[:, 1:] - ray_path[:, :-1])**2, axis=0))
+                    for i_f, f, in enumerate(freqs):
+                        for i_step, step_size in enumerate(segment_length):
+                            tmp[i_f] += step_size / attenuation_util.get_attenuation_length(ray_path[1, i_step] + .5 * step_size, f, self.attenuation_model)
                 tmp = np.exp(-1 * tmp)
         #         tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in frequency[mask]])
                 attenuation = np.ones_like(frequency)
