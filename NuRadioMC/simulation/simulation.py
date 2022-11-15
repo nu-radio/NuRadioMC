@@ -16,14 +16,6 @@ import copy
 import json
 from scipy import constants
 # import detector simulation modules
-import NuRadioReco.modules.io.eventWriter
-import NuRadioReco.modules.channelSignalReconstructor
-import NuRadioReco.modules.electricFieldResampler
-import NuRadioReco.modules.channelGenericNoiseAdder
-import NuRadioReco.modules.efieldToVoltageConverterPerEfield
-import NuRadioReco.modules.efieldToVoltageConverter
-import NuRadioReco.modules.channelAddCableDelay
-import NuRadioReco.modules.channelResampler
 import NuRadioReco.detector.detector as detector
 import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
@@ -47,6 +39,7 @@ import os
 import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 import NuRadioMC.simulation.simulation_base
+import NuRadioMC.simulation.simulation_detector
 
 STATUS = 31
 
@@ -64,7 +57,7 @@ assert isinstance(logger, NuRadioMC.simulation.simulation_base.NuRadioMCLogger)
 # logger.addHandler(ch)
 
 
-class simulation(NuRadioMC.simulation.simulation_base.simulation_base):
+class simulation(NuRadioMC.simulation.simulation_detector.simulation_detector):
 
 
 
@@ -81,18 +74,6 @@ class simulation(NuRadioMC.simulation.simulation_base.simulation_base):
         t_start = time.time()
         t_last_update = t_start
 
-        self._channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
-        self._eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-        efieldToVoltageConverterPerEfield = NuRadioReco.modules.efieldToVoltageConverterPerEfield.efieldToVoltageConverterPerEfield()
-        efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
-        efieldToVoltageConverter.begin(time_resolution=self._cfg['speedup']['time_res_efieldconverter'])
-        channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
-        channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-        channelGenericNoiseAdder.begin(seed=self._cfg['seed'])
-        channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
-        electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
-        if self._outputfilenameNuRadioReco is not None:
-            self._eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
         unique_event_group_ids = np.unique(self._fin['event_group_ids'])
         self._n_showers = len(self._fin['event_group_ids'])
         self._shower_ids = np.array(self._fin['shower_ids'])
@@ -545,14 +526,7 @@ class simulation(NuRadioMC.simulation.simulation_base.simulation_base):
                 self._station = NuRadioReco.framework.station.Station(self._station_id)
                 self._station.set_sim_station(self._sim_station)
 
-                # convert efields to voltages at digitizer
-                if hasattr(self, '_detector_simulation_part1'):
-                    # we give the user the opportunity to define a custom detector simulation
-                    self._detector_simulation_part1()
-                else:
-                    efieldToVoltageConverterPerEfield.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
-                    self._detector_simulation_filter_amp(self._evt, self._station.get_sim_station(), self._det)
-                    channelAddCableDelay.run(self._evt, self._sim_station, self._det)
+                self._simulate_sim_station_detector_response()
 
                 if self._cfg['speedup']['amp_per_ray_solution']:
                     self._channelSignalReconstructor.run(self._evt, self._station.get_sim_station(), self._det)
@@ -631,30 +605,7 @@ class simulation(NuRadioMC.simulation.simulation_base.simulation_base):
                         self._increase_signal(None, 0)
 
                     logger.debug("performing detector simulation")
-                    if hasattr(self, '_detector_simulation_part2'):
-                        # we give the user the opportunity to specify a custom detector simulation module sequence
-                        # which might be needed for certain analyses
-                        self._detector_simulation_part2()
-                    else:
-                        # start detector simulation
-                        efieldToVoltageConverter.run(self._evt, self._station, self._det)  # convolve efield with antenna pattern
-                        # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
-                        # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
-                        channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
-
-                        if self._is_simulate_noise():
-                            max_freq = 0.5 / self._dt
-                            channel_ids = self._det.get_channel_ids(self._station.get_id())
-                            Vrms = {}
-                            for channel_id in channel_ids:
-                                norm = self._bandwidth_per_channel[self._station.get_id()][channel_id]
-                                Vrms[channel_id] = self._Vrms_per_channel[self._station.get_id()][channel_id] / (norm / max_freq) ** 0.5  # normalize noise level to the bandwidth its generated for
-                            channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
-                                                         max_freq=max_freq, type='rayleigh', excluded_channels=self._noiseless_channels[station_id])
-
-                        self._detector_simulation_filter_amp(self._evt, self._station, self._det)
-
-                        self._detector_simulation_trigger(self._evt, self._station, self._det)
+                    self._simulate_detector_response()
                     if not self._station.has_triggered():
                         continue
 
@@ -667,9 +618,9 @@ class simulation(NuRadioMC.simulation.simulation_base.simulation_base):
                     self._save_triggers_to_hdf5(sg, local_shower_index, global_shower_indices)
                     if self._outputfilenameNuRadioReco is not None:
                         # downsample traces to detector sampling rate to save file size
-                        channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
-                        channelResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
-                        electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
+                        self._channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
+                        self._channelResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
+                        self._electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
 
                         output_mode = {'Channels': self._cfg['output']['channel_traces'],
                                        'ElectricFields': self._cfg['output']['electric_field_traces'],
