@@ -388,7 +388,7 @@ class simulation(
 
                             # get neutrino pulse from Askaryan module
 
-                            candidate_station, polarization_angle = self._simulate_radio_emission(
+                            candidate_ray, polarization_angle = self._simulate_radio_emission(
                                 channel_id,
                                 viewing_angles,
                                 iS,
@@ -398,6 +398,8 @@ class simulation(
                                 receive_vector,
                                 propagation.solution_types[self._raytracer.get_solution_type(iS)]
                             )
+                            if candidate_ray:
+                                candidate_station = True
                             sg['polarization'][iSh, channel_id, iS] = polarization_angle
                         # end of ray tracing solutions loop
                     t3 = time.time()
@@ -530,7 +532,7 @@ class simulation(
                             self._mout_groups[self._station_id][key] = list(sg[key])
                         else:
                             self._mout_groups[self._station_id][key].extend(sg[key])
-
+                # print(self._mout_groups[self._station_id]['travel_times'])
                 self._detSimTime += time.time() - t1
 
             # end station loop

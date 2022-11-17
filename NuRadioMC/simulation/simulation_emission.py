@@ -137,11 +137,16 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
             fig.subplots_adjust(top=0.9)
             plt.show()
 
-        electric_field = NuRadioReco.framework.electric_field.ElectricField([channel_id],
-                                                                            position=self._det.get_relative_position(
-                                                                                self._sim_station.get_id(), channel_id),
-                                                                            shower_id=self._shower_ids[
-                                                                                self._shower_index], ray_tracing_id=iS)
+        electric_field = NuRadioReco.framework.electric_field.ElectricField(
+            [channel_id],
+            position=self._det.get_relative_position(
+                self._sim_station.get_id(),
+                channel_id
+            ),
+            shower_id=self._shower_ids[
+                self._shower_index],
+            ray_tracing_id=iS
+        )
         if iS is None:
             a = 1 / 0
         electric_field.set_frequency_spectrum(np.array([eR, eTheta, ePhi]), 1. / self._dt)
@@ -170,7 +175,7 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
         # apply a simple threshold cut to speed up the simulation,
         # application of antenna response will just decrease the
         # signal amplitude
-        candidate_station =  np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * \
+        candidate_ray =  np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * \
                 self._Vrms_efield_per_channel[self._station_id][channel_id]
 
-        return candidate_station, polarization_direction_at_antenna
+        return candidate_ray, polarization_direction_at_antenna
