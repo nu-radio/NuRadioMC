@@ -1,6 +1,7 @@
 import NuRadioMC.simulation.simulation_base
 import NuRadioReco.framework.electric_field
 import NuRadioMC.SignalGen.askaryan
+import NuRadioMC.SignalGen.emitter
 import logging
 import numpy as np
 import time
@@ -8,7 +9,8 @@ import radiotools.coordinatesystems
 import radiotools.helper
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, fft
+import scipy.constants
 
 logger = logging.getLogger('NuRadioMC')
 
@@ -106,7 +108,7 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
                    self._fin['emitter_rotation_phi'][self._shower_index]]
 
             # source voltage given to the emitter
-            voltage_spectrum_emitter = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
+            voltage_spectrum_emitter = NuRadioMC.SignalGen.emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
                                                                       self._fin['emitter_model'][self._shower_index],
                                                                       half_width=half_width,
                                                                       emitter_frequency=emitter_frequency)
@@ -114,7 +116,7 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
             frequencies = np.fft.rfftfreq(self._n_samples, d=self._dt)
             zenith_emitter, azimuth_emitter =radiotools.helper.cartesian_to_spherical(*self._launch_vector)
             VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_emitter, azimuth_emitter, *ori)
-            c = constants.c * units.m / units.s
+            c = scipy.constants.c * units.m / units.s
             eTheta = VEL['theta'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
             ePhi = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * n_index / c
             eR = np.zeros_like(eTheta)
@@ -133,7 +135,7 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
             ax2.set_ylabel("amplitude [$\mu$V/m]")
             fig.tight_layout()
             fig.suptitle("$E_C$ = {:.1g}eV $\Delta \Omega$ = {:.1f}deg, R = {:.0f}m".format(
-                self._fin['shower_energies'][self._shower_index], viewing_angles[iS], R))
+                self._fin['shower_energies'][self._shower_index], viewing_angles[iS], distance))
             fig.subplots_adjust(top=0.9)
             plt.show()
 

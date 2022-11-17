@@ -3,7 +3,6 @@ import numpy as np
 from radiotools import helper as hp
 from radiotools import coordinatesystems as cstrans
 from NuRadioMC.SignalGen import askaryan
-from NuRadioMC.SignalGen import emitter
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import fft
