@@ -9,7 +9,7 @@ from NuRadioReco.framework.parameters import showerParameters as shp
 import matplotlib.pyplot as plt
 import pickle
 import NuRadioReco.utilities.io_utilities
-
+from NuRadioReco.utilities import units
 
 class distanceFitter:
     " Fits the direction using plane wave fit to channels "
@@ -51,7 +51,7 @@ class distanceFitter:
         """
 
         if station.has_sim_station():
-            for channel in station.get_channels_by_channel_id(self.__channel_ids[0]):
+            for channel in station.get_sim_station().get_channels_by_channel_id(self.__channel_ids[0]):
                 print("		channel id", channel.get_id())
                 shower_id = channel.get_shower_id()
 
@@ -72,13 +72,14 @@ class distanceFitter:
                 self.__relative_positions.append(relative_positions)
 
                 self.__channel_pairs.append([self.__channel_ids[i], self.__channel_ids[j]])
-        self.__lookup_table = {}
-        for channel_id in self.__channel_ids:
-            channel_z = abs(det.get_relative_position(station_id, channel_id)[2])
-            if channel_z not in self.__lookup_table.keys():
-                f = NuRadioReco.utilities.io_utilities.read_pickle('{}/lookup_table_{}.p'.format(self.__lookup_table_location, int(abs(channel_z))))
-                self.__header[int(channel_z)] = f['header']
-                self.__lookup_table[int(abs(channel_z))] = f['antenna_{}'.format(channel_z)]
+        if self.__lookup_table_location is not None:
+            self.__lookup_table = {}
+            for channel_id in self.__channel_ids:
+                channel_z = abs(det.get_relative_position(station_id, channel_id)[2])
+                if channel_z not in self.__lookup_table.keys():
+                    f = NuRadioReco.utilities.io_utilities.read_pickle('{}/lookup_table_{}.p'.format(self.__lookup_table_location, int(abs(channel_z))))
+                    self.__header[int(channel_z)] = f['header']
+                    self.__lookup_table[int(abs(channel_z))] = f['antenna_{}'.format(channel_z)]
 
         self.__sampling_rate = station.get_channel(0).get_sampling_rate()
 
@@ -128,7 +129,40 @@ class distanceFitter:
             return travel_times_1
 
 
-        def likelihood(vertex, sim = False, rec = False, minimize = True):
+        def f(x, popt):
+            return x*popt[0] + popt[1]
+
+
+        def likelihood(param, sim = False, rec = False, minimize = True):
+            zen, az, depth = param
+           # print("zenith...", zen)
+           # print("depth", depth)
+            if depth  >= 600:
+                popt = [0,0]
+            if (depth >= 500)&(depth < 600):
+                popt = [-0.05557555,  4.93865018]
+            if (depth < 500)&(depth >= 400):
+                popt = [-0.09456427, 8.18511759]
+            if (depth < 400)&(depth >= 300):
+                popt = [-0.15659163, 13.31646513]
+            if (depth < 300)&(depth >= 200):
+                popt = [-0.28464472, 23.55759437]
+            if (depth < 200):
+                popt = [-0.62995541, 49.91834848]
+        
+            offset = f(np.rad2deg(receive_zenith), popt)
+            zen = zen# - offset
+            cart = hp.spherical_to_cartesian(np.deg2rad(zen), np.deg2rad(az))
+            R = -1*depth/cart[2]
+            x1 = cart * R
+            vertex = x1
+            #print("depth {}, offset {}".format(depth, offset))
+            #print("sim: {}, zenith vertex rec...{}, offset {}".format(np.rad2deg(hp.cartesian_to_spherical(*evt.get_sim_shower(shower_id)[shp.vertex])[0]), np.rad2deg(hp.cartesian_to_spherical(*vertex)[0]), offset))
+            if (np.sqrt(x1[0]**2 + x1[1]**2 + x1[2]**2) > 4000):
+                if minimize:
+                    return np.inf
+             #   if not minimize:
+                    
 
             timings = np.zeros((len(self.__channel_ids), 3))
             solutiontype = np.zeros((len(self.__channel_ids), 2))
@@ -207,7 +241,10 @@ class distanceFitter:
             likelihood = corr
             if not minimize:
                 return corrs
-            return -1*likelihood
+            if corr > 0:
+                return -1*likelihood#/len(corrs)
+            else:
+                return 0
 
 
         trace = np.copy(station.get_channel(self.__channel_pairs[0][0]).get_trace())
@@ -236,85 +273,104 @@ class distanceFitter:
         zenith_vertex = zenith_vertex_pickle[np.argmin(abs(np.rad2deg(receive_pickle) - np.rad2deg(receive_zenith)))] ## deze aanpassen aan diepte #full distance inladen.
 
         if station.has_sim_station():
-            #print("	simulated corrs", likelihood(evt.get_sim_shower(shower_id)[shp.vertex], minimize = False))
-
-            print("	minimization value for simulated values:", likelihood(evt.get_sim_shower(shower_id)[shp.vertex], sim = True))
+            zen_sim, az_sim = hp.cartesian_to_spherical(*evt.get_sim_shower(shower_id)[shp.vertex])
+            depth_sim  = evt.get_sim_shower(shower_id)[shp.vertex][2] 
+            print("	minimization value for simulated values:", likelihood([zen_sim, az_sim, depth_sim], sim = True))
             print("	simulated vertex:", evt.get_sim_shower(shower_id)[shp.vertex])
             print("	azimuth angle of sim vertex:", np.rad2deg(hp.cartesian_to_spherical(*evt.get_sim_shower(shower_id)[shp.vertex])[1]))
             print("	zenith angle of sim vertex:", np.rad2deg(hp.cartesian_to_spherical(*evt.get_sim_shower(shower_id)[shp.vertex])[0]))
-
+            print("	zenith from pkl file:", zenith_vertex)
 
 
         print("		reconstructed planewave azimuth:", np.rad2deg(station[stnp.planewave_azimuth]))
         print("		reconstructed planewave zenith:", np.rad2deg(station[stnp.planewave_zenith]))
 
         print("		fixed depth", fixed_depth)
-        range_vertices = []
-        depths = np.arange(200, 2500, 10)#
-        if fixed_depth:
-            depths = [fixed_depth]
-        for depth in depths:
-            diff_tmp = np.inf
-            if depth > 400:
-                delta = .2
-                diff = 4
-                diff_az = 2
-            else:
-                diff = 10
-                delta = .2
+        
 
-            for zen in np.arange(zenith_vertex -diff, zenith_vertex + diff, delta):
-                azimuth_tmp = station[stnp.planewave_azimuth]
-                for az in np.arange(np.rad2deg(azimuth_tmp) - diff, np.rad2deg(azimuth_tmp) + diff, delta):
+        print("start minimization....")
+        delta_angle = 10
+        diff_angle = .2
+        diff_depth = 10
+        zen_start, zen_end = zenith_vertex - delta_angle, zenith_vertex + delta_angle 
+        az_start, az_end = np.rad2deg(station[stnp.planewave_azimuth]) - delta_angle, np.rad2deg(station[stnp.planewave_azimuth]) + delta_angle
+        depth_start = 200#200
+        depth_end = 2500
 
-                    cart = hp.spherical_to_cartesian(np.deg2rad(zen), np.deg2rad(az))
-                    R = -1*depth/cart[2]
-                    x1 = cart * R
-                    if (np.sqrt(x1[0]**2 + x1[1]**2 + x1[2]**2) < 4000):
-
-                        range_vertices.append(x1)
+        ll, fval, xgrid, fgrid = opt.brute(
+	likelihood, ranges=(
+               slice(zen_start, zen_end, diff_angle),
+               slice(az_start, az_end, diff_angle),
+	slice(depth_start, depth_end,diff_depth)
+           ) , full_output = True)#finish = opt.fmin,  full_output=True)       
 
 
 
- 	#### get for a series of depth the vertex position that corresopnds to receive zenith
 
-        likelihood_values = []
-        for vertex in range_vertices:
-        #        print("reconstruction for vertex", vertex)
-            likelihood_values.append(likelihood(vertex))
-        #if debug:
-           # fig1 =  plt.figure()
-           # ax1 = fig1.add_subplot(111)
-           # ax1.plot(np.array(range_vertices)[:,2], likelihood_values, 'o', markersize = 3, color = 'blue')
-            #ax1.plot(np.array(range_vertices)[:,2], likelihood_values, color = 'blue')
-           # ax1.set_xlabel("vertex z [m]")
-           # ax1.set_ylabel("minimization value")
-           # ax1.axvline(evt.get_sim_shower(shower_id)[shp.vertex][2], label = 'simulated', color = 'green')
-           # ax1.axvline(range_vertices[np.argmin(likelihood_values)][2], label = 'reconstructed depth', color = 'red')
-           # ax1.axhline(likelihood(evt.get_sim_shower(shower_id)[shp.vertex]), color = 'green')
-           # ax1.legend()
-           # fig1.tight_layout()
-           # fig1.savefig("{}/vertex_likelihood.pdf".format(debugplots_path))
+        if debug:
+            print("creating debug plot for vertex reconstruction....")
+            extent = (
+                zen_start,#xgrid[0,0,0, 0], #x0
+                zen_end,#xgrid[0,-1, 0,0], #x1
+                az_start,#xgrid[1,0,0,0], #y0
+                az_end#xgrid[1,0,0,-1], #y1
+            )
 
-        if 0:#debug:
-            fig1 =  plt.figure()
-            ax1 = fig1.add_subplot(111)
-            ax1.plot(np.array(range_vertices)[:,2], likelihood_values, 'o', markersize = 3, color = 'blue')
+            fig1 = plt.figure()
+            depths = np.arange(depth_start, depth_end, diff_depth)
+            mask1 = (xgrid[2] == depths[np.argmin(abs(ll[2]-depths))])
+            Lvalue = fgrid[mask1]#mask = np.ma.masked_where(xgrid[2] == ll[2], xgrid[1], copy=True)#(extent[2] == ll[2])
+            plt.imshow(Lvalue.reshape(len(np.arange(zen_start, zen_end,diff_angle)), len(np.arange(az_start, az_end, diff_angle))), aspect = 'auto',extent = extent,cmap = 'viridis', interpolation = 'nearest', vmax = 0)#, aspect='auto', origin='lower')
+            plt.xlabel(r"vertex zenith $[^{\circ}]$")
+            plt.ylabel(r"vertex azimuth $[^{\circ}]$")
+            plt.axhline(np.rad2deg(hp.cartesian_to_spherical(*evt.get_sim_shower(shower_id)[shp.vertex])[1]), color = 'orange')
+            plt.axvline(np.rad2deg(hp.cartesian_to_spherical(*evt.get_sim_shower(shower_id)[shp.vertex])[0]), color = 'orange', label = 'simulated values')
+            plt.axhline(ll[1], color = 'lightblue')
+            plt.axvline(ll[0], color = 'lightblue', label = 'reconstructed values')
+            cbar = plt.colorbar()
+            cbar.set_label('minimization value', rotation=270, labelpad = +20)
 
-            ax1.pcolor(xx, yy, zz)#ax1.plot(np.array(range_vertices)[:,2], likelihood_values, color = 'blue')
-            ax1.set_xlabel("vertex z [m]")
-            ax1.set_ylabel("minimization value")
-            ax1.axvline(evt.get_sim_shower(shower_id)[shp.vertex][2], label = 'simulated', color = 'green')
-            ax1.axvline(range_vertices[np.argmin(likelihood_values)][2], label = 'reconstructed depth', color = 'red')
-            ax1.axhline(likelihood(evt.get_sim_shower(shower_id)[shp.vertex], sim = True), color = 'green')
-            ax1.legend()
-            fig1.savefig("{}/vertex_map.pdf".format(debugplots))
+            plt.legend()
+            fig1.tight_layout()
 
-        station[stnp.nu_vertex] = range_vertices[np.argmin(likelihood_values)]
+            fig2 = plt.figure()
+            extent = (
+                zen_start, 
+                zen_end, 
+                -depth_end, 
+                -depth_start, 
+            )
+            azs = np.arange(az_start, az_end, diff_angle)
+            mask1 = (np.round(xgrid[1],3) == np.round(azs[np.argmin(abs(ll[1]-azs))],3))
+            Lvalue = fgrid[mask1]#mask = np.ma.masked_where(xgrid[2] == ll[2], xgrid[1], copy=True)#(extent[2] == ll[2])
+            plt.imshow(Lvalue.reshape(len(np.arange(zen_start, zen_end,diff_angle)), len(depths)), aspect = 'auto',extent = extent,cmap = 'viridis', interpolation = 'nearest', vmax = 0)#, aspect='auto', origin='lower')
+            plt.xlabel(r"vertex zenith $[^{\circ}]$")
+            plt.ylabel(r"depth [m]")
+            plt.axhline(evt.get_sim_shower(shower_id)[shp.vertex][2], color = 'orange')
+            plt.axvline(np.rad2deg(hp.cartesian_to_spherical(*evt.get_sim_shower(shower_id)[shp.vertex])[0]), color = 'orange', label = 'simulated values')
+            plt.axhline(-1*ll[2], color = 'lightblue')
+            plt.axvline(ll[0], color = 'lightblue', label = 'reconstructed values')
+            cbar = plt.colorbar()
+            cbar.set_label('minimization value', rotation=270, labelpad = +20)
+
+            plt.legend()
+            fig2.tight_layout()
+
+
+            if debugplots_path != None:
+                fig1.savefig("{}/vertex_map_zen_az.png".format(debugplots_path))          
+                fig2.savefig("{}/vertex_map_zen_depth.png".format(debugplots_path))   
+
+
+        zen, az, depth = ll
+        cart = hp.spherical_to_cartesian(np.deg2rad(zen), np.deg2rad(az))
+        R = -1*depth/cart[2]
+        station[stnp.nu_vertex] = cart * R
+
         print("		reconstructed vertex", station[stnp.nu_vertex])
-        print("		reconstructed value", likelihood(station[stnp.nu_vertex], rec = True))
-        #print("reconstructed corrs", likelihood(station[stnp.nu_vertex], minimize = False))
-        print("		len reconstructed corrs", len(likelihood(station[stnp.nu_vertex], minimize = False)))
+        print("		simulated vertex", evt.get_sim_shower(shower_id)[shp.vertex])
+        print("		reconstructed value", likelihood(ll, rec = True))
+        print("		len reconstructed corrs", len(likelihood(ll, minimize = False)))
 
     def end(self):
             pass

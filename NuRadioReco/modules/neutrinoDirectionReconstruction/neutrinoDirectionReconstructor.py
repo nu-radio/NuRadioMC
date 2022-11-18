@@ -350,7 +350,7 @@ class neutrinoDirectionReconstructor:
                 )
 
         elif restricted_input:
-            d_angle = 5
+            d_angle = 1
             zenith_start =  simulated_zenith - np.deg2rad(d_angle)
             zenith_end =simulated_zenith +  np.deg2rad(d_angle)
             azimuth_start =simulated_azimuth - np.deg2rad(d_angle)
@@ -926,6 +926,8 @@ class neutrinoDirectionReconstructor:
                                 if SNR > 3.5:
                                     echannel[i_trace] = 1
 
+                            # compute chi squared. We take the mean rather than the sum to avoid an unjustified preference
+                            # for traces which are only partially contained in the data window
                             chi2s[i_trace] = np.sum((rec_trace - data_trace_timing)**2 / ((Vrms)**2))
 
                             if (single_pulse):
