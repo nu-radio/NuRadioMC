@@ -736,10 +736,11 @@ class neutrinoDirectionReconstructor:
 
         #get timing and pulse position for raytype of triggered pulse
         solution_number = None
+        if sim or self._sim_vertex:
+            raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1
+        else:
+            raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
         for iS in raytypes[ch_Vpol]:
-            if sim or self._sim_vertex: raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1
-            if not sim and not self._sim_vertex: raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
-
             if raytypes[ch_Vpol][iS] == raytype:
                 solution_number = iS
         if solution_number is None:
