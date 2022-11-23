@@ -122,11 +122,17 @@ Station data
 ------------
 In addition, the HDF5 file contains a key for each station in the simulation.
 The station contains more detailed information for each event that triggered it:
+``n_events`` and ``n_shower`` refer to the number of events and showers that triggered the station.
+The ``event_group_id`` is the same as in the global dictionary. Therefore you can check for one event with
+an ``event_group_id`` which stations contain the same ``event_group_id`` and retrieve the information, which
+station triggered, with which amplitude, etc. The same approach works for ``shower_id``.
 
-* ``event_group_ids``: (``n_events``,)
+* ``event_group_ids``: (``n_events``)
+* ``event_group_id_per_shower'``: (``n_shower``)
   
   event group ids of the triggered events
-* ``event_ids``: (``n_events``,)
+* ``event_ids``: (``n_events``)
+* ``event_id_per_shower``: (``n_shower``)
   
   the event ids of each event. These are unique only within each separate event group,
   and start from 0.
