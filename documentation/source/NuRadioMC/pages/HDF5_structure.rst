@@ -24,7 +24,7 @@ NuRadioMC contains a convenience function to correctly merge these files -
 see :ref:`here <NuRadioMC/pages/Manuals/running_on_a_cluster:4. Merge individual hdf5 output files>` for instructions.
 
 What's behind the HDF5 files
---------------------
+----------------------------
 The hdf5 file is created in NuRadioMC/simulation/simulation.py A list of vertices with different arrival direction
 (zenith and azimuth) and energy is provided by the event generator. Starting from the vertex, several sub-showers are
 created along the track. These are not simulated, but the electric field per sub-shower is provided. Sub-showers that
@@ -39,7 +39,7 @@ the same ``event_id`` starting from 0.
     :width: 90%
 
 HDF5 file attributes
---------------------
+----------------------
 The top-level attributes can be accessed using ``f.attrs``. These contain:
 
 * ``Emax``, ``Emin``
