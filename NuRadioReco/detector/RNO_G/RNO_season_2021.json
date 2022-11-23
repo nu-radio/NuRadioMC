@@ -1383,7 +1383,7 @@
             "ant_orientation_phi": 0.0,
             "ant_orientation_theta": 0.0,
             "ant_position_x":  -51.46,
-            "ant_position_y": -29.4,
+            "ant_position_y": 29.4,
             "ant_position_z": -5.6,
             "ant_rotation_phi": 90.0,
             "ant_rotation_theta": 90.0,
