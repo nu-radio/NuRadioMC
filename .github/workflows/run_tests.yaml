@@ -1,11 +1,11 @@
 name: Unit tests
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
     - uses: actions/checkout@v2
@@ -32,7 +32,7 @@ jobs:
         python install_dev.py --install --no-interactive
         pip uninstall numba -y # easiest way to test ARZ without numba
         export PYTHONPATH=$(pwd):$PYTHONPATH
-        
+
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
     - name: Lint with flake8 (important)
@@ -108,7 +108,7 @@ jobs:
     - name: "Test webinar examples"
       if: always()
       run: |
-        export GSLDIR=$(gsl-config --prefix) 
+        export GSLDIR=$(gsl-config --prefix)
         export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/examples/test_webinar.sh
     - name: "Veff test"
@@ -124,7 +124,7 @@ jobs:
         export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/Veff/1e18eV/test_build_noise.sh
     - name: "Atmospheric Aeff test"
-      if: always() 
+      if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         export PYTHONPATH=$(pwd):$PYTHONPATH
