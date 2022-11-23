@@ -10,19 +10,19 @@ jobs:
     steps:
     - id: check
       run: |
-        export runtests=false
+        output='false'
         if [[ "${{ github.event_name }}" != pull_request ]]
         then
-          export runtests=true
+          runtests='true'
         elif [[ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.event.pull_request.base.repo.full_name }}" ]]
         then
-          export runtests=true
+          runtests='true'
         fi
         echo "runtests=${runtests}" >> $GITHUB_OUTPUT
 
   build:
     needs: [prepare]
-    if: ${{ needs.prepare.outputs.runtests }}
+    if: needs.prepare.outputs.runtests
     runs-on: ubuntu-20.04
 
     steps:
