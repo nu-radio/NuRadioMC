@@ -40,9 +40,50 @@ def build_station_selection(cont, collection_name):
 def load_station_position_info(station_id, primary_time, measurement_name):
     if measurement_name == 'not specified':
         measurement_name = None
-    return det.get_station_position_information(station_id, primary_time, measurement_name)
+    return det.get_collection_information('station_position', station_id, primary_time, measurement_name)
 
 
-def get_all_measurement_names():
+def load_channel_position_info(station_id, primary_time, measurement_name):
+    if measurement_name == 'not specified':
+        measurement_name = None
+    return det.get_collection_information('channel_position', station_id, primary_time, measurement_name)
+
+
+def load_signal_chain_information(station_id, primary_time, config_name):
+    if config_name == 'not specified':
+        return det.get_collection_information('signal_chain', station_id, primary_time, measurement_name=None)
+    elif config_name == 'built-in':
+        pass
+    else:
+        return det.get_collection_information('signal_chain', station_id, primary_time, config_name)
+
+
+def load_general_info(station_id):
+    collection_name = 'station_rnog'
+    det.update(datetime.now(), collection_name)
+    return det.get_general_station_information(collection_name, station_id)
+
+
+def get_all_station_measurement_names():
     return det.get_quantity_names('station_position', 'measurements.measurement_name')
 
+
+def get_all_channel_measurements_names():
+    return det.get_quantity_names('channel_position', 'measurements.measurement_name')
+
+
+def get_all_signal_chain_config_names():
+    return det.get_quantity_names('signal_chain', 'measurements.measurement_name')
+
+
+def build_channel_selection(cont, channel_dic):
+    # selection of the channel which will be displayed
+    error_cont = cont.container()
+    if channel_dic == {}:
+        error_cont.warning('No channels in the database.')
+        channel_list = ['']
+    else:
+        channel_list = list(channel_dic.keys())
+    selected_channel = cont.selectbox('Select a channel:', channel_list)
+
+    return selected_channel

@@ -1155,6 +1155,9 @@ class Detector(object):
 
         # filter to get all information from one station with station_id and with akitve commission time
         time = self.__current_time
+        if time is None:
+            logger.error('For the detector is no time set!')
+
         time_filter = [{"$match": {
             'commission_time': {"$lte": time},
             'decommission_time': {"$gte": time},
@@ -1215,72 +1218,112 @@ class Detector(object):
     def change_primary_station_measurement(self):
         pass
 
-    def get_station_position_information(self, station_id, primary_time=None, measurement_name=None):
+    def get_collection_information(self, collection_name, station_id, primary_time=None, measurement_name=None, channel_id=None):
         """
-        get the station position information
+        get the information for a specified collection (will only work for 'station_position', 'channel_position' and 'signal_chain')
         if the station does not exist, {} will be returned
         default: primary_time = current time and no measurement_name
 
         Parameters
         ---------
+        collection_name: string
+            specify the collection, from which the information should be extracted (will only work for 'station_position', 'channel_position' and 'signal_chain')
         station_id: int
             the unique identifier of the station
         primary_time: datetime.datetime
             elements which are/were primary at this time are selected
         measurement_name: string
-            the unique name of the position measurement
+            the unique name of the measurement
+        channel_id: int
+            unique identifier of the channel
 
         Returns
         ---------
-        position_info
+        info
         """
-        collection_name = 'station_position'
         # if the collection is empty, return an empty dict
         if self.db[collection_name].count_documents({'id': station_id}) == 0:
             return {}
 
         # define the search filter
-        if primary_time is not None and measurement_name is None:
-            search_filter = [{'$match': {'id': station_id}},
-                             {'$unwind': '$measurements'},
-                             {'$unwind': '$measurements.primary_measurement'},
-                             {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
-                                         'measurements.primary_measurement.end': {'$gte': primary_time}}}]
-        elif measurement_name is not None and primary_time is None:
-            search_filter = [{'$match': {'id': station_id}},
-                             {'$unwind': '$measurements'},
-                             {'$match': {'measurements.measurement_name': measurement_name}}]
-        elif measurement_name is not None and primary_time is not None:
-            search_filter = [{'$match': {'id': station_id}},
-                             {'$unwind': '$measurements'},
-                             {'$match': {'measurements.measurement_name': measurement_name}},
-                             {'$unwind': '$measurements.primary_measurement'},
-                             {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
-                                         'measurements.primary_measurement.end': {'$gte': primary_time}}}]
-        else:
-            # take the current time as primary time and do not specify measurement name
-            primary_time = datetime.datetime.utcnow()
-            search_filter = [{'$match': {'id': station_id}},
-                             {'$unwind': '$measurements'},
-                             {'$unwind': '$measurements.primary_measurement'},
-                             {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
-                                         'measurements.primary_measurement.end': {'$gte': primary_time}}}]
+        if primary_time is not None:
+            if measurement_name is None:
+                if channel_id is None:
+                    search_filter = [{'$match': {'id': station_id}},
+                                     {'$unwind': '$measurements'},
+                                     {'$unwind': '$measurements.primary_measurement'},
+                                     {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
+                                                 'measurements.primary_measurement.end': {'$gte': primary_time}}}]
+                else:  # channel_id is not None
+                    search_filter = [{'$match': {'id': station_id}},
+                                     {'$unwind': '$measurements'},
+                                     {'$match': {'measurements.channel_id': channel_id}},
+                                     {'$unwind': '$measurements.primary_measurement'},
+                                     {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
+                                                 'measurements.primary_measurement.end': {'$gte': primary_time}}}]
+            else:  # measurement_name is not None
+                if channel_id is None:
+                    search_filter = [{'$match': {'id': station_id}},
+                                     {'$unwind': '$measurements'},
+                                     {'$match': {'measurements.measurement_name': measurement_name}},
+                                     {'$unwind': '$measurements.primary_measurement'},
+                                     {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
+                                                 'measurements.primary_measurement.end': {'$gte': primary_time}}}]
+                else:  # channel_id is not None
+                    search_filter = [{'$match': {'id': station_id}},
+                                     {'$unwind': '$measurements'},
+                                     {'$match': {'measurements.measurement_name': measurement_name,
+                                                 'measurements.channel_id': channel_id}},
+                                     {'$unwind': '$measurements.primary_measurement'},
+                                     {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
+                                                 'measurements.primary_measurement.end': {'$gte': primary_time}}}]
+        else:  # primary time is None
+            if measurement_name is not None:
+                if channel_id is not None:
+                    search_filter = [{'$match': {'id': station_id}},
+                                     {'$unwind': '$measurements'},
+                                     {'$match': {'measurements.measurement_name': measurement_name,
+                                                 'measurements.channel_id': channel_id}}]
+                else:  # channel_id is None
+                    search_filter = [{'$match': {'id': station_id}},
+                                     {'$unwind': '$measurements'},
+                                     {'$match': {'measurements.measurement_name': measurement_name}}]
+            else:  # measurement_name is None
+                # take the current time as primary time and do not specify measurement name
+                primary_time = datetime.datetime.utcnow()
+                if channel_id is not None:
+                    search_filter = [{'$match': {'id': station_id}},
+                                     {'$unwind': '$measurements'},
+                                     {'$match': {'measurements.channel_id': channel_id}},
+                                     {'$unwind': '$measurements.primary_measurement'},
+                                     {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
+                                                 'measurements.primary_measurement.end': {'$gte': primary_time}}}]
+                else:  # channel_id is None
+                    search_filter = [{'$match': {'id': station_id}},
+                                     {'$unwind': '$measurements'},
+                                     {'$unwind': '$measurements.primary_measurement'},
+                                     {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
+                                                 'measurements.primary_measurement.end': {'$gte': primary_time}}}]
+
         search_result = list(self.db[collection_name].aggregate(search_filter))
 
         if search_result == []:
             return search_result
 
         # extract the measurement and object id
-        object_id = search_result[0]['_id']
-        measurement_id = search_result[0]['measurements']['id_measurement']
+        object_id = []
+        measurement_id = []
+        for dic in search_result:
+            object_id.append(dic['_id'])
+            measurement_id.append(dic['measurements']['id_measurement'])
 
         # extract the information using the object and measurements id
-        id_filter = [{'$match': {'_id': object_id}},
+        id_filter = [{'$match': {'_id': {'$in': object_id}}},
                      {'$unwind': '$measurements'},
-                     {'$match': {'measurements.id_measurement': measurement_id}}]
-        position_info = list(self.db[collection_name].aggregate(id_filter))
+                     {'$match': {'measurements.id_measurement': {'$in': measurement_id}}}]
+        info = list(self.db[collection_name].aggregate(id_filter))
 
-        return position_info
+        return info
 
     def get_quantity_names(self, collection_name, wanted_quantity):
         """ returns a list with all measurement names, ids, ... or what is specified (example: wanted_quantity = measurements.measurement_name)"""
@@ -1340,9 +1383,6 @@ class Detector(object):
     def change_primary_channel_measurement(self):
         pass
 
-    def get_channel_position_information(self):
-        pass
-
     def add_channel_signal_chain(self, station_id, channel_number, config_name, sig_chain, primary):
         """
         inserts a signal chain config for a channel into the database
@@ -1377,7 +1417,7 @@ class Detector(object):
                                       {'$push': {'measurements': {
                                           'id_measurement': ObjectId(),
                                           'channel_id': channel_number,
-                                          'config_name': config_name,
+                                          'measurement_name': config_name,
                                           'last_updated': datetime.datetime.utcnow(),
                                           'primary_measurement': primary_measurement_times,
                                           'sig_chain': sig_chain
@@ -1386,7 +1426,117 @@ class Detector(object):
     def change_primary_channel_signal_chain_configuration(self):
         pass
 
-    def get_channel_signal_chain_information(self):
+    def get_complete_station_information(self, station_id, primary_time=None, measurement_position=None, measurement_channel_position=None, measurement_signal_chain=None, measurement_device=None):
+        """
+        collects all available information about the station
+
+        Parameters
+        ---------
+        station_id: int
+            the unique identifier of the station the channel belongs to
+        primary_time: datetime.datetime
+            time used to check for the primary measurement
+            if None and no measurement name given: the current time
+        measurement_position: string
+            if given (and primary=None) the measurement will be collected (even though it is not the primary measurement)
+        measurement_channel_position: string
+            if given (and primary=None) the measurement will be collected (even though it is not the primary measurement)
+        measurement_signal_chain: string
+            if given (and primary=None) the measurement will be collected (even though it is not the primary measurement)
+        measurement_device: string
+            if given (and primary=None) the measurement will be collected (even though it is not the primary measurement)
+
+        Returns
+        -------
+        complete_info
+        """
+        complete_info = {}
+
+        # load general station information
+        general_info = self.get_general_station_information('station_rnog', station_id)
+
+        # load the station position, channel position, signal_chain and device_position information
+        if primary_time is None:
+            if measurement_position is None:
+                primary_time = datetime.datetime.utcnow()
+                station_position_information = self.get_collection_information('station_position', station_id, primary_time=primary_time)
+            else:  # measurement_position is not None
+                station_position_information = self.get_collection_information('station_position', station_id, primary_time=None, measurement_name=measurement_position)
+            if measurement_channel_position is None:
+                primary_time = datetime.datetime.utcnow()
+                channel_position_information = self.get_collection_information('channel_position', station_id, primary_time=primary_time)
+            else:
+                channel_position_information = self.get_collection_information('channel_position', station_id, primary_time=None, measurement_name=measurement_channel_position)
+            if measurement_signal_chain is None:
+                primary_time = datetime.datetime.utcnow()
+                signal_chain_information = self.get_collection_information('signal_chain', station_id, primary_time=primary_time)
+            else:
+                signal_chain_information = self.get_collection_information('signal_chain', station_id, primary_time=None, measurement_name=measurement_signal_chain)
+            if measurement_device is None:
+                primary_time = datetime.datetime.utcnow()
+                device_position_information = []
+            else:
+                device_position_information = []
+        else:  # primary_time is not None
+            station_position_information = self.get_collection_information('station_position', station_id, primary_time=primary_time)
+            channel_position_information = self.get_collection_information('channel_position', station_id, primary_time=primary_time)
+            signal_chain_information = self.get_collection_information('signal_chain', station_id, primary_time=primary_time)
+            device_position_information = []
+
+        # combine the station information
+        general_station_dic = {k: general_info[station_id][k] for k in set(list(general_info[station_id].keys())) - set(['channels'])}  # create dic with all entries except 'channels'
+        sta_pos_measurement_info = station_position_information[0]['measurements']
+        complete_info.update(general_station_dic)
+        complete_info['station_position'] = sta_pos_measurement_info
+
+        # combine channel information
+        general_channel_dic={}
+        exclude_keys = ['signal_ch', 'id']
+        for cha_key in general_info[station_id]['channels'].keys():
+            help_dic = general_info[station_id]['channels'][cha_key]
+            general_channel_dic[cha_key] = {k: help_dic[k] for k in set(list(help_dic.keys())) - set(exclude_keys)}
+
+        # get the channel position information in the correct format
+        channel_pos_dic = {}
+        for cha_pos_dic in channel_position_information:
+            channel_id = cha_pos_dic['measurements']['channel_id']
+            channel_pos_dic[channel_id] = {k: cha_pos_dic['measurements'][k] for k in set(list(cha_pos_dic['measurements'].keys())) - set(['channel_id'])}
+
+        # get the channel signal chain in the correct format
+        channel_sig_chain_dic = {}
+        for cha_sig_dic in signal_chain_information:
+            channel_id = cha_sig_dic['measurements']['channel_id']
+            channel_sig_chain_dic[channel_id] = {k: cha_sig_dic['measurements'][k] for k in set(list(cha_sig_dic['measurements'].keys())) - set(['channel_id'])}
+
+        # got through the signal chain and collect the corresponding measurements
+        # for cha_id in channel_sig_chain_dic.keys():
+        #     print(channel_sig_chain_dic[cha_id]['sig_chain'])
+        # TODO go through the signal chain and append the measurement (Sparameter for transmission)
+
+        for cha_id in general_channel_dic.keys():
+            if cha_id not in channel_pos_dic.keys():
+                general_channel_dic[cha_id]['channel_position'] = {}
+            else:
+                general_channel_dic[cha_id]['channel_position'] = channel_pos_dic[cha_id]
+            if cha_id not in channel_sig_chain_dic.keys():
+                general_channel_dic[cha_id]['channel_signal_chain'] = {}
+            else:
+                general_channel_dic[cha_id]['channel_signal_chain'] = channel_sig_chain_dic[cha_id]
+
+        complete_info['channels'] = general_channel_dic
+        complete_info['devices'] = {}
+
+        return complete_info
+
+    def get_complete_channel_information(self):
+        pass
+
+
+    # devices (pulser, DAQ, windturbine, solar panels)
+    # TODO: store the position information of these devices in a separate collection
+    # TODO: make them readable by readout collection inofrmation
+
+    def add_position_device_information(self):
         pass
 
     # other

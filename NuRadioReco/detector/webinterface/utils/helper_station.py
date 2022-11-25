@@ -254,15 +254,15 @@ def input_channel_information(cont, station_id, coll_name, station_info):
     cont.markdown('Signal chain:')
 
     # get the signal chain from the db
-    if channel_info != {}:
-        db_signal_chain = channel_info['signal_ch']
-    else:
-        db_signal_chain = []
+    # if channel_info != {}:
+    #     db_signal_chain = channel_info['signal_ch']
+    # else:
+    #     db_signal_chain = []
 
     signal_chain_cont = cont.container()
     signal_chain = []
     signal_chain_cont.empty()
-    signal_chain = build_individual_container(signal_chain_cont, selected_channel, db_signal_chain)
+    signal_chain = build_individual_container(signal_chain_cont, selected_channel)
 
     # plain text input -> a comment about the channel can be given to be saved in the database
     cont.markdown('Comments:')
@@ -337,13 +337,17 @@ def insert_general_station_info_to_db(station_id, collection_name, station_name,
 
 def insert_general_channel_info_to_db(station_id, collection_name, channel_id, signal_chain, ant_name, channel_type, channel_comment, commission_time, decommission_time):
     # convert the signal chain to the correct format
-    converted_signal_chain = []
-    for i in range(int(len(signal_chain)/2)):
-        print(signal_chain)
-        converted_signal_chain.append({'type': signal_chain[2*i], 'uname': signal_chain[2*i + 1]})
-
-    # the check if the channel already exists happens in add_channel_to_station
-    det.add_general_channel_info_to_station(collection_name, station_id, channel_id, converted_signal_chain, ant_name, channel_type, channel_comment, commission_time, decommission_time)
+    # converted_signal_chain = []
+    # # for i in range(int(len(signal_chain)/2)):
+    # #     print(signal_chain)
+    # #     converted_signal_chain.append({'type': signal_chain[2*i], 'uname': signal_chain[2*i + 1]})
+    # print(signal_chain)
+    # for key in signal_chain:
+    #     converted_signal_chain.append({'type': key, 'uname': signal_chain[key]})
+    #
+    # # the check if the channel already exists happens in add_channel_to_station
+    # det.add_general_channel_info_to_station(collection_name, station_id, channel_id, converted_signal_chain, ant_name, channel_type, channel_comment, commission_time, decommission_time)
+    det.add_general_channel_info_to_station(collection_name, station_id, channel_id, signal_chain, ant_name, channel_type, channel_comment, commission_time, decommission_time)
 
 
 def insert_channel_position_to_db(station_id, channel_id, measurement_name, measurement_time, position, orientation, rotation, primary):
