@@ -89,7 +89,8 @@ class simulation():
 			ch_Vpol = None,
 			passband = [96 * units.MHz, 1000 * units.MHz],
 			ice_model="greenland_simple", att_model = 'GL1',
-			propagation_module="analytic", propagation_config=None):
+			propagation_module="analytic", propagation_config=None,
+			shift_for_xmax=False):
 		""" initialize filter and amplifier """
 		self._ch_Vpol = ch_Vpol
 		sim_to_data = True
@@ -103,6 +104,7 @@ class simulation():
 		self._ice_model = medium.get_ice_model(ice_model)
 		self._prop = propagation.get_propagation_module(propagation_module)
 		self._prop_config = propagation_config
+		self._shift_for_xmax = shift_for_xmax
 
         #### define bandpass filters and amplifier response
 		self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
@@ -263,10 +265,11 @@ class simulation():
 					spectrum= fft.time2freq(spectrum, 1/self._dt)
 
 				else:
-
-
-					xmax = self._xmax(energy)
-					theta_prime = self._theta_to_thetaprime (viewing_angle, xmax, raytracing[channel_id][iS]["trajectory length"])
+					if self._shift_for_xmax:
+						xmax = self._xmax(energy)
+						theta_prime = self._theta_to_thetaprime (viewing_angle, xmax, raytracing[channel_id][iS]["trajectory length"])
+					else:
+						theta_prime = viewing_angle
 					spectrum = signalgen.get_frequency_spectrum(
 						energy , theta_prime, self._n_samples,
 						self._dt, "HAD", n_index,
