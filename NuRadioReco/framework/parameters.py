@@ -28,7 +28,7 @@ class stationParameters(Enum):
     cr_xmax = 28  # Depth of shower maximum of the air shower
     vertex_2D_fit = 29  # horizontal distance and z coordinate of the reconstructed vertex of the neutrino
     distance_correlations = 30
-    shower_energy = 31 # the energy of the shower 
+    shower_energy = 31 # the energy of the shower
     viewing_angles = 32 # reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float
     vertex_search_path = 33
     raytype = 34
@@ -48,6 +48,7 @@ class stationParameters(Enum):
     raytype_sim = 48
     pulse_position_sim = 49
     vertex_correlation_sums = 50 # (fit, simulated, max pairwise, max DNR correlation) for the vertex reconstruction
+    direction_fit_pulses = 51 # a dictionary that specifies for each channel which pulses were used in the fit.
 
 class channelParameters(Enum):
     zenith = 1  # zenith angle of the incoming signal direction
