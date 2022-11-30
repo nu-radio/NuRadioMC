@@ -29,7 +29,7 @@ class distanceFitter:
         pass
 
 
-    def run(self, evt, station, det, debug = True, debugplots_path = None, fixed_depth = None, method = 'raytracing' ):
+    def run(self, evt, station, det, debug = True, icemodel = 'greenland_simple', debugplots_path = None, fixed_depth = None, method = 'raytracing' ):
 
         """
         Reconstruct the vertex position of the neutrino
@@ -59,7 +59,10 @@ class distanceFitter:
         receive_pickle, launch_pickle, solution_pickle, zenith_vertex_pickle = NuRadioReco.utilities.io_utilities.read_pickle(
             self.__zenith_table_path)
 
-        ice = medium.get_ice_model('greenland_simple')
+        if isinstance(icemodel, str):
+            ice = medium.get_ice_model(icemodel)
+        else:
+            ice = icemodel
         prop = propagation.get_propagation_module('analytic')
 
         self.__channel_pairs = []

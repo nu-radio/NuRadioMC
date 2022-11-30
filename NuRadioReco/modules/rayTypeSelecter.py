@@ -50,9 +50,12 @@ class rayTypeSelecter:
         debug_plots: Boolean
             Default = True.
         """
-            
         
-        ice = medium.get_ice_model(icemodel)
+        if isinstance(icemodel, str):
+            ice = medium.get_ice_model(icemodel)
+        else:
+            ice = icemodel
+
         prop = propagation.get_propagation_module(raytracing_method)
         sampling_rate = station.get_channel(0).get_sampling_rate() ## assume same for all channels
         station_id = station.get_id()
