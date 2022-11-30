@@ -198,7 +198,7 @@ class neutrinoDirectionReconstructor:
         if isinstance(self._ice_model, str):
             ice = medium.get_ice_model(self._ice_model)
         else:
-            ice = icemodel
+            ice = self._ice_model
         self._cherenkov_angle = np.arccos(1 / ice.get_index_of_refraction(reconstructed_vertex))
 
         if self._station.has_sim_station():
