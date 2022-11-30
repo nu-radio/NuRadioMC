@@ -102,7 +102,7 @@ class neutrinoDirectionReconstructor:
             full_station = True, brute_force = True,
             restricted_input = False, starting_values = False,
             debugplots_path = None, PA_cluster_channels = [0,1,2,3, 7,8],
-            Hpol_channels = [7,8], single_pulse_fit = False,
+            Hpol_channels = [7,8], single_pulse_fit = False, systematics = None
             ):
 
         """
@@ -153,6 +153,10 @@ class neutrinoDirectionReconstructor:
         PA_cluster_channels:
         single_pulse_fit: Boolean
             if True, the viewing angle and energy are fitted with a PA Vpol and the polarization is fitted using an Hpol. Default single_pulse_fit = False.
+        systematcs: dict
+            if dictionary is given, sytematic uncertainties are added to the VEL. Default = None. 
+            dict = {"antenna response": {"gain": array with len(use_channels) (factor to mulitply VEL with), 
+                                         "phase": array with shift in frequency in MHz, array of len(use_channels) }} 
         """
 
         station.set_is_neutrino()
@@ -191,7 +195,10 @@ class neutrinoDirectionReconstructor:
 
             print("reconstructed vertex direction reco", reconstructed_vertex)
         self._vertex_azimuth = np.arctan2(reconstructed_vertex[1], reconstructed_vertex[0])
-        ice = medium.get_ice_model(self._ice_model)
+        if isinstance(self._ice_model, str):
+            ice = medium.get_ice_model(self._ice_model)
+        else:
+            ice = icemodel
         self._cherenkov_angle = np.arccos(1 / ice.get_index_of_refraction(reconstructed_vertex))
 
         if self._station.has_sim_station():
@@ -215,7 +222,7 @@ class neutrinoDirectionReconstructor:
                 det, station, use_channels, raytypesolution = rt,
                 ch_Vpol = ch_Vpol,
                 ice_model=self._ice_model, att_model=self._att_model,
-                passband=self._passband, propagation_config=self._prop_config)
+                passband=self._passband, propagation_config=self._prop_config, systematics = systematics)
             tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(
                 det, station, event.get_sim_shower(shower_id)[shp.vertex][0],
                 event.get_sim_shower(shower_id)[shp.vertex][1],
@@ -270,8 +277,8 @@ class neutrinoDirectionReconstructor:
             det, station, use_channels, raytypesolution = rt,
             ch_Vpol = ch_Vpol,
             ice_model=self._ice_model, att_model=self._att_model,
-            passband=self._passband, propagation_config=self._prop_config
-            )
+            passband=self._passband, propagation_config=self._prop_config,
+            systematics = systematics)
         self._simulation = simulation
         if station.has_sim_station():
 
