@@ -36,7 +36,7 @@ The ``shower_id`` is unique for every shower. Shower which interfere constructiv
 the same ``event_id`` starting from 0.
 
   .. image:: event_sketch.png
-    :width: 90%
+    :width: 70%
 
 HDF5 structure
 --------------
@@ -47,7 +47,7 @@ The HDF5 files can be thought of as a structured dictionary:
 - Finally, the ``station_<station_id>`` key contains slightly more detailed information (triggers, propagation times, amplitudes...) at the level of individual channels :ref:`for each station <NuRadioMC/pages/HDF5_structure:Station data>`.
 
 HDF5 file attributes
-----------------------
+____________________
 
 The top-level attributes can be accessed using ``f.attrs``. These contain:
 
