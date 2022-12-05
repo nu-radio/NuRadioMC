@@ -196,14 +196,14 @@ class IceModelSimple(IceModel):
 
         Parameters
         ----------
-        position:  1D or 2D numpy array
+        position:  1D (3,) or 2D (n,3) numpy array
                     Either one position or an array
                     of positions for which the indices
                     of refraction are returned
 
         Returns
         -------
-        n:  float
+        n:  float or 1D numpy array (n,)
             index of refraction
         """
         if isinstance(position, list) or position.ndim == 1:
@@ -223,14 +223,18 @@ class IceModelSimple(IceModel):
 
         Parameters
         ----------
-        position1: 3dim np.array
-                    point
-        position2: 3dim np.array
-                    point
+        position1: 1D (3,) or 2D (n,3) numpy array
+                    Either one position or an array
+                    of positions for which the indices
+                    of average refraction are returned
+        position2: 1D (3,) or 2D (n,3) numpy array
+                    Either one position or an array
+                    of positions for which the indices
+                    of average refraction are returned
 
         Returns
         -------
-        n_average:  float
+        n_average:  float of 1D numpy array (n,)
                     averaged index of refraction between the two points
         """
 
@@ -264,12 +268,14 @@ class IceModelSimple(IceModel):
 
         Parameters
         ----------
-        position: 3dim np.array
-                    point
+        position: 1D or 2D numpy array
+                    Either one position or an array
+                    of positions for which the gradient
+                    of index of refraction is returned
 
         Returns
         -------
-        n_nabla:    (3,) np.array
+        n_nabla:    1D (3,) or 2D (n,3) numpy array 
                     gradient of index of refraction at the point
         """
         def gradient_z(z):
