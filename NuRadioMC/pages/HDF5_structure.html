@@ -363,6 +363,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="welcome_page.html">NuRadioMC Documentation</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">HDF5 output structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#opening-the-hdf5-file">Opening the HDF5 file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#what-s-behind-the-hdf5-files">What’s behind the HDF5 files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#hdf5-structure">HDF5 structure</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#hdf5-file-attributes">HDF5 file attributes</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#hdf5-file-contents">HDF5 file contents</a></li>
@@ -576,6 +577,20 @@ This page outlines the structure of the HDF5 files.</p>
 NuRadioMC contains a convenience function to correctly merge these files -
 see <a class="reference internal" href="Manuals/running_on_a_cluster.html#merge-individual-hdf5-output-files"><span class="std std-ref">here</span></a> for instructions.</p>
 </section>
+<section id="what-s-behind-the-hdf5-files">
+<h2>What’s behind the HDF5 files<a class="headerlink" href="#what-s-behind-the-hdf5-files" title="Permalink to this heading"></a></h2>
+<p>The hdf5 file is created in NuRadioMC/simulation/simulation.py A list of vertices with different arrival direction
+(zenith and azimuth) and energy is provided by the event generator. Starting from the vertex, several sub-showers are
+created along the track. These are not simulated, but the electric field per sub-shower is provided. Sub-showers that
+happen within a certain time interval arrive at the antenna simultaneous and interfere constructively, therefore,
+they are summed up.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">event_group_id</span></code> is the same for all showers that follow the same first interaction.
+The <code class="docutils literal notranslate"><span class="pre">shower_id</span></code> is unique for every shower. Shower which interfere constructively are combined into one event and have
+the same <code class="docutils literal notranslate"><span class="pre">event_id</span></code> starting from 0.</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../../_images/event_sketch.png"><img alt="../../_images/event_sketch.png" src="../../_images/event_sketch.png" style="width: 70%;" /></a>
+</div></blockquote>
+</section>
 <section id="hdf5-structure">
 <h2>HDF5 structure<a class="headerlink" href="#hdf5-structure" title="Permalink to this heading"></a></h2>
 <p>The HDF5 files can be thought of as a structured dictionary:</p>
@@ -669,12 +684,18 @@ was used for signal generation).</p>
 <section id="station-data">
 <h3>Station data<a class="headerlink" href="#station-data" title="Permalink to this heading"></a></h3>
 <p>In addition, the HDF5 file contains a key for each station in the simulation.
-The station contains more detailed information for each event that triggered it:</p>
+The station contains more detailed information for each event that triggered it:
+<code class="docutils literal notranslate"><span class="pre">n_events</span></code> and <code class="docutils literal notranslate"><span class="pre">n_shower</span></code> refer to the number of events and showers that triggered the station.
+The <code class="docutils literal notranslate"><span class="pre">event_group_id</span></code> is the same as in the global dictionary. Therefore you can check for one event with
+an <code class="docutils literal notranslate"><span class="pre">event_group_id</span></code> which stations contain the same <code class="docutils literal notranslate"><span class="pre">event_group_id</span></code> and retrieve the information, which
+station triggered, with which amplitude, etc. The same approach works for <code class="docutils literal notranslate"><span class="pre">shower_id</span></code>.</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">event_group_ids</span></code>: (<code class="docutils literal notranslate"><span class="pre">n_events</span></code>,)</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">event_group_ids</span></code>: (<code class="docutils literal notranslate"><span class="pre">n_events</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">event_group_id_per_shower'</span></code>: (<code class="docutils literal notranslate"><span class="pre">n_shower</span></code>)</p>
 <p>event group ids of the triggered events</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">event_ids</span></code>: (<code class="docutils literal notranslate"><span class="pre">n_events</span></code>,)</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">event_ids</span></code>: (<code class="docutils literal notranslate"><span class="pre">n_events</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">event_id_per_shower</span></code>: (<code class="docutils literal notranslate"><span class="pre">n_shower</span></code>)</p>
 <p>the event ids of each event. These are unique only within each separate event group,
 and start from 0.</p>
 </li>
