@@ -283,7 +283,7 @@ class IceModelSimple(IceModel):
 
         if (isinstance(position, list) or position.ndim == 1):
             gradient = np.array([0,0,0])
-            if (position1[2] - self.z_air_boundary) <= 0:
+            if (position[2] - self.z_air_boundary) <= 0:
                 gradient[2] = gradient_z(position[2])
         else:
             gradient = gradient_z(position[:,2])
