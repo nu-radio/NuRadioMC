@@ -15,7 +15,7 @@ page_name = 'station'
 collection_name = 'station_rnog'
 
 
-def insert_channel_info(warning_cont, info_cont, selected_station_id, selected_channel, config_name, sig_chain, primary):
+def insert_channel_info(warning_cont, info_cont, selected_station_id, selected_channel, config_name, sig_chain, primary, primary_components):
     if st.session_state.insert_channel:
         # TODO:
         # station_info = load_station_infos(selected_station_id, collection_name)
@@ -29,7 +29,7 @@ def insert_channel_info(warning_cont, info_cont, selected_station_id, selected_c
                 yes_button = col_b1.button('YES')
                 no_button = col_b2.button('NO')
                 if yes_button:
-                    insert_signal_chain_to_db(selected_station_id, selected_channel, config_name, sig_chain, primary)
+                    insert_signal_chain_to_db(selected_station_id, selected_channel, config_name, sig_chain, primary, primary_components)
                     st.session_state.insert_channel = False
                     st.session_state.channel_success = True
                     st.experimental_rerun()
@@ -40,7 +40,7 @@ def insert_channel_info(warning_cont, info_cont, selected_station_id, selected_c
                     st.experimental_rerun()
         else:
             # information will be inserted into the database, without requiring any action
-            insert_signal_chain_to_db(selected_station_id, selected_channel, config_name, sig_chain, primary)
+            insert_signal_chain_to_db(selected_station_id, selected_channel, config_name, sig_chain, primary, primary_components)
             st.session_state.insert_channel = False
             st.session_state.channel_success = True
 
@@ -76,8 +76,9 @@ def validate_inputs(container_bottom, station_name, config_name, channel, signal
     # validate the signal chain
     validate_help = True
     for key in signal_chain:
-        if signal_chain[key] == 'Choose a name' or signal_chain[key] == 'not existing yet':
+        if signal_chain[key] == 'Choose a name' or signal_chain[key] == 'not existing yet' or signal_chain[key] == 'Select an option':
             validate_help = False
+
     if validate_help:
         signal_chain_check = True
     else:
@@ -180,9 +181,51 @@ def build_main_page(main_cont):
     if type_signal_chain == 'individual components':
         signal_chain_cont.empty()
         signal_chain = build_individual_container(signal_chain_cont, selected_channel)
+        main_cont.markdown('Select an primary time for each measured component (a selected time before 2018/01/01, will be saved as None.):')
+        if selected_channel in [12,13,14,15,16,17,18,19,20]:
+            col1_pri, col2_pri = main_cont.columns([1, 1])
+            primary_surface_board = col1_pri.date_input('surface board', label_visibility='collapsed')
+            primary_surface_board_time = col1_pri.time_input('surface_board time', label_visibility='collapsed')
+            primary_surface_board = datetime.combine(primary_surface_board, primary_surface_board_time)
+            if primary_surface_board < datetime(2018, 1, 1, 0, 0, 0):
+                primary_surface_board = None
+            primary_surface_cable = col2_pri.date_input('surface cable', label_visibility='collapsed')
+            primary_surface_cable_time = col2_pri.time_input('surface cable time', label_visibility='collapsed')
+            primary_surface_cable = datetime.combine(primary_surface_cable, primary_surface_cable_time)
+            if primary_surface_cable < datetime(2018, 1, 1, 0, 0, 0):
+                primary_surface_cable = None
+            primary_components = {'surface_board': primary_surface_board, 'surface_cable': primary_surface_cable}
+        else:
+            col1_pri, col2_pri, col3_pri = main_cont.columns([1,1,1])
+            primary_iglu = col1_pri.date_input('IGLU', label_visibility='collapsed')
+            primary_iglu_time = col1_pri.time_input('IGLU_time', label_visibility='collapsed')
+            primary_iglu = datetime.combine(primary_iglu, primary_iglu_time)
+            if primary_iglu < datetime(2018, 1, 1, 0, 0, 0):
+                primary_iglu = None
+            primary_cable = col2_pri.date_input('cable', label_visibility='collapsed')
+            primary_cable_time = col2_pri.time_input('cable_time', label_visibility='collapsed')
+            primary_cable = datetime.combine(primary_cable, primary_cable_time)
+            if primary_cable < datetime(2018, 1, 1, 0, 0, 0):
+                primary_cable = None
+            primary_drab = col3_pri.date_input('DRAB', label_visibility='collapsed')
+            primary_drab_time = col3_pri.time_input('DRAB_time', label_visibility='collapsed')
+            primary_drab = datetime.combine(primary_drab, primary_drab_time)
+            if primary_drab < datetime(2018, 1, 1, 0, 0, 0):
+                primary_drab = None
+            primary_components = {'iglu_board': primary_iglu, 'downhole_cable': primary_cable, 'drab_board': primary_drab}
     elif type_signal_chain == 'complete chain':
         signal_chain_cont.empty()
         signal_chain = build_complete_container(signal_chain_cont, selected_channel)
+        main_cont.markdown('Select an primary time for each measured component (a selected time before 2018/01/01, will be saved as None.):')
+        primary_chain = main_cont.date_input('chain', label_visibility='collapsed')
+        primary_chain_time = main_cont.time_input('chain_time', label_visibility='collapsed')
+        primary_chain = datetime.combine(primary_chain, primary_chain_time)
+        if primary_chain < datetime(2018, 1, 1, 0, 0, 0):
+            primary_chain = None
+        if selected_channel in [12,13,14,15,16,17,18,19,20]:
+            primary_components = {'surface_chain': primary_chain}
+        else:
+            primary_components = {'downhole_chain': primary_chain}
 
     # container for warnings/infos at the botton
     cont_warning_bottom = main_cont.container()
@@ -195,7 +238,7 @@ def build_main_page(main_cont):
 
     if insert_channel:
         st.session_state.insert_channel = True
-    insert_channel_info(cont_channel_warning, cont_warning_bottom, selected_station_id, selected_channel, config_name, signal_chain, primary)
+    insert_channel_info(cont_channel_warning, cont_warning_bottom, selected_station_id, selected_channel, config_name, signal_chain, primary, primary_components)
 
 # main page setup
 page_configuration()

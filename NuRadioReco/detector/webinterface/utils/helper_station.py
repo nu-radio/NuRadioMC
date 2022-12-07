@@ -128,37 +128,77 @@ def input_station_information(cont, warning_top, coll_name):
 def build_individual_container(cont, channel):
     cont_warning = cont.container()
     if channel in [12,13,14,15,16,17,18,19,20]:
-        # get all possible surface board names from the data base:
+        # initialize the surface board name key -> needed to make the surface board component selection possible
+        if 'surface_board_name_key' not in st.session_state:
+            st.session_state['surface_board_name_key'] = 'Choose a name'
+
+        if st.session_state.surface_board_name_key == 'Choose a name':
+            search_surface_board_name = None
+            disable_surface_board_components = True
+        else:
+            search_surface_board_name = st.session_state.surface_board_name_key
+            disable_surface_board_components = False
+
+        # get the surface board and surface cable names from the database:
         db_surf_board_names = det.get_object_names('surface_board')
-        # get all possible surface cable names from the db:
         db_surf_cable_names = det.get_object_names('surface_cable')
-        # if channel exist, put the information of the existing channel as the default
+
+        # get all channel-id of the surface board from the database (depends on the selected surface board name)
+        db_surface_board_info = det.get_all_available_signal_chain_configs(collection='surface_board', object_name=search_surface_board_name, input_dic={'channel_id': None})
+        db_surface_board_channels = db_surface_board_info['channel_id']
+
+        # insert the standard display option
         db_surf_board_names.insert(0, 'Choose a name')
         db_surf_cable_names.insert(0, 'Choose a name')
+        db_surface_board_channels.insert(0, 'Select an option')
 
+        # create the streamlit page
         col_surf, col_cable = cont.columns([1,1])
-        surface_board_name = col_surf.selectbox('surface board name:', db_surf_board_names)
-        surface_cable_name = col_cable.selectbox('surface cable name:', db_surf_cable_names)
+        col_surf.markdown('**surface board**')
+        surface_board_name = col_surf.selectbox('surface board name:', db_surf_board_names, label_visibility='collapsed', key='surface_board_name_key')
+        surface_board_channel = col_surf.selectbox('channel-id: ', db_surface_board_channels, disabled=disable_surface_board_components)
+        col_cable.markdown('**surface cable**')
+        surface_cable_name = col_cable.selectbox('surface cable name:', db_surf_cable_names, label_visibility='collapsed')
 
-        return {'surface_board': surface_board_name, 'surface_cable': surface_cable_name}
+        return {'surface_board': surface_board_name, 'surface_cable': surface_cable_name, 'surface_board_channel_id': surface_board_channel}
     else:
-        # get all possible iglu board names from the database:
+        # initialize the drab name key -> needed to make the drab component selection possible
+        if 'drab_name_key' not in st.session_state:
+            st.session_state['drab_name_key'] = 'Choose a name'
+
+        if st.session_state.drab_name_key == 'Choose a name':
+            search_drab_name = None
+            disable_drab_components = True
+        else:
+            search_drab_name = st.session_state.drab_name_key
+            disable_drab_components = False
+
+        # get the iglu, drab and cable names from the database
         db_iglu_board_names = det.get_object_names('iglu_board')
-        # get all possible drab board names from the database:
         db_drab_board_names = det.get_object_names('drab_board')
-        # get all possible downhole cable names from the db:
         db_down_cable_names = det.get_object_names('downhole_cable')
-        # if channel exist, put the information of the existing channel as the default
+
+        # get all channel-id of the drab from the database (depends on the selected drab name)
+        db_drab_info = det.get_all_available_signal_chain_configs(collection='drab_board', object_name=search_drab_name, input_dic={'channel_id': None})
+        db_drab_channels = db_drab_info['channel_id']
+
+        # insert the standard display option
         db_iglu_board_names.insert(0, 'Choose a name')
         db_drab_board_names.insert(0, 'Choose a name')
         db_down_cable_names.insert(0, 'Choose a name')
+        db_drab_channels.insert(0, 'Select an option')
 
+        # create the streamlit page
         col_iglu, col_cable, col_drab = cont.columns([1,1,1])
-        iglu_name = col_iglu.selectbox('iglu name:', db_iglu_board_names)
-        cable_name = col_cable.selectbox('downhole cable name:', db_down_cable_names)
-        drab_name = col_drab.selectbox('drab name:', db_drab_board_names)
+        col_iglu.markdown('**IGLU**')
+        iglu_name = col_iglu.selectbox('name:', db_iglu_board_names, key='iglu_name_key', label_visibility='collapsed')
+        col_cable.markdown('**downhole cable**')
+        cable_name = col_cable.selectbox('name:', db_down_cable_names, label_visibility='collapsed')
+        col_drab.markdown('**DRAB**')
+        drab_name = col_drab.selectbox('name:', db_drab_board_names, key='drab_name_key', label_visibility='collapsed')
+        drab_channel = col_drab.selectbox('channel-id:', db_drab_channels, disabled=disable_drab_components)
 
-        return {'iglu_board': iglu_name, 'downhole_cable': cable_name, 'drab_board': drab_name}
+        return {'iglu_board': iglu_name, 'downhole_cable': cable_name, 'drab_board': drab_name, 'drab_board_channel': drab_channel}
 
 
 def build_complete_container(cont, channel):
@@ -167,12 +207,45 @@ def build_complete_container(cont, channel):
         surface_chain = cont.selectbox('surface chain: Not existing yet', [])
         return {'surface_chain': 'not existing yet'}
     else:
+        # initialize the downhole_chain name key -> needed to make the downhole_chain component selection possible
+        if 'downhole_chain_name_key' not in st.session_state:
+            st.session_state['downhole_chain_name_key'] = 'Choose a name'
+        if 'downhole_chain_breakout_key' not in st.session_state:
+            st.session_state['downhole_chain_breakout_key'] = 'Select an option'
+        if 'downhole_chain_breakout_channel_key' not in st.session_state:
+            st.session_state['downhole_chain_breakout_channel_key'] = 'Select an option'
+
+        if st.session_state.downhole_chain_name_key == 'Choose a name':
+            search_downhole_chain_name = None
+            disable_downhole_chain_components = True
+        else:
+            search_downhole_chain_name = st.session_state.downhole_chain_name_key
+            disable_downhole_chain_components = False
+        if st.session_state.downhole_chain_breakout_key == 'Select an option':
+            search_downhole_breakout = None
+        else:
+            search_downhole_breakout = st.session_state.downhole_chain_breakout_key
+        if st.session_state.downhole_chain_breakout_channel_key == 'Select an option':
+            search_downhole_breakout_channel = None
+        else:
+            search_downhole_breakout_channel = st.session_state.downhole_chain_breakout_channel_key
+
         # get all possible downhole chain names from the database
         db_down_chain_name = det.get_object_names('downhole_chain')
         db_down_chain_name.insert(0, 'Choose a name')
 
-        downhole_name = cont.selectbox('downhole chain name:', db_down_chain_name)
-        return {'downhole_chain': downhole_name}
+        # get all channel-id of the drab from the database (depends on the selected drab name)
+        db_downhole_chain_info = det.get_all_available_signal_chain_configs(collection='downhole_chain', object_name=search_downhole_chain_name, input_dic={'breakout': search_downhole_breakout, 'breakout_channel': search_downhole_breakout_channel})
+        db_downhole_chain_breakout_ids = db_downhole_chain_info['breakout']
+        db_downhole_chain_breakout_channel_ids = db_downhole_chain_info['breakout_channel']
+        db_downhole_chain_breakout_ids.insert(0, 'Select an option')
+        db_downhole_chain_breakout_channel_ids.insert(0, 'Select an option')
+
+        downhole_name = cont.selectbox('downhole chain name:', db_down_chain_name, key='downhole_chain_name_key')
+        downhole_breakout_id = cont.selectbox('downhole chain breakout id:', db_downhole_chain_breakout_ids, key='downhole_chain_breakout_key', disabled=disable_downhole_chain_components)
+        downhole_breakout_channel_id = cont.selectbox('downhole chain breakout channel id:', db_downhole_chain_breakout_channel_ids, key='downhole_chain_breakout_channel_key', disabled=disable_downhole_chain_components)
+
+        return {'downhole_chain': downhole_name, 'downhole_chain_breakout': downhole_breakout_id, 'downhole_chain_breakout_channel': downhole_breakout_channel_id}
 
 
 def input_channel_information(cont, station_id, coll_name, station_info):
@@ -358,6 +431,6 @@ def insert_station_position_to_db(station_id, measurement_name, measurement_time
     det.add_station_position(station_id, measurement_name, measurement_time, position, primary)
 
 
-def insert_signal_chain_to_db(station_id, channel_number, config_name, sig_chain, primary):
-    det.add_channel_signal_chain(station_id, channel_number, config_name, sig_chain, primary)
+def insert_signal_chain_to_db(station_id, channel_number, config_name, sig_chain, primary, primary_components):
+    det.add_channel_signal_chain(station_id, channel_number, config_name, sig_chain, primary, primary_components)
 
