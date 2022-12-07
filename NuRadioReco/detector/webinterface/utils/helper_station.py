@@ -11,7 +11,7 @@ from datetime import datetime
 from datetime import time
 
 det = Detector(config.DATABASE_TARGET)
-# det = Detector(database_connection='test')
+#det = Detector(database_connection='test')
 
 
 def load_general_station_infos(station_id, coll_name):
@@ -198,7 +198,7 @@ def build_individual_container(cont, channel):
         drab_name = col_drab.selectbox('name:', db_drab_board_names, key='drab_name_key', label_visibility='collapsed')
         drab_channel = col_drab.selectbox('channel-id:', db_drab_channels, disabled=disable_drab_components)
 
-        return {'iglu_board': iglu_name, 'downhole_cable': cable_name, 'drab_board': drab_name, 'drab_board_channel': drab_channel}
+        return {'iglu_board': iglu_name, 'downhole_cable': cable_name, 'drab_board': drab_name, 'drab_board_channel_id': drab_channel}
 
 
 def build_complete_container(cont, channel):

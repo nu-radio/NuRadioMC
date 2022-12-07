@@ -1583,10 +1583,54 @@ class Detector(object):
             channel_sig_chain_dic[channel_id] = {k: cha_sig_dic['measurements'][k] for k in set(list(cha_sig_dic['measurements'].keys())) - set(['channel_id'])}
 
         # got through the signal chain and collect the corresponding measurements
-        # for cha_id in channel_sig_chain_dic.keys():
-        #     print(channel_sig_chain_dic[cha_id]['sig_chain'])
-        # TODO go through the signal chain and append the measurement (Sparameter for transmission)
-        # TODO: ADD MORE INFORMATION ON THE ADD_SIGNAL_CHAIN_PAGE!
+        for cha_id in channel_sig_chain_dic.keys():
+            sig_chain = channel_sig_chain_dic[cha_id]['sig_chain']
+            print(channel_sig_chain_dic[cha_id])
+            # get all collection names to identify the different components
+            collection_names = self.get_collection_names()
+            measurement_components_dic = {}
+            for sig_chain_key in sig_chain.keys():
+                if sig_chain_key in collection_names:
+                    # search if supplementary info (channel-id, etc.) are saved, if this is the case -> extract the information (important to find the final measurement)
+                    supp_info = []
+                    for sck in sig_chain.keys():
+                        if sig_chain_key in sck and sig_chain_key != sck:
+                            supp_info.append(sck)
+                    # get the primary time of the component measurement -> important to find the measurement which should be used
+                    primary_component = channel_sig_chain_dic[cha_id]['primary_components'][sig_chain_key]
+                    # define a search filter
+                    search_filter_sig_chain = []
+                    search_filter_sig_chain.append({'$match': {'name': sig_chain[sig_chain_key]}})
+                    search_filter_sig_chain.append({'$unwind': '$measurements'})
+                    # if there is supp info -> add this to the search filter
+                    help_dic1 = {}
+                    help_dic2 = {}
+                    if supp_info != []:
+                        for si in supp_info:
+                            help_dic2[f'measurements.{si[len(sig_chain_key) +1:]}'] = sig_chain[si]
+
+                    if len(self.get_quantity_names(collection_name=sig_chain_key, wanted_quantity='measurements.S_parameter')) != 1:  # more than one S parameter is saved in the database
+                        help_dic2['measurements.S_parameter'] = 'S21'
+                    if help_dic2 != {}:
+                        help_dic1['$match'] = help_dic2
+                        search_filter_sig_chain.append(help_dic1)
+                    # add the primary time
+                    search_filter_sig_chain.append({'$unwind': '$measurements.primary_measurement'})
+                    search_filter_sig_chain.append({'$match': {'measurements.primary_measurement.start': {'$lte': primary_component},
+                                                               'measurements.primary_measurement.end': {'$gte': primary_component}}})
+
+                    # find the correct measurement in the database and extract the measurement and object id
+                    search_result_sig_chain = list(self.db[sig_chain_key].aggregate(search_filter_sig_chain))
+                    freq = search_result_sig_chain[0]['measurements']['frequencies']  # 0: should only return a single valid entry
+                    yunits = search_result_sig_chain[0]['measurements']['y-axis_units']
+                    ydata = []
+                    if 'mag' in search_result_sig_chain[0]['measurements'].keys():
+                        ydata.append(search_result_sig_chain[0]['measurements']['mag'])
+                    if 'phase' in search_result_sig_chain[0]['measurements'].keys():
+                        ydata.append(search_result_sig_chain[0]['measurements']['phase'])
+
+                    measurement_components_dic[sig_chain_key] = {'y_units': yunits, 'freq': freq, 'ydata': ydata}
+            channel_sig_chain_dic[cha_id]['measurements_components'] = measurement_components_dic
 
         for cha_id in general_channel_dic.keys():
             if cha_id not in channel_pos_dic.keys():
@@ -1810,6 +1854,45 @@ class Detector(object):
         # store timestamps, which can be used with np.digitize
         modification_timestamps = [mod_t.timestamp() for mod_t in mod_set]
         return modification_timestamps
+
+    # runTable
+    def get_runs(self, station_list, start_time, end_time, flag_list, trigger_list, min_duration, firmware_list):
+        """ return all database entries fitting to the input parameter """
+
+        # trigger
+        trig_rf0 = 0
+        trig_rf1 = 0
+        trig_ext = 0
+        trig_pps = 0
+        trig_soft = 0
+        if 'rf0' in trigger_list:
+            trig_rf0 = 1
+        if 'rf1' in trigger_list:
+            trig_rf1 = 1
+        if 'ext' in trigger_list:
+            trig_ext = 1
+        if 'pps' in trigger_list:
+            trig_pps = 1
+        if 'soft' in trigger_list:
+            trig_soft = 1
+
+        # define a search filter
+        search_filter = [{"$match": {"station": {"$in": station_list},
+                                     "time_start": {"$gte": start_time},
+                                     "time_end": {"$lte": end_time},
+                                     #"quality_flag": {"$in": flag_list},
+                                     "duration": {"$gte": min_duration / units.second},
+                                     "firmware_version": {"$in": firmware_list},
+                                     "trigger_rf0_enabled": trig_rf0,
+                                     "trigger_rf1_enabled": trig_rf1,
+                                     "trigger_ext_enabled": trig_ext,
+                                     "trigger_pps_enabled": trig_pps,
+                                     "trigger_soft_enabled": trig_soft
+                                     }}]
+
+        search_results = list(self.db['runtable'].aggregate(search_filter))
+
+        return search_results
 
 
 def dictionarize_nested_lists(nested_lists, parent_key="id", nested_field="channels", nested_key="id"):
