@@ -1383,7 +1383,7 @@ class Detector(object):
     def change_primary_channel_measurement(self):
         pass
 
-    def add_channel_signal_chain(self, station_id, channel_number, config_name, sig_chain, primary):
+    def add_channel_signal_chain(self, station_id, channel_number, config_name, sig_chain, primary, primary_components):
         """
         inserts a signal chain config for a channel into the database
         If the station dosn't exist yet, it will be created.
@@ -1400,6 +1400,8 @@ class Detector(object):
             list of strings describing the signal chain
         primary: bool
             indicates if the measurement will be used as the primary measurement from now on
+        primary_components: dict
+            dates which say which measurement for each single component is used
         """
         collection_name = 'signal_chain'
         # close the time period of the old primary measurement
@@ -1420,8 +1422,80 @@ class Detector(object):
                                           'measurement_name': config_name,
                                           'last_updated': datetime.datetime.utcnow(),
                                           'primary_measurement': primary_measurement_times,
-                                          'sig_chain': sig_chain
+                                          'sig_chain': sig_chain,
+                                          'primary_components': primary_components
                                       }}}, upsert=True)
+
+    def get_all_available_signal_chain_configs_old(self, collection, input_dic):
+        """depending on the inputs, all possible configurations in the database are returned; Input example: {'name': 'Golden_IGLU', 'measurement_temp': 20}"""
+        return_dic = {}
+        check_value = True
+        for key in input_dic.keys():
+            if input_dic[key] != '':
+                check_value = False
+        if check_value:
+            for key in input_dic.keys():
+                if key == 'name':
+                    return_dic[key] = self.get_quantity_names(collection, key)
+                else:
+                    return_dic[key] = self.get_quantity_names(collection, f'measurements.{key}')
+        else:
+            # define a search filter
+            search_filter = []
+            if 'name' in input_dic and input_dic['name'] != '':
+                search_filter.append({'$match': {'name': input_dic['name']}})
+            search_filter.append({'$unwind': '$measurements'})
+            help_dic1 = {}
+            help_dic2 = {}
+            for key in input_dic.keys():
+                if key != 'name' and input_dic[key] != '':
+                    help_dic2[f'measurements.{key}'] = input_dic[key]
+            if help_dic2 != {}:
+                help_dic1['$match'] = help_dic2
+                search_filter.append(help_dic1)
+
+            search_result = list(self.db[collection].aggregate(search_filter))
+
+            for key in input_dic.keys():
+                help_list = []
+                for entry in search_result:
+                    if key in entry.keys():
+                        help_list.append(entry[key])
+                    else:
+                        help_list.append(entry['measurements'][key])
+                return_dic[key] = list(set(help_list))
+
+        return return_dic
+
+    def get_all_available_signal_chain_configs(self, collection, object_name, input_dic):
+        """depending on the inputs, all possible configurations in the database are returned; Input example: 'iglu_boards', 'Golden_IGLU' {'measurement_temp': 20, 'DRAB_id': 'Golden_DRAB'}"""
+        return_dic = {}
+        if object_name is None:
+            for key in input_dic.keys():
+                return_dic[key] = self.get_quantity_names(collection, f'measurements.{key}')
+        else:
+            # define a search filter
+            search_filter = []
+            search_filter.append({'$match': {'name': object_name}})
+            search_filter.append({'$unwind': '$measurements'})
+            help_dic1 = {}
+            help_dic2 = {}
+            for key in input_dic.keys():
+                if input_dic[key] is not None:
+                    help_dic2[f'measurements.{key}'] = input_dic[key]
+            if help_dic2 != {}:
+                help_dic1['$match'] = help_dic2
+                search_filter.append(help_dic1)
+            print(search_filter)
+            search_result = list(self.db[collection].aggregate(search_filter))
+
+            for key in input_dic.keys():
+                help_list = []
+                for entry in search_result:
+                    help_list.append(entry['measurements'][key])
+                return_dic[key] = list(set(help_list))
+        print(return_dic)
+        return return_dic
 
     def change_primary_channel_signal_chain_configuration(self):
         pass
@@ -1512,6 +1586,7 @@ class Detector(object):
         # for cha_id in channel_sig_chain_dic.keys():
         #     print(channel_sig_chain_dic[cha_id]['sig_chain'])
         # TODO go through the signal chain and append the measurement (Sparameter for transmission)
+        # TODO: ADD MORE INFORMATION ON THE ADD_SIGNAL_CHAIN_PAGE!
 
         for cha_id in general_channel_dic.keys():
             if cha_id not in channel_pos_dic.keys():
