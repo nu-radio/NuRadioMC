@@ -17,7 +17,7 @@ the antenna model so that he can put it on our central server.
 Inf means usually an infinite medium, firn has a refractive index n = 1.3-1.4. Since this is a bit imprecise
 we changed the naming to the actual refractive index.
 
-bicone_v8_infAir
+bicone_v8_InfAir
 -----------------
 WIPL-D simulation of ARA Bicone antenna.
 This antenna has been used by ARIANNA at the South Pole.
@@ -26,6 +26,9 @@ The complex (magnitude + phase) vector effective length of both polarization com
 Theta range [-90,90] Phi range [0,360] Freq range [5,1000]MHz
 
 Last updated: 2018
+
+bicone_v8_InfFirn
+------------------
 
 bicone_v8_inf_n1.32
 --------------------
@@ -84,7 +87,7 @@ Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
 
 Last updated: 2018
 
-createLPDA_z1cm_InFirn_BoresightToBoundary
+createLPDA_100MHz_z1cm_InFirn_BoresightToBoundary
 -------------------------------------------
 WIPL-D simulation of 100 MHz LPDA from create.
 This antenna is used by ARIANNA.
@@ -94,7 +97,7 @@ Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
 
 Last updated: 2018
 
-createLPDA_z10cm_InFirn_RG
+createLPDA_100MHz_z10cm_InFirn_RG
 --------------------------
 WIPL-D simulation of 100 MHz LPDA from create.
 This antenna is used by ARIANNA.
@@ -104,7 +107,7 @@ Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
 
 Last updated: 2018
 
-createLPDA_z1m_InFirn_RG
+createLPDA_100MHz_z1m_InFirn_RG
 ------------------------
 WIPL-D simulation of 100 MHz LPDA from create.
 This antenna is used by ARIANNA.
@@ -114,7 +117,7 @@ Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
 
 Last updated: 2018
 
-createLPDA_z2m_InFirn_RG
+createLPDA_100MHz_z2m_InFirn_RG
 -------------------------
 WIPL-D simulation of 100 MHz LPDA from create.
 This antenna is used by ARIANNA. Largest tine 2m above air.
@@ -123,7 +126,7 @@ Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
 
 Last updated: 2018
 
-createLPDA_z2m_InFirn_Backlobe_NoRG
+createLPDA_100MHz_z2m_InFirn_Backlobe_NoRG
 ------------------------------------
 WIPL-D simulation of 100 MHz LPDA from create.
 This antenna is used by ARIANNA. Largest tine 2m above air.
@@ -132,7 +135,7 @@ Theta range [0,90] Phi range [0,360] Freq range [200,1000]MHz
 
 Last updated: 2018
 
-createLPDA_z3m_InAir_RG
+createLPDA_100MHz_z3m_InAir_RG
 ------------------------
 WIPL-D simulation of 100 MHz LPDA from create.
 This antenna is used by ARIANNA. lowest/largest tine 3m above firn.
@@ -141,7 +144,7 @@ Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
 
 Last updated: 2018
 
-createLPDA_z3m_InFirn_BoresightToBoundary
+createLPDA_100MHz_z3m_InFirn_BoresightToBoundary
 -------------------------------------------
 WIPL-D simulation of 100 MHz LPDA from create.
 This antenna is used by ARIANNA.
@@ -151,7 +154,7 @@ Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
 
 Last updated: 2018
 
-createLPDA_z3mAndLPDALen_InFirn_BoresightToBoundary
+createLPDA_100MHz_z3mAndLPDALen_InFirn_BoresightToBoundary
 ---------------------------------------------------
 WIPL-D simulation of 100 MHz LPDA from create.
 This antenna is used by ARIANNA. Nose 3.2m below air.
@@ -160,7 +163,7 @@ Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
 
 Last updated: 2018
 
-createLPDA_z5m_InFirn_RG
+createLPDA_100MHz_z5m_InFirn_RG
 -------------------------
 WIPL-D simulation of 100 MHz LPDA from create. This antenna is used by ARIANNA.
 Largest tine 5m above air.
@@ -169,7 +172,7 @@ Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
 
 Last updated: 2018
 
-createLPDA_z10m_InFirn_RG
+createLPDA_100MHz_z10m_InFirn_RG
 --------------------------
 WIPL-D simulation of 100 MHz LPDA from create.
 This antenna is used by ARIANNA.
@@ -179,7 +182,7 @@ Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
 
 Last updated: 2018
 
-createLPDA_z100m_InFirn_RG
+createLPDA_100MHz_z100m_InFirn_RG
 --------------------------
 WIPL-D simulation of 100 MHz LPDA from create.
 This antenna is used by ARIANNA. Largest tine 100m above air.
@@ -188,7 +191,7 @@ Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
 
 Last updated: 2018
 
-createLPDA_z200m_InFirn_RG
+createLPDA_100MHz_z200m_InFirn_RG
 ---------------------------
 WIPL-D simulation of 100 MHz LPDA from create.
 This antenna is used by ARIANNA. Largest tine 200m above air.
@@ -213,6 +216,9 @@ The complex (magnitude + phase) vector effective length of both polarization com
 Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
 
 Last updated: 2018
+
+createLPDA_100MHz_z1m_InFirn_RG_v2
+--------------------------------
 
 dip7cm_hpol_infFirn
 -------------------
@@ -408,47 +414,50 @@ Theta range [0,90] Phi range [0,360] Freq range [83.3,1050]MHz
 
 Last updated: 2019
 
-RNOG_vpol_4inch_center_1.73
+RNOG_vpol_4inch_center_n1.73
 ----------------------------
-xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.78.
+xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.73.
 The antenna is placed in the center (x, y) of the borehole. An extra cubic interpolation is performed in frequencies (5 MHz step).
 Theta range [0, 90] Phi range [0, 360] Freq range [0, 4200]MHz
 
 Last updated: 2020
 
-RNOG_vpol_4inch_half_1.73
+RNOG_vpol_4inch_half_n1.73
 --------------------------
-xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.78.
+xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.73.
 The antenna is halfway displaced from the center towards phi = 0. An extra cubic interpolation is performed in frequencies (5 MHz step).
 Theta range [0, 90] Phi range [0, 360] Freq range [0, 4200]MHz
 
 Last updated: 2020
 
-RNOG_vpol_4inch_wall_1.73
--------------------------
-xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.78.
+RNOG_vpol_4inch_wall_n1.73
+---------------------------
+xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.73.
 The antenna placed against the wall towards phi = 0. An extra cubic interpolation is performed in frequencies (5 MHz step).
 Theta range [0, 90] Phi range [0, 360] Freq range [0, 4200]MHz
 
 Last updated: 2020
 
-RNOG_quadslot_v1_1.74
-----------------------
+RNOG_quadslot_v1_n1.74
+-----------------------
 XFdtd simulations for the RNOG Hpol.
 Simulations are done in air, frequencies are rescaled with n=1.74. An extra cubic interpolation is performed in frequencies (5 MHz step).
 Theta range [-180, 180] Phi range [0, 360] Freq range [57, 574]MHz
 
 Last updated: 2020
 
-RNOG_quadslot_v2_1.74
-----------------------
+RNOG_quadslot_v2_n1.74
+-----------------------
 XFdtd simulations for the RNOG Hpol.
 Simulations are done in air, frequencies are rescaled with n=1.74. An extra cubic interpolation is performed in frequencies (5 MHz step).
 Theta range [-180, 180] Phi range [0, 360] Freq range [57, 574]MHz
 
 Last updated: 2020
 
-SKALA_InAir
+RNOG_quadslot_v2_rescaled_fineFreq
+-----------------------------------
+
+SKALA_InfFirn
 --------------
 Log-periodic antenna for SKA-low, called SKALA-2.
 The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
@@ -465,3 +474,21 @@ Simulations are done in air, frequencies are rescaled with n=1.74.
 Theta range [-180, 180] Phi range [0, 360] Freq range [57, 574]MHz
 
 Last updated: 2020
+
+Additional Models
+==================
+
+RNOG_vpol_v1_n1.4
+------------------
+
+RNOG_vpol_v1_n1.73
+-------------------
+
+fourslot_InfFirn
+-----------------
+
+greenland_vpol_InfFirn
+-----------------------
+
+trislot_RNOG
+-------------
