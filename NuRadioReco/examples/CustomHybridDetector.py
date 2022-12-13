@@ -14,7 +14,7 @@ can be added to an event file.
 """
 parser = argparse.ArgumentParser(description='Example showing how a custom hybrid detector can be added to an event file.')
 parser.add_argument('--inputfilename', type=str, help='path to CoREAS file', default='example_data/example_event.h5')
-parser.add_argument('--detectorfilename', type=str, help='path to detector description', default='example_data/arianna_detector_db.json')
+parser.add_argument('--detectorfilename', type=str, help='path to detector description', default='example_data/arianna_station_32.json')
 parser.add_argument('--stationID', type=int, help='ID of the station to simulate', default=32)
 parser.add_argument('--outputfilename', type=str, help='name of the output file', default='custom_detector.nur')
 args = parser.parse_args()

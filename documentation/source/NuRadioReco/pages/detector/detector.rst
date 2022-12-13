@@ -94,27 +94,81 @@ e.g. the antenna position. In these cases, creating a full table entry for each
 station or channel would be cumbersome, error-prone and make it harder to make
 changes later.
 For this reason, *NuRadioReco* provides the ``GenericDetector`` detector class.
-The ``GenericDetector`` allows to declare a *default station*, which has to be fully
+The ``GenericDetector`` allows to declare a *reference station*, which has to be fully
 described, but for all other stations the description can be incomplete.
 When a station is requested, the  ``GenericDetector`` substitutes any
-missing entries with the entries from the *default station*. If the channels for
+missing entries with the entries from the *reference station*. If the channels for
 a station are requested and none are found, it is assumed that it has the same
-channels as the *default* station and the channels of the *default station* are
+channels as the *reference station* and the channels of the *reference station* are
 returned.
-In the same way, it is also possible to specify a *default channel*. This
-has to be a channel of the *default station*. When a requested entry is missing
-in one of the other channels, it is substituted with the entry in the *default station*.
-This allows the easy implementation of large detectors for simulation studies.
-For example, if one wanted to simulate a large array of identical radio stations,
-one would create a complete entry for the first station and specify its channels.
-For all other stations, only the ID and position would be specified.
-If the first station is declared the *default station*, a query for one of the
-other stations would return a copy of it at a different position.
+In the same way, it is also possible to specify *reference channels*. When a requested
+entry is missing
+in one of the other channels, it is substituted with the entry in the *reference channel*.
 
-Since the ``GenericDetector`` inherits from the ``Detector`` class, it provides
-all its query functions as well. Practically, this means that it can be used
-in the same way as the normal ``Detector`` class, e.g. be passed to reconstruction
-modules.
+*Reference stations* and *reference channels* are declared for each channel in the detector
+description JSON file. A simple detector description using this feature might look like this:
+
+
+.. code-block:: json
+
+  {
+    "channels": {
+      "0": {
+        "ant_comment": "phased array",
+        "amp_type": "iglu",
+        "adc_sampling_frequency": 2.4,
+        "adc_n_samples": 1024,
+        "ant_orientation_phi": 0.0,
+        "ant_orientation_theta": 0.0,
+        "ant_position_x": 0.0,
+        "ant_position_y": 0.0,
+        "ant_position_z": -100.0,
+        "ant_rotation_phi": 90.0,
+        "ant_rotation_theta": 90.0,
+        "ant_type": "RNOG_vpol_4inch_center_n1.73",
+        "cab_time_delay": 0.0,
+        "channel_id": 0,
+        "station_id": 1
+      },
+      "1": {
+        "ant_position_z": -200,
+        "channel_id": 1,
+        "station_id": 1,
+        "reference_channel": 0
+      }
+    },
+    "stations": {
+      "1" : {
+        "pos_altitude": 0.0,
+        "pos_easting": 0.0,
+        "pos_northing": 0.0,
+        "pos_site": "summit",
+        "station_id": 1,
+        "station_type": null
+      },
+      "2" : {
+        "pos_easting": 1000,
+        "station_id": 2,
+        "reference_station": 1
+      }
+    }
+  }
+
+In this case, only channel 0 and station 1 are fully defined. But if we queried for channel 1,
+any missing property will be filled in with the corresponding property from channel 0. Likewise,
+station 2 will take any missing entries from station 1 and, since no channels were explicitly
+defined for station 2, queries for station 2's channels will return copies of station 1's channels.
+
+
+.. Important:: In older versions of *NuRadioMC*, reference stations and channels were defined by parameters
+  passed to the ``GenericDetector``'s ``__init__`` method. While this still works for compatibility,
+  it is deprecated and should not be used.
+
+
+When creating a new ``Detector`` object, the constructor will check if the detector description
+contains any ``reference_station`` or ``reference_channel`` entries, and create a GenericDetector
+if these entries are found.
+
 
 .. Important:: The ``GenericDetector`` does not support commission and decommission times.
   It can therefore not give a time-dependent detector description and should only be used
@@ -202,7 +256,7 @@ have to be set to ``True`` for  constructors of the ``NuRadioRecoio`` and
 Detector Viewer
 _________________
 NuRadioReco provides a visualization for detector description. It is stored in the folder
-``NuRadioReco/detector/detector_browser`` and works similar to the event viewer.
+``NuRadioReco/detector/detector_browser`` and works similar to the :doc:`event viewer</NuRadioReco/pages/event_display>`.
 
 To start it, execute the command ``python index.py /path/to/folder``. Then open
 a web browser and go to the URL printed on the terminal (http://127.0.0.1:8080/
