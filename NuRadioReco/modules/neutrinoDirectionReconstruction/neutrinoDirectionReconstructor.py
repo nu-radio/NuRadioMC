@@ -69,8 +69,8 @@ class neutrinoDirectionReconstructor:
         else:
             vertex = station[stnp.nu_vertex]
         simulation = analytic_pulse.simulation(template, vertex)
-        if sim: rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1
-        if not sim: rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
+        if sim: rt = self._station[stnp.raytype_sim]
+        if not sim: rt = self._station[stnp.raytype]
         simulation.begin(
             det, station, use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol,
             ice_model=self._ice_model, att_model=self._att_model,
@@ -149,10 +149,10 @@ class neutrinoDirectionReconstructor:
         PA_cluster_channels:
         single_pulse_fit: Boolean
             if True, the viewing angle and energy are fitted with a PA Vpol and the polarization is fitted using an Hpol. Default single_pulse_fit = False.
-        systematcs: dict
-            if dictionary is given, sytematic uncertainties are added to the VEL. Default = None. 
-            dict = {"antenna response": {"gain": array with len(use_channels) (factor to mulitply VEL with), 
-                                         "phase": array with shift in frequency in MHz, array of len(use_channels) }} 
+        systematics: dict
+            if dictionary is given, sytematic uncertainties are added to the VEL. Default = None.
+            dict = {"antenna response": {"gain": array with len(use_channels) (factor to mulitply VEL with),
+                                         "phase": array with shift in frequency in MHz, array of len(use_channels) }}
         """
 
         station.set_is_neutrino()
@@ -212,7 +212,7 @@ class neutrinoDirectionReconstructor:
             simulated_vertex = event.get_sim_shower(shower_id)[shp.vertex]
             ### values for simulated vertex and simulated direction
             simulation = analytic_pulse.simulation(template, simulated_vertex)
-            rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1
+            rt = self._station[stnp.raytype_sim]
             simulation.begin(
                 det, station, use_channels, raytypesolution = rt,
                 ch_Vpol = ch_Vpol,
@@ -224,25 +224,25 @@ class neutrinoDirectionReconstructor:
                 event.get_sim_shower(shower_id)[shp.vertex][2],
                 simulated_zenith, simulated_azimuth, simulated_energy,
                 use_channels, first_iter = True)
-            if pol_sim is None: # occasionally (if the vertex position is wrong), no solution may exist for the sim vertex and the given ray type.
-                if rt == 1:
-                    sim_rt = 2
-                elif rt == 2:
-                    sim_rt = 1
-                else: # this probably shouldn't ever happen?
-                    logger.warning("Couldn't determine polarization / viewing angle for sim_station. Skipping...")
-                    sim_rt = None
-                logger.warning(
-                    "The reconstructed ray type is {}, but for the simulated vertex, no such ray solution exists. Using {} instead.".format(
-                        rt, sim_rt
-                    ))
-                simulation._raytypesolution = sim_rt
-                tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(
-                    det, station, event.get_sim_shower(shower_id)[shp.vertex][0],
-                    event.get_sim_shower(shower_id)[shp.vertex][1],
-                    event.get_sim_shower(shower_id)[shp.vertex][2],
-                    simulated_zenith, simulated_azimuth, simulated_energy,
-                    use_channels, first_iter = True)
+            # if pol_sim is None: # occasionally (if the vertex position is wrong), no solution may exist for the sim vertex and the given ray type.
+            #     if rt == 1:
+            #         sim_rt = 2
+            #     elif rt == 2:
+            #         sim_rt = 1
+            #     else: # this probably shouldn't ever happen?
+            #         logger.warning("Couldn't determine polarization / viewing angle for sim_station. Skipping...")
+            #         sim_rt = None
+            #     logger.warning(
+            #         "The reconstructed ray type is {}, but for the simulated vertex, no such ray solution exists. Using {} instead.".format(
+            #             rt, sim_rt
+            #         ))
+            #     simulation._raytypesolution = sim_rt
+            #     tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(
+            #         det, station, event.get_sim_shower(shower_id)[shp.vertex][0],
+            #         event.get_sim_shower(shower_id)[shp.vertex][1],
+            #         event.get_sim_shower(shower_id)[shp.vertex][2],
+            #         simulated_zenith, simulated_azimuth, simulated_energy,
+            #         use_channels, first_iter = True)
             # simulation._raytypesolution = rt # revert to reconstructed ray type for reconstruction!
             if pol_sim is None: # for some reason, didn't manage to obtain simulated vw / polarization angle
                 pol_sim = np.nan * np.ones(3) # we still set them, so the debug plots don't fail
@@ -265,7 +265,7 @@ class neutrinoDirectionReconstructor:
 
         simulation = analytic_pulse.simulation(template, reconstructed_vertex) ### if the templates are used, than the templates for the correct distance are loaded
         if not sim_vertex:
-            rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1 ## raytype from the triggered pulse
+            rt = self._station[stnp.raytype] ## raytype from the triggered pulse
 
         simulation.begin(
             det, station, use_channels, raytypesolution = rt,
@@ -746,11 +746,11 @@ class neutrinoDirectionReconstructor:
         #get timing and pulse position for raytype of triggered pulse
         solution_number = None
         if sim or self._sim_vertex:
-            raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1
+            raytype = self._station[stnp.raytype_sim]
         else:
-            raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
+            raytype = self._station[stnp.raytype]
         for iS in raytypes[ch_Vpol]:
-            if raytypes[ch_Vpol][iS] == raytype:
+            if iS == raytype:
                 solution_number = iS
         if solution_number is None:
             logger.warning(f"No solution for reference ch_Vpol ({ch_Vpol}) with ray type {raytype}!")

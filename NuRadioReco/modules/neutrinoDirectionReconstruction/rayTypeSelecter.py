@@ -75,10 +75,10 @@ class rayTypeSelecter:
             fig, axs = plt.subplots(3, figsize = (10, 10))
             iax = 0
         #### determine position of pulse
-        T_ref = np.zeros(3)
-        max_totalcorr= np.zeros(3)
-        pos_max = np.zeros(3)
-        for raytype in [1,2,3]:
+        T_ref = np.zeros(2)
+        max_totalcorr= np.zeros(2)
+        pos_max = np.zeros(2)
+        for raytype in [0,1]:
             type_exist = 0
             total_trace = np.zeros(len(station.get_channel(0).get_trace()))
             traces = dict()
@@ -96,12 +96,13 @@ class rayTypeSelecter:
                 r.set_start_and_end_point(vertex, x2)
                 r.find_solutions()
                 for iS in range(r.get_number_of_solutions()):
-                    if r.get_solution_type(iS) == raytype:
+                    if iS == raytype:
                         type_exist= 1
                         T = r.get_travel_time(iS)
                         if trace_start_time_ref is None:
                             T_ref[iS] = T
                             trace_start_time_ref = channel.get_trace_start_time()
+                            raytype_string = propagation.solution_types[r.get_solution_type(iS)]
                             if not channel_id == use_channels[0]:
                                 logger.warning(
                                     f"No solution for reference channel {use_channels[0]}, using channel {channel_id} instead..."
@@ -139,7 +140,7 @@ class rayTypeSelecter:
                     axs[iax].plot(trace, color = 'darkgrey', lw =2, alpha=.75)
 
             hilbert_envelope = np.abs(scipy.signal.hilbert(total_trace))
-            pos_max[raytype-1] = np.argmax(hilbert_envelope)
+            pos_max[raytype] = np.argmax(hilbert_envelope)
             if debug_plots and type_exist:
                 axs[iax].plot(total_trace, lw = 2, color = 'darkgreen', label= 'combined trace')
                 axs[iax].plot(hilbert_envelope, lw = 2, color = 'darkgreen', ls =':')
@@ -154,20 +155,20 @@ class rayTypeSelecter:
                 for tick in axs[2].xaxis.get_majorticklabels():
                     tick.set_fontsize(20)
 
-                axs[iax].set_title("raytype: {}".format(['direct', 'refracted', 'reflected'][raytype-1]), fontsize = 40)
+                axs[iax].set_title("raytype: {} ({})".format(raytype_string, raytype), fontsize = 40)
                 axs[iax].grid()
                 axs[iax].set_xlim((position_max - 40*sampling_rate, position_max + 40*sampling_rate))
                 axs[iax].set_xlabel("samples", fontsize = 25)
                 iax += 1
 
-                axs[raytype-1].set_title("raytype {}".format(['direct', 'refracted', 'reflected'][raytype-1]), fontsize = 30)
-                axs[2].plot(corr_total, lw = 2,  label= '{}'.format(['direct', 'refracted', 'reflected'][raytype-1]))
+                axs[raytype].set_title("raytype {} ({})".format(raytype_string, raytype), fontsize = 30)
+                axs[2].plot(corr_total, lw = 2,  label= '{} ({})'.format(raytype_string, raytype))
 
                 axs[2].legend(fontsize = 20)
                 axs[2].grid()
                 axs[2].set_title("correlation", fontsize = 30)
 
-            max_totalcorr[raytype-1] = max(abs(corr_total))
+            max_totalcorr[raytype] = max(abs(corr_total))
             where_are_NaNs = np.isnan(max_totalcorr)
 
         if debug_plots:
@@ -177,7 +178,7 @@ class rayTypeSelecter:
             fig.savefig("{}/{}_{}_pulse_selection.pdf".format(debugplots_path, run_number, event_id))
 
         ### store parameters
-        reconstructed_raytype = ['direct', 'refracted', 'reflected'][np.argmax(max_totalcorr)]
+        reconstructed_raytype = np.argmax(max_totalcorr)
         print("		reconstructed raytype:", reconstructed_raytype)
         if not sim: station.set_parameter(stnp.raytype, reconstructed_raytype)
         #print("CHECK")
@@ -202,7 +203,7 @@ class rayTypeSelecter:
         r.set_start_and_end_point(vertex, x2)
         r.find_solutions()
         for iS in range(r.get_number_of_solutions()):
-            if r.get_solution_type(iS) in [np.argmax(max_totalcorr)+1]:
+            if iS == np.argmax(max_totalcorr):
 
                 T_reference = r.get_travel_time(iS)
 
@@ -225,7 +226,7 @@ class rayTypeSelecter:
                 if channel_id == use_channels[0]: # if channel is upper phased array channel
                    # print("	solution type", r.get_solution_type(iS))
                   #  print("selected type", np.argmax(max_totalcorr)+1)
-                    if r.get_solution_type(iS) in [np.argmax(max_totalcorr)+1]: ## if solution type is triggered solution type
+                    if iS == np.argmax(max_totalcorr): ## if solution type is triggered solution type
                         #print("		get receive vector...............>>")
                         receive_vector = r.get_receive_vector(iS)
                         receive_zenith, receive_azimuth = hp.cartesian_to_spherical(*receive_vector)

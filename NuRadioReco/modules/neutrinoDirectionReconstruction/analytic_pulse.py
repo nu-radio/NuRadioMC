@@ -85,7 +85,7 @@ class simulation():
 		return
 
 	def begin(
-			self, det, station, use_channels, raytypesolution = False,
+			self, det, station, use_channels, raytypesolution,
 			ch_Vpol = None,
 			passband = [96 * units.MHz, 1000 * units.MHz],
 			ice_model="greenland_simple", att_model = 'GL1',
@@ -179,7 +179,7 @@ class simulation():
 			# r.find_solutions()
 			r = self._raytracer(*vertex, *x2)
 			for iS in range(r.get_number_of_solutions()):
-				if r.get_solution_type(iS) == self._raytypesolution:
+				if iS == self._raytypesolution:
 					launch = r.get_launch_vector(iS)
 
 					receive_zenith = hp.cartesian_to_spherical(*r.get_receive_vector(iS))[0]
@@ -347,7 +347,7 @@ class simulation():
 
 		if(first_iter):
 			for i, iS in enumerate(raytracing[self._ch_Vpol]):
-				if raytype[self._ch_Vpol][iS] == self._raytypesolution:
+				if iS == self._raytypesolution:
 					self._launch_vector = launch_vectors[i]
 					self._viewingangle = viewing_angles[i]
 					self._pol = polarizations[i]
