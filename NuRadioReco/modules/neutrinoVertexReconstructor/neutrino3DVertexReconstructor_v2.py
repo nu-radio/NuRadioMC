@@ -94,6 +94,7 @@ class neutrino3DVertexReconstructor:
             passband=None,
             min_antenna_distance=5. * units.m,
             use_maximum_filter=True,
+            resolution_target=0.1  *units.deg,
             debug_folder='.',
             sampling_rate=None,
             debug_formats='.png'
@@ -149,6 +150,7 @@ class neutrino3DVertexReconstructor:
         self.__channel_ids = channel_ids
         self.__station_id = station_id
         self.__debug_folder = debug_folder
+        self.__dTheta_goal = resolution_target
         self.__channel_pairs = []
         self._use_maximum_filter = use_maximum_filter
         for i in range(len(channel_ids) - 1):
@@ -396,7 +398,7 @@ class neutrino3DVertexReconstructor:
         # <--- 3D Fit ---> #
         logger.debug("Starting 3D correlation...")
         self._dTheta0 = 2 * units.deg
-        self._dTheta_goal = .1 * units.deg
+        # self._dTheta_goal = .1 * units.deg
         self._dTheta_current = self._dTheta0
         dTheta = self._dTheta0
         thetaphi_mask = None
