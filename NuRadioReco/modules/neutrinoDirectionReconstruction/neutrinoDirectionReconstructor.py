@@ -69,12 +69,8 @@ class neutrinoDirectionReconstructor:
         else:
             vertex = station[stnp.nu_vertex]
         simulation = analytic_pulse.simulation(template, vertex)
-        if sim:
-            rt = self._station[stnp.raytype_sim]
-            # rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1
-        else:
-            rt = self._station[stnp.raytype]
-            # rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
+        if sim: rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1
+        if not sim: rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
         simulation.begin(
             det, station, use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol,
             ice_model=self._ice_model, att_model=self._att_model,
@@ -216,8 +212,7 @@ class neutrinoDirectionReconstructor:
             simulated_vertex = event.get_sim_shower(shower_id)[shp.vertex]
             ### values for simulated vertex and simulated direction
             simulation = analytic_pulse.simulation(template, simulated_vertex)
-            # rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1
-            rt = self._station[stnp.raytype_sim]
+            rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1
             simulation.begin(
                 det, station, use_channels, raytypesolution = rt,
                 ch_Vpol = ch_Vpol,
@@ -229,25 +224,25 @@ class neutrinoDirectionReconstructor:
                 event.get_sim_shower(shower_id)[shp.vertex][2],
                 simulated_zenith, simulated_azimuth, simulated_energy,
                 use_channels, first_iter = True)
-            # if pol_sim is None: # occasionally (if the vertex position is wrong), no solution may exist for the sim vertex and the given ray type.
-            #     if rt == 1:
-            #         sim_rt = 2
-            #     elif rt == 2:
-            #         sim_rt = 1
-            #     else: # this probably shouldn't ever happen?
-            #         logger.warning("Couldn't determine polarization / viewing angle for sim_station. Skipping...")
-            #         sim_rt = None
-            #     logger.warning(
-            #         "The reconstructed ray type is {}, but for the simulated vertex, no such ray solution exists. Using {} instead.".format(
-            #             rt, sim_rt
-            #         ))
-            #     simulation._raytypesolution = sim_rt
-            #     tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(
-            #         det, station, event.get_sim_shower(shower_id)[shp.vertex][0],
-            #         event.get_sim_shower(shower_id)[shp.vertex][1],
-            #         event.get_sim_shower(shower_id)[shp.vertex][2],
-            #         simulated_zenith, simulated_azimuth, simulated_energy,
-            #         use_channels, first_iter = True)
+            if pol_sim is None: # occasionally (if the vertex position is wrong), no solution may exist for the sim vertex and the given ray type.
+                if rt == 1:
+                    sim_rt = 2
+                elif rt == 2:
+                    sim_rt = 1
+                else: # this probably shouldn't ever happen?
+                    logger.warning("Couldn't determine polarization / viewing angle for sim_station. Skipping...")
+                    sim_rt = None
+                logger.warning(
+                    "The reconstructed ray type is {}, but for the simulated vertex, no such ray solution exists. Using {} instead.".format(
+                        rt, sim_rt
+                    ))
+                simulation._raytypesolution = sim_rt
+                tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(
+                    det, station, event.get_sim_shower(shower_id)[shp.vertex][0],
+                    event.get_sim_shower(shower_id)[shp.vertex][1],
+                    event.get_sim_shower(shower_id)[shp.vertex][2],
+                    simulated_zenith, simulated_azimuth, simulated_energy,
+                    use_channels, first_iter = True)
             # simulation._raytypesolution = rt # revert to reconstructed ray type for reconstruction!
             if pol_sim is None: # for some reason, didn't manage to obtain simulated vw / polarization angle
                 pol_sim = np.nan * np.ones(3) # we still set them, so the debug plots don't fail
@@ -270,8 +265,7 @@ class neutrinoDirectionReconstructor:
 
         simulation = analytic_pulse.simulation(template, reconstructed_vertex) ### if the templates are used, than the templates for the correct distance are loaded
         if not sim_vertex:
-            rt = self._station[stnp.raytype]
-            # rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1 ## raytype from the triggered pulse
+            rt = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1 ## raytype from the triggered pulse
 
         simulation.begin(
             det, station, use_channels, raytypesolution = rt,
@@ -295,34 +289,25 @@ class neutrinoDirectionReconstructor:
                 #     event.get_sim_shower(shower_id)[shp.vertex][1],
                 #     event.get_sim_shower(shower_id)[shp.vertex][2],
                 #     simulated_zenith, simulated_azimuth, simulated_energy, use_channels, first_iter = True)
-                # pass
-                try:
-                    tracsim_recvertex = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, first_iter = True,ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[0]
-                    fsimsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  True, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)
-                    all_fsimsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)[3]
-                    tracsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)[0]
-                #     #tracsim_recvertex = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, first_iter = True,ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)[0]
-
-                    fsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  True, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)
-
-                    all_fsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)[3]
-                    print("Chi2 values for simulated direction and with/out simulated vertex are {}/{}".format(fsimsim, fsim))
-
-                    sim_reduced_chi2_Vpol = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)[4][0]
 
 
-                    sim_reduced_chi2_Hpol = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)[4][1]
-                #     self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)
+                fsimsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  True, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)
+                all_fsimsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)[3]
+                tracsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)[0]
+            #     #tracsim_recvertex = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, first_iter = True,ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)[0]
 
-                except ValueError as e: #TODO - this happens if the reference channel doesn't have any RT solutions. Need to make this error clearer!
-                    logger.warning(
-                        "Failed to perform simulation for the sim_station."
-                        "This is most likely due to no ray tracing solution "
-                        "existing for the true (simulated) vertex and the "
-                        f"given reference channel {ch_Vpol}. "
-                        "The following error was raised:")
-                    logger.exception(e)
+                fsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  True, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)
 
+                all_fsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)[3]
+                print("Chi2 values for simulated direction and with/out simulated vertex are {}/{}".format(fsimsim, fsim))
+
+                sim_reduced_chi2_Vpol = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)[4][0]
+
+
+                sim_reduced_chi2_Hpol = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)[4][1]
+            #     self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)
+
+                tracsim_recvertex = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, first_iter = True,ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[0]
 
             signal_zenith, signal_azimuth = hp.cartesian_to_spherical(*self._launch_vector)
             sig_dir = hp.spherical_to_cartesian(signal_zenith, signal_azimuth)
@@ -444,119 +429,112 @@ class neutrinoDirectionReconstructor:
 
         print("make debug plots....")
         if debug_plots:
-            try:
-                linewidth = 2
-                tracdata = reconstruction_output[1]
-                timingdata = reconstruction_output[2]
-                timingsim = self.minimizer(
-                    [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)],
-                    *event.get_sim_shower(shower_id)[shp.vertex],
-                    first_iter = True, minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol,
-                        full_station = full_station, sim=True)[2]
+            linewidth = 2
+            tracdata = reconstruction_output[1]
+            timingdata = reconstruction_output[2]
+            timingsim = self.minimizer(
+                [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)],
+                *event.get_sim_shower(shower_id)[shp.vertex],
+                first_iter = True, minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol,
+                    full_station = full_station, sim=True)[2]
 
-                timingsim_recvertex = self.minimizer([simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], first_iter = True, minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[2]
-                fig, ax = plt.subplots(len(use_channels), 3, sharex=False, figsize=(16, 4*len(use_channels)))
+            timingsim_recvertex = self.minimizer([simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], first_iter = True, minimize = False, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[2]
+            fig, ax = plt.subplots(len(use_channels), 3, sharex=False, figsize=(16, 4*len(use_channels)))
 
-                ich = 0
-                SNRs = np.zeros((len(use_channels), 2))
+            ich = 0
+            SNRs = np.zeros((len(use_channels), 2))
 
-                for channel in station.iter_channels():
-                    channel_id = channel.get_id()
-                    if channel_id in use_channels: # use channels needs to be sorted
-                        sim_trace = None
-                        for sim_channel in station.get_sim_station().get_channels_by_channel_id(channel_id):
-                            if sim_trace is None:
-                                sim_trace = sim_channel
-                            else:
-                                sim_trace += sim_channel
+            for channel in station.iter_channels():
+                channel_id = channel.get_id()
+                if channel_id in use_channels: # use channels needs to be sorted
+                    sim_trace = None
+                    for sim_channel in station.get_sim_station().get_channels_by_channel_id(channel_id):
+                        if sim_trace is None:
+                            sim_trace = sim_channel
+                        else:
+                            sim_trace += sim_channel
 
 
-                        if len(tracdata[channel_id]) > 0:
-                            # logger.debug("Plotting channel {}....".format(channel_id))
-                            # logger.debug("Data trace: {:.0f} - {:.0f} ns".format(channel.get_times()[0], channel.get_times()[-1]))
-                            # logger.debug("Sim trace: {:.0f} - {:.0f} ns".format(timingsim[channel_id][0][0], timingsim[channel_id][0][-1]))
-                            ax[ich][0].grid()
-                            ax[ich][2].grid()
-                            ax[ich][0].set_xlabel("timing [ns]", )
-                            ax[ich][0].plot(channel.get_times(), channel.get_trace(), lw = linewidth, label = 'data', color = 'black')
+                    if len(tracdata[channel_id]) > 0:
+                        # logger.debug("Plotting channel {}....".format(channel_id))
+                        # logger.debug("Data trace: {:.0f} - {:.0f} ns".format(channel.get_times()[0], channel.get_times()[-1]))
+                        # logger.debug("Sim trace: {:.0f} - {:.0f} ns".format(timingsim[channel_id][0][0], timingsim[channel_id][0][-1]))
+                        ax[ich][0].grid()
+                        ax[ich][2].grid()
+                        ax[ich][0].set_xlabel("timing [ns]", )
+                        ax[ich][0].plot(channel.get_times(), channel.get_trace(), lw = linewidth, label = 'data', color = 'black')
 
-                            #ax[ich][0].fill_between(timingdata[channel_id][0], tracrec[channel_id][0] - tracrec[channel_id][0], tracrec[channel_id][0] +  tracrec[channel_id][0], color = 'green', alpha = 0.2)
-                            ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel_id][0]), 1/sampling_rate), abs(fft.time2freq( tracdata[channel_id][0], sampling_rate)), color = 'black', lw = linewidth)
-                            if sim_trace != None:
-                                ax[ich][0].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
-                            ax[ich][0].plot(timingsim_recvertex[channel_id][0], tracsim_recvertex[channel_id][0], label = 'simulation rec vertex', color = 'lightblue' , lw = linewidth, ls = '--')
-                            ax[ich][0].plot(timingsim[channel_id][0], tracsim[channel_id][0], label = 'simulation', color = 'orange', lw = linewidth)
+                        #ax[ich][0].fill_between(timingdata[channel_id][0], tracrec[channel_id][0] - tracrec[channel_id][0], tracrec[channel_id][0] +  tracrec[channel_id][0], color = 'green', alpha = 0.2)
+                        ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel_id][0]), 1/sampling_rate), abs(fft.time2freq( tracdata[channel_id][0], sampling_rate)), color = 'black', lw = linewidth)
+                        ax[ich][0].plot(timingsim[channel_id][0], tracsim[channel_id][0], label = 'simulation', color = 'orange', lw = linewidth)
+                        if sim_trace != None: ax[ich][0].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
 
-                            # show data / simulation time windows
-                            window_sim = timingsim[channel_id][0][0], timingsim[channel_id][0][-1]
-                            window_rec = timingdata[channel_id][0][0], timingdata[channel_id][0][-1]
-                            for t in window_sim:
-                                ax[ich][0].axvline(t, color='orange', ls=':')
-                            for t in window_rec:
-                                ax[ich][0].axvline(t, color='green', ls=':')
-                            ax[ich][0].set_xlim(np.min(window_sim+window_rec)-5, np.max(window_sim+window_rec)+5)
+                        ax[ich][0].plot(timingsim_recvertex[channel_id][0], tracsim_recvertex[channel_id][0], label = 'simulation rec vertex', color = 'lightblue' , lw = linewidth, ls = '--')
 
-                            ax[ich][0].plot(timingdata[channel_id][0], tracrec[channel_id][0], label = 'reconstruction', lw = linewidth, color = 'green')
+                        # show data / simulation time windows
+                        window_sim = timingsim[channel_id][0][0], timingsim[channel_id][0][-1]
+                        window_rec = timingdata[channel_id][0][0], timingdata[channel_id][0][-1]
+                        for t in window_sim:
+                            ax[ich][0].axvline(t, color='orange', ls=':')
+                        for t in window_rec:
+                            ax[ich][0].axvline(t, color='green', ls=':')
+                        ax[ich][0].set_xlim(np.min(window_sim+window_rec)-5, np.max(window_sim+window_rec)+5)
 
-                            if sim_trace != None:
-                                ax[ich][2].plot( np.fft.rfftfreq(len(sim_trace.get_trace()), 1/sampling_rate), abs(fft.time2freq(sim_trace.get_trace(), sampling_rate)), lw = linewidth, color = 'red')
-                            ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel_id][0]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][0], sampling_rate)), lw = linewidth, color = 'orange')
+                        ax[ich][0].plot(timingdata[channel_id][0], tracrec[channel_id][0], label = 'reconstruction', lw = linewidth, color = 'green')
 
-                            ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel_id][0]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel_id][0], sampling_rate)), color = 'green', lw = linewidth)
-                            ax[ich][2].set_xlim((0, 1))
-                            ax[ich][2].set_xlabel("frequency [GHz]", )
+                        if sim_trace != None: ax[ich][2].plot( np.fft.rfftfreq(len(sim_trace.get_trace()), 1/sampling_rate), abs(fft.time2freq(sim_trace.get_trace(), sampling_rate)), lw = linewidth, color = 'red')
+                        ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel_id][0]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][0], sampling_rate)), lw = linewidth, color = 'orange')
 
-                            ax[ich][0].legend()
+                        ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel_id][0]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel_id][0], sampling_rate)), color = 'green', lw = linewidth)
+                        ax[ich][2].set_xlim((0, 1))
+                        ax[ich][2].set_xlabel("frequency [GHz]", )
 
-                        if len(tracdata[channel_id]) > 1:
-                            ax[ich][1].grid()
-                            ax[ich][1].set_xlabel("timing [ns]", )
-                            ax[ich][1].plot(channel.get_times(), channel.get_trace(), label = 'data', lw = linewidth, color = 'black')
-                            ax[ich][2].plot(np.fft.rfftfreq(len(timingsim[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][1], sampling_rate)), lw = linewidth, color = 'red')
-                            ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracdata[channel_id][1], sampling_rate)), color = 'black', lw = linewidth)
-                            if sim_trace != None: ax[ich][1].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
-                            if 1:#channel_id in [6]:#,7,8,9]:
-                                ax[ich][1].plot(timingdata[channel_id][1], tracrec[channel_id][1], label = 'reconstruction', color = 'green', lw = linewidth)
-                                #ax[ich][1].fill_between(timingdata[channel_id][1], tracrec[channel_id][1] - tracrec[channel_id][1], tracrec[channel_id][1] +  tracrec[channel_id][1], color = 'green', alpha = 0.2)
+                        ax[ich][0].legend()
 
-                            ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][1], sampling_rate)), lw = linewidth, color = 'orange')
-                            if tracsim_recvertex is not None:
-                                ax[ich][1].plot(timingsim_recvertex[channel_id][1], tracsim_recvertex[channel_id][1], label = 'simulation rec vertex', color = 'lightblue', lw = linewidth, ls = '--')
-                            if timingsim is not None:
-                                ax[ich][1].plot(timingsim[channel_id][1], tracsim[channel_id][1], label = 'simulation', color = 'orange', lw = linewidth)
-                                # show data / simulation time windows
-                                window_sim = timingsim[channel_id][1][0], timingsim[channel_id][1][-1]
-                            window_rec = timingdata[channel_id][1][0], timingdata[channel_id][1][-1]
-                            for t in window_sim:
-                                ax[ich][1].axvline(t, color='orange', ls=':')
-                            for t in window_rec:
-                                ax[ich][1].axvline(t, color='green', ls=':')
-                            ax[ich][1].set_xlim(np.min(window_sim+window_rec)-5, np.max(window_sim+window_rec)+5)
+                    if len(tracdata[channel_id]) > 1:
+                        ax[ich][1].grid()
+                        ax[ich][1].set_xlabel("timing [ns]", )
+                        ax[ich][1].plot(channel.get_times(), channel.get_trace(), label = 'data', lw = linewidth, color = 'black')
+                        ax[ich][2].plot(np.fft.rfftfreq(len(timingsim[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][1], sampling_rate)), lw = linewidth, color = 'red')
+                        ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracdata[channel_id][1], sampling_rate)), color = 'black', lw = linewidth)
+                        ax[ich][1].plot(timingsim[channel_id][1], tracsim[channel_id][1], label = 'simulation', color = 'orange', lw = linewidth)
+                        if sim_trace != None: ax[ich][1].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
+                        if 1:#channel_id in [6]:#,7,8,9]:
+                            ax[ich][1].plot(timingdata[channel_id][1], tracrec[channel_id][1], label = 'reconstruction', color = 'green', lw = linewidth)
+                            #ax[ich][1].fill_between(timingdata[channel_id][1], tracrec[channel_id][1] - tracrec[channel_id][1], tracrec[channel_id][1] +  tracrec[channel_id][1], color = 'green', alpha = 0.2)
+
+                        ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][1], sampling_rate)), lw = linewidth, color = 'orange')
+                        ax[ich][1].plot(timingsim_recvertex[channel_id][1], tracsim_recvertex[channel_id][1], label = 'simulation rec vertex', color = 'lightblue', lw = linewidth, ls = '--')
+
+                        # show data / simulation time windows
+                        window_sim = timingsim[channel_id][1][0], timingsim[channel_id][1][-1]
+                        window_rec = timingdata[channel_id][1][0], timingdata[channel_id][1][-1]
+                        for t in window_sim:
+                            ax[ich][1].axvline(t, color='orange', ls=':')
+                        for t in window_rec:
+                            ax[ich][1].axvline(t, color='green', ls=':')
+                        ax[ich][1].set_xlim(np.min(window_sim+window_rec)-5, np.max(window_sim+window_rec)+5)
 
 
 
-                            ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel_id][1], sampling_rate)), color = 'green', lw = linewidth, label = 'channel id {}'.format(channel_id))
-                            ax[ich][2].legend()
-                        for ii in range(2):
-                            chi2 = chi2_dict[channel_id][ii]
-                            if chi2 > 0:
-                                ax[ich][ii].set_title(f'$\chi^2={chi2:.2f}$')
-                            else:
-                                ax[ich][ii].set_fc('grey')
+                        ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel_id][1], sampling_rate)), color = 'green', lw = linewidth, label = 'channel id {}'.format(channel_id))
+                        ax[ich][2].legend()
+                    for ii in range(2):
+                        chi2 = chi2_dict[channel_id][ii]
+                        if chi2 > 0:
+                            ax[ich][ii].set_title(f'$\chi^2={chi2:.2f}$')
+                        else:
+                            ax[ich][ii].set_fc('grey')
 
-                        ich += 1
-                ax[0][0].legend()
+                    ich += 1
+            ax[0][0].legend()
 
 
-                fig.tight_layout()
-                fig_path = "{}/{}_fit".format(debugplots_path, filenumber, shower_id)
-                logger.debug(f"output path for stored figure: {fig_path}")
-                # print("output path for stored figure","{}/fit_{}.pdf".format(debugplots_path, filenumber))
-                save_fig(fig, fig_path, self._debug_formats)
-            except Exception as e:
-                logger.warning("Debug plots failed. The following exception was raised:")
-                logger.exception(e)
-
+            fig.tight_layout()
+            fig_path = "{}/{}_fit".format(debugplots_path, filenumber, shower_id)
+            logger.debug(f"output path for stored figure: {fig_path}")
+            # print("output path for stored figure","{}/fit_{}.pdf".format(debugplots_path, filenumber))
+            save_fig(fig, fig_path, self._debug_formats)
             plt.close('all')
             ### chi squared grid from opt.brute:
             # plt.rc('xtick',)
@@ -633,13 +611,11 @@ class neutrinoDirectionReconstructor:
         station.set_parameter(stnp.nu_zenith, rec_zenith)
         station.set_parameter(stnp.nu_azimuth, self.transform_azimuth(rec_azimuth))
         station.set_parameter(stnp.nu_energy, rec_energy)
+        station.set_parameter(stnp.chi2, [fsim, fminfit, fsimsim, self.__dof, sim_reduced_chi2_Vpol, sim_reduced_chi2_Hpol, fit_reduced_chi2_Vpol, fit_reduced_chi2_Hpol, fmin_simdir_recvertex])
         station.set_parameter(stnp.launch_vector, [lv_sim, launch_vector_rec])
         station.set_parameter(stnp.polarization, [pol_sim, pol_rec])
         station.set_parameter(stnp.viewing_angle, [vw_sim, viewingangle_rec])
-        #TODO - the following may raise errors if the simulated vertex output didn't work for the given reference channel.
-        station.set_parameter(stnp.chi2, [fsim, fminfit, fsimsim, self.__dof, sim_reduced_chi2_Vpol, sim_reduced_chi2_Hpol, fit_reduced_chi2_Vpol, fit_reduced_chi2_Hpol, fmin_simdir_recvertex])
-        if station.has_sim_station():
-            print("chi2 for simulated rec vertex {}, simulated sim vertex {} and fit {}".format(fsim, fsimsim, fminfit))#reconstructed vertex
+        if station.has_sim_station(): print("chi2 for simulated rec vertex {}, simulated sim vertex {} and fit {}".format(fsim, fsimsim, fminfit))#reconstructed vertex
         if station.has_sim_station():
             print("chi2 for all channels simulated rec vertex {}, simulated sim vertex {} and fit {}".format(all_fsim, all_fsimsim, all_fminfit))#reconstructed vertex
             total_chi2 = np.sum([chi2s for chi2s in chi2_dict.values()])
@@ -768,20 +744,17 @@ class neutrinoDirectionReconstructor:
 
 
         #get timing and pulse position for raytype of triggered pulse
+        solution_number = None
         if sim or self._sim_vertex:
-            # raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1
-            solution_number = self._station[stnp.raytype_sim]
+            raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype_sim]) + 1
         else:
-            solution_number = self._station[stnp.raytype]
-            # raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
-        # for iS in raytypes[ch_Vpol]:
-        #     if raytypes[ch_Vpol][iS] == raytype:
-        #         solution_number = iS
-        # if solution_number is None:
-        #     logger.warning(f"No solution for reference ch_Vpol ({ch_Vpol}) with ray type {raytype}!")
-        #     return np.inf
-        if solution_number not in timing[ch_Vpol].keys():
-            raise ValueError(f"Reference channel {ch_Vpol} doesn't have required solution number {solution_number}!")
+            raytype = ['direct', 'refracted', 'reflected'].index(self._station[stnp.raytype]) + 1
+        for iS in raytypes[ch_Vpol]:
+            if raytypes[ch_Vpol][iS] == raytype:
+                solution_number = iS
+        if solution_number is None:
+            logger.warning(f"No solution for reference ch_Vpol ({ch_Vpol}) with ray type {raytype}!")
+            return np.inf
         T_ref = timing[ch_Vpol][solution_number]
         trace_start_time_ref = self._station.get_channel(ch_Vpol).get_trace_start_time()
 
