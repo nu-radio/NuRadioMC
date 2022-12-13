@@ -93,7 +93,7 @@ class simulation():
 			shift_for_xmax=False, systematics = None):
 		""" initialize filter and amplifier """
 
-                self._systematics = systematics
+		self._systematics = systematics
 		self._ch_Vpol = ch_Vpol
 		sim_to_data = True
 		self._raytypesolution= raytypesolution
@@ -104,10 +104,10 @@ class simulation():
 		self._n_samples = int(time_trace * self._sampling_rate) ## templates are 800 samples long. The analytic models can be longer.
 		self._att_model = att_model
 
-                if isinstance(ice_model, str):
-                    self._ice_model = medium.get_ice_model(ice_model)
-                else:
-                    self._ice_model = ice_model
+		if isinstance(ice_model, str):
+			self._ice_model = medium.get_ice_model(ice_model)
+		else:
+			self._ice_model = ice_model
 		self._prop = propagation.get_propagation_module(propagation_module)
 		self._prop_config = propagation_config
 		self._shift_for_xmax = shift_for_xmax
@@ -308,16 +308,14 @@ class simulation():
 
                 ### convolve efield with antenna reponse
 
-                                if isinstance(self._systematics, dict):
-                                   C = self._systematics["antenna response"]["gain"][channel_id]
-                                   new_efield = C*efield_antenna_factor[0]
-                                   shift = self._systematics["antenna response"]["shift"][channel_id]
-                                   samples = shift/((self._ff[1]-self._ff[0])*1000)
-                                   new_efield = np.roll(C*efield_antenna_factor[0], int(samples))
-                             
-                                   analytic_trace_fft = np.sum(new_efield * np.array([eTheta, ePhi]), axis = 0)
+				if isinstance(self._systematics, dict):
+					C = self._systematics["antenna response"]["gain"][channel_id]
+					new_efield = C*efield_antenna_factor[0]
+					shift = self._systematics["antenna response"]["shift"][channel_id]
+					samples = shift/((self._ff[1]-self._ff[0])*1000)
+					new_efield = np.roll(C*efield_antenna_factor[0], int(samples))
 
-
+					analytic_trace_fft = np.sum(new_efield * np.array([eTheta, ePhi]), axis = 0)
 				elif starting_values:
 					analytic_trace_fft = np.sum(efield_antenna_factor[0] * np.array([spectrum,np.zeros(len(spectrum))]), axis = 0)
 				else:
