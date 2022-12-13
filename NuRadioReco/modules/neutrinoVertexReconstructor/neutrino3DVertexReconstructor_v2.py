@@ -150,7 +150,7 @@ class neutrino3DVertexReconstructor:
         self.__channel_ids = channel_ids
         self.__station_id = station_id
         self.__debug_folder = debug_folder
-        self.__dTheta_goal = resolution_target
+        self._dTheta_goal = resolution_target
         self.__channel_pairs = []
         self._use_maximum_filter = use_maximum_filter
         for i in range(len(channel_ids) - 1):
