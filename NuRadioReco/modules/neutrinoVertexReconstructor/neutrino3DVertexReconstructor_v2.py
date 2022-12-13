@@ -409,33 +409,36 @@ class neutrino3DVertexReconstructor:
             distances_3d = np.logspace(np.log10(self.__distances_2d[0]), np.log10(self.__distances_2d[-1]), n_distance_steps)
             self._d_distance_current = np.exp(1/(n_distance_steps - 1) * np.log(distances_3d[-1] / distances_3d[0])) - 1
             theta_grid = np.arange(np.pi/2, np.pi, dTheta)
-            thetaphi = np.array([
-                (theta, phi)
-                for theta in theta_grid
-                for phi in np.linspace(0, 2*np.pi, int(np.ceil(2*np.pi/dTheta*np.max([0.01, np.abs(np.sin(theta))]))), endpoint=False)
-                ]
-            ).T
-
-            # To determine our time resolution, we use the dt to the 'nearest neighbours'
-            # Here, we find the corresponding indices
-
             n_phi_per_theta = np.array([int(np.ceil(2*np.pi/dTheta*np.max([0.01, np.abs(np.sin(theta))]))) for theta in theta_grid])
             cum_phi_per_theta = np.cumsum(n_phi_per_theta)
-            nn_phi = np.arange(len(thetaphi[0])) + 1
-            wrap_indices = cum_phi_per_theta - 1
-            nn_phi[wrap_indices] = np.concatenate([[0], cum_phi_per_theta])[:-1]
+            n_thetaphi_total = cum_phi_per_theta[-1]
 
-            nn_theta = np.concatenate([
-                (np.around(np.linspace(
-                    cum_phi_per_theta[i],
-                    cum_phi_per_theta[i] + n_phi_per_theta[i+1],
-                    n_phi_per_theta[i], endpoint=False)))
-                for i in range(len(theta_grid)-1)
-            ])
-            nn_theta = np.array(nn_theta, dtype=int)
-            nn_theta = np.concatenate([nn_theta, np.arange(len(nn_theta), len(thetaphi[0]))])
+            if thetaphi_mask is None: # for the first iteration, we use the full (unmasked) grid in (theta, phi)
+                thetaphi = np.array([
+                    (theta, phi)
+                    for theta in theta_grid
+                    for phi in np.linspace(0, 2*np.pi, int(np.ceil(2*np.pi/dTheta*np.max([0.01, np.abs(np.sin(theta))]))), endpoint=False)
+                    ]
+                ).T
 
-            if not thetaphi_mask is None: # for iterations >=2, we search only around the previously found maxima
+                # To determine our time resolution, we use the dt to the 'nearest neighbours'
+                # Here, we find the corresponding indices
+
+                nn_phi = np.arange(len(thetaphi[0])) + 1
+                wrap_indices = cum_phi_per_theta - 1
+                nn_phi[wrap_indices] = np.concatenate([[0], cum_phi_per_theta])[:-1]
+
+                nn_theta = np.concatenate([
+                    (np.around(np.linspace(
+                        cum_phi_per_theta[i],
+                        cum_phi_per_theta[i] + n_phi_per_theta[i+1],
+                        n_phi_per_theta[i], endpoint=False)))
+                    for i in range(len(theta_grid)-1)
+                ])
+                nn_theta = np.array(nn_theta, dtype=int)
+                nn_theta = np.concatenate([nn_theta, np.arange(len(nn_theta), len(thetaphi[0]))])
+
+            else: # for iterations >=2, we search only around the previously found maxima
                 cum_phi_per_theta0 = np.concatenate([[0], cum_phi_per_theta])
                 i_theta = np.ceil((thetaphi_mask[0]-np.pi/2-1e-8) / dTheta).astype(int)
                 mask_ind_0 = np.around(
@@ -451,27 +454,57 @@ class neutrino3DVertexReconstructor:
                 ).astype(int)
                 mask = np.concatenate([mask_ind_0, mask_ind_up, mask_ind_down])
                 mask = np.unique(np.concatenate([mask-1, mask, mask+1]))
-                mask = mask[(mask>=0) & (mask < len(thetaphi[0]))]
+                mask = mask[(mask>=0) & (mask < n_thetaphi_total)]
 
-                # mask_theta = np.abs(thetaphi[0,None] - thetaphi_mask[0,:,None]) < 2.1 * dTheta
-                # print(f'theta mask: {np.sum(mask_theta)} / {mask_theta.shape}')
-                # mask_phi = np.abs(thetaphi[1,None] - thetaphi_mask[1,:,None]) * np.sin(thetaphi[0])[None] < 2.1 * dTheta
-                # print(f'phi mask: {np.sum(mask_phi)} / {mask_phi.shape}')
-                # mask = np.where(np.any(mask_theta & mask_phi, axis=0))[0]
-                # logger.debug(f'total mask: {mask.shape}')
-                thetaphi = thetaphi[:,mask]
+                # if we don't want to run out of memory for smaller angular resolution,
+                # we have to build up our search space per theta. We iterate over all theta in the mask +/- 1
+                i_theta_unique = np.unique(i_theta)
+                i_theta_unique = np.unique(np.concatenate([i_theta_unique-1, i_theta_unique, i_theta_unique+1]))
+                i_theta_unique = i_theta_unique[(i_theta_unique >= 0) & (i_theta_unique < len(theta_grid))]
 
-                # we also need to find the corresponding 'nearest neighbour' indices
-                # and check they are in the masked subset
-                nn_theta = nn_theta[mask]
-                nn_phi = nn_phi[mask]
+                thetaphi = np.zeros((2,len(mask))) # the (theta, phi) coordinates to include
+                nn_phi = np.zeros(len(mask), dtype=int) # the nearest neighbours in phi
+                nn_theta = np.zeros(len(mask), dtype=int) # the nearest neighbours in theta
+                current_ind = 0
+                for i_theta in i_theta_unique: # now i_theta is a single index
+                    theta = theta_grid[i_theta]
+                    i_min, i_max = cum_phi_per_theta0[i_theta], cum_phi_per_theta[i_theta]
+                    submask = mask[(mask>=i_min) & (mask<i_max)] - i_min
+                    n_entries = len(submask)
+                    if not n_entries: # this should probably never happen?
+                        continue
 
+                    # the phi grid for the given value of theta
+                    phi = np.linspace(0, 2*np.pi, int(np.ceil(2*np.pi/dTheta*np.max([0.01, np.abs(np.sin(theta))]))), endpoint=False)
+
+                    # now we find the indices that would correspond to the nearest neighbours in theta, phi
+                    # if we looked at the full (non-masked) grid. We later convert those to 'in-mask' indices
+                    if i_theta < len(theta_grid) - 1:
+                        nn_theta_i = np.around(np.linspace(
+                            cum_phi_per_theta[i_theta],
+                            cum_phi_per_theta[i_theta] + n_phi_per_theta[i_theta+1],
+                            n_phi_per_theta[i_theta], endpoint=False)).astype(int)
+                    else:
+                        nn_theta_i = np.arange(i_min, i_max)
+                    nn_phi_i = np.arange(i_min, i_max) + 1
+                    nn_phi_i[-1] = i_min
+
+                    thetaphi[0,current_ind:current_ind+n_entries] = theta
+                    thetaphi[1,current_ind:current_ind+n_entries] = phi[submask]
+
+                    nn_theta[current_ind:current_ind+n_entries] = nn_theta_i[submask]
+                    nn_phi[current_ind:current_ind+n_entries] = nn_phi_i[submask]
+
+                    current_ind += n_entries
+
+                # Now we check if the nearest-neighbour indices are contained in the masked subset
+                # and convert them to in-mask indices. For indices that are not in the masked subset,
+                # we just set the nearest neighbour of i to i.
                 idx = np.arange(len(thetaphi[0]))
                 nn_mask = np.in1d(nn_theta, mask)
                 mask_idx_sorted = np.argsort(mask)
                 nn_theta[nn_mask] = np.searchsorted(mask, nn_theta[nn_mask], sorter=mask_idx_sorted)
                 nn_theta[~nn_mask] = idx[~nn_mask]
-
 
                 nn_mask = np.in1d(nn_phi, mask)
                 mask_idx_sorted = np.argsort(mask)
