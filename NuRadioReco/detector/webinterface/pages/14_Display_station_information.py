@@ -163,7 +163,7 @@ def build_main_page(cont):
         selected_primary_time_cha = None
     measurement_names_cha_db = list(get_all_channel_measurements_names())
     measurement_names_cha_db.insert(0, 'not specified')
-    selected_measurement_name_cha = coll_pos_cha_select2.selectbox('Measurement name:', options=measurement_names_cha_db)
+    selected_measurement_name_cha = coll_pos_cha_select2.selectbox('Measurement name:', options=measurement_names_cha_db, key='measurement_name_channel_pos')
 
     if 'channel_measurement_name_key' not in st.session_state:
         st.session_state['channel_measurement_name_key'] = ''
@@ -248,7 +248,7 @@ def build_main_page(cont):
     config_names_cha_db = list(get_all_signal_chain_config_names())
     config_names_cha_db.insert(0, 'built-in')
     config_names_cha_db.insert(0, 'not specified')
-    selected_config_name_cha = coll_sig_cha_select2.selectbox('Configuration name:', options=config_names_cha_db)
+    selected_config_name_cha = coll_sig_cha_select2.selectbox('Configuration name:', options=config_names_cha_db, key='measurement_name_signal_chain')
 
     if 'signal_chain_name_key' not in st.session_state:
         st.session_state['signal_chain_name_key'] = ''
