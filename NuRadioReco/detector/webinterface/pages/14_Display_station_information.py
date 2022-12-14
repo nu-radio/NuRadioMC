@@ -267,7 +267,6 @@ def build_main_page(cont):
         st.experimental_rerun()
 
     # load and cache the channel information (is only loaded once)
-    print(cha_dic)
     @st.experimental_memo
     def get_signal_chain_info_table():
         if selected_config_name_cha == 'built-in':
@@ -301,7 +300,6 @@ def build_main_page(cont):
             curr_time_primary_end = []
             other_primary_times = []
             components = []
-            print(signa_chain)
             sig_chain_length = 0
             for dic in signa_chain:
                 other_primary_times_help = ''
@@ -336,7 +334,6 @@ def build_main_page(cont):
                     sig_chain_length += len(sig_chain)
                 components.append(sig_chain)
 
-        print(components)
         # sort the components
         comp_type1 = []
         comp_type2 = []
@@ -344,11 +341,13 @@ def build_main_page(cont):
         comp_name1 = []
         comp_name2 = []
         comp_name3 = []
+        comp_type4 = []
+        comp_name4 = []
         if sig_chain_length == 1:
             for sig_dic in components:
                 key = list(sig_dic.keys())[0]
                 comp_type1.append(key)
-                comp_name1.append(sig_dic[key])
+                comp_name1.append(str(sig_dic[key]))
                 print(comp_name1)
                 print(comp_type1)
                 print(channel_ids)
@@ -358,9 +357,9 @@ def build_main_page(cont):
                 key1 = list(sig_dic.keys())[0]
                 key2 = list(sig_dic.keys())[1]
                 comp_type1.append(key1)
-                comp_name1.append(sig_dic[key1])
+                comp_name1.append(str(sig_dic[key1]))
                 comp_type2.append(key2)
-                comp_name2.append(sig_dic[key2])
+                comp_name2.append(str(sig_dic[key2]))
             df = pd.DataFrame({'id': channel_ids, 'configuration': config_name, 'comp type 1': comp_type1, 'comp name 1': comp_name1, 'comp type 2': comp_type2, 'comp name 2': comp_name2, 'primary: start': curr_time_primary_start, 'primary': curr_time_primary_end, 'other primary times': other_primary_times})
         elif sig_chain_length == 3:
             for sig_dic in components:
@@ -368,20 +367,56 @@ def build_main_page(cont):
                 key2 = list(sig_dic.keys())[1]
                 if len(sig_dic) == 2:
                     comp_type1.append(key1)
-                    comp_name1.append(sig_dic[key1])
+                    comp_name1.append(str(sig_dic[key1]))
                     comp_type2.append(key2)
-                    comp_name2.append(sig_dic[key2])
+                    comp_name2.append(str(sig_dic[key2]))
                     comp_type3.append(None)
                     comp_name3.append(None)
                 else:
                     key3 = list(sig_dic.keys())[2]
                     comp_type1.append(key1)
-                    comp_name1.append(sig_dic[key1])
+                    comp_name1.append(str(sig_dic[key1]))
                     comp_type2.append(key2)
-                    comp_name2.append(sig_dic[key2])
+                    comp_name2.append(str(sig_dic[key2]))
                     comp_type3.append(key3)
-                    comp_name3.append(sig_dic[key3])
+                    comp_name3.append(str(sig_dic[key3]))
             df = pd.DataFrame({'id': channel_ids, 'configuration': config_name, 'comp type 1': comp_type1, 'comp name 1': comp_name1, 'comp type 2': comp_type2, 'comp name 2': comp_name2, 'comp type 3': comp_type3, 'comp name 3': comp_name3, 'primary: start': curr_time_primary_start, 'primary': curr_time_primary_end, 'other primary times': other_primary_times})
+        elif sig_chain_length == 4:
+            for sig_dic in components:
+                key1 = list(sig_dic.keys())[0]
+                key2 = list(sig_dic.keys())[1]
+                if len(sig_dic) == 2:
+                    comp_type1.append(key1)
+                    comp_name1.append(str(sig_dic[key1]))
+                    comp_type2.append(key2)
+                    comp_name2.append(str(sig_dic[key2]))
+                    comp_type3.append(None)
+                    comp_name3.append(None)
+                    comp_type4.append(None)
+                    comp_name4.append(None)
+                elif len(sig_dic.keys()) == 3:
+                    key3 = list(sig_dic.keys())[2]
+                    comp_type1.append(key1)
+                    comp_name1.append(str(sig_dic[key1]))
+                    comp_type2.append(key2)
+                    comp_name2.append(str(sig_dic[key2]))
+                    comp_type3.append(key3)
+                    comp_name3.append(str(sig_dic[key3]))
+                    comp_type4.append(None)
+                    comp_name4.append(None)
+                else:
+                    key3 = list(sig_dic.keys())[2]
+                    key4 = list(sig_dic.keys())[3]
+                    comp_type1.append(key1)
+                    comp_name1.append(str(sig_dic[key1]))
+                    comp_type2.append(key2)
+                    comp_name2.append(str(sig_dic[key2]))
+                    comp_type3.append(key3)
+                    comp_name3.append(str(sig_dic[key3]))
+                    comp_type4.append(key4)
+                    comp_name4.append(str(sig_dic[key4]))
+
+            df = pd.DataFrame({'id': channel_ids, 'configuration': config_name, 'comp type 1': comp_type1, 'comp name 1': comp_name1, 'comp type 2': comp_type2, 'comp name 2': comp_name2, 'comp type 3': comp_type3, 'comp name 3': comp_name3, 'comp type 4': comp_type4, 'comp name 4': comp_name4, 'primary: start': curr_time_primary_start, 'primary': curr_time_primary_end, 'other primary times': other_primary_times})
         else:
             df = pd.DataFrame({'id': [None], 'configuration': [None], 'primary: start': [None], 'primary: end': [None], 'other primary times': [None]})
         df = df.sort_values(by=['id'])
