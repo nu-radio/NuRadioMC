@@ -66,51 +66,10 @@ def build_main_page(main_cont):
     #@st.experimental_memo
     def load_run_data_into_cache():
         run_info = load_runs(selected_station, start_date, end_date, selected_flags, trigger, duration, firmware)
-        if run_info != []:
-            db_station = []
-            db_run = []
-            db_start = []
-            db_end = []
-            db_duration = []
-            db_transfer_sample = []
-            db_trigger_rate = []
-            db_n_events_g = []
-            db_n_events_t = []
-            db_rf0_enabled = []
-            db_rf1_enabled = []
-            db_ext_enabled = []
-            db_pps_enabled = []
-            db_soft_enabled = []
-            db_soft_rate = []
-            db_flag = []
-            db_firmware = []
-            db_daq_config_comment = []
-            for entry in run_info:
-                db_station.append(entry['station'])
-                db_run.append(entry['run'])
-                db_start.append(entry['time_start'])
-                db_end.append(entry['time_end'])
-                db_duration.append(entry['duration'])
-                db_transfer_sample.append(entry['transfer_subsampling'])
-                db_trigger_rate.append(entry['trigger_rate'])
-                db_n_events_g.append(entry['n_events_recorded'])
-                db_n_events_t.append(entry['n_events_transferred'])
-                db_rf0_enabled.append(entry['trigger_rf0_enabled'])
-                db_rf1_enabled.append(entry['trigger_rf1_enabled'])
-                db_ext_enabled.append(entry['trigger_ext_enabled'])
-                db_pps_enabled.append(entry['trigger_pps_enabled'])
-                db_soft_enabled.append(entry['trigger_soft_enabled'])
-                db_soft_rate.append(entry['soft_trigger_rate'])
-                db_flag.append(entry['quality_flag'])
-                db_firmware.append(entry['firmware_version'])
-                db_daq_config_comment.append(entry['daq_config_comment'])
-
-            df = pd.DataFrame({'station': db_station, 'run': db_run, 'start': db_start, 'end': db_end, 'duration (min)': db_duration, 'transfer subsampling': db_transfer_sample, 'trigger rate': db_trigger_rate, 'n events (greenland)': db_n_events_g, 'n events (transferred)': db_n_events_t, 'rf0': db_rf0_enabled, 'rf1': db_rf1_enabled, 'ext': db_ext_enabled, 'pps': db_pps_enabled, 'soft': db_soft_enabled, 'soft trigger rate': db_soft_rate, 'quality flag': db_flag, 'firmware': db_firmware, 'daq config comment': db_daq_config_comment})
-
-        else:
-            df = pd.DataFrame({'station': [None], 'run': [None], 'start': [None], 'end': [None], 'duration (min)': [None], 'transfer subsampling': [None], 'trigger rate': [None], 'n events (greenland)': [None], 'n events (transferred)': [None], 'rf0': [None], 'rf1': [None], 'ext': [None], 'pps': [None], 'soft': [None], 'soft trigger rate': [None], 'quality flag': [None], 'firmware': [None], 'daq config comment': [None]})
-
-        return df
+        run_info = run_info.drop(labels=['_id', 'path'], axis=1)
+        run_info = run_info.rename(columns={'trigger_rf0_enabled': 'rf0', 'trigger_rf1_enabled': 'rf1', 'trigger_ext_enabled': 'ext', 'trigger_pps_enabled': 'pps', 'trigger_soft_enabled': 'soft'})
+  
+        return run_info
 
     # display them as a df
 
