@@ -11,6 +11,7 @@ import json
 from bson import json_util #bson dicts are used by pymongo
 import numpy as np
 from bson import ObjectId
+import pandas as pd
 from NuRadioReco.detector.webinterface import config
 logging.basicConfig()
 logger = logging.getLogger("database")
@@ -1892,7 +1893,23 @@ class Detector(object):
 
         search_results = list(self.db['runtable'].aggregate(search_filter))
 
-        return search_results
+        # transform the list/dict into a dataframe
+        df_frame_dic = {}
+        if search_results != []:
+            list_of_keys = list(search_results[0].keys())
+            for key in list_of_keys:
+                df_frame_dic[key] = []
+
+            for entry in search_results:
+                for ek in entry.keys():
+                    df_frame_dic[ek].append(entry[ek])
+        else:
+            first_entry = self.db['runtable'].find_one()
+            list_of_keys = list(first_entry.keys())
+            for key in list_of_keys:
+                df_frame_dic[key] = [None]
+
+        return pd.DataFrame(df_frame_dic)
 
 
 def dictionarize_nested_lists(nested_lists, parent_key="id", nested_field="channels", nested_key="id"):
