@@ -281,7 +281,7 @@ class neutrinoDirectionReconstructor:
         # sig_dir = hp.spherical_to_cartesian(signal_zenith, signal_azimuth)
         
         # initialize simulated ref values to avoid UnboundLocalError if no sim_station is present
-        fsim, all_fsim, sim_reduced_chi2_Vpol, sim_reduced_chi2_Hpol = 4*[np.nan,]
+        fsim, fsimsim, all_fsim, all_fsimsim, sim_reduced_chi2_Vpol, sim_reduced_chi2_Hpol = 6*[np.nan,]
         if station.has_sim_station():
 
             print("simulated vertex", simulated_vertex)
