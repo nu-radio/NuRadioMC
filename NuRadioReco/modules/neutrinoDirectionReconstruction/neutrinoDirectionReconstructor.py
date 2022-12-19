@@ -274,14 +274,18 @@ class neutrinoDirectionReconstructor:
             passband=self._passband, propagation_config=self._prop_config,
             systematics = systematics)
         self._simulation = simulation
+        self._launch_vector = simulation.simulation(
+            det, station, *reconstructed_vertex, np.pi/2, 0, 1e17,
+            use_channels, first_iter=True)[2]
+        # signal_zenith, signal_azimuth = hp.cartesian_to_spherical(*self._launch_vector)
+        # sig_dir = hp.spherical_to_cartesian(signal_zenith, signal_azimuth)
+        
+        # initialize simulated ref values to avoid UnboundLocalError if no sim_station is present
+        fsim, all_fsim, sim_reduced_chi2_Vpol, sim_reduced_chi2_Hpol = 4*[np.nan,]
         if station.has_sim_station():
 
             print("simulated vertex", simulated_vertex)
             print('reconstructed', reconstructed_vertex)
-
-            self._launch_vector = simulation.simulation(
-                det, station, *reconstructed_vertex, np.pi/2, 0, 1e17,
-                use_channels, first_iter=True)[2]
             #### values for reconstructed vertex and simulated direction
             if sim_station:
                 # traces_sim, timing_sim, self._launch_vector_sim, viewingangles_sim, rayptypes, a = simulation.simulation(
@@ -307,10 +311,7 @@ class neutrinoDirectionReconstructor:
                 sim_reduced_chi2_Hpol = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station, sim = True)[4][1]
             #     self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, first_iter = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)
 
-                tracsim_recvertex = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, first_iter = True,ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[0]
-
-            signal_zenith, signal_azimuth = hp.cartesian_to_spherical(*self._launch_vector)
-            sig_dir = hp.spherical_to_cartesian(signal_zenith, signal_azimuth)
+                tracsim_recvertex = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, first_iter = True,ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)[0]                
 
         if starting_values:
             viewing_start = viewangles[np.argmin(L)] - np.deg2rad(2)
@@ -383,7 +384,7 @@ class neutrinoDirectionReconstructor:
             rec_energy = simulated_energy
 
         elif brute_force and not restricted_input:
-            rotation_matrix = hp.get_rotation(sig_dir, np.array([0, 0,1]))
+            # rotation_matrix = hp.get_rotation(sig_dir, np.array([0, 0,1]))
             cherenkov_angle = results[0][0]
             angle = results[0][1]
             rec_zenith, rec_azimuth = self._transform_angles(cherenkov_angle, angle)
