@@ -11,7 +11,6 @@ import NuRadioReco.modules.efieldToVoltageConverter
 import logging
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 import NuRadioReco.modules.channelGenericNoiseAdder
-import crTemplateCorrelator
 import NuRadioReco.modules.io.NuRadioRecoio
 import json
 import scipy
@@ -28,6 +27,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters
 from NuRadioReco.framework.electric_field import ElectricField
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
+import pickle
 import h5py
 from tqdm import tqdm
 from scipy import interpolate
@@ -66,7 +66,7 @@ class crRNOGTemplateCreator:
         self.__hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
         self.__channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 
-    def begin(self, detector_file, template_save_path='/home/henrichs/software/template_search/artificial_template_bank/', debug=False, logger_level=logging.NOTSET):
+    def begin(self, detector_file, template_save_path='/home/henrichs/software/cr_analysis/artificial_template_bank/', debug=False, logger_level=logging.NOTSET):
         """
                 begin method
 
@@ -140,18 +140,12 @@ class crRNOGTemplateCreator:
         self.__cr_zenith = cr_zenith
         self.__cr_azimuth = cr_azimuth
 
-    def run(self, include_hardware_response=True):
+    def run(self, include_hardware_response=True, return_templates=False):
         """
         run method
 
-        returns the Efield trace of the artificial templates
+        creates a pickle file with the Efield trace of the artificial templates
 
-        Returns
-        ----------
-        efield: list of EField objects
-            efield trace of the artificial template [E_theta, E_phi]
-        include_hardware_response: boolean
-            if True, the hardwareResponseIncorporator will be added to the templates
         """
 
         # if no parameters are set, the standard parameters are used
@@ -159,37 +153,47 @@ class crRNOGTemplateCreator:
             self.set_template_parameter()
 
         template_events = []
-        # loop over the different antenna rotation angles:
-        for rid, eid, sid, cid, e_width, antrot, cr_zen, cr_az in zip(self.__template_run_id, self.__template_event_id, self.__template_station_id, self.__template_channel_id, self.__Efield_width, self.__antenna_rotation, self.__cr_zenith, self.__cr_azimuth):
-            # create the detector
-            det_temp = GenericDetector(json_filename=self.__detector_file, antenna_by_depth=False, create_new=True)
-            det_temp.update(datetime.datetime(2025, 10, 1))
-            det_temp.get_channel(101, 0)['ant_rotation_phi'] = antrot
+        templates = {}
+        save_dic = {}
+        for crz in list(set(self.__cr_zenith)):
+            save_dic_help = {}
+            for cra in list(set(self.__cr_azimuth)):
+                # loop over the different antenna rotation angles:
+                for rid, eid, sid, cid, e_width, antrot, cr_zen, cr_az in zip(self.__template_run_id, self.__template_event_id, self.__template_station_id, self.__template_channel_id, self.__Efield_width, self.__antenna_rotation, self.__cr_zenith, self.__cr_azimuth):
+                    if cr_zen == crz and cr_az == cra:
+                        # create the detector
+                        det_temp = GenericDetector(json_filename=self.__detector_file, antenna_by_depth=False, create_new=True)
+                        det_temp.update(datetime.datetime(2025, 10, 1))
+                        det_temp.get_channel(101, 0)['ant_rotation_phi'] = antrot
 
-            station_time = datetime.datetime(2025, 10, 1)
+                        station_time = datetime.datetime(2025, 10, 1)
 
-            temp_evt = create_Efield(det_temp, rid, eid, cid, sid, station_time, self.__template_sample_number, e_width,
-                                     self.__Efield_amplitudes[1], self.__Efield_amplitudes[0], cr_zen, cr_az, self.__sampling_rate, self.__debug)
+                        temp_evt = create_Efield(det_temp, rid, eid, cid, sid, station_time, self.__template_sample_number, e_width,
+                                                 self.__Efield_amplitudes[1], self.__Efield_amplitudes[0], cr_zen, cr_az, self.__sampling_rate, self.__debug)
 
-            self.__efieldToVoltageConverter.run(temp_evt, temp_evt.get_station(sid), det_temp)
+                        self.__efieldToVoltageConverter.run(temp_evt, temp_evt.get_station(sid), det_temp)
 
-            if include_hardware_response:
-                self.__hardwareResponseIncorporator.run(temp_evt, temp_evt.get_station(sid), det_temp, sim_to_data=True)
+                        if include_hardware_response:
+                            self.__hardwareResponseIncorporator.run(temp_evt, temp_evt.get_station(sid), det_temp, sim_to_data=True)
 
-            if self.__debug:
-                plt.plot(temp_evt.get_station(sid).get_channel(cid).get_times() / units.ns, temp_evt.get_station(sid).get_channel(cid).get_trace())
-                plt.xlabel('times [ns]')
-                plt.ylabel('amplitudes')
-                plt.show()
-                plt.plot(temp_evt.get_station(sid).get_channel(cid).get_frequencies() / units.MHz, np.abs(temp_evt.get_station(sid).get_channel(cid).get_frequency_spectrum()))
-                plt.xlabel('frequency [MHz]')
-                plt.ylabel('amplitudes')
-                plt.show()
-            template_events.append(temp_evt)
+                        if self.__debug:
+                            plt.plot(temp_evt.get_station(sid).get_channel(cid).get_times() / units.ns, temp_evt.get_station(sid).get_channel(cid).get_trace())
+                            plt.xlabel('times [ns]')
+                            plt.ylabel('amplitudes')
+                            plt.show()
+                            plt.plot(temp_evt.get_station(sid).get_channel(cid).get_frequencies() / units.MHz, np.abs(temp_evt.get_station(sid).get_channel(cid).get_frequency_spectrum()))
+                            plt.xlabel('frequency [MHz]')
+                            plt.ylabel('amplitudes')
+                            plt.show()
+                        template_events.append(temp_evt)
+                        templates[e_width] = temp_evt.get_station(sid).get_channel(cid).get_trace()
+                save_dic_help[np.deg2rad(cra)] = templates
+            save_dic[np.deg2rad(crz)] = save_dic_help
 
-            #TODO: save the templates as pickle
-
-        return template_events
+        # write as pickle file
+        pickle.dump([save_dic], open(self.__template_save_path + "templates_cr_station_101.p", "wb"))
+        if return_templates:
+            return template_events
 
 
 def gaussian_func(x, A, mu, sigma):
