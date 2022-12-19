@@ -260,7 +260,10 @@ class neutrinoDirectionReconstructor:
                 # logger.debug("channel {}, SNR {}".format(channel.get_id(),(abs(min(channel.get_trace())) + max(channel.get_trace())) / (2*self._Vrms) ))
                 if channel.get_id() in use_channels:
                     SNR.append((abs(abs(min(channel.get_trace()))) + max(channel.get_trace())) / (2*self._Vrms))
-
+        else:
+            lv_sim = np.nan
+            vw_sim = np.nan
+            pol_sim = np.nan * np.ones(3)
 
 
         simulation = analytic_pulse.simulation(template, reconstructed_vertex) ### if the templates are used, than the templates for the correct distance are loaded
