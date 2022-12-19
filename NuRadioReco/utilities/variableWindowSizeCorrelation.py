@@ -35,7 +35,7 @@ class variableWindowSizeCorrelation:
         else:
             self.logger.setLevel(logger_level)
 
-    def run(self, evt_data, evt_template, sta_num_data, sta_num_temp, cha_num_data, cha_num_temp, window_size, return_time_difference=False):
+    def run(self, dataTrace, templateTrace, window_size, sampling_rate=3.2*units.GHz, return_time_difference=False):
         """
         run method
 
@@ -43,20 +43,14 @@ class variableWindowSizeCorrelation:
 
         Parameters
         ----------
-        evt_data: event object
-            object containing the data event
-        evt_template: event object
-            object containing the template event
-        sta_num_data: int
-             station id of the station containing the data trace
-        sta_num_temp: int
-             station id of the station containing the template trace
-        cha_num_data: int
-            channel id of the channel containing the data trace
-        cha_num_temp: int
-            channel id of the channel containing the template trace
+        dataTrace: array
+            full trace of the data event
+        templateTrace: array
+            full trace of the template
         window_size: int
             size of the template window, used for the correlation (should be given in units.ns)
+        sampling_rate: float
+            sampling rate of the data and template trace
         return_time_difference: boolean
             if true, the time difference (for the maximal correlation value) between the starting of the data trace and the starting of the (cut) template trace is returned (returned time is in units.ns)
 
@@ -67,19 +61,11 @@ class variableWindowSizeCorrelation:
         if self.__debug:
             start = timeit.default_timer()
 
-        # loading the station
-        sta_temp = evt_template.get_station(sta_num_temp)
-        sta_data = evt_data.get_station(sta_num_data)
-
-        # loading and preparing the traces
-        dataTrace = sta_data.get_channel(cha_num_data).get_trace()
-        templateTrace = sta_temp.get_channel(cha_num_temp).get_trace()
-
+        # preparing the traces
         dataTrace = np.float32(dataTrace)
         templateTrace = np.float32(templateTrace)
 
         # create the template window
-        sampling_rate = sta_temp.get_channel(cha_num_temp).get_sampling_rate()
         window_steps = window_size * (sampling_rate * units.GHz)
 
         max_amp = max(abs(templateTrace))
