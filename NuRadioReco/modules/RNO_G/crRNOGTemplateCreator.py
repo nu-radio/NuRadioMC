@@ -153,12 +153,12 @@ class crRNOGTemplateCreator:
             self.set_template_parameter()
 
         template_events = []
-        templates = {}
         save_dic = {}
         for crz in list(set(self.__cr_zenith)):
             save_dic_help = {}
             for cra in list(set(self.__cr_azimuth)):
                 # loop over the different antenna rotation angles:
+                templates = {}
                 for rid, eid, sid, cid, e_width, antrot, cr_zen, cr_az in zip(self.__template_run_id, self.__template_event_id, self.__template_station_id, self.__template_channel_id, self.__Efield_width, self.__antenna_rotation, self.__cr_zenith, self.__cr_azimuth):
                     if cr_zen == crz and cr_az == cra:
                         # create the detector
@@ -187,8 +187,10 @@ class crRNOGTemplateCreator:
                             plt.show()
                         template_events.append(temp_evt)
                         templates[e_width] = temp_evt.get_station(sid).get_channel(cid).get_trace()
-                save_dic_help[np.deg2rad(cra)] = templates
-            save_dic[np.deg2rad(crz)] = save_dic_help
+                if templates != {}:
+                    save_dic_help[np.deg2rad(cra)] = templates
+            if save_dic_help != {}:
+                save_dic[np.deg2rad(crz)] = save_dic_help
 
         # write as pickle file
         pickle.dump([save_dic], open(self.__template_save_path + "templates_cr_station_101.p", "wb"))
