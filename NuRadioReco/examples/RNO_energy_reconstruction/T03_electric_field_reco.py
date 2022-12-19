@@ -68,7 +68,8 @@ ift_efield_reconstructor.begin(
     electric_field_template=efield_template,
     passband=efield_reco_passband,
     n_samples=10,
-    n_iterations=5,
+    n_iterations=3,
+    pulse_time_uncertainty=7.,
     phase_slope='negative',
     energy_fluence_passbands=[
         [.13, .2],
@@ -81,7 +82,9 @@ ift_efield_reconstructor.begin(
         [[.13, .3], [.3, .5]],
     ],
     debug=True,
-    plot_folder='plots/efield_reco'
+    plot_folder='plots/efield_reco',
+    pulse_time_prior=15.,
+    relative_tolerance=1.e-5
 )
 time_offset_calculator = NuRadioReco.modules.channelTimeOffsetCalculator.channelTimeOffsetCalculator()
 time_offset_calculator.begin(
@@ -99,7 +102,7 @@ for i_event, event in enumerate(event_reader.get_events()):
     channel_bandpass_filter.run(event, sim_station, det, passband=efield_reco_passband, filter_type='butter', order=10)
     efield_bandpass_filter.run(event, sim_station, det, passband=efield_reco_passband, filter_type='butter', order=10)
     time_offset_calculator.run(event, station, det, range(6), passband=vertex_reco_passband)
-    channel_props_from_neighbor.run(event, station, det, channel_groups=[[0, 1, 2, 3, 4, 5]])
+    channel_props_from_neighbor.run(event, station, det, channel_groups=[[0, 1, 2, 3, 4, 8]])
     # channel_props_from_neighbor.run(event, station, det, channel_groups=[[9, 10, 11]])
     # channel_props_from_neighbor.run(event, station, det, channel_groups=[[21, 22, 23]])
     for ray_type in range(3):
@@ -107,11 +110,11 @@ for i_event, event in enumerate(event_reader.get_events()):
             event,
             station,
             det,
-            channel_ids=[0, 1, 2, 3, 4, 5],
+            channel_ids=[0, 1, 2, 3],
             efield_scaling=True,
             ray_type=ray_type + 1,
             plot_title='',
-            polarization='pol'
+            polarization='theta'
         )
     channel_resampler.run(event, station, det, sampling_rate=2.)
     efield_resampler.run(event, station, det, sampling_rate=2.)

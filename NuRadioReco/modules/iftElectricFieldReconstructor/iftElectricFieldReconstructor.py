@@ -433,7 +433,7 @@ class IftElectricFieldReconstructor:
                 antenna_orientation[3]
             )
             channel_spectrum_template = fft.time2freq(
-                self.__electric_field_template.get_filtered_trace(passband, filter_type='butterabs'),
+                self.__electric_field_template.get_filtered_trace(passband, filter_type='butter'),
                 self.__electric_field_template.get_sampling_rate()
             ) * amp_response * (antenna_response['theta'] + antenna_response['phi'])
             channel_trace_template = fft.freq2time(channel_spectrum_template, self.__electric_field_template.get_sampling_rate())
@@ -441,13 +441,13 @@ class IftElectricFieldReconstructor:
             channel.apply_time_shift(-self.__time_offsets[i_channel], True)
             if self.__use_sim:
                 sim_channel_traces[i_channel].apply_time_shift(-self.__time_offsets[i_channel], True)
-                channel_trace = sim_channel_traces[i_channel].get_filtered_trace(passband, filter_type='butterabs')
+                channel_trace = sim_channel_traces[i_channel].get_filtered_trace(passband, filter_type='butter')
                 for i_region, signal_region in enumerate(channel.get_parameter(chp.signal_regions)):
                     if channel.get_parameter(chp.signal_ray_types) == self.__ray_type:
                         channel_trace[sim_channel_traces[i_channel].get_times() + self.__time_offsets[i_channel] < signal_region[0]] = 0
                         channel_trace[sim_channel_traces[i_channel].get_times() + self.__time_offsets[i_channel] > signal_region[1]] = 0
             else:
-                channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
+                channel_trace = channel.get_filtered_trace(passband, filter_type='butter')
                 for i_region, signal_region in enumerate(channel.get_parameter(chp.signal_regions)):
                     if channel.get_parameter(chp.signal_ray_types)[i_region] == self.__ray_type:
                         channel_trace[channel.get_times() + self.__time_offsets[i_channel] < signal_region[0]] = 0
@@ -468,7 +468,7 @@ class IftElectricFieldReconstructor:
 
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             channel = station.get_channel(channel_id)
-            channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
+            channel_trace = channel.get_filtered_trace(passband, filter_type='butter')
             toffset = -(np.arange(0, correlation_sum.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()
             if self.__debug:
                 ax2_1 = fig2.add_subplot(len(self.__used_channel_ids), 2, 2 * i_channel + 1)
@@ -486,7 +486,7 @@ class IftElectricFieldReconstructor:
                                 sim_channel_sum += sim_channel
                 if sim_channel_sum is not None:
                     sim_channel_sum.apply_time_shift(-self.__time_offsets[i_channel], True)
-                    ax2_1.plot(sim_channel_sum.get_times(), sim_channel_sum.get_filtered_trace(passband, filter_type='butterabs') / units.mV, c='k', alpha=.5)
+                    ax2_1.plot(sim_channel_sum.get_times(), sim_channel_sum.get_filtered_trace(passband, filter_type='butter') / units.mV, c='k', alpha=.5)
                     ax2_1.set_xlim([sim_channel_sum.get_trace_start_time() - 50, sim_channel_sum.get_times()[-1] + 50])
                     sim_channel_sum.apply_time_shift(self.__time_offsets[i_channel], True)
 
@@ -576,23 +576,46 @@ class IftElectricFieldReconstructor:
         # correlated_field = ift.CorrelatedField(large_frequency_domain.get_default_codomain(), A)
 
         args = {
-            'offset_mean': 0,
-            'offset_std': (1e-3, 1e-6),
+            'offset_mean': 3,
+            'offset_std': (1.5, 1.e-2),
 
             # Amplitude of field fluctuations
-            'fluctuations': (1., 0.8),  # 1.0, 1e-2
+            'fluctuations': (.3, .5),  # 1.0, 1e-2
 
             # Exponent of power law power spectrum component
-            'loglogavgslope': (-4.5, .5),  # -6.0, 1
+            'loglogavgslope': (-3.5, 1.),  # -6.0, 1
 
             # Amplitude of integrated Wiener process power spectrum component
-            'flexibility': (2, 1.),  # 1.0, 0.5
+            'flexibility': (5.5, .5),  # 1.0, 0.5
 
             # How ragged the integrated Wiener process component is
-            'asperity': (0.5, 0.4)  # 0.1, 0.5
+            'asperity': (.5, 0.1)  # 0.1, 0.5
         }
-
-        correlated_field = ift.SimpleCorrelatedField(power_domain, **args)
+        """
+        self.__amp_dct = {
+                'n_pix': 64,  # spectral bins
+                # Spectral smoothness (affects Gaussian process part)
+                'a': .01,
+                'k0': 2.,
+                # Power-law part of spectrum:
+                'sm': -4.9,
+                'sv': .5,
+                'im': 2.,
+                'iv': .5
+            }"""
+        # correlated_field = ift.SimpleCorrelatedField(power_domain, **args)
+        correlated_field_maker = ift.CorrelatedFieldMaker(prefix='fsdfsd')
+        correlated_field_maker.set_amplitude_total_offset(args['offset_mean'], args['offset_std'])
+        correlated_field_maker.add_fluctuations(
+            target_subdomain=power_domain,
+            fluctuations=args['fluctuations'],
+            flexibility=args['flexibility'],
+            asperity=args['asperity'],
+            loglogavgslope=args['loglogavgslope']
+        )
+        correlated_field = correlated_field_maker.finalize()
+        self.__correlated_field_maker = correlated_field_maker
+        self.__correlated_field = correlated_field
         realizer = ift.Realizer(self.__fft_operator.domain)
         realizer2 = ift.Realizer(self.__fft_operator.target)
         inserter = NuRadioReco.modules.iftElectricFieldReconstructor.operators.Inserter(realizer.target)
@@ -602,8 +625,9 @@ class IftElectricFieldReconstructor:
         domain_flipper = NuRadioReco.modules.iftElectricFieldReconstructor.operators.DomainFlipper(zero_padder.domain, target=ift.RGSpace(small_sp.shape, harmonic=True))
         mag_S_h = (-1 * domain_flipper @ zero_padder.adjoint @ correlated_field)
         mag_S_h = NuRadioReco.modules.iftElectricFieldReconstructor.operators.SymmetrizingOperator(mag_S_h.target) @ mag_S_h
-        subtract_one = ift.Adder(ift.Field(mag_S_h.target, -6))
+        subtract_one = ift.Adder(ift.Field(mag_S_h.target, -1))
         mag_S_h = realizer2.adjoint @ (subtract_one @ mag_S_h).exp()
+        self.__mag_S_h = mag_S_h
         fft_operator = ift.FFTOperator(frequency_domain.get_default_codomain())
 
         scaling_domain = ift.UnstructuredDomain(1)
@@ -797,19 +821,26 @@ class IftElectricFieldReconstructor:
         times = np.arange(self.__data_traces.shape[1]) / sampling_rate
         freqs = freq_space.get_k_length_array().val / self.__data_traces.shape[1] * sampling_rate
         alpha = .8
-        for i in range(5):
+        for i in range(10):
             x = ift.from_random(self.__efield_trace_operators[0][0].domain, 'normal')
             efield_spec_sample = self.__efield_spec_operators[0][0].force(x)
+            # efield_spec_sample = self.__mag_S_h.force(x)
             ax1_1.plot(freqs / units.MHz, np.abs(efield_spec_sample.val) / np.max(np.abs(efield_spec_sample.val)), c='C{}'.format(i), alpha=alpha)
             efield_trace_sample = self.__efield_trace_operators[0][0].force(x)
             ax1_2.plot(times, efield_trace_sample.val / np.max(np.abs(efield_trace_sample.val)))
+            ax1_2.set_xlim([0, 50])
             channel_spec_sample = self.__channel_spec_operators[0].force(x)
             ax1_3.plot(freqs / units.MHz, np.abs(channel_spec_sample.val))  # / np.max(np.abs(channel_spec_sample.val)), c='C{}'.format(i), alpha=alpha)
             channel_trace_sample = self.__channel_trace_operators[0].force(x)
-            ax1_4.plot(times, channel_trace_sample.val / np.max(np.abs(channel_trace_sample.val)), c='C{}'.format(i), alpha=alpha)
-            #a = self.__power_spectrum_operator.force(x).val
-            #power_freqs = self.__power_spectrum_operator.target[0].k_lengths / self.__data_traces.shape[1] * sampling_rate
-            #ax1_0.plot(power_freqs, a, c='C{}'.format(i), alpha=alpha)
+            ax1_4.plot(times, channel_trace_sample.val, c='C{}'.format(i), alpha=alpha)
+            spectrum = self.__correlated_field_maker.amplitude.force(x)
+
+            # power_freqs = self.__correlated_field.target[0].get_k_length_array() / self.__data_traces.shape[1] * sampling_rate
+            ax1_0.plot(
+                spectrum.domain[0].k_lengths,
+                spectrum.val_rw(),
+                c='C{}'.format(i), alpha=alpha
+            )
         ax1_0.grid()
         ax1_0.set_xscale('log')
         ax1_0.set_yscale('log')

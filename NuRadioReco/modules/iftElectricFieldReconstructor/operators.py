@@ -68,6 +68,10 @@ class DomainFlipper(ift.LinearOperator):
 
     def apply(self, x, mode):
         self._check_input(x, mode)
+        # import matplotlib.pyplot as plt
+        # plt.close('all')
+        # plt.plot(x.val)
+        # plt.show()
         if mode == self.TIMES:
             y = ift.makeField(self._target, x.val)
         if mode == self.INVERSE_TIMES:
@@ -97,11 +101,23 @@ class SymmetrizingOperator(ift.EndomorphicOperator):
     def apply(self, x, mode):
         self._check_input(x, mode)
         v = x.val.copy()
+        # import matplotlib.pyplot as plt
+        # plt.close('all')
+        # print(self.target[0].get_k_length_array())
+        # plt.plot(
+        #     self._domain[0].get_k_length_array().val,
+        #     v
+        # )
         for i in self._domain.axes[self._space]:
             lead = (slice(None),) * i
             # v, loc = ift.dobj.ensure_not_distributed(v, (i,))
             # loc[lead + (slice(None),)] += loc[lead + (slice(None, None, -1),)]
             # loc /= 2
-            v[lead + (slice(None),)] += v[lead + (slice(None, None, -1),)]
+            v[lead + (slice(None),)] += x.val[lead + (slice(None, None, -1),)]
             v /= 2
+        # plt.plot(
+        #     self.target[0].get_k_length_array().val,
+        #     v
+        # )
+        # plt.show()
         return ift.Field(self.target, v)
