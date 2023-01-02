@@ -120,7 +120,6 @@ proposal_interaction_codes = { 1000000001: 80,
                                1000000010: 90,
                                1000000011: 91 }
 
-
 def particle_code(particle):
     """
     If a particle object from PROPOSAL is passed as input, it returns the
@@ -285,6 +284,8 @@ class ProposalFunctions(object):
                 mu_def_builder.SetParticleDef(pp.particle.TauMinusDef())
             elif (particle_code == -15):
                 mu_def_builder.SetParticleDef(pp.particle.TauPlusDef())
+            elif (particle_code == 41):
+                mu_def_builder.SetParticleDef(pp.particle.MonopoleDef())
             else:
                 error_str = "The propagation of this particle via PROPOSAL is not currently supported.\n"
                 error_str += "Please choose between -/+muon (13/-13) and -/+tau (15/-15)"
@@ -445,7 +446,8 @@ class ProposalFunctions(object):
             particle_def = pp.particle.TauMinusDef()
         elif (lepton_code == -15):
             particle_def = pp.particle.TauPlusDef()
-
+        elif (lepton_code == 41):
+            particle_def = pp.particle.MonopoleDef()
         initial_condition = pp.particle.DynamicData(particle_def.particle_type)
         initial_condition.position = pp.Vector3D(x, y, z)
         initial_condition.direction = pp.Vector3D(px, py, pz)
