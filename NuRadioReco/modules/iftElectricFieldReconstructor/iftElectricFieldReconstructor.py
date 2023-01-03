@@ -573,20 +573,20 @@ class IftElectricFieldReconstructor:
         """
 
         args = {
-            'offset_mean': 3,
-            'offset_std': (1.5, 1.e-2),
+            'offset_mean': .5,
+            'offset_std': (2.5, .5),
 
             # Amplitude of field fluctuations
-            'fluctuations': (.3, .5),  # 1.0, 1e-2
+            'fluctuations': (4., 1.),  # 1.0, 1e-2
 
             # Exponent of power law power spectrum component
-            'loglogavgslope': (-3.5, 1.),  # -6.0, 1
+            'loglogavgslope': (-4.5, 1.),  # -6.0, 1
 
             # Amplitude of integrated Wiener process power spectrum component
-            'flexibility': (5.5, .5),  # 1.0, 0.5
+            'flexibility': (.5, .2),  # 1.0, 0.5
 
             # How ragged the integrated Wiener process component is
-            'asperity': (.5, 0.1)  # 0.1, 0.5
+            'asperity': (.1, 0.01)  # 0.1, 0.5
         }
         power_domain = ift.RGSpace(large_frequency_domain.get_default_codomain().shape[0], harmonic=False)
         correlated_field_maker = ift.CorrelatedFieldMaker(prefix='fsdfsd')
@@ -612,6 +612,7 @@ class IftElectricFieldReconstructor:
         mag_S_h = NuRadioReco.modules.iftElectricFieldReconstructor.operators.SymmetrizingOperator(mag_S_h.target) @ mag_S_h
         subtract_one = ift.Adder(ift.Field(mag_S_h.target, -6))
         mag_S_h = realizer2.adjoint @ (subtract_one @ mag_S_h).exp()
+        conjugator = ift.ConjugationOperator(frequency_domain)
         fft_operator = ift.FFTOperator(frequency_domain.get_default_codomain())
 
         scaling_domain = ift.UnstructuredDomain(1)
@@ -651,17 +652,17 @@ class IftElectricFieldReconstructor:
             if self.__efield_scaling:
                 for efield_spec_operator in efield_spec_operators:
                     if efield_spec_operator is not None:
-                        efield_trace_operator.append(((realizer @ fft_operator.inverse @ efield_spec_operator)) * scaling_field)
+                        efield_trace_operator.append(((realizer @ fft_operator.inverse @ conjugator @ efield_spec_operator)) * scaling_field)
                     else:
                         efield_trace_operator.append(None)
-                channel_trace_operator = ((realizer @ fft_operator.inverse @ (channel_spec_operator))) * scaling_field
+                channel_trace_operator = ((realizer @ fft_operator.inverse @ conjugator @ (channel_spec_operator))) * scaling_field
             else:
                 for efield_spec_operator in efield_spec_operators:
                     if efield_spec_operator is not None:
-                        efield_trace_operator.append(((realizer @ fft_operator.inverse @ efield_spec_operator)))
+                        efield_trace_operator.append(((realizer @ fft_operator.inverse @ conjugator @ efield_spec_operator)))
                     else:
                         efield_trace_operator.append(None)
-                channel_trace_operator = ((realizer @ fft_operator.inverse @ (channel_spec_operator)))
+                channel_trace_operator = ((realizer @ fft_operator.inverse @ conjugator @ (channel_spec_operator)))
             noise_operator = ift.ScalingOperator(frequency_domain.get_default_codomain(), self.__noise_levels[i_channel]**2, sampling_dtype=float)
             data_field = ift.Field(ift.DomainTuple.make(frequency_domain.get_default_codomain()), self.__data_traces[i_channel])
             self.__efield_spec_operators.append(efield_spec_operators)
@@ -815,7 +816,7 @@ class IftElectricFieldReconstructor:
             channel_spec_sample = self.__channel_spec_operators[0].force(x)
             ax1_3.plot(freqs / units.MHz, np.abs(channel_spec_sample.val))  # / np.max(np.abs(channel_spec_sample.val)), c='C{}'.format(i), alpha=alpha)
             channel_trace_sample = self.__channel_trace_operators[0].force(x)
-            ax1_4.plot(times, channel_trace_sample.val / np.max(np.abs(channel_trace_sample.val)), c='C{}'.format(i), alpha=alpha)
+            ax1_4.plot(times, channel_trace_sample.val, c='C{}'.format(i), alpha=alpha)
             a = self.__correlated_field_maker.amplitude.force(x)
             # power_freqs = self.__power_spectrum_operator.target[0].k_lengths / self.__data_traces.shape[1] * sampling_rate
             ax1_0.plot(a.domain[0].k_lengths, a.val, c='C{}'.format(i), alpha=alpha)
