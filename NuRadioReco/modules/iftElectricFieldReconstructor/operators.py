@@ -1,5 +1,5 @@
 import numpy as np
-import nifty5 as ift
+import nifty8 as ift
 
 
 class LinearSlopeOperator(ift.LinearOperator):
@@ -13,7 +13,7 @@ class LinearSlopeOperator(ift.LinearOperator):
 
     def apply(self, x, mode):
         self._check_input(x, mode)
-        inp = x.to_global_data()
+        inp = x.val
         if mode == self.TIMES:
             res = np.empty(self.target.shape, dtype=x.dtype)
             res = inp[1] + inp[0] * self._pos
@@ -21,7 +21,7 @@ class LinearSlopeOperator(ift.LinearOperator):
             res = np.array(
                 [np.sum(self._pos * inp),
                  np.sum(inp[1:])], dtype=x.dtype)
-        return ift.Field.from_global_data(self._tgt(mode), res)
+        return ift.Field(self._tgt(mode), res)
 
 
 def SlopeSpectrumOperator(target, m=0, n=0, sigma_m=.1, sigma_n=.1):
@@ -33,8 +33,8 @@ def SlopeSpectrumOperator(target, m=0, n=0, sigma_m=.1, sigma_n=.1):
     slope = LinearSlopeOperator(target.get_default_codomain())
     mean = np.array([m, n])
     sig = np.array([sigma_m, sigma_n])
-    mean = ift.Field.from_global_data(slope.domain, mean)
-    sig = ift.Field.from_global_data(slope.domain, sig)
+    mean = ift.Field(slope.domain, mean)
+    sig = ift.Field(slope.domain, sig)
     linear_operator = flipper @ slope @ ift.Adder(mean) @ ift.makeOp(sig)
     return linear_operator.ducktape('slope')
 
@@ -47,7 +47,7 @@ class Inserter(ift.LinearOperator):
 
     def apply(self, x, mode):
         self._check_input(x, mode)
-        x = x.to_global_data()
+        x = x.val
         if mode == self.TIMES:
             return ift.full(self.target, x[0])
         return ift.full(self.domain, x.sum())
@@ -69,13 +69,13 @@ class DomainFlipper(ift.LinearOperator):
     def apply(self, x, mode):
         self._check_input(x, mode)
         if mode == self.TIMES:
-            y = ift.from_global_data(self._target, x.to_global_data())
+            y = ift.makeField(self._target, x.val)
         if mode == self.INVERSE_TIMES:
-            y = ift.from_global_data(self._domain, x.to_global_data())
+            y = ift.makeField(self._domain, x.val)
         if mode == self.ADJOINT_TIMES:
-            y = ift.from_global_data(self._domain, x.to_global_data())
+            y = ift.makeField(self._domain, x.val)
         if mode == self.ADJOINT_INVERSE_TIMES:
-            y = ift.from_global_data(self._target, x.to_global_data())
+            y = ift.makeField(self._target, x.val)
         return y
 
 
@@ -99,7 +99,7 @@ class SymmetrizingOperator(ift.EndomorphicOperator):
         v = x.val.copy()
         for i in self._domain.axes[self._space]:
             lead = (slice(None),) * i
-            v, loc = ift.dobj.ensure_not_distributed(v, (i,))
-            loc[lead + (slice(None),)] += loc[lead + (slice(None, None, -1),)]
-            loc /= 2
-        return ift.Field(self.target, ift.dobj.ensure_default_distributed(v))
+            # v, loc = ift.dobj.ensure_not_distributed(v, (i,))
+            v[lead + (slice(None),)] += v[lead + (slice(None, None, -1),)]
+            v /= 2
+        return ift.Field(self.target, v)
