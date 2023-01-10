@@ -6,6 +6,7 @@ import NuRadioReco.modules.io.event_parser_factory
 import numpy as np
 import logging
 import time
+import os
 
 VERSION = 2
 VERSION_MINOR = 2
@@ -97,7 +98,15 @@ class NuRadioRecoio(object):
     def __check_file_version(self, iF):
         self.__file_version = int.from_bytes(self._get_file(iF).read(6), 'little')
         self.__file_version_minor = int.from_bytes(self._get_file(iF).read(6), 'little')
-        if(self.__file_version != VERSION):
+
+        if (self.__file_version == 0):
+            self.logger.error(
+                f"File might be corrupt, file has version {self.__file_version}.{self.__file_version} "
+                f"but current version is {VERSION}.{VERSION_MINOR}. "
+                f"This might indicate the file is empty. The file size is {os.stat(self._filenames[iF]).st_size} B.")
+
+
+        elif(self.__file_version != VERSION):
             self.logger.error(
                 "data file not readable. File has version {}.{} but current version is {}.{}".format(
                     self.__file_version,
@@ -108,9 +117,9 @@ class NuRadioRecoio(object):
             )
             if(self.__fail_on_version_mismatch):
                 raise IOError
-        if(self.__file_version_minor != VERSION_MINOR):
+        elif(self.__file_version_minor != VERSION_MINOR):
             self.logger.error(
-                "data file might not readable. File has version {}.{} but current version is {}.{}".format(
+                "Data file might not readable, File has version {}.{} but current version is {}.{}".format(
                     self.__file_version,
                     self.__file_version_minor,
                     VERSION,
