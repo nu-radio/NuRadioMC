@@ -27,7 +27,7 @@ _Alvarez2009_k_L = None
 
 def get_parametrizations():
     """ returns a list of all implemented parametrizations """
-    return ['ZHS1992', 'Alvarez2000', 'Alvarez2009', 'Alvarez2012']
+    return ['ZHS1992', 'Alvarez2000', 'Alvarez2009']
 
 
 def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=None, same_shower=False,
@@ -60,9 +60,11 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
         distance from vertex to observer
     model: string
         specifies the signal model
+
         * ZHS1992: the original ZHS parametrization from E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992), doi:10.1103/PhysRevD.45.362, this parametrization does not contain any phase information
         * Alvarez2000: parameterization based on ZHS mainly based on J. Alvarez-Muniz, R. A. Vazquez, and E. Zas, Calculation methods for radio pulses from high energyshowers,Physical Review D62 (2000) https://doi.org/10.1103/PhysRevD.84.103003
         * Alvarez2009: parameterization based on ZHS from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas, Coherent cherenkov radio pulses fromhadronic showers up to eev energies,Astroparticle Physics35(2012), no. 6 287 – 299 and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas, Thinned simulations of extremely energeticshowers in dense media for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111
+
     seed: None or int
         the random seed for the Askaryan modules
     same_shower: bool (default False)
@@ -71,14 +73,15 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
         signal for both ray tracing solutions from the same shower.
     k_L: None or float
         the k_L parameter for EM showers of the Alvarez2009 model. If a this parameter is provided, this value is used
-        and the parameter will not be drawn from a random distribution. 
+        and the parameter will not be drawn from a random distribution.
         This setting overrides the `same_shower` setting
-    full_output: bool (default False)    
+    full_output: bool (default False)
         if True, askaryan modules can return additional output. The additional output is always a dictionary
-        For Alvarez2009: dict containing the key 'k_L'
-        For ZHS1992 and ALvarez2000 the dict is empty.
+
+        - For Alvarez2009: dict containing the key 'k_L'
+        - For ZHS1992 and ALvarez2000 the dict is empty.
     average_shower: bool (default False)
-        if True, for the Alvarez2009 model electromagnetic showers, no random shower is generated, but the average shower is choosen. 
+        if True, for the Alvarez2009 model electromagnetic showers, no random shower is generated, but the average shower is choosen.
 
     Returns
     -------
