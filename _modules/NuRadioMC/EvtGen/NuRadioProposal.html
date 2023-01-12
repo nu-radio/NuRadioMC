@@ -1143,19 +1143,13 @@
 
             <span class="c1"># Checking if there is a muon in the products</span>
             <span class="k">if</span> <span class="n">propagate_decay_muons</span><span class="p">:</span>
-
                 <span class="n">decay_muons_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>
 
                 <span class="k">for</span> <span class="n">sec</span> <span class="ow">in</span> <span class="n">secondaries</span><span class="p">:</span>
-
-                    <span class="k">if</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">proposal_interaction_codes</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_names</span><span class="p">):</span>
-                        <span class="k">continue</span>
-
-                    <span class="k">if</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">particle_def</span> <span class="o">==</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuMinusDef</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">particle_def</span> <span class="o">==</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuPlusDef</span><span class="p">()):</span>
-
-                        <span class="k">if</span> <span class="n">sec</span><span class="o">.</span><span class="n">particle_def</span> <span class="o">==</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuMinusDef</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="mi">13</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="o">-</span><span class="mi">13</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="mi">13</span><span class="p">:</span>
                             <span class="n">mu_code</span> <span class="o">=</span> <span class="mi">13</span>
-                        <span class="k">elif</span> <span class="n">sec</span><span class="o">.</span><span class="n">particle_def</span> <span class="o">==</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuPlusDef</span><span class="p">():</span>
+                        <span class="k">elif</span> <span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="o">-</span><span class="mi">13</span><span class="p">:</span>
                             <span class="n">mu_code</span> <span class="o">=</span> <span class="o">-</span><span class="mi">13</span>
 
                         <span class="n">mu_energy</span> <span class="o">=</span> <span class="n">sec</span><span class="o">.</span><span class="n">energy</span>
