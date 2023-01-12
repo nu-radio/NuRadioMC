@@ -281,7 +281,10 @@ def get_energy_from_flux(Emin, Emax, n_events, flux, rnd=None):
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
 
-    Returns: array of energies
+    Returns
+    -------
+    energies: array of floats
+        array of energies
     """
     if(rnd is None):
         rnd = np.random.default_rng()
@@ -341,7 +344,7 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
         the maximum energy
     spectrum_type: string
         defines the probability distribution for which the neutrino energies are generated
-        
+
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
@@ -565,7 +568,7 @@ def set_volume_attributes(volume, proposal, attributes):
 
 def generate_vertex_positions(attributes, n_events, rnd=None):
     """
-    helper function that generates the vertex position randomly distributed in simulation volume. 
+    helper function that generates the vertex position randomly distributed in simulation volume.
     The relevant quantities are also saved into the hdf5 attributes
 
     Parameters
@@ -755,7 +758,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         * full_zmax: float (optional)
             upper z coordinate of simulated volume (if not set it is set to the fiducial volume)
 
-        or a cube specified with 
+        or a cube specified with
 
         * fiducial_xmin: float
             lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
@@ -781,7 +784,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
             lower z coordinate of simulated volume (if not set it is set to the fiducial volume)
         * full_zmax: float (optional)
             upper z coordinate of simulated volume (if not set it is set to the fiducial volume)
-        
+
     thetamin: float
         lower zenith angle for neutrino arrival direction
     thetamax: float
@@ -804,14 +807,14 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         This is useful to split up the computing on multiple cores.
     spectrum: string
         defines the probability distribution for which the neutrino energies are generated
-        
+
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 
           for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
-        
+
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
@@ -819,7 +822,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     config_file: string
         The user can specify the path to their own config file or choose among
         the three available options:
-        
+
         * 'SouthPole', a config file for the South Pole (spherical Earth). It
           consists of a 2.7 km deep layer of ice, bedrock below and air above.
         * 'MooresBay', a config file for Moore's Bay (spherical Earth). It
@@ -828,14 +831,14 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         * 'InfIce', a config file with a medium of infinite ice
         * 'Greenland', a config file for Summit Station, Greenland (spherical Earth),
           same as SouthPole but with a 3 km deep ice layer.
-        
+
         .. Important:: If these options are used, the code is more efficient if the
             user requests their own "path_to_tables" and "path_to_tables_readonly",
             pointing them to a writable directory
             If one of these three options is chosen, the user is supposed to edit
             the corresponding config_PROPOSAL_xxx.json.sample file to include valid
             table paths and then copy this file to config_PROPOSAL_xxx.json.
-        
+
     proposal_kwargs: dict
         additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
     log_level: logging log level or None
@@ -1072,7 +1075,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             lower z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)
         * full_zmax: float (optional)
             upper z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume , if second vertices are not activated it is set to the fiducial volume)
-        
+
         or a cube specified with
 
         * fiducial_xmin: float
@@ -1099,7 +1102,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             lower z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
         * full_zmax: float (optional)
             upper z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)
-    
+
     thetamin: float
         lower zenith angle for neutrino arrival direction (default 0deg)
     thetamax: float
@@ -1182,7 +1185,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     seed: None of int
         seed of the random state
     interaction_type: string
-        the interaction type. default is "ccnc" which randomly choses neutral current (NC) or charged-current (CC) interactions. 
+        the interaction type. default is "ccnc" which randomly choses neutral current (NC) or charged-current (CC) interactions.
         The use can also specify "nc" or "cc" to exclusively simulate NC or CC interactions
     """
     rnd = Generator(Philox(seed))

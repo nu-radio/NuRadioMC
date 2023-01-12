@@ -23,7 +23,7 @@ The pip installation will also install all core dependencies.
   Some optional dependencies cannot be installed using pip and 
   :ref:`have to be installed manually <Introduction/pages/installation:Not pip-installable packages>`.
 
-.. Important:: If you want the current version or you want to contribute to NuRadioReco, you need to install it manually.
+.. Note:: If you want the current version or you want to contribute to NuRadioReco, you need to install it manually.
 
 Development version
 ---------------------------
@@ -200,8 +200,6 @@ These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's 
 Not pip-installable packages
 ____________________________
 
-- To read ARIANNA files, `Snowshovel <https://arianna.ps.uci.edu/mediawiki/index.php/Local_DAQ_Instructions>`_ needs to be installed.
-- To read ARA files, `ARA ROOT <http://www.hep.ucl.ac.uk/uhen/ara/araroot/branches/3.13/index.shtml>`_ needs to be installed.
 - To speed up the :mod:`analytic ray tracing module <NuRadioMC.SignalProp.analyticraytracing>`, `GSL <https://www.gnu.org/software/gsl/>`_ needs 
   to be installed, and ``$GSL_DIR`` should point at the correct installation folder. On Linux, GSL can be installed using 
 
@@ -209,7 +207,10 @@ ____________________________
 
     sudo apt-get install libgsl-dev
 
-  With GSL installed, compile the CPP ray tracer by navigating to `NuRadioMC/NuRadioMC/SignalProp`
-  and running the included `install.sh` script.
+  (On MacOS, use ``brew install gsl`` instead - you may have to install `homebrew <https://brew.sh/>`_ first).
+  With GSL installed, compile the CPP ray tracer by navigating to ``NuRadioMC/NuRadioMC/SignalProp``
+  and running the included ``install.sh`` script.
 - To use the :mod:`RadioPropa numerical ray tracing <NuRadioMC.SignalProp.radioproparaytracing>` module, ``radiopropa`` needs to be installed.
   The radiopropa github, with installation instructions, can be found `here <https://github.com/nu-radio/RadioPropa>`_.
+- To read ARIANNA files, `Snowshovel <https://arianna.ps.uci.edu/mediawiki/index.php/Local_DAQ_Instructions>`_ needs to be installed.
+- To read ARA files, `ARA ROOT <http://www.hep.ucl.ac.uk/uhen/ara/araroot/branches/3.13/index.shtml>`_ needs to be installed.
