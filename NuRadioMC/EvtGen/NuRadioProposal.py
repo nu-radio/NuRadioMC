@@ -578,19 +578,13 @@ class ProposalFunctions(object):
 
             # Checking if there is a muon in the products
             if propagate_decay_muons:
-
                 decay_muons_array.append([None, None, None, None])
 
                 for sec in secondaries:
-
-                    if (sec.type not in proposal_interaction_codes) or (sec.type not in particle_names.particle_names):
-                        continue
-
-                    if (sec.particle_def == pp.particle.MuMinusDef()) or (sec.particle_def == pp.particle.MuPlusDef()):
-
-                        if sec.particle_def == pp.particle.MuMinusDef():
+                    if (sec.type == 13) or (sec.type == -13):
+                        if sec.type == 13:
                             mu_code = 13
-                        elif sec.particle_def == pp.particle.MuPlusDef():
+                        elif sec.type == -13:
                             mu_code = -13
 
                         mu_energy = sec.energy
