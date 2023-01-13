@@ -41,6 +41,7 @@ import NuRadioMC.simulation.simulation_base
 import NuRadioMC.simulation.simulation_detector
 import NuRadioMC.simulation.simulation_emission
 import NuRadioMC.simulation.simulation_input_output
+import NuRadioMC.simulation.simulation_propagation
 
 STATUS = 31
 
@@ -59,8 +60,9 @@ assert isinstance(logger, NuRadioMC.simulation.simulation_base.NuRadioMCLogger)
 
 
 class simulation(
-    NuRadioMC.simulation.simulation_detector.simulation_detector,
+    NuRadioMC.simulation.simulation_propagation.simulation_propagation,
     NuRadioMC.simulation.simulation_emission.simulation_emission,
+    NuRadioMC.simulation.simulation_detector.simulation_detector,
     NuRadioMC.simulation.simulation_input_output.simulation_input_output
 ):
 
@@ -319,21 +321,7 @@ class simulation(
                             logger.debug("event {} and station {}, channel {} does not have any ray tracing solution ({} to {})".format(
                                 self._event_group_id, self._station_id, channel_id, x1, x2))
                             continue
-                        delta_Cs = []
-                        viewing_angles = []
-                        # loop through all ray tracing solution
-                        for iS in range(self._raytracer.get_number_of_solutions()):
-                            for key, value in self._raytracer.get_raytracing_output(iS).items():
-                                sg[key][iSh, channel_id, iS] = value
-                            self._launch_vector = self._raytracer.get_launch_vector(iS)
-                            sg['launch_vectors'][iSh, channel_id, iS] = self._launch_vector
-                            # calculates angle between shower axis and launch vector
-                            viewing_angle = hp.get_angle(self._shower_axis, self._launch_vector)
-                            viewing_angles.append(viewing_angle)
-                            delta_C = (viewing_angle - cherenkov_angle)
-                            logger.debug('solution {} {}: viewing angle {:.1f} = delta_C = {:.1f}'.format(
-                                iS, propagation.solution_types[self._raytracer.get_solution_type(iS)], viewing_angle / units.deg, (viewing_angle - cherenkov_angle) / units.deg))
-                            delta_Cs.append(delta_C)
+                        delta_Cs, viewing_angles = self._calculate_viewing_angles(sg, iSh, channel_id, cherenkov_angle)
 
                         # discard event if delta_C (angle off cherenkov cone) is too large
                         if min(np.abs(delta_Cs)) > self._cfg['speedup']['delta_C_cut']:
@@ -411,10 +399,6 @@ class simulation(
                 delta_start_times = start_times[start_times_sort][1:] - start_times[start_times_sort][:-1]  # this array is sorted in time
                 split_event_time_diff = float(self._cfg['split_event_time_diff'])
                 iSplit = np.atleast_1d(np.squeeze(np.argwhere(delta_start_times > split_event_time_diff)))
-#                 print(f"start times {start_times}")
-#                 print(f"sort array {start_times_sort}")
-#                 print(f"delta times {delta_start_times}")
-#                 print(f"split at indices {iSplit}")
                 n_sub_events = len(iSplit) + 1
                 if n_sub_events > 1:
                     logger.info(f"splitting event group id {self._event_group_id} into {n_sub_events} sub events")
