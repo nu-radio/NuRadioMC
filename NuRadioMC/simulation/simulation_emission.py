@@ -10,6 +10,8 @@ import radiotools.helper
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.utilities import units, fft
+from NuRadioMC.SignalProp import propagation
+
 import scipy.constants
 
 logger = logging.getLogger('NuRadioMC')
@@ -181,3 +183,53 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
                 self._Vrms_efield_per_channel[self._station_id][channel_id]
 
         return candidate_ray, polarization_direction_at_antenna
+
+    def _calculate_polarization_angles(
+            self,
+            sg,
+            iSh,
+            delta_Cs,
+            viewing_angles,
+            ray_tracing_performed,
+            channel_id,
+            n_index
+    ):
+        candidate_station = False
+        for iS in range(self._raytracer.get_number_of_solutions()):  # loop through all ray tracing solution
+            # skip individual channels where the viewing angle difference is too large
+            # discard event if delta_C (angle off cherenkov cone) is too large
+            if np.abs(delta_Cs[iS]) > self._cfg['speedup']['delta_C_cut']:
+                logger.debug('delta_C too large, ray tracing solution unlikely to be observed, skipping event')
+                continue
+            if self._check_if_was_pre_simulated() and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']:
+                sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
+                R = sg_pre['travel_distances'][self._shower_index, channel_id, iS]
+                T = sg_pre['travel_times'][self._shower_index, channel_id, iS]
+            else:
+                R = self._raytracer.get_path_length(iS)  # calculate path length
+                T = self._raytracer.get_travel_time(iS)  # calculate travel time
+                if R is None or T is None:
+                    continue
+            sg['travel_distances'][iSh, channel_id, iS] = R
+            sg['travel_times'][iSh, channel_id, iS] = T
+            self._launch_vector = self._raytracer.get_launch_vector(iS)
+            receive_vector = self._raytracer.get_receive_vector(iS)
+            # save receive vector
+            sg['receive_vectors'][iSh, channel_id, iS] = receive_vector
+
+            # get neutrino pulse from Askaryan module
+
+            candidate_ray, polarization_angle = self._simulate_radio_emission(
+                channel_id,
+                viewing_angles,
+                iS,
+                n_index,
+                R,
+                T,
+                receive_vector,
+                propagation.solution_types[self._raytracer.get_solution_type(iS)]
+            )
+            if candidate_ray:
+                candidate_station = True
+            sg['polarization'][iSh, channel_id, iS] = polarization_angle
+        return candidate_station
