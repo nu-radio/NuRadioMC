@@ -309,3 +309,20 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
 #                 tmp[:, 0:ny] = sg['multiple_triggers']
 #                 sg['multiple_triggers'] = tmp
         return extend_array
+
+    def _write_nur_file(self):
+        # downsample traces to detector sampling rate to save file size
+        self._channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
+        self._channelResampler.run(self._evt, self._station.get_sim_station(), self._det,
+                                   sampling_rate=self._sampling_rate_detector)
+        self._electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det,
+                                         sampling_rate=self._sampling_rate_detector)
+
+        output_mode = {'Channels': self._cfg['output']['channel_traces'],
+                       'ElectricFields': self._cfg['output']['electric_field_traces'],
+                       'SimChannels': self._cfg['output']['sim_channel_traces'],
+                       'SimElectricFields': self._cfg['output']['sim_electric_field_traces']}
+        if self._write_detector:
+            self._eventWriter.run(self._evt, self._det, mode=output_mode)
+        else:
+            self._eventWriter.run(self._evt, mode=output_mode)

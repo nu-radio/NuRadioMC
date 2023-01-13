@@ -484,20 +484,7 @@ class simulation(
                     local_shower_index = np.atleast_1d(np.squeeze(np.argwhere(np.isin(event_indices, global_shower_indices, assume_unique=True))))
                     self._save_triggers_to_hdf5(sg, local_shower_index, global_shower_indices)
                     if self._outputfilenameNuRadioReco is not None:
-                        # downsample traces to detector sampling rate to save file size
-                        self._channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
-                        self._channelResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
-                        self._electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det, sampling_rate=self._sampling_rate_detector)
-
-                        output_mode = {'Channels': self._cfg['output']['channel_traces'],
-                                       'ElectricFields': self._cfg['output']['electric_field_traces'],
-                                       'SimChannels': self._cfg['output']['sim_channel_traces'],
-                                       'SimElectricFields': self._cfg['output']['sim_electric_field_traces']}
-                        if self._write_detector:
-                            self._eventWriter.run(self._evt, self._det, mode=output_mode)
-                        else:
-                            self._eventWriter.run(self._evt, mode=output_mode)
-                        logger.debug("WRITING EVENT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                        self._write_nur_file()
                 # end sub events loop
 
                 # add local sg array to output data structure if any
