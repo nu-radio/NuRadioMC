@@ -115,12 +115,7 @@ class simulation(
         iCounter = 0
 
         # calculate bary centers of station
-        self._station_barycenter = np.zeros((len(self._station_ids), 3))
-        for iSt, station_id in enumerate(self._station_ids):
-            pos = []
-            for channel_id in range(self._det.get_number_of_channels(station_id)):
-                pos.append(self._det.get_relative_position(station_id, channel_id))
-            self._station_barycenter[iSt] = np.mean(np.array(pos), axis=0) + self._det.get_absolute_position(station_id)
+        self._station_barycenter = self._calculate_station_barycenter()
 
         # loop over event groups
         for i_event_group_id, event_group_id in enumerate(unique_event_group_ids):
@@ -739,3 +734,12 @@ class simulation(
             msg = "{} for config.signal.polarization is not a valid option".format(self._cfg['signal']['polarization'])
             logger.error(msg)
             raise ValueError(msg)
+
+    def _calculate_station_barycenter(self):
+        station_barycenter = np.zeros((len(self._station_ids), 3))
+        for iSt, station_id in enumerate(self._station_ids):
+            pos = []
+            for channel_id in range(self._det.get_number_of_channels(station_id)):
+                pos.append(self._det.get_relative_position(station_id, channel_id))
+            station_barycenter[iSt] = np.mean(np.array(pos), axis=0) + self._det.get_absolute_position(station_id)
+        return station_barycenter
