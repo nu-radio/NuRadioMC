@@ -136,26 +136,7 @@ class simulation(
             particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
             self._mout['weights'][event_indices] = np.ones(len(event_indices))  # for a pulser simulation, every event has the same weight
             if particle_mode:
-                self._read_input_particle_properties(self._primary_index)  # this sets the self.input_particle for self._primary_index
-                # calculate the weight for the primary particle
-                self.primary = self.input_particle
-                if self._cfg['weights']['weight_mode'] == "existing":
-                    if "weights" in self._fin:
-                        self._mout['weights'] = self._fin["weights"]
-                    else:
-                        logger.error("config file specifies to use weights from the input hdf5 file but the input file does not contain this information.")
-                elif self._cfg['weights']['weight_mode'] is None:
-                    self.primary[simp.weight] = 1.
-                else:
-                    self.primary[simp.weight] = get_weight(self.primary[simp.zenith],
-                                                           self.primary[simp.energy],
-                                                           self.primary[simp.flavor],
-                                                           mode=self._cfg['weights']['weight_mode'],
-                                                           cross_section_type=self._cfg['weights']['cross_section_type'],
-                                                           vertex_position=self.primary[simp.vertex],
-                                                           phi_nu=self.primary[simp.azimuth])
-                # all entries for the event for this primary get the calculated primary's weight
-                self._mout['weights'][event_indices] = self.primary[simp.weight]
+                self._calculate_particle_weights(event_indices)
 
             self._weightTime += time.time() - t1
             # skip all events where neutrino weights is zero, i.e., do not
@@ -743,3 +724,30 @@ class simulation(
                 pos.append(self._det.get_relative_position(station_id, channel_id))
             station_barycenter[iSt] = np.mean(np.array(pos), axis=0) + self._det.get_absolute_position(station_id)
         return station_barycenter
+
+    def _calculate_particle_weights(
+            self,
+            evt_indices
+    ):
+        self._read_input_particle_properties(
+            self._primary_index)  # this sets the self.input_particle for self._primary_index
+        # calculate the weight for the primary particle
+        self.primary = self.input_particle
+        if self._cfg['weights']['weight_mode'] == "existing":
+            if "weights" in self._fin:
+                self._mout['weights'] = self._fin["weights"]
+            else:
+                logger.error(
+                    "config file specifies to use weights from the input hdf5 file but the input file does not contain this information.")
+        elif self._cfg['weights']['weight_mode'] is None:
+            self.primary[simp.weight] = 1.
+        else:
+            self.primary[simp.weight] = get_weight(self.primary[simp.zenith],
+                                                   self.primary[simp.energy],
+                                                   self.primary[simp.flavor],
+                                                   mode=self._cfg['weights']['weight_mode'],
+                                                   cross_section_type=self._cfg['weights']['cross_section_type'],
+                                                   vertex_position=self.primary[simp.vertex],
+                                                   phi_nu=self.primary[simp.azimuth])
+        # all entries for the event for this primary get the calculated primary's weight
+        self._mout['weights'][evt_indices] = self.primary[simp.weight]
