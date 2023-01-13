@@ -23,6 +23,21 @@ If you have many HDF5 files, for example because you ran a simulation paralleliz
 NuRadioMC contains a convenience function to correctly merge these files -
 see :ref:`here <NuRadioMC/pages/Manuals/running_on_a_cluster:4. Merge individual hdf5 output files>` for instructions.
 
+What's behind the HDF5 files
+----------------------------
+The hdf5 file is created in NuRadioMC/simulation/simulation.py A list of vertices with different arrival direction
+(zenith and azimuth) and energy is provided by the event generator. Starting from the vertex, several sub-showers are
+created along the track. These are not simulated, but the electric field per sub-shower is provided. Sub-showers that
+happen within a certain time interval arrive at the antenna simultaneous and interfere constructively, therefore,
+they are summed up.
+
+The ``event_group_id`` is the same for all showers that follow the same first interaction.
+The ``shower_id`` is unique for every shower. Shower which interfere constructively are combined into one event and have
+the same ``event_id`` starting from 0.
+
+  .. image:: event_sketch.png
+    :width: 70%
+
 HDF5 structure
 --------------
 The HDF5 files can be thought of as a structured dictionary:
@@ -33,6 +48,7 @@ The HDF5 files can be thought of as a structured dictionary:
 
 HDF5 file attributes
 ____________________
+
 The top-level attributes can be accessed using ``f.attrs``. These contain:
 
 * ``Emax``, ``Emin``
@@ -115,12 +131,18 @@ Station data
 ____________
 In addition, the HDF5 file contains a key for each station in the simulation.
 The station contains more detailed information for each event that triggered it:
+``n_events`` and ``n_shower`` refer to the number of events and showers that triggered the station.
+The ``event_group_id`` is the same as in the global dictionary. Therefore you can check for one event with
+an ``event_group_id`` which stations contain the same ``event_group_id`` and retrieve the information, which
+station triggered, with which amplitude, etc. The same approach works for ``shower_id``.
 
-* ``event_group_ids``: (``n_events``,)
-
+* ``event_group_ids``: (``n_events``)
+* ``event_group_id_per_shower'``: (``n_shower``)
+  
   event group ids of the triggered events
-* ``event_ids``: (``n_events``,)
-
+* ``event_ids``: (``n_events``)
+* ``event_id_per_shower``: (``n_shower``)
+  
   the event ids of each event. These are unique only within each separate event group,
   and start from 0.
 * ``focusing_factor``: (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``)
