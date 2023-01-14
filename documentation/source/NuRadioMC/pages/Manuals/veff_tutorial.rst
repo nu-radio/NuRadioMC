@@ -2,11 +2,6 @@ Example: Calculating effective volume
 =====================================
 
 This tutorial gives a full example to simulate the effective volume of a high-energy radio neutrino detector.
-.. comment::
-
-    Installation
-    ------------
-    See :doc:`here </Introduction/pages/installation>` for installation instructions.
 
 Run an effective volume simulation
 ----------------------------------
@@ -53,7 +48,8 @@ To run the simulation execute
 
     python T02RunSimulation.py 1e19_n1e3.hdf5 surface_station_1GHz.json config.yaml 1e19_n1e3_output.hdf5
 
-The simulation only takes a few seconds (with the _C_ ray tracing implementation installed). The final output should be something like (small differences in the number of triggered events are expected because of random differences in the input data set)
+The simulation only takes a few seconds (with the _C_ ray tracing implementation installed).
+The final output should be something like (small differences in the number of triggered events are expected because of random differences in the input data set)
 
 .. code-block:: sh
     
@@ -69,7 +65,8 @@ If you also want to save the pulse forms just add another command line argument.
 
     python T02RunSimulation.py 1e19_n1e3.hdf5 surface_station_1GHz.json config.yaml 1e19_n1e3_output.hdf5 1e19_n1e3_output.nur
 
-The waveforms are saved in a custom binary format that serializes the complete NuRadioReco event structure into a file. This has the advantage that you can read it into NuRadioReco again to e.g. perform a reconstruction on the simulated data. 
+The waveforms are saved in a :doc:`custom binary format (.nur) that serializes the complete NuRadioReco event structure into a file</NuRadioReco/pages/event_structure>`. 
+This has the advantage that you can read it into NuRadioReco again to e.g. perform a reconstruction on the simulated data. 
 
 You can run the same simulation on the other input file with 10,000 events 
 
@@ -84,6 +81,7 @@ More details: the detector description
 The detector is defined in a JSON file and allows you to specify every detail of your detector that can have a relevance for the simulation or later reconstruction. 
 For our simple example though, it contains many parameters that we don't need to worry about, e.g. details about the ADC, so just ignore those fields. 
 The file ``surface_station_1GHz.json`` defines a 'surface station' consisting of 4 downward pointing LPDAs at -2m depth and 4 bicone antennas at -5m depth.
+You can also use your own detector description, or one of the detector descriptions included with NuRadioMC under ``NuRadioReco/detector/{detector_name}/``.
 
 More info about detector files can be found :doc:`here</NuRadioReco/pages/detector/detector>`.
 

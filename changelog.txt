@@ -12,6 +12,7 @@ new features:
 - update ARA detector description and add a file to Print ARA detector json file
 - add new gain measurements for ARA stations
 bugfixes:
+- fix bug in NuRadioProposal which pervented muons from tau decays to be propagated
 
 
 version 2.1.6
