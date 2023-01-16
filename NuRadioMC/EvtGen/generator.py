@@ -1259,8 +1259,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
         # loop over all events where an EM shower needs to be inserted
         # Create a shower for each CC electron interaction. The primary of this shower is still the neutrino
-        for n_inserted, i in enumerate(np.arange(n_events_batch, dtype=int)[em_shower_mask]):
-            idx_to_copy = i + n_inserted
+        for n_inserted, orig_idx in enumerate(np.arange(n_events_batch, dtype=int)[em_shower_mask]):
+            idx_to_copy = orig_idx + n_inserted  # orig idx in array with already inserted entries
             idx_to_insert = idx_to_copy + 1
             for key in data_sets:
                 data_sets[key].insert(idx_to_insert, data_sets[key][idx_to_copy])  # copy event
