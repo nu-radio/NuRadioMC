@@ -1370,8 +1370,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 n_interaction += 1
                                 data_sets_fiducial['shower_energies'][-1] = product.energy
                                 data_sets_fiducial['inelasticity'][-1] = np.nan
-                                # interaction_type is either 'had' or 'em' for proposal products
-                                data_sets_fiducial['interaction_type'][-1] = product.shower_type
+                                # interaction_type is particle codes taken from NuRadioProposal.py
+                                data_sets_fiducial['interaction_type'][-1] = product.code
                                 data_sets_fiducial['shower_type'][-1] = product.shower_type
 
                                 data_sets_fiducial['xx'][-1] = x
@@ -1381,8 +1381,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 # Calculating vertex interaction time with respect to the primary neutrino
                                 data_sets_fiducial['vertex_times'][-1] = vertex_time
 
-                                # Flavors are particle codes taken from NuRadioProposal.py
-                                data_sets_fiducial['flavors'][-1] = product.code
+                                # Flavors from parent lepton
+                                data_sets_fiducial['flavors'][-1] = lepton_codes[iE]
             time_proposal = time.time() - init_time
         else:
             if(n_batches == 1):
