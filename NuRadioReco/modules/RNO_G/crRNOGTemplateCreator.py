@@ -140,7 +140,7 @@ class crRNOGTemplateCreator:
         self.__cr_zenith = cr_zenith
         self.__cr_azimuth = cr_azimuth
 
-    def run(self, include_hardware_response=True, return_templates=False):
+    def run(self, template_filename='templates_cr_station_101.p', include_hardware_response=True, return_templates=False):
         """
         run method
 
@@ -193,7 +193,7 @@ class crRNOGTemplateCreator:
                 save_dic[np.deg2rad(crz)] = save_dic_help
 
         # write as pickle file
-        pickle.dump([save_dic], open(self.__template_save_path + "templates_cr_station_101.p", "wb"))
+        pickle.dump([save_dic], open(self.__template_save_path + template_filename, "wb"))
         if return_templates:
             return template_events
 
