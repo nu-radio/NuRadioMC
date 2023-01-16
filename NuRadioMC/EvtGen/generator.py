@@ -1310,28 +1310,28 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                 y_nu = data_sets['yy'][iE]
                 z_nu = data_sets['zz'][iE]
                 # Appending event if it interacts within the fiducial volume
-                if(is_in_fiducial_volume(attributes, np.array([x_nu, y_nu, z_nu]))):
+                if is_in_fiducial_volume(attributes, np.array([x_nu, y_nu, z_nu])):
                     for key in iterkeys(data_sets):
                         data_sets_fiducial[key].append(data_sets[key][iE])
 
                     first_inserted = True
 
                 if mask_leptons[iE]:
-                    geometry_selection = get_intersection_volume_neutrino(attributes,
-                                                          [data_sets['xx'][iE], data_sets['yy'][iE], data_sets['zz'][iE]],
-                                                          lepton_directions[iE])
+                    geometry_selection = get_intersection_volume_neutrino(
+                        attributes, [x_nu, y_nu, z_nu], lepton_directions[iE])
+                    
                     if geometry_selection:
-                        products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
-                                                                                   np.array([lepton_codes[iE]]),
-                                                                                   np.array([lepton_positions[iE]]),
-                                                                                   np.array([lepton_directions[iE]]),
+                        products_array = proposal_functions.get_secondaries_array(
+                            np.array([E_all_leptons[iE]]), np.array([lepton_codes[iE]]),
+                            np.array([lepton_positions[iE]]), np.array([lepton_directions[iE]]),
                                                                                    **proposal_kwargs)
+                        
                         products = products_array[0]
                         n_interaction = 2
                         for product in products:
 
                             x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
-                            if(is_in_fiducial_volume(attributes, np.array([x, y, z]))):
+                            if is_in_fiducial_volume(attributes, np.array([x, y, z])):
 
                                 # the energy loss or particle is in our fiducial volume
 
@@ -1389,7 +1389,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     uegids, uegids_inverse = np.unique(egids, return_inverse=True)
     data_sets_fiducial['event_group_ids'] = uegids_inverse + start_event_id
 
-    if(write_events):
+    if write_events:
         write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
         logger.status(f"finished in {pretty_time_delta(time.time() - t_start)}")
     else:
