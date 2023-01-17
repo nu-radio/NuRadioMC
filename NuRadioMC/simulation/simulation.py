@@ -168,15 +168,12 @@ class simulation(
 
                 if self._cfg['speedup']['distance_cut']:
                     # perform a quick cut to reject event group completely if no shower is close enough to the station
-                    t_tmp = time.time()
-                    vertex_distances_to_station = np.linalg.norm(vertex_positions - self._station_barycenter[iSt], axis=1)
-                    distance_cut = self._get_distance_cut(np.sum(shower_energies)) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
-                    if vertex_distances_to_station.min() > distance_cut:
-                        logger.debug(f"skipping station {self._station_id} because minimal distance {vertex_distances_to_station.min()/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {self._station_barycenter[iSt]}")
-                        self._distance_cut_time += time.time() - t_tmp
-                        iCounter += len(shower_energies)
+                    if not self._distance_cut_station(
+                        vertex_positions,
+                        shower_energies
+                    ):
+                        iCounter += 1
                         continue
-                    self._distance_cut_time += time.time() - t_tmp
 
                 candidate_station = False
                 self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
@@ -716,3 +713,33 @@ class simulation(
             logger.debug('Distance cut: {:.2f} m'.format(distance_cut / units.m))
             logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
         return distance <= distance_cut
+
+    def _distance_cut_station(
+            self,
+            vertex_positions,
+            shower_energies
+    ):
+        """
+        Checks if the station fulfills the distance cut criterium.
+        Returns True if the station barycenter is within the
+        maximum distance (and should therefore be simulated)
+        and False otherwise.
+        Parameters
+        ----------
+        vertex_positions: array of float
+            Positions of all sub-showers of the event
+        shower_energies: array of float
+            energies of all sub-showers of the event
+        Returns
+        -------
+
+        """
+        t_tmp = time.time()
+        vertex_distances_to_station = np.linalg.norm(vertex_positions - self._station_barycenter[iSt], axis=1)
+        distance_cut = self._get_distance_cut(np.sum(
+            shower_energies)) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
+        if vertex_distances_to_station.min() > distance_cut:
+            logger.debug(
+                f"skipping station {self._station_id} because minimal distance {vertex_distances_to_station.min() / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {self._station_barycenter[iSt]}")
+        self._distance_cut_time += time.time() - t_tmp
+        return vertex_distances_to_station <= distance_cut
