@@ -148,14 +148,13 @@ class simulation(
 
             # these quantities get computed to apply the distance cut as a function of shower energies
             # the shower energies of closeby showers will be added as they can constructively interfere
-            if self._cfg['speedup']['distance_cut']:
-                t_tmp = time.time()
-                shower_energies = np.array(self._fin['shower_energies'])[event_indices]
-                vertex_positions = np.array([np.array(self._fin['xx'])[event_indices],
-                                             np.array(self._fin['yy'])[event_indices],
-                                             np.array(self._fin['zz'])[event_indices]]).T
-                vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
-                self._distance_cut_time += time.time() - t_tmp
+            t_tmp = time.time()
+            shower_energies = np.array(self._fin['shower_energies'])[event_indices]
+            vertex_positions = np.array([np.array(self._fin['xx'])[event_indices],
+                                         np.array(self._fin['yy'])[event_indices],
+                                         np.array(self._fin['zz'])[event_indices]]).T
+            vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
+            self._distance_cut_time += time.time() - t_tmp
 
             triggered_showers = {}  # this variable tracks which showers triggered a particular station
 
@@ -228,12 +227,11 @@ class simulation(
                     if particle_mode:
                         logger.debug(f"simulating shower {self._shower_index}: {self._fin['shower_type'][self._shower_index]} with E = {self._fin['shower_energies'][self._shower_index]/units.eV:.2g}eV")
                     x1 = self._shower_vertex  # the interaction point
-
+                    t_tmp = time.time()
+                    # calculate the sum of shower energies for all showers within self._cfg['speedup']['distance_cut_sum_length']
+                    mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup']['distance_cut_sum_length']
+                    shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
                     if self._cfg['speedup']['distance_cut']:
-                        t_tmp = time.time()
-                        # calculate the sum of shower energies for all showers within self._cfg['speedup']['distance_cut_sum_length']
-                        mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup']['distance_cut_sum_length']
-                        shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
                         # quick speedup cut using barycenter of station as position
                         distance_to_station = np.linalg.norm(x1 - self._station_barycenter[iSt])
                         distance_cut = self._get_distance_cut(shower_energy_sum) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
