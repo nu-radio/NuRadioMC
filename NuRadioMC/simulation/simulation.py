@@ -170,7 +170,8 @@ class simulation(
                     # perform a quick cut to reject event group completely if no shower is close enough to the station
                     if not self._distance_cut_station(
                         vertex_positions,
-                        shower_energies
+                        shower_energies,
+                        self._station_barycenter[iSt]
                     ):
                         iCounter += 1
                         continue
@@ -717,7 +718,8 @@ class simulation(
     def _distance_cut_station(
             self,
             vertex_positions,
-            shower_energies
+            shower_energies,
+            station_barycenter
     ):
         """
         Checks if the station fulfills the distance cut criterium.
@@ -735,11 +737,11 @@ class simulation(
 
         """
         t_tmp = time.time()
-        vertex_distances_to_station = np.linalg.norm(vertex_positions - self._station_barycenter[iSt], axis=1)
+        vertex_distances_to_station = np.linalg.norm(vertex_positions - station_barycenter, axis=1)
         distance_cut = self._get_distance_cut(np.sum(
             shower_energies)) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
         if vertex_distances_to_station.min() > distance_cut:
             logger.debug(
-                f"skipping station {self._station_id} because minimal distance {vertex_distances_to_station.min() / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {self._station_barycenter[iSt]}")
+                f"skipping station {self._station_id} because minimal distance {vertex_distances_to_station.min() / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {station_barycenter}")
         self._distance_cut_time += time.time() - t_tmp
-        return vertex_distances_to_station <= distance_cut
+        return vertex_distances_to_station.min() <= distance_cut
