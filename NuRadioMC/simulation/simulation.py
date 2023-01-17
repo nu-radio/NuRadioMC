@@ -274,6 +274,7 @@ class simulation(
 
                     # calculate correct Cherenkov angle for ice density at vertex position
                     n_index = self._ice.get_index_of_refraction(x1)
+                    cherenkov_angle = np.arccos(1. / n_index)
 
                     # first step: perform raytracing to see if solution exists
                     t2 = time.time()
@@ -287,7 +288,6 @@ class simulation(
                         )
                         if not ray_tracing_solution_found:
                             continue
-                        cherenkov_angle = np.arccos(1. / n_index)
                         delta_Cs, viewing_angles = self._calculate_viewing_angles(sg, iSh, channel_id, cherenkov_angle)
 
                         # discard event if delta_C (angle off cherenkov cone) is too large
