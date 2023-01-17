@@ -132,17 +132,16 @@ class simulation(
             # the propability of arriving at our simulation volume. All subsequent showers have the same weight. So
             # we calculate it just once and save it to all subshowers.
             t1 = time.time()
-
             self._primary_index = event_indices[0]
             # determine if a particle (neutrinos, or a secondary interaction of a neutrino, or surfaec muons) is simulated
             particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
             self._mout['weights'][event_indices] = np.ones(len(event_indices))  # for a pulser simulation, every event has the same weight
             if particle_mode:
                 self._calculate_particle_weights(event_indices)
-
             self._weightTime += time.time() - t1
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
+
             if self._mout['weights'][self._primary_index] < self._cfg['speedup']['minimum_weight_cut']:
                 logger.debug("neutrino weight is smaller than {}, skipping event".format(self._cfg['speedup']['minimum_weight_cut']))
                 continue
@@ -277,55 +276,33 @@ class simulation(
 
                     # calculate correct Cherenkov angle for ice density at vertex position
                     n_index = self._ice.get_index_of_refraction(x1)
-                    cherenkov_angle = np.arccos(1. / n_index)
 
                     # first step: perform raytracing to see if solution exists
                     t2 = time.time()
-#                     self._input_time += (time.time() - t1)
 
                     for channel_id in range(self._det.get_number_of_channels(self._station_id)):
-                        x2 = self._det.get_relative_position(self._station_id, channel_id) + self._det.get_absolute_position(self._station_id)
-                        logger.debug(f"simulating channel {channel_id} at {x2}")
-
-                        if self._cfg['speedup']['distance_cut']:
-                            t_tmp = time.time()
-                            if not self._distance_cut_channel(
-                                shower_energy_sum,
-                                x1,
-                                x2
-                            ):
-                                continue
-                            self._distance_cut_time += time.time() - t_tmp
-
-                        self._raytracer.set_start_and_end_point(x1, x2)
-                        self._raytracer.use_optional_function('set_shower_axis', self._shower_axis)
-                        if pre_simulated and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']:  # check if raytracing was already performed
-                            if self._cfg['propagation']['module'] == 'radiopropa':
-                                logger.error('Presimulation can not be used with the radiopropa ray tracer module')
-                                raise Exception('Presimulation can not be used with the radiopropa ray tracer module')
-                            sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
-                            ray_tracing_solution = {}
-                            for output_parameter in self._raytracer.get_output_parameters():
-                                ray_tracing_solution[output_parameter['name']] = sg_pre[output_parameter['name']][self._shower_index, channel_id]
-                            self._raytracer.set_solution(ray_tracing_solution)
-                        else:
-                            self._raytracer.find_solutions()
-
-                        if not self._raytracer.has_solution():
-                            logger.debug("event {} and station {}, channel {} does not have any ray tracing solution ({} to {})".format(
-                                self._event_group_id, self._station_id, channel_id, x1, x2))
+                        ray_tracing_solution_found = self._perform_raytracing_for_channel(
+                            channel_id,
+                            pre_simulated,
+                            ray_tracing_performed,
+                            shower_energy_sum
+                        )
+                        if not ray_tracing_solution_found:
                             continue
+                        cherenkov_angle = np.arccos(1. / n_index)
                         delta_Cs, viewing_angles = self._calculate_viewing_angles(sg, iSh, channel_id, cherenkov_angle)
 
                         # discard event if delta_C (angle off cherenkov cone) is too large
                         if min(np.abs(delta_Cs)) > self._cfg['speedup']['delta_C_cut']:
                             logger.debug('delta_C too large, event unlikely to be observed, skipping event')
-                            continue
+                            return False
 
-                        is_candidate = self._calculate_polarization_angles(sg, iSh, delta_Cs, viewing_angles, ray_tracing_performed, channel_id, n_index)
-                        if is_candidate:
-                            candidate_station = True
-                        # end of ray tracing solutions loop
+                        if ray_tracing_solution_found:
+                            is_candidate = self._calculate_polarization_angles(sg, iSh, delta_Cs, viewing_angles,
+                                                                               ray_tracing_performed,
+                                                                               channel_id, n_index)
+                            if is_candidate:
+                                candidate_station = True
                     t3 = time.time()
                     self._rayTracingTime += t3 - t2
                     # end of channels loop
