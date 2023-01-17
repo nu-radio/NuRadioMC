@@ -328,7 +328,9 @@ class simulation(
                             logger.debug('delta_C too large, event unlikely to be observed, skipping event')
                             continue
 
-                        candidate_station = self._calculate_polarization_angles(sg, iSh, delta_Cs, viewing_angles, ray_tracing_performed, channel_id, n_index)
+                        is_candidate = self._calculate_polarization_angles(sg, iSh, delta_Cs, viewing_angles, ray_tracing_performed, channel_id, n_index)
+                        if is_candidate:
+                            candidate_station = True
                         # end of ray tracing solutions loop
                     t3 = time.time()
                     self._rayTracingTime += t3 - t2
