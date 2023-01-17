@@ -291,15 +291,11 @@ class simulation(
 
                         if self._cfg['speedup']['distance_cut']:
                             t_tmp = time.time()
-                            distance_cut = self._get_distance_cut(shower_energy_sum)
-                            distance = np.linalg.norm(x1 - x2)
-
-                            if distance > distance_cut:
-                                logger.debug('A distance speed up cut has been applied')
-                                logger.debug('Shower energy: {:.2e} eV'.format(self._fin['shower_energies'][self._shower_index] / units.eV))
-                                logger.debug('Distance cut: {:.2f} m'.format(distance_cut / units.m))
-                                logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
-                                self._distance_cut_time += time.time() - t_tmp
+                            if not self._distance_cut_channel(
+                                shower_energy_sum,
+                                x1,
+                                x2
+                            ):
                                 continue
                             self._distance_cut_time += time.time() - t_tmp
 
@@ -687,3 +683,36 @@ class simulation(
                                                    phi_nu=self.primary[simp.azimuth])
         # all entries for the event for this primary get the calculated primary's weight
         self._mout['weights'][evt_indices] = self.primary[simp.weight]
+
+    def _distance_cut_channel(
+            self,
+            shower_energy_sum,
+            x1,
+            x2
+    ):
+        """
+        Checks if the channel fulfills the distance cut criterium.
+        Returns True if the channel is within the maximum distance
+        (and should therefore be simulated) and False otherwise
+
+        Parameters
+        ----------
+        shower_energy_sum: flaot
+            sum of the energies of all sub-showers in this event
+        x1: array of floats
+            position of the shower
+        x2: array of floats
+            position of the channel
+
+        Returns
+        -------
+
+        """
+        distance_cut = self._get_distance_cut(shower_energy_sum)
+        distance = np.linalg.norm(x1 - x2)
+        if distance > distance_cut:
+            logger.debug('A distance speed up cut has been applied')
+            logger.debug('Shower energy: {:.2e} eV'.format(self._fin['shower_energies'][self._shower_index] / units.eV))
+            logger.debug('Distance cut: {:.2f} m'.format(distance_cut / units.m))
+            logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
+        return distance <= distance_cut
