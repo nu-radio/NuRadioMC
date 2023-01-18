@@ -1,6 +1,6 @@
 import proposal as pp
 import numpy as np
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, particle_names
 import os
 import six
 import json
@@ -120,50 +120,8 @@ proposal_interaction_codes = { 1000000001: 80,
                                1000000010: 90,
                                1000000011: 91 }
 
-# NuRadioMC internal particle names organised using the PDG codes as keys
-particle_name = { 0 : 'gamma',
-                 11 : 'e-',
-                -11 : 'e+',
-                 12 : 'nu_e',
-                -12 : 'nu_e_bar',
-                 13 : 'mu-',
-                -13 : 'mu+',
-                 14 : 'nu_mu',
-                -14 : 'nu_mu_bar',
-                 15 : 'tau-',
-                -15 : 'tau+',
-                 16 : 'nu_tau',
-                -16 : 'nu_tau_bar',
-                 80 : 'particle',
-                 81 : 'brems',
-                 82 : 'ionized_e',
-                 83 : 'e_pair',
-                 84 : 'hadrons',
-                 85 : 'nucl_int',
-                 86 : 'decay_bundle',
-                 87 : 'mu_pair',
-                 88 : 'cont_loss',
-                 89 : 'weak_int',
-                 90 : 'compton',
-                 91 : 'decay',
-                111 : 'pi0',
-                211 : 'pi+',
-               -211 : 'pi-',
-                311 : 'K0',
-                321 : 'K+',
-               -321 : 'K-',
-               2212 : 'p+',
-              -2212 : 'p-' }
 
-em_primary_names = [ 'gamma', 'e-', 'e+', 'brems', 'ionized_e', 'e_pair', 'weak_int', 'compton' ]
-
-had_primary_names = [ 'hadrons', 'nucl_int', 'decay_bundle', 'pi0', 'pi+', 'pi-',
-                      'K0', 'K+', 'K-', 'p+', 'p-' ]
-
-primary_names = em_primary_names + had_primary_names
-
-
-def particle_code (particle):
+def particle_code(particle):
     """
     If a particle object from PROPOSAL is passed as input, it returns the
     corresponding PDG particle code. DynamicData objects are not considered
@@ -175,13 +133,12 @@ def particle_code (particle):
 
     Returns
     -------
-    integer with the particle code. None if the argument is not a particle
+    integer with the PDG particle code. None if the argument is not a particle
     """
     particle_type = particle.type
-
     if particle_type in proposal_interaction_codes:
         return proposal_interaction_codes[particle_type]
-    elif particle_type in particle_name:
+    elif particle_type in particle_names.particle_names:
         return particle_type
     else:
         print(particle_type)
@@ -194,8 +151,9 @@ def is_em_primary (particle):
     can be an electromagnetic shower primary and False otherwise
     """
     code = particle_code(particle)
-    name = particle_name[code]
-    if name in em_primary_names:
+    name = particle_names.particle_name(code)
+    
+    if name in particle_names.em_primary_names:
         return True
     else:
         return False
@@ -207,8 +165,9 @@ def is_had_primary(particle):
     can be a hadronic shower primary and False otherwise
     """
     code = particle_code(particle)
-    name = particle_name[code]
-    if name in had_primary_names:
+    name = particle_names.particle_name(code)
+
+    if name in particle_names.had_primary_names:
         return True
     else:
         return False
@@ -220,8 +179,9 @@ def is_shower_primary(particle):
     a shower primary and False otherwise
     """
     code = particle_code(particle)
-    name = particle_name[code]
-    if name in primary_names:
+    name = particle_names.particle_name(code)
+    
+    if name in particle_names.primary_names:
         return True
     else:
         return False
@@ -439,7 +399,7 @@ class ProposalFunctions(object):
         if is_had_primary(particle):
             shower_type = 'had'
 
-        name = particle_name[code]
+        name = particle_names.particle_name(code)
 
         return shower_type, code, name
 
@@ -618,19 +578,13 @@ class ProposalFunctions(object):
 
             # Checking if there is a muon in the products
             if propagate_decay_muons:
-
                 decay_muons_array.append([None, None, None, None])
 
                 for sec in secondaries:
-
-                    if (sec.type not in proposal_interaction_codes) or (sec.type not in particle_name):
-                        continue
-
-                    if (sec.particle_def == pp.particle.MuMinusDef()) or (sec.particle_def == pp.particle.MuPlusDef()):
-
-                        if sec.particle_def == pp.particle.MuMinusDef():
+                    if (sec.type == 13) or (sec.type == -13):
+                        if sec.type == 13:
                             mu_code = 13
-                        elif sec.particle_def == pp.particle.MuPlusDef():
+                        elif sec.type == -13:
                             mu_code = -13
 
                         mu_energy = sec.energy
@@ -653,7 +607,7 @@ class ProposalFunctions(object):
                 last_decay_prod = shower_inducing_prods.pop(-1)
                 shower_inducing_prods[-1].energy += last_decay_prod.energy
                 shower_inducing_prods[-1].code = 86
-                shower_inducing_prods[-1].name = particle_name[86]
+                shower_inducing_prods[-1].name = particle_names.particle_name(86)
 
             secondaries_array.append(shower_inducing_prods)
 
