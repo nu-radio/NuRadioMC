@@ -7,7 +7,7 @@ from NuRadioReco.detector.ARA import ARA_stations_configuration
 import logging
 
 logger = logging.getLogger("analog_components")
-
+ARA_config_id = ''
 def load_system_response(path=os.path.dirname(os.path.realpath(__file__)), **kwargs):
     """
     Default file was imported from:
@@ -30,8 +30,7 @@ def load_system_response(path=os.path.dirname(os.path.realpath(__file__)), **kwa
     
     number_of_columns = data.shape[1]
     default = {}
-    default['gain'] = []
-    default['phase'] = []
+    default['gain'], default['phase'] = [],[]
     default['frequencies'] = data[:, 0] * units.MHz
     for i in range((number_of_columns)):
         if i%2 !=0 :    ###### odd numbered columns contain gain values ######
@@ -45,14 +44,13 @@ def load_system_response(path=os.path.dirname(os.path.realpath(__file__)), **kwa
 
 
 system_response = {}
-collect_station_id = []
-system_response_collection = []
+collect_station_id , system_response_collection= [],[]
 
 
 def get_system_response(frequencies, station, evt_time):
     station_id = station.get_id()
     channels = station.iter_channels()
-    global ARA_config_id
+    #global ARA_config_id
 
     ## Check if stationi_id is already saved or not and read ARA_config_id only once for given station
     if station_id in collect_station_id:
@@ -65,12 +63,10 @@ def get_system_response(frequencies, station, evt_time):
        logger.warning(" Processing with ARA station {} and ARA_configuration {}".format(station_id,ARA_config_id)) 
 
     default_frequencies = system_response['default']['frequencies']
-    phase = system_response['default']['phase']
-    gain = system_response['default']['gain']
+    phase, gain = system_response['default']['phase'], system_response['default']['gain']
     
     system = {}
-    system['gain'] = []
-    system['phase'] = []
+    system['gain'], system['phase'] = [], []
 
     for channel in channels:
         channel_id = channel.get_id()

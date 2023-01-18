@@ -1,3 +1,11 @@
+'''
+
+this file contains utility functions and constants that define distinct periods of the ARA detector operation 
+and read the hardware response constants corresponding to the given time, and that these constants have been
+provided by the ARA calibration team
+
+'''
+
 import sys
 import datetime
 import logging
@@ -41,7 +49,7 @@ boundaries_ARA5 = {}
 boundaries_ARA5[ARA_hardware_config_default] = [distant_past, distant_future, ARA_hardware_config_default]
 
 boundaries_all = {}
-boundaries_all[100] = boundaries_ARA1
+boundaries_all[100] = boundaries_ARA1  # traditionally station id of ARA1 is 100
 boundaries_all[2] = boundaries_ARA2
 boundaries_all[3] = boundaries_ARA3
 boundaries_all[4] = boundaries_ARA4

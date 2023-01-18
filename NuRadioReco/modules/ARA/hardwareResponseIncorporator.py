@@ -12,7 +12,6 @@ class hardwareResponseIncorporator:
     """
     Incorporates the gain and phase induced by the ARA hardware.
         
-        
     """
 
     def __init__(self):
