@@ -301,6 +301,7 @@ The HDF5 data sets outlined here are what constitute a NuRadioMC input file prod
             Antitau (or positive tau), :math:`\tau^+`, -15
             Tau neutrino, :math:`\nu_{\tau}`, 16
             Tau antineutrino, :math:`\bar{\nu}_{\tau}`, -16
+            Particle, , 80
             Bremsstrahlung photon, :math:`\gamma_{brems}`, 81
             Ionised electron, :math:`\delta`, 82 
             Electron-positron pair, :math:`e^+e^-`, 83
@@ -311,6 +312,7 @@ The HDF5 data sets outlined here are what constitute a NuRadioMC input file prod
             Continuous loss, , 88
             Weak interaction, , 89
             Compton, , 90
+            Decay, , 91
             Pion (neutral), :math:`\pi^0`, 111
             Pion (positive), :math:`\pi^+`, 211
             Pion (negative), :math:`\pi^-`, -211

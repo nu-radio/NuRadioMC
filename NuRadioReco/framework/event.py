@@ -119,8 +119,6 @@ class Event:
             raise ValueError("generator information key needs to be of type NuRadioReco.framework.parameters.generatorAttributes")
         return key in self._generator_info
 
-
-
     def get_id(self):
         return self._id
 
@@ -142,22 +140,47 @@ class Event:
 
     def set_station(self, station):
         self.__stations[station.get_id()] = station
+        
+    def has_triggered(self, trigger_name=None):
+        """
+        Returns true if any station has been triggered.
+
+        Parameters
+        ----------
+        trigger_name: string or None (default None)
+            * if None: The function returns False if not trigger was set. If one or multiple triggers were set,
+                       it returns True if any of those triggers triggered
+            * if trigger name is set: return if the trigger with name 'trigger_name' has a trigger
+            
+        Returns
+        -------
+        
+        has_triggered : bool
+        """
+        for station in self.get_stations():
+            if station.has_triggered(trigger_name):
+                return True
+        
+        # if it reaches this point, no station has a trigger
+        return False
 
     def add_particle(self, particle):
         """
         Adds a MC particle to the event
 
         Parameters
-        ------------------------
-        particle: Particle object
+        ----------
+        particle : NuRadioReco.framework.particle.Particle
             The MC particle to be added to the event
         """
         if not isinstance(particle, NuRadioReco.framework.particle.Particle):
             logger.error("Requested to add non-Particle item to the list of particles. {particle} needs to be an instance of Particle.")
             raise TypeError("Requested to add non-Particle item to the list of particles. {particle}   needs to be an instance of Particle.")
+        
         if particle.get_id() in self.__particles:
             logger.error("MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
             raise AttributeError("MC particle with id {particle.get_id()} already exists. Simulated particle id needs to be unique per event")
+        
         self.__particles[particle.get_id()] = particle
 
     def get_particles(self):
