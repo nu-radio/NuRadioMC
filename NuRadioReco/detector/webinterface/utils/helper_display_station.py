@@ -10,9 +10,9 @@ from NuRadioReco.detector.webinterface import config
 from datetime import datetime
 from datetime import time
 
-det = Detector(config.DATABASE_TARGET)
+# det = Detector(config.DATABASE_TARGET)
 # det = Detector(database_connection='test')
-
+det = Detector(database_connection=config.DATABASE_TARGET)
 
 # def load_station_infos(station_id, coll_name):
 #     det.update(datetime.now(), coll_name)
@@ -49,6 +49,12 @@ def load_channel_position_info(station_id, primary_time, measurement_name):
     return det.get_collection_information('channel_position', station_id, primary_time, measurement_name)
 
 
+def load_device_position_info(station_id, primary_time, measurement_name):
+    if measurement_name == 'not specified':
+        measurement_name = None
+    return det.get_collection_information('device_position', station_id, primary_time, measurement_name)
+
+
 def load_signal_chain_information(station_id, primary_time, config_name):
     if config_name == 'not specified':
         return det.get_collection_information('signal_chain', station_id, primary_time, measurement_name=None)
@@ -70,6 +76,10 @@ def get_all_station_measurement_names():
 
 def get_all_channel_measurements_names():
     return det.get_quantity_names('channel_position', 'measurements.measurement_name')
+
+
+def get_all_device_measurements_names():
+    return det.get_quantity_names('device_position', 'measurements.measurement_name')
 
 
 def get_all_signal_chain_config_names():

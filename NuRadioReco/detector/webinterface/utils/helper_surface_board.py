@@ -11,9 +11,10 @@ from NuRadioReco.detector.webinterface import config
 # from NuRadioReco.detector.detector_mongo import Detector
 from datetime import datetime
 
-det = Detector(config.DATABASE_TARGET)
+# det = Detector(config.DATABASE_TARGET)
 # det = Detector(database_connection='env_pw_user')
 # det = Detector(database_connection='test')
+det = Detector(database_connection=config.DATABASE_TARGET)
 
 
 def select_surface(page_name, main_container, warning_container):

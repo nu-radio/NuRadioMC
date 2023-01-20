@@ -13,7 +13,8 @@ from datetime import datetime
 
 # det = Detector(database_connection='env_pw_user')
 # det = Detector(database_connection='test')
-det = Detector(config.DATABASE_TARGET)
+det = Detector(database_connection=config.DATABASE_TARGET)
+# det = Detector(config.DATABASE_TARGET)
 
 def select_antenna_name(antenna_type, container, warning_container):
     selected_antenna_name = ''

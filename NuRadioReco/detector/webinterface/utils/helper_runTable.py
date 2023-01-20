@@ -10,9 +10,8 @@ from NuRadioReco.detector.webinterface import config
 from datetime import datetime
 from datetime import time
 
-det = Detector(config.DATABASE_TARGET)
-#det = Detector(database_connection='test')
-
+#det = Detector(config.DATABASE_TARGET)
+det = Detector(database_connection=config.DATABASE_TARGET)
 
 def get_station_ids_from_db():
     return det.get_quantity_names('runtable', 'station')

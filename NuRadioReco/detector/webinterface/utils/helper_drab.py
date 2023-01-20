@@ -11,9 +11,11 @@ from NuRadioReco.detector.webinterface import config
 # from NuRadioReco.detector.detector_mongo import Detector
 from datetime import datetime
 
-det = Detector(config.DATABASE_TARGET)
+# det = Detector(config.DATABASE_TARGET)
 # det = Detector(database_connection='env_pw_user')
 # det = Detector(database_connection='test')
+det = Detector(database_connection=config.DATABASE_TARGET)
+
 
 def select_drab(page_name, main_container, warning_container):
     col1_I, col2_I, col3_I, col4_I, col5_I, col6_I = main_container.columns([1.2,1,1,0.8,1,1])
