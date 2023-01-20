@@ -682,7 +682,7 @@ class ProposalFunctions(object):
                 decay_energy = np.sum(decay_energies) * units.MeV
 
                 # TODO: Is it physical to repeat the propagation until a decay (before the energy of low) happened?
-                if (len(decay_particle) == 0):
+                if (len(decay_particles) == 0):
                     decay_prop = (None, None)
                     continue
 
