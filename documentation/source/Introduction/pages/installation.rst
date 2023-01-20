@@ -189,7 +189,7 @@ These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's 
 
   .. code-block:: bash
 
-    pip install proposal==7.*
+    pip install proposal==7.4.2
 
 - To use the channelGalacticNoiseAdder, you need the `PyGDSM <https://github.com/telegraphic/pygdsm>`_ package.
 
