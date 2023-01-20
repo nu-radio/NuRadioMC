@@ -58,13 +58,15 @@ The top-level attributes can be accessed using ``f.attrs``. These contain:
             :widths: auto
             :delim: |
 
-            ``NuRadioMC_EvtGen_version`` ``NuRadioMC_EvtGen_version_hash`` ``NuRadioMC_version`` ``NuRadioMC_version_hash`` | Hashes
+            ``NuRadioMC_EvtGen_version`` ``NuRadioMC_EvtGen_version_hash`` | Hashes
+            ``NuRadioMC_version`` ``NuRadioMC_version_hash`` | Hashes
             ``Emin`` ``Emax`` | Define energy range for neutrino energies
             ``phimax`` ``phimin`` | Define azimuth range for incoming neutrino directions
             ``thetamax`` ``thetamin`` | Define zenith range for incoming neutrino directions
             ``flavors`` | A list of particle flavors that were simulated, using the PDG convention.
             ``n_events`` | Total number of generated/simulated events(including those that did not trigger)
-            ``fiducial_rmax`` ``fiducial_rmin`` ``fiducial_zmax`` ``fiducial_zmin`` or ``fiducial_xmax`` ``fiducial_xmin`` ``fiducial_ymax`` ``fiducial_ymin`` ``fiducial_zmax`` ``fiducial_zmin`` | Specify the simulated cylindrical/quadratic fiducial volume. An event has to produce an interaction within this volume. However, in case of a muon or tau CC interaction the first interaction can occur outside
+            ``fiducial_xmax`` ``fiducial_xmin`` ``fiducial_ymax`` ``fiducial_ymin`` ``fiducial_zmax`` ``fiducial_zmin`` | Specify the simulated qubic fiducial volume.  An event has to produce an interaction within this volume. However, in case of a muon or tau CC interaction the first interaction can occur outside
+            or ``fiducial_rmax`` ``fiducial_rmin`` ``fiducial_zmax`` ``fiducial_zmin``  | Specify the simulated cylindrical fiducial volume. An event has to produce an interaction within this volume. However, in case of a muon or tau CC interaction the first interaction can occur outside
             ``rmax`` ``rmin`` ``zmax`` ``zmin`` or ``xmax`` ``xmin`` ``ymax`` ``ymin`` ``zmax`` ``zmin`` | Specify the cylindrical/quadratic volume in which neutrino interactions are generated
             ``volume`` | Volume of the above specified volume
             ``area`` | Surface area of the above specified volume
@@ -91,29 +93,29 @@ is the number of showers (which may be larger than the number of events), and ``
             :widths: auto
             :delim: |
 
-            ``event_group_ids`` | (``n_showers``,) | Specifies the event id to which the corresponding shower belongs (``n_events = len(unique(event_group_ids)))``)
-            ``xx`` ``yy`` ``zz`` | (``n_showers``,) | Specifying coordinates of interaction vertices
-            ``vertex_times`` | (``n_showers``,) | Time at the interaction vertex. The neutrino interaction (= first interaction) is defined as time 0
-            ``azimuths`` ``zeniths`` | (``n_showers``,) | Angle Specifying the neutrino incoming direction (``azimuths = 0`` points east)
-            ``energies`` | (``n_showers``,) | Energy of the parent particle of a shower. This is typically the energy of the neutrino (for showers produced at the first interaction: all flavor NC, electron CC interactions) or the energy of a muon or tau lepton when those are producing secondary energy losses
-            ``shower_energies`` | (``n_showers``,) | Energy of the shower which is used to determine the radio emission
-            ``flavors`` | (``n_showers``,) | Same as above (the parent of an electromagnetic cascade in an electron CC interaction is the neutrino)
-            ``inelasticity`` | (``n_showers``,) | Inelasticity of the first interaction
-            ``interaction_type`` | (``n_showers``,) | Interaction type producing the shower (for the first interaction that can be "nc" or "cc")
+            ``event_group_ids`` | (``n_showers``) | Specifies the event id to which the corresponding shower belongs (``n_events = len(unique(event_group_ids)))``)
+            ``xx`` ``yy`` ``zz`` | (``n_showers``) | Specifying coordinates of interaction vertices
+            ``vertex_times`` | (``n_showers``) | Time at the interaction vertex. The neutrino interaction (= first interaction) is defined as time 0
+            ``azimuths`` ``zeniths`` | (``n_showers``) | Angle Specifying the neutrino incoming direction (``azimuths = 0`` points east)
+            ``energies`` | (``n_showers``) | Energy of the parent particle of a shower. This is typically the energy of the neutrino (for showers produced at the first interaction: all flavor NC, electron CC interactions) or the energy of a muon or tau lepton when those are producing secondary energy losses
+            ``shower_energies`` | (``n_showers``) | Energy of the shower which is used to determine the radio emission
+            ``flavors`` | (``n_showers``) | Same as above (the parent of an electromagnetic cascade in an electron CC interaction is the neutrino)
+            ``inelasticity`` | (``n_showers``) | Inelasticity of the first interaction
+            ``interaction_type`` | (``n_showers``) | Interaction type producing the shower (for the first interaction that can be "nc" or "cc")
             ``multiple_triggers`` | (``n_showers``, ``n_triggers``) | Information which exact trigger fired each shower. The different triggers are specified in the attributes (``f.attrs["triggers"]``). The order of ``f.attrs["triggers"]`` matches that in ``multiple_triggers``
-            ``triggered`` | (``n_showers``,) | boolean; ``True`` if any trigger fired for this shower, ``False`` otherwise
-            ``n_interaction`` | (``n_showers``,) | Hierarchical counter for the number of showers per event (also accounts for showers which did not trigger and might not be saved)
-            ``shower_ids`` | (``n_showers``,) | Hierarchical counter for the number of triggered showers
-            ``shower_realization_ARZ`` | (``n_showers``,) | Which realization from the ARZ shower library was used for each shower (only if ARZ was used for signal generation).
-            ``shower_type`` | (``n_showers``,) | Type of the shower (so far we only have "em" and "had")
-            ``weights`` | (``n_showers``,) | Weight for the probability that the neutrino reached the interaction vertex taking into account the attenuation from the earth (Does not include interaction probability in the volume)
+            ``triggered`` | (``n_showers``) | A boolean; ``True`` if any trigger fired for this shower, ``False`` otherwise
+            ``n_interaction`` | (``n_showers``) | Hierarchical counter for the number of showers per event (also accounts for showers which did not trigger and might not be saved)
+            ``shower_ids`` | (``n_showers``) | Hierarchical counter for the number of triggered showers
+            ``shower_realization_ARZ`` | (``n_showers``) | Which realization from the ARZ shower library was used for each shower (only if ARZ was used for signal generation).
+            ``shower_type`` | (``n_showers``) | Type of the shower (so far we only have "em" and "had")
+            ``weights`` | (``n_showers``) | Weight for the probability that the neutrino reached the interaction vertex taking into account the attenuation from the earth (Does not include interaction probability in the volume)
 
 
 Station data
 ____________
 In addition, the HDF5 file contains a key for each station in the simulation.
 The station contains more detailed information for each event that triggered it:
-``n_events`` and ``n_showers`` refer to the number of events and showers that triggered the station.
+``m_events`` and ``m_showers`` refer to the number of events and showers that triggered the station.
 The ``event_group_id`` is the same as in the global dictionary. Therefore you can check for one event with
 an ``event_group_id`` which stations contain the same ``event_group_id`` and retrieve the information, which
 station triggered, with which amplitude, etc. The same approach works for ``shower_id``.
@@ -125,27 +127,27 @@ station triggered, with which amplitude, etc. The same approach works for ``show
             :widths: auto
             :delim: |
 
-            ``event_group_ids`` | (``n_events``,) | event group ids of the triggered events
-            ``event_group_id_per_shower`` | (``n_showers``) |
-            ``event_ids`` | (``n_events``,) | the event ids of each event. These are unique only within each separate event group, and start from 0.
-            ``event_id_per_shower`` | (``n_showers``) |
-            ``focusing_factor`` | (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
-            ``launch_vectors`` | (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D (Cartesian) coordinates of the launch vector of each ray tracing solution, per shower and channel.
-            ``max_amp_shower_and_ray`` | (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | Maximum amplitude per shower, channel and ray tracing solution.
-            ``maximum_amplitudes`` | (``n_events``, ``n_channels``) | Maximum amplitude per event and channel
-            ``maximum_amplitudes_envelope`` | (``n_events``, ``n_channels``) | Maximum amplitude of the hilbert envelope for each event and channel
-            ``multiple_triggers`` | (``n_showers``, ``n_triggers``) | A boolean array that specifies if a shower contributed to an event that fulfills a certain trigger. The index of the trigger can be translated to the trigger name via the attribute ``trigger_names``.
-            ``multiple_triggers_per_event`` | (``n_events``, ``n_triggers``) | A boolean array that specifies if each event fulfilled a certain trigger. The index of the trigger can be translated to the trigger name via the attribute ``trigger_names``.
-            ``polarization`` | (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D (Cartesian) coordinates of the polarization vector
-            ``ray_tracing_C0`` | (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | One of two parameters specifying the **analytic** ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.
-            ``ray_tracing_C1`` | (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | One of two parameters specifying the **analytic** ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.
+            ``event_group_ids`` | (``m_events``) | The event group ids of the triggered events in the selected station
+            ``event_group_id_per_shower`` | (``m_showers``) | The event group id of every shower that triggered the selected station
+            ``event_ids`` | (``m_events``) | tThe event ids of each event that triggered in that station for every event group id. These are unique only within each separate event group, and start from 0.
+            ``event_id_per_shower`` | (``m_showers``) | The event ids of each event that triggered in that station. This one is for every shower
+            ``focusing_factor`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
+            ``launch_vectors`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D (Cartesian) coordinates of the launch vector of each ray tracing solution, per shower and channel.
+            ``max_amp_shower_and_ray`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | Maximum amplitude per shower, channel and ray tracing solution.
+            ``maximum_amplitudes`` | (``m_events``, ``n_channels``) | Maximum amplitude per event and channel
+            ``maximum_amplitudes_envelope`` | (``m_events``, ``n_channels``) | Maximum amplitude of the hilbert envelope for each event and channel
+            ``multiple_triggers`` | (``m_showers``, ``n_triggers``) | A boolean array that specifies if a shower contributed to an event that fulfills a certain trigger. The index of the trigger can be translated to the trigger name via the attribute ``trigger_names``.
+            ``multiple_triggers_per_event`` | (``m_events``, ``n_triggers``) | A boolean array that specifies if each event fulfilled a certain trigger. The index of the trigger can be translated to the trigger name via the attribute ``trigger_names``.
+            ``polarization`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D (Cartesian) coordinates of the polarization vector
+            ``ray_tracing_C0`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | One of two parameters specifying the **analytic** ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.
+            ``ray_tracing_C1`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | One of two parameters specifying the **analytic** ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.
             ``ray_tracing_reflection`` | (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
-            ``ray_tracing_reflection_case`` | (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
-            ``ray_tracing_solution_type`` | (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
-            ``receive_vectors`` | (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D (Cartesian) coordinates of the receive vector of each ray tracing solution, per shower and channel.
-            ``shower_id`` | (``n_showers``,) |
-            ``time_shower_and_ray`` | (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
-            ``travel_distances`` | (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The distance travelled by each ray tracing solution to a specific channel
-            ``travel_times`` | (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The time travelled by each ray tracing solution to a specific channel
-            ``triggered`` | (``n_showers``,) | Whether each shower contributed to an event that satisfied any trigger condition
-            ``triggered_per_event`` | (``n_events``,) | Whether each event fulfilled any trigger condition.
+            ``ray_tracing_reflection_case`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
+            ``ray_tracing_solution_type`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
+            ``receive_vectors`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D (Cartesian) coordinates of the receive vector of each ray tracing solution, per shower and channel.
+            ``shower_id`` | (``m_showers``) | The Shower ids of showers that triggered the selected station
+            ``time_shower_and_ray`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
+            ``travel_distances`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The distance travelled by each ray tracing solution to a specific channel
+            ``travel_times`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The time travelled by each ray tracing solution to a specific channel
+            ``triggered`` | (``m_showers``,) | Whether each shower contributed to an event that satisfied any trigger condition
+            ``triggered_per_event`` | (``m_events``) | Whether each event fulfilled any trigger condition.
