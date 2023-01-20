@@ -7,7 +7,7 @@ import plotly.graph_objs as go
 import numpy as np
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
 from NuRadioReco.detector.webinterface.utils.helper import build_success_page
-from NuRadioReco.detector.webinterface.utils.helper_station import insert_channel_position_to_db
+from NuRadioReco.detector.webinterface.utils.helper_station import insert_channel_position_to_db, load_measurement_names
 from NuRadioReco.utilities import units
 from datetime import datetime
 from datetime import time
@@ -94,8 +94,9 @@ def build_main_page(main_cont):
 
     # select a unique name for the measurement (survey_01, tape_measurement, ...)
     col1_name, col2_name = main_cont.columns([1, 1])
-    # TODO load the list of names
-    selected_name = col1_name.selectbox('Select or enter a unique name for the measurement:', ['new measurement'])
+    measurement_list = load_measurement_names('channel_position')
+    measurement_list.insert(0, 'new measurement')
+    selected_name = col1_name.selectbox('Select or enter a unique name for the measurement:', measurement_list)
     disabled_name_input = True
     if selected_name == 'new measurement':
         disabled_name_input = False

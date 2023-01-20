@@ -10,8 +10,9 @@ from NuRadioReco.detector.webinterface import config
 from datetime import datetime
 from datetime import time
 
-det = Detector(config.DATABASE_TARGET)
-#det = Detector(database_connection='test')
+det = Detector(database_connection=config.DATABASE_TARGET)
+# det = Detector(config.DATABASE_TARGET)
+# det = Detector(database_connection='test')
 
 
 def load_general_station_infos(station_id, coll_name):
@@ -22,6 +23,15 @@ def load_general_station_infos(station_id, coll_name):
 
 def load_object_names(obj_type):
     return det.get_object_names(obj_type)
+
+
+def load_measurement_names(collection):
+    return det.get_quantity_names(collection, 'measurements.measurement_name')
+
+
+def load_current_primary_device_information(station, device_id):
+    """function to load the information about the specified device which is currently primary"""
+    return det.get_complete_device_information(station, device_id)
 
 
 def build_collection_input(cont):
@@ -251,7 +261,10 @@ def build_complete_container(cont, channel):
 def input_channel_information(cont, station_id, coll_name, station_info):
     # load all channels which are already in the database
     if station_info != {}:
-        channels_db = list(station_info[station_id]['channels'].keys())
+        channels_db = []
+        for key in station_info[station_id]['channels'].keys():
+            channels_db.append(station_info[station_id]['channels'][key]['id'])
+        # channels_db = list(station_info[station_id]['channels'].keys())
     else:
         channels_db = []
     cont.info(f'Channels included in the database: {len(channels_db)}/24')
@@ -261,7 +274,7 @@ def input_channel_information(cont, station_id, coll_name, station_info):
     # if not all channels are in the db, add the possibility to add another channel number
     channel_help = channels_db
     if len(channels_db) < 24:
-        channel_help.insert(0,'new channel number')
+        channel_help.insert(0, 'new channel number')
         disable_new_entry = False
     else:
         disable_new_entry = True
@@ -343,9 +356,92 @@ def input_channel_information(cont, station_id, coll_name, station_info):
         initial_comment = station_info[station_id]['channel_comment']
     else:
         initial_comment = ''
-    comment = cont.text_area('Comment about the channel performance:', label_visibility='collapsed')
+    comment = cont.text_area('Comment about the channel performance:', value=initial_comment, label_visibility='collapsed')
 
     return selected_channel, selected_antenna_name, selected_antenna_type, comm_date_ant, decomm_date_ant, signal_chain, comment, function_channel
+
+
+def input_device_information(cont, station_id, station_info):
+    # load all devices which are already in the database
+    print(station_info)
+    if station_info != {}:
+        devices_db = list(station_info[station_id]['devices'].keys())
+    else:
+        devices_db = []
+    cont.info(f'Number of devices stored in the database: {len(devices_db)}')
+
+    cont.markdown('General information:')
+    col_d1, col_d2, col_d3 = cont.columns([0.5, 0.5, 1])
+
+    devices_help = devices_db
+    devices_help.insert(0, 'new device id')
+    device_id = col_d1.selectbox('Select a device id or enter a new device id:', devices_help, help='The channel number must be an integer between 0 and 23.')
+    disabled_id_input = True
+    if device_id == 'new device id':
+        disabled_id_input = False
+    new_device_id = col_d2.text_input('', disabled=disabled_id_input, placeholder='device id')
+    if device_id == 'new device id':
+        selected_device_id = new_device_id
+    else:
+        selected_device_id = device_id
+
+    # if the device already exist in the database, the device info will be loaded
+    if device_id == 'new device id':
+        device_info = {}
+    else:
+        device_info = station_info[station_id]['devices'][selected_device_id]
+
+    # tranform the device id from a string into an int
+    if selected_device_id != '':
+        selected_device_id = int(selected_device_id)
+
+    # if the device exist make the existing device name the default argument, else display the names as listed here
+    device_names = ['Helper String B CAL Vpol', 'Helper String C CAL Vpol', 'Surface CAL Vpol', 'Solar panel 1', 'Solar panel 1', 'wind-turbine', 'daq box']
+    if device_info != {}:
+        db_device_name = device_info['device_name']
+        db_device_name_index = np.where(np.asarray(device_names) == db_device_name)[0][0]
+
+        # add the existing antenna name to the front of the list
+        device_names.pop(db_device_name_index)
+        device_names.insert(0, db_device_name)
+
+    selected_device_name = col_d3.selectbox('Select a device name:', device_names)
+
+    # input the (de)commisschon time of the device; if the device exist the dates from the db will be used as a default
+    col_d_time1, col_d_time2 = cont.columns([1, 1])
+    if device_info != {}:
+        dev_comm_starting_date = device_info['commission_time']
+        dev_decomm_starting_date = device_info['decommission_time']
+    else:
+        dev_comm_starting_date = datetime.now()
+        dev_decomm_starting_date = datetime(2080, 1, 1)
+    dev_comm_date = col_d_time1.date_input('commission time', value=dev_comm_starting_date, min_value=datetime(2018, 1, 1), max_value=datetime(2080, 1, 1), key='dev_comm_time')
+    dev_decomm_date = col_d_time2.date_input('decommission time', value=dev_decomm_starting_date, min_value=datetime(2018, 1, 1), max_value=datetime(2100, 1, 1), key='dev_decomm_time')
+    # the commission and decommission date are only give as dates, but the input should be date + time
+    dev_comm_date = datetime.combine(dev_comm_date, time(0, 0, 0))
+    dev_decomm_date = datetime.combine(dev_decomm_date, time(0, 0, 0))
+
+    # input if a device is broken
+    cont.markdown('Is the device working normally?')
+    function_device = cont.checkbox('Device is working', value=True)
+
+    # select the amplifier (IGLU)
+    # only show this if a pulser is selected
+    iglu_db = det.get_object_names('iglu_board')
+    if 'CAL' in selected_device_name:
+        selected_amp = cont.selectbox('Select an IGLU:', iglu_db)
+    else:
+        selected_amp = None
+
+    # plain text input -> a comment about the device can be given to be saved in the database
+    cont.markdown('Comments:')
+    if station_info != {} and 'device_comment' in station_info[station_id].keys():
+        initial_comment = station_info[station_id]['device_comment']
+    else:
+        initial_comment = ''
+    comment = cont.text_area('Comment about the device performance:', value=initial_comment, label_visibility='collapsed')
+
+    return selected_device_id, selected_device_name, dev_comm_date, dev_decomm_date, comment, function_device, selected_amp
 
 
 def validate_station_inputs(container_bottom, comm_date_station, decomm_date_station):
@@ -404,6 +500,40 @@ def validate_channel_inputs(collection, container_bottom, station_name, comm_dat
     return disable_insert_button
 
 
+def validate_device_inputs(container_bottom, station_name, comm_date, deomm_date, device_id):
+    dates_correct = False
+    device_id_correct = False
+    station_in_db = False
+
+    disable_insert_button = True
+
+    # validate that decomm_date > comm_date
+    if deomm_date > comm_date:
+        dates_correct = True
+    else:
+        container_bottom.error('The decommission date of the device must be later than the commission date.')
+
+    # validate that a valid channel is given
+    if device_id != '':
+        if device_id >= 0:
+            device_id_correct = True
+        else:
+            container_bottom.error('The device id must be larger than 0.')
+    else:
+        container_bottom.error('Please select or enter a device id.')
+
+    # check if there is an entry for the station in the db
+    if station_name in det.get_object_names('station_rnog'):
+        station_in_db = True
+    else:
+        container_bottom.error('There is no corresponding entry for the station in the database.')
+
+    if dates_correct and device_id_correct and station_in_db:
+        disable_insert_button = False
+
+    return disable_insert_button
+
+
 def insert_general_station_info_to_db(station_id, collection_name, station_name, station_comment, station_comm_time, station_decomm_time):
     det.add_general_station_info(collection_name, station_id, station_name, station_comment, station_comm_time, station_decomm_time)
 
@@ -423,6 +553,10 @@ def insert_general_channel_info_to_db(station_id, collection_name, channel_id, s
     det.add_general_channel_info_to_station(collection_name, station_id, channel_id, signal_chain, ant_name, channel_type, channel_comment, commission_time, decommission_time)
 
 
+def insert_general_device_info_to_db(station_id, collection_name, device_id, device_name, amp_name, device_comment, commission_time, decommission_time):
+    det.add_general_device_info_to_station(collection_name, station_id, device_id, device_name, device_comment, amp_name, commission_time, decommission_time)
+
+
 def insert_channel_position_to_db(station_id, channel_id, measurement_name, measurement_time, position, orientation, rotation, primary):
     det.add_channel_position(station_id, channel_id, measurement_name, measurement_time, position, orientation, rotation, primary)
 
@@ -434,3 +568,6 @@ def insert_station_position_to_db(station_id, measurement_name, measurement_time
 def insert_signal_chain_to_db(station_id, channel_number, config_name, sig_chain, primary, primary_components):
     det.add_channel_signal_chain(station_id, channel_number, config_name, sig_chain, primary, primary_components)
 
+
+def insert_device_position_to_db(station_id, device_id, measurement_name, measurement_time, position, orientation, rotation, primary):
+    det.add_device_position(station_id, device_id, measurement_name, measurement_time, position, orientation, rotation, primary)

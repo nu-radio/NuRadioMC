@@ -1,7 +1,7 @@
 import numpy as np
 import streamlit as st
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
-from NuRadioReco.detector.webinterface.utils.helper_display_station import build_station_selection, load_station_position_info, get_all_station_measurement_names, load_general_info, build_channel_selection, get_all_channel_measurements_names, load_channel_position_info, get_all_signal_chain_config_names, load_signal_chain_information
+from NuRadioReco.detector.webinterface.utils.helper_display_station import build_station_selection, load_station_position_info, get_all_station_measurement_names, load_general_info, build_channel_selection, get_all_channel_measurements_names, load_channel_position_info, load_device_position_info, get_all_signal_chain_config_names, load_signal_chain_information, get_all_device_measurements_names
 import pandas as pd
 from datetime import datetime
 from datetime import time
@@ -38,9 +38,13 @@ def build_main_page(cont):
         if 'channels' in list(station_info[selected_station_id].keys()):
             channel_dict = station_info[selected_station_id]['channels']
 
-        return c_time, dc_time, db_comment, channel_dict
+        device_dic = {}
+        if 'devices' in list(station_info[selected_station_id].keys()):
+            device_dic = station_info[selected_station_id]['devices']
 
-    comm_time, decomm_time, comment, cha_dic = get_general_stat_info()
+        return c_time, dc_time, db_comment, channel_dict, device_dic
+
+    comm_time, decomm_time, comment, cha_dic, dev_dic = get_general_stat_info()
 
     # display the (de)commission time
     coll_comm_1, coll_comm_2 = cont.columns([1,1])
@@ -426,6 +430,136 @@ def build_main_page(cont):
     signal_chain_table = get_signal_chain_info_table()
 
     cont.dataframe(signal_chain_table.style.applymap(highlight_cols, subset=pd.IndexSlice[:, ['id']]), use_container_width=True)
+
+    cont.header('device information')
+
+    @st.experimental_memo
+    def get_general_device_info_table():
+        if dev_dic != {}:
+            # transform the device data in a dataframe
+            device_name = []
+            amplifier_name = []
+            commission_time = []
+            decommission_time = []
+            comments = []
+            device_ids = []
+            for dev in dev_dic.keys():
+                device_ids.append(dev)
+                device_name.append(dev_dic[dev]['device_name'])
+                amplifier_name.append(dev_dic[dev]['amp_name'])
+                commission_time.append(dev_dic[dev]['commission_time'].date())
+                decommission_time.append(dev_dic[dev]['decommission_time'].date())
+                if 'device_comment' in dev_dic[dev].keys():
+                    comments.append(dev_dic[dev]['device_comment'])
+                else:
+                    comments.append('')
+            df = pd.DataFrame({'id': device_ids, 'device name': device_name, 'amplifier name': amplifier_name, 'commission': commission_time, 'decommission': decommission_time, 'comment': comments})
+        else:
+            df = pd.DataFrame({'id': None, 'device name': None, 'amplifier name': None, 'commission': None, 'decommission': None, 'comment': None})
+
+        df = df.sort_values(by=['id'])
+
+        return df
+
+    general_device_data = get_general_device_info_table()
+
+    cont.subheader('general information')
+    cont.dataframe(general_device_data.style.applymap(highlight_cols, subset=pd.IndexSlice[:, ['id']]), use_container_width=True)
+
+    cont.subheader('position and rotation/orientation information')
+
+    coll_pos_dev_select1, coll_pos_dev_select2 = cont.columns([1, 1])
+    selected_primary_time_dev = coll_pos_dev_select1.date_input('Primary time', value=datetime.utcnow(), key='dev_primary', help='If the selected time is before 2018/01/01, the entry will be interpreted as "None"')
+    selected_primary_time_dev = datetime.combine(selected_primary_time_dev, time(12, 0, 0))
+    if selected_primary_time_dev < datetime(2018, 1, 1, 0, 0, 0):
+        selected_primary_time_dev = None
+    measurement_names_dev_db = list(get_all_device_measurements_names())
+    measurement_names_dev_db.insert(0, 'not specified')
+    selected_measurement_name_dev = coll_pos_dev_select2.selectbox('Measurement name:', options=measurement_names_dev_db, key='measurement_name_device_pos')
+
+    if 'device_measurement_name_key' not in st.session_state:
+        st.session_state['device_measurement_name_key'] = ''
+
+    if 'device_primary_time_key' not in st.session_state:
+        st.session_state['device_primary_time_key'] = None
+
+    if st.session_state.device_measurement_name_key != selected_measurement_name_dev:
+        st.session_state.device_measurement_name_key = selected_measurement_name_dev
+        st.experimental_memo.clear()
+        st.experimental_rerun()
+
+    if st.session_state.device_primary_time_key != selected_primary_time_dev:
+        st.session_state.device_primary_time_key = selected_primary_time_dev
+        st.experimental_memo.clear()
+        st.experimental_rerun()
+
+    # load and cache the channel information (is only loaded once)
+    @st.experimental_memo
+    def get_position_device_info_table():
+        dev_positions = load_device_position_info(station_id=selected_station_id, primary_time=selected_primary_time_dev, measurement_name=selected_measurement_name_dev)
+        if dev_positions != []:
+            # transform the channel data in a dataframe
+            device_ids = []
+            measurement_name = []
+            curr_time_primary_start = []
+            curr_time_primary_end = []
+            other_primary_times = []
+            position = []
+            rotation = []
+            orientation = []
+            measurement_time = []
+            for dic in dev_positions:
+                other_primary_times_help = ''
+                count_other_primary = 0
+                for ipm, pm in enumerate(dic['measurements']['primary_measurement']):
+                    pm_start = pm['start'].replace(microsecond=0)
+                    pm_end = pm['end'].replace(microsecond=0)
+                    if selected_primary_time_dev is None:
+                        curr_time_primary_end.append(None)
+                        curr_time_primary_start.append(None)
+                        if count_other_primary > 0:
+                            other_primary_times_help = other_primary_times_help + f', \n{pm_start.strftime("%Y/%m/%d %H:%M:%S")} - {pm_end.strftime("%Y/%m/%d %H:%M:%S")}'
+                        else:
+                            other_primary_times_help = other_primary_times_help + f'{pm_start.strftime("%Y/%m/%d %H:%M:%S")} - {pm_end.strftime("%Y/%m/%d %H:%M:%S")}'
+                        count_other_primary += 1
+                    else:
+                        if pm_start <= selected_primary_time_dev and pm_end > selected_primary_time_dev:
+                            curr_time_primary_start.append(pm_start)
+                            curr_time_primary_end.append(pm_end)
+                        else:
+                            if count_other_primary > 0:
+                                other_primary_times_help = other_primary_times_help + f', \n{pm_start.strftime("%Y/%m/%d %H:%M:%S")} - {pm_end.strftime("%Y/%m/%d %H:%M:%S")}'
+                            else:
+                                other_primary_times_help = other_primary_times_help + f'{pm_start.strftime("%Y/%m/%d %H:%M:%S")} - {pm_end.strftime("%Y/%m/%d %H:%M:%S")}'
+                            count_other_primary += 1
+                other_primary_times.append(other_primary_times_help)
+                device_ids.append(dic['measurements']['device_id'])
+                measurement_name.append(dic['measurements']['measurement_name'])
+                measurement_time.append(dic['measurements']['measurement_time'])
+                if len(dic['measurements']['position']) == 3:
+                    position.append([dic['measurements']['position']])
+                else:
+                    position.append(dic['measurements']['position'])
+
+                if dic['measurements']['rotation'] is None or dic['measurements']['orientation'] is None:
+                    rotation.append([None, None])
+                    orientation.append([None, None])
+                else:
+                    rotation.append([float(dic['measurements']['rotation']['theta']), float(dic['measurements']['rotation']['phi'])])
+                    orientation.append([float(dic['measurements']['orientation']['theta']), float(dic['measurements']['orientation']['phi'])])
+
+            df = pd.DataFrame({'id': device_ids, 'measurement': measurement_name, 'measurement time': measurement_time, 'position (x,y,z)': position, 'rotation (theta, phi)': rotation,
+                               'orientation (theta, phi)': orientation, 'primary: start': curr_time_primary_start, 'primary: end': curr_time_primary_end, 'other primary times': other_primary_times})
+            df = df.sort_values(by=['id'])
+        else:
+            df = pd.DataFrame(
+                {'id': [None], 'measurement': [None], 'measurement time': [None], 'position (x,y,z)': [None], 'rotation (theta, phi)': [None], 'orientation (theta, phi)': [None], 'primary: start': [None],
+                 'primary: end': [None], 'other primary times': [None]})
+        return df
+
+    device_position_table = get_position_device_info_table()
+
+    cont.dataframe(device_position_table.style.applymap(highlight_cols, subset=pd.IndexSlice[:, ['id']]), use_container_width=True)
 
     if st.session_state.station_id != selected_station_id:
         st.session_state.station_id = selected_station_id
