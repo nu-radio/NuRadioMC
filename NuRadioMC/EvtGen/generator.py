@@ -1169,11 +1169,14 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     """
     rnd = Generator(Philox(seed))
     t_start = time.time()
-    if(log_level is not None):
+    
+    if log_level is not None:
         logger.setLevel(log_level)
+    
     if proposal:
         from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
         proposal_functions = ProposalFunctions(config_file=proposal_config)
+    
     max_n_events_batch = int(max_n_events_batch)
     attributes = {}
     n_events = int(n_events)
@@ -1209,15 +1212,17 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     n_batches = int(np.ceil(n_events / max_n_events_batch))
     for i_batch in range(n_batches):  # do generation of events in batches
         n_events_batch = max_n_events_batch
-        if(i_batch + 1 == n_batches):  # last batch?
+        
+        if i_batch + 1 == n_batches:  # last batch?
             n_events_batch = n_events - (i_batch * max_n_events_batch)
+        
         logger.info(f"processing batch {i_batch+1:.2g}/{n_batches:.2g} with {n_events_batch:.2g} events")
         data_sets["xx"], data_sets["yy"], data_sets["zz"] = generate_vertex_positions(attributes=attributes, n_events=n_events_batch, rnd=rnd)
 
         data_sets["azimuths"] = rnd.uniform(phimin, phimax, n_events_batch)
         data_sets["zeniths"] = np.arccos(rnd.uniform(np.cos(thetamax), np.cos(thetamin), n_events_batch))
 
-    #     fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
+        # fmask = (rr_full >= fiducial_rmin) & (rr_full <= fiducial_rmax) & (data_sets["zz"] >= fiducial_zmin) & (data_sets["zz"] <= fiducial_zmax)  # fiducial volume mask
 
         logger.debug("generating event ids")
         data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch) + start_event_id
@@ -1233,13 +1238,14 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         data_sets["energies"] = get_energies(n_events_batch, Emin, Emax, spectrum, rnd)
         # generate charged/neutral current randomly
         logger.debug("interaction type")
-        if(interaction_type == "ccnc"):
+        if interaction_type == "ccnc":
             data_sets["interaction_type"] = inelasticities.get_ccnc(n_events_batch, rnd=rnd)
-        elif(interaction_type == "cc"):
-            data_sets["interaction_type"] = np.full(n_events_batch, "cc", dtype='U2')
-        elif(interaction_type == "nc"):
-            data_sets["interaction_type"] = np.full(n_events_batch, "nc", dtype='U2')
-
+        elif interaction_type == "cc" or interaction_type == "nc":
+            data_sets["interaction_type"] = np.full(n_events_batch, interaction_type, dtype='U2')
+        else: 
+            logger.error(f"Input illegal interaction type: {interaction_type}")
+            raise ValueError(f"Input illegal interaction type: {interaction_type}")
+        
         # generate inelasticity
         logger.debug("generating inelasticities")
         data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(n_events_batch, rnd=rnd)
@@ -1290,18 +1296,17 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             # we need to be careful to not double cound events. electron CC interactions apear twice in the event list
             # because of the two distinct showers that get created. Because second interactions are only calculated
             # for mu and tau cc interactions, this is not a problem.
-            mask_tau_cc = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 16)
-            mask_mu_cc = (data_sets["interaction_type"] == 'cc') & (np.abs(data_sets["flavors"]) == 14)
-            mask_leptons = mask_tau_cc | mask_mu_cc
+            mask_tracks = data_sets["interaction_type"] == 'cc' & np.abs(data_sets["flavors"]) != 12
 
             E_all_leptons = (1 - data_sets["inelasticity"]) * data_sets["energies"]
             lepton_codes = copy.copy(data_sets["flavors"])
+            
             # convert neutrino flavors (makes only sense for cc interaction which is ensured with "mask_leptons")
             lepton_codes = lepton_codes - 1 * np.sign(lepton_codes)
 
-            if("fiducial_rmax" in attributes):
+            if "fiducial_rmax" in attributes:
                 mask_phi = mask_arrival_azimuth(data_sets, attributes['fiducial_rmax'])
-                mask_leptons = mask_leptons & mask_phi
+                mask_tracks = mask_tracks & mask_phi
                 # TODO: combine with `get_intersection_volume_neutrino` function
 
             lepton_positions = np.array([data_sets["xx"], data_sets["yy"], data_sets["zz"]]).T
@@ -1315,6 +1320,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                 x_nu = data_sets['xx'][iE]
                 y_nu = data_sets['yy'][iE]
                 z_nu = data_sets['zz'][iE]
+                
                 # Appending event if it interacts within the fiducial volume
                 if is_in_fiducial_volume(attributes, np.array([x_nu, y_nu, z_nu])):
                     for key in iterkeys(data_sets):
@@ -1322,7 +1328,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
                     first_inserted = True
 
-                if mask_leptons[iE]:
+                if mask_tracks[iE]:
                     geometry_selection = get_intersection_volume_neutrino(
                         attributes, [x_nu, y_nu, z_nu], lepton_directions[iE])
                     
@@ -1340,7 +1346,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                             if is_in_fiducial_volume(attributes, np.array([x, y, z])):
 
                                 # the energy loss or particle is in our fiducial volume
-
                                 # If the energy loss or particle is in the fiducial volume but the parent
                                 # neutrino does not interact there, we add it to know its properties.
                                 if not first_inserted:
@@ -1357,6 +1362,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 n_interaction += 1
                                 data_sets_fiducial['shower_energies'][-1] = product.energy
                                 data_sets_fiducial['inelasticity'][-1] = np.nan
+                                
                                 # interaction_type is either 'had' or 'em' for proposal products
                                 data_sets_fiducial['interaction_type'][-1] = product.shower_type
                                 data_sets_fiducial['shower_type'][-1] = product.shower_type
@@ -1370,6 +1376,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
                                 # Flavors are particle codes taken from NuRadioProposal.py
                                 data_sets_fiducial['flavors'][-1] = product.code
+            
             time_proposal = time.time() - init_time
         else:
             if(n_batches == 1):
