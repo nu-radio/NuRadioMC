@@ -22,7 +22,7 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
     by studying its gain in a climate chamber at different temperatures.
     
     Parameters
-    -------------
+    ----------
     amp_type: string
         * "rno_surface": the surface signal chain
         * "iglu": the in-ice signal chain
