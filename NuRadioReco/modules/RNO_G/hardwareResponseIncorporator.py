@@ -29,7 +29,7 @@ class hardwareResponseIncorporator:
         helper function to return the filter that the module applies.
 
         Parameters
-        -----------
+        ----------
         frequencies: array of floats
             the frequency array for which the filter should be returned
         station_id: int
@@ -66,7 +66,7 @@ class hardwareResponseIncorporator:
             ``analog_components.get_amplifier_response()``
 
         Returns
-        -----------
+        -------
         array of complex floats
             the complex filter amplitudes
         """
@@ -99,7 +99,7 @@ class hardwareResponseIncorporator:
         The option zero_noise can be used to zero the noise around the pulse. It is unclear, how useful this is.
 
         Parameters
-        -----------
+        ----------
         evt : Event
             Event to run the module on
         station : Station

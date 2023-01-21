@@ -1000,7 +1000,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             Index of the raytracing solution the propagation effects should be based on
 
         Returns
-        -------------
+        -------
         efield: ElectricField object
             The modified ElectricField object
         """

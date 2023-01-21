@@ -19,7 +19,7 @@ class neutrino2DVertexReconstructor:
         Constructor for the vertex reconstructor
 
         Parameters
-        --------------
+        ----------
         lookup_table_location: string
             path to the folder in which the lookup tables for the signal travel
             times are stored
@@ -67,7 +67,7 @@ class neutrino2DVertexReconstructor:
         General settings for vertex reconstruction
 
         Parameters
-        -------------
+        ----------
         station_id: integer
             ID of the station to be used for the reconstruction
         channel_ids: array of integers
@@ -116,7 +116,7 @@ class neutrino2DVertexReconstructor:
         Execute the 2D vertex reconstruction
 
         Parameters
-        ---------------
+        ----------
         station: Station
             The station for which the vertex shall be reconstructed
         max_distance: number
