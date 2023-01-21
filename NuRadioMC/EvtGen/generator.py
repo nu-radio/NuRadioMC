@@ -1177,6 +1177,12 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     max_n_events_batch = int(max_n_events_batch)
     attributes = {}
     n_events = int(n_events)
+    
+    # sanity check
+    for f in flavor:
+        if f not in [12, -12, 14, -14, 16, -16]:
+            logger.error(f"Input illegal flavor: {flavor}")
+            raise ValueError(f"Input illegal flavor: {flavor}")
 
     # save current NuRadioMC version as attribute
     # save NuRadioMC and NuRadioReco versions
