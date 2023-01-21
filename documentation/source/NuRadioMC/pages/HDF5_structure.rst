@@ -148,5 +148,5 @@ station triggered, with which amplitude, etc. The same approach works for ``show
             ``time_shower_and_ray`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
             ``travel_distances`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The distance travelled by each ray tracing solution to a specific channel
             ``travel_times`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The time travelled by each ray tracing solution to a specific channel
-            ``triggered`` | (``m_showers``,) | Whether each shower contributed to an event that satisfied any trigger condition
+            ``triggered`` | (``m_showers``) | Whether each shower contributed to an event that satisfied any trigger condition
             ``triggered_per_event`` | (``m_events``) | Whether each event fulfilled any trigger condition.
