@@ -65,9 +65,8 @@ The top-level attributes can be accessed using ``f.attrs``. These contain:
             ``thetamax`` ``thetamin`` | Define zenith range for incoming neutrino directions
             ``flavors`` | A list of particle flavors that were simulated, using the PDG convention.
             ``n_events`` | Total number of generated/simulated events(including those that did not trigger)
-            ``fiducial_xmax`` ``fiducial_xmin`` ``fiducial_ymax`` ``fiducial_ymin`` ``fiducial_zmax`` ``fiducial_zmin`` | Specify the simulated qubic fiducial volume.  An event has to produce an interaction within this volume. However, in case of a muon or tau CC interaction the first interaction can occur outside
-            or ``fiducial_rmax`` ``fiducial_rmin`` ``fiducial_zmax`` ``fiducial_zmin``  | Specify the simulated cylindrical fiducial volume. An event has to produce an interaction within this volume. However, in case of a muon or tau CC interaction the first interaction can occur outside
-            ``rmax`` ``rmin`` ``zmax`` ``zmin`` or ``xmax`` ``xmin`` ``ymax`` ``ymin`` ``zmax`` ``zmin`` | Specify the cylindrical/quadratic volume in which neutrino interactions are generated
+            ``fiducial_xmax`` ``fiducial_xmin`` ``fiducial_ymax`` ``fiducial_ymin`` ``fiducial_zmax`` ``fiducial_zmin`` / ``fiducial_rmax`` ``fiducial_rmin`` ``fiducial_zmax`` ``fiducial_zmin`` | Specify the simulated qubic/cylindrical fiducial volume.  An event has to produce an interaction within this volume. However, in case of a muon or tau CC interaction the first interaction can occur outside
+            ``rmax`` ``rmin`` ``zmax`` ``zmin`` / ``xmax`` ``xmin`` ``ymax`` ``ymin`` ``zmax`` ``zmin`` | Specify the qubic/cylindrical volume in which neutrino interactions are generated
             ``volume`` | Volume of the above specified volume
             ``area`` | Surface area of the above specified volume
             ``start_event_id`` | ``event_id`` of the first event in the file
@@ -129,7 +128,7 @@ station triggered, with which amplitude, etc. The same approach works for ``show
 
             ``event_group_ids`` | (``m_events``) | The event group ids of the triggered events in the selected station
             ``event_group_id_per_shower`` | (``m_showers``) | The event group id of every shower that triggered the selected station
-            ``event_ids`` | (``m_events``) | tThe event ids of each event that triggered in that station for every event group id. These are unique only within each separate event group, and start from 0.
+            ``event_ids`` | (``m_events``) | The event ids of each event that triggered in that station for every event group id. These are unique only within each separate event group, and start from 0.
             ``event_id_per_shower`` | (``m_showers``) | The event ids of each event that triggered in that station. This one is for every shower
             ``focusing_factor`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
             ``launch_vectors`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D (Cartesian) coordinates of the launch vector of each ray tracing solution, per shower and channel.
