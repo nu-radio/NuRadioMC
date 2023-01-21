@@ -5,6 +5,7 @@ import os
 import six
 import json
 import logging
+import sys
 
 """
 This module takes care of the PROPOSAL implementation. Some important things
@@ -245,6 +246,7 @@ class ProposalFunctions(object):
         self.__propagators = {}
         self.__config_file = config_file
 
+
     def __get_propagator(self,
                             particle_code=13):
         """
@@ -303,7 +305,7 @@ class ProposalFunctions(object):
             elif (os.path.exists(self.__config_file)):
                 config_file_full_path = self.__config_file
             else:
-                raise ValueError("Proposal config file is not valid. Please provide a valid option.")
+                raise ValueError(f"Proposal config file is not valid. Please provide a valid option.")
 
             if not os.path.exists(config_file_full_path):
                 error_message = "Proposal config file does not exist.\n"
@@ -317,6 +319,7 @@ class ProposalFunctions(object):
             self.__propagators[particle_code] = pp.Propagator(particle_def=mu_def, config_file=config_file_full_path)
 
         return self.__propagators[particle_code]
+
 
     def __produces_shower(self,
                           particle,
@@ -371,6 +374,7 @@ class ProposalFunctions(object):
 
         return energy
 
+
     def __shower_properties(self, particle):
         """
         Calculates shower properties for the shower created by the input particle
@@ -403,13 +407,15 @@ class ProposalFunctions(object):
 
         return shower_type, code, name
 
+
     def __propagate_particle(self,
                              energy_lepton,
                              lepton_code,
                              lepton_position,
                              lepton_direction,
                              propagation_length,
-                             low=1 * pp_PeV):
+                             low=1 * pp_PeV,
+                             return_parent_energy=False):
         """
         Calculates secondary particles using a PROPOSAL propagator. It needs to
         be given a propagators dictionary with particle codes as key
@@ -451,16 +457,20 @@ class ProposalFunctions(object):
         initial_condition.direction = pp.Vector3D(px, py, pz)
         initial_condition.energy = energy_lepton
         initial_condition.propagated_distance = 0
-
-        secondaries = self.__get_propagator(lepton_code).propagate(initial_condition,
+        prop = self.__get_propagator(lepton_code).propagate(initial_condition,
                                                                   propagation_length,
-                                                                  minimal_energy=low).particles
-        return secondaries
+                                                                  minimal_energy=low)
+        if return_parent_energy:
+            return prop.particles, prop.parent_particle_energy
+        else:
+            return prop.particles
+
 
     def __filter_secondaries(self,
                              secondaries,
                              min_energy_loss,
-                             lepton_position):
+                             lepton_position,
+                             return_mask=False):
         """
         Takes an input secondary particles array and returns an array with the
         SecondaryProperties of those particles that create a shower above a threshold
@@ -482,8 +492,10 @@ class ProposalFunctions(object):
         """
 
         shower_inducing_prods = []
+        
+        mask = []
 
-        for sec in secondaries:
+        for idx, sec in enumerate(secondaries):
 
             # Decays contain only one shower-inducing particle
             # Muons and neutrinos resulting from decays are ignored
@@ -500,7 +512,13 @@ class ProposalFunctions(object):
 
                 shower_inducing_prods.append(SecondaryProperties(distance, energy, shower_type, code, name))
 
-        return shower_inducing_prods
+                mask.append(idx)
+                
+        if return_mask: 
+            return shower_inducing_prods, mask
+        else:
+            return shower_inducing_prods
+
 
     def get_secondaries_array(self,
                               energy_leptons_nu,
@@ -510,7 +528,8 @@ class ProposalFunctions(object):
                               low_nu=0.5 * units.PeV,
                               propagation_length_nu=1000 * units.km,
                               min_energy_loss_nu=0.5 * units.PeV,
-                              propagate_decay_muons=True):
+                              propagate_decay_muons=True,
+                              return_lepton_energy=False):
         """
         Propagates a set of leptons and returns a list with the properties for
         all the properties of the shower-inducing secondary particles
@@ -546,6 +565,9 @@ class ProposalFunctions(object):
 
             The SecondaryProperties objects are expressed in NuRadioMC units.
         """
+        
+        if return_lepton_energy and propagate_decay_muons:
+            sys.exit("Full stop. propagate_decay_muons and return_lepton_energy are not yet competible together") 
 
         # Converting to PROPOSAL units
         low = low_nu * pp_eV
@@ -562,7 +584,6 @@ class ProposalFunctions(object):
             lepton_directions = [(0, 0, -1)] * len(energy_leptons)
 
         if propagate_decay_muons:
-
             decay_muons_array = []
 
         secondaries_array = []
@@ -570,22 +591,22 @@ class ProposalFunctions(object):
         for energy_lepton, lepton_code, lepton_position, lepton_direction in zip(energy_leptons,
             lepton_codes, lepton_positions, lepton_directions):
 
-            secondaries = self.__propagate_particle(energy_lepton, lepton_code,
+            secondaries, primary_energy = self.__propagate_particle(energy_lepton, lepton_code,
                                                     lepton_position, lepton_direction,
-                                                    propagation_length, low=low)
+                                                    propagation_length, low=low,
+                                                    return_parent_energy=True)
 
-            shower_inducing_prods = self.__filter_secondaries(secondaries, min_energy_loss, lepton_position)
+            shower_inducing_prods, mask = \
+                self.__filter_secondaries(secondaries, min_energy_loss, lepton_position, return_mask=True)
+
+            primary_energy = list(np.array(primary_energy)[mask])
 
             # Checking if there is a muon in the products
             if propagate_decay_muons:
                 decay_muons_array.append([None, None, None, None])
 
                 for sec in secondaries:
-                    if (sec.type == 13) or (sec.type == -13):
-                        if sec.type == 13:
-                            mu_code = 13
-                        elif sec.type == -13:
-                            mu_code = -13
+                    if abs(sec.type) == 13:
 
                         mu_energy = sec.energy
                         if (mu_energy <= low):
@@ -593,7 +614,7 @@ class ProposalFunctions(object):
                         mu_position = (sec.position.x, sec.position.y, sec.position.z)
                         mu_direction = lepton_direction  # We reuse the primary lepton direction
                                                         # At these energies the muon direction is the same
-                        decay_muons_array[-1] = [mu_energy, mu_code, mu_position, mu_direction]
+                        decay_muons_array[-1] = [mu_energy, sec.type, mu_position, mu_direction]
                         # I store the properties of each muon in an array because they cannot be
                         # propagated while we are looping the secondaries array. Doing that can
                         # create a segmentation fault because the results of the new propagation
@@ -608,6 +629,7 @@ class ProposalFunctions(object):
                 shower_inducing_prods[-1].energy += last_decay_prod.energy
                 shower_inducing_prods[-1].code = 86
                 shower_inducing_prods[-1].name = particle_names.particle_name(86)
+                primary_energy.pop(-1)  # 
 
             secondaries_array.append(shower_inducing_prods)
 
@@ -627,7 +649,11 @@ class ProposalFunctions(object):
 
                 shower_inducing_prods += mu_shower_inducing_prods
 
-        return secondaries_array
+        if return_lepton_energy:
+            return secondaries_array, primary_energy
+        else:
+            return secondaries_array
+
 
     def get_decays(self,
                    energy_leptons_nu,

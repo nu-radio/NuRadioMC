@@ -1340,12 +1340,34 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                                           [data_sets['xx'][iE], data_sets['yy'][iE], data_sets['zz'][iE]],
                                                           lepton_directions[iE])
                     if geometry_selection:
-                        products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
-                                                                                   np.array([lepton_codes[iE]]),
-                                                                                   np.array([lepton_positions[iE]]),
-                                                                                   np.array([lepton_directions[iE]]),
-                                                                                   **proposal_kwargs)
+                        products_array, leptons_energies = proposal_functions.get_secondaries_array(
+                            np.array([E_all_leptons[iE]]), np.array([lepton_codes[iE]]),
+                            np.array([lepton_positions[iE]]), np.array([lepton_directions[iE]]),
+                            return_lepton_energy=True,
+                            propagate_decay_muons=False,
+                            **proposal_kwargs)
+                        
                         products = products_array[0]
+                        print(len(products), len(leptons_energies))
+                        
+                        if 0:
+                            from matplotlib import pyplot as plt
+                            fig, ax = plt.subplots()
+                            
+                            energy_proxy = E_all_leptons[iE] - np.cumsum([p.energy for p in products])
+                            ax.plot(np.array(leptons_energies) * 1e6, label="parent energy")
+                            ax.plot(energy_proxy, label="primary - cum(showers)")
+    
+                            energy_proxy = np.append(E_all_leptons[iE], energy_proxy)
+                            ax.plot(energy_proxy, color="C1", ls="--", label="shifted by 1 bin")
+    
+                            ax.set_yscale("log")
+                            ax.set_xlabel("number showers")
+                            ax.set_ylabel("energy")
+                            ax.legend()
+                            fig.tight_layout()
+                            fig.savefig("lepton_energy_%d.png" % iE)
+    
                         n_interaction = 2
                         for product in products:
 
