@@ -59,8 +59,7 @@ The top-level attributes can be accessed using ``f.attrs``. These contain:
             :widths: auto
             :delim: |
 
-            ``NuRadioMC_EvtGen_version`` ``NuRadioMC_EvtGen_version_hash`` | Hashes
-            ``NuRadioMC_version`` ``NuRadioMC_version_hash`` | Hashes
+            ``NuRadioMC_EvtGen_version`` ``NuRadioMC_EvtGen_version_hash`` ``NuRadioMC_version`` ``NuRadioMC_version_hash`` | Versions of the generator/framework as integer as hash
             ``Emin`` ``Emax`` | Define energy range for neutrino energies
             ``phimax`` ``phimin`` | Define azimuth range for incoming neutrino directions
             ``thetamax`` ``thetamin`` | Define zenith range for incoming neutrino directions
@@ -73,9 +72,9 @@ The top-level attributes can be accessed using ``f.attrs``. These contain:
             ``start_event_id`` | ``event_id`` of the first event in the file
             ``trigger_names`` | List of the names of the different triggers simulated
             ``Tnoise`` | (explicit) noise temperature used in simulation
-            ``Vrms`` |
-            ``bandwidth`` |
-            ``n_samples`` |
+            ``Vrms`` |  RMS of the voltage used as thermal noise floor. Determine from ``Tnoise`` and ``bandwidth``
+            ``bandwidth`` | Bandwidth of the antennas/detector (for triggering)
+            ``n_samples`` | Samples of the to-be generated antenna signals
             ``config`` | The (yaml-style) config file used for the simulation
             ``deposited`` |
             ``detector`` | The (json-format) detector description used for the simulation
