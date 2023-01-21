@@ -106,7 +106,7 @@ if __name__ == "__main__":
     Splits up a hdf5 file into multiple files
     
     Parameters
-    -----------
+    ----------
     file: str
         the input file
     outputfolder: str

@@ -18,7 +18,7 @@ class channelLengthAdjuster:
         Defines number of samples to cut the data to and how many samples before maximum in trace
 
         Parameters
-        -----------
+        ----------
         number_of_samples: int
             Number of samples desired in signal
         offset: int
