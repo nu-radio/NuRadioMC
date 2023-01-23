@@ -223,7 +223,7 @@ class ProposalFunctions(object):
         ----------
         config_file: string or path
             The user can specify the path to their own config file or choose among
-            the three available options:
+            the available options:
             -'SouthPole', a config file for the South Pole (spherical Earth). It
             consists of a 2.7 km deep layer of ice, bedrock below and air above.
             -'MooresBay', a config file for Moore's Bay (spherical Earth). It
