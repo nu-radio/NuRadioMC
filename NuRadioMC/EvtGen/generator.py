@@ -715,6 +715,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                            spectrum='log_uniform',
                            start_file_id=0,
                            config_file='SouthPole',
+                           tables_path='/tmp',
                            proposal_kwargs={},
                            log_level=None,
                            max_n_events_batch=1e5,
@@ -831,7 +832,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         * 'InfIce', a config file with a medium of infinite ice
         * 'Greenland', a config file for Summit Station, Greenland (spherical Earth),
           same as SouthPole but with a 3 km deep ice layer.
-
+    tables_path: path
+        path where the proposal cross section tables are stored or should be generated
     proposal_kwargs: dict
         additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
     log_level: logging log level or None
@@ -847,7 +849,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     t_start = time.time()
     max_n_events_batch = int(max_n_events_batch)
     from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
-    proposal_functions = ProposalFunctions(config_file=config_file)
+    proposal_functions = ProposalFunctions(config_file=config_file, tables_path=tables_path)
 
     attributes = {}
     n_events = int(n_events)
@@ -1024,6 +1026,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 deposited=False,
                                 proposal=False,
                                 proposal_config='SouthPole',
+                                proposal_tables_path='/tmp',
                                 start_file_id=0,
                                 log_level=None,
                                 proposal_kwargs={},
@@ -1155,7 +1158,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         * 'InfIce', a config file with a medium of infinite ice
         * 'Greenland', a config file for Summit Station, Greenland (spherical Earth),
           same as SouthPole but with a 3 km deep ice layer.
-
+    proposal_tables_path: path
+        path where the proposal cross section tables are stored or should be generated
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
@@ -1180,7 +1184,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         logger.setLevel(log_level)
     if proposal:
         from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
-        proposal_functions = ProposalFunctions(config_file=proposal_config)
+        proposal_functions = ProposalFunctions(config_file=proposal_config, tables_path=proposal_tables_path)
     max_n_events_batch = int(max_n_events_batch)
     attributes = {}
     n_events = int(n_events)
