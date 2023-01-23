@@ -550,11 +550,10 @@ class ProposalFunctions(object):
         Returns
         -------
         secondaries_array: 2D-list containing SecondaryProperties objects
-            List containing the information on the shower-inducing secondaries. The
-            first dimension indicates the primary lepton and the second dimension
-            navigates through the secondaries produced by that primary.
-
-            The SecondaryProperties objects are expressed in NuRadioMC units.
+            For each primary a list containing the information on the shower-inducing secondaries is
+            returned. The first dimension indicates the (index of the) primary lepton and the second dimension
+            navigates through the secondaries produced by that primary (time-ordered). The SecondaryProperties
+            properties are in NuRadioMC units.
         """
 
         # Converting to PROPOSAL units
