@@ -1296,7 +1296,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             # we need to be careful to not double cound events. electron CC interactions apear twice in the event list
             # because of the two distinct showers that get created. Because second interactions are only calculated
             # for mu and tau cc interactions, this is not a problem.
-            mask_tracks = data_sets["interaction_type"] == 'cc' & np.abs(data_sets["flavors"]) != 12
+            mask_tau_cc = np.logical_and(data_sets["interaction_type"] == 'cc', np.abs(data_sets["flavors"]) == 16)
+            mask_mu_cc = np.logical_and(data_sets["interaction_type"] == 'cc', np.abs(data_sets["flavors"]) == 14)
+            mask_tracks = mask_tau_cc | mask_mu_cc
 
             E_all_leptons = (1 - data_sets["inelasticity"]) * data_sets["energies"]
             lepton_codes = copy.copy(data_sets["flavors"])
