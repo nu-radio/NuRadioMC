@@ -959,7 +959,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                                                                            np.array([lepton_positions[iE]]),
                                                                            np.array([lepton_directions[iE]]),
                                                                            **proposal_kwargs)
-                products = products_array[0]
+                products = products_array[0]  # get secondaries from first (and only) lepton
 
                 n_interaction = 1
 
