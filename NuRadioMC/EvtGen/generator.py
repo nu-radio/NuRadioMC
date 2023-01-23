@@ -821,7 +821,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         if True, generate deposited energies instead of primary neutrino energies
     config_file: string
         The user can specify the path to their own config file or choose among
-        the three available options:
+        the available options:
 
         * 'SouthPole', a config file for the South Pole (spherical Earth). It
           consists of a 2.7 km deep layer of ice, bedrock below and air above.
@@ -831,13 +831,6 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         * 'InfIce', a config file with a medium of infinite ice
         * 'Greenland', a config file for Summit Station, Greenland (spherical Earth),
           same as SouthPole but with a 3 km deep ice layer.
-
-        .. Important:: If these options are used, the code is more efficient if the
-            user requests their own "path_to_tables" and "path_to_tables_readonly",
-            pointing them to a writable directory
-            If one of these three options is chosen, the user is supposed to edit
-            the corresponding config_PROPOSAL_xxx.json.sample file to include valid
-            table paths and then copy this file to config_PROPOSAL_xxx.json.
 
     proposal_kwargs: dict
         additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
@@ -1152,7 +1145,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         if True, the tau and muon secondaries are calculated using PROPOSAL
     proposal_config: string or path
         The user can specify the path to their own config file or choose among
-        the three available options:
+        the available options:
 
         * 'SouthPole', a config file for the South Pole (spherical Earth). It
           consists of a 2.7 km deep layer of ice, bedrock below and air above.
@@ -1162,13 +1155,6 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         * 'InfIce', a config file with a medium of infinite ice
         * 'Greenland', a config file for Summit Station, Greenland (spherical Earth),
           same as SouthPole but with a 3 km deep ice layer.
-
-        .. Important:: If these options are used, the code is more efficient if the
-            user requests their own "path_to_tables" and "path_to_tables_readonly",
-            pointing them to a writable directory
-            If one of these three options is chosen, the user is supposed to edit
-            the corresponding config_PROPOSAL_xxx.json.sample file to include valid
-            table paths and then copy this file to config_PROPOSAL_xxx.json.
 
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
