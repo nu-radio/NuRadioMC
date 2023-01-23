@@ -140,7 +140,7 @@ station triggered, with which amplitude, etc. The same approach works for ``show
             ``polarization`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D (Cartesian) coordinates of the polarization vector
             ``ray_tracing_C0`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | One of two parameters specifying the **analytic** ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.
             ``ray_tracing_C1`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | One of two parameters specifying the **analytic** ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.
-            ``ray_tracing_reflection`` | (``n_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
+            ``ray_tracing_reflection`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
             ``ray_tracing_reflection_case`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
             ``ray_tracing_solution_type`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
             ``receive_vectors`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D (Cartesian) coordinates of the receive vector of each ray tracing solution, per shower and channel.
