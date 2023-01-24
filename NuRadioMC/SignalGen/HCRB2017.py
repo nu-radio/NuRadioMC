@@ -127,7 +127,7 @@ def _get_E_omega(ff, E, R, theta, n_index, EM=True,
     use get_frequency_spectrum() instead
 
     Parameters
-    -----------
+    ----------
     ff: np.array of floats
         array of frequencies
     E: float
