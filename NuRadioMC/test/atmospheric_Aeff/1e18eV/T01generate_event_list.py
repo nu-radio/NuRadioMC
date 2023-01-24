@@ -36,4 +36,4 @@ generate_surface_muons(os.path.join(path, '1e18_full.hdf5'),
                        volume,
                        thetamin=thetamin, thetamax=thetamax,
                        config_file="Greenland",
-                       tables_path="NuRadioMC/test/atmospheric_Aeff/1e18eV/tables")
+                       tables_path=os.path.join(path,"tables"))
