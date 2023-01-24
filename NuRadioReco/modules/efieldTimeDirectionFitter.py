@@ -32,7 +32,7 @@ class efieldTimeDirectionFitter:
     def run(self, evt, station, det, channels_to_use=None, cosmic_ray=False):
         """
         Parameters
-        ----------------
+        ----------
         evt: Event
             The event to run the module on
         station: Station

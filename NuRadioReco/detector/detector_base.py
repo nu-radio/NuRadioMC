@@ -469,7 +469,7 @@ class DetectorBase(object):
             the station id
 
         Returns
-        ----------------
+        -------
         3-dim array of absolute station position in easting, northing and depth wrt. to snow level at
         time of measurement
         """
@@ -496,7 +496,7 @@ class DetectorBase(object):
             the position identifier e.g. "G"
 
         Returns
-        ---------------
+        -------
         3-dim array of absolute station position in easting, northing and depth wrt. to snow level at
         time of measurement
         """
@@ -527,7 +527,7 @@ class DetectorBase(object):
             specify if relative position of a channel or a device is asked for
 
         Returns
-        ---------------
+        -------
         3-dim array of relative station position
         """
         if mode == 'channel': res = self.__get_channel(station_id, channel_id)
@@ -755,7 +755,7 @@ class DetectorBase(object):
             the channel id
 
         Returns
-        ---------------
+        -------
         tuple of floats
             * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
             * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
