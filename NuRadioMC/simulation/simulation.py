@@ -1225,7 +1225,8 @@ class simulation:
             sg['triggered'][iSh] = np.any(sg['multiple_triggers'][iSh])
             self._mout['triggered'][iSh2] |= sg['triggered'][iSh]
             self._mout['multiple_triggers'][iSh2] |= sg['multiple_triggers'][iSh]
-            self._mout['trigger_times'][iSh2] = sg['trigger_times'][iSh]
+            self._mout['trigger_times'][iSh2] = np.fmin(
+                self._mout['trigger_times'][iSh2], sg['trigger_times'][iSh])
         sg['event_id_per_shower'][local_shower_index] = self._evt.get_id()
         sg['event_group_id_per_shower'][local_shower_index] = self._evt.get_run_number()
         self._output_multiple_triggers_station[self._station_id].append(multiple_triggers)
