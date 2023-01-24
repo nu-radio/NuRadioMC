@@ -1034,7 +1034,7 @@
 <span class="sd">            the station id</span>
 
 <span class="sd">        Returns</span>
-<span class="sd">        ----------------</span>
+<span class="sd">        -------</span>
 <span class="sd">        3-dim array of absolute station position in easting, northing and depth wrt. to snow level at</span>
 <span class="sd">        time of measurement</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1061,7 +1061,7 @@
 <span class="sd">            the position identifier e.g. &quot;G&quot;</span>
 
 <span class="sd">        Returns</span>
-<span class="sd">        ---------------</span>
+<span class="sd">        -------</span>
 <span class="sd">        3-dim array of absolute station position in easting, northing and depth wrt. to snow level at</span>
 <span class="sd">        time of measurement</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1092,7 +1092,7 @@
 <span class="sd">            specify if relative position of a channel or a device is asked for</span>
 
 <span class="sd">        Returns</span>
-<span class="sd">        ---------------</span>
+<span class="sd">        -------</span>
 <span class="sd">        3-dim array of relative station position</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;channel&#39;</span><span class="p">:</span> <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
@@ -1320,7 +1320,7 @@
 <span class="sd">            the channel id</span>
 
 <span class="sd">        Returns</span>
-<span class="sd">        ---------------</span>
+<span class="sd">        -------</span>
 <span class="sd">        tuple of floats</span>
 <span class="sd">            * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</span>
 <span class="sd">            * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</span>
