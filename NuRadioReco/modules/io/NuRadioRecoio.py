@@ -105,8 +105,14 @@ class NuRadioRecoio(object):
                 f"but current version is {VERSION}.{VERSION_MINOR}. "
                 f"This might indicate the file is empty. The file size is {os.stat(self._filenames[iF]).st_size} B.")
 
+        elif (self.__file_version > VERSION):
+            self.logger.error(
+                f"File might be corrupt, file has version {self.__file_version}.{self.__file_version} "
+                f"but current version is {VERSION}.{VERSION_MINOR}. "
+                f"This might indicate the file is empty. The file size is {os.stat(self._filenames[iF]).st_size} B.")
 
-        elif(self.__file_version != VERSION):
+
+        elif(self.__file_version == 1):
             self.logger.error(
                 "data file not readable. File has version {}.{} but current version is {}.{}".format(
                     self.__file_version,
