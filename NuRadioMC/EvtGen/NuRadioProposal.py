@@ -40,6 +40,10 @@ pp_m = 1.e2
 pp_km = 1.e5
 
 
+def calculate_distance(pp_position, pos_arr):
+    return np.linalg.norm(pp_position.cartesian_coordinates - pos_arr) * units.cm
+
+
 class Singleton(type):
     _instances = {}
 
@@ -453,10 +457,7 @@ class ProposalFunctions(object):
 
             if self.__produces_shower(sec.type, sec.energy, min_energy_loss):
 
-                distance = ((sec.position.x - lepton_position[0]) * units.cm) ** 2
-                distance += ((sec.position.y - lepton_position[1]) * units.cm) ** 2
-                distance += ((sec.position.z - lepton_position[2]) * units.cm) ** 2
-                distance = np.sqrt(distance)
+                distance = calculate_distance(sec.position, lepton_position)
 
                 energy = sec.energy * units.MeV
 
@@ -497,15 +498,13 @@ class ProposalFunctions(object):
         sum_decay_particle_energy = 0
 
         for decay_particle in decay_products:
-            if(is_shower_primary(decay_particle.type)):
+            if is_shower_primary(decay_particle.type):
                 sum_decay_particle_energy += decay_particle.energy
 
-        if (sum_decay_particle_energy > min_energy_loss):
+        if sum_decay_particle_energy > min_energy_loss:
             # all decay_particles have the same position, so we can just look at the first in list
-            distance = ((decay_products[0].position.x - lepton_position[0]) * units.cm) ** 2
-            distance += ((decay_products[0].position.y - lepton_position[1]) * units.cm) ** 2
-            distance += ((decay_products[0].position.z - lepton_position[2]) * units.cm) ** 2
-            distance = np.sqrt(distance)
+            distance = calculate_distance(decay_products[0].position, lepton_position)
+
             return SecondaryProperties(distance, sum_decay_particle_energy * units.MeV, 
                                       'had', 86, particle_names.particle_name(86))
         return None
@@ -686,10 +685,7 @@ class ProposalFunctions(object):
                     continue
 
                 # all decay particles have the same position, so we can just use the position of the first one
-                decay_distance = ((decay_particles[0].position.x - lepton_position[0]) * units.cm) ** 2
-                decay_distance += ((decay_particles[0].position.y - lepton_position[1]) * units.cm) ** 2
-                decay_distance += ((decay_particles[0].position.z - lepton_position[2]) * units.cm) ** 2
-                decay_distance = np.sqrt(decay_distance)
+                decay_distance = calculate_distance(decay_particles[0].position, lepton_position)
 
                 # TODO: Note that this includes ALL decay particles, including invisible ones like neutrinos
                 decay_prop = (decay_distance, decay_energy)
