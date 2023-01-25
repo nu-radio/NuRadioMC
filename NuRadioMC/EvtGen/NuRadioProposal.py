@@ -223,7 +223,7 @@ class ProposalFunctions(object):
     not be used from the outside to avoid mismatching units.
     """
 
-    def __init__(self, config_file='SouthPole', log_level=logging.INFO, tables_path="/tmp", seed=12, upper_energy_limit=1e14*units.MeV):
+    def __init__(self, config_file='SouthPole', log_level=logging.INFO, tables_path=None, seed=12, upper_energy_limit=1e14*units.MeV):
         """
         Parameters
         ----------
@@ -242,7 +242,8 @@ class ProposalFunctions(object):
         tables_path: path
             Path to PROPOSAL tables. Should be set to a path where PROPOSAL tables exist, or
             where PROPOSAL tables can be saved. This avoids that PROPOSAL has to regenerate
-            tables (which can take several minutes) every time the script is executed
+            tables (which can take several minutes) every time the script is executed.
+            Default: None -> create directory "proposal_tables" at the location of this file.
         seed: int
             Seed to be used by PROPOSAL
         upper_energy_limit: float
@@ -257,6 +258,13 @@ class ProposalFunctions(object):
 
         pp.RandomGenerator.get().set_seed(seed) # set global seed for PROPOSAL
 
+        if tables_path is None:
+            tables_path = os.path.join(os.path.dirname(__file__), "proposal_tables")
+        
+        if not os.path.exists(tables_path):
+            self.__logger.info(f"Create directory {tables_path} to store proposal tables")
+            os.mkdir(tables_path)
+        
         self.__propagators = {}
         self.__config_file = config_file
         self.__tables_path = tables_path
