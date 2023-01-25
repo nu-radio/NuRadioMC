@@ -48,7 +48,7 @@ class efieldToVoltageConverter():
         Begin method, sets general parameters of module
 
         Parameters
-        ---------------------
+        ----------
         debug: bool
             enable/disable debug mode (default: False -> no debug output)
         uncertainty: dictionary (default: {})

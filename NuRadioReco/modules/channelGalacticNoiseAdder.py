@@ -47,7 +47,7 @@ class channelGalacticNoiseAdder:
         Set up important parameters for the module
 
         Parameters
-        ---------------
+        ----------
         debug: bool, default: False
             It True, debug plots will be shown
         n_side: int, default: 4
@@ -80,7 +80,7 @@ class channelGalacticNoiseAdder:
         Adds noise resulting from galactic radio emission to the channel traces
 
         Parameters
-        --------------
+        ----------
         event: Event object
             The event containing the station to whose channels noise shall be added
         station: Station object
