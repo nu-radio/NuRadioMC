@@ -276,24 +276,21 @@ class ProposalFunctions(object):
         if(particle_code not in self.__propagators):
             self.__logger.info(f"initializing propagator for particle code {particle_code}")
 
-            if (self.__config_file == 'SouthPole'):
-                config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL.json')
-            elif (self.__config_file == 'MooresBay'):
-                config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_mooresbay.json')
-            elif (self.__config_file == 'InfIce'):
-                config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_infice.json')
-            elif (self.__config_file == 'Greenland'):
-                config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_greenland.json')
-            elif (os.path.exists(self.__config_file)):
+            config_files = {
+                'SouthPole':  'config_PROPOSAL.json', 'MooresBay': 'config_PROPOSAL_mooresbay.json',
+                'InfIce': 'config_PROPOSAL_infice.json', 'Greenland': 'config_PROPOSAL_greenland.json'}
+
+            if self.__config_file in config_files:
+                config_file_full_path = os.path.join(os.path.dirname(__file__), config_files[self.__config_file])
+            elif os.path.exists(self.__config_file):
                 config_file_full_path = self.__config_file
             else:
                 raise ValueError("Proposal config file is not valid. Please provide a valid option.")
 
             if not os.path.exists(config_file_full_path):
-                error_message = "Unable to find proposal config file.\n"
-                error_message += "Make sure that json configuration file under "
-                error_message += "path {} exists.".format(config_file_full_path)
-                raise ValueError(error_message)
+                raise ValueError("Unable to find proposal config file.\n"
+                    "Make sure that json configuration file under "
+                    "path {} exists.".format(config_file_full_path))
 
             pp.InterpolationSettings.tables_path = self.__tables_path
 
@@ -591,10 +588,11 @@ class ProposalFunctions(object):
 
                 for decay_particle in list(decay_products):
 
-                    if (abs(decay_particle.type) == 13):
+                    if abs(decay_particle.type) == 13:
                         mu_energy = decay_particle.energy
-                        if (mu_energy <= low):
+                        if mu_energy <= low:
                             continue
+                        
                         mu_position = (decay_particle.position.x, decay_particle.position.y, decay_particle.position.z)
                         mu_direction = (decay_particle.direction.x, decay_particle.direction.y, decay_particle.direction.z)
 
@@ -612,7 +610,7 @@ class ProposalFunctions(object):
 
             grouped_decay_products = self.__group_decay_products(decay_products, min_energy_loss, lepton_position)
 
-            if (grouped_decay_products is not None):
+            if grouped_decay_products is not None:
                 shower_inducing_prods.append(grouped_decay_products)
 
             secondaries_array.append(shower_inducing_prods)
