@@ -195,7 +195,7 @@ These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's 
 
   - conda cannot be used on all systems (eg. on Mac), in that case use a python venv, see details `here <https://github.com/tudo-astroparticlephysics/PROPOSAL/issues/209>`_
 
-  - if the linux kernel is too old (eg. on some computing clusters), refer to `this step-by-step guide <https://hackmd.e5.physik.tu-dortmund.de/ZBE4nn1sTqW4s7pjSrYHoQ>`_
+  - if the linux kernel is too old (eg. on some computing clusters), refer to `this step-by-step guide <https://github.com/tudo-astroparticlephysics/PROPOSAL/wiki/Installing-PROPOSAL-on-a-Linux-kernel---4.11>`_
   
 
 - To use the channelGalacticNoiseAdder, you need the `PyGDSM <https://github.com/telegraphic/pygdsm>`_ package.
