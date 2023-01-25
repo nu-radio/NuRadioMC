@@ -1,5 +1,10 @@
-HDF5 output structure
-=====================
+:orphan:
+
+HDF5 output structure (v2.2)
+============================
+
+.. Important::
+  This version of the HDF5 output structure is outdated. To see the current HDF5 output structure, click :doc:`here</NuRadioMC/pages/HDF5_structure>`.
 
 The output of a NuRadioMC simulation is saved in the HDF5 file format, as well as (optionally) in ``.nur`` files.
 The data structure of ``.nur`` files is explained :doc:`here </NuRadioReco/pages/event_structure>`.
@@ -35,7 +40,7 @@ The ``event_group_id`` is the same for all showers that follow the same first in
 The ``shower_id`` is unique for every shower. Shower which interfere constructively are combined into one event and have
 the same ``event_id`` starting from 0.
 
-  .. image:: event_sketch.png
+  .. image:: ../event_sketch.png
     :width: 70%
 
 HDF5 structure
