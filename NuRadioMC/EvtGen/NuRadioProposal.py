@@ -262,8 +262,7 @@ class ProposalFunctions(object):
         self.__tables_path = tables_path
         self.__upper_energy_limit = upper_energy_limit * pp_eV # convert to PROPOSAL units
 
-    def __get_propagator(self,
-                            particle_code=13):
+    def __get_propagator(self, particle_code=13):
         """
         Returns a PROPOSAL propagator for muons or taus. If it does not exist yet it is being generated.
 
