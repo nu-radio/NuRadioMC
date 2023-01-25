@@ -92,29 +92,31 @@ our own-defined particles, although we have needed also 90 and 91 (they are
 very rarely used).
 """
 
-proposal_interaction_names = { pp.particle.Interaction_Type.particle.value: 'particle',
-                               pp.particle.Interaction_Type.brems.value: 'brems',
-                               pp.particle.Interaction_Type.ioniz.value: 'ionized_e',
-                               pp.particle.Interaction_Type.epair.value: 'e_pair',
-                               pp.particle.Interaction_Type.photonuclear.value: 'nucl_int',
-                               pp.particle.Interaction_Type.mupair.value: 'mu_pair',
-                               pp.particle.Interaction_Type.hadrons.value: 'hadrons',
-                               pp.particle.Interaction_Type.continuousenergyloss.value: 'cont_loss',
-                               pp.particle.Interaction_Type.weakint.value: 'weak_int',
-                               pp.particle.Interaction_Type.compton.value: 'compton',
-                               pp.particle.Interaction_Type.decay.value: 'decay' }
+# For dicussion why we cast to int instead of using
+# e.g. pp.particle.Interaction_Type.particle.value, see https://github.com/nu-radio/NuRadioMC/pull/458
+proposal_interaction_names = { int(pp.particle.Interaction_Type.particle): 'particle',
+                               int(pp.particle.Interaction_Type.brems): 'brems',
+                               int(pp.particle.Interaction_Type.ioniz): 'ionized_e',
+                               int(pp.particle.Interaction_Type.epair): 'e_pair',
+                               int(pp.particle.Interaction_Type.photonuclear): 'nucl_int',
+                               int(pp.particle.Interaction_Type.mupair): 'mu_pair',
+                               int(pp.particle.Interaction_Type.hadrons): 'hadrons',
+                               int(pp.particle.Interaction_Type.continuousenergyloss): 'cont_loss',
+                               int(pp.particle.Interaction_Type.weakint): 'weak_int',
+                               int(pp.particle.Interaction_Type.compton): 'compton',
+                               int(pp.particle.Interaction_Type.decay): 'decay' }
 
-proposal_interaction_codes = { pp.particle.Interaction_Type.particle.value: 80,
-                               pp.particle.Interaction_Type.brems.value: 81,
-                               pp.particle.Interaction_Type.ioniz.value: 82,
-                               pp.particle.Interaction_Type.epair.value: 83,
-                               pp.particle.Interaction_Type.photonuclear.value: 85,
-                               pp.particle.Interaction_Type.mupair.value: 87,
-                               pp.particle.Interaction_Type.hadrons.value: 84,
-                               pp.particle.Interaction_Type.continuousenergyloss.value: 88,
-                               pp.particle.Interaction_Type.weakint.value: 89,
-                               pp.particle.Interaction_Type.compton.value: 90,
-                               pp.particle.Interaction_Type.decay.value: 91 }
+proposal_interaction_codes = { int(pp.particle.Interaction_Type.particle): 80,
+                               int(pp.particle.Interaction_Type.brems): 81,
+                               int(pp.particle.Interaction_Type.ioniz): 82,
+                               int(pp.particle.Interaction_Type.epair): 83,
+                               int(pp.particle.Interaction_Type.photonuclear): 85,
+                               int(pp.particle.Interaction_Type.mupair): 87,
+                               int(pp.particle.Interaction_Type.hadrons): 84,
+                               int(pp.particle.Interaction_Type.continuousenergyloss): 88,
+                               int(pp.particle.Interaction_Type.weakint): 89,
+                               int(pp.particle.Interaction_Type.compton): 90,
+                               int(pp.particle.Interaction_Type.decay): 91 }
 
 
 def particle_code(pp_type):
