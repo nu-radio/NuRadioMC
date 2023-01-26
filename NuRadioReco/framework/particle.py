@@ -3,6 +3,7 @@ import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_serialization
 import pickle
 import collections
+import math
 import logging
 logger = logging.getLogger('Particle')
 
@@ -24,6 +25,18 @@ class Particle:
     def get_id(self):
         """ Returns hierarchical index """
         return self._id
+    
+    def __str__(self):
+        msg = (
+            "Particle ({}): "
+            "Flavor: {: 3}, lgE = {:.1f}, cos(theta) = {:.2f}".format(
+                hex(id(self)),
+                self.get_parameter(parameters.particleParameters.flavor),
+                math.log10(self.get_parameter(parameters.particleParameters.energy)),
+                math.cos(self.get_parameter(parameters.particleParameters.zenith)))
+        )
+        
+        return msg
 
     def get_parameter(self, key):
         if not isinstance(key, parameters.particleParameters):
@@ -58,7 +71,7 @@ class Particle:
         hdf5_dict['yy'] = self.get_parameter(parameters.particleParameters.vertex[1])
         hdf5_dict['zeniths'] = self.get_parameter(parameters.particleParameters.zenith)
         hdf5_dict['zz'] = self.get_parameter(parameters.particleParameters.vertex[2])
-        return(hdf5_dict)
+        return hdf5_dict
 
     def serialize(self):
         data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
