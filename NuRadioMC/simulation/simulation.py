@@ -1370,7 +1370,7 @@ class simulation:
             # a reference! saved indicates the interactions to be saved, while
             # triggered should indicate if an interaction has produced a trigger
             saved = np.copy(self._mout['triggered'])
-            if 'n_interactions' in self._fin:  # if n_interactions is not specified, there are not parents
+            if 'n_interaction' in self._fin:  # if n_interactions is not specified, there are not parents
                 parent_mask = self._fin['n_interaction'] == 1
                 for event_id in np.unique(self._fin['event_group_ids']):
                     event_mask = self._fin['event_group_ids'] == event_id
