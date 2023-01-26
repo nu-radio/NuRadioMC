@@ -22,7 +22,7 @@ speedup:
   distance_cut_sum_length: 10  # the distance (in meters) over which the shower energies of the surrounding showers are added up
 
 propagation:
-  module: analytic
+  module: analytic  # can also be "radiopropa"
   ice_model: southpole_2015  # can also be "custom", then it needs to be passed directly to the simulation class
   attenuation_model: SP1
   attenuate_ice: True # if True apply the frequency dependent attenuation due to propagating through ice. (Note: The 1/R amplitude scaling will be applied in either case.)
@@ -30,6 +30,13 @@ propagation:
   focusing: False  # if True apply the focusing effect.
   focusing_limit: 2  # the maximum amplification factor of the focusing correction
   n_reflections: 0  # the maximum number of reflections off a reflective layer at the bottom of the ice layer
+
+  radiopropa:  #every module can have its own addition settings
+    mode: iterative  # can also be "minimizing" but these ray tracing solution are not accurate yet
+    iter_steps_channel: [25., 2., .5]  #radial size of spheres (in meter) around channels to find solutions iteratively
+    iter_steps_zenith: [.5, .05, .005]  #the anglular resolution (in degrees) in zenith of the launch vector to find solutions iteratively
+    auto_step_size: False  #automatically set angular step with respect to distance of vertex and sphere size around channel to find solutions iteratively
+    max_traj_length: 10000  #(in meter) if the trajectory has not yet reached a observer and the path length is bigger than this value, the simulation of that path  is stopped
 
 signal:
   model: Alvarez2009

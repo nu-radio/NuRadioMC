@@ -57,7 +57,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
         the width of a time bin (inverse of sampling rate)
 
     Returns
-    --------
+    -------
     triggerd: bool
         returns True if majority logic is fulfilled
     triggerd_bins: array of ints
