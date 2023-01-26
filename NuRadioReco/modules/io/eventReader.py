@@ -15,7 +15,7 @@ class eventReader:
         Setup function for the eventReader module
 
         Parameters
-        -----------
+        ----------
         filename: array if strings
             names of the input files
         read_detector: boolean

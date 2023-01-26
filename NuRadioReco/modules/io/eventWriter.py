@@ -50,7 +50,7 @@ class eventWriter:
         self.__fout.write(b)
         self.__header_written = True
 
-    def begin(self, filename, max_file_size=1024, check_for_duplicates=False, events_per_file=None):
+    def begin(self, filename, max_file_size=1024, check_for_duplicates=False, events_per_file=None, log_level=logging.WARNING):
         """
         begin method
 
@@ -68,6 +68,7 @@ class eventWriter:
             into the same file, the output will be split into another file. If max_file_size and events_per_file are
             both set, the file will be split whenever any of the two conditions is fullfilled.
         """
+        logger.setLevel(log_level)
         if filename[-4:] == '.nur':
             self.__filename = filename[:-4]
         else:
@@ -120,7 +121,8 @@ class eventWriter:
             self.__write_fout_header()
 
         event_bytearray = self.__get_event_bytearray(evt, mode)
-        self.__fout.write(event_bytearray)
+        n_bytes_written = self.__fout.write(event_bytearray)
+        logger.debug(f"{n_bytes_written} bytes written to diks")
         self.__current_file_size += event_bytearray.__sizeof__()
         self.__number_of_events += 1
         self.__event_ids_and_runs.append([evt.get_run_number(), evt.get_id()])
@@ -301,4 +303,5 @@ class eventWriter:
     def end(self):
         if(hasattr(self, "__fout")):
             self.__fout.close()
+            self.debug(f"closing file.")
         return self.__number_of_events
