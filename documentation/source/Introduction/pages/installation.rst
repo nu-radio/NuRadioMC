@@ -189,7 +189,7 @@ These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's 
 
   .. code-block:: bash
 
-    pip install proposal==7.4.2
+    pip install proposal==7.5.0
 
   Note that the pip installation for this version of proposal may not work on all systems, in particular:
 
