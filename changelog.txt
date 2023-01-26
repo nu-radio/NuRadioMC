@@ -2,6 +2,12 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 2.2.0-dev
+new features:
+
+bugfixes:
+
+
 version 2.1.7
 new features:
 - add attenuation model from the 2021 measurements taken at Summit Station
