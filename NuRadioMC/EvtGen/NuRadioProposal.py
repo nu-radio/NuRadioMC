@@ -40,7 +40,24 @@ pp_m = 1.e2
 pp_km = 1.e5
 
 
-def calculate_distance(pp_position, pos_arr):
+def __calculate_distance(pp_position, pos_arr):
+    """ 
+    Calculates distance between secondary and lepton position (both in proposal units).
+    
+    Paramters
+    ---------
+    
+    pp_position: ParticleState.position
+        Position of a secondary particle (in proposal units)
+        
+    pos_arr: np.array(3,)
+        Init. position of the lepton (in proposal units)
+      
+    Returns
+    -------
+    
+    Distance between both coordinates in NuRadioMC units
+    """
     return np.linalg.norm(pp_position.cartesian_coordinates - pos_arr) * units.cm
 
 
@@ -464,7 +481,7 @@ class ProposalFunctions(object):
 
             if self.__produces_shower(sec.type, sec.energy, min_energy_loss):
 
-                distance = calculate_distance(sec.position, lepton_position)
+                distance = __calculate_distance(sec.position, lepton_position)
 
                 energy = sec.energy * units.MeV
 
@@ -510,7 +527,7 @@ class ProposalFunctions(object):
 
         if sum_decay_particle_energy > min_energy_loss:
             # all decay_particles have the same position, so we can just look at the first in list
-            distance = calculate_distance(decay_products[0].position, lepton_position)
+            distance = __calculate_distance(decay_products[0].position, lepton_position)
 
             return SecondaryProperties(distance, sum_decay_particle_energy * units.MeV, 
                                       'had', 86, particle_names.particle_name(86))
@@ -570,8 +587,9 @@ class ProposalFunctions(object):
         if lepton_positions_nu is None:
             lepton_positions = [(0, 0, 0)] * len(energy_leptons)
         else:
-            lepton_positions = [ np.array(lepton_position_nu) * pp_m for lepton_position_nu in lepton_positions_nu ]
-
+            lepton_positions = [np.array(lepton_position_nu) * pp_m
+                                    for lepton_position_nu in lepton_positions_nu]
+            
         if lepton_directions is None:
             lepton_directions = [(0, 0, -1)] * len(energy_leptons)
 
@@ -664,7 +682,8 @@ class ProposalFunctions(object):
         if lepton_positions_nu is None:
             lepton_positions = [(0, 0, 0)] * len(energy_leptons)
         else:
-            lepton_positions = [ np.array(lepton_position_nu) * pp_m for lepton_position_nu in lepton_positions_nu ]
+            lepton_positions = [np.array(lepton_position_nu) * pp_m
+                                    for lepton_position_nu in lepton_positions_nu]
 
         if lepton_directions is None:
             lepton_directions = [(0, 0, 1)] * len(energy_leptons)
@@ -692,7 +711,7 @@ class ProposalFunctions(object):
                     continue
 
                 # all decay particles have the same position, so we can just use the position of the first one
-                decay_distance = calculate_distance(decay_particles[0].position, lepton_position)
+                decay_distance = __calculate_distance(decay_particles[0].position, lepton_position)
 
                 # TODO: Note that this includes ALL decay particles, including invisible ones like neutrinos
                 decay_prop = (decay_distance, decay_energy)
