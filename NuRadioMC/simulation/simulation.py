@@ -293,7 +293,7 @@ class simulation(
                         # discard event if delta_C (angle off cherenkov cone) is too large
                         if min(np.abs(delta_Cs)) > self._cfg['speedup']['delta_C_cut']:
                             logger.debug('delta_C too large, event unlikely to be observed, skipping event')
-                            return False
+                            continue
 
                         if ray_tracing_solution_found:
                             is_candidate = self._calculate_polarization_angles(sg, iSh, delta_Cs, viewing_angles,
