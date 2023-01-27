@@ -1,13 +1,12 @@
-from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
-from NuRadioReco.framework.trigger import EnvelopeTrigger
-import NuRadioReco.framework.base_trace as base_trace
-import NuRadioReco.utilities.fft
+import logging
+import time
+
 import numpy as np
 import scipy.signal
-import copy
-import time
-import logging
+
+from NuRadioReco.framework.trigger import EnvelopeTrigger
+from NuRadioReco.modules.base.module import register_run
+from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 
 logger = logging.getLogger('envelopeTrigger')
 
@@ -29,7 +28,6 @@ def get_envelope_triggers(trace, threshold):  # define trigger constraint for ea
     triggered bins: array of bools
         the bins where the trigger condition is satisfied
     """
-
     return np.abs(scipy.signal.hilbert(trace)) > threshold
 
 
@@ -48,11 +46,8 @@ class triggerSimulator:
     @register_run()
     def run(self, evt, station, det, passband, order, threshold, coinc_window, number_coincidences=2, triggered_channels=None, trigger_name='envelope_trigger'):
         """
-        Simulates simple threshold trigger based on an Hilbert-envelope of the trace.
-
-        Passband of the trigger, coincidence window within which different channels
-        should have triggered, and the number of channels needed to trigger
-        can be specified.
+        Simulates simple threshold trigger based on a Hilbert-envelope of the trace. Passband of the trigger, coincidence
+        window within different channels should have triggered, and the number of channels needed to trigger can be specified.
 
         Parameters
         ----------
@@ -78,7 +73,6 @@ class triggerSimulator:
         trigger_name: string
             a unique name of this particular trigger
         """
-
         t = time.time()  # absolute time of system
 
         sampling_rate = station.get_channel(det.get_channel_ids(station.get_id())[0]).get_sampling_rate()
@@ -95,13 +89,12 @@ class triggerSimulator:
             channel_trace_start_time = station.get_channel(triggered_channels[0]).get_trace_start_time()
 
         for channel in station.iter_channels():
-            trace = channel.get_filtered_trace(passband, 'butter', order)
-
-            # apply envelope trigger to each channel
             channel_id = channel.get_id()
             if triggered_channels is not None and channel_id not in triggered_channels:
                 logger.debug("skipping channel {}".format(channel_id))
                 continue
+            trace = channel.get_filtered_trace(passband, 'butter', order)
+
             if channel.get_trace_start_time() != channel_trace_start_time:
                 logger.warning('Channel has a trace_start_time that differs from '
                                '        the other channels. The trigger simulator may not work properly')
@@ -115,7 +108,6 @@ class triggerSimulator:
 
             if True in triggered_bins:
                 channels_that_passed_trigger.append(channel.get_id())
-
         # check for coincidences with get_majority_logic(tts, number_of_coincidences=2,
         # time_coincidence=32 * units.ns, dt=1 * units.ns)
         # returns:

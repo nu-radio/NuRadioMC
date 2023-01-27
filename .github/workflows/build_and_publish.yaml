@@ -8,18 +8,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2.4.0
+    - uses: actions/checkout@v3
     - name: Get the master branch (for checks)
-      uses: actions/checkout@v2.4.0
+      uses: actions/checkout@v3
       with:
         ref: 'refs/heads/master'
 
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Cache pip
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         # This path is specific to Ubuntu
         path: ~/.cache/pip
@@ -28,11 +28,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
           ${{ runner.os }}-
-    
+
     - name: Install poetry
       run: |
         python -m pip install --upgrade pip
-        pip install poetry 
+        pip install poetry
       # poetry recommends using curl to install - probably doesn't make a difference though?
     - name: Check if version is updated
       run: |
@@ -47,14 +47,14 @@ jobs:
 
     - name: Build NuRadioMC # let's always build - maybe this will occasionally catch errors
       run: poetry build
-    
+
     - name: Publish distribution 📦 to Test PyPI
       if: ${{ github.ref == 'refs/heads/master'}} # only runs if the push is to master
       uses: pypa/gh-action-pypi-publish@master
       with:
         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
         repository_url: https://test.pypi.org/legacy/
-    
+
     - name: Publish distribution 📦 to PyPI
       if: ${{ github.ref == 'refs/heads/master'}} # only runs if the push is to master
       uses: pypa/gh-action-pypi-publish@master
