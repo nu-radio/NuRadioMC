@@ -775,7 +775,7 @@ file can be simulated in parallel using a cluster. Due to the Poissonian distrib
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">proposal_config: string or path</span>
 <span class="sd">    The user can specify the path to their own config file or choose among</span>
-<span class="sd">    the three available options:</span>
+<span class="sd">    the available options:</span>
 <span class="sd">    -&#39;SouthPole&#39;, a config file for the South Pole (spherical Earth). It</span>
 <span class="sd">    consists of a 2.7 km deep layer of ice, bedrock below and air above.</span>
 <span class="sd">    -&#39;MooresBay&#39;, a config file for Moore&#39;s Bay (spherical Earth). It</span>
@@ -784,17 +784,11 @@ file can be simulated in parallel using a cluster. Due to the Poissonian distrib
 <span class="sd">    -&#39;InfIce&#39;, a config file with a medium of infinite ice</span>
 <span class="sd">    -&#39;Greenland&#39;, a config file for Summit Station, Greenland (spherical Earth),</span>
 <span class="sd">    same as SouthPole but with a 3 km deep ice layer.</span>
-<span class="sd">    IMPORTANT: If these options are used, the code is more efficient if the</span>
-<span class="sd">    user requests their own &quot;path_to_tables&quot; and &quot;path_to_tables_readonly&quot;,</span>
-<span class="sd">    pointing them to a writable directory</span>
-<span class="sd">    If one of these three options is chosen, the user is supposed to edit</span>
-<span class="sd">    the corresponding config_PROPOSAL_xxx.json.sample file to include valid</span>
-<span class="sd">    table paths and then copy this file to config_PROPOSAL_xxx.json.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 </pre></div>
 </div>
 </div></blockquote>
-<p>PROPOSAL needs a configuration file specifying the geometry to be run. The user can choose among the media listed above or they can specify the path to an own file. Important: the listed media need some input from the user. The files that end with <code class="docutils literal notranslate"><span class="pre">.sample</span></code> need to have two writable directories on the user’s system to save some tables (which makes PROPOSAL faster), and they need to be renamed by removing the suffix <code class="docutils literal notranslate"><span class="pre">.sample</span></code>.</p>
+<p>PROPOSAL needs a configuration file specifying the geometry to be run. The user can choose among the media listed above or they can specify the path to an own file.</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">start_file_id: int (default 0)</span>

@@ -1280,6 +1280,7 @@
                            <span class="n">spectrum</span><span class="o">=</span><span class="s1">&#39;log_uniform&#39;</span><span class="p">,</span>
                            <span class="n">start_file_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                            <span class="n">config_file</span><span class="o">=</span><span class="s1">&#39;SouthPole&#39;</span><span class="p">,</span>
+                           <span class="n">tables_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                            <span class="n">proposal_kwargs</span><span class="o">=</span><span class="p">{},</span>
                            <span class="n">log_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                            <span class="n">max_n_events_batch</span><span class="o">=</span><span class="mf">1e5</span><span class="p">,</span>
@@ -1386,7 +1387,7 @@
 <span class="sd">        if True, generate deposited energies instead of primary neutrino energies</span>
 <span class="sd">    config_file: string</span>
 <span class="sd">        The user can specify the path to their own config file or choose among</span>
-<span class="sd">        the three available options:</span>
+<span class="sd">        the available options:</span>
 
 <span class="sd">        * &#39;SouthPole&#39;, a config file for the South Pole (spherical Earth). It</span>
 <span class="sd">          consists of a 2.7 km deep layer of ice, bedrock below and air above.</span>
@@ -1396,14 +1397,8 @@
 <span class="sd">        * &#39;InfIce&#39;, a config file with a medium of infinite ice</span>
 <span class="sd">        * &#39;Greenland&#39;, a config file for Summit Station, Greenland (spherical Earth),</span>
 <span class="sd">          same as SouthPole but with a 3 km deep ice layer.</span>
-
-<span class="sd">        .. Important:: If these options are used, the code is more efficient if the</span>
-<span class="sd">            user requests their own &quot;path_to_tables&quot; and &quot;path_to_tables_readonly&quot;,</span>
-<span class="sd">            pointing them to a writable directory</span>
-<span class="sd">            If one of these three options is chosen, the user is supposed to edit</span>
-<span class="sd">            the corresponding config_PROPOSAL_xxx.json.sample file to include valid</span>
-<span class="sd">            table paths and then copy this file to config_PROPOSAL_xxx.json.</span>
-
+<span class="sd">    tables_path: path</span>
+<span class="sd">        path where the proposal cross section tables are stored or should be generated</span>
 <span class="sd">    proposal_kwargs: dict</span>
 <span class="sd">        additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class</span>
 <span class="sd">    log_level: logging log level or None</span>
@@ -1419,7 +1414,7 @@
     <span class="n">t_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
     <span class="n">max_n_events_batch</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_n_events_batch</span><span class="p">)</span>
     <span class="kn">from</span> <span class="nn">NuRadioMC.EvtGen.NuRadioProposal</span> <span class="kn">import</span> <span class="n">ProposalFunctions</span>
-    <span class="n">proposal_functions</span> <span class="o">=</span> <span class="n">ProposalFunctions</span><span class="p">(</span><span class="n">config_file</span><span class="o">=</span><span class="n">config_file</span><span class="p">)</span>
+    <span class="n">proposal_functions</span> <span class="o">=</span> <span class="n">ProposalFunctions</span><span class="p">(</span><span class="n">config_file</span><span class="o">=</span><span class="n">config_file</span><span class="p">,</span> <span class="n">tables_path</span><span class="o">=</span><span class="n">tables_path</span><span class="p">)</span>
 
     <span class="n">attributes</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">n_events</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
@@ -1524,7 +1519,7 @@
                                                                            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">lepton_positions</span><span class="p">[</span><span class="n">iE</span><span class="p">]]),</span>
                                                                            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">lepton_directions</span><span class="p">[</span><span class="n">iE</span><span class="p">]]),</span>
                                                                            <span class="o">**</span><span class="n">proposal_kwargs</span><span class="p">)</span>
-                <span class="n">products</span> <span class="o">=</span> <span class="n">products_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">products</span> <span class="o">=</span> <span class="n">products_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># get secondaries from first (and only) lepton</span>
 
                 <span class="n">n_interaction</span> <span class="o">=</span> <span class="mi">1</span>
 
@@ -1596,6 +1591,7 @@
                                 <span class="n">deposited</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                 <span class="n">proposal</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                 <span class="n">proposal_config</span><span class="o">=</span><span class="s1">&#39;SouthPole&#39;</span><span class="p">,</span>
+                                <span class="n">proposal_tables_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                 <span class="n">start_file_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                                 <span class="n">log_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                 <span class="n">proposal_kwargs</span><span class="o">=</span><span class="p">{},</span>
@@ -1717,7 +1713,7 @@
 <span class="sd">        if True, the tau and muon secondaries are calculated using PROPOSAL</span>
 <span class="sd">    proposal_config: string or path</span>
 <span class="sd">        The user can specify the path to their own config file or choose among</span>
-<span class="sd">        the three available options:</span>
+<span class="sd">        the available options:</span>
 
 <span class="sd">        * &#39;SouthPole&#39;, a config file for the South Pole (spherical Earth). It</span>
 <span class="sd">          consists of a 2.7 km deep layer of ice, bedrock below and air above.</span>
@@ -1727,14 +1723,8 @@
 <span class="sd">        * &#39;InfIce&#39;, a config file with a medium of infinite ice</span>
 <span class="sd">        * &#39;Greenland&#39;, a config file for Summit Station, Greenland (spherical Earth),</span>
 <span class="sd">          same as SouthPole but with a 3 km deep ice layer.</span>
-
-<span class="sd">        .. Important:: If these options are used, the code is more efficient if the</span>
-<span class="sd">            user requests their own &quot;path_to_tables&quot; and &quot;path_to_tables_readonly&quot;,</span>
-<span class="sd">            pointing them to a writable directory</span>
-<span class="sd">            If one of these three options is chosen, the user is supposed to edit</span>
-<span class="sd">            the corresponding config_PROPOSAL_xxx.json.sample file to include valid</span>
-<span class="sd">            table paths and then copy this file to config_PROPOSAL_xxx.json.</span>
-
+<span class="sd">    proposal_tables_path: path</span>
+<span class="sd">        path where the proposal cross section tables are stored or should be generated</span>
 <span class="sd">    start_file_id: int (default 0)</span>
 <span class="sd">        in case the data set is distributed over several files, this number specifies the id of the first file</span>
 <span class="sd">        (useful if an existing data set is extended)</span>
@@ -1759,7 +1749,7 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">proposal</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">NuRadioMC.EvtGen.NuRadioProposal</span> <span class="kn">import</span> <span class="n">ProposalFunctions</span>
-        <span class="n">proposal_functions</span> <span class="o">=</span> <span class="n">ProposalFunctions</span><span class="p">(</span><span class="n">config_file</span><span class="o">=</span><span class="n">proposal_config</span><span class="p">)</span>
+        <span class="n">proposal_functions</span> <span class="o">=</span> <span class="n">ProposalFunctions</span><span class="p">(</span><span class="n">config_file</span><span class="o">=</span><span class="n">proposal_config</span><span class="p">,</span> <span class="n">tables_path</span><span class="o">=</span><span class="n">proposal_tables_path</span><span class="p">)</span>
     <span class="n">max_n_events_batch</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_n_events_batch</span><span class="p">)</span>
     <span class="n">attributes</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">n_events</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>

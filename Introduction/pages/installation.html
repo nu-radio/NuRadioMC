@@ -730,9 +730,14 @@ feature, which tries to import all modules it documents. So if you are missing s
 </div>
 </li>
 <li><p>Proposal to use <a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#module-NuRadioMC.EvtGen.NuRadioProposal" title="NuRadioMC.EvtGen.NuRadioProposal"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal</span></code></a> module:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">proposal</span><span class="o">==</span><span class="m">6</span>.1.8
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">proposal</span><span class="o">==</span><span class="m">7</span>.5.0
 </pre></div>
 </div>
+<p>Note that the pip installation for this version of proposal may not work on all systems, in particular:</p>
+<ul class="simple">
+<li><p>conda cannot be used on all systems (eg. on Mac), in that case use a python venv, see details <a class="reference external" href="https://github.com/tudo-astroparticlephysics/PROPOSAL/issues/209">here</a></p></li>
+<li><p>if the linux kernel is too old (eg. on some computing clusters), refer to <a class="reference external" href="https://github.com/tudo-astroparticlephysics/PROPOSAL/wiki/Installing-PROPOSAL-on-a-Linux-kernel---4.11">this step-by-step guide</a></p></li>
+</ul>
 </li>
 <li><p>To use the channelGalacticNoiseAdder, you need the <a class="reference external" href="https://github.com/telegraphic/pygdsm">PyGDSM</a> package.</p>
 <div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/telegraphic/pygdsm

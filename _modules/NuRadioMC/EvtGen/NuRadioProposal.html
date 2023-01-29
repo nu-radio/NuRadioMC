@@ -589,9 +589,6 @@
 <span class="sd">- MuPair: a muon/antimuon pair</span>
 <span class="sd">- WeakInt: a weak interaction</span>
 <span class="sd">- Compton: Compton effect</span>
-<span class="sd">The last secondaries obtained via the propagation belong to the Particle DynamicData</span>
-<span class="sd">type, and represent the products of the decay. They are standard particles with</span>
-<span class="sd">a PDG code.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="c1"># Units definition in PROPOSAL</span>
@@ -606,6 +603,8 @@
 
 <span class="n">pp_m</span> <span class="o">=</span> <span class="mf">1.e2</span>
 <span class="n">pp_km</span> <span class="o">=</span> <span class="mf">1.e5</span>
+
+
 
 
 <div class="viewcode-block" id="Singleton"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.Singleton">[docs]</a><span class="k">class</span> <span class="nc">Singleton</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
@@ -653,69 +652,79 @@
 <span class="sd">calculated by PROPOSAL, and although most of them correspond to actual particles -</span>
 <span class="sd">Brems is a bremsstrahlung photon, DeltaE is an ionised electron, and EPair is an</span>
 <span class="sd">electron-positron pair, it is useful to treat them as separate entities so that</span>
-<span class="sd">we know they come from an interaction. PROPOSAL returns particles as decay products</span>
-<span class="sd">only, in our case.</span>
+<span class="sd">we know they come from an interaction.</span>
 
 <span class="sd">We have followed the PDG recommendation and used numbers between 80 and 89 for</span>
 <span class="sd">our own-defined particles, although we have needed also 90 and 91 (they are</span>
 <span class="sd">very rarely used).</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="n">proposal_interaction_names</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1000000001</span><span class="p">:</span> <span class="s1">&#39;particle&#39;</span><span class="p">,</span>
-                               <span class="mi">1000000002</span><span class="p">:</span> <span class="s1">&#39;brems&#39;</span><span class="p">,</span>
-                               <span class="mi">1000000003</span><span class="p">:</span> <span class="s1">&#39;ionized_e&#39;</span><span class="p">,</span>
-                               <span class="mi">1000000004</span><span class="p">:</span> <span class="s1">&#39;e_pair&#39;</span><span class="p">,</span>
-                               <span class="mi">1000000005</span><span class="p">:</span> <span class="s1">&#39;nucl_int&#39;</span><span class="p">,</span>
-                               <span class="mi">1000000006</span><span class="p">:</span> <span class="s1">&#39;mu_pair&#39;</span><span class="p">,</span>
-                               <span class="mi">1000000007</span><span class="p">:</span> <span class="s1">&#39;hadrons&#39;</span><span class="p">,</span>
-                               <span class="mi">1000000008</span><span class="p">:</span> <span class="s1">&#39;cont_loss&#39;</span><span class="p">,</span>
-                               <span class="mi">1000000009</span><span class="p">:</span> <span class="s1">&#39;weak_int&#39;</span><span class="p">,</span>
-                               <span class="mi">1000000010</span><span class="p">:</span> <span class="s1">&#39;compton&#39;</span><span class="p">,</span>
-                               <span class="mi">1000000011</span><span class="p">:</span> <span class="s1">&#39;decay&#39;</span> <span class="p">}</span>
+<span class="c1"># For dicussion why we cast to int instead of using</span>
+<span class="c1"># e.g. pp.particle.Interaction_Type.particle.value, see https://github.com/nu-radio/NuRadioMC/pull/458</span>
+<span class="n">proposal_interaction_names</span> <span class="o">=</span> <span class="p">{</span> <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">particle</span><span class="p">):</span> <span class="s1">&#39;particle&#39;</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">brems</span><span class="p">):</span> <span class="s1">&#39;brems&#39;</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">ioniz</span><span class="p">):</span> <span class="s1">&#39;ionized_e&#39;</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">epair</span><span class="p">):</span> <span class="s1">&#39;e_pair&#39;</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">photonuclear</span><span class="p">):</span> <span class="s1">&#39;nucl_int&#39;</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">mupair</span><span class="p">):</span> <span class="s1">&#39;mu_pair&#39;</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">hadrons</span><span class="p">):</span> <span class="s1">&#39;hadrons&#39;</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">continuousenergyloss</span><span class="p">):</span> <span class="s1">&#39;cont_loss&#39;</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">weakint</span><span class="p">):</span> <span class="s1">&#39;weak_int&#39;</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">compton</span><span class="p">):</span> <span class="s1">&#39;compton&#39;</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">decay</span><span class="p">):</span> <span class="s1">&#39;decay&#39;</span> <span class="p">}</span>
 
-<span class="n">proposal_interaction_codes</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1000000001</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span>
-                               <span class="mi">1000000002</span><span class="p">:</span> <span class="mi">81</span><span class="p">,</span>
-                               <span class="mi">1000000003</span><span class="p">:</span> <span class="mi">82</span><span class="p">,</span>
-                               <span class="mi">1000000004</span><span class="p">:</span> <span class="mi">83</span><span class="p">,</span>
-                               <span class="mi">1000000005</span><span class="p">:</span> <span class="mi">85</span><span class="p">,</span>
-                               <span class="mi">1000000006</span><span class="p">:</span> <span class="mi">87</span><span class="p">,</span>
-                               <span class="mi">1000000007</span><span class="p">:</span> <span class="mi">84</span><span class="p">,</span>
-                               <span class="mi">1000000008</span><span class="p">:</span> <span class="mi">88</span><span class="p">,</span>
-                               <span class="mi">1000000009</span><span class="p">:</span> <span class="mi">89</span><span class="p">,</span>
-                               <span class="mi">1000000010</span><span class="p">:</span> <span class="mi">90</span><span class="p">,</span>
-                               <span class="mi">1000000011</span><span class="p">:</span> <span class="mi">91</span> <span class="p">}</span>
+<span class="n">proposal_interaction_codes</span> <span class="o">=</span> <span class="p">{</span> <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">particle</span><span class="p">):</span> <span class="mi">80</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">brems</span><span class="p">):</span> <span class="mi">81</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">ioniz</span><span class="p">):</span> <span class="mi">82</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">epair</span><span class="p">):</span> <span class="mi">83</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">photonuclear</span><span class="p">):</span> <span class="mi">85</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">mupair</span><span class="p">):</span> <span class="mi">87</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">hadrons</span><span class="p">):</span> <span class="mi">84</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">continuousenergyloss</span><span class="p">):</span> <span class="mi">88</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">weakint</span><span class="p">):</span> <span class="mi">89</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">compton</span><span class="p">):</span> <span class="mi">90</span><span class="p">,</span>
+                               <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">Interaction_Type</span><span class="o">.</span><span class="n">decay</span><span class="p">):</span> <span class="mi">91</span> <span class="p">}</span>
 
 
-<div class="viewcode-block" id="particle_code"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.particle_code">[docs]</a><span class="k">def</span> <span class="nf">particle_code</span><span class="p">(</span><span class="n">particle</span><span class="p">):</span>
+<div class="viewcode-block" id="particle_code"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.particle_code">[docs]</a><span class="k">def</span> <span class="nf">particle_code</span><span class="p">(</span><span class="n">pp_type</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    If a particle object from PROPOSAL is passed as input, it returns the</span>
-<span class="sd">    corresponding PDG particle code. DynamicData objects are not considered</span>
-<span class="sd">    particles internally in PROPOSAL, so they are handled differently.</span>
+<span class="sd">    For an integer, corresponding to a proposal.particle.Interaction_Type or </span>
+<span class="sd">    proposal.particle.Particle_Type, it returns the corresponding PDG </span>
+<span class="sd">    particle code.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    particle: particle object from PROPOSAL</span>
+<span class="sd">    pp_type: int, corresponding to a proposal.particle.Interaction_Type or </span>
+<span class="sd">             proposal.particle.Particle_Type</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    integer with the PDG particle code. None if the argument is not a particle</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">particle_type</span> <span class="o">=</span> <span class="n">particle</span><span class="o">.</span><span class="n">type</span>
-    <span class="k">if</span> <span class="n">particle_type</span> <span class="ow">in</span> <span class="n">proposal_interaction_codes</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">proposal_interaction_codes</span><span class="p">[</span><span class="n">particle_type</span><span class="p">]</span>
-    <span class="k">elif</span> <span class="n">particle_type</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_names</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">particle_type</span>
+    <span class="k">if</span> <span class="n">pp_type</span> <span class="ow">in</span> <span class="n">proposal_interaction_codes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">proposal_interaction_codes</span><span class="p">[</span><span class="n">pp_type</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">pp_type</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_names</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pp_type</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">particle_type</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">pp_type</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
 
-<div class="viewcode-block" id="is_em_primary"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_em_primary">[docs]</a><span class="k">def</span> <span class="nf">is_em_primary</span> <span class="p">(</span><span class="n">particle</span><span class="p">):</span>
+<div class="viewcode-block" id="is_em_primary"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_em_primary">[docs]</a><span class="k">def</span> <span class="nf">is_em_primary</span> <span class="p">(</span><span class="n">pp_type</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a PROPOSAL particle object as an input, returns True if the particle</span>
-<span class="sd">    can be an electromagnetic shower primary and False otherwise</span>
+<span class="sd">    For an integer corresponding to a particle type or interaction type of </span>
+<span class="sd">    proposal, returns True if the object can be an electromagnetic shower primary </span>
+<span class="sd">    and False otherwise</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pp_type: int, corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool, True if the particle can be an electromagnetic shower primary and False otherwise</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">code</span> <span class="o">=</span> <span class="n">particle_code</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">particle_code</span><span class="p">(</span><span class="n">pp_type</span><span class="p">)</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_name</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
     
     <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">em_primary_names</span><span class="p">:</span>
@@ -724,12 +733,21 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 
-<div class="viewcode-block" id="is_had_primary"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_had_primary">[docs]</a><span class="k">def</span> <span class="nf">is_had_primary</span><span class="p">(</span><span class="n">particle</span><span class="p">):</span>
+<div class="viewcode-block" id="is_had_primary"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_had_primary">[docs]</a><span class="k">def</span> <span class="nf">is_had_primary</span><span class="p">(</span><span class="n">pp_type</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a PROPOSAL particle object as an input, returns True if the particle</span>
-<span class="sd">    can be a hadronic shower primary and False otherwise</span>
+<span class="sd">    Given an integer corresponding to a particle type or interaction type of </span>
+<span class="sd">    proposal, returns True if the object can be a hadronic shower primary </span>
+<span class="sd">    and False otherwise</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pp_type: int, corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool, True if the particle can be a hadronic shower primary and False otherwise</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">code</span> <span class="o">=</span> <span class="n">particle_code</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">particle_code</span><span class="p">(</span><span class="n">pp_type</span><span class="p">)</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_name</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">had_primary_names</span><span class="p">:</span>
@@ -738,46 +756,26 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 
-<div class="viewcode-block" id="is_shower_primary"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_shower_primary">[docs]</a><span class="k">def</span> <span class="nf">is_shower_primary</span><span class="p">(</span><span class="n">particle</span><span class="p">):</span>
+<div class="viewcode-block" id="is_shower_primary"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_shower_primary">[docs]</a><span class="k">def</span> <span class="nf">is_shower_primary</span><span class="p">(</span><span class="n">pp_type</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a PROPOSAL particle object, returns True if the particle can be</span>
-<span class="sd">    a shower primary and False otherwise</span>
+<span class="sd">    Given an integer corresponding to a particle type or interaction type of </span>
+<span class="sd">    proposal, returns True if the object can be a shower primary and False otherwise</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pp_type: int, corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool, True if the particle can be a shower primary and False otherwise</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">code</span> <span class="o">=</span> <span class="n">particle_code</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">particle_code</span><span class="p">(</span><span class="n">pp_type</span><span class="p">)</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_name</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
     
     <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">primary_names</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span></div>
-
-
-<div class="viewcode-block" id="check_path_to_tables"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.check_path_to_tables">[docs]</a><span class="k">def</span> <span class="nf">check_path_to_tables</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Checks if the paths for the PROPOSAL tables in the input config file are</span>
-<span class="sd">    existing directories.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-
-        <span class="n">config_file</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-
-    <span class="n">path_to_tables</span> <span class="o">=</span> <span class="n">config_file</span><span class="p">[</span><span class="s1">&#39;global&#39;</span><span class="p">][</span><span class="s1">&#39;interpolation&#39;</span><span class="p">][</span><span class="s1">&#39;path_to_tables&#39;</span><span class="p">]</span>
-    <span class="n">path_to_tables_readonly</span> <span class="o">=</span> <span class="n">config_file</span><span class="p">[</span><span class="s1">&#39;global&#39;</span><span class="p">][</span><span class="s1">&#39;interpolation&#39;</span><span class="p">][</span><span class="s1">&#39;path_to_tables_readonly&#39;</span><span class="p">]</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path_to_tables</span><span class="p">):</span>
-
-        <span class="n">error_msg</span> <span class="o">=</span> <span class="s2">&quot;&#39;path_to_tables&#39; in </span><span class="si">{}</span><span class="s2"> points to </span><span class="si">{}</span><span class="s2">, which is a non-existing directory. &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span>
-                                                                                                     <span class="n">path_to_tables</span><span class="p">)</span>
-        <span class="n">error_msg</span> <span class="o">+=</span> <span class="s2">&quot;Please choose a valid path for the PROPOSAL config file in </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path_to_tables_readonly</span><span class="p">):</span>
-
-        <span class="n">error_msg</span> <span class="o">=</span> <span class="s2">&quot;&#39;path_to_tables_readonly&#39; in </span><span class="si">{}</span><span class="s2"> points to </span><span class="si">{}</span><span class="s2">, which is a non-existing directory. &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span>
-                                                                                                              <span class="n">path_to_tables_readonly</span><span class="p">)</span>
-        <span class="n">error_msg</span> <span class="o">+=</span> <span class="s2">&quot;Please choose a valid path for the PROPOSAL config file in </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ProposalFunctions"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">Singleton</span><span class="p">)</span>
@@ -788,40 +786,13 @@
 <span class="sd">    not be used from the outside to avoid mismatching units.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="o">=</span><span class="s1">&#39;SouthPole&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="o">=</span><span class="s1">&#39;SouthPole&#39;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">tables_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">upper_energy_limit</span><span class="o">=</span><span class="mf">1e14</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">MeV</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        config_file: string or path</span>
 <span class="sd">            The user can specify the path to their own config file or choose among</span>
-<span class="sd">            the three available options:</span>
-<span class="sd">            -&#39;SouthPole&#39;, a config file for the South Pole (spherical Earth)</span>
-<span class="sd">            -&#39;MooresBay&#39;, a config file for Moore&#39;s Bay (spherical Earth)</span>
-<span class="sd">            -&#39;InfIce&#39;, a config file with a medium of infinite ice</span>
-<span class="sd">            -&#39;Greenland&#39;, a config file for Summit Station, Greenland (spherical Earth)</span>
-<span class="sd">            IMPORTANT: If these options are used, the code is more efficient if the</span>
-<span class="sd">            user requests their own &quot;path_to_tables&quot; and &quot;path_to_tables_readonly&quot;,</span>
-<span class="sd">            pointing them to a writable directory</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;proposal&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;initializing proposal interface class&quot;</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span> <span class="o">=</span> <span class="n">config_file</span>
-
-    <span class="k">def</span> <span class="nf">__get_propagator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                            <span class="n">particle_code</span><span class="o">=</span><span class="mi">13</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a PROPOSAL propagator for muons or taus. If it does not exist yet it is being generated.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        particle_code: integer</span>
-<span class="sd">            Particle code for the muon- (13), muon+ (-13), tau- (15), or tau+ (-15)</span>
-<span class="sd">        config_file: string or path</span>
-<span class="sd">            The user can specify the path to their own config file or choose among</span>
-<span class="sd">            the three available options:</span>
+<span class="sd">            the available options:</span>
 <span class="sd">            -&#39;SouthPole&#39;, a config file for the South Pole (spherical Earth). It</span>
 <span class="sd">            consists of a 2.7 km deep layer of ice, bedrock below and air above.</span>
 <span class="sd">            -&#39;MooresBay&#39;, a config file for Moore&#39;s Bay (spherical Earth). It</span>
@@ -830,9 +801,69 @@
 <span class="sd">            -&#39;InfIce&#39;, a config file with a medium of infinite ice</span>
 <span class="sd">            -&#39;Greenland&#39;, a config file for Summit Station, Greenland (spherical Earth),</span>
 <span class="sd">            same as SouthPole but with a 3 km deep ice layer.</span>
-<span class="sd">            IMPORTANT: If these options are used, the code is more efficient if the</span>
-<span class="sd">            user requests their own &quot;path_to_tables&quot; and &quot;path_to_tables_readonly&quot;,</span>
-<span class="sd">            pointing them to a writable directory</span>
+<span class="sd">        log_level: logging level</span>
+<span class="sd">        tables_path: path</span>
+<span class="sd">            Path to PROPOSAL tables. Should be set to a path where PROPOSAL tables exist, or</span>
+<span class="sd">            where PROPOSAL tables can be saved. This avoids that PROPOSAL has to regenerate</span>
+<span class="sd">            tables (which can take several minutes) every time the script is executed.</span>
+<span class="sd">            Default: None -&gt; create directory &quot;proposal_tables&quot; at the location of this file.</span>
+<span class="sd">        seed: int</span>
+<span class="sd">            Seed to be used by PROPOSAL</span>
+<span class="sd">        upper_energy_limit: float</span>
+<span class="sd">            upper_energy_limit of tables that will be created by PROPOSAL, in NuRadioMC units (eV).</span>
+<span class="sd">            There will be an error if primaries with energies above this energy will be injected.</span>
+<span class="sd">            Note that PROPOSAL will have to regenerate tables for a new values of upper_energy_limit</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;proposal&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;initializing proposal interface class&quot;</span><span class="p">)</span>
+
+        <span class="n">pp</span><span class="o">.</span><span class="n">RandomGenerator</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">set_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span> <span class="c1"># set global seed for PROPOSAL</span>
+
+        <span class="k">if</span> <span class="n">tables_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tables_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;proposal_tables&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tables_path</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Create directory </span><span class="si">{</span><span class="n">tables_path</span><span class="si">}</span><span class="s2"> to store proposal tables&quot;</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">tables_path</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span> <span class="o">=</span> <span class="n">config_file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__tables_path</span> <span class="o">=</span> <span class="n">tables_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__upper_energy_limit</span> <span class="o">=</span> <span class="n">upper_energy_limit</span> <span class="o">*</span> <span class="n">pp_eV</span> <span class="c1"># convert to PROPOSAL units</span>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__calculate_distance</span><span class="p">(</span><span class="n">pp_position</span><span class="p">,</span> <span class="n">pos_arr</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Calculates distance between secondary and lepton position (both in proposal units).</span>
+<span class="sd">        </span>
+<span class="sd">        Paramters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        </span>
+<span class="sd">        pp_position: ParticleState.position</span>
+<span class="sd">            Position of a secondary particle (in proposal units)</span>
+<span class="sd">            </span>
+<span class="sd">        pos_arr: np.array(3,)</span>
+<span class="sd">            Init. position of the lepton (in proposal units)</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        </span>
+<span class="sd">        Distance between both coordinates in NuRadioMC units</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pp_position</span><span class="o">.</span><span class="n">cartesian_coordinates</span> <span class="o">-</span> <span class="n">pos_arr</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span>
+
+
+    <span class="k">def</span> <span class="nf">__get_propagator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle_code</span><span class="o">=</span><span class="mi">13</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a PROPOSAL propagator for muons or taus. If it does not exist yet it is being generated.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        particle_code: integer</span>
+<span class="sd">            Particle code for the muon- (13), muon+ (-13), tau- (15), or tau+ (-15)</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -841,50 +872,42 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span><span class="p">(</span><span class="n">particle_code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;initializing propagator for particle code </span><span class="si">{</span><span class="n">particle_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">mu_def_builder</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">ParticleDefBuilder</span><span class="p">()</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">particle_code</span> <span class="o">==</span> <span class="mi">13</span><span class="p">):</span>
-                <span class="n">mu_def_builder</span><span class="o">.</span><span class="n">SetParticleDef</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuMinusDef</span><span class="p">())</span>
-            <span class="k">elif</span> <span class="p">(</span><span class="n">particle_code</span> <span class="o">==</span> <span class="o">-</span><span class="mi">13</span><span class="p">):</span>
-                <span class="n">mu_def_builder</span><span class="o">.</span><span class="n">SetParticleDef</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuPlusDef</span><span class="p">())</span>
-            <span class="k">elif</span> <span class="p">(</span><span class="n">particle_code</span> <span class="o">==</span> <span class="mi">15</span><span class="p">):</span>
-                <span class="n">mu_def_builder</span><span class="o">.</span><span class="n">SetParticleDef</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">TauMinusDef</span><span class="p">())</span>
-            <span class="k">elif</span> <span class="p">(</span><span class="n">particle_code</span> <span class="o">==</span> <span class="o">-</span><span class="mi">15</span><span class="p">):</span>
-                <span class="n">mu_def_builder</span><span class="o">.</span><span class="n">SetParticleDef</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">TauPlusDef</span><span class="p">())</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">error_str</span> <span class="o">=</span> <span class="s2">&quot;The propagation of this particle via PROPOSAL is not currently supported.</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="n">error_str</span> <span class="o">+=</span> <span class="s2">&quot;Please choose between -/+muon (13/-13) and -/+tau (15/-15)&quot;</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">error_str</span><span class="p">)</span>
 
-            <span class="n">mu_def</span> <span class="o">=</span> <span class="n">mu_def_builder</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+            <span class="n">config_files</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;SouthPole&#39;</span><span class="p">:</span>  <span class="s1">&#39;config_PROPOSAL.json&#39;</span><span class="p">,</span> <span class="s1">&#39;MooresBay&#39;</span><span class="p">:</span> <span class="s1">&#39;config_PROPOSAL_mooresbay.json&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;InfIce&#39;</span><span class="p">:</span> <span class="s1">&#39;config_PROPOSAL_infice.json&#39;</span><span class="p">,</span> <span class="s1">&#39;Greenland&#39;</span><span class="p">:</span> <span class="s1">&#39;config_PROPOSAL_greenland.json&#39;</span><span class="p">}</span>
 
-            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span> <span class="o">==</span> <span class="s1">&#39;SouthPole&#39;</span><span class="p">):</span>
-                <span class="n">config_file_full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;config_PROPOSAL.json&#39;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span> <span class="o">==</span> <span class="s1">&#39;MooresBay&#39;</span><span class="p">):</span>
-                <span class="n">config_file_full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;config_PROPOSAL_mooresbay.json&#39;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span> <span class="o">==</span> <span class="s1">&#39;InfIce&#39;</span><span class="p">):</span>
-                <span class="n">config_file_full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;config_PROPOSAL_infice.json&#39;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span> <span class="o">==</span> <span class="s1">&#39;Greenland&#39;</span><span class="p">):</span>
-                <span class="n">config_file_full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;config_PROPOSAL_greenland.json&#39;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span> <span class="ow">in</span> <span class="n">config_files</span><span class="p">:</span>
+                <span class="n">config_file_full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="n">config_files</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span><span class="p">):</span>
                 <span class="n">config_file_full_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Proposal config file is not valid. Please provide a valid option.&quot;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">config_file_full_path</span><span class="p">):</span>
-                <span class="n">error_message</span> <span class="o">=</span> <span class="s2">&quot;Proposal config file does not exist.</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="n">error_message</span> <span class="o">+=</span> <span class="s2">&quot;Please provide valid paths for the interpolation tables &quot;</span>
-                <span class="n">error_message</span> <span class="o">+=</span> <span class="s2">&quot;in file </span><span class="si">{}</span><span class="s2">.sample &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_file_full_path</span><span class="p">)</span>
-                <span class="n">error_message</span> <span class="o">+=</span> <span class="s2">&quot;and copy the file to </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">config_file_full_path</span><span class="p">))</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_message</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unable to find proposal config file.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="s2">&quot;Make sure that json configuration file under &quot;</span>
+                    <span class="s2">&quot;path </span><span class="si">{}</span><span class="s2"> exists.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_file_full_path</span><span class="p">))</span>
 
-            <span class="n">check_path_to_tables</span><span class="p">(</span><span class="n">config_file_full_path</span><span class="p">)</span>
+            <span class="n">pp</span><span class="o">.</span><span class="n">InterpolationSettings</span><span class="o">.</span><span class="n">tables_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tables_path</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span><span class="p">[</span><span class="n">particle_code</span><span class="p">]</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Propagator</span><span class="p">(</span><span class="n">particle_def</span><span class="o">=</span><span class="n">mu_def</span><span class="p">,</span> <span class="n">config_file</span><span class="o">=</span><span class="n">config_file_full_path</span><span class="p">)</span>
+            <span class="c1"># upper energy lim for proposal tables, in PROPOSAL units (MeV)</span>
+            <span class="n">pp</span><span class="o">.</span><span class="n">InterpolationSettings</span><span class="o">.</span><span class="n">upper_energy_lim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__upper_energy_limit</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">p_def</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">get_ParticleDef_for_type</span><span class="p">(</span><span class="n">particle_code</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">error_str</span> <span class="o">=</span> <span class="s2">&quot;The propagation of this particle via PROPOSAL is not currently supported.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">error_str</span> <span class="o">+=</span> <span class="s2">&quot;Please choose between -/+muon (13/-13) and -/+tau (15/-15)&quot;</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">error_str</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span><span class="p">[</span><span class="n">particle_code</span><span class="p">]</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Propagator</span><span class="p">(</span><span class="n">particle_def</span><span class="o">=</span><span class="n">p_def</span><span class="p">,</span> <span class="n">path_to_config_file</span><span class="o">=</span><span class="n">config_file_full_path</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span><span class="p">[</span><span class="n">particle_code</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">__produces_shower</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                          <span class="n">particle</span><span class="p">,</span>
+                          <span class="n">pp_type</span><span class="p">,</span>
+                          <span class="n">energy</span><span class="p">,</span>
                           <span class="n">min_energy_loss</span><span class="o">=</span><span class="mi">1</span> <span class="o">*</span> <span class="n">pp_PeV</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns True if the input particle or interaction can be a shower primary</span>
@@ -892,8 +915,10 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        particle: PROPOSAL particle or DynamicData (interaction)</span>
-<span class="sd">            Input particle</span>
+<span class="sd">        pp_type: int</span>
+<span class="sd">            int corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type</span>
+<span class="sd">        energy: float</span>
+<span class="sd">            Energy of particle or interaction, in PROPOSAL units (MeV)</span>
 <span class="sd">        min_energy_loss: float</span>
 <span class="sd">            Threshold above which a particle shower is considered detectable</span>
 <span class="sd">            or relevant, in PROPOSAL units (MeV)</span>
@@ -903,46 +928,20 @@
 <span class="sd">        bool</span>
 <span class="sd">            True if particle produces shower, False otherwise</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">energy_threshold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__secondary_energy</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_energy_loss</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">energy_threshold</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">energy</span> <span class="o">&lt;</span> <span class="n">min_energy_loss</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="n">shower_inducing</span> <span class="o">=</span> <span class="n">is_shower_primary</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">is_shower_primary</span><span class="p">(</span><span class="n">pp_type</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">shower_inducing</span>
 
-    <span class="k">def</span> <span class="nf">__secondary_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sec</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieves the energy of the secondary particle</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        sec: Particle</span>
-<span class="sd">            Secondary particle issued by Proposal</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        energy: float</span>
-<span class="sd">            Energy in MeV</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="c1"># Checking if the secondary type is greater than 1000000000, which means</span>
-        <span class="c1"># that the secondary is an interaction particle.</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="o">&gt;</span> <span class="mi">1000000000</span><span class="p">):</span>
-            <span class="n">energy</span> <span class="o">=</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">parent_particle_energy</span> <span class="o">-</span> <span class="n">sec</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span> <span class="o">*</span> <span class="n">pp_MeV</span>
-        <span class="c1"># Else, the secondary is a particle issued upon decay.</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">energy</span> <span class="o">=</span> <span class="n">sec</span><span class="o">.</span><span class="n">energy</span> <span class="o">*</span> <span class="n">pp_MeV</span>
-
-        <span class="k">return</span> <span class="n">energy</span>
-
-    <span class="k">def</span> <span class="nf">__shower_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__shower_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pp_type</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculates shower properties for the shower created by the input particle</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        particle: PROPOSAL particle or DynamicData</span>
+<span class="sd">        pp_type: int</span>
+<span class="sd">            int corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -953,15 +952,15 @@
 <span class="sd">        name: string</span>
 <span class="sd">            Name of the shower primary</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_shower_primary</span><span class="p">(</span><span class="n">particle</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_shower_primary</span><span class="p">(</span><span class="n">pp_type</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
 
-        <span class="n">code</span> <span class="o">=</span> <span class="n">particle_code</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="n">particle_code</span><span class="p">(</span><span class="n">pp_type</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">is_em_primary</span><span class="p">(</span><span class="n">particle</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">is_em_primary</span><span class="p">(</span><span class="n">pp_type</span><span class="p">):</span>
             <span class="n">shower_type</span> <span class="o">=</span> <span class="s1">&#39;em&#39;</span>
 
-        <span class="k">if</span> <span class="n">is_had_primary</span><span class="p">(</span><span class="n">particle</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">is_had_primary</span><span class="p">(</span><span class="n">pp_type</span><span class="p">):</span>
             <span class="n">shower_type</span> <span class="o">=</span> <span class="s1">&#39;had&#39;</span>
 
         <span class="n">name</span> <span class="o">=</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_name</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
@@ -996,30 +995,29 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        secondaries: array of PROPOSAL particles</span>
-<span class="sd">            Secondaries created by the propagation</span>
+<span class="sd">        secondaries: proposal.particle.Secondaries</span>
+<span class="sd">            object containing all information about secondary particles produced </span>
+<span class="sd">            during propagation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">lepton_position</span>
         <span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">,</span> <span class="n">pz</span> <span class="o">=</span> <span class="n">lepton_direction</span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="n">lepton_code</span> <span class="o">==</span> <span class="mi">13</span><span class="p">):</span>
-            <span class="n">particle_def</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuMinusDef</span><span class="p">()</span>
-        <span class="k">elif</span> <span class="p">(</span><span class="n">lepton_code</span> <span class="o">==</span> <span class="o">-</span><span class="mi">13</span><span class="p">):</span>
-            <span class="n">particle_def</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">MuPlusDef</span><span class="p">()</span>
-        <span class="k">elif</span> <span class="p">(</span><span class="n">lepton_code</span> <span class="o">==</span> <span class="mi">15</span><span class="p">):</span>
-            <span class="n">particle_def</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">TauMinusDef</span><span class="p">()</span>
-        <span class="k">elif</span> <span class="p">(</span><span class="n">lepton_code</span> <span class="o">==</span> <span class="o">-</span><span class="mi">15</span><span class="p">):</span>
-            <span class="n">particle_def</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">TauPlusDef</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">energy_lepton</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__upper_energy_limit</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Initial lepton energy higher than upper_energy_limit of PROPOSAL. Adjust upper_energy_limit when&quot;</span>
+                             <span class="s2">&quot; initialzing EvtGen.NuRadioProposal.ProposalFunctions.&quot;</span><span class="p">)</span>
 
-        <span class="n">initial_condition</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">DynamicData</span><span class="p">(</span><span class="n">particle_def</span><span class="o">.</span><span class="n">particle_type</span><span class="p">)</span>
-        <span class="n">initial_condition</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Vector3D</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
-        <span class="n">initial_condition</span><span class="o">.</span><span class="n">direction</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Vector3D</span><span class="p">(</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">,</span> <span class="n">pz</span><span class="p">)</span>
+        <span class="n">initial_condition</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">ParticleState</span><span class="p">()</span>
+        <span class="n">initial_condition</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">lepton_code</span>
+        <span class="n">initial_condition</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Cartesian3D</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="n">initial_condition</span><span class="o">.</span><span class="n">direction</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Cartesian3D</span><span class="p">(</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">,</span> <span class="n">pz</span><span class="p">)</span>
         <span class="n">initial_condition</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="n">energy_lepton</span>
         <span class="n">initial_condition</span><span class="o">.</span><span class="n">propagated_distance</span> <span class="o">=</span> <span class="mi">0</span>
 
+        <span class="n">initial_condition</span><span class="o">.</span><span class="n">direction</span><span class="o">.</span><span class="n">normalize</span><span class="p">()</span> <span class="c1"># ensure that direction is normalized</span>
+
         <span class="n">secondaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_propagator</span><span class="p">(</span><span class="n">lepton_code</span><span class="p">)</span><span class="o">.</span><span class="n">propagate</span><span class="p">(</span><span class="n">initial_condition</span><span class="p">,</span>
-                                                                  <span class="n">propagation_length</span><span class="p">,</span>
-                                                                  <span class="n">minimal_energy</span><span class="o">=</span><span class="n">low</span><span class="p">)</span><span class="o">.</span><span class="n">particles</span>
+                                                                  <span class="n">max_distance</span> <span class="o">=</span> <span class="n">propagation_length</span><span class="p">,</span>
+                                                                  <span class="n">min_energy</span><span class="o">=</span><span class="n">low</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">secondaries</span>
 
     <span class="k">def</span> <span class="nf">__filter_secondaries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -1032,8 +1030,8 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        secondaries: array of PROPOSAL particles</span>
-<span class="sd">            Array with secondary particles</span>
+<span class="sd">        secondaries: array of proposal.particle.StochasticLoss objects</span>
+<span class="sd">            Array of all stochastic losses produced by PROPOSAL </span>
 <span class="sd">        min_energy_loss: float</span>
 <span class="sd">            Threshold for shower production, in PROPOSAL units (MeV)</span>
 <span class="sd">        lepton_position: tuple (float, float, float)</span>
@@ -1050,22 +1048,60 @@
 
         <span class="k">for</span> <span class="n">sec</span> <span class="ow">in</span> <span class="n">secondaries</span><span class="p">:</span>
 
-            <span class="c1"># Decays contain only one shower-inducing particle</span>
-            <span class="c1"># Muons and neutrinos resulting from decays are ignored</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__produces_shower</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="n">min_energy_loss</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__produces_shower</span><span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">sec</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span> <span class="n">min_energy_loss</span><span class="p">):</span>
 
-                <span class="n">distance</span> <span class="o">=</span> <span class="p">((</span><span class="n">sec</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">lepton_position</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
-                <span class="n">distance</span> <span class="o">+=</span> <span class="p">((</span><span class="n">sec</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">lepton_position</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
-                <span class="n">distance</span> <span class="o">+=</span> <span class="p">((</span><span class="n">sec</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">z</span> <span class="o">-</span> <span class="n">lepton_position</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
-                <span class="n">distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">distance</span><span class="p">)</span>
+                <span class="n">distance</span> <span class="o">=</span> <span class="n">ProposalFunctions</span><span class="o">.</span><span class="n">__calculate_distance</span><span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">)</span>
 
-                <span class="n">energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__secondary_energy</span><span class="p">(</span><span class="n">sec</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span>
+                <span class="n">energy</span> <span class="o">=</span> <span class="n">sec</span><span class="o">.</span><span class="n">energy</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span>
 
-                <span class="n">shower_type</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__shower_properties</span><span class="p">(</span><span class="n">sec</span><span class="p">)</span>
+                <span class="n">shower_type</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__shower_properties</span><span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span><span class="p">)</span>
 
                 <span class="n">shower_inducing_prods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SecondaryProperties</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">energy</span><span class="p">,</span> <span class="n">shower_type</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">shower_inducing_prods</span>
+
+    <span class="k">def</span> <span class="nf">__group_decay_products</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                               <span class="n">decay_products</span><span class="p">,</span>
+                               <span class="n">min_energy_loss</span><span class="p">,</span>
+                               <span class="n">lepton_position</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        group remaining shower-inducing decay products so that they create a single shower</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        decay_products: list of proposal.particle.ParticleState</span>
+<span class="sd">            List of decay particles that we want to group</span>
+<span class="sd">        min_energy_loss: float</span>
+<span class="sd">            Threshold for shower production, in PROPOSAL units (MeV)</span>
+<span class="sd">        lepton_position: (float, float, float) tuple</span>
+<span class="sd">            Original lepton positions in proposal units (cm)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None or SecondaryProperties</span>
+<span class="sd">            If energy of grouped decay particles is above min_energy_loss, SecondaryProperties object,</span>
+<span class="sd">            containing information about the grouped decay particles is returned.</span>
+<span class="sd">            Otherwise, None is returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># TODO: At the moment, all decay_products in primary_names are grouped and identified</span>
+        <span class="c1">#       as a &#39;Hadronic Decay bundle&#39;, even electromagnetic decay products such as</span>
+        <span class="c1">#       electrons. Is that ok? Should they be negleceted? Or grouped separately?</span>
+
+        <span class="n">sum_decay_particle_energy</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">decay_particle</span> <span class="ow">in</span> <span class="n">decay_products</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_shower_primary</span><span class="p">(</span><span class="n">decay_particle</span><span class="o">.</span><span class="n">type</span><span class="p">):</span>
+                <span class="n">sum_decay_particle_energy</span> <span class="o">+=</span> <span class="n">decay_particle</span><span class="o">.</span><span class="n">energy</span>
+
+        <span class="k">if</span> <span class="n">sum_decay_particle_energy</span> <span class="o">&gt;</span> <span class="n">min_energy_loss</span><span class="p">:</span>
+            <span class="c1"># all decay_particles have the same position, so we can just look at the first in list</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="n">ProposalFunctions</span><span class="o">.</span><span class="n">__calculate_distance</span><span class="p">(</span><span class="n">decay_products</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">SecondaryProperties</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">sum_decay_particle_energy</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span><span class="p">,</span> 
+                                      <span class="s1">&#39;had&#39;</span><span class="p">,</span> <span class="mi">86</span><span class="p">,</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_name</span><span class="p">(</span><span class="mi">86</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
 
 <div class="viewcode-block" id="ProposalFunctions.get_secondaries_array"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_secondaries_array">[docs]</a>    <span class="k">def</span> <span class="nf">get_secondaries_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                               <span class="n">energy_leptons_nu</span><span class="p">,</span>
@@ -1105,11 +1141,10 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        secondaries_array: 2D-list containing SecondaryProperties objects</span>
-<span class="sd">            List containing the information on the shower-inducing secondaries. The</span>
-<span class="sd">            first dimension indicates the primary lepton and the second dimension</span>
-<span class="sd">            navigates through the secondaries produced by that primary.</span>
-
-<span class="sd">            The SecondaryProperties objects are expressed in NuRadioMC units.</span>
+<span class="sd">            For each primary a list containing the information on the shower-inducing secondaries is</span>
+<span class="sd">            returned. The first dimension indicates the (index of the) primary lepton and the second dimension</span>
+<span class="sd">            navigates through the secondaries produced by that primary (time-ordered). The SecondaryProperties</span>
+<span class="sd">            properties are in NuRadioMC units.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Converting to PROPOSAL units</span>
@@ -1121,14 +1156,11 @@
         <span class="k">if</span> <span class="n">lepton_positions_nu</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">lepton_positions</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">energy_leptons</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">lepton_positions</span> <span class="o">=</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">lepton_position_nu</span><span class="p">)</span> <span class="o">*</span> <span class="n">pp_m</span> <span class="k">for</span> <span class="n">lepton_position_nu</span> <span class="ow">in</span> <span class="n">lepton_positions_nu</span> <span class="p">]</span>
-
+            <span class="n">lepton_positions</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">lepton_position_nu</span><span class="p">)</span> <span class="o">*</span> <span class="n">pp_m</span>
+                                    <span class="k">for</span> <span class="n">lepton_position_nu</span> <span class="ow">in</span> <span class="n">lepton_positions_nu</span><span class="p">]</span>
+            
         <span class="k">if</span> <span class="n">lepton_directions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">lepton_directions</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">energy_leptons</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">propagate_decay_muons</span><span class="p">:</span>
-
-            <span class="n">decay_muons_array</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="n">secondaries_array</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -1139,58 +1171,42 @@
                                                     <span class="n">lepton_position</span><span class="p">,</span> <span class="n">lepton_direction</span><span class="p">,</span>
                                                     <span class="n">propagation_length</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="n">low</span><span class="p">)</span>
 
-            <span class="n">shower_inducing_prods</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__filter_secondaries</span><span class="p">(</span><span class="n">secondaries</span><span class="p">,</span> <span class="n">min_energy_loss</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">)</span>
+            <span class="n">shower_inducing_prods</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__filter_secondaries</span><span class="p">(</span><span class="n">secondaries</span><span class="o">.</span><span class="n">stochastic_losses</span><span class="p">(),</span> 
+                                                              <span class="n">min_energy_loss</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">)</span>
 
-            <span class="c1"># Checking if there is a muon in the products</span>
+            <span class="n">decay_products</span> <span class="o">=</span> <span class="n">secondaries</span><span class="o">.</span><span class="n">decay_products</span><span class="p">()</span> <span class="c1"># array of decay particles</span>
+
+            <span class="c1"># Checking if there is a muon in the decay products</span>
             <span class="k">if</span> <span class="n">propagate_decay_muons</span><span class="p">:</span>
-                <span class="n">decay_muons_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>
 
-                <span class="k">for</span> <span class="n">sec</span> <span class="ow">in</span> <span class="n">secondaries</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="mi">13</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="o">-</span><span class="mi">13</span><span class="p">):</span>
-                        <span class="k">if</span> <span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="mi">13</span><span class="p">:</span>
-                            <span class="n">mu_code</span> <span class="o">=</span> <span class="mi">13</span>
-                        <span class="k">elif</span> <span class="n">sec</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="o">-</span><span class="mi">13</span><span class="p">:</span>
-                            <span class="n">mu_code</span> <span class="o">=</span> <span class="o">-</span><span class="mi">13</span>
+                <span class="k">for</span> <span class="n">decay_particle</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">decay_products</span><span class="p">):</span>
 
-                        <span class="n">mu_energy</span> <span class="o">=</span> <span class="n">sec</span><span class="o">.</span><span class="n">energy</span>
-                        <span class="k">if</span> <span class="p">(</span><span class="n">mu_energy</span> <span class="o">&lt;=</span> <span class="n">low</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">decay_particle</span><span class="o">.</span><span class="n">type</span><span class="p">)</span> <span class="o">==</span> <span class="mi">13</span><span class="p">:</span>
+                        <span class="n">mu_energy</span> <span class="o">=</span> <span class="n">decay_particle</span><span class="o">.</span><span class="n">energy</span>
+                        <span class="k">if</span> <span class="n">mu_energy</span> <span class="o">&lt;=</span> <span class="n">low</span><span class="p">:</span>
                             <span class="k">continue</span>
-                        <span class="n">mu_position</span> <span class="o">=</span> <span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">sec</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">sec</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
-                        <span class="n">mu_direction</span> <span class="o">=</span> <span class="n">lepton_direction</span>  <span class="c1"># We reuse the primary lepton direction</span>
-                                                        <span class="c1"># At these energies the muon direction is the same</span>
-                        <span class="n">decay_muons_array</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">mu_energy</span><span class="p">,</span> <span class="n">mu_code</span><span class="p">,</span> <span class="n">mu_position</span><span class="p">,</span> <span class="n">mu_direction</span><span class="p">]</span>
-                        <span class="c1"># I store the properties of each muon in an array because they cannot be</span>
-                        <span class="c1"># propagated while we are looping the secondaries array. Doing that can</span>
-                        <span class="c1"># create a segmentation fault because the results of the new propagation</span>
-                        <span class="c1"># are written into the secondaries array (!)</span>
+                        
+                        <span class="n">mu_position</span> <span class="o">=</span> <span class="p">(</span><span class="n">decay_particle</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">decay_particle</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">decay_particle</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+                        <span class="n">mu_direction</span> <span class="o">=</span> <span class="p">(</span><span class="n">decay_particle</span><span class="o">.</span><span class="n">direction</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">decay_particle</span><span class="o">.</span><span class="n">direction</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">decay_particle</span><span class="o">.</span><span class="n">direction</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
 
-            <span class="c1"># group shower-inducing decay products so that they create a single shower</span>
-            <span class="n">min_distance</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
-            <span class="k">while</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shower_inducing_prods</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span>
-                   <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">shower_inducing_prods</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">distance</span> <span class="o">-</span> <span class="n">shower_inducing_prods</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">distance</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">min_distance</span><span class="p">):</span>
+                        <span class="n">muon_secondaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__propagate_particle</span><span class="p">(</span><span class="n">mu_energy</span><span class="p">,</span> <span class="n">decay_particle</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
+                                                                     <span class="n">mu_position</span><span class="p">,</span> <span class="n">mu_direction</span><span class="p">,</span>
+                                                                     <span class="n">propagation_length</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="n">low</span><span class="p">)</span>
 
-                <span class="n">last_decay_prod</span> <span class="o">=</span> <span class="n">shower_inducing_prods</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-                <span class="n">shower_inducing_prods</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">energy</span> <span class="o">+=</span> <span class="n">last_decay_prod</span><span class="o">.</span><span class="n">energy</span>
-                <span class="n">shower_inducing_prods</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="mi">86</span>
-                <span class="n">shower_inducing_prods</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_name</span><span class="p">(</span><span class="mi">86</span><span class="p">)</span>
+                        <span class="n">shower_inducing_muon_secondaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__filter_secondaries</span><span class="p">(</span><span class="n">muon_secondaries</span><span class="o">.</span><span class="n">stochastic_losses</span><span class="p">(),</span>
+                                                                                     <span class="n">min_energy_loss</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">)</span>
+
+                        <span class="n">shower_inducing_prods</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">shower_inducing_muon_secondaries</span><span class="p">)</span>
+
+                        <span class="c1"># We have already handled the muon, remove it to avoid double counting.</span>
+                        <span class="n">decay_products</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">decay_particle</span><span class="p">)</span>
+
+            <span class="n">grouped_decay_products</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__group_decay_products</span><span class="p">(</span><span class="n">decay_products</span><span class="p">,</span> <span class="n">min_energy_loss</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">grouped_decay_products</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">shower_inducing_prods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">grouped_decay_products</span><span class="p">)</span>
 
             <span class="n">secondaries_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shower_inducing_prods</span><span class="p">)</span>
-
-        <span class="c1"># Propagating the decay muons</span>
-        <span class="k">if</span> <span class="n">propagate_decay_muons</span><span class="p">:</span>
-
-            <span class="k">for</span> <span class="n">shower_inducing_prods</span><span class="p">,</span> <span class="n">decay_muon</span><span class="p">,</span> <span class="n">lepton_position</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">secondaries_array</span><span class="p">,</span>
-                <span class="n">decay_muons_array</span><span class="p">,</span> <span class="n">lepton_positions</span><span class="p">):</span>
-
-                <span class="k">if</span> <span class="n">decay_muon</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="k">continue</span>
-                <span class="n">mu_energy</span><span class="p">,</span> <span class="n">mu_code</span><span class="p">,</span> <span class="n">mu_position</span><span class="p">,</span> <span class="n">mu_direction</span> <span class="o">=</span> <span class="n">decay_muon</span>
-                <span class="n">mu_secondaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__propagate_particle</span><span class="p">(</span><span class="n">mu_energy</span><span class="p">,</span> <span class="n">mu_code</span><span class="p">,</span> <span class="n">mu_position</span><span class="p">,</span> <span class="n">mu_direction</span><span class="p">,</span>
-                                                           <span class="n">propagation_length</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="n">low</span><span class="p">)</span>
-
-                <span class="n">mu_shower_inducing_prods</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__filter_secondaries</span><span class="p">(</span><span class="n">mu_secondaries</span><span class="p">,</span> <span class="n">min_energy_loss</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">)</span>
-
-                <span class="n">shower_inducing_prods</span> <span class="o">+=</span> <span class="n">mu_shower_inducing_prods</span>
 
         <span class="k">return</span> <span class="n">secondaries_array</span></div>
 
@@ -1235,7 +1251,8 @@
         <span class="k">if</span> <span class="n">lepton_positions_nu</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">lepton_positions</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">energy_leptons</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">lepton_positions</span> <span class="o">=</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">lepton_position_nu</span><span class="p">)</span> <span class="o">*</span> <span class="n">pp_m</span> <span class="k">for</span> <span class="n">lepton_position_nu</span> <span class="ow">in</span> <span class="n">lepton_positions_nu</span> <span class="p">]</span>
+            <span class="n">lepton_positions</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">lepton_position_nu</span><span class="p">)</span> <span class="o">*</span> <span class="n">pp_m</span>
+                                    <span class="k">for</span> <span class="n">lepton_position_nu</span> <span class="ow">in</span> <span class="n">lepton_positions_nu</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">lepton_directions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">lepton_directions</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">energy_leptons</span><span class="p">)</span>
@@ -1252,22 +1269,22 @@
                 <span class="n">secondaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__propagate_particle</span><span class="p">(</span><span class="n">energy_lepton</span><span class="p">,</span> <span class="n">lepton_code</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">,</span> <span class="n">lepton_direction</span><span class="p">,</span>
                                                         <span class="n">propagation_length</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="n">low</span><span class="p">)</span>
 
-                <span class="n">decay_particles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">secondaries</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">proposal_interaction_codes</span><span class="p">])</span>
+
+                <span class="n">decay_particles</span> <span class="o">=</span> <span class="n">secondaries</span><span class="o">.</span><span class="n">decay_products</span><span class="p">()</span>
                 <span class="n">decay_energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">energy</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">decay_particles</span><span class="p">])</span>
                 <span class="n">decay_energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">decay_energies</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span>
 
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="c1"># If Proposal fails and there is no decay (sometimes it happens),</span>
-                    <span class="c1"># the particle is propagated again</span>
-                    <span class="n">decay_distance</span> <span class="o">=</span> <span class="p">((</span><span class="n">decay_particles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">lepton_position</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
-                    <span class="n">decay_distance</span> <span class="o">+=</span> <span class="p">((</span><span class="n">decay_particles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">lepton_position</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
-                    <span class="n">decay_distance</span> <span class="o">+=</span> <span class="p">((</span><span class="n">decay_particles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">z</span> <span class="o">-</span> <span class="n">lepton_position</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
-                    <span class="n">decay_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">decay_distance</span><span class="p">)</span>
-
-                    <span class="n">decay_prop</span> <span class="o">=</span> <span class="p">(</span><span class="n">decay_distance</span><span class="p">,</span> <span class="n">decay_energy</span><span class="p">)</span>
-                    <span class="n">decays_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">decay_prop</span><span class="p">)</span>
-                <span class="k">except</span><span class="p">:</span>
+                <span class="c1"># TODO: Is it physical to repeat the propagation until a decay (before the energy of low) happened?</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">decay_particles</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
                     <span class="n">decay_prop</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># all decay particles have the same position, so we can just use the position of the first one</span>
+                <span class="n">decay_distance</span> <span class="o">=</span> <span class="n">ProposalFunctions</span><span class="o">.</span><span class="n">__calculate_distance</span><span class="p">(</span><span class="n">decay_particles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">)</span>
+
+                <span class="c1"># TODO: Note that this includes ALL decay particles, including invisible ones like neutrinos</span>
+                <span class="n">decay_prop</span> <span class="o">=</span> <span class="p">(</span><span class="n">decay_distance</span><span class="p">,</span> <span class="n">decay_energy</span><span class="p">)</span>
+                <span class="n">decays_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">decay_prop</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">decays_array</span><span class="p">)</span></div></div>
 </pre></div>
