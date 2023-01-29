@@ -123,3 +123,6 @@ venv.bak/
 # ignore .nur files in NuRadioReco/examples/
 # this should not apply for NuRadioReco/examples/example_data/
 NuRadioReco/examples/*.nur
+
+# Default location for proposal tables with proposal7
+NuRadioMC/EvtGen/proposal_tables/
