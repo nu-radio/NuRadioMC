@@ -5,6 +5,7 @@ import os
 import shutil
 import argparse
 import logging
+import sys
 
 logger = logging.getLogger('ProposalTablesManager')
 
