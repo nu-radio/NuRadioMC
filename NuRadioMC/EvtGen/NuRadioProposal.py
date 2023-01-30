@@ -1,7 +1,7 @@
 import proposal as pp
 import numpy as np
 from NuRadioReco.utilities import units, particle_names
-from NuRadioReco.utilities.metaclasses import Singleton
+import NuRadioReco.utilities.metaclasses
 import os
 import six
 import json
@@ -203,7 +203,7 @@ def is_shower_primary(pp_type):
         return False
 
 
-@six.add_metaclass(Singleton)
+@six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class ProposalFunctions(object):
     """
     This class serves as a container for PROPOSAL functions. The functions that
@@ -238,7 +238,11 @@ class ProposalFunctions(object):
             upper_energy_limit of tables that will be created by PROPOSAL, in NuRadioMC units (eV).
             There will be an error if primaries with energies above this energy will be injected.
             Note that PROPOSAL will have to regenerate tables for a new values of upper_energy_limit
-
+        create_new: bool (default:False)
+            Can be used to force the creation of a new ProposalFunctions object.
+            By default, the __init__ will only create a new object if none already exists.
+            For more details, check the documentation for the
+            `Singleton metaclass <NuRadioReco.utilities.html#NuRadioReco.utilities.metaclasses.Singleton>`_.
         """
         self.__logger = logging.getLogger("proposal")
         self.__logger.setLevel(log_level)
