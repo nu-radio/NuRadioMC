@@ -1,5 +1,4 @@
 set -e
-python3 NuRadioMC/EvtGen/proposal_table_manager.py download "Greenland" -t "NuRadioMC/examples/06_webinar/tables"
 
 cd NuRadioMC/examples/06_webinar
 python3 W01_create_input.py
