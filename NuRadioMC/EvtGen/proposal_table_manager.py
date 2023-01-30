@@ -20,7 +20,7 @@ def produce_proposal_tables(config_file, tables_path=None):
     tables_path: string
         output path for the generated tables
     """
-    proposal_func = ProposalFunctions(config_file=config_file, tables_path=tables_path)
+    proposal_func = ProposalFunctions(config_file=config_file, tables_path=tables_path, create_new=True)
 
     for particle_code in [-15, -13, 13, 15]:
         logger.warning(f"producing tables for {config_file}, particle {particle_code}")
@@ -85,7 +85,7 @@ def download_proposal_tables(config_file, tables_path=None):
     """
 
     if tables_path is None:
-        proposal_func = ProposalFunctions(config_file=config_file)
+        proposal_func = ProposalFunctions(config_file=config_file, create_new=True)
         tables_path = proposal_func._ProposalFunctions__tables_path
 
     download_file = True
