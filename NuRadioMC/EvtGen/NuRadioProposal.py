@@ -322,7 +322,7 @@ class ProposalFunctions(object):
             pp.InterpolationSettings.tables_path = self.__tables_path
             # download pre-calculated tables for default configs, but not more than once
             if self.__config_file in config_files and not self.__tables_downloaded:
-                from proposal_tables_manager import download_proposal_tables
+                from NuRadioMC.EvtGen.proposal_table_manager import download_proposal_tables
 
                 download_proposal_tables(self.__config_file, tables_path=self.__tables_path)
                 self.__tables_downloaded = True
