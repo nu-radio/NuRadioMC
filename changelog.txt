@@ -5,8 +5,7 @@ please update the categories "new features" and "bugfixes" before a pull request
 version 2.2.0-dev
 new features:
 - upgrade to proposal v 7.5.0 with new NuRadioProposal interface and improved LPM treatment
-- add option to download pre-calculated proposal tables for the default
-detector configurations
+- add script to generate / download pre-calculated proposal tables for known detector configurations
 bugfixes:
 
 
