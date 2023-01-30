@@ -39,7 +39,7 @@ def produce_proposal_tables_tarball(config_file, tables_path=None):
     """
     produce proposal tables tarball for all relevant flavors
     Note: the produced tarballs need to be placed in the
-          NuRadioMC/proposal_tables/{version}/{compiler} directory on the desy cluster.
+    NuRadioMC/proposal_tables/{version}/{compiler} directory on the desy cluster.
 
     Parameters
     ----------
