@@ -260,6 +260,7 @@ class ProposalFunctions(object):
         self.__propagators = {}
         self.__config_file = config_file
         self.__tables_path = tables_path
+        self.__tables_downloaded = False
         self.__upper_energy_limit = upper_energy_limit * pp_eV # convert to PROPOSAL units
 
 
@@ -319,6 +320,12 @@ class ProposalFunctions(object):
                     "path {} exists.".format(config_file_full_path))
 
             pp.InterpolationSettings.tables_path = self.__tables_path
+            # download pre-calculated tables for default configs, but not more than once
+            if self.__config_file in config_files and not self.__tables_downloaded:
+                from proposal_tables_manager import download_proposal_tables
+
+                download_proposal_tables(self.__config_file, tables_path=self.__tables_path)
+                self.__tables_downloaded = True
 
             # upper energy lim for proposal tables, in PROPOSAL units (MeV)
             pp.InterpolationSettings.upper_energy_lim = self.__upper_energy_limit
