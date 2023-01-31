@@ -242,7 +242,7 @@ class ProposalFunctions(object):
             Can be used to force the creation of a new ProposalFunctions object.
             By default, the __init__ will only create a new object if none already exists.
             For more details, check the documentation for the
-            `Singleton metaclass <NuRadioReco.utilities.html#NuRadioReco.utilities.metaclasses.Singleton>`_.
+            :class:`Singleton metaclass <NuRadioReco.utilities.metaclasses.Singleton>`.
         """
         self.__logger = logging.getLogger("proposal")
         self.__logger.setLevel(log_level)

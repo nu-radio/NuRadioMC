@@ -88,29 +88,27 @@ def download_proposal_tables(config_file, tables_path=None):
         proposal_func = ProposalFunctions(config_file=config_file, create_new=True)
         tables_path = proposal_func._ProposalFunctions__tables_path
 
-    download_file = True
-    if download_file:
-        # does not exist yet -> download file
-        import requests
-        proposal_version = proposal.__version__
-        URL = f'https://rnog-data.zeuthen.desy.de/proposal_tables/v{proposal_version}/{get_compiler()}/{config_file}.tar.gz'
+    # does not exist yet -> download file
+    import requests
+    proposal_version = proposal.__version__
+    URL = f'https://rnog-data.zeuthen.desy.de/proposal_tables/v{proposal_version}/{get_compiler()}/{config_file}.tar.gz'
 
-        folder = tables_path #os.path.dirname(tables_path)
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-        logger.warning(
-            "downloading pre-calculated proposal tables for {} from {}. This can take a while...".format(config_file, URL))
-        r = requests.get(URL)
-        if r.status_code != requests.codes.ok:
-            logger.error("error in download of proposal tables")
-            raise IOError
-    
-        with open(f"{tables_path}/{config_file}.tar.gz", "wb") as code:
-            code.write(r.content)
-        logger.warning("...download finished.")
-        logger.warning(f"...unpacking archive to {tables_path}")
-        shutil.unpack_archive(f"{tables_path}/{config_file}.tar.gz", tables_path)
-        os.remove(f"{tables_path}/{config_file}.tar.gz")
+    folder = tables_path #os.path.dirname(tables_path)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    logger.warning(
+        "downloading pre-calculated proposal tables for {} from {}. This can take a while...".format(config_file, URL))
+    r = requests.get(URL)
+    if r.status_code != requests.codes.ok:
+        logger.error("error in download of proposal tables")
+        raise IOError
+
+    with open(f"{tables_path}/{config_file}.tar.gz", "wb") as code:
+        code.write(r.content)
+    logger.warning("...download finished.")
+    logger.warning(f"...unpacking archive to {tables_path}")
+    shutil.unpack_archive(f"{tables_path}/{config_file}.tar.gz", tables_path)
+    os.remove(f"{tables_path}/{config_file}.tar.gz")
 
 
 
