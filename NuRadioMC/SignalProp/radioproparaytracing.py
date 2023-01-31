@@ -21,7 +21,7 @@ logging.basicConfig()
 """
 RadioPropa is a C++ module dedicated for ray tracing. It is a seperate module and
 it has its own unit system. However, all object within NuRadio ecosystem are in the
-NuRadio uit system. Therefore, when passing argument from NuRadio to RadioPropa, or
+NuRadio unit system. Therefore, when passing argument from NuRadio to RadioPropa, or
 when receiving object from RadioPropa into NuRadio the units of object needed to be 
 converted to the right unit system. Below is an example given for an object 'distance'
 
@@ -77,6 +77,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 config['propagation']['attenuate_ice'] = True
                 config['propagation']['focusing_limit'] = 2
                 config['propagation']['focusing'] = False
+                config['propagation']['birefringence'] = False
                 config['speedup']['delta_C_cut'] = 40 * units.degree
                 config['propagation']['radiopropa']['mode'] = 'iterative'
                 config['propagation']['radiopropa']['max_traj_length'] = 10000
@@ -110,6 +111,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
         self.set_minimizer_tolerance()
         self._shower_axis = None ## this is given so we can limit the rays that are checked around the cherenkov angle
         self._rays = None
+        self._source = None
+        self._antenna = None
 
 
     def reset_solutions(self):
@@ -121,6 +124,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
         super().reset_solutions()
         self._shower_axis = None
         self._rays = None
+        self._source = None
+        self._antenna = None
 
     def set_start_and_end_point(self, x1, x2):
         """
@@ -133,6 +138,9 @@ class radiopropa_ray_tracing(ray_tracing_base):
         x2: 3dim np.array
             stop point of the ray
         """
+        self._source = x1
+        self._antenna = x2
+        
         super().set_start_and_end_point(x1, x2)
         self.set_iterative_step_sizes(step_zeniths=self._step_zeniths) #if auto is on this set the automated step size, otherwise nothing happens
 
@@ -324,6 +332,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
                     return viewing - cherenkov_angle
 
                 if (self._shower_axis is None) or (abs(delta(ray_dir,self._shower_axis)) < self._cut_viewing_angle):
+
                     source = radiopropa.Source()
                     source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*X1)))
                     source.add(radiopropa.SourceDirection(radiopropa.Vector3d(*ray_dir)))
@@ -381,6 +390,139 @@ class radiopropa_ray_tracing(ray_tracing_base):
     def set_minimizer_tolerance(self, xtol=1e-3*units.deg, ztol=1e-3*units.meter):
         self.__xtol = xtol
         self.__ztol = ztol
+
+    def raytracer_birefringence(self, launch_v, efield, s_rate, n_reflections=0):
+        #(self._source, self._antenna, spec, path_type=i_solution, samp_rate = s_rate)
+        #(self._source, self._antenna, spec, path_type=i_solution, samp_rate = s_rate)
+        """
+        Uses RadioPropa to find all the numerical ray tracing solutions between sphere X1 and X2.
+        If reflections is bigger than 0, also bottom reflected rays are searched for with a max
+        of n_reflections of the bottom
+        """
+        try:
+            X1 = self._X1 * (radiopropa.meter/units.meter)
+            X2 = self._X2 * (radiopropa.meter/units.meter)
+        except TypeError: 
+            self.__logger.error('NoneType: start or endpoint not initialized')
+            raise TypeError('NoneType: start or endpoint not initialized')
+
+      
+        v = (self._X2 - self._X1)
+        u = copy.deepcopy(v)
+        u[2] = 0
+        theta_direct, phi_direct = hp.cartesian_to_spherical(*v) # zenith and azimuth for the direct linear ray solution (radians)
+        cherenkov_angle = np.arccos(1. / self._medium.get_index_of_refraction(self._X1))
+        
+        sphere_size = 50 * (radiopropa.meter/units.meter)
+        
+
+        if np.linalg.norm(u) != 0:
+            delta_theta = 2*abs(self.delta_theta_direct(dz=self._sphere_sizes[0]))
+        else:
+            delta_theta = self._step_sizes[0]/units.radian
+            
+        """
+        if n_reflections > 0:
+            if self.medium.reflection is None:
+                self.__logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested,"
+                                    +"but ice model does not specify a reflective layer".format(n_reflections))
+                raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested,"
+                                    +"but ice model does not specify a reflective layer".format(n_reflections))
+            else:
+                z_refl = self._medium.reflection
+                rho_channel = np.linalg.norm(u)
+                if self._X2[2] > self._X1[2]: 
+                    z_up = self._X2[2]
+                    z_down = self._X1[2]
+                else:
+                    z_up = self._X1[2]
+                    z_down = self._X2[2]
+                rho_bottom = (rho_channel * (z_refl - z_down)) / (2*z_refl - z_up - z_down)
+                alpha = np.arctan((z_down - z_refl)/rho_bottom)
+                ## when reflection on the bottom are allowed, a initial region for theta from 180-alpha to 180 degrees is added
+                launch_lower.append(((np.pi/2 + alpha) - 2*abs(self.delta_theta_bottom(dz=self._sphere_sizes[0], z_refl=z_refl) / units.radian)))
+                launch_upper.append(np.pi)
+        """
+
+
+        #sim.add(radiopropa.PropagationCK(self._ice_model.get_scalar_field(), 1E-8, .001, 1., efield, s_rate, True)) ## add propagation to module list
+
+        ##define module list for simulation
+        sim = radiopropa.ModuleList()
+        sim.add(radiopropa.PropagationCK(self._ice_model.get_scalar_field(), 1E-8, .001, 1., True)) ## add propagation to module list
+        #sim.add(radiopropa.PropagationCK(self._ice_model.get_scalar_field(), 1E-8, .001, 1., False)) ## add propagation to module list
+        #sim.add(radiopropa.PropagationCK(self._ice_model.get_scalar_field(), 1E-8, .001, 1.)) ## add propagation to module list
+        for module in self._ice_model.get_modules().values(): 
+            sim.add(module)
+        sim.add(radiopropa.MaximumTrajectoryLength(self._max_traj_length * (radiopropa.meter/units.meter)))
+
+        
+        ## define observer for detection (channel)            
+        obs = radiopropa.Observer()
+        obs.setDeactivateOnDetection(True)
+        channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(*X2), sphere_size)) ## when making the radius larger than 2 meters, somethimes three solution times are found
+        obs.add(channel)
+        sim.add(obs)
+        
+
+        ## define observer for stopping simulation (boundaries)
+        obs2 = radiopropa.Observer()
+        obs2.setDeactivateOnDetection(True)
+        w = (u / np.linalg.norm(u)) * 2*sphere_size
+        boundary_behind_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*(X2 + w)), radiopropa.Vector3d(*w)))
+        obs2.add(boundary_behind_channel)
+        boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0, 0, 1*radiopropa.meter), radiopropa.Vector3d(0, 0, 1)))
+        obs2.add(boundary_above_surface)
+        sim.add(obs2)
+        
+        """
+        #create total scanning range from the upper and lower thetas of the bundles
+        step = self._step_zeniths[s] / units.radian
+        theta_scanning_range = np.array([])
+        for iL in range(len(launch_lower)):
+            new_scanning_range = np.arange(launch_lower[iL], launch_upper[iL]+step, step)
+            theta_scanning_range = np.concatenate((theta_scanning_range, new_scanning_range))
+        """
+        print('this is my vector')
+        print(launch_v)
+        source = radiopropa.Source()
+        #start_field = radiopropa.ParticleState().getElectricField() 
+        source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*X1)))
+        source.add(radiopropa.SourceDirection(radiopropa.Vector3d(*launch_v)))
+        
+        source.add(radiopropa.SourceElectricField(efield).prepareParticle())
+        
+
+        #sim.setShowProgress(True)
+        ray = source.getCandidate()
+        print(ray.getDescription())
+
+        print('test4')
+        sim.run(ray, True)
+        #end_field = radiopropa.ParticleState().getElectricField() 
+        print('test5')
+
+        R_real = ray.get().current.getElectricField().getTraces()[0].getFrequencySpectrum_real()
+        R_imag = ray.get().current.getElectricField().getTraces()[0].getFrequencySpectrum_imag()
+        Th_real = ray.get().current.getElectricField().getTraces()[1].getFrequencySpectrum_real()
+        Th_imag = ray.get().current.getElectricField().getTraces()[1].getFrequencySpectrum_imag()
+        Ph_real = ray.get().current.getElectricField().getTraces()[2].getFrequencySpectrum_real()
+        Ph_imag = ray.get().current.getElectricField().getTraces()[2].getFrequencySpectrum_imag()
+        s_rate = ray.get().current.getElectricField().getTraces()[0].getSamplingRate()
+
+        print('this is it')
+        print(R_real)
+        R = np.vectorize(complex)(R_real, R_imag)
+        Th = np.vectorize(complex)(Th_real, Th_imag)
+        Ph = np.vectorize(complex)(Ph_real, Ph_imag)
+
+        end_field = np.vstack((R, Th, Ph))
+        
+        print(end_field)
+        print(end_field.shape)
+
+        #return R_real
+        return end_field
         
     def raytracer_minimizer(self, n_reflections=0):
         """
@@ -1004,7 +1146,11 @@ class radiopropa_ray_tracing(ray_tracing_base):
         efield: ElectricField object
             The modified ElectricField object
         """
+
+        s_rate = efield.get_sampling_rate()
         spec = efield.get_frequency_spectrum()
+
+        
         ## aply attenuation
         apply_attenuation = self._config['propagation']['attenuate_ice']
         if apply_attenuation:
@@ -1014,6 +1160,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 max_freq = self._max_detector_frequency
             attenuation = self.get_attenuation(i_solution, efield.get_frequencies(), max_freq)
             spec *= attenuation
+
         
         ## apply reflections
         zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))
@@ -1051,6 +1198,40 @@ class radiopropa_ray_tracing(ray_tracing_base):
         if self._config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
             spec[1:] *= focusing
+
+        # apply the birefringence effect
+        if self._config['propagation']['birefringence']:
+        
+            launch_v = self.get_launch_vector(i_solution)
+
+            print(spec)
+            print(spec.shape)
+
+            spec_r_real = radiopropa.DoubleVector_1D()
+            spec_theta_real = radiopropa.DoubleVector_1D()
+            spec_phi_real = radiopropa.DoubleVector_1D()
+            spec_r_imag = radiopropa.DoubleVector_1D()
+            spec_theta_imag = radiopropa.DoubleVector_1D()
+            spec_phi_imag = radiopropa.DoubleVector_1D()
+
+            for i in range(len(spec[0])):
+                spec_r_real.push_back(spec[0][i].real)
+                spec_theta_real.push_back(spec[1][i].real)
+                spec_phi_real.push_back(spec[2][i].real)
+                spec_r_imag.push_back(spec[0][i].imag)
+                spec_theta_imag.push_back(spec[1][i].imag)
+                spec_phi_imag.push_back(spec[2][i].imag)
+
+            E = radiopropa.ElectricField()
+
+            E.setFrequencySpectrum(spec_r_real,spec_r_imag,
+					   spec_theta_real,spec_theta_imag,
+					   spec_phi_real,spec_phi_imag,
+					   s_rate)
+
+            print('test3')
+
+            spec = self.raytracer_birefringence(launch_v, E, s_rate)
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
@@ -1119,9 +1300,10 @@ class radiopropa_ray_tracing(ray_tracing_base):
         if config == None:
             config = dict()
             config['propagation'] = dict(
-                attenuate_ice = True,
+                attenuate_ice = False,
                 focusing_limit = 2,
                 focusing = False,
+                birefringence = True,
                 radiopropa = dict(
                     mode = 'iterative',
                     iter_steps_channel = [25., 2., .5], #unit is meter
@@ -1138,7 +1320,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
         self._max_traj_length = self._config['propagation']['radiopropa']['max_traj_length'] * units.meter
         self.set_iterative_sphere_sizes(np.array(self._config['propagation']['radiopropa']['iter_steps_channel']) * units.meter)
         self._auto_step = self._config['propagation']['radiopropa']['auto_step_size']
-        self.activate_auto_step_size(np.array(self._config['propagation']['radiopropa']['iter_steps_zenith']) * units.degree)
+        #self.activate_auto_step_size(np.array(self._config['propagation']['radiopropa']['iter_steps_zenith']) * units.degree)
+        self.set_iterative_step_sizes(np.array(self._config['propagation']['radiopropa']['iter_steps_zenith']) * units.degree)
 
     ## helper functions
     def delta_theta_direct(self, dz):
