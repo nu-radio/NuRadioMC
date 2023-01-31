@@ -8,5 +8,5 @@ NuRadioMC/test/atmospheric_Aeff/1e18eV/T02RunSimulation.py 1e18_full.hdf5  ../di
 
 NuRadioMC/test/atmospheric_Aeff/1e18eV/T03check_output.py NuRadioMC/test/atmospheric_Aeff/1e18eV/output.hdf5
 
-rm NuRadioMC/test/atmospheric_Aeff/1e18eV/tables/*.dat
+rm NuRadioMC/test/atmospheric_Aeff/1e18eV/tables/**/*.dat
 rm NuRadioMC/test/atmospheric_Aeff/1e18eV/output*

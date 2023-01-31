@@ -337,7 +337,11 @@ class ProposalFunctions(object):
             if self.__download_tables:
                 from NuRadioMC.EvtGen.proposal_table_manager import download_proposal_tables
 
-                download_proposal_tables(self.__config_file, tables_path=self.__tables_path)
+                try:
+                    download_proposal_tables(self.__config_file, tables_path=self.__tables_path)
+                except:
+                    self.__logger.warning("requested pre-calculated proposal tables could not be downloaded, calculating manually")
+                    pass
                 self.__download_tables = False
 
             # upper energy lim for proposal tables, in PROPOSAL units (MeV)
