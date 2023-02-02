@@ -1,10 +1,12 @@
 import proposal as pp
 import numpy as np
 from NuRadioReco.utilities import units, particle_names
+import NuRadioReco.utilities.metaclasses
 import os
 import six
 import json
 import logging
+from glob import glob
 
 """
 This module takes care of the PROPOSAL implementation. Some important things
@@ -38,17 +40,6 @@ pp_ZeV = 1.e15
 
 pp_m = 1.e2
 pp_km = 1.e5
-
-
-
-
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if Singleton._instances.get(cls, None) is None:
-            Singleton._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return Singleton._instances[cls]
 
 
 class SecondaryProperties:
@@ -213,7 +204,7 @@ def is_shower_primary(pp_type):
         return False
 
 
-@six.add_metaclass(Singleton)
+@six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class ProposalFunctions(object):
     """
     This class serves as a container for PROPOSAL functions. The functions that
@@ -248,7 +239,11 @@ class ProposalFunctions(object):
             upper_energy_limit of tables that will be created by PROPOSAL, in NuRadioMC units (eV).
             There will be an error if primaries with energies above this energy will be injected.
             Note that PROPOSAL will have to regenerate tables for a new values of upper_energy_limit
-
+        create_new: bool (default:False)
+            Can be used to force the creation of a new ProposalFunctions object.
+            By default, the __init__ will only create a new object if none already exists.
+            For more details, check the documentation for the
+            :class:`Singleton metaclass <NuRadioReco.utilities.metaclasses.Singleton>`.
         """
         self.__logger = logging.getLogger("proposal")
         self.__logger.setLevel(log_level)
@@ -256,18 +251,47 @@ class ProposalFunctions(object):
 
         pp.RandomGenerator.get().set_seed(seed) # set global seed for PROPOSAL
 
+        default_configs = {
+            'SouthPole':  'config_PROPOSAL.json', 'MooresBay': 'config_PROPOSAL_mooresbay.json',
+            'InfIce': 'config_PROPOSAL_infice.json', 'Greenland': 'config_PROPOSAL_greenland.json'}
+
+
         if tables_path is None:
             tables_path = os.path.join(os.path.dirname(__file__), "proposal_tables")
         
+        if config_file in default_configs:
+            # default configurations should append their identifier to the tables path
+            if not config_file == os.path.dirname(tables_path).split("/")[-1]:
+                    tables_path = os.path.join(tables_path, config_file)
+
         if not os.path.exists(tables_path):
             self.__logger.info(f"Create directory {tables_path} to store proposal tables")
-            os.mkdir(tables_path)
-        
+            os.makedirs(tables_path)
+
+        if config_file in default_configs:
+            config_file_full_path = os.path.join(os.path.dirname(__file__), default_configs[config_file])
+
+        elif os.path.exists(config_file):
+            config_file_full_path = config_file
+        else:
+            raise ValueError("Proposal config file is not valid. Please provide a valid option.")
+
+        if not os.path.exists(config_file_full_path):
+            raise ValueError("Unable to find proposal config file.\n"
+                "Make sure that json configuration file under "
+                "path {} exists.".format(config_file_full_path))
+
+
         self.__propagators = {}
         self.__config_file = config_file
+        self.__config_file_full_path = config_file_full_path
         self.__tables_path = tables_path
         self.__upper_energy_limit = upper_energy_limit * pp_eV # convert to PROPOSAL units
 
+        self.__download_tables = False
+        if self.__config_file in default_configs:
+            if len(glob(self.__tables_path + "/*.dat")) == 0:
+                self.__download_tables = True
 
     @staticmethod
     def __calculate_distance(pp_position, pos_arr):
@@ -308,23 +332,17 @@ class ProposalFunctions(object):
         if(particle_code not in self.__propagators):
             self.__logger.info(f"initializing propagator for particle code {particle_code}")
 
-            config_files = {
-                'SouthPole':  'config_PROPOSAL.json', 'MooresBay': 'config_PROPOSAL_mooresbay.json',
-                'InfIce': 'config_PROPOSAL_infice.json', 'Greenland': 'config_PROPOSAL_greenland.json'}
-
-            if self.__config_file in config_files:
-                config_file_full_path = os.path.join(os.path.dirname(__file__), config_files[self.__config_file])
-            elif os.path.exists(self.__config_file):
-                config_file_full_path = self.__config_file
-            else:
-                raise ValueError("Proposal config file is not valid. Please provide a valid option.")
-
-            if not os.path.exists(config_file_full_path):
-                raise ValueError("Unable to find proposal config file.\n"
-                    "Make sure that json configuration file under "
-                    "path {} exists.".format(config_file_full_path))
-
             pp.InterpolationSettings.tables_path = self.__tables_path
+            # download pre-calculated tables for default configs, but not more than once
+            if self.__download_tables:
+                from NuRadioMC.EvtGen.proposal_table_manager import download_proposal_tables
+
+                try:
+                    download_proposal_tables(self.__config_file, tables_path=self.__tables_path)
+                except:
+                    self.__logger.warning("requested pre-calculated proposal tables could not be downloaded, calculating manually")
+                    pass
+                self.__download_tables = False
 
             # upper energy lim for proposal tables, in PROPOSAL units (MeV)
             pp.InterpolationSettings.upper_energy_lim = self.__upper_energy_limit
@@ -336,7 +354,7 @@ class ProposalFunctions(object):
                 error_str += "Please choose between -/+muon (13/-13) and -/+tau (15/-15)"
                 raise NotImplementedError(error_str)
 
-            self.__propagators[particle_code] = pp.Propagator(particle_def=p_def, path_to_config_file=config_file_full_path)
+            self.__propagators[particle_code] = pp.Propagator(particle_def=p_def, path_to_config_file=self.__config_file_full_path)
 
         return self.__propagators[particle_code]
 
