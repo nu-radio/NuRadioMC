@@ -81,7 +81,7 @@ class Trigger:
 
     def get_trigger_time(self):
         """
-        get the trigger time (time with respect to beginning of trace)
+        get the trigger time (time with respect to the beginning of the event, e.g. the first neutrino interaction)
         """
         return self._trigger_time
 
@@ -97,7 +97,7 @@ class Trigger:
 
     def get_trigger_times(self):
         """
-        get the trigger times (time with respect to beginning of trace)
+        get the trigger times (time with respect to beginning of trace?)
         """
         return self._trigger_times
 
