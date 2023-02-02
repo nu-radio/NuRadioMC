@@ -236,42 +236,19 @@ class simulation(
                         shower_energies
                     ):
                         continue
-                    self._simulate_shower()
-
-                    # calculate correct Cherenkov angle for ice density at vertex position
-                    n_index = self._ice.get_index_of_refraction(self._shower_vertex)
-                    cherenkov_angle = np.arccos(1. / n_index)
-
-                    # first step: perform raytracing to see if solution exists
-                    t2 = time.time()
                     mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup']['distance_cut_sum_length']
                     shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
-                    for channel_id in range(self._det.get_number_of_channels(self._station_id)):
-                        ray_tracing_solution_found = self._perform_raytracing_for_channel(
-                            channel_id,
-                            pre_simulated,
-                            ray_tracing_performed,
-                            shower_energy_sum
-                        )
-                        if not ray_tracing_solution_found:
-                            continue
-                        delta_Cs, viewing_angles = self._calculate_viewing_angles(sg, iSh, channel_id, cherenkov_angle)
 
-                        # discard event if delta_C (angle off cherenkov cone) is too large
-                        if min(np.abs(delta_Cs)) > self._cfg['speedup']['delta_C_cut']:
-                            logger.debug('delta_C too large, event unlikely to be observed, skipping event')
-                            continue
+                    candidate_shower = self._simulate_shower(
+                        sg,
+                        iSh,
+                        shower_energy_sum,
+                        pre_simulated,
+                        ray_tracing_performed
+                    )
+                    if candidate_shower:
+                        candidate_station = True
 
-                        if ray_tracing_solution_found:
-                            is_candidate = self._calculate_polarization_angles(sg, iSh, delta_Cs, viewing_angles,
-                                                                               ray_tracing_performed,
-                                                                               channel_id, n_index)
-                            if is_candidate:
-                                candidate_station = True
-                    t3 = time.time()
-                    self._rayTracingTime += t3 - t2
-                    # end of channels loop
-                # end of showers loop
                 # now perform first part of detector simulation -> convert each efield to voltage
                 # (i.e. apply antenna response) and apply additional simulation of signal chain (such as cable delays,
                 # amp response etc.)
@@ -693,22 +670,30 @@ class simulation(
             self._distance_cut_time += time.time() - t_tmp
             return True
         return True
-    def _simulate_shower(self):
+    def _simulate_shower(
+            self,
+            sg,
+            iSh,
+            shower_energy_sum,
+            pre_simulated,
+            ray_tracing_performed
+    ):
 
         # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
         # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
+        candidate_shower = False
         if not self._is_in_fiducial_volume():
             logger.debug(
                 f"event is not in fiducial volume, skipping simulation {self._fin['xx'][self._shower_index]}, {self._fin['yy'][self._shower_index]}, {self._fin['zz'][self._shower_index]}")
-            return
+            return False
 
         # for special cases where only EM or HAD showers are simulated, skip all events that don't fulfill this criterion
         if self._cfg['signal']['shower_type'] == "em":
             if self._fin['shower_type'][self._shower_index] != "em":
-                return
+                return False
         if self._cfg['signal']['shower_type'] == "had":
             if self._fin['shower_type'][self._shower_index] != "had":
-                return
+                return False
 
         if self._particle_mode:
             self._create_sim_shower()  # create sim shower
@@ -726,3 +711,34 @@ class simulation(
                                                                self._fin['azimuths'][self._shower_index])
         else:
             self._shower_axis = np.array([0, 0, 1])
+        # calculate correct Cherenkov angle for ice density at vertex position
+        n_index = self._ice.get_index_of_refraction(self._shower_vertex)
+        cherenkov_angle = np.arccos(1. / n_index)
+
+        # first step: perform raytracing to see if solution exists
+        t2 = time.time()
+        for channel_id in range(self._det.get_number_of_channels(self._station_id)):
+            ray_tracing_solution_found = self._perform_raytracing_for_channel(
+                channel_id,
+                pre_simulated,
+                ray_tracing_performed,
+                shower_energy_sum
+            )
+            if not ray_tracing_solution_found:
+                continue
+            delta_Cs, viewing_angles = self._calculate_viewing_angles(sg, iSh, channel_id, cherenkov_angle)
+
+            # discard event if delta_C (angle off cherenkov cone) is too large
+            if min(np.abs(delta_Cs)) > self._cfg['speedup']['delta_C_cut']:
+                logger.debug('delta_C too large, event unlikely to be observed, skipping event')
+                continue
+
+            if ray_tracing_solution_found:
+                is_candidate_channel = self._calculate_polarization_angles(sg, iSh, delta_Cs, viewing_angles,
+                                                                   ray_tracing_performed,
+                                                                   channel_id, n_index)
+                if is_candidate_channel:
+                    candidate_shower = True
+        t3 = time.time()
+        self._rayTracingTime += t3 - t2
+        return candidate_shower
