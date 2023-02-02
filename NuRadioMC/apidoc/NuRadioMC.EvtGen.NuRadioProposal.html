@@ -394,6 +394,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.EvtGen.generator_ASCII.html">NuRadioMC.EvtGen.generator_ASCII module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.EvtGen.generator_skeleton.html">NuRadioMC.EvtGen.generator_skeleton module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.EvtGen.hdf5_to_ASCII.html">NuRadioMC.EvtGen.hdf5_to_ASCII module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC.EvtGen.proposal_table_manager.html">NuRadioMC.EvtGen.proposal_table_manager module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.EvtGen.readARAEventList.html">NuRadioMC.EvtGen.readARAEventList module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.EvtGen.readEventList_ASCII.html">NuRadioMC.EvtGen.readEventList_ASCII module</a></li>
 </ul>
@@ -618,6 +619,11 @@ Default: None -&gt; create directory “proposal_tables” at the location of th
 There will be an error if primaries with energies above this energy will be injected.
 Note that PROPOSAL will have to regenerate tables for a new values of upper_energy_limit</p>
 </dd>
+<dt><strong>create_new: bool (default:False)</strong></dt><dd><p>Can be used to force the creation of a new ProposalFunctions object.
+By default, the __init__ will only create a new object if none already exists.
+For more details, check the documentation for the
+<a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html#NuRadioReco.utilities.metaclasses.Singleton" title="NuRadioReco.utilities.metaclasses.Singleton"><code class="xref py py-class docutils literal notranslate"><span class="pre">Singleton</span> <span class="pre">metaclass</span></code></a>.</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -722,27 +728,6 @@ relevant for NuRadioMC, namely:
 - shower_type, whether the shower they induce is hadronic or electromagnetic
 - name, its name according to the particle_name dictionary on this module</p>
 <p>Distance and energy are expected to be in NuRadioMC units</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="NuRadioMC.EvtGen.NuRadioProposal.Singleton">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal.</span></span><span class="sig-name descname"><span class="pre">Singleton</span></span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#Singleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.Singleton" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">type</span></code></a></p>
-<p class="rubric">Methods</p>
-<table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>(*args, **kwargs)</p></td>
-<td><p>Call self as a function.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">mro</span></code>(/)</p></td>
-<td><p>Return a type's method resolution order.</p></td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="py function">

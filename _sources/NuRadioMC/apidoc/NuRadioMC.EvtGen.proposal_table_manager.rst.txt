@@ -1,0 +1,7 @@
+NuRadioMC.EvtGen.proposal\_table\_manager module
+================================================
+
+.. automodule:: NuRadioMC.EvtGen.proposal_table_manager
+   :members:
+   :undoc-members:
+   :show-inheritance:

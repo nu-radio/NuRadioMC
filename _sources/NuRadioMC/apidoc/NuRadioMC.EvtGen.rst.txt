@@ -21,5 +21,6 @@ Submodules
    NuRadioMC.EvtGen.generator_ASCII
    NuRadioMC.EvtGen.generator_skeleton
    NuRadioMC.EvtGen.hdf5_to_ASCII
+   NuRadioMC.EvtGen.proposal_table_manager
    NuRadioMC.EvtGen.readARAEventList
    NuRadioMC.EvtGen.readEventList_ASCII

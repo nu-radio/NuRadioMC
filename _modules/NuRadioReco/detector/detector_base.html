@@ -391,6 +391,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator_ASCII.html">NuRadioMC.EvtGen.generator_ASCII module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator_skeleton.html">NuRadioMC.EvtGen.generator_skeleton module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.hdf5_to_ASCII.html">NuRadioMC.EvtGen.hdf5_to_ASCII module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.proposal_table_manager.html">NuRadioMC.EvtGen.proposal_table_manager module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.readARAEventList.html">NuRadioMC.EvtGen.readARAEventList module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.readEventList_ASCII.html">NuRadioMC.EvtGen.readEventList_ASCII module</a></li>
 </ul>
@@ -725,8 +726,8 @@
 <span class="sd">            appending e.g. &#39;_InfFirn&#39; to the antenna model name.</span>
 <span class="sd">            if False, the antenna model as specified in the database is used.</span>
 <span class="sd">        create_new: bool (default:False)</span>
-<span class="sd">            Can be used to force the creation of a new detector object. By default, the __init__ will anly create a new</span>
-<span class="sd">            object of none already exists.</span>
+<span class="sd">            Can be used to force the creation of a new detector object. By default, the __init__ will only create a new</span>
+<span class="sd">            object if none already exists.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_serialization</span> <span class="o">=</span> <span class="n">SerializationMiddleware</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_serialization</span><span class="o">.</span><span class="n">register_serializer</span><span class="p">(</span><span class="n">DateTimeSerializer</span><span class="p">(),</span> <span class="s1">&#39;TinyDate&#39;</span><span class="p">)</span>

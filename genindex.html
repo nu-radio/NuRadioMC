@@ -391,6 +391,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC/apidoc/NuRadioMC.EvtGen.generator_ASCII.html">NuRadioMC.EvtGen.generator_ASCII module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC/apidoc/NuRadioMC.EvtGen.generator_skeleton.html">NuRadioMC.EvtGen.generator_skeleton module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC/apidoc/NuRadioMC.EvtGen.hdf5_to_ASCII.html">NuRadioMC.EvtGen.hdf5_to_ASCII module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC/apidoc/NuRadioMC.EvtGen.proposal_table_manager.html">NuRadioMC.EvtGen.proposal_table_manager module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC/apidoc/NuRadioMC.EvtGen.readARAEventList.html">NuRadioMC.EvtGen.readARAEventList module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC/apidoc/NuRadioMC.EvtGen.readEventList_ASCII.html">NuRadioMC.EvtGen.readEventList_ASCII module</a></li>
 </ul>
@@ -1036,6 +1037,8 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.operators.html#NuRadioReco.modules.iftElectricFieldReconstructor.operators.DomainFlipper">DomainFlipper (class in NuRadioReco.modules.iftElectricFieldReconstructor.operators)</a>
 </li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.proposal_table_manager.html#NuRadioMC.EvtGen.proposal_table_manager.download_proposal_tables">download_proposal_tables() (in module NuRadioMC.EvtGen.proposal_table_manager)</a>
+</li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.ds">ds() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.generatorAttributes.dt">dt (NuRadioReco.framework.parameters.generatorAttributes attribute)</a>
@@ -1475,6 +1478,8 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_channels_by_ray_tracing_id">get_channels_by_ray_tracing_id() (NuRadioReco.framework.sim_station.SimStation method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_channels_by_shower_id">get_channels_by_shower_id() (NuRadioReco.framework.sim_station.SimStation method)</a>
+</li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.proposal_table_manager.html#NuRadioMC.EvtGen.proposal_table_manager.get_compiler">get_compiler() (in module NuRadioMC.EvtGen.proposal_table_manager)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base.get_config">get_config() (NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base method)</a>
 </li>
@@ -2506,6 +2511,8 @@
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#module-NuRadioMC.EvtGen.NuRadioProposal">NuRadioMC.EvtGen.NuRadioProposal</a>
 </li>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.proposal_table_manager.html#module-NuRadioMC.EvtGen.proposal_table_manager">NuRadioMC.EvtGen.proposal_table_manager</a>
+</li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.readARAEventList.html#module-NuRadioMC.EvtGen.readARAEventList">NuRadioMC.EvtGen.readARAEventList</a>
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.readEventList_ASCII.html#module-NuRadioMC.EvtGen.readEventList_ASCII">NuRadioMC.EvtGen.readEventList_ASCII</a>
@@ -2977,6 +2984,13 @@
 
       <ul>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#module-NuRadioMC.EvtGen.NuRadioProposal">module</a>
+</li>
+      </ul></li>
+      <li>
+    NuRadioMC.EvtGen.proposal_table_manager
+
+      <ul>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.proposal_table_manager.html#module-NuRadioMC.EvtGen.proposal_table_manager">module</a>
 </li>
       </ul></li>
       <li>
@@ -4271,10 +4285,10 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.generatorAttributes.phimax">phimax (NuRadioReco.framework.parameters.generatorAttributes attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.generatorAttributes.phimin">phimin (NuRadioReco.framework.parameters.generatorAttributes attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.plot_measured_spectrum">plot_measured_spectrum() (in module NuRadioReco.utilities.cr_flux)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.plot_result">plot_result() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D method)</a>
@@ -4312,6 +4326,10 @@
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.primary_energy_from_deposited">primary_energy_from_deposited() (in module NuRadioMC.EvtGen.generator)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.showerParameters.primary_particle">primary_particle (NuRadioReco.framework.parameters.showerParameters attribute)</a>
+</li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.proposal_table_manager.html#NuRadioMC.EvtGen.proposal_table_manager.produce_proposal_tables">produce_proposal_tables() (in module NuRadioMC.EvtGen.proposal_table_manager)</a>
+</li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.proposal_table_manager.html#NuRadioMC.EvtGen.proposal_table_manager.produce_proposal_tables_tarball">produce_proposal_tables_tarball() (in module NuRadioMC.EvtGen.proposal_table_manager)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions">ProposalFunctions (class in NuRadioMC.EvtGen.NuRadioProposal)</a>
 </li>
@@ -4791,12 +4809,8 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.simulationSelector.html#NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector">simulationSelector (class in NuRadioReco.modules.io.coreas.simulationSelector)</a>
 </li>
-      <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.Singleton">Singleton (class in NuRadioMC.EvtGen.NuRadioProposal)</a>
-
-      <ul>
-        <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html#NuRadioReco.utilities.metaclasses.Singleton">(class in NuRadioReco.utilities.metaclasses)</a>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.metaclasses.html#NuRadioReco.utilities.metaclasses.Singleton">Singleton (class in NuRadioReco.utilities.metaclasses)</a>
 </li>
-      </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.earth_attenuation.html#NuRadioMC.utilities.earth_attenuation.PREM.slant_depth">slant_depth() (NuRadioMC.utilities.earth_attenuation.PREM method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.operators.html#NuRadioReco.modules.iftElectricFieldReconstructor.operators.SlopeSpectrumOperator">SlopeSpectrumOperator() (in module NuRadioReco.modules.iftElectricFieldReconstructor.operators)</a>

@@ -391,6 +391,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator_ASCII.html">NuRadioMC.EvtGen.generator_ASCII module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator_skeleton.html">NuRadioMC.EvtGen.generator_skeleton module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.hdf5_to_ASCII.html">NuRadioMC.EvtGen.hdf5_to_ASCII module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.proposal_table_manager.html">NuRadioMC.EvtGen.proposal_table_manager module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.readARAEventList.html">NuRadioMC.EvtGen.readARAEventList module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.readEventList_ASCII.html">NuRadioMC.EvtGen.readEventList_ASCII module</a></li>
 </ul>
@@ -566,10 +567,12 @@
 <span></span><span class="kn">import</span> <span class="nn">proposal</span> <span class="k">as</span> <span class="nn">pp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">particle_names</span>
+<span class="kn">import</span> <span class="nn">NuRadioReco.utilities.metaclasses</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module takes care of the PROPOSAL implementation. Some important things</span>
@@ -603,17 +606,6 @@
 
 <span class="n">pp_m</span> <span class="o">=</span> <span class="mf">1.e2</span>
 <span class="n">pp_km</span> <span class="o">=</span> <span class="mf">1.e5</span>
-
-
-
-
-<div class="viewcode-block" id="Singleton"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.Singleton">[docs]</a><span class="k">class</span> <span class="nc">Singleton</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
-    <span class="n">_instances</span> <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">Singleton</span><span class="o">.</span><span class="n">_instances</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">Singleton</span><span class="o">.</span><span class="n">_instances</span><span class="p">[</span><span class="bp">cls</span><span class="p">]</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Singleton</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Singleton</span><span class="o">.</span><span class="n">_instances</span><span class="p">[</span><span class="bp">cls</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="SecondaryProperties"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.SecondaryProperties">[docs]</a><span class="k">class</span> <span class="nc">SecondaryProperties</span><span class="p">:</span>
@@ -778,7 +770,7 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 
-<div class="viewcode-block" id="ProposalFunctions"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">Singleton</span><span class="p">)</span>
+<div class="viewcode-block" id="ProposalFunctions"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">NuRadioReco</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">metaclasses</span><span class="o">.</span><span class="n">Singleton</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">ProposalFunctions</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This class serves as a container for PROPOSAL functions. The functions that</span>
@@ -813,7 +805,11 @@
 <span class="sd">            upper_energy_limit of tables that will be created by PROPOSAL, in NuRadioMC units (eV).</span>
 <span class="sd">            There will be an error if primaries with energies above this energy will be injected.</span>
 <span class="sd">            Note that PROPOSAL will have to regenerate tables for a new values of upper_energy_limit</span>
-
+<span class="sd">        create_new: bool (default:False)</span>
+<span class="sd">            Can be used to force the creation of a new ProposalFunctions object.</span>
+<span class="sd">            By default, the __init__ will only create a new object if none already exists.</span>
+<span class="sd">            For more details, check the documentation for the</span>
+<span class="sd">            :class:`Singleton metaclass &lt;NuRadioReco.utilities.metaclasses.Singleton&gt;`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;proposal&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
@@ -821,18 +817,47 @@
 
         <span class="n">pp</span><span class="o">.</span><span class="n">RandomGenerator</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">set_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span> <span class="c1"># set global seed for PROPOSAL</span>
 
+        <span class="n">default_configs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;SouthPole&#39;</span><span class="p">:</span>  <span class="s1">&#39;config_PROPOSAL.json&#39;</span><span class="p">,</span> <span class="s1">&#39;MooresBay&#39;</span><span class="p">:</span> <span class="s1">&#39;config_PROPOSAL_mooresbay.json&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;InfIce&#39;</span><span class="p">:</span> <span class="s1">&#39;config_PROPOSAL_infice.json&#39;</span><span class="p">,</span> <span class="s1">&#39;Greenland&#39;</span><span class="p">:</span> <span class="s1">&#39;config_PROPOSAL_greenland.json&#39;</span><span class="p">}</span>
+
+
         <span class="k">if</span> <span class="n">tables_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">tables_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;proposal_tables&quot;</span><span class="p">)</span>
         
+        <span class="k">if</span> <span class="n">config_file</span> <span class="ow">in</span> <span class="n">default_configs</span><span class="p">:</span>
+            <span class="c1"># default configurations should append their identifier to the tables path</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">config_file</span> <span class="o">==</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">tables_path</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">tables_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tables_path</span><span class="p">,</span> <span class="n">config_file</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tables_path</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Create directory </span><span class="si">{</span><span class="n">tables_path</span><span class="si">}</span><span class="s2"> to store proposal tables&quot;</span><span class="p">)</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">tables_path</span><span class="p">)</span>
-        
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">tables_path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">config_file</span> <span class="ow">in</span> <span class="n">default_configs</span><span class="p">:</span>
+            <span class="n">config_file_full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="n">default_configs</span><span class="p">[</span><span class="n">config_file</span><span class="p">])</span>
+
+        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">config_file</span><span class="p">):</span>
+            <span class="n">config_file_full_path</span> <span class="o">=</span> <span class="n">config_file</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Proposal config file is not valid. Please provide a valid option.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">config_file_full_path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unable to find proposal config file.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;Make sure that json configuration file under &quot;</span>
+                <span class="s2">&quot;path </span><span class="si">{}</span><span class="s2"> exists.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_file_full_path</span><span class="p">))</span>
+
+
         <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span> <span class="o">=</span> <span class="n">config_file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__config_file_full_path</span> <span class="o">=</span> <span class="n">config_file_full_path</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__tables_path</span> <span class="o">=</span> <span class="n">tables_path</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__upper_energy_limit</span> <span class="o">=</span> <span class="n">upper_energy_limit</span> <span class="o">*</span> <span class="n">pp_eV</span> <span class="c1"># convert to PROPOSAL units</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">__download_tables</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span> <span class="ow">in</span> <span class="n">default_configs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">glob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__tables_path</span> <span class="o">+</span> <span class="s2">&quot;/*.dat&quot;</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__download_tables</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">__calculate_distance</span><span class="p">(</span><span class="n">pp_position</span><span class="p">,</span> <span class="n">pos_arr</span><span class="p">):</span>
@@ -873,23 +898,17 @@
         <span class="k">if</span><span class="p">(</span><span class="n">particle_code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;initializing propagator for particle code </span><span class="si">{</span><span class="n">particle_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-            <span class="n">config_files</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">&#39;SouthPole&#39;</span><span class="p">:</span>  <span class="s1">&#39;config_PROPOSAL.json&#39;</span><span class="p">,</span> <span class="s1">&#39;MooresBay&#39;</span><span class="p">:</span> <span class="s1">&#39;config_PROPOSAL_mooresbay.json&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;InfIce&#39;</span><span class="p">:</span> <span class="s1">&#39;config_PROPOSAL_infice.json&#39;</span><span class="p">,</span> <span class="s1">&#39;Greenland&#39;</span><span class="p">:</span> <span class="s1">&#39;config_PROPOSAL_greenland.json&#39;</span><span class="p">}</span>
-
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span> <span class="ow">in</span> <span class="n">config_files</span><span class="p">:</span>
-                <span class="n">config_file_full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="n">config_files</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span><span class="p">])</span>
-            <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span><span class="p">):</span>
-                <span class="n">config_file_full_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Proposal config file is not valid. Please provide a valid option.&quot;</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">config_file_full_path</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unable to find proposal config file.</span><span class="se">\n</span><span class="s2">&quot;</span>
-                    <span class="s2">&quot;Make sure that json configuration file under &quot;</span>
-                    <span class="s2">&quot;path </span><span class="si">{}</span><span class="s2"> exists.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_file_full_path</span><span class="p">))</span>
-
             <span class="n">pp</span><span class="o">.</span><span class="n">InterpolationSettings</span><span class="o">.</span><span class="n">tables_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tables_path</span>
+            <span class="c1"># download pre-calculated tables for default configs, but not more than once</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__download_tables</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">NuRadioMC.EvtGen.proposal_table_manager</span> <span class="kn">import</span> <span class="n">download_proposal_tables</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">download_proposal_tables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file</span><span class="p">,</span> <span class="n">tables_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__tables_path</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;requested pre-calculated proposal tables could not be downloaded, calculating manually&quot;</span><span class="p">)</span>
+                    <span class="k">pass</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__download_tables</span> <span class="o">=</span> <span class="kc">False</span>
 
             <span class="c1"># upper energy lim for proposal tables, in PROPOSAL units (MeV)</span>
             <span class="n">pp</span><span class="o">.</span><span class="n">InterpolationSettings</span><span class="o">.</span><span class="n">upper_energy_lim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__upper_energy_limit</span>
@@ -901,7 +920,7 @@
                 <span class="n">error_str</span> <span class="o">+=</span> <span class="s2">&quot;Please choose between -/+muon (13/-13) and -/+tau (15/-15)&quot;</span>
                 <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">error_str</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span><span class="p">[</span><span class="n">particle_code</span><span class="p">]</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Propagator</span><span class="p">(</span><span class="n">particle_def</span><span class="o">=</span><span class="n">p_def</span><span class="p">,</span> <span class="n">path_to_config_file</span><span class="o">=</span><span class="n">config_file_full_path</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span><span class="p">[</span><span class="n">particle_code</span><span class="p">]</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Propagator</span><span class="p">(</span><span class="n">particle_def</span><span class="o">=</span><span class="n">p_def</span><span class="p">,</span> <span class="n">path_to_config_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file_full_path</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span><span class="p">[</span><span class="n">particle_code</span><span class="p">]</span>
 
