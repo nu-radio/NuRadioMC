@@ -134,9 +134,8 @@ class simulation(
             t1 = time.time()
             self._primary_index = event_indices[0]
             # determine if a particle (neutrinos, or a secondary interaction of a neutrino, or surfaec muons) is simulated
-            particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
             self._mout['weights'][event_indices] = np.ones(len(event_indices))  # for a pulser simulation, every event has the same weight
-            if particle_mode:
+            if self._particle_mode:
                 self._calculate_particle_weights(event_indices)
             self._weightTime += time.time() - t1
             # skip all events where neutrino weights is zero, i.e., do not
@@ -190,7 +189,7 @@ class simulation(
                     ray_tracing_performed = (self._raytracer.get_output_parameters()[0]['name'] in self._fin_stations['station_{:d}'.format(self._station_id)]) and self._was_pre_simulated
                 self._evt_tmp = NuRadioReco.framework.event.Event(0, 0)
 
-                if particle_mode:
+                if self._particle_mode:
                     # add the primary particle to the temporary event
                     self._evt_tmp.add_particle(self.primary)
 
@@ -227,7 +226,7 @@ class simulation(
                                     100 * (total_time - total_time_sum) / total_time))
 
                     self._read_input_shower_properties()
-                    if particle_mode:
+                    if self._particle_mode:
                         logger.debug(f"simulating shower {self._shower_index}: {self._fin['shower_type'][self._shower_index]} with E = {self._fin['shower_energies'][self._shower_index]/units.eV:.2g}eV")
                     x1 = self._shower_vertex  # the interaction point
                     t_tmp = time.time()
@@ -259,7 +258,7 @@ class simulation(
                         if self._fin['shower_type'][self._shower_index] != "had":
                             continue
 
-                    if particle_mode:
+                    if self._particle_mode:
                         self._create_sim_shower()  # create sim shower
                         self._evt_tmp.add_sim_shower(self._sim_shower)
 
@@ -357,38 +356,14 @@ class simulation(
                             tmp += f"{start_time/units.ns:.0f}, "
                         tmp = tmp[:-2] + " ns"
                         logger.info(f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
-                    self._evt = NuRadioReco.framework.event.Event(self._event_group_id, iEvent)  # create new event
+                    self._evt = self._create_event_structure(
+                        iEvent,
+                        tmp_station,
+                        indices,
+                        channel_identifiers
+                    )
 
-                    if particle_mode:
-                        # add MC particles that belong to this (sub) event to event structure
-                        # add only primary for now, since full interaction chain is not typically in the input hdf5s
-                        self._evt.add_particle(self.primary)
-                    # copy over generator information from temporary event to event
-                    self._evt._generator_info = self._generator_info
 
-                    self._station = NuRadioReco.framework.station.Station(self._station_id)
-                    sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
-                    sim_station.set_is_neutrino()
-                    tmp_sim_station = tmp_station.get_sim_station()
-                    self._shower_ids_of_sub_event = []
-                    for iCh in indices:
-                        ch_uid = channel_identifiers[iCh]
-                        shower_id = ch_uid[1]
-                        if shower_id not in self._shower_ids_of_sub_event:
-                            self._shower_ids_of_sub_event.append(shower_id)
-                        sim_station.add_channel(tmp_sim_station.get_channel(ch_uid))
-                        efield_uid = ([ch_uid[0]], ch_uid[1], ch_uid[2])  # the efield unique identifier has as first parameter an array of the channels it is valid for
-                        for efield in tmp_sim_station.get_electric_fields():
-                            if efield.get_unique_identifier() == efield_uid:
-                                sim_station.add_electric_field(efield)
-
-                    if particle_mode:
-                        # add showers that contribute to this (sub) event to event structure
-                        for shower_id in self._shower_ids_of_sub_event:
-                            self._evt.add_sim_shower(self._evt_tmp.get_sim_shower(shower_id))
-                    self._station.set_sim_station(sim_station)
-                    self._station.set_station_time(self._evt_time)
-                    self._evt.set_station(self._station)
                     if bool(self._cfg['signal']['zerosignal']):
                         self._increase_signal(None, 0)
 

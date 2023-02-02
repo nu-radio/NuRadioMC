@@ -152,7 +152,7 @@ class simulation_base:
         self._write_detector = write_detector
         logger.status("setting event time to {}".format(evt_time))
         self._event_group_list = event_list
-
+        self._evt = None
         self._antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
 
         # initialize propagation module
@@ -212,6 +212,8 @@ class simulation_base:
             self._fin_stations = {}
         # store all relevant attributes of the input file in a dictionary
         self._generator_info = {}
+        self._particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
+
         for enum_entry in genattrs:
             if enum_entry.name in self._fin_attrs:
                 self._generator_info[enum_entry] = self._fin_attrs[enum_entry.name]
