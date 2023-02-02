@@ -228,59 +228,24 @@ class simulation(
                     self._read_input_shower_properties()
                     if self._particle_mode:
                         logger.debug(f"simulating shower {self._shower_index}: {self._fin['shower_type'][self._shower_index]} with E = {self._fin['shower_energies'][self._shower_index]/units.eV:.2g}eV")
-                    x1 = self._shower_vertex  # the interaction point
-                    t_tmp = time.time()
-                    # calculate the sum of shower energies for all showers within self._cfg['speedup']['distance_cut_sum_length']
-                    mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup']['distance_cut_sum_length']
-                    shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
-                    if self._cfg['speedup']['distance_cut']:
-                        # quick speedup cut using barycenter of station as position
-                        distance_to_station = np.linalg.norm(x1 - self._station_barycenter[iSt])
-                        distance_cut = self._get_distance_cut(shower_energy_sum) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
-                        logger.debug(f"calculating distance cut. Current event has energy {self._fin['shower_energies'][self._shower_index]:.4g}, it is event number {iSh} and {np.sum(mask_shower_sum)} are within {self._cfg['speedup']['distance_cut_sum_length']/units.m:.1f}m -> {shower_energy_sum:.4g}")
-                        if distance_to_station > distance_cut:
-                            logger.debug(f"skipping station {self._station_id} because distance {distance_to_station/units.km:.1f}km > {distance_cut/units.km:.1f}km (shower energy = {self._fin['shower_energies'][self._shower_index]:.2g}eV) between vertex {x1} and bary center of station {self._station_barycenter[iSt]}")
-                            self._distance_cut_time += time.time() - t_tmp
-                            continue
-                        self._distance_cut_time += time.time() - t_tmp
 
-                    # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
-                    # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
-                    if not self._is_in_fiducial_volume():
-                        logger.debug(f"event is not in fiducial volume, skipping simulation {self._fin['xx'][self._shower_index]}, {self._fin['yy'][self._shower_index]}, {self._fin['zz'][self._shower_index]}")
+                    if not self._distance_cut_shower(
+                        iSh,
+                        iSt,
+                        vertex_distances,
+                        shower_energies
+                    ):
                         continue
-
-                    # for special cases where only EM or HAD showers are simulated, skip all events that don't fulfill this criterion
-                    if self._cfg['signal']['shower_type'] == "em":
-                        if self._fin['shower_type'][self._shower_index] != "em":
-                            continue
-                    if self._cfg['signal']['shower_type'] == "had":
-                        if self._fin['shower_type'][self._shower_index] != "had":
-                            continue
-
-                    if self._particle_mode:
-                        self._create_sim_shower()  # create sim shower
-                        self._evt_tmp.add_sim_shower(self._sim_shower)
-
-                    # generate unique and increasing event id per station
-                    self._event_ids_counter[self._station_id] += 1
-                    self._event_id = self._event_ids_counter[self._station_id]
-
-                    # be careful, zenith/azimuth angle always refer to where the neutrino came from,
-                    # i.e., opposite to the direction of propagation. We need the propagation direction here,
-                    # so we multiply the shower axis with '-1'
-                    if 'zeniths' in self._fin:
-                        self._shower_axis = -1 * hp.spherical_to_cartesian(self._fin['zeniths'][self._shower_index], self._fin['azimuths'][self._shower_index])
-                    else:
-                        self._shower_axis = np.array([0, 0, 1])
+                    self._simulate_shower()
 
                     # calculate correct Cherenkov angle for ice density at vertex position
-                    n_index = self._ice.get_index_of_refraction(x1)
+                    n_index = self._ice.get_index_of_refraction(self._shower_vertex)
                     cherenkov_angle = np.arccos(1. / n_index)
 
                     # first step: perform raytracing to see if solution exists
                     t2 = time.time()
-
+                    mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup']['distance_cut_sum_length']
+                    shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
                     for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                         ray_tracing_solution_found = self._perform_raytracing_for_channel(
                             channel_id,
@@ -698,3 +663,66 @@ class simulation(
                 f"skipping station {self._station_id} because minimal distance {vertex_distances_to_station.min() / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {station_barycenter}")
         self._distance_cut_time += time.time() - t_tmp
         return vertex_distances_to_station.min() <= distance_cut
+
+    def _distance_cut_shower(
+            self,
+            iSh,
+            iSt,
+            vertex_distances,
+            shower_energies
+    ):
+        t_tmp = time.time()
+
+        # calculate the sum of shower energies for all showers within self._cfg['speedup']['distance_cut_sum_length']
+        mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup'][
+            'distance_cut_sum_length']
+        shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
+        if self._cfg['speedup']['distance_cut']:
+            # quick speedup cut using barycenter of station as position
+            distance_to_station = np.linalg.norm(self._shower_vertex - self._station_barycenter[iSt])
+            distance_cut = self._get_distance_cut(
+                shower_energy_sum) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
+            logger.debug(
+                f"calculating distance cut. Current event has energy {self._fin['shower_energies'][self._shower_index]:.4g}, it is event number {iSh} and {np.sum(mask_shower_sum)} are within {self._cfg['speedup']['distance_cut_sum_length'] / units.m:.1f}m -> {shower_energy_sum:.4g}")
+            if distance_to_station > distance_cut:
+                logger.debug(
+                    f"skipping station {self._station_id} because distance {distance_to_station / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {self._fin['shower_energies'][self._shower_index]:.2g}eV) between vertex {self._shower_vertex} and bary center of station {self._station_barycenter[iSt]}")
+                self._distance_cut_time += time.time() - t_tmp
+                self._distance_cut_time += time.time() - t_tmp
+                return False
+            self._distance_cut_time += time.time() - t_tmp
+            return True
+        return True
+    def _simulate_shower(self):
+
+        # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
+        # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
+        if not self._is_in_fiducial_volume():
+            logger.debug(
+                f"event is not in fiducial volume, skipping simulation {self._fin['xx'][self._shower_index]}, {self._fin['yy'][self._shower_index]}, {self._fin['zz'][self._shower_index]}")
+            return
+
+        # for special cases where only EM or HAD showers are simulated, skip all events that don't fulfill this criterion
+        if self._cfg['signal']['shower_type'] == "em":
+            if self._fin['shower_type'][self._shower_index] != "em":
+                return
+        if self._cfg['signal']['shower_type'] == "had":
+            if self._fin['shower_type'][self._shower_index] != "had":
+                return
+
+        if self._particle_mode:
+            self._create_sim_shower()  # create sim shower
+            self._evt_tmp.add_sim_shower(self._sim_shower)
+
+        # generate unique and increasing event id per station
+        self._event_ids_counter[self._station_id] += 1
+        self._event_id = self._event_ids_counter[self._station_id]
+
+        # be careful, zenith/azimuth angle always refer to where the neutrino came from,
+        # i.e., opposite to the direction of propagation. We need the propagation direction here,
+        # so we multiply the shower axis with '-1'
+        if 'zeniths' in self._fin:
+            self._shower_axis = -1 * hp.spherical_to_cartesian(self._fin['zeniths'][self._shower_index],
+                                                               self._fin['azimuths'][self._shower_index])
+        else:
+            self._shower_axis = np.array([0, 0, 1])
