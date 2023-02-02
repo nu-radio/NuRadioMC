@@ -149,7 +149,10 @@ class simulation(
             # these quantities get computed to apply the distance cut as a function of shower energies
             # the shower energies of closeby showers will be added as they can constructively interfere
             t_tmp = time.time()
-            shower_energies = np.array(self._fin['shower_energies'])[event_indices]
+            if 'shower_energies' in self._fin.keys():
+                shower_energies = np.array(self._fin['shower_energies'])[event_indices]
+            else:
+                shower_energies = np.zeros(event_indices.shape)
             vertex_positions = np.array([np.array(self._fin['xx'])[event_indices],
                                          np.array(self._fin['yy'])[event_indices],
                                          np.array(self._fin['zz'])[event_indices]]).T
