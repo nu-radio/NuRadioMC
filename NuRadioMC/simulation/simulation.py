@@ -284,7 +284,6 @@ class simulation(
                 if n_sub_events > 1:
                     logger.info(f"splitting event group id {self._event_group_id} into {n_sub_events} sub events")
 
-                tmp_station = copy.deepcopy(self._station)
                 event_group_has_triggered = False
                 for iEvent in range(n_sub_events):
                     iStart = 0
@@ -301,9 +300,8 @@ class simulation(
                             tmp += f"{start_time/units.ns:.0f}, "
                         tmp = tmp[:-2] + " ns"
                         logger.info(f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
-                    self._evt = self._create_event_structure(
+                    self._evt, self._station = self._create_event_structure(
                         iEvent,
-                        tmp_station,
                         indices,
                         channel_identifiers
                     )

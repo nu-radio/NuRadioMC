@@ -313,7 +313,6 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
     def _create_event_structure(
             self,
             iEvent,
-            tmp_station,
             indices,
             channel_identifiers
     ):
@@ -326,30 +325,29 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
         # copy over generator information from temporary event to event
         evt._generator_info = self._generator_info
 
-        self._station = NuRadioReco.framework.station.Station(self._station_id)
+        new_station = NuRadioReco.framework.station.Station(self._station_id)
         sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
         sim_station.set_is_neutrino()
-        tmp_sim_station = tmp_station.get_sim_station()
         self._shower_ids_of_sub_event = []
         for iCh in indices:
             ch_uid = channel_identifiers[iCh]
             shower_id = ch_uid[1]
             if shower_id not in self._shower_ids_of_sub_event:
                 self._shower_ids_of_sub_event.append(shower_id)
-            sim_station.add_channel(tmp_sim_station.get_channel(ch_uid))
+            sim_station.add_channel(self._station.get_sim_station().get_channel(ch_uid))
             efield_uid = ([ch_uid[0]], ch_uid[1], ch_uid[
                 2])  # the efield unique identifier has as first parameter an array of the channels it is valid for
-            for efield in tmp_sim_station.get_electric_fields():
+            for efield in self._station.get_sim_station().get_electric_fields():
                 if efield.get_unique_identifier() == efield_uid:
                     sim_station.add_electric_field(efield)
         if self._particle_mode:
             # add showers that contribute to this (sub) event to event structure
             for shower_id in self._shower_ids_of_sub_event:
                 evt.add_sim_shower(self._evt_tmp.get_sim_shower(shower_id))
-        self._station.set_sim_station(sim_station)
-        self._station.set_station_time(self._evt_time)
-        evt.set_station(self._station)
-        return evt
+        new_station.set_sim_station(sim_station)
+        new_station.set_station_time(self._evt_time)
+        evt.set_station(new_station)
+        return evt, new_station
     def _write_nur_file(self):
         # downsample traces to detector sampling rate to save file size
         self._channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
