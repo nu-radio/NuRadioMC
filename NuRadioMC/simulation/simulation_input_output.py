@@ -239,9 +239,8 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
         if 'vertex_times' in self._fin:
             self._vertex_time = self._fin['vertex_times'][self._shower_index]
 
-    def _save_triggers_to_hdf5(self, sg, local_shower_index, global_shower_index):
-
-        extend_array = self._create_trigger_structures()
+    def _save_triggers_to_hdf5(self, event, station, sg, local_shower_index, global_shower_index):
+        extend_array = self._create_trigger_structures(station)
         # now we also need to create the trigger structure also in the sg (station group) dictionary that contains
         # the information fo the current station and event group
         n_showers = sg['launch_vectors'].shape[0]
@@ -253,20 +252,20 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
             tmp[:, 0:ny] = sg['multiple_triggers']
             sg['multiple_triggers'] = tmp
 
-        self._output_event_group_ids[self._station_id].append(self._evt.get_run_number())
-        self._output_sub_event_ids[self._station_id].append(self._evt.get_id())
+        self._output_event_group_ids[self._station_id].append(event.get_run_number())
+        self._output_sub_event_ids[self._station_id].append(event.get_id())
         multiple_triggers = np.zeros(len(self._mout_attrs['trigger_names']), dtype=np.bool)
         for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
-            if self._station.has_trigger(trigger_name):
-                multiple_triggers[iT] = self._station.get_trigger(trigger_name).has_triggered()
+            if station.has_trigger(trigger_name):
+                multiple_triggers[iT] = station.get_trigger(trigger_name).has_triggered()
                 for iSh in local_shower_index:  # now save trigger information per shower of the current station
-                    sg['multiple_triggers'][iSh][iT] = self._station.get_trigger(trigger_name).has_triggered()
+                    sg['multiple_triggers'][iSh][iT] = station.get_trigger(trigger_name).has_triggered()
         for iSh, iSh2 in zip(local_shower_index, global_shower_index):  # now save trigger information per shower of the current station
             sg['triggered'][iSh] = np.any(sg['multiple_triggers'][iSh])
             self._mout['triggered'][iSh2] |= sg['triggered'][iSh]
             self._mout['multiple_triggers'][iSh2] |= sg['multiple_triggers'][iSh]
-        sg['event_id_per_shower'][local_shower_index] = self._evt.get_id()
-        sg['event_group_id_per_shower'][local_shower_index] = self._evt.get_run_number()
+        sg['event_id_per_shower'][local_shower_index] = event.get_id()
+        sg['event_group_id_per_shower'][local_shower_index] = event.get_run_number()
         self._output_multiple_triggers_station[self._station_id].append(multiple_triggers)
         self._output_triggered_station[self._station_id].append(np.any(multiple_triggers))
 
@@ -280,12 +279,15 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
                 sg['multiple_triggers'] = np.zeros((n_showers, 1), dtype=np.bool)
                 sg['triggered'] = np.zeros(n_showers, dtype=np.bool)
 
-    def _create_trigger_structures(self):
+    def _create_trigger_structures(
+            self,
+            station
+    ):
 
         if 'trigger_names' not in self._mout_attrs:
             self._mout_attrs['trigger_names'] = []
         extend_array = False
-        for trigger in six.itervalues(self._station.get_triggers()):
+        for trigger in six.itervalues(station.get_triggers()):
             if trigger.get_name() not in self._mout_attrs['trigger_names']:
                 self._mout_attrs['trigger_names'].append((trigger.get_name()))
                 extend_array = True
@@ -348,12 +350,16 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
         new_station.set_station_time(self._evt_time)
         evt.set_station(new_station)
         return evt, new_station
-    def _write_nur_file(self):
+    def _write_nur_file(
+            self,
+            event,
+            station
+    ):
         # downsample traces to detector sampling rate to save file size
-        self._channelResampler.run(self._evt, self._station, self._det, sampling_rate=self._sampling_rate_detector)
-        self._channelResampler.run(self._evt, self._station.get_sim_station(), self._det,
+        self._channelResampler.run(event, station, self._det, sampling_rate=self._sampling_rate_detector)
+        self._channelResampler.run(event, station.get_sim_station(), self._det,
                                    sampling_rate=self._sampling_rate_detector)
-        self._electricFieldResampler.run(self._evt, self._station.get_sim_station(), self._det,
+        self._electricFieldResampler.run(event, station.get_sim_station(), self._det,
                                          sampling_rate=self._sampling_rate_detector)
 
         output_mode = {'Channels': self._cfg['output']['channel_traces'],
@@ -361,6 +367,6 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
                        'SimChannels': self._cfg['output']['sim_channel_traces'],
                        'SimElectricFields': self._cfg['output']['sim_electric_field_traces']}
         if self._write_detector:
-            self._eventWriter.run(self._evt, self._det, mode=output_mode)
+            self._eventWriter.run(event, self._det, mode=output_mode)
         else:
-            self._eventWriter.run(self._evt, mode=output_mode)
+            self._eventWriter.run(event, mode=output_mode)

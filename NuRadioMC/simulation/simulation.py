@@ -300,33 +300,38 @@ class simulation(
                             tmp += f"{start_time/units.ns:.0f}, "
                         tmp = tmp[:-2] + " ns"
                         logger.info(f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
-                    self._evt, self._station = self._create_event_structure(
+                    new_event, new_station = self._create_event_structure(
                         iEvent,
                         indices,
                         channel_identifiers
                     )
-
+                    self._evt = new_event
 
                     if bool(self._cfg['signal']['zerosignal']):
                         self._increase_signal(None, 0)
 
                     logger.debug("performing detector simulation")
                     self._simulate_detector_response(
-                        self._evt,
-                        self._station
+                        new_event,
+                        new_station
                     )
-                    if not self._station.has_triggered():
+                    if not new_station.has_triggered():
                         continue
-
                     event_group_has_triggered = True
                     triggered_showers[self._station_id].extend(self._get_shower_index(self._shower_ids_of_sub_event))
-                    self._calculate_signal_properties()
+                    self._calculate_signal_properties(
+                        new_event,
+                        new_station
+                    )
 
                     global_shower_indices = self._get_shower_index(self._shower_ids_of_sub_event)
                     local_shower_index = np.atleast_1d(np.squeeze(np.argwhere(np.isin(event_indices, global_shower_indices, assume_unique=True))))
-                    self._save_triggers_to_hdf5(sg, local_shower_index, global_shower_indices)
+                    self._save_triggers_to_hdf5(new_event, new_station, sg, local_shower_index, global_shower_indices)
                     if self._outputfilenameNuRadioReco is not None:
-                        self._write_nur_file()
+                        self._write_nur_file(
+                            new_event,
+                            new_station
+                        )
                 # end sub events loop
 
                 # add local sg array to output data structure if any
@@ -454,16 +459,20 @@ class simulation(
             logger.warning(warn_msg)
             return False
 
-    def _calculate_signal_properties(self):
-        if self._station.has_triggered():
-            self._channelSignalReconstructor.run(self._evt, self._station, self._det)
-            amplitudes = np.zeros(self._station.get_number_of_channels())
-            amplitudes_envelope = np.zeros(self._station.get_number_of_channels())
-            for channel in self._station.iter_channels():
+    def _calculate_signal_properties(
+            self,
+            event,
+            station
+    ):
+        if station.has_triggered():
+            self._channelSignalReconstructor.run(event, station, self._det)
+            amplitudes = np.zeros(station.get_number_of_channels())
+            amplitudes_envelope = np.zeros(station.get_number_of_channels())
+            for channel in station.iter_channels():
                 amplitudes[channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
                 amplitudes_envelope[channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
-            self._output_maximum_amplitudes[self._station.get_id()].append(amplitudes)
-            self._output_maximum_amplitudes_envelope[self._station.get_id()].append(amplitudes_envelope)
+            self._output_maximum_amplitudes[station.get_id()].append(amplitudes)
+            self._output_maximum_amplitudes_envelope[station.get_id()].append(amplitudes_envelope)
 
     def get_Vrms(self):
         return self._Vrms
