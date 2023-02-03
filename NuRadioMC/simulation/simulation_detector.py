@@ -69,7 +69,7 @@ class simulation_detector(NuRadioMC.simulation.simulation_base.simulation_base):
                 Vrms[channel_id] = self._Vrms_per_channel[station.get_id()][channel_id] / (
                             norm / max_freq) ** 0.5  # normalize noise level to the bandwidth its generated for
             self._channelGenericNoiseAdder.run(
-                evt,
+                event,
                 station,
                 self._det,
                 amplitude=Vrms,
