@@ -259,10 +259,13 @@ class simulation(
                 self._station = NuRadioReco.framework.station.Station(self._station_id)
                 self._station.set_sim_station(self._sim_station)
 
-                self._simulate_sim_station_detector_response()
+                self._simulate_sim_station_detector_response(
+                    self._evt_tmp,
+                    self._station
+                )
 
                 if self._cfg['speedup']['amp_per_ray_solution']:
-                    self._channelSignalReconstructor.run(self._evt, self._station.get_sim_station(), self._det)
+                    self._channelSignalReconstructor.run(self._evt_tmp, self._station.get_sim_station(), self._det)
                     for channel in self._station.get_sim_station().iter_channels():
                         tmp_index = np.argwhere(event_indices == self._get_shower_index(channel.get_shower_id()))[0]
                         sg['max_amp_shower_and_ray'][tmp_index, channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
@@ -310,7 +313,10 @@ class simulation(
                         self._increase_signal(None, 0)
 
                     logger.debug("performing detector simulation")
-                    self._simulate_detector_response()
+                    self._simulate_detector_response(
+                        self._evt,
+                        self._station
+                    )
                     if not self._station.has_triggered():
                         continue
 

@@ -29,52 +29,56 @@ class simulation_detector(NuRadioMC.simulation.simulation_base.simulation_base):
             self._eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
 
     def _simulate_sim_station_detector_response(
-            self
+            self,
+            event,
+            station
     ):
         # convert efields to voltages at digitizer
-        if hasattr(self, '_detector_simulation_part1'):
-            # we give the user the opportunity to define a custom detector simulation
-            self._detector_simulation_part1()
-        else:
-            self._efieldToVoltageConverterPerEfield.run(self._evt, self._station,
-                                                        self._det)  # convolve efield with antenna pattern
-            self._detector_simulation_filter_amp(self._evt, self._station.get_sim_station(), self._det)
-            self._channelAddCableDelay.run(self._evt, self._sim_station, self._det)
+        self._efieldToVoltageConverterPerEfield.run(
+            event,
+            station,
+            self._det)  # convolve efield with antenna pattern
+        self._detector_simulation_filter_amp(event, station.get_sim_station(), self._det)
+        self._channelAddCableDelay.run(event, station.get_sim_station(), self._det)
 
     def _simulate_detector_response(
-            self
+            self,
+            event,
+            station
     ):
-        if hasattr(self, '_detector_simulation_part2'):
-            # we give the user the opportunity to specify a custom detector simulation module sequence
-            # which might be needed for certain analyses
-            self._detector_simulation_part2()
-        else:
-            # start detector simulation
-            self._efieldToVoltageConverter.run(self._evt, self._station,
-                                               self._det)  # convolve efield with antenna pattern
-            # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
-            # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
-            self._channelResampler.run(self._evt, self._station, self._det, sampling_rate=1. / self._dt)
+        # start detector simulation
+        self._efieldToVoltageConverter.run(
+            event,
+            station,
+           self._det
+        )  # convolve efield with antenna pattern
+        # downsample trace to internal simulation sampling rate (the efieldToVoltageConverter upsamples the trace to
+        # 20 GHz by default to achive a good time resolution when the two signals from the two signal paths are added)
+        self._channelResampler.run(
+            event,
+            station,
+            self._det,
+            sampling_rate=1. / self._dt)
 
-            if self._is_simulate_noise():
-                max_freq = 0.5 / self._dt
-                channel_ids = self._det.get_channel_ids(self._station.get_id())
-                Vrms = {}
-                for channel_id in channel_ids:
-                    norm = self._bandwidth_per_channel[self._station.get_id()][channel_id]
-                    Vrms[channel_id] = self._Vrms_per_channel[self._station.get_id()][channel_id] / (
-                                norm / max_freq) ** 0.5  # normalize noise level to the bandwidth its generated for
-                self._channelGenericNoiseAdder.run(
-                    self._evt,
-                    self._station,
-                    self._det,
-                    amplitude=Vrms,
-                    min_freq=0 * units.MHz,
-                    max_freq=max_freq,
-                    type='rayleigh',
-                    excluded_channels=self._noiseless_channels[self._station.get_id()]
-                )
+        if self._is_simulate_noise():
+            max_freq = 0.5 / self._dt
+            channel_ids = self._det.get_channel_ids(station.get_id())
+            Vrms = {}
+            for channel_id in channel_ids:
+                norm = self._bandwidth_per_channel[station.get_id()][channel_id]
+                Vrms[channel_id] = self._Vrms_per_channel[station.get_id()][channel_id] / (
+                            norm / max_freq) ** 0.5  # normalize noise level to the bandwidth its generated for
+            self._channelGenericNoiseAdder.run(
+                evt,
+                station,
+                self._det,
+                amplitude=Vrms,
+                min_freq=0 * units.MHz,
+                max_freq=max_freq,
+                type='rayleigh',
+                excluded_channels=self._noiseless_channels[self._station.get_id()]
+            )
 
-            self._detector_simulation_filter_amp(self._evt, self._station, self._det)
+        self._detector_simulation_filter_amp(event, station, self._det)
 
-            self._detector_simulation_trigger(self._evt, self._station, self._det)
+        self._detector_simulation_trigger(event, station, self._det)

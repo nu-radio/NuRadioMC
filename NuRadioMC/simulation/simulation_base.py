@@ -307,8 +307,8 @@ class simulation_base:
         for iSt, self._station_id in enumerate(self._station_ids):
             self._shower_index = 0
             self._primary_index = 0
-            self._evt = NuRadioReco.framework.event.Event(0, self._primary_index)
-
+            dummy_event = NuRadioReco.framework.event.Event(0, self._primary_index)
+            dummy_sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
             self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
             #                 logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
             self._n_samples = self._det.get_number_of_samples(self._station_id,
@@ -322,7 +322,7 @@ class simulation_base:
                 electric_field = NuRadioReco.framework.electric_field.ElectricField(
                     [channel_id],
                     self._det.get_relative_position(
-                        self._sim_station.get_id(),
+                        dummy_sim_station.get_id(),
                         channel_id
                     )
                 )
@@ -334,20 +334,20 @@ class simulation_base:
                 electric_field[efp.azimuth] = 0
                 electric_field[efp.zenith] = 100 * units.deg
                 electric_field[efp.ray_path_type] = 0
-                self._sim_station.add_electric_field(electric_field)
+                dummy_sim_station.add_electric_field(electric_field)
 
-            self._station = NuRadioReco.framework.station.Station(self._station_id)
-            self._station.set_sim_station(self._sim_station)
-            self._station.set_station_time(self._evt_time)
-            self._evt.set_station(self._station)
+            dummy_station = NuRadioReco.framework.station.Station(self._station_id)
+            dummy_station.set_sim_station(dummy_sim_station)
+            dummy_station.set_station_time(self._evt_time)
+            dummy_event.set_station(dummy_station)
 
-            self._detector_simulation_filter_amp(self._evt, self._station, self._det)
+            self._detector_simulation_filter_amp(dummy_event, dummy_station, self._det)
             self._bandwidth_per_channel[self._station_id] = {}
             self._amplification_per_channel[self._station_id] = {}
             for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                 ff = np.linspace(0, 0.5 / self._dt, 10000)
                 filt = np.ones_like(ff, dtype=np.complex)
-                for i, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station_id)):
+                for i, (name, instance, kwargs) in enumerate(dummy_event.iter_modules(self._station_id)):
                     if hasattr(instance, "get_filter"):
                         filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
 

@@ -324,7 +324,7 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
             # add only primary for now, since full interaction chain is not typically in the input hdf5s
             evt.add_particle(self.primary)
         # copy over generator information from temporary event to event
-        self._evt._generator_info = self._generator_info
+        evt._generator_info = self._generator_info
 
         self._station = NuRadioReco.framework.station.Station(self._station_id)
         sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
