@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
+import os
 import sys
 import h5py
 import numpy as np
@@ -138,5 +139,11 @@ error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, 
 keys = [u'maximum_amplitudes']
 error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accuracy=0.01)
 
-print("The two files {} and {} are (almost) identical.".format(file1, file2))
-
+if error == -1:
+   print("file1: {} and file2: {} are not identical".format(file1, file2))
+   os.remove("emitter_event_list.hdf5")
+   os.remove("output.hdf5")
+   os.remove("output.nur")
+   sys.exit(error)
+else:
+   print("The two files are (almost) identical.")
