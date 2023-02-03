@@ -158,12 +158,10 @@ class simulation(
             vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
             self._distance_cut_time += time.time() - t_tmp
 
-            triggered_showers = {}  # this variable tracks which showers triggered a particular station
 
             # loop over all stations (each station is treated independently)
             for iSt, self._station_id in enumerate(self._station_ids):
                 t1 = time.time()
-                triggered_showers[self._station_id] = []
                 logger.debug(f"simulating station {self._station_id}")
 
                 if self._cfg['speedup']['distance_cut']:
@@ -318,7 +316,6 @@ class simulation(
                     if not new_station.has_triggered():
                         continue
                     event_group_has_triggered = True
-                    triggered_showers[self._station_id].extend(self._get_shower_index(self._shower_ids_of_sub_event))
                     self._calculate_signal_properties(
                         new_event,
                         new_station
