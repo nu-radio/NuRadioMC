@@ -308,7 +308,7 @@ class simulation(
                     self._evt = new_event
 
                     if bool(self._cfg['signal']['zerosignal']):
-                        self._increase_signal(None, 0)
+                        self._increase_signal(new_station, None, 0)
 
                     logger.debug("performing detector simulation")
                     self._simulate_detector_response(
@@ -429,7 +429,7 @@ class simulation(
                 return True
         return False
 
-    def _increase_signal(self, channel_id, factor):
+    def _increase_signal(self, station, channel_id, factor):
         """
         increase the signal of a simulated station by a factor of x
         this is e.g. used to approximate a phased array concept with a single antenna
@@ -440,11 +440,11 @@ class simulation(
             if None, all available channels will be modified
         """
         if channel_id is None:
-            for electric_field in self._station.get_sim_station().get_electric_fields():
+            for electric_field in station.get_sim_station().get_electric_fields():
                 electric_field.set_trace(electric_field.get_trace() * factor, sampling_rate=electric_field.get_sampling_rate())
 
         else:
-            sim_channels = self._station.get_sim_station().get_electric_fields_for_channels([channel_id])
+            sim_channels = station.get_sim_station().get_electric_fields_for_channels([channel_id])
             for sim_channel in sim_channels:
                 sim_channel.set_trace(sim_channel.get_trace() * factor, sampling_rate=sim_channel.get_sampling_rate())
 

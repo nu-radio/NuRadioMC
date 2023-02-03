@@ -76,7 +76,7 @@ class simulation_detector(NuRadioMC.simulation.simulation_base.simulation_base):
                 min_freq=0 * units.MHz,
                 max_freq=max_freq,
                 type='rayleigh',
-                excluded_channels=self._noiseless_channels[self._station.get_id()]
+                excluded_channels=self._noiseless_channels[station.get_id()]
             )
 
         self._detector_simulation_filter_amp(event, station, self._det)
