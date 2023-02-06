@@ -1,0 +1,112 @@
+{
+	"global":
+	{
+		"do_interpolation" : true,
+		"exact_time" : true,
+		"scattering": 
+		{
+			"multiple_scattering" : "NoScattering"
+		},
+		"CrossSections" : {
+			"brems": {
+				"parametrization": "KelnerKokoulinPetrukhin",
+				"multiplier" : 1.0,
+				"lpm": true
+			},
+			"epair": {
+				"parametrization": "KelnerKokoulinPetrukhin",
+				"multiplier" : 1.0,
+				"lpm": true
+			},
+			"ioniz": {
+				"parametrization": "BetheBlochRossi",
+				"multiplier" : 1.0
+			},
+			"photo": {
+				"parametrization": "AbramowiczLevinLevyMaor97",
+				"multiplier" : 1.0,
+				"shadow": "ButkevichMikheyev"
+			}
+		},
+		"cuts":
+		{
+			"e_cut": 1e8,
+			"v_cut": 1,
+			"cont_rand": true
+		}
+	},
+	"sectors": [
+		{
+			"medium": "air",
+			"geometries": [
+				{
+					"hierarchy": 0,
+					"shape": "sphere",
+					"origin": [0, 0, -637413400],
+					"outer_radius": 1e20,
+					"inner_radius": 637413400
+
+				}
+			],
+			"density_distribution":
+			{
+				"type": "homogeneous",
+				"mass_density" : 0.000810965
+			}
+		},
+		{
+			"medium": "ice",
+			"geometries": [
+				{
+					"hierarchy": 1,
+					"shape": "sphere",
+					"origin": [0, 0, -637413400],
+					"outer_radius": 637413400,
+					"inner_radius": 637355800
+
+				}
+			],
+			"density_distribution":
+			{
+				"type": "homogeneous",
+				"mass_density" : 0.762944
+			}
+		},		
+		{
+			"medium": "water",
+			"geometries": [
+				{
+					"hierarchy": 2,
+					"shape": "sphere",
+					"origin": [0, 0, -637413400],
+					"outer_radius": 637355800,
+					"inner_radius": 637132400
+
+				}
+			],
+			"density_distribution":
+			{
+				"type": "homogeneous",
+				"mass_density" : 1.0
+			}
+		},	
+		{
+			"medium": "StandardRock",
+			"geometries": [
+				{
+					"hierarchy": 3,
+					"shape": "sphere",
+					"origin": [0, 0, -637413400],
+					"outer_radius": 637132400,
+					"inner_radius": 0
+
+				}
+			],
+			"density_distribution":
+			{
+				"type": "homogeneous",
+				"mass_density" : 2.65
+			}
+		}			
+	]
+}

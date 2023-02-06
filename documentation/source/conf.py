@@ -227,7 +227,7 @@ autoclass_content = 'both' # include __init__ docstrings in class description
 
 autodoc_mock_imports = [
     'ROOT', 'mysql-python', 'pygdsm', 'MySQLdb', 'healpy', 'scripts',
-    'uproot', 'proposal', 'radiopropa', 'plotly', 'past',
+    'uproot', 'radiopropa', 'plotly', 'past',
     'nifty5'
     ]
 # Raise warnings if any cross-references are broken

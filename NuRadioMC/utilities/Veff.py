@@ -201,7 +201,7 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
         bounds_theta should be a (two-item) list, but will care only about the min/max values
     
     Returns
-    ----------
+    -------
     list of dictionaries
         Each file is one entry. The dictionary keys store all relevant properties
     """
@@ -596,12 +596,12 @@ def get_Veff_Aeff_array(data):
     last tuple is the effective volume, its uncertainty, the weighted sum of triggered events, lower 68% uncertainty, upper 68% uncertainty
 
     Parameters
-    -----------
+    ----------
     data: dict
         the result of the `get_Veff` function
 
     Returns
-    --------
+    -------
     
     * (n_energy, n_zenith_bins, n_triggernames, 5) dimensional array of floats
     * array of unique mean energies (the mean is calculated in the logarithm of the energy)

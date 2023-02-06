@@ -37,6 +37,7 @@ class IceModel():
         self.reflection = None
         self.reflection_coefficient = None
         self.reflection_phase_shift = None
+        self._ice_model_radiopropa = None
 
     def add_reflective_bottom(self, refl_z, refl_coef, refl_phase_shift):
         """
@@ -126,20 +127,74 @@ class IceModel():
         raise NotImplementedError('function not defined')
 
     
-    def get_ice_model_radiopropa(self):
+    def _compute_default_ice_model_radiopropa(self):
         """
-        if radiopropa is installed this will a RadioPropaIceWrapper object
-        which can then be used to insert in the radiopropa tracer
+        Computes a default object holding the radiopropa scalarfield and necessary radiopropa 
+        moduldes that define the medium in radiopropa. It uses the parameters of the medium 
+        object to contruct some modules, like a discontinuity object for the air boundary. 
+        Additional modules can be added in this function
 
+        This is the default and should always be overriden/implemented in new ice model!
+
+
+        Returns
+        -------
+        ice_model_radiopropa:   RadioPropaIceWrapper
+                                object holding the radiopropa scalarfield and modules
         """
-        if radiopropa_is_imported:
-            # when implementing a new ice_model this part of the function should be ice model specific
-            # if the new ice_model cannot be used in RadioPropa, this function should throw an error
-            logger.error('function not defined')
-            raise NotImplementedError('function not defined')
-        else:
+        if not radiopropa_is_imported:
             logger.error('The radiopropa dependancy was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('RadioPropa could not be imported')
+
+        # when implementing a new ice_model this part of the function should be ice model specific
+        # if the new ice_model cannot be used in RadioPropa, this function should throw an error
+        logger.error('function not defined')
+        raise NotImplementedError('function not defined')
+
+    def get_ice_model_radiopropa(self):
+        """
+        Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
+        that define the medium in radiopropa. If no specific model is set by the user it returns
+        the default implemented model using the '_compute_default_ice_model_radiopropa' function.
+
+        This seperation allows having the posibility to set a more specific/adjusted radiopropa 
+        ice model in case they need it, without losing the access to the default model. 
+
+        DO NOT OVERRIDE THIS FUNCTION
+
+        Returns
+        -------
+        ice:    RadioPropaIceWrapper
+                object holding the radiopropa scalarfield and modules
+        """
+        if not radiopropa_is_imported:
+            logger.error('The radiopropa dependancy was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
+            raise ImportError('RadioPropa could not be imported')
+
+        if self._ice_model_radiopropa is None:
+            self._ice_model_radiopropa = self._compute_default_ice_model_radiopropa()
+        
+        return self._ice_model_radiopropa
+
+    def set_ice_model_radiopropa(self, ice_model_radiopropa):
+        """
+        If radiopropa is installed, this function can be used
+        to set a specific RadioPropaIceWrapper object as the
+        ice model used for RadioPropa.
+
+        DO NOT OVERRIDE THIS FUNCTION
+
+        Parameters
+        ----------
+        ice_model_radioprop:    RadioPropaIceWrapper
+                                object holding the radiopropa scalarfield and modules
+
+        """
+        if not radiopropa_is_imported:
+            logger.error('The radiopropa dependancy was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
+            raise ImportError('RadioPropa could not be imported')
+
+        self._ice_model_radiopropa = ice_model_radiopropa
 
 
 class IceModelSimple(IceModel):
@@ -292,13 +347,13 @@ class IceModelSimple(IceModel):
         
         return gradient
 
-    def get_ice_model_radiopropa(self):
+    def _compute_default_ice_model_radiopropa(self):
         """
-        If radiopropa is installed this will return an object holding the radiopropa
-        scalarfield and necessary radiopropa moduldes that define the medium in radiopropa. 
-        It uses the parameters of the medium object to contruct the scalar field using the 
-        simple ice model implementation in radiopropa and some modules, like a discontinuity 
-        object for the air boundary
+        If radiopropa is installed this will compute and return a default object holding the 
+        radiopropa scalarfield and necessary radiopropa moduldes that define the medium in 
+        radiopropa. It uses the parameters of the medium object to contruct the scalar field 
+        using the simple ice model implementation in radiopropa and some modules, like a 
+        discontinuity object for the air boundary.
         
         Overwrites function of the mother class
 
@@ -307,16 +362,17 @@ class IceModelSimple(IceModel):
         ice:    RadioPropaIceWrapper
                 object holding the radiopropa scalarfield and modules
         """
-        if radiopropa_is_imported:
-            scalar_field = RP.IceModel_Simple(z_surface=self.z_air_boundary*RP.meter/units.meter, 
-                                            n_ice=self.n_ice, delta_n=self.delta_n, 
-                                            z_0=self.z_0*RP.meter/units.meter,
-                                            z_shift=self.z_shift*RP.meter/units.meter)
-            return RadioPropaIceWrapper(self, scalar_field)
-        else:
+        if not radiopropa_is_imported:
             logger.error('The radiopropa dependency was not import and can therefore not be used.'
                         +'\nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('RadioPropa could not be imported')
+
+        scalar_field = RP.IceModel_Simple(z_surface=self.z_air_boundary*RP.meter/units.meter, 
+                                        n_ice=self.n_ice, delta_n=self.delta_n, 
+                                        z_0=self.z_0*RP.meter/units.meter,
+                                        z_shift=self.z_shift*RP.meter/units.meter)
+        return RadioPropaIceWrapper(self, scalar_field)
+            
 
 
 
