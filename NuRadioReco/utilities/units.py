@@ -176,6 +176,8 @@ zettaelectronvolt = zetta * electronvolt
 
 joule = electronvolt / eSI  # joule = 6.24150 e+12 * MeV
 
+erg = 1e-7 * joule  # erg = 624.15 GeV
+
 # symbols
 eV = electronvolt
 keV = kiloelectronvolt

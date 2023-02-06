@@ -228,7 +228,7 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_parameters=None):
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
 
     Returns
-    -----------------
+    -------
     all parameters of the files
     """
     if s_parameters is None:

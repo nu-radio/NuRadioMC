@@ -43,7 +43,7 @@ class Trigger:
         initialize trigger class
 
         Parameters
-        -----------
+        ----------
         name: string
             unique name of the trigger
         channels: array of ints
