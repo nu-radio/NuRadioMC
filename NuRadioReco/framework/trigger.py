@@ -388,6 +388,7 @@ class TimeOverThresholdTrigger(Trigger):
     def __init__(self, name, threshold, tot_bins, channels=None):
         """
         initialize trigger class
+
         Parameters
         ----------
         name: string
@@ -403,4 +404,3 @@ class TimeOverThresholdTrigger(Trigger):
         Trigger.__init__(self, name, channels, 'time_over_threshold')
         self._threshold = threshold
         self._tot_bins = tot_bins
-
