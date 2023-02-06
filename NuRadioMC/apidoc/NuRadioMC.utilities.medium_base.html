@@ -593,10 +593,13 @@
 <td><p>returns the gradient of index of refraction at position Reimplement everytime in the specific model</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModel.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium_base.IceModel.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
-<td><p>if radiopropa is installed this will a RadioPropaIceWrapper object which can then be used to insert in the radiopropa tracer</p></td>
+<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModel.get_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModel.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the index of refraction at position.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModel.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium_base.IceModel.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
+<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
 </tr>
 </tbody>
 </table>
@@ -631,10 +634,13 @@ The latter can be added using the <cite>add_reflective_layer</cite> function.</p
 <td><p>returns the gradient of index of refraction at position Reimplement everytime in the specific model</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModel.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium_base.IceModel.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
-<td><p>if radiopropa is installed this will a RadioPropaIceWrapper object which can then be used to insert in the radiopropa tracer</p></td>
+<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModel.get_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModel.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the index of refraction at position.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModel.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium_base.IceModel.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
+<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
 </tr>
 </tbody>
 </table>
@@ -703,8 +709,20 @@ Reimplement everytime in the specific model</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModel.get_ice_model_radiopropa">
 <span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel.get_ice_model_radiopropa"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
-<dd><p>if radiopropa is installed this will a RadioPropaIceWrapper object
-which can then be used to insert in the radiopropa tracer</p>
+<dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
+that define the medium in radiopropa. If no specific model is set by the user it returns
+the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
+<p>This seperation allows having the posibility to set a more specific/adjusted radiopropa 
+ice model in case they need it, without losing the access to the default model.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ice:    RadioPropaIceWrapper</dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -722,6 +740,23 @@ Reimplement everytime in the specific model</p>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
 <dt>n:  float</dt><dd><p>index of refraction</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModel.set_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel.set_ice_model_radiopropa"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel.set_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>If radiopropa is installed, this function can be used
+to set a specific RadioPropaIceWrapper object as the
+ice model used for RadioPropa.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ice_model_radioprop:    RadioPropaIceWrapper</strong></dt><dd><p>object holding the radiopropa scalarfield and modules</p>
 </dd>
 </dl>
 </dd>
@@ -751,11 +786,14 @@ Reimplement everytime in the specific model</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelSimple.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModelSimple.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelSimple.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium_base.IceModelSimple.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
-<td><p>If radiopropa is installed this will return an object holding the radiopropa scalarfield and necessary radiopropa moduldes that define the medium in radiopropa.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code>()</p></td>
+<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelSimple.get_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModelSimple.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the index of refraction at position.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code>(ice_model_radiopropa)</p></td>
+<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
 </tr>
 </tbody>
 </table>
@@ -802,11 +840,14 @@ of the snow at the surface</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelSimple.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModelSimple.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelSimple.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium_base.IceModelSimple.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
-<td><p>If radiopropa is installed this will return an object holding the radiopropa scalarfield and necessary radiopropa moduldes that define the medium in radiopropa.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code>()</p></td>
+<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelSimple.get_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModelSimple.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the index of refraction at position.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code>(ice_model_radiopropa)</p></td>
+<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
 </tr>
 </tbody>
 </table>
@@ -848,25 +889,6 @@ Overwrites function of the mother class</p>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
 <dt>n_nabla:    (3,) np.array</dt><dd><p>gradient of index of refraction at the point</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelSimple.get_ice_model_radiopropa">
-<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelSimple.get_ice_model_radiopropa"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelSimple.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
-<dd><p>If radiopropa is installed this will return an object holding the radiopropa
-scalarfield and necessary radiopropa moduldes that define the medium in radiopropa. 
-It uses the parameters of the medium object to contruct the scalar field using the 
-simple ice model implementation in radiopropa and some modules, like a discontinuity 
-object for the air boundary</p>
-<p>Overwrites function of the mother class</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><dl class="simple">
-<dt>ice:    RadioPropaIceWrapper</dt><dd><p>object holding the radiopropa scalarfield and modules</p>
 </dd>
 </dl>
 </dd>

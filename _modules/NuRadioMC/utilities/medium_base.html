@@ -603,6 +603,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reflection</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reflection_coefficient</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reflection_phase_shift</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ice_model_radiopropa</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="IceModel.add_reflective_bottom"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.add_reflective_bottom">[docs]</a>    <span class="k">def</span> <span class="nf">add_reflective_bottom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">refl_z</span><span class="p">,</span> <span class="n">refl_coef</span><span class="p">,</span> <span class="n">refl_phase_shift</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -692,20 +693,74 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span></div>
 
     
+    <span class="k">def</span> <span class="nf">_compute_default_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes a default object holding the radiopropa scalarfield and necessary radiopropa </span>
+<span class="sd">        moduldes that define the medium in radiopropa. It uses the parameters of the medium </span>
+<span class="sd">        object to contruct some modules, like a discontinuity object for the air boundary. </span>
+<span class="sd">        Additional modules can be added in this function</span>
+
+<span class="sd">        This is the default and should always be overriden/implemented in new ice model!</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ice_model_radiopropa:   RadioPropaIceWrapper</span>
+<span class="sd">                                object holding the radiopropa scalarfield and modules</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">radiopropa_is_imported</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The radiopropa dependancy was not import and can therefore not be used. </span><span class="se">\n</span><span class="s1">More info on https://github.com/nu-radio/RadioPropa&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;RadioPropa could not be imported&#39;</span><span class="p">)</span>
+
+        <span class="c1"># when implementing a new ice_model this part of the function should be ice model specific</span>
+        <span class="c1"># if the new ice_model cannot be used in RadioPropa, this function should throw an error</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
+
 <div class="viewcode-block" id="IceModel.get_ice_model_radiopropa"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.get_ice_model_radiopropa">[docs]</a>    <span class="k">def</span> <span class="nf">get_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        if radiopropa is installed this will a RadioPropaIceWrapper object</span>
-<span class="sd">        which can then be used to insert in the radiopropa tracer</span>
+<span class="sd">        Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes </span>
+<span class="sd">        that define the medium in radiopropa. If no specific model is set by the user it returns</span>
+<span class="sd">        the default implemented model using the &#39;_compute_default_ice_model_radiopropa&#39; function.</span>
+
+<span class="sd">        This seperation allows having the posibility to set a more specific/adjusted radiopropa </span>
+<span class="sd">        ice model in case they need it, without losing the access to the default model. </span>
+
+<span class="sd">        DO NOT OVERRIDE THIS FUNCTION</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ice:    RadioPropaIceWrapper</span>
+<span class="sd">                object holding the radiopropa scalarfield and modules</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">radiopropa_is_imported</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The radiopropa dependancy was not import and can therefore not be used. </span><span class="se">\n</span><span class="s1">More info on https://github.com/nu-radio/RadioPropa&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;RadioPropa could not be imported&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ice_model_radiopropa</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ice_model_radiopropa</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_default_ice_model_radiopropa</span><span class="p">()</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ice_model_radiopropa</span></div>
+
+<div class="viewcode-block" id="IceModel.set_ice_model_radiopropa"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel.set_ice_model_radiopropa">[docs]</a>    <span class="k">def</span> <span class="nf">set_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ice_model_radiopropa</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If radiopropa is installed, this function can be used</span>
+<span class="sd">        to set a specific RadioPropaIceWrapper object as the</span>
+<span class="sd">        ice model used for RadioPropa.</span>
+
+<span class="sd">        DO NOT OVERRIDE THIS FUNCTION</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ice_model_radioprop:    RadioPropaIceWrapper</span>
+<span class="sd">                                object holding the radiopropa scalarfield and modules</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">radiopropa_is_imported</span><span class="p">:</span>
-            <span class="c1"># when implementing a new ice_model this part of the function should be ice model specific</span>
-            <span class="c1"># if the new ice_model cannot be used in RadioPropa, this function should throw an error</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;function not defined&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">radiopropa_is_imported</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The radiopropa dependancy was not import and can therefore not be used. </span><span class="se">\n</span><span class="s1">More info on https://github.com/nu-radio/RadioPropa&#39;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;RadioPropa could not be imported&#39;</span><span class="p">)</span></div></div>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;RadioPropa could not be imported&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ice_model_radiopropa</span> <span class="o">=</span> <span class="n">ice_model_radiopropa</span></div></div>
 
 
 <div class="viewcode-block" id="IceModelSimple"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple">[docs]</a><span class="k">class</span> <span class="nc">IceModelSimple</span><span class="p">(</span><span class="n">IceModel</span><span class="p">):</span>
@@ -835,13 +890,13 @@
             <span class="n">gradient</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_n</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_shift</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_0</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">gradient</span></div>
 
-<div class="viewcode-block" id="IceModelSimple.get_ice_model_radiopropa"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple.get_ice_model_radiopropa">[docs]</a>    <span class="k">def</span> <span class="nf">get_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_compute_default_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        If radiopropa is installed this will return an object holding the radiopropa</span>
-<span class="sd">        scalarfield and necessary radiopropa moduldes that define the medium in radiopropa. </span>
-<span class="sd">        It uses the parameters of the medium object to contruct the scalar field using the </span>
-<span class="sd">        simple ice model implementation in radiopropa and some modules, like a discontinuity </span>
-<span class="sd">        object for the air boundary</span>
+<span class="sd">        If radiopropa is installed this will compute and return a default object holding the </span>
+<span class="sd">        radiopropa scalarfield and necessary radiopropa moduldes that define the medium in </span>
+<span class="sd">        radiopropa. It uses the parameters of the medium object to contruct the scalar field </span>
+<span class="sd">        using the simple ice model implementation in radiopropa and some modules, like a </span>
+<span class="sd">        discontinuity object for the air boundary.</span>
 <span class="sd">        </span>
 <span class="sd">        Overwrites function of the mother class</span>
 
@@ -850,16 +905,17 @@
 <span class="sd">        ice:    RadioPropaIceWrapper</span>
 <span class="sd">                object holding the radiopropa scalarfield and modules</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">radiopropa_is_imported</span><span class="p">:</span>
-            <span class="n">scalar_field</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">IceModel_Simple</span><span class="p">(</span><span class="n">z_surface</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
-                                            <span class="n">n_ice</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_ice</span><span class="p">,</span> <span class="n">delta_n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_n</span><span class="p">,</span> 
-                                            <span class="n">z_0</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_0</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
-                                            <span class="n">z_shift</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_shift</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">RadioPropaIceWrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scalar_field</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">radiopropa_is_imported</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The radiopropa dependency was not import and can therefore not be used.&#39;</span>
                         <span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">More info on https://github.com/nu-radio/RadioPropa&#39;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;RadioPropa could not be imported&#39;</span><span class="p">)</span></div></div>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;RadioPropa could not be imported&#39;</span><span class="p">)</span>
+
+        <span class="n">scalar_field</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">IceModel_Simple</span><span class="p">(</span><span class="n">z_surface</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> 
+                                        <span class="n">n_ice</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_ice</span><span class="p">,</span> <span class="n">delta_n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_n</span><span class="p">,</span> 
+                                        <span class="n">z_0</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_0</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
+                                        <span class="n">z_shift</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">z_shift</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">RadioPropaIceWrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scalar_field</span><span class="p">)</span></div>
+            
 
 
 

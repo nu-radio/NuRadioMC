@@ -813,33 +813,45 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scalarfield</span><span class="o">.</span><span class="n">getGradient</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="o">/</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">))</span></div>
 
     
-<div class="viewcode-block" id="greenland_firn.get_ice_model_radiopropa"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_firn.get_ice_model_radiopropa">[docs]</a>    <span class="k">def</span> <span class="nf">get_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_compute_default_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes </span>
-<span class="sd">        that define the medium in radiopropa. It uses the parameters of the medium object to </span>
-<span class="sd">        contruct some modules, like a discontinuity object for the air boundary. Additional modules</span>
-<span class="sd">        can be added in this function</span>
+<span class="sd">        Computes a default object holding the radiopropa scalarfield and necessary radiopropa </span>
+<span class="sd">        moduldes that define the medium in radiopropa. It uses the parameters of the medium </span>
+<span class="sd">        object to contruct the scalar field (using the firn ice model implementation </span>
+<span class="sd">        in radiopropa) and some modules (like a discontinuity object for the air boundary). </span>
 <span class="sd">        </span>
 <span class="sd">        Overwrites function of the mother class</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        ice:    RadioPropaIceWrapper</span>
-<span class="sd">                object holding the radiopropa scalarfield and modules</span>
+<span class="sd">        ice_model_radiopropa:   RadioPropaIceWrapper</span>
+<span class="sd">                                object holding the radiopropa scalarfield and modules</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ice</span> <span class="o">=</span> <span class="n">medium_base</span><span class="o">.</span><span class="n">RadioPropaIceWrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scalarfield</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">ice</span></div></div>
+        <span class="k">return</span> <span class="n">medium_base</span><span class="o">.</span><span class="n">RadioPropaIceWrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scalarfield</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="greenland_perturbation"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_perturbation">[docs]</a><span class="k">class</span> <span class="nc">greenland_perturbation</span><span class="p">(</span><span class="n">greenland_firn</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">greenland_firn</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         
-<div class="viewcode-block" id="greenland_perturbation.get_ice_model_radiopropa"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_perturbation.get_ice_model_radiopropa">[docs]</a>    <span class="k">def</span> <span class="nf">get_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">discontinuity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="n">ice</span> <span class="o">=</span> <span class="n">greenland_firn</span><span class="o">.</span><span class="n">get_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">discontinuity</span><span class="o">=</span><span class="n">discontinuity</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_compute_default_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">discontinuity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes a default object holding the radiopropa scalarfield and necessary radiopropa </span>
+<span class="sd">        moduldes that define the medium in radiopropa. It uses the parameters of the medium </span>
+<span class="sd">        object to contruct some modules using the default computation of the firn model.</span>
+<span class="sd">        An additional module for the perturbation layer is then added to the object.</span>
+<span class="sd">        </span>
+<span class="sd">        Overwrites function of the mother class</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ice_model_radiopropa:   RadioPropaIceWrapper</span>
+<span class="sd">                                object holding the radiopropa scalarfield and modules</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ice</span> <span class="o">=</span> <span class="n">greenland_firn</span><span class="o">.</span><span class="n">_compute_default_ice_model_radiopropa</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="c1">#fraction from ArXiv 1805.12576 table IV last row</span>
         <span class="n">perturbation_horz</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">PerturbationHorizontal</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">RP</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">ice</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="s1">&#39;horizontal perturbation&#39;</span><span class="p">,</span><span class="n">perturbation_horz</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">ice</span></div></div>
+        <span class="k">return</span> <span class="n">ice</span></div>
 
 
 <div class="viewcode-block" id="uniform_ice"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.uniform_ice">[docs]</a><span class="k">class</span> <span class="nc">uniform_ice</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelSimple</span><span class="p">):</span>
