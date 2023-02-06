@@ -31,6 +31,8 @@ def CalculateTimeOverThresholdIntervals(threshold, tot_bins, amplitudes):
 
     """
 
+    logger = logging.getLogger("CalculateTimeOverThresholdIntervals")
+
     if isinstance(amplitudes, np.ndarray):
         # Calculate intervals over which the values are above threshold
         intervals = np.where(np.diff(amplitudes > threshold, prepend=0, append=0))[0].reshape(-1, 2)
