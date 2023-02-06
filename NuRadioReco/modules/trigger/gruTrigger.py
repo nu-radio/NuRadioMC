@@ -1,8 +1,10 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.framework.trigger import TimeOverThresholdTrigger
+from NuRadioReco.utilities import units
 
 import logging
 import numpy as np
+import time
 import torch
 
 
@@ -36,11 +38,12 @@ def CalculateTimeOverThresholdIntervals(threshold, tot_bins, amplitudes):
         intervals = intervals[np.subtract(*intervals.T) <= -tot_bins]
     elif isinstance(amplitudes, torch.Tensor):
         # Calculate intervals over which the values are above threshold
-        intervals = torch.where(torch.diff(predictions > thresh, prepend=torch.Tensor([0]), append=torch.Tensor([0])))[0].reshape(-1, 2)
+        intervals = torch.where(torch.diff(amplitudes.squeeze() > threshold, prepend=torch.Tensor([0]), append=torch.Tensor([0])))[0].reshape(-1, 2)
         # Select only those which are long enough
         intervals = intervals[torch.subtract(*intervals.T) <= -tot_bins].cpu().numpy()
     else:
-        logger.error(f"Supplied amplitudes of type {type(amplitudes)}. Must be np.ndarray or torch.Tensor")
+        msg = f"Supplied amplitudes of type {type(amplitudes)}. Must be np.ndarray or torch.Tensor"
+        logger.error(msg)
         raise TypeError(msg)
 
     return intervals
@@ -51,7 +54,7 @@ class triggerSimulator:
     Calculates a GRU-based triggering algorithm using a time-over-threshold algorithm on the netowrk output
     """
 
-    def __init__(self, model, device=None, h=None):
+    def __init__(self):
         """
         Parameters
         ----------
@@ -64,15 +67,19 @@ class triggerSimulator:
 
         self.__t = 0
         self.logger = logging.getLogger("GRUTriggerSimulator")
+        self.logger.setLevel(logging.WARNING)
+
+        self.__model = None
+        self._device = None
+        self.__h = None
+
+
+    def begin(self, model, device=None, h=None, log_level=None):
+        self.logger.setLevel(log_level)
 
         self._model = model
         self._device = device
         self.__h = h
-
-        self.begin()
-
-    def begin(self, log_level=None):
-        self.logger.setLevel(log_level)
 
         # Find if a GPU is found by the PyTorch
         if self._device is None:
@@ -110,7 +117,7 @@ class triggerSimulator:
             a unique name of this particular trigger
         """
 
-        if not hasattr(model, "init_hidden"):
+        if not callable(getattr(self._model, "init_hidden", None)):
             msg = f"Argument `model` is expected to have `init_hidden` implemented which returns the initial hidden state"
             self.logger.error(msg)
             raise NotImplementedError(msg)
@@ -125,7 +132,7 @@ class triggerSimulator:
             self.logger.error(msg)
             raise TypeError(msg)
 
-        if not len(vrms_per_channel) or np.all(np.array(vrms_per_channel) > 0):
+        if not len(vrms_per_channel) or not np.all([vrms_per_channel[station.get_id()][ich] > 0. for ich in triggered_channels]):
             msg = f"Argument `vrms_per_channel` is supposed to be a list of (positive-valued) channel RMSs, was given {vrms_per_channel}"
             self.logger.error(msg)
             raise TypeError(msg)
@@ -133,7 +140,7 @@ class triggerSimulator:
         t0 = time.time()
         channels_that_passed_trigger = []
 
-        prediction_traces = []
+        prediction_traces = None
         start_time = None
 
         # Iterate through the channels, get the waveforms, scale them into units of SNR
@@ -143,28 +150,34 @@ class triggerSimulator:
                 continue
 
             # Get traces normalized by V_RMS
-            vrms = vrms_per_channel[channel_id]
-            prediction_traces.append(channel.get_trace() / vrms)
+            vrms = vrms_per_channel[station.get_id()][channel_id]
+            if prediction_traces is None:
+                # Pytorch is slow (by its own admission) in converting lists into Tensor, so we initialize an array here
+                ipred = 0
+                prediction_traces = np.zeros((len(triggered_channels), len(channel.get_trace())))
 
-            ch_start_time = channel.get_trace_start_time()
+            prediction_traces[ipred] = channel.get_trace() / vrms
+            ipred += 1
+
             # Small safety loop to make sure that the channels start at the same t0
+            ch_start_time = channel.get_trace_start_time()
             if start_time is not None and ch_start_time != start_time:
                 self.logger.warning(f"Channel {channel_id} has a trace_start_time that differs from the other channels. The trigger simulator may not work properly")
             start_time = ch_start_time
 
-        if len(prediction_traces) != len(triggered_channels):
+        if ipred != len(triggered_channels):
             msg = (
-                f"Expected the channels: {triggered_channels} in the file, but found {len(prediction_traces)} waveforms. Maybe some of these channels do not exist in the file"
+                f"Expected the channels: {triggered_channels} in the file, but found {ipred} waveforms. Maybe some of these channels do not exist in the file"
             )
             self.logger.error(msg)
             raise ValueError(msg)
 
         # Need to do some shape manipulation based on torch requirements
         torch_tensor = torch.Tensor(prediction_traces).transpose(0, 1).unsqueeze(0)
-        assert len(torch_tensor.size) == 3  # Ensure a 3D tensor
-        assert torch_tensor.size[0] == 1  # First dim is the unsqueezed part
-        assert torch_tensor.size[1] == len(prediction_traces[0])  # Waveform length
-        assert torch_tensor.size[2] == len(triggered_channels)  # The N channels are the features
+        assert torch_tensor.ndim == 3  # Ensure a 3D tensor
+        assert torch_tensor.shape[0] == 1  # First dim is the unsqueezed part
+        assert torch_tensor.shape[1] == len(prediction_traces[0])  # Waveform length
+        assert torch_tensor.shape[2] == len(triggered_channels)  # The N channels are the features
 
         # Run the network a few times on this data to build up the hidden state
         if self.__h is None:
@@ -178,10 +191,10 @@ class triggerSimulator:
         yhat, self.__h = self._model(torch_tensor, self.__h)
         tot_intervals = CalculateTimeOverThresholdIntervals(threshold, tot_bins, yhat)
         has_triggered = len(tot_intervals) > 0  # Any number of tot passings constitute a global success for this waveform
-        self.logger.trace(f"Found {len(tot_intervals)} instances of the trigger being passed")
+        self.logger.debug(f"Found {len(tot_intervals)} instances of the trigger being passed")
 
         # Set the trigger results and times
-        trigger = GruTimeOverThresholdTrigger(trigger_name, threshold, tot_bins, channels=triggered_channels)
+        trigger = TimeOverThresholdTrigger(trigger_name, threshold, tot_bins, channels=triggered_channels)
         trigger.set_triggered_channels(triggered_channels)
         trigger.set_triggered(has_triggered)
         if has_triggered:
@@ -191,6 +204,8 @@ class triggerSimulator:
             trigger.set_trigger_time(trigger_times[0])
             trigger.set_trigger_times(trigger_times)
             self.logger.info(f"Station has passed trigger, trigger times are {trigger_times / units.ns} ns")
+            self.logger.debug(f"\t--> Non-relative times: {trigger_times - start_time / units.ns} ns")
+            self.logger.debug(f"\t--> trigger bins: {tot_intervals[:, 0]}, of {yhat.shape[1]} bins")
         else:
             self.logger.info("Station has NOT passed trigger")
 
