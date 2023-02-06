@@ -55,6 +55,15 @@ class triggerSimulator:
     """
 
     def __init__(self):
+        self.__t = 0
+        self.logger = logging.getLogger("GRUTriggerSimulator")
+        self.logger.setLevel(logging.WARNING)
+
+        self.__model = None
+        self._device = None
+        self.__h = None
+
+    def begin(self, model, device=None, h=None, log_level=None):
         """
         Parameters
         ----------
@@ -64,17 +73,6 @@ class triggerSimulator:
         device: torch.device
             hardware indicator to run the model on
         """
-
-        self.__t = 0
-        self.logger = logging.getLogger("GRUTriggerSimulator")
-        self.logger.setLevel(logging.WARNING)
-
-        self.__model = None
-        self._device = None
-        self.__h = None
-
-
-    def begin(self, model, device=None, h=None, log_level=None):
         self.logger.setLevel(log_level)
 
         self._model = model
@@ -132,7 +130,7 @@ class triggerSimulator:
             self.logger.error(msg)
             raise TypeError(msg)
 
-        if not len(vrms_per_channel) or not np.all([vrms_per_channel[station.get_id()][ich] > 0. for ich in triggered_channels]):
+        if not len(vrms_per_channel) or not np.all([vrms_per_channel[station.get_id()][ich] > 0.0 for ich in triggered_channels]):
             msg = f"Argument `vrms_per_channel` is supposed to be a list of (positive-valued) channel RMSs, was given {vrms_per_channel}"
             self.logger.error(msg)
             raise TypeError(msg)
@@ -166,9 +164,7 @@ class triggerSimulator:
             start_time = ch_start_time
 
         if ipred != len(triggered_channels):
-            msg = (
-                f"Expected the channels: {triggered_channels} in the file, but found {ipred} waveforms. Maybe some of these channels do not exist in the file"
-            )
+            msg = f"Expected the channels: {triggered_channels} in the file, but found {ipred} waveforms. Maybe some of these channels do not exist in the file"
             self.logger.error(msg)
             raise ValueError(msg)
 
