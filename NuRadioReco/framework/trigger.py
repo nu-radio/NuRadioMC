@@ -26,8 +26,8 @@ def deserialize(triggers_pkl):
             trigger  = EnvelopePhasedTrigger(None, None, None, None)
         elif(trigger_type == 'rnog_surface_trigger'):
             trigger = RNOGSurfaceTrigger(None, None, None, None)
-        elif(trigger_type == 'gru_time_over_threshold'):
-            trigger = GruTimeOverThresholdTrigger(None, None, None)
+        elif(trigger_type == 'time_over_threshold'):
+            trigger = TimeOverThresholdTrigger(None, None, None)
         else:
             raise ValueError("unknown trigger type")
         trigger.deserialize(data_pkl)
