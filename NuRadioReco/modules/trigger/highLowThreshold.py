@@ -192,8 +192,8 @@ class triggerSimulator:
             logger.info("Station has NOT passed trigger")
         else:
             trigger.set_triggered(True)
-            trigger.set_trigger_time(triggered_times.min() + channel_trace_start_time)
-            trigger.set_trigger_times(triggered_times + channel_trace_start_time)
+            trigger.set_trigger_time(triggered_times.min()+channel_trace_start_time) #trigger_time= time from start of trace + start time of trace with respect to moment of interaction = trigger time from moment of interaction
+            trigger.set_trigger_times(triggered_times+channel_trace_start_time) #trigger_times= times from start of trace + start time of trace with respect to moment of interaction = trigger times from moment of interaction
             logger.info("Station has passed trigger, trigger time is {:.1f} ns".format(
                 trigger.get_trigger_time() / units.ns))
 
