@@ -131,7 +131,6 @@ class triggerSimulator:
             logger.debug("station has triggered")
         else:
             trigger.set_triggered(False)
-            trigger.set_trigger_time(None)
             logger.debug("station has NOT triggered")
         station.set_trigger(trigger)
 

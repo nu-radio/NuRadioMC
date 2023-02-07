@@ -97,7 +97,7 @@ class Trigger:
 
     def get_trigger_times(self):
         """
-        get the trigger times (time with respect to beginning of trace?)
+        get the trigger times (time with respect to beginning of trace)
         """
         if self._trigger_times is None and not np.isnan(self._trigger_time):
             return np.array(self._trigger_time)
