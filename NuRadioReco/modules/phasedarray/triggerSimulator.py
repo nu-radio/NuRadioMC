@@ -333,9 +333,9 @@ class triggerSimulator:
             the delays for the primary channels that have caused a trigger.
             If there is no trigger, it's an empty dictionary
         trigger_time: float
-            the earliest trigger time
+            the earliest trigger time with respect to interaction time.
         trigger_times: dictionary
-            all time bins that fulfil the trigger condition per beam. The key is the beam number.
+            all time bins that fulfil the trigger condition per beam. The key is the beam number. Time with respect to interaction time.
         """
 
         if(triggered_channels is None):
@@ -444,7 +444,7 @@ class triggerSimulator:
                 # logger.debug(f"trigger times  = {trigger_times[iTrace]}")
         if is_triggered:
             # logger.debug(trigger_times)
-            trigger_time = min([x.min() for x in trigger_times.values()])
+            trigger_time = min([x.min() for x in trigger_times.values()])+ channel_trace_start_time
             # logger.debug(f"minimum trigger time is {trigger_time:.0f}ns")
 
         return is_triggered, trigger_delays, trigger_time, trigger_times
@@ -564,10 +564,10 @@ class triggerSimulator:
                                       primary_angles=phasing_angles, trigger_delays=trigger_delays)
 
         trigger.set_triggered(is_triggered)
-
+        
         if is_triggered:
-            trigger.set_trigger_time(trigger_time)
-            trigger.set_trigger_times(trigger_times)
+            trigger.set_trigger_time(trigger_time)# #trigger_time= time from start of trace + start time of trace with respect to moment of interaction = trigger time from moment of interaction; time offset to interaction time (channel_trace_start_time) already recognized in self.phased_trigger
+            trigger.set_trigger_times(trigger_times) ##trigger_time= time from start of trace + start time of trace with respect to moment of interaction = trigger time from moment of interaction; time offset to interaction time (channel_trace_start_time) already recognized in self.phased_trigger
         else:
             trigger.set_trigger_time(None)
 

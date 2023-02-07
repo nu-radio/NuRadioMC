@@ -183,7 +183,7 @@ class triggerSimulator:
 
         if has_triggered:
             trigger.set_triggered(True)
-            trigger.set_trigger_time(triggered_times.min() + channel_trace_start_time)  # trigger_time = time from the beginning of the trace
+            trigger.set_trigger_time(triggered_times.min()+channel_trace_start_time)  # trigger_time = time from moment of interaction
             logger.debug("station has triggered")
 
         else:
