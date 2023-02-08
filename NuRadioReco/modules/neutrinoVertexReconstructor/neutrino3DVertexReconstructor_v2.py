@@ -223,9 +223,6 @@ class neutrino3DVertexReconstructor:
         debug: bool (default: False)
             if True, save debug plots at various stages of the reconstruction
         """
-        azimuth_grid_2d, z_grid_2d = np.meshgrid(self.__azimuths_2d, self.__z_coordinates_2d)
-        distance_correlations = np.zeros(self.__distances_2d.shape)
-        full_correlations = np.zeros((len(self.__distances_2d), len(self.__z_coordinates_2d), len(self.__azimuths_2d)))
 
         if debug:
             plt.close('all')
@@ -273,8 +270,9 @@ class neutrino3DVertexReconstructor:
             toffset = sample_shifts / channel_1.get_sampling_rate()
             for i_shift, shift_sample in enumerate(sample_shifts):
                 correlation_product[i_shift] = np.max((corr_1 * np.roll(corr_2, shift_sample)))
-            # corr_median = np.median(correlation_product)
-            # corr_diff = correlation_product - corr_median
+            corr_median = np.median(correlation_product)
+            corr_diff = correlation_product - corr_median
+            correlation_product = np.fmax(corr_diff, 0)
             # correlation_product = np.sign(corr_diff) * corr_diff**2 / corr_median**2
             # correlation_product -= np.min(correlation_product)
             self.__pair_correlations[i_pair] = correlation_product
@@ -326,6 +324,11 @@ class neutrino3DVertexReconstructor:
                 correlation_product[i_shift] = np.max((corr_1 * np.roll(corr_2, shift_sample)))
             correlation_product = np.abs(correlation_product)
             correlation_product[np.abs(toffset) < 20] = 0
+            corr_median = np.median(correlation_product)
+            corr_diff = correlation_product - corr_median
+            correlation_product = np.fmax(corr_diff, 0)
+            # correlation_product = np.sign(corr_diff) * corr_diff**2 / corr_median**2
+            # correlation_product -= np.min(correlation_product)
             self.__self_correlations[i_channel] = correlation_product
 
         if debug:
@@ -967,7 +970,7 @@ class neutrino3DVertexReconstructor:
         ax.set_facecolor(bg)
 
         if thetaphi_fit is not None:
-            plt.plot(thetaphi_fit[1], thetaphi_fit[0] / units.deg, marker='o', mfc='none', color='lightblue', ms=10, label='fit', ls='')
+            plt.plot(thetaphi_fit[1], thetaphi_fit[0] / units.deg, marker='s', mfc='none', color='lightblue', ms=10, label='fit', ls='')
         if thetaphi_sim is not None:
             plt.plot(thetaphi_sim[1], thetaphi_sim[0] / units.deg, marker='o', mfc='none', color='red', ms=10, label='sim', ls='')
 
