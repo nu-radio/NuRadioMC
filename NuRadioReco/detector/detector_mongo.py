@@ -55,6 +55,9 @@ class Detector(object):
             self.__mongo_client = MongoClient("mongodb://read:EseNbGVaCV4pBBrt@radio.zeuthen.desy.de:27017/admin?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=true")
             #self.__mongo_client = MongoClient("mongodb+srv://RNOG_read:7-fqTRedi$_f43Q@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
             self.db = self.__mongo_client.RNOG_live
+        elif database_connection == "RNOG_test_public":
+            self.__mongo_client = MongoClient(
+                "mongodb://RNOG_test_public:jrE5xO38D7wQweVR5doa@radio-test.zeuthen.desy.de:27017/admin?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=true")
         elif isinstance(database_connection, str):
             logger.info(f'trying to connect to {database_connection} ...')
             self.__mongo_client = MongoClient(database_connection)
