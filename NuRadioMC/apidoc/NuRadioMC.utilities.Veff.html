@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.utilities.Veff module &mdash; NuRadio 2.2.0-dev documentation</title>
@@ -30,15 +30,19 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../main.html" class="icon icon-home"> NuRadio
-            <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../../main.html" class="icon icon-home">
+            NuRadio
+              <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
                 2.2.0-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -555,7 +559,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a></li>
+      <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioMC Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioMC.utilities.html">NuRadioMC.utilities package</a></li>
@@ -577,13 +581,13 @@
 <dd><p>Returns the 68% confidence belt for a number of counts, using the
 Feldman-Cousins method.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>counts: integer or float</strong></dt><dd><p>Number of counts. Can be non-integer (weighted counts)</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>(low_limit, upper_limit): float tuple</dt><dd><p>Lower and upper limits for the confidence belt.</p>
 </dd>
@@ -597,7 +601,7 @@ Feldman-Cousins method.</p>
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></span><span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'yaml'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/Veff.html#export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.export" title="Permalink to this definition"></a></dt>
 <dd><p>export effective volumes (or effective areas) into a human readable JSON or YAML file</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>filename: string</strong></dt><dd><p>the output filename of the JSON file</p>
 </dd>
@@ -622,7 +626,7 @@ Feldman-Cousins method.</p>
 <dd><p>calculates the effective volume or effective area from surface muons from NuRadioMC hdf5 files</p>
 <p>the effective volume is NOT normalized to a water equivalent. It is also NOT multiplied with the solid angle (typically 4pi).</p>
 <dl class="field-list">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>folder: string</strong></dt><dd><p>folder conaining the hdf5 files, one per energy OR filename</p>
 </dd>
@@ -689,7 +693,7 @@ can be</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>list of dictionaries.</dt><dd><p>Each file is one entry. The dictionary keys store all relevant properties</p>
 </dd>
@@ -705,13 +709,13 @@ can be</p>
 <p>the array dimensions are (energy, zenith bin, triggername, 5) where the
 last tuple is the effective volume, its uncertainty, the weighted sum of triggered events, lower 68% uncertainty, upper 68% uncertainty</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>data: dict</strong></dt><dd><p>the result of the <cite>get_Veff</cite> function</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
 <li><dl class="simple">
 <dt>(n_energy, n_zenith_bins, n_triggernames, 5) dimensional array of floats</dt><dd></dd>
@@ -793,7 +797,7 @@ last tuple is the effective volume, its uncertainty, the weighted sum of trigger
 <dd><p>calculates the effective volume or effective area from surface muons from a single NuRadioMC hdf5 file</p>
 <p>the effective volume is NOT normalized to a water equivalent. It is also NOT multiplied with the solid angle (typically 4pi).</p>
 <dl class="field-list">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>filename: string</strong></dt><dd><p>filename of the hdf5 file</p>
 </dd>
@@ -856,7 +860,7 @@ bounds_theta should be a (two-item) list, but will care only about the min/max v
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>list of dictionaries</dt><dd><p>Each file is one entry. The dictionary keys store all relevant properties</p>
 </dd>
@@ -876,7 +880,7 @@ bounds_theta should be a (two-item) list, but will care only about the min/max v
 <dd><p>convenience function to converte the effective volume of a medium with density <cite>density_medium</cite> to the
 water equivalent effective volume</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>Veff: float or array</strong></dt><dd><p>the effective volume</p>
 </dd>
@@ -886,7 +890,7 @@ water equivalent effective volume</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>water equivalen effective volume</dt><dd></dd>
 </dl>
@@ -907,14 +911,14 @@ water equivalent effective volume</p>
 from all showers we overestimate the effective volume. This function modifies the triggered array such
 that it contains not more than one True value for each event group.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>triggered: array of bools</strong></dt><dd></dd>
 <dt><strong>gids: array of ints</strong></dt><dd><p>the event group ids</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>array of bools</dt><dd><p>the corrected triggered array</p>
 </dd>

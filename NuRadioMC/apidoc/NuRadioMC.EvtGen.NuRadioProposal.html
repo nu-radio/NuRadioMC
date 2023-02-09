@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.EvtGen.NuRadioProposal module &mdash; NuRadio 2.2.0-dev documentation</title>
@@ -30,15 +30,19 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../main.html" class="icon icon-home"> NuRadio
-            <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../../main.html" class="icon icon-home">
+            NuRadio
+              <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
                 2.2.0-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -555,7 +559,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a></li>
+      <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioMC Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a></li>
@@ -580,10 +584,6 @@ start with double underscore take PROPOSAL units as an argument and should
 not be used from the outside to avoid mismatching units.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_decays" title="NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_decays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_decays</span></code></a>(energy_leptons_nu, lepton_codes)</p></td>
 <td><p>Propagates a set of leptons and returns a list with the properties of the decay particles.</p></td>
@@ -594,7 +594,7 @@ not be used from the outside to avoid mismatching units.</p>
 </tbody>
 </table>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>config_file: string or path</strong></dt><dd><p>The user can specify the path to their own config file or choose among
 the available options:
@@ -629,10 +629,6 @@ For more details, check the documentation for the
 </dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_decays" title="NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_decays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_decays</span></code></a>(energy_leptons_nu, lepton_codes)</p></td>
 <td><p>Propagates a set of leptons and returns a list with the properties of the decay particles.</p></td>
@@ -648,7 +644,7 @@ For more details, check the documentation for the
 <dd><p>Propagates a set of leptons and returns a list with the properties of
 the decay particles.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>energy_leptons_nu: array of floats</strong></dt><dd><p>Array with the energies of the input leptons, in NuRadioMC units (eV)</p>
 </dd>
@@ -664,7 +660,7 @@ the decay particles.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>decays_array: array of (float, float) tuples</dt><dd><p>The first element of the tuple contains the decay distance in m
 The second element contains the decay energy in eV (NuRadioMC units)</p>
@@ -680,7 +676,7 @@ The second element contains the decay energy in eV (NuRadioMC units)</p>
 <dd><p>Propagates a set of leptons and returns a list with the properties for
 all the properties of the shower-inducing secondary particles</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>energy_leptons_nu: array of floats</strong></dt><dd><p>Array with the energies of the input leptons, in NuRadioMC units (eV)</p>
 </dd>
@@ -703,7 +699,7 @@ showers are stored</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>secondaries_array: 2D-list containing SecondaryProperties objects</dt><dd><p>For each primary a list containing the information on the shower-inducing secondaries is
 returned. The first dimension indicates the (index of the) primary lepton and the second dimension
@@ -737,12 +733,12 @@ relevant for NuRadioMC, namely:
 proposal, returns True if the object can be an electromagnetic shower primary 
 and False otherwise</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>pp_type: int, corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type</strong></dt><dd></dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>bool, True if the particle can be an electromagnetic shower primary and False otherwise</dt><dd></dd>
 </dl>
@@ -757,12 +753,12 @@ and False otherwise</p>
 proposal, returns True if the object can be a hadronic shower primary 
 and False otherwise</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>pp_type: int, corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type</strong></dt><dd></dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>bool, True if the particle can be a hadronic shower primary and False otherwise</dt><dd></dd>
 </dl>
@@ -776,12 +772,12 @@ and False otherwise</p>
 <dd><p>Given an integer corresponding to a particle type or interaction type of 
 proposal, returns True if the object can be a shower primary and False otherwise</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>pp_type: int, corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type</strong></dt><dd></dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>bool, True if the particle can be a shower primary and False otherwise</dt><dd></dd>
 </dl>
@@ -796,13 +792,13 @@ proposal, returns True if the object can be a shower primary and False otherwise
 proposal.particle.Particle_Type, it returns the corresponding PDG 
 particle code.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>pp_type: int, corresponding to a proposal.particle.Interaction_Type or</strong></dt><dd><p>proposal.particle.Particle_Type</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>integer with the PDG particle code. None if the argument is not a particle</dt><dd></dd>
 </dl>

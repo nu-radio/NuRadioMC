@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.detector.generic_detector module &mdash; NuRadio 2.2.0-dev documentation</title>
@@ -30,15 +30,19 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../main.html" class="icon icon-home"> NuRadio
-            <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../../main.html" class="icon icon-home">
+            NuRadio
+              <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
                 2.2.0-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -555,7 +559,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a></li>
+      <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.detector.html">NuRadioReco.detector package</a></li>
@@ -590,10 +594,6 @@ therefore not be used for real data, but only for simulation studies.
 This detector only accepts json detector descriptions or dictionary.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.add_generic_station" title="NuRadioReco.detector.generic_detector.GenericDetector.add_generic_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_generic_station</span></code></a>(station_dict)</p></td>
 <td><p>Add a generic station to the detector.</p></td>
@@ -733,10 +733,6 @@ This detector only accepts json detector descriptions or dictionary.</p>
 </tbody>
 </table>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 60%" />
-<col style="width: 40%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><strong>get_station</strong></p></td>
 <td></td>
@@ -745,7 +741,7 @@ This detector only accepts json detector descriptions or dictionary.</p>
 </table>
 <p>Initialize the stations detector properties.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>json_filename</strong><span class="classifier">str</span></dt><dd><p>the path to the json detector description file (if first checks a path relative to this directory, then a
 path relative to the current working directory of the user)
@@ -794,10 +790,6 @@ if False, the antenna model as specified in the database is used.</p>
 </dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.generic_detector.GenericDetector.add_generic_station" title="NuRadioReco.detector.generic_detector.GenericDetector.add_generic_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_generic_station</span></code></a>(station_dict)</p></td>
 <td><p>Add a generic station to the detector.</p></td>
@@ -937,10 +929,6 @@ if False, the antenna model as specified in the database is used.</p>
 </tbody>
 </table>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 60%" />
-<col style="width: 40%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><strong>get_station</strong></p></td>
 <td></td>
@@ -955,7 +943,7 @@ generic station in the original detector description file, i.e. all missing
 properties and all channels will be taken from the reference station.
 If a station with the same ID already exists, this function does nothing.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_dict: dictionary</strong></dt><dd><p>dictionary containing the station properties. Needs to at least include
 a station_id, any other missing parameters will be taken from the
@@ -972,7 +960,7 @@ reference station</p>
 <dd><p>Adds an entry to the list of event-specific changes to the detector
 description.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>properties: dictionary</strong></dt><dd><p>Dictionary of the properties that should be changed, with keys being
 any of the property names in the detector description and values the
@@ -1020,7 +1008,7 @@ values that these properties should be changed to</p>
 description, i.e. without missing properties being replaced by those
 from the default channel.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: integer</strong></dt><dd><p>ID of the requested channel’s station</p>
 </dd>
@@ -1038,7 +1026,7 @@ from the default channel.</p>
 description, i.e. without missing properties being replaced by those
 from the default station. Event-specific changes are also ignored.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: integer</strong></dt><dd><p>ID of the requested station</p>
 </dd>
@@ -1077,7 +1065,7 @@ from the default station. Event-specific changes are also ignored.</p>
 <dd><p>Returns all event-specific changes that have been stored in the
 detector description for a given station and event</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>run_number: integer</strong></dt><dd><p>Run number of the event for which the changes should be returned</p>
 </dd>
@@ -1096,7 +1084,7 @@ If station_id is None, changes for all stations are returned</p>
 <span class="sig-name descname"><span class="pre">has_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/generic_detector.html#GenericDetector.has_station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.generic_detector.GenericDetector.has_station" title="Permalink to this definition"></a></dt>
 <dd><p>checks if a station is present in the database</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1115,7 +1103,7 @@ detector description have been stored. If run_number or event_id are
 not set (or are set to None), event-specific changes to the detector
 will be ignored</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>run_number: integer</strong></dt><dd><p>Run number of the event the detector should be set to</p>
 </dd>
@@ -1131,7 +1119,7 @@ will be ignored</p>
 <span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/generic_detector.html#GenericDetector.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.generic_detector.GenericDetector.update" title="Permalink to this definition"></a></dt>
 <dd><p>updates the detector description to a new time</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>time: astropy.time.Time</strong></dt><dd><p>the time to update the detector description to
 for backward compatibility datetime is also accepted, but astropy.time is prefered</p>

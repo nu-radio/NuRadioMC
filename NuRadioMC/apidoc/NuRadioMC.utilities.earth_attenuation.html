@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.utilities.earth_attenuation module &mdash; NuRadio 2.2.0-dev documentation</title>
@@ -30,15 +30,19 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../main.html" class="icon icon-home"> NuRadio
-            <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../../main.html" class="icon icon-home">
+            NuRadio
+              <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
                 2.2.0-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -555,7 +559,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a></li>
+      <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioMC Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioMC.utilities.html">NuRadioMC.utilities package</a></li>
@@ -578,7 +582,7 @@
 <p>Class describing the Earth’s density.</p>
 <p>Uses densities from the Core-Mantle-Crust model. Parameters from ARASim</p>
 <dl class="field-list simple">
-<dt class="field-odd">Attributes</dt>
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>earth_radius</strong><span class="classifier">float</span></dt><dd><p>Mean radius of the Earth (m).</p>
 </dd>
@@ -598,10 +602,6 @@ radii.</p>
 </dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">density</span></code>(r)</p></td>
 <td><p>Calculates the Earth's density at a given radius.</p></td>
@@ -638,14 +638,15 @@ radii.</p>
 <p>The density calculation is based on the Preliminary reference Earth Model
 <a class="reference internal" href="#r63282dc6282d-1" id="id1">[1]</a>.</p>
 <p class="rubric">References</p>
-<dl class="citation">
-<dt class="label" id="r63282dc6282d-1"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
-<dd><p>A. Dziewonski &amp; D. Anderson, “Preliminary reference Earth model.”
+<div role="list" class="citation-list">
+<div class="citation" id="r63282dc6282d-1" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>A. Dziewonski &amp; D. Anderson, “Preliminary reference Earth model.”
 Physics of the Earth and Planetary Interiors <strong>25</strong>, 297–356 (1981). <a class="reference external" href="https://doi.org/10.1016/0031-9201(81)90046-7">https://doi.org/10.1016/0031-9201(81)90046-7</a></p>
-</dd>
-</dl>
+</div>
+</div>
 <dl class="field-list simple">
-<dt class="field-odd">Attributes</dt>
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>earth_radius</strong><span class="classifier">float</span></dt><dd><p>Mean radius of the Earth (m).</p>
 </dd>
@@ -665,10 +666,6 @@ radii.</p>
 </dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.PREM.density" title="NuRadioMC.utilities.earth_attenuation.PREM.density"><code class="xref py py-obj docutils literal notranslate"><span class="pre">density</span></code></a>(r)</p></td>
 <td><p>Calculates the Earth's density at a given radius.</p></td>
@@ -689,13 +686,13 @@ radii.</p>
 <dd><p>Calculates the Earth’s density at a given radius.</p>
 <p>Supports passing an array of radii or a single radius.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>r</strong><span class="classifier">array_like</span></dt><dd><p>Radius (m) at which to calculate density.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>array_like</dt><dd><p>Density (g/cm^3) of the Earth at the given radii.</p>
 </dd>
@@ -721,7 +718,7 @@ radii.</p>
 <p>Integrates the Earth’s density along the chord, resulting in a column
 density (or material thickness) with units of mass per area.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>endpoint</strong><span class="classifier">array_like</span></dt><dd><p>Vector position of the chord endpoint, in a coordinate system
 centered on the surface of the Earth (e.g. a negative third
@@ -735,7 +732,7 @@ coordinate represents the chord pointing into the Earth).</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>float</dt><dd><p>Column density along the chord starting from <cite>depth</cite> and
 passing through the Earth at <cite>angle</cite>.</p>
@@ -763,7 +760,7 @@ neutrino to reach the detector</p>
 of the neutrino</p>
 <p>parameters from ARAsim (2018)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>theta_nu: float or array of floats</strong></dt><dd><p>the zenith angle of the neutrino direction (where it came from, i.e., opposite to the direction of propagation)</p>
 </dd>
@@ -784,7 +781,7 @@ neutrino to reach the detector</p>
 <p>simple parametrization using only momentum and zenith angle information
 of the neutrino, adapted from ShelfMC</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>theta_nu: float or array of floats</strong></dt><dd><p>the zenith angle of the neutrino direction (where it came from, i.e., opposite to the direction of propagation)</p>
 </dd>
@@ -800,7 +797,7 @@ of the neutrino, adapted from ShelfMC</p>
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.earth_attenuation.</span></span><span class="sig-name descname"><span class="pre">get_weight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta_nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pnu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'simple'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertex_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/earth_attenuation.html#get_weight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.get_weight" title="Permalink to this definition"></a></dt>
 <dd><p>calculates neutrino weight due to Earth absorption for different models</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>theta_nu: float or array of floats</strong></dt><dd><p>the zenith angle of the neutrino direction (where it came from, i.e., opposite to the direction of propagation)</p>
 </dd>

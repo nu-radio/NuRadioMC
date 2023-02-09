@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.SignalGen.ARZ.ARZ module &mdash; NuRadio 2.2.0-dev documentation</title>
@@ -30,15 +30,19 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../main.html" class="icon icon-home"> NuRadio
-            <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../../main.html" class="icon icon-home">
+            NuRadio
+              <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
                 2.2.0-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -555,7 +559,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a></li>
+      <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioMC Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioMC.SignalGen.html">NuRadioMC.SignalGen package</a></li>
@@ -578,10 +582,6 @@
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.em_fraction" title="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.em_fraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">em_fraction</span></code></a>(energy)</p></td>
 <td><p>Returns the energy fraction carried by the electromagnetic component of a hadronic shower</p></td>
@@ -632,7 +632,7 @@ value is the index (int)</p>
 <span class="sig-name descname"><span class="pre">get_time_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shower_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_for_xmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">same_shower</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iN</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'trace'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum_angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3490658503988659</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/ARZ/ARZ.html#ARZ.get_time_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_time_trace" title="Permalink to this definition"></a></dt>
 <dd><p>calculates the electric-field Askaryan pulse from a charge-excess profile</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>shower_energy: float</strong></dt><dd><p>the energy of the shower</p>
 </dd>
@@ -676,7 +676,7 @@ If the difference is greater, the function returns an empty trace.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>efield_trace: array of floats</dt><dd><p>array of electric-field time trace in ‘on-sky’ coordinate system eR, eTheta, ePhi</p>
 </dd>
@@ -700,7 +700,7 @@ Askaryan pulse from a charge-excess profile</p>
 <p>Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples.</p>
 <p>The numerical integration was replaces by a sum using the trapeoiz rule using vectorized numpy operations</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>shower_energy: float</strong></dt><dd><p>the energy of the shower</p>
 </dd>
@@ -761,10 +761,6 @@ as the position of the maximum of the charge excess profile</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ_tabulated.get_time_trace" title="NuRadioMC.SignalGen.ARZ.ARZ.ARZ_tabulated.get_time_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_trace</span></code></a>(shower_energy, theta, N, dt, ...)</p></td>
 <td><p>calculates the electric-field Askaryan pulse from a charge-excess profile</p></td>
@@ -779,7 +775,7 @@ as the position of the maximum of the charge excess profile</p>
 <span class="sig-name descname"><span class="pre">get_time_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shower_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">same_shower</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iN</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'trace'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta_reference</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X0'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/ARZ/ARZ.html#ARZ_tabulated.get_time_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ_tabulated.get_time_trace" title="Permalink to this definition"></a></dt>
 <dd><p>calculates the electric-field Askaryan pulse from a charge-excess profile</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>shower_energy: float</strong></dt><dd><p>the energy of the shower</p>
 </dd>
@@ -813,7 +809,7 @@ signal for both ray tracing solutions from the same shower.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>efield_trace: array of floats</dt><dd><p>array of electric-field time trace in ‘on-sky’ coordinate system eR, eTheta, ePhi</p>
 </dd>
@@ -838,7 +834,7 @@ Askaryan pulse from a charge-excess profile</p>
 <p>Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples.</p>
 <p>The numerical integration was replaces by a sum using the trapezoid rule using vectorized numpy operations</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>shower_energy: float</strong></dt><dd><p>the energy of the shower</p>
 </dd>
@@ -897,7 +893,7 @@ Askaryan pulse from a charge-excess profile</p>
 <p>Note that the returned array has N+1 samples so that the derivative (the efield) will have N samples.</p>
 <p>The numerical integration was replaces by a sum using the trapezoid rule using vectorized numpy operations</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>shower_energy: float</strong></dt><dd><p>the energy of the shower</p>
 </dd>
@@ -953,7 +949,7 @@ as the position of the maximum of the charge excess profile</p>
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.ARZ.ARZ.</span></span><span class="sig-name descname"><span class="pre">theta_to_thetaprime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/ARZ/ARZ.html#theta_to_thetaprime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.ARZ.ARZ.theta_to_thetaprime" title="Permalink to this definition"></a></dt>
 <dd><p>converts a viewing angle relative to the start of the shower to a viewing angle relative to the shower maximum</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>theta: float</strong></dt><dd><p>The angle between the shower axis and the vertex-observer line</p>
 </dd>
@@ -971,7 +967,7 @@ as the position of the maximum of the charge excess profile</p>
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.ARZ.ARZ.</span></span><span class="sig-name descname"><span class="pre">thetaprime_to_theta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">thetaprime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_prime</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/ARZ/ARZ.html#thetaprime_to_theta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.ARZ.ARZ.thetaprime_to_theta" title="Permalink to this definition"></a></dt>
 <dd><p>converts a viewing angle relative to the shower maximum to a viewing angle relative to the start of the shower.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>thetaprime: float</strong></dt><dd><p>Angle formed between the shower axis and the shower maximum-observer line</p>
 </dd>

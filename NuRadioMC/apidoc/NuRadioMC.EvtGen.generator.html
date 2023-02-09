@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.EvtGen.generator module &mdash; NuRadio 2.2.0-dev documentation</title>
@@ -30,15 +30,19 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../main.html" class="icon icon-home"> NuRadio
-            <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../../main.html" class="icon icon-home">
+            NuRadio
+              <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
                 2.2.0-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -555,7 +559,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a></li>
+      <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioMC Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a></li>
@@ -578,10 +582,6 @@
 <p>Initialize the logger with a name and an optional level.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">addFilter</span></code>(filter)</p></td>
 <td><p>Add the specified filter to this handler.</p></td>
@@ -652,10 +652,6 @@
 </tbody>
 </table>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><strong>status</strong></p></td>
 <td></td>
@@ -680,7 +676,7 @@
 neutrino flavor, charged currend/neutral current and inelastiviy distributions.
 All events are saved in an hdf5 file.</p>
 <dl class="field-list">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>filename: string</strong></dt><dd><p>the output filename of the hdf5 file</p>
 </dd>
@@ -888,7 +884,7 @@ The use can also specify “nc” or “cc” to exclusively simulate NC or CC i
 <p>Generates muons at the surface for the atmospheric muon acceptance studies.
 All events are saved in an hdf5 file.</p>
 <dl class="field-list">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>filename: string</strong></dt><dd><p>the output filename of the hdf5 file</p>
 </dd>
@@ -1076,7 +1072,7 @@ same as SouthPole but with a 3 km deep ice layer.</p></li>
 <dd><p>helper function that generates the vertex position randomly distributed in simulation volume.
 The relevant quantities are also saved into the hdf5 attributes</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>attributes: dicitionary</strong></dt><dd><p>dict storing hdf5 attributes</p>
 </dd>
@@ -1092,7 +1088,7 @@ The relevant quantities are also saved into the hdf5 attributes</p>
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.generator.</span></span><span class="sig-name descname"><span class="pre">get_energies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Emin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Emax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectrum_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/generator.html#get_energies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.generator.get_energies" title="Permalink to this definition"></a></dt>
 <dd><p>generates a random distribution of enrgies following a certain spectrum</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>n_events: int</strong></dt><dd><p>the total number of events</p>
 </dd>
@@ -1125,7 +1121,7 @@ The relevant quantities are also saved into the hdf5 attributes</p>
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.generator.</span></span><span class="sig-name descname"><span class="pre">get_energy_from_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Emin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Emax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/generator.html#get_energy_from_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.generator.get_energy_from_flux" title="Permalink to this definition"></a></dt>
 <dd><p>returns randomly distribution of energy according to a flux</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>Emin: float</strong></dt><dd><p>minumum energy</p>
 </dd>
@@ -1139,7 +1135,7 @@ The relevant quantities are also saved into the hdf5 attributes</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>energies: array of floats</dt><dd><p>array of energies</p>
 </dd>
@@ -1159,7 +1155,7 @@ The relevant quantities are also saved into the hdf5 attributes</p>
 <dd><p>Calculates the position of a product particle given by the NuRadioProposal
 module that has been created by a PROPOSAL lepton propagation.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>data_sets: dictionary</strong></dt><dd><p>Dictionary with the data sets from the generating functions
 (generate_eventlist_cylinder and generate_surface_muons)</p>
@@ -1170,7 +1166,7 @@ module that has been created by a PROPOSAL lepton propagation.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>x, y, z, time: tuple</dt><dd><p>The 3-D position of the shower-inducing product particle and the time
 elapsed since the first interaction to the present interaction</p>
@@ -1203,7 +1199,7 @@ with PROPOSAL. We calculate the 95% percentile for the largest energy.</p>
 <dd><p>this function calculates the intersection between a ray and an axis-aligned box
 code adapted from <a class="reference external" href="https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection">https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection</a></p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>box: array with shape (2,3)</strong></dt><dd><p>definition of box with two points</p>
 </dd>
@@ -1224,13 +1220,13 @@ code adapted from <a class="reference external" href="https://www.scratchapixel.
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.generator.</span></span><span class="sig-name descname"><span class="pre">load_input_hdf5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/generator.html#load_input_hdf5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.generator.load_input_hdf5" title="Permalink to this definition"></a></dt>
 <dd><p>reads input file into memory</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>filename: string</strong></dt><dd><p>Name of the file</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>fin: dictionary</dt><dd><p>Dictionary containing the elements in filename</p>
 </dd>
@@ -1250,7 +1246,7 @@ code adapted from <a class="reference external" href="https://www.scratchapixel.
 <dd><p>Calculates the primary energy of the neutrino from the deposited
 energy in the medium.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>Edep: float</strong></dt><dd><p>deposited energy</p>
 </dd>
@@ -1270,7 +1266,7 @@ energy in the medium.</p>
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.generator.</span></span><span class="sig-name descname"><span class="pre">set_volume_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">volume</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proposal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/generator.html#set_volume_attributes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.generator.set_volume_attributes" title="Permalink to this definition"></a></dt>
 <dd><p>helper function that interprets the volume settings and sets the relevant quantities as hdf5 attributes.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>volume: dictionarty</strong></dt><dd><p>dict specifying the volume</p>
 </dd>
@@ -1289,7 +1285,7 @@ energy in the medium.</p>
 <dd><p>writes NuRadioMC input parameters to hdf5 file</p>
 <p>this function can automatically split the dataset up into multiple files for easy multiprocessing</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>filename: string</strong></dt><dd><p>the desired output filename (if multiple files are generated, a ‘part000x’ is appended to the filename</p>
 </dd>

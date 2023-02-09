@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.SignalProp.directRayTracing module &mdash; NuRadio 2.2.0-dev documentation</title>
@@ -30,15 +30,19 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../main.html" class="icon icon-home"> NuRadio
-            <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../../main.html" class="icon icon-home">
+            NuRadio
+              <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
                 2.2.0-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -555,7 +559,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a></li>
+      <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioMC Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioMC.SignalProp.html">NuRadioMC.SignalProp package</a></li>
@@ -577,7 +581,7 @@
 <dd><p>Bases: <a class="reference internal" href="NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base" title="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">ray_tracing_base</span></code></a></p>
 <p>class initilization</p>
 <dl class="field-list">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>medium: medium class</strong></dt><dd><p>class describing the index-of-refraction profile</p>
 </dd>
@@ -606,10 +610,6 @@ is obtained via linear interpolation.</p>
 </dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.directRayTracing.direct_ray_tracing.apply_propagation_effects" title="NuRadioMC.SignalProp.directRayTracing.direct_ray_tracing.apply_propagation_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_propagation_effects</span></code></a>(efield, iS)</p></td>
 <td><p>Apply propagation effects to the electric field Note that the 1/r weakening of the electric field is already accounted for in the signal generation</p></td>
@@ -671,10 +671,6 @@ is obtained via linear interpolation.</p>
 </tbody>
 </table>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 66%" />
-<col style="width: 34%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><strong>get_results</strong></p></td>
 <td></td>
@@ -690,7 +686,7 @@ is obtained via linear interpolation.</p>
 <dd><p>Apply propagation effects to the electric field
 Note that the 1/r weakening of the electric field is already accounted for in the signal generation</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>efield: ElectricField object</strong></dt><dd><p>The electric field that the effects should be applied to</p>
 </dd>
@@ -698,7 +694,7 @@ Note that the 1/r weakening of the electric field is already accounted for in th
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>efield: ElectricField object</dt><dd><p>The modified ElectricField object</p>
 </dd>
@@ -718,14 +714,14 @@ Note that the 1/r weakening of the electric field is already accounted for in th
 <span class="sig-name descname"><span class="pre">get_launch_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/directRayTracing.html#direct_ray_tracing.get_launch_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.direct_ray_tracing.get_launch_vector" title="Permalink to this definition"></a></dt>
 <dd><p>calculates the launch vector (in 3D) of solution iS</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector, counting
 starts at zero</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>launch_vector: 3dim np.array</dt><dd><p>the launch vector</p>
 </dd>
@@ -747,7 +743,7 @@ starts at zero</p>
 to this raytracer</p>
 <p>! be sure that the first entry is specific to your raytracer !</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt>list with entries of form [{‘name’: str, ‘ndim’: int}]</dt><dd><p>! be sure that the first entry is specific to your raytracer !
 ‘name’: Name of the new parameter to include in the data structure
@@ -763,7 +759,7 @@ to this raytracer</p>
 <span class="sig-name descname"><span class="pre">get_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/directRayTracing.html#direct_ray_tracing.get_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.direct_ray_tracing.get_path" title="Permalink to this definition"></a></dt>
 <dd><p>helper function that returns the 3D ray tracing path of solution iS</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>ray tracing solution</p>
 </dd>
@@ -779,7 +775,7 @@ to this raytracer</p>
 <span class="sig-name descname"><span class="pre">get_path_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/directRayTracing.html#direct_ray_tracing.get_path_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.direct_ray_tracing.get_path_length" title="Permalink to this definition"></a></dt>
 <dd><p>calculates the path length of solution iS</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector, counting
 starts at zero</p>
@@ -788,7 +784,7 @@ starts at zero</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>distance: float</dt><dd><p>distance from x1 to x2 along the ray path</p>
 </dd>
@@ -802,13 +798,13 @@ starts at zero</p>
 <span class="sig-name descname"><span class="pre">get_raytracing_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i_solution</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/directRayTracing.html#direct_ray_tracing.get_raytracing_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.direct_ray_tracing.get_raytracing_output" title="Permalink to this definition"></a></dt>
 <dd><p>Write parameters that are specific to this raytracer into the output data.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>i_solution: int</strong></dt><dd><p>The index of the raytracing solution</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>dictionary with the keys matching the parameter names specified in get_output_parameters and the values being</dt><dd></dd>
 <dt>the results from the raytracing</dt><dd></dd>
@@ -822,14 +818,14 @@ starts at zero</p>
 <span class="sig-name descname"><span class="pre">get_receive_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/directRayTracing.html#direct_ray_tracing.get_receive_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.direct_ray_tracing.get_receive_vector" title="Permalink to this definition"></a></dt>
 <dd><p>calculates the receive vector (in 3D) of solution iS</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector, counting
 starts at zero</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>receive_vector: 3dim np.array</dt><dd><p>the receive vector</p>
 </dd>
@@ -843,14 +839,14 @@ starts at zero</p>
 <span class="sig-name descname"><span class="pre">get_reflection_angle</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/directRayTracing.html#direct_ray_tracing.get_reflection_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.direct_ray_tracing.get_reflection_angle" title="Permalink to this definition"></a></dt>
 <dd><p>calculates the angle of reflection at the surface (in case of a reflected ray)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector, counting
 starts at zero</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>reflection_angle: float or None</dt><dd><p>the reflection angle (for reflected rays) or None for direct and refracted rays</p>
 </dd>
@@ -864,14 +860,14 @@ starts at zero</p>
 <span class="sig-name descname"><span class="pre">get_solution_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/directRayTracing.html#direct_ray_tracing.get_solution_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.direct_ray_tracing.get_solution_type" title="Permalink to this definition"></a></dt>
 <dd><p>returns the type of the solution</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector, counting
 starts at zero</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>solution_type: int</dt><dd><p>integer corresponding to the types in the dictionary solution_types</p>
 </dd>
@@ -885,7 +881,7 @@ starts at zero</p>
 <span class="sig-name descname"><span class="pre">get_travel_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/directRayTracing.html#direct_ray_tracing.get_travel_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.directRayTracing.direct_ray_tracing.get_travel_time" title="Permalink to this definition"></a></dt>
 <dd><p>calculates the travel time of solution iS</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector, counting
 starts at zero</p>
@@ -894,7 +890,7 @@ starts at zero</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>time: float</dt><dd><p>travel time</p>
 </dd>

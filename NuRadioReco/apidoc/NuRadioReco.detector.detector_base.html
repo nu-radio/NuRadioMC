@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.detector.detector_base module &mdash; NuRadio 2.2.0-dev documentation</title>
@@ -30,15 +30,19 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../main.html" class="icon icon-home"> NuRadio
-            <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../../main.html" class="icon icon-home">
+            NuRadio
+              <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
                 2.2.0-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -555,7 +559,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a></li>
+      <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.detector.html">NuRadioReco.detector package</a></li>
@@ -578,10 +582,6 @@
 <p>helper class to serialize datetime objects with TinyDB</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DateTimeSerializer.OBJ_CLASS" title="NuRadioReco.detector.detector_base.DateTimeSerializer.OBJ_CLASS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OBJ_CLASS</span></code></a></p></td>
 <td><p>alias of <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code></a></p></td>
@@ -628,10 +628,6 @@
 <p>This class provides functions for all relevant detector properties.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.get_absolute_position" title="NuRadioReco.detector.detector_base.DetectorBase.get_absolute_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_absolute_position</span></code></a>(station_id)</p></td>
 <td><p>get the absolute position of a specific station</p></td>
@@ -729,10 +725,6 @@
 </tbody>
 </table>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 60%" />
-<col style="width: 40%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><strong>get_station</strong></p></td>
 <td></td>
@@ -745,7 +737,7 @@ is returned. To force the creation of a new detector instance, pass the addition
 <cite>create_new=True</cite> to this function. For more details, check the documentation for the
 <a class="reference external" href="NuRadioReco.utilities.html#NuRadioReco.utilities.metaclasses.Singleton">Singleton metaclass</a>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>source</strong><span class="classifier">str</span></dt><dd><p>‘json’, ‘dictionary’ or ‘sql’
 default value is ‘json’
@@ -771,10 +763,6 @@ object if none already exists.</p>
 </dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.detector_base.DetectorBase.get_absolute_position" title="NuRadioReco.detector.detector_base.DetectorBase.get_absolute_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_absolute_position</span></code></a>(station_id)</p></td>
 <td><p>get the absolute position of a specific station</p></td>
@@ -872,10 +860,6 @@ object if none already exists.</p>
 </tbody>
 </table>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 60%" />
-<col style="width: 40%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><strong>get_station</strong></p></td>
 <td></td>
@@ -887,13 +871,13 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_absolute_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_absolute_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_absolute_position" title="Permalink to this definition"></a></dt>
 <dd><p>get the absolute position of a specific station</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>3-dim array of absolute station position in easting, northing and depth wrt. to snow level at</dt><dd></dd>
 <dt>time of measurement</dt><dd></dd>
@@ -907,13 +891,13 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_absolute_position_site</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">site</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_absolute_position_site"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_absolute_position_site" title="Permalink to this definition"></a></dt>
 <dd><p>get the absolute position of a specific station</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>site: string</strong></dt><dd><p>the position identifier e.g. “G”</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>3-dim array of absolute station position in easting, northing and depth wrt. to snow level at</dt><dd></dd>
 <dt>time of measurement</dt><dd></dd>
@@ -927,7 +911,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_amplifier_measurement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_amplifier_measurement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_amplifier_measurement" title="Permalink to this definition"></a></dt>
 <dd><p>returns a unique reference to the amplifier measurement</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -944,7 +928,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_amplifier_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_amplifier_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_amplifier_response" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the amplifier response for the amplifier of a given channel</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>The ID of the station</p>
 </dd>
@@ -962,7 +946,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_amplifier_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_amplifier_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_amplifier_type" title="Permalink to this definition"></a></dt>
 <dd><p>returns the type of the amplifier</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -979,7 +963,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_antenna_deployment_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_antenna_deployment_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_antenna_deployment_time" title="Permalink to this definition"></a></dt>
 <dd><p>returns the time of antenna deployment</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -997,7 +981,7 @@ object if none already exists.</p>
 <dd><p>determines the correct antenna model from antenna type, position and orientation of antenna</p>
 <p>so far only infinite firn and infinite air cases are differentiated</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1016,7 +1000,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_antenna_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_antenna_orientation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_antenna_orientation" title="Permalink to this definition"></a></dt>
 <dd><p>returns the orientation of a specific antenna</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1024,7 +1008,7 @@ object if none already exists.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>tuple of floats</dt><dd><ul class="simple">
 <li><p>orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p></li>
@@ -1043,7 +1027,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_antenna_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_antenna_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_antenna_type" title="Permalink to this definition"></a></dt>
 <dd><p>returns the antenna type</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1060,7 +1044,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_cable_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_cable_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_cable_delay" title="Permalink to this definition"></a></dt>
 <dd><p>returns the cable delay of a channel</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1077,7 +1061,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_cable_type_and_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_cable_type_and_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_cable_type_and_length" title="Permalink to this definition"></a></dt>
 <dd><p>returns the cable type (e.g. LMR240) and its length</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1094,7 +1078,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_channel" title="Permalink to this definition"></a></dt>
 <dd><p>returns a dictionary of all channel parameters</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1102,7 +1086,7 @@ object if none already exists.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>dict of channel parameters</dt><dd></dd>
 </dl>
@@ -1115,7 +1099,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_channel_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_channel_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_channel_ids" title="Permalink to this definition"></a></dt>
 <dd><p>get the channel ids of a station</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1136,7 +1120,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_device</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_device"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_device" title="Permalink to this definition"></a></dt>
 <dd><p>returns a dictionary of all device parameters</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1144,7 +1128,7 @@ object if none already exists.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>dict of device parameters</dt><dd></dd>
 </dl>
@@ -1157,7 +1141,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_device_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_device_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_device_ids" title="Permalink to this definition"></a></dt>
 <dd><p>get the device ids of a station</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1172,7 +1156,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_noise_RMS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'amp'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_noise_RMS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_noise_RMS" title="Permalink to this definition"></a></dt>
 <dd><p>returns the noise RMS that was precomputed from forced triggers</p>
 <dl class="field-list">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>station_id: int</strong></dt><dd><p>station id</p>
 </dd>
@@ -1190,7 +1174,7 @@ object if none already exists.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>RMS: float</dt><dd><p>the noise RMS (actually it is the standard deviation but as the mean should be zero its the same)</p>
 </dd>
@@ -1204,7 +1188,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_noise_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_noise_temperature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_noise_temperature" title="Permalink to this definition"></a></dt>
 <dd><p>returns the noise temperature of the channel</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>station id</p>
 </dd>
@@ -1220,7 +1204,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_number_of_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_number_of_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_number_of_channels" title="Permalink to this definition"></a></dt>
 <dd><p>Get the number of channels per station</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1235,7 +1219,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_number_of_devices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_number_of_devices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_number_of_devices" title="Permalink to this definition"></a></dt>
 <dd><p>Get the number of devices per station</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1250,7 +1234,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_number_of_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_number_of_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_number_of_samples" title="Permalink to this definition"></a></dt>
 <dd><p>returns the number of samples of a channel</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1267,7 +1251,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_parallel_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_parallel_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_parallel_channels" title="Permalink to this definition"></a></dt>
 <dd><p>get a list of parallel antennas</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1282,7 +1266,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_relative_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'channel'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_relative_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_relative_position" title="Permalink to this definition"></a></dt>
 <dd><p>get the relative position of a specific channels/antennas with respect to the station center</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1292,7 +1276,7 @@ object if none already exists.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>3-dim array of relative station position</dt><dd></dd>
 </dl>
@@ -1305,7 +1289,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_sampling_frequency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_sampling_frequency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_sampling_frequency" title="Permalink to this definition"></a></dt>
 <dd><p>returns the sampling frequency</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1322,7 +1306,7 @@ object if none already exists.</p>
 <span class="sig-name descname"><span class="pre">get_site</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_site"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_site" title="Permalink to this definition"></a></dt>
 <dd><p>get the site where the station is deployed (e.g. MooresBay or South Pole)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1338,7 +1322,7 @@ object if none already exists.</p>
 <dd><p>get the (latitude, longitude) coordinates (in degrees) for a given
 detector site.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station ID</p>
 </dd>
@@ -1363,7 +1347,7 @@ detector site.</p>
 <span class="sig-name descname"><span class="pre">get_unique_time_periods</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.get_unique_time_periods"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.get_unique_time_periods" title="Permalink to this definition"></a></dt>
 <dd><p>returns the time periods in which the station configuration (including all channels) was constant</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1378,7 +1362,7 @@ detector site.</p>
 <span class="sig-name descname"><span class="pre">has_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.has_station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.has_station" title="Permalink to this definition"></a></dt>
 <dd><p>checks if a station is present in the database</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
@@ -1395,7 +1379,7 @@ detector site.</p>
 <p>Allows to run a noiseless simulation on specific channels (for example to simulate a single-antenna proxy
 along with the phased array)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>station id</p>
 </dd>
@@ -1411,7 +1395,7 @@ along with the phased array)</p>
 <span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#DetectorBase.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.DetectorBase.update" title="Permalink to this definition"></a></dt>
 <dd><p>updates the detector description to a new time</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>time: astropy.time.Time</strong></dt><dd><p>the time to update the detector description to
 for backward compatibility datetime is also accepted, but astropy.time is prefered</p>
@@ -1428,7 +1412,7 @@ for backward compatibility datetime is also accepted, but astropy.time is prefer
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector_base.</span></span><span class="sig-name descname"><span class="pre">buffer_db</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_base.html#buffer_db"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_base.buffer_db" title="Permalink to this definition"></a></dt>
 <dd><p>buffers the complete SQL database into a TinyDB object (either in memory or into a local JSON file)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>in_memory: bool</strong></dt><dd><p>if True: the mysql database will be buffered as a tiny tb object that only exists in memory
 if False: the mysql database will be buffered as a tiny tb object and saved in a local json file</p>

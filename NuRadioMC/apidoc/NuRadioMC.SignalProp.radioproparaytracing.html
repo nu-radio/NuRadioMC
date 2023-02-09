@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.SignalProp.radioproparaytracing module &mdash; NuRadio 2.2.0-dev documentation</title>
@@ -30,15 +30,19 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../main.html" class="icon icon-home"> NuRadio
-            <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../../main.html" class="icon icon-home">
+            NuRadio
+              <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
                 2.2.0-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -555,7 +559,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a></li>
+      <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioMC Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioMC.SignalProp.html">NuRadioMC.SignalProp package</a></li>
@@ -580,10 +584,6 @@ that have only changing refractive index in z. More information on RadioPropa an
 how to install it can be found at <a class="reference external" href="https://github.com/nu-radio/RadioPropa">https://github.com/nu-radio/RadioPropa</a></p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.apply_propagation_effects" title="NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.apply_propagation_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_propagation_effects</span></code></a>(efield, i_solution)</p></td>
 <td><p>Apply propagation effects to the electric field Note that the 1/r weakening of the electric field is already accounted for in the signal generation</p></td>
@@ -690,10 +690,6 @@ how to install it can be found at <a class="reference external" href="https://gi
 </tbody>
 </table>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 74%" />
-<col style="width: 26%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><strong>activate_auto_step_size</strong></p></td>
 <td></td>
@@ -717,7 +713,7 @@ how to install it can be found at <a class="reference external" href="https://gi
 </table>
 <p>class initilization</p>
 <dl class="field-list">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>medium: medium class</strong></dt><dd><p>class describing the index-of-refraction profile</p>
 </dd>
@@ -757,10 +753,6 @@ config[‘propagation’][‘radiopropa’][‘iter_steps_zenith’] = [.5, .05,
 </dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.apply_propagation_effects" title="NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.apply_propagation_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_propagation_effects</span></code></a>(efield, i_solution)</p></td>
 <td><p>Apply propagation effects to the electric field Note that the 1/r weakening of the electric field is already accounted for in the signal generation</p></td>
@@ -867,10 +859,6 @@ config[‘propagation’][‘radiopropa’][‘iter_steps_zenith’] = [.5, .05,
 </tbody>
 </table>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 74%" />
-<col style="width: 26%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><strong>activate_auto_step_size</strong></p></td>
 <td></td>
@@ -903,7 +891,7 @@ config[‘propagation’][‘radiopropa’][‘iter_steps_zenith’] = [.5, .05,
 <dd><p>Apply propagation effects to the electric field
 Note that the 1/r weakening of the electric field is already accounted for in the signal generation</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>efield: ElectricField object</strong></dt><dd><p>The electric field that the effects should be applied to</p>
 </dd>
@@ -911,7 +899,7 @@ Note that the 1/r weakening of the electric field is already accounted for in th
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>efield: ElectricField object</dt><dd><p>The modified ElectricField object</p>
 </dd>
@@ -951,7 +939,7 @@ Note that the 1/r weakening of the electric field is already accounted for in th
 <span class="sig-name descname"><span class="pre">get_attenuation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_detector_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.get_attenuation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_attenuation" title="Permalink to this definition"></a></dt>
 <dd><p>calculates the signal attenuation due to attenuation in the medium (ice)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the attenuation, 
 counting starts at zero</p>
@@ -964,7 +952,7 @@ calculation is the frequency interval visible by the detector, hence a finer cal
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>attenuation: array of floats</dt><dd><p>the fraction of the signal that reaches the observer
 (only ice attenuation, the 1/R signal falloff not considered here)</p>
@@ -980,14 +968,14 @@ calculation is the frequency interval visible by the detector, hence a finer cal
 <dd><p>calculates the correction of the path length of solution iS 
 due to the sphere around the channel</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the path length correction, 
 counting starts at zero</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>distance: float</dt><dd><p>distance that should be added to the path length</p>
 </dd>
@@ -1002,14 +990,14 @@ counting starts at zero</p>
 <dd><p>calculates the correction of the travel time of solution iS 
 due to the sphere around the channel</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the travel time correction, 
 counting starts at zero</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>distance: float</dt><dd><p>distance that should be added to the path length</p>
 </dd>
@@ -1023,7 +1011,7 @@ counting starts at zero</p>
 <span class="sig-name descname"><span class="pre">get_focusing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.get_focusing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_focusing" title="Permalink to this definition"></a></dt>
 <dd><p>calculate the focusing effect in the medium</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector, counting
 starts at zero</p>
@@ -1032,7 +1020,7 @@ starts at zero</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>focusing: a float</dt><dd><p>gain of the signal at the receiver due to the focusing effect</p>
 </dd>
@@ -1046,7 +1034,7 @@ starts at zero</p>
 <span class="sig-name descname"><span class="pre">get_frequencies_for_attenuation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_detector_freq</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.get_frequencies_for_attenuation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_frequencies_for_attenuation" title="Permalink to this definition"></a></dt>
 <dd><p>helper function to get the frequencies for applying attenuation</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>frequency: array of float of dim (n,)</strong></dt><dd><p>frequencies of the signal</p>
 </dd>
@@ -1056,7 +1044,7 @@ calculation is the frequency interval visible by the detector, hence a finer cal
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>freqs: array of float of dim (m,)</dt><dd><p>the frequencies for which the attenuation is calculated</p>
 </dd>
@@ -1070,14 +1058,14 @@ calculation is the frequency interval visible by the detector, hence a finer cal
 <span class="sig-name descname"><span class="pre">get_launch_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.get_launch_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_launch_vector" title="Permalink to this definition"></a></dt>
 <dd><p>calculates the launch vector (in 3D) of solution iS</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the launch vector, 
 counting starts at zero</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>launch_vector: np.array of shape (3,)</dt><dd><p>the launch vector</p>
 </dd>
@@ -1093,7 +1081,7 @@ counting starts at zero</p>
 to this raytracer</p>
 <p>! be sure that the first entry is specific to your raytracer !</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt>list with entries of form [{‘name’: str, ‘ndim’: int}]</dt><dd><p>! be sure that the first entry is specific to your raytracer !
 ‘name’: Name of the new parameter to include in the data structure
@@ -1109,7 +1097,7 @@ to this raytracer</p>
 <span class="sig-name descname"><span class="pre">get_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.get_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_path" title="Permalink to this definition"></a></dt>
 <dd><p>function that returns the 3D ray tracing path of solution iS</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>ray tracing solution</p>
 </dd>
@@ -1118,7 +1106,7 @@ if none, the original calculated path is returned</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>path: 2dim np.array of shape (n_points,3)</dt><dd><p>x, y, z coordinates along second axis</p>
 </dd>
@@ -1132,12 +1120,12 @@ if none, the original calculated path is returned</p>
 <span class="sig-name descname"><span class="pre">get_path_candidate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">candidate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.get_path_candidate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_path_candidate" title="Permalink to this definition"></a></dt>
 <dd><p>helper function that returns the 3D ray tracing path of a candidate</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>candidate: radiopropa.candidate</strong></dt><dd></dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>path: 2dim np.array of shape (n,3)</dt><dd><p>x, y, z coordinates along second axis</p>
 </dd>
@@ -1151,14 +1139,14 @@ if none, the original calculated path is returned</p>
 <span class="sig-name descname"><span class="pre">get_path_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.get_path_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_path_length" title="Permalink to this definition"></a></dt>
 <dd><p>calculates the path length of solution iS</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the path length, 
 counting starts at zero</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>distance: float</dt><dd><p>distance from X1 to X2 along the ray path</p>
 </dd>
@@ -1172,13 +1160,13 @@ counting starts at zero</p>
 <span class="sig-name descname"><span class="pre">get_raytracing_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i_solution</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.get_raytracing_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_raytracing_output" title="Permalink to this definition"></a></dt>
 <dd><p>Write parameters that are specific to this raytracer into the output data.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>i_solution: int</strong></dt><dd><p>The index of the raytracing solution</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>dictionary with the keys matching the parameter names specified in get_output_parameters and the values being</dt><dd></dd>
 <dt>the results from the raytracing</dt><dd></dd>
@@ -1192,14 +1180,14 @@ counting starts at zero</p>
 <span class="sig-name descname"><span class="pre">get_receive_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.get_receive_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_receive_vector" title="Permalink to this definition"></a></dt>
 <dd><p>calculates the receive vector (in 3D) of solution iS</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the receive vector, 
 counting starts at zero</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>receive_vector: np.array of shape (3,)</dt><dd><p>the receive vector</p>
 </dd>
@@ -1213,14 +1201,14 @@ counting starts at zero</p>
 <span class="sig-name descname"><span class="pre">get_reflection_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.get_reflection_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_reflection_angle" title="Permalink to this definition"></a></dt>
 <dd><p>calculates the angle of reflection at the surface (in case of a reflected ray)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the reflection angle, 
 counting starts at zero</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>reflection_angle: 1dim np.array</dt><dd><p>the reflection angle (for reflected rays) or None for direct and refracted rays</p>
 </dd>
@@ -1234,14 +1222,14 @@ counting starts at zero</p>
 <span class="sig-name descname"><span class="pre">get_solution_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.get_solution_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_solution_type" title="Permalink to this definition"></a></dt>
 <dd><p>returns the type of the solution</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the solution type, 
 counting starts at zero</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>solution_type: int</dt><dd><p>integer corresponding to the types in the dictionary solution_types</p>
 </dd>
@@ -1255,14 +1243,14 @@ counting starts at zero</p>
 <span class="sig-name descname"><span class="pre">get_travel_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.get_travel_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_travel_time" title="Permalink to this definition"></a></dt>
 <dd><p>calculates the travel time of solution iS</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>iS: int</strong></dt><dd><p>choose for which solution to compute the travel time, 
 counting starts at zero</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>time: float</dt><dd><p>travel time</p>
 </dd>
@@ -1299,7 +1287,7 @@ in the loop before a new raytracing is prepared.</p>
 <span class="sig-name descname"><span class="pre">set_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.set_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.set_config" title="Permalink to this definition"></a></dt>
 <dd><p>Function to change the configuration file used by the raytracer</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>config: dict</strong></dt><dd><p>The new configuration settings</p>
 </dd>
@@ -1314,7 +1302,7 @@ in the loop before a new raytracing is prepared.</p>
 <dd><p>Set a cut on the viewing angle around the cherenkov angle. Rays with a viewing 
 angle out of this range will be to dim and won’t be seen –&gt; limiting computing time</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>cut: float, default unit</strong></dt><dd><p>range around the cherenkov angle</p>
 </dd>
@@ -1328,7 +1316,7 @@ angle out of this range will be to dim and won’t be seen –&gt; limiting comp
 <span class="sig-name descname"><span class="pre">set_iterative_sphere_sizes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sphere_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.set_iterative_sphere_sizes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.set_iterative_sphere_sizes" title="Permalink to this definition"></a></dt>
 <dd><p>Set the sphere_sizes for the iterative ray tracer</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>sphere_sizes: np.array of size (n,), default unit</strong></dt><dd><p>the sphere size used by the iterative ray tracer
 iteration from big to small observer around channel</p>
@@ -1343,7 +1331,7 @@ iteration from big to small observer around channel</p>
 <span class="sig-name descname"><span class="pre">set_iterative_step_sizes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step_zeniths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.set_iterative_step_sizes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.set_iterative_step_sizes" title="Permalink to this definition"></a></dt>
 <dd><p>Set the steps_sizes for the iterative ray tracer</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>sphere_sizes: np.array of size (n,), default unit</strong></dt><dd><p>the sphere size used by the iterative ray tracer
 iteration from big to small observer around channel</p>
@@ -1364,7 +1352,7 @@ sphere_size depending on the horizontal distance of the event</p>
 <span class="sig-name descname"><span class="pre">set_maximum_trajectory_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_traj_length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.set_maximum_trajectory_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.set_maximum_trajectory_length" title="Permalink to this definition"></a></dt>
 <dd><p>Set a cut on the trajectory length. Otherwise computing infinite may be possible</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>max_traj_length: float, default units</strong></dt><dd><p>maxmimal length to trace a ray. tracing aborted when reached</p>
 </dd>
@@ -1383,7 +1371,7 @@ sphere_size depending on the horizontal distance of the event</p>
 <span class="sig-name descname"><span class="pre">set_shower_axis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shower_axis</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.set_shower_axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.set_shower_axis" title="Permalink to this definition"></a></dt>
 <dd><p>Set the the shower axis. This is oposite to the neutrino arrival direction</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>shower_axis: np.array of shape (3,), default unit</strong></dt><dd><p>the direction of the shower in cartesian coordinates</p>
 </dd>
@@ -1397,7 +1385,7 @@ sphere_size depending on the horizontal distance of the event</p>
 <span class="sig-name descname"><span class="pre">set_solutions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raytracing_results</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.set_solutions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.set_solutions" title="Permalink to this definition"></a></dt>
 <dd><p>Read an already calculated raytracing solution from the input array</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>raytracing_results: dict</strong></dt><dd><p>The dictionary containing the raytracing solution.</p>
 </dd>
@@ -1411,7 +1399,7 @@ sphere_size depending on the horizontal distance of the event</p>
 <span class="sig-name descname"><span class="pre">set_start_and_end_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/radioproparaytracing.html#radiopropa_ray_tracing.set_start_and_end_point"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.set_start_and_end_point" title="Permalink to this definition"></a></dt>
 <dd><p>Set the start and end points of the raytracing</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>x1: 3dim np.array</strong></dt><dd><p>start point of the ray</p>
 </dd>

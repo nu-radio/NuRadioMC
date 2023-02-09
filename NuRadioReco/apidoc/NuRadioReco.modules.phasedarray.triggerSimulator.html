@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.phasedarray.triggerSimulator module &mdash; NuRadio 2.2.0-dev documentation</title>
@@ -30,15 +30,19 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../main.html" class="icon icon-home"> NuRadio
-            <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../../main.html" class="icon icon-home">
+            NuRadio
+              <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
                 2.2.0-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -555,7 +559,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a></li>
+      <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.modules.html">NuRadioReco.modules package</a></li>
@@ -582,10 +586,6 @@ subbeam can be specified.</p>
 <p>See <a class="reference external" href="https://arxiv.org/pdf/1809.04573.pdf">https://arxiv.org/pdf/1809.04573.pdf</a></p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.calculate_time_delays" title="NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.calculate_time_delays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculate_time_delays</span></code></a>(station, det, ...[, ...])</p></td>
 <td><p>Calculates the delays needed for phasing the array.</p></td>
@@ -614,10 +614,6 @@ subbeam can be specified.</p>
 </tbody>
 </table>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 47%" />
-<col style="width: 53%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><strong>begin</strong></p></td>
 <td></td>
@@ -637,7 +633,7 @@ subbeam can be specified.</p>
 <span class="sig-name descname"><span class="pre">calculate_time_delays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phasing_angles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([-0.959931089,</span> <span class="pre">-0.714608352,</span> <span class="pre">-0.513801244,</span> <span class="pre">-0.333826648,</span> <span class="pre">-0.164572284,</span> <span class="pre">1.11022302e-16,</span> <span class="pre">0.164572284,</span> <span class="pre">0.333826648,</span> <span class="pre">0.513801244,</span> <span class="pre">0.714608352,</span> <span class="pre">0.959931089])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.calculate_time_delays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.calculate_time_delays" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates the delays needed for phasing the array.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station: Station object</strong></dt><dd><p>Description of the current station</p>
 </dd>
@@ -654,7 +650,7 @@ if None, all channels are taken</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>beam_rolls: array of dicts of keys=antenna and content=delay</dt><dd></dd>
 </dl>
@@ -668,7 +664,7 @@ if None, all channels are taken</p>
 <dd><p>Checks if the triggering antennas lie in a straight vertical line
 Throws error if not.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station: Station object</strong></dt><dd><p>Description of the current station</p>
 </dd>
@@ -692,7 +688,7 @@ if None, all channels are taken</p>
 <span class="sig-name descname"><span class="pre">get_antenna_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.get_antenna_positions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.get_antenna_positions" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates the vertical coordinates of the antennas of the detector</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station: Station object</strong></dt><dd><p>Description of the current station</p>
 </dd>
@@ -705,7 +701,7 @@ if None, all channels are taken</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>ant_pos: array of floatss</dt><dd><p>Desired antenna position in requested coordinate</p>
 </dd>
@@ -720,7 +716,7 @@ if None, all channels are taken</p>
 <dd><p>Finds the start time of the desired traces.
 Throws an error if all the channels dont have the same start time.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station: Station object</strong></dt><dd><p>Description of the current station</p>
 </dd>
@@ -729,7 +725,7 @@ if None, all channels are taken</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>channel_trace_start_time: float</dt><dd><p>Channel start time</p>
 </dd>
@@ -743,7 +739,7 @@ if None, all channels are taken</p>
 <span class="sig-name descname"><span class="pre">phase_signals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_rolls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.phase_signals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.phase_signals" title="Permalink to this definition"></a></dt>
 <dd><p>Phase signals together given the rolls</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>traces: 2D array of floats</strong></dt><dd><p>Signals from the antennas to be phased together.</p>
 </dd>
@@ -752,7 +748,7 @@ traces together</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>phased_traces: array of arrays</dt><dd></dd>
 </dl>
@@ -769,7 +765,7 @@ by a pointing angle. Several pointing angles are possible in order to cover
 the sky. The array triggered_channels controls the channels that are phased,
 according to the angles phasing_angles.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station: Station object</strong></dt><dd><p>Description of the current station</p>
 </dd>
@@ -809,7 +805,7 @@ Units of ADC time ticks</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>is_triggered: bool</dt><dd><p>True if the triggering condition is met</p>
 </dd>
@@ -830,7 +826,7 @@ If there is no trigger, it’s an empty dictionary</p>
 <span class="sig-name descname"><span class="pre">power_sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coh_sum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.power_sum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.power_sum" title="Permalink to this definition"></a></dt>
 <dd><p>Calculate power summed over a length defined by ‘window’, overlapping at intervals defined by ‘step’</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>coh_sum: array of floats</strong></dt><dd><p>Phased signal to be integrated over</p>
 </dd>
@@ -848,7 +844,7 @@ Units of ADC time ticks.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>power:</dt><dd><p>Integrated power in each integration window</p>
 </dd>
@@ -868,7 +864,7 @@ by a pointing angle. Several pointing angles are possible in order to cover
 the sky. The array triggered_channels controls the channels that are phased,
 according to the angles phasing_angles.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>evt: Event object</strong></dt><dd><p>Description of the current event</p>
 </dd>
@@ -919,7 +915,7 @@ Units of ADC time ticks</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>is_triggered: bool</dt><dd><p>True if the triggering condition is met</p>
 </dd>

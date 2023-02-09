@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.channelGenericNoiseAdder module &mdash; NuRadio 2.2.0-dev documentation</title>
@@ -30,15 +30,19 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../main.html" class="icon icon-home"> NuRadio
-            <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../../main.html" class="icon icon-home">
+            NuRadio
+              <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
                 2.2.0-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -555,7 +559,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a></li>
+      <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.modules.html">NuRadioReco.modules package</a></li>
@@ -578,10 +582,6 @@
 <p>Module that generates noise in some generic fashion (not based on measured data), which can be added to data.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.add_random_phases" title="NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.add_random_phases"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_random_phases</span></code></a>(amps, n_samples_time_domain)</p></td>
 <td><p>Adding random phase information to given amplitude spectrum.</p></td>
@@ -604,10 +604,6 @@
 </tbody>
 </table>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 47%" />
-<col style="width: 53%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><strong>begin</strong></p></td>
 <td></td>
@@ -622,7 +618,7 @@
 <span class="sig-name descname"><span class="pre">add_random_phases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples_time_domain</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGenericNoiseAdder.html#channelGenericNoiseAdder.add_random_phases"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.add_random_phases" title="Permalink to this definition"></a></dt>
 <dd><p>Adding random phase information to given amplitude spectrum.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>amps: array of floats</strong></dt><dd><p>Data that random phase is added to.</p>
 </dd>
@@ -638,7 +634,7 @@
 <span class="sig-name descname"><span class="pre">bandlimited_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'perfect_white'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandwidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGenericNoiseAdder.html#channelGenericNoiseAdder.bandlimited_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise" title="Permalink to this definition"></a></dt>
 <dd><p>Generating noise of n_samples in a bandwidth [min_freq,max_freq].</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>min_freq: float</strong></dt><dd><p>Minimum frequency of passband for noise generation
 min_freq = None: Only the DC component is removed. If the DC component should be included,
@@ -681,7 +677,7 @@ is implemented (RL 17-Sept-2018)</p></li>
 <span class="sig-name descname"><span class="pre">bandlimited_noise_from_precalculated_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'perfect_white'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGenericNoiseAdder.html#channelGenericNoiseAdder.bandlimited_noise_from_precalculated_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_precalculated_parameters" title="Permalink to this definition"></a></dt>
 <dd><p>Generating noise of n_samples in a bandwidth [min_freq,max_freq].</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>min_freq: float</strong></dt><dd><p>Minimum frequency of passband for noise generation
 min_freq = None: Only the DC component is removed. If the DC component should be included,
@@ -734,7 +730,7 @@ is implemented (RL 17-Sept-2018)</p></li>
 <span class="sig-name descname"><span class="pre">fftnoise_fullfft</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGenericNoiseAdder.html#channelGenericNoiseAdder.fftnoise_fullfft"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.fftnoise_fullfft" title="Permalink to this definition"></a></dt>
 <dd><p>Adding random phase information to given amplitude spectrum.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>f: array of floats</strong></dt><dd><p>Data that random phase is added to.</p>
 </dd>
@@ -748,7 +744,7 @@ is implemented (RL 17-Sept-2018)</p></li>
 <span class="sig-name descname"><span class="pre">precalculate_bandlimited_noise_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'perfect_white'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandwidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGenericNoiseAdder.html#channelGenericNoiseAdder.precalculate_bandlimited_noise_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.precalculate_bandlimited_noise_parameters" title="Permalink to this definition"></a></dt>
 <dd><p>Generating noise of n_samples in a bandwidth [min_freq,max_freq].</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>min_freq: float</strong></dt><dd><p>Minimum frequency of passband for noise generation
 min_freq = None: Only the DC component is removed. If the DC component should be included,
@@ -791,7 +787,7 @@ is implemented (RL 17-Sept-2018)</p></li>
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'perfect_white'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">excluded_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandwidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelGenericNoiseAdder.html#channelGenericNoiseAdder.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.run" title="Permalink to this definition"></a></dt>
 <dd><p>Add noise to given event.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>event</strong></dt><dd></dd>
 <dt><strong>station</strong></dt><dd></dd>

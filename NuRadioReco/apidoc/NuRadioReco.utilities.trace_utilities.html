@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.utilities.trace_utilities module &mdash; NuRadio 2.2.0-dev documentation</title>
@@ -30,15 +30,19 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../main.html" class="icon icon-home"> NuRadio
-            <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../../main.html" class="icon icon-home">
+            NuRadio
+              <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
                 2.2.0-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -555,7 +559,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a></li>
+      <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.utilities.html">NuRadioReco.utilities package</a></li>
@@ -577,7 +581,7 @@
 <dd><p>Calculates the response from a Butterworth filter and applies it to the
 input spectrum</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>spectrum: array of complex</strong></dt><dd><p>Fourier spectrum to be filtere</p>
 </dd>
@@ -589,7 +593,7 @@ input spectrum</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>filtered_spectrum: array of complex</dt><dd><p>The filtered spectrum</p>
 </dd>
@@ -603,7 +607,7 @@ input spectrum</p>
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">butterworth_filter_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#butterworth_filter_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.butterworth_filter_trace" title="Permalink to this definition"></a></dt>
 <dd><p>Filters a trace using a Butterworth filter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>trace: array of floats</strong></dt><dd><p>Trace to be filtered</p>
 </dd>
@@ -615,7 +619,7 @@ input spectrum</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>filtered_trace: array of floats</dt><dd><p>The filtered trace</p>
 </dd>
@@ -633,7 +637,7 @@ positive delays, so some samples from the beginning are thrown away and then
 some samples from the end so that the total number of samples is equal to
 the argument delayed samples.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>trace: array of floats</strong></dt><dd><p>Array containing the trace</p>
 </dd>
@@ -646,7 +650,7 @@ if None: the trace is not cut</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>delayed_trace: array of floats</dt><dd><p>The delayed, cropped trace</p>
 </dd>
@@ -660,7 +664,7 @@ if None: the trace is not cut</p>
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_channel_voltage_from_efield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">electric_field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_pattern_provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_spectrum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_channel_voltage_from_efield"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_channel_voltage_from_efield" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the voltage traces that would result in the channels from the station’s E-field.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station: Station</strong></dt><dd></dd>
 <dt><strong>electric_field: ElectricField</strong></dt><dd></dd>
@@ -683,7 +687,7 @@ at the air/ice boundary are already being taken into account.</p>
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_efield_antenna_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_pattern_provider</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_efield_antenna_factor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_efield_antenna_factor" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the antenna response to a radio signal coming from a specific direction</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station: Station</strong></dt><dd></dd>
 <dt><strong>frequencies: array of complex</strong></dt><dd><p>frequencies of the radio signal for which the antenna response is needed</p>
@@ -710,7 +714,7 @@ at the air/ice boundary are already being taken into account.</p>
 <dd><p>This function performs an upsampling by inserting a number of zeroes
 between samples and then applying a finite impulse response (FIR) filter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>trace: array of floats</strong></dt><dd><p>Trace to be upsampled</p>
 </dd>
@@ -723,7 +727,7 @@ int_factor times higher than the original one</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>upsampled_trace: array of floats</dt><dd><p>The upsampled trace</p>
 </dd>

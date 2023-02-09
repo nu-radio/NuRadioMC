@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.utilities.diodeSimulator module &mdash; NuRadio 2.2.0-dev documentation</title>
@@ -30,15 +30,19 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../main.html" class="icon icon-home"> NuRadio
-            <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../../main.html" class="icon icon-home">
+            NuRadio
+              <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
                 2.2.0-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -555,7 +559,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a></li>
+      <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.utilities.html">NuRadioReco.utilities package</a></li>
@@ -579,7 +583,7 @@
 The given signal is convolved with the tunnel diodde response as in
 AraSim.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>output_passband: (float, float) tuple</strong></dt><dd><p>Frequencies for a 6th-order Butterworth filter to be applied after
 the diode filtering. If a lowpass filter is needed, please pass a
@@ -590,10 +594,6 @@ the diode filtering. If a lowpass filter is needed, please pass a
 </dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.utilities.diodeSimulator.diodeSimulator.calculate_noise_parameters" title="NuRadioReco.utilities.diodeSimulator.diodeSimulator.calculate_noise_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculate_noise_parameters</span></code></a>([sampling_rate, ...])</p></td>
 <td><p>Calculates the mean and the standard deviation for the diode-filtered noise.</p></td>
@@ -604,10 +604,6 @@ the diode filtering. If a lowpass filter is needed, please pass a
 </tbody>
 </table>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 41%" />
-<col style="width: 59%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><strong>end</strong></p></td>
 <td></td>
@@ -619,7 +615,7 @@ the diode filtering. If a lowpass filter is needed, please pass a
 <span class="sig-name descname"><span class="pre">calculate_noise_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9.999999999999999e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rayleigh'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_tries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/diodeSimulator.html#diodeSimulator.calculate_noise_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.diodeSimulator.diodeSimulator.calculate_noise_parameters" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates the mean and the standard deviation for the diode-filtered noise.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>sampling_rate: float</strong></dt><dd><p>Sampling rate</p>
 </dd>
@@ -638,7 +634,7 @@ averages for the mean and the standard deviation.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>power_mean: float</dt><dd><p>Mean of the diode-filtered noise</p>
 </dd>
@@ -665,13 +661,13 @@ where the antenna resistance is only a normalisation for the final
 voltage. That’s why the antenna resistance has been fixed to a value
 of 8.5 ohms.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>channel: Channel</strong></dt><dd><p>Signal to be processed by the tunnel diode.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>trace_after_tunnel_diode: array</dt><dd><p>Signal output of the tunnel diode for the input <cite>channel</cite>.
 Careful! This trace is dimensionless and comes from a convolution

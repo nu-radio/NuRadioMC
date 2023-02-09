@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioMC.utilities.medium_base module &mdash; NuRadio 2.2.0-dev documentation</title>
@@ -30,15 +30,19 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../main.html" class="icon icon-home"> NuRadio
-            <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../../main.html" class="icon icon-home">
+            NuRadio
+              <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
                 2.2.0-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -555,7 +559,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a></li>
+      <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioMC Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioMC.utilities.html">NuRadioMC.utilities package</a></li>
@@ -578,10 +582,6 @@
 <p>Base class from which all ice models should inheret</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModel.add_reflective_bottom" title="NuRadioMC.utilities.medium_base.IceModel.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
 <td><p>function which adds a reflective bottom to your ice model</p></td>
@@ -608,7 +608,7 @@
 should always be defined. Note: it is not the same as reflective bottom.
 The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
 </dd>
@@ -619,10 +619,6 @@ The latter can be added using the <cite>add_reflective_layer</cite> function.</p
 </dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModel.add_reflective_bottom" title="NuRadioMC.utilities.medium_base.IceModel.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
 <td><p>function which adds a reflective bottom to your ice model</p></td>
@@ -649,7 +645,7 @@ The latter can be added using the <cite>add_reflective_layer</cite> function.</p
 <span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModel.add_reflective_bottom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModel.add_reflective_bottom" title="Permalink to this definition"></a></dt>
 <dd><p>function which adds a reflective bottom to your ice model</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>refl_z:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bottom reflective layer</p>
 </dd>
@@ -668,7 +664,7 @@ The latter can be added using the <cite>add_reflective_layer</cite> function.</p
 <dd><p>returns the average index of refraction between two points
 Reimplement everytime in the specific model</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>position1: 3dim np.array</strong></dt><dd><p>point</p>
 </dd>
@@ -676,7 +672,7 @@ Reimplement everytime in the specific model</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>n_average:  float</dt><dd><p>averaged index of refraction between the two points</p>
 </dd>
@@ -691,13 +687,13 @@ Reimplement everytime in the specific model</p>
 <dd><p>returns the gradient of index of refraction at position
 Reimplement everytime in the specific model</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>position: 3dim np.array</strong></dt><dd><p>point</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>n_nabla:    (3,) np.array</dt><dd><p>gradient of index of refraction at the point</p>
 </dd>
@@ -716,7 +712,7 @@ the default implemented model using the ‘_compute_default_ice_model_radiopropa
 ice model in case they need it, without losing the access to the default model.</p>
 <p>DO NOT OVERRIDE THIS FUNCTION</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt>ice:    RadioPropaIceWrapper</dt><dd><p>object holding the radiopropa scalarfield and modules</p>
 </dd>
@@ -731,13 +727,13 @@ ice model in case they need it, without losing the access to the default model.<
 <dd><p>returns the index of refraction at position.
 Reimplement everytime in the specific model</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>position:  3dim np.array</strong></dt><dd><p>point</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>n:  float</dt><dd><p>index of refraction</p>
 </dd>
@@ -754,7 +750,7 @@ to set a specific RadioPropaIceWrapper object as the
 ice model used for RadioPropa.</p>
 <p>DO NOT OVERRIDE THIS FUNCTION</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>ice_model_radioprop:    RadioPropaIceWrapper</strong></dt><dd><p>object holding the radiopropa scalarfield and modules</p>
 </dd>
@@ -772,10 +768,6 @@ ice model used for RadioPropa.</p>
 <p>predefined ice model (to inherit from) with exponential shape</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
 <td><p>function which adds a reflective bottom to your ice model</p></td>
@@ -806,7 +798,7 @@ up or down along the z direction. For simple models this is almost never
 but it is used to construct more complex ice models which rely on exp.
 profiles also</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
 </dd>
@@ -826,10 +818,6 @@ of the snow at the surface</p>
 </dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
 <td><p>function which adds a reflective bottom to your ice model</p></td>
@@ -857,17 +845,21 @@ of the snow at the surface</p>
 <dd><p>returns the average index of refraction between two points
 Overwrites function of the mother class</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>position1: 3dim np.array</strong></dt><dd><p>point</p>
+<dt><strong>position1: 1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of average refraction are returned</p>
 </dd>
-<dt><strong>position2: 3dim np.array</strong></dt><dd><p>point</p>
+<dt><strong>position2: 1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of average refraction are returned</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>n_average:  float</dt><dd><p>averaged index of refraction between the two points</p>
+<dt>n_average:  float of 1D numpy array (n,)</dt><dd><p>averaged index of refraction between the two points</p>
 </dd>
 </dl>
 </dd>
@@ -880,15 +872,17 @@ Overwrites function of the mother class</p>
 <dd><p>returns the gradient of index of refraction at position
 Overwrites function of the mother class</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>position: 3dim np.array</strong></dt><dd><p>point</p>
+<dt><strong>position: 1D or 2D numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the gradient
+of index of refraction is returned</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>n_nabla:    (3,) np.array</dt><dd><p>gradient of index of refraction at the point</p>
+<dt>n_nabla:    1D (3,) or 2D (n,3) numpy array</dt><dd><p>gradient of index of refraction at the point</p>
 </dd>
 </dl>
 </dd>
@@ -901,17 +895,17 @@ Overwrites function of the mother class</p>
 <dd><p>returns the index of refraction at position.
 Overwrites function of the mother class</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>position:  1D or 2D numpy array</strong></dt><dd><p>Either one position or an array
+<dt><strong>position:  1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
 of positions for which the indices
 of refraction are returned</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>n:  float</dt><dd><p>index of refraction</p>
+<dt>n:  float or 1D numpy array (n,)</dt><dd><p>index of refraction</p>
 </dd>
 </dl>
 </dd>
@@ -929,10 +923,6 @@ When radiopropa is installed, this object will automatically be generated for a
 smooth handeling of the radiopropa ice model.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.add_module" title="NuRadioMC.utilities.medium_base.RadioPropaIceWrapper.add_module"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_module</span></code></a>(name, module)</p></td>
 <td><p>add predefined modules (like reflective or transmissive layers,  a discontinuity in refractive index, observers ...) of the ice  to the dictionary</p></td>
@@ -961,7 +951,7 @@ smooth handeling of the radiopropa ice model.</p>
 a discontinuity in refractive index, observers …) of the ice 
 to the dictionary</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>name:   string</strong></dt><dd><p>name to identify the module</p>
 </dd>
@@ -979,7 +969,7 @@ to the dictionary</p>
 transmissive layers, a discontinuity in refractive index, observers 
 …) of the ice for to use in the radiopropa tracer</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt>module: module with this name</dt><dd><p>radiopropa.module object</p>
 </dd>
@@ -995,7 +985,7 @@ transmissive layers, a discontinuity in refractive index, observers
 a discontinuity in refractive index, observers …) of the ice for 
 to use in the radiopropa tracer</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt>modules: dictionary {name:module object}</dt><dd><p>dictionary of modules to run in radiopropa</p>
 </dd>
@@ -1011,7 +1001,7 @@ to use in the radiopropa tracer</p>
 a discontinuity in refractive index, observers …) of the ice 
 to the dictionary</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>scalar_field: radiopropa.ScalarField</strong></dt><dd><p>scalar field that holds the refractive index to use in radiopropa</p>
 </dd>
@@ -1027,7 +1017,7 @@ to the dictionary</p>
 a discontinuity in refractive index, observers …) of the ice 
 to the dictionary</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>name:   string</strong></dt><dd><p>name to identify the module to be removed</p>
 </dd>
@@ -1043,7 +1033,7 @@ to the dictionary</p>
 a discontinuity in refractive index, observers …) of the ice 
 to the dictionary</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>name:   string</strong></dt><dd><p>name to identify the module to be replaced</p>
 </dd>
@@ -1065,10 +1055,6 @@ one in stead. It is a radiopropa object but constructed through the python
 wrapper which is much slower.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code>(*args, **kwargs)</p></td>
 <td><p>Call self as a function.</p></td>
@@ -1086,13 +1072,13 @@ wrapper which is much slower.</p>
 <span class="sig-name descname"><span class="pre">getGradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#ScalarFieldBuilder.getGradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.ScalarFieldBuilder.getGradient" title="Permalink to this definition"></a></dt>
 <dd><p>returns the gradient of index of refraction at position for radiopropa tracer</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>position:   radiopropa.Vector3d</strong></dt><dd><p>point</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>n_nabla:    radiopropa.Vector3d</dt><dd><p>gradient of index of refraction at the point</p>
 </dd>
@@ -1106,13 +1092,13 @@ wrapper which is much slower.</p>
 <span class="sig-name descname"><span class="pre">getValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#ScalarFieldBuilder.getValue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.ScalarFieldBuilder.getValue" title="Permalink to this definition"></a></dt>
 <dd><p>returns the index of refraction at position for radiopropa tracer</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>position:   radiopropa.Vector3d</strong></dt><dd><p>point</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>n:  float</dt><dd><p>index of refraction</p>
 </dd>

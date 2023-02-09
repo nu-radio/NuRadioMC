@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.framework.event module &mdash; NuRadio 2.2.0-dev documentation</title>
@@ -30,15 +30,19 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../main.html" class="icon icon-home"> NuRadio
-            <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../../main.html" class="icon icon-home">
+            NuRadio
+              <img src="../../_static/logo_small.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
                 2.2.0-dev
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -555,7 +559,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../main.html" class="icon icon-home"></a></li>
+      <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.framework.html">NuRadioReco.framework package</a></li>
@@ -577,10 +581,6 @@
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.event.Event.add_particle" title="NuRadioReco.framework.event.Event.add_particle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_particle</span></code></a>(particle)</p></td>
 <td><p>Adds a MC particle to the event</p></td>
@@ -651,10 +651,6 @@
 </tbody>
 </table>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 69%" />
-<col style="width: 31%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><strong>deserialize</strong></p></td>
 <td></td>
@@ -708,7 +704,7 @@
 <span class="sig-name descname"><span class="pre">add_particle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">particle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.add_particle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.add_particle" title="Permalink to this definition"></a></dt>
 <dd><p>Adds a MC particle to the event</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>particle</strong><span class="classifier">NuRadioReco.framework.particle.Particle</span></dt><dd><p>The MC particle to be added to the event</p>
 </dd>
@@ -722,7 +718,7 @@
 <span class="sig-name descname"><span class="pre">add_shower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shower</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.add_shower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.add_shower" title="Permalink to this definition"></a></dt>
 <dd><p>Adds a radio shower to the event</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>shower: RadioShower object</strong></dt><dd><p>The shower to be added to the event</p>
 </dd>
@@ -736,7 +732,7 @@
 <span class="sig-name descname"><span class="pre">add_sim_shower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim_shower</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.add_sim_shower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.add_sim_shower" title="Permalink to this definition"></a></dt>
 <dd><p>Add a simulated shower to the event</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>sim_shower: RadioShower object</strong></dt><dd><p>The shower to be added to the event</p>
 </dd>
@@ -756,7 +752,7 @@
 <dd><p>Returns only the first shower stored in the event. Useful in cases
 when there is only one shower in the event.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>ids: list of integers</strong></dt><dd><p>A list of station IDs. The first shower that is associated with
 all stations in the list is returned</p>
@@ -772,7 +768,7 @@ all stations in the list is returned</p>
 <dd><p>Returns only the first sim shower stored in the event. Useful in cases
 when there is only one shower in the event.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>ids: list of integers</strong></dt><dd><p>A list of station IDs. The first shower that is associated with
 all stations in the list is returned</p>
@@ -803,7 +799,7 @@ all stations in the list is returned</p>
 <span class="sig-name descname"><span class="pre">get_interaction_products</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_particle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">showers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">particles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.get_interaction_products"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_interaction_products" title="Permalink to this definition"></a></dt>
 <dd><p>Return all the daughter particles and showers generated in the interaction of the &lt;parent_particle&gt;</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>showers: bool</strong></dt><dd><p>Include simulated showers in the list</p>
 </dd>
@@ -859,7 +855,7 @@ all stations in the list is returned</p>
 <span class="sig-name descname"><span class="pre">get_showers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.get_showers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.get_showers" title="Permalink to this definition"></a></dt>
 <dd><p>Returns an iterator over the showers stored in the event</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>ids: list of integers</strong></dt><dd><p>A list of station IDs. Only showers that are associated with
 all stations in the list are returned</p>
@@ -932,7 +928,7 @@ all stations in the list are returned</p>
 <span class="sig-name descname"><span class="pre">has_triggered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.has_triggered"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.has_triggered" title="Permalink to this definition"></a></dt>
 <dd><p>Returns true if any station has been triggered.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>trigger_name: string or None (default None)</strong></dt><dd><ul class="simple">
 <li><dl class="simple">
@@ -945,7 +941,7 @@ all stations in the list are returned</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt><strong>has_triggered</strong><span class="classifier">bool</span></dt><dd></dd>
 </dl>
@@ -967,7 +963,7 @@ The order follows the sequence these modules were applied</p>
 <span class="sig-name descname"><span class="pre">register_module_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.register_module_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.register_module_event" title="Permalink to this definition"></a></dt>
 <dd><p>registers modules applied to this event</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>instance: module instance</strong></dt><dd><p>the instance of the module that should be registered</p>
 </dd>
@@ -985,7 +981,7 @@ The order follows the sequence these modules were applied</p>
 <span class="sig-name descname"><span class="pre">register_module_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/event.html#Event.register_module_station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.event.Event.register_module_station" title="Permalink to this definition"></a></dt>
 <dd><p>registers modules applied to this event</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
 </dd>
