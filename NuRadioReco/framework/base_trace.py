@@ -74,7 +74,7 @@ class BaseTrace:
         sets the time trace
 
         Parameters
-        -----------
+        ----------
         trace: np.array of floats
             the time series
         sampling_rate: float

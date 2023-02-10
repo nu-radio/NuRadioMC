@@ -59,13 +59,21 @@ assert isinstance(logger, NuRadioMC.simulation.simulation_base.NuRadioMCLogger)
 # logger.addHandler(ch)
 
 
+def merge_config(user, default):
+    if isinstance(user, dict) and isinstance(default, dict):
+        for k, v in iteritems(default):
+            if k not in user:
+                user[k] = v
+            else:
+                user[k] = merge_config(user[k], v)
+    return user
+
 class simulation(
     NuRadioMC.simulation.simulation_propagation.simulation_propagation,
     NuRadioMC.simulation.simulation_emission.simulation_emission,
     NuRadioMC.simulation.simulation_detector.simulation_detector,
     NuRadioMC.simulation.simulation_input_output.simulation_input_output
 ):
-
 
 
     def run(self):
@@ -491,6 +499,7 @@ class simulation(
                     self._was_pre_simulated = True
                     logger.debug("the simulation was already performed with the same detector")
         return self._was_pre_simulated
+
 
     def _create_sim_station(self):
         """

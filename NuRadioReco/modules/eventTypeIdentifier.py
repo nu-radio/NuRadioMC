@@ -19,7 +19,7 @@ class eventTypeIdentifier:
         supported, but others can be added in the future.
 
         Parameters
-        ---------------------
+        ----------
         event: event
 
         station: station
