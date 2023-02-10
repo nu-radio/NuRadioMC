@@ -4,6 +4,7 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
+import numpy as np
 
 
 def deserialize(triggers_pkl):
@@ -81,7 +82,7 @@ class Trigger:
 
     def get_trigger_time(self):
         """
-        get the trigger time (time with respect to the beginning of the event, e.g. the first neutrino interaction)
+        get the trigger time (absolute time with respect to the beginning of the event)
         """
         return self._trigger_time
 
