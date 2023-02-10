@@ -99,6 +99,10 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
                         for iE, values in enumerate(self._output_multiple_triggers_station[station_id]):
                             tmp[iE] = values
                         sg['multiple_triggers_per_event'] = tmp
+                        tmp_t = np.nan * np.zeros_like(tmp, dtype=float)
+                        for iE, values in enumerate(self._output_trigger_times_station[station_id]):
+                            tmp_t[iE] = values
+                        sg['trigger_times_per_event'] = tmp_t
 
         # save meta arguments
         for (key, value) in iteritems(self._mout_attrs):
@@ -167,7 +171,7 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
         self._output_multiple_triggers_station = {}
         self._output_maximum_amplitudes = {}
         self._output_maximum_amplitudes_envelope = {}
-
+        self._output_trigger_times_station = {}
         for station_id in self._station_ids:
             self._mout_groups[station_id] = {}
             sg = self._mout_groups[station_id]
@@ -177,6 +181,7 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
             self._output_multiple_triggers_station[station_id] = []
             self._output_maximum_amplitudes[station_id] = []
             self._output_maximum_amplitudes_envelope[station_id] = []
+            self._output_trigger_times_station[station_id] = []
 
     def _create_station_output_structure(self, n_showers, n_antennas):
         nS = self._raytracer.get_number_of_raytracing_solutions()  # number of possible ray-tracing solutions
@@ -246,27 +251,36 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
         n_showers = sg['launch_vectors'].shape[0]
         if 'multiple_triggers' not in sg:
             sg['multiple_triggers'] = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            sg['trigger_times'] = np.nan * np.zeros_like(sg['multiple_triggers'], dtype=float)
         elif extend_array:
             tmp = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
             nx, ny = sg['multiple_triggers'].shape
             tmp[:, 0:ny] = sg['multiple_triggers']
             sg['multiple_triggers'] = tmp
-
+            # repeat for trigger times
+            tmp_t = np.nan * np.zeros_like(tmp, dtype=float)
+            tmp_t[:, :ny] = sg['trigger_times']
+            sg['trigger_times'] = tmp_t
         self._output_event_group_ids[self._station_id].append(event.get_run_number())
         self._output_sub_event_ids[self._station_id].append(event.get_id())
         multiple_triggers = np.zeros(len(self._mout_attrs['trigger_names']), dtype=np.bool)
+        trigger_times = np.nan * np.zeros_like(multiple_triggers)
         for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
             if station.has_trigger(trigger_name):
                 multiple_triggers[iT] = station.get_trigger(trigger_name).has_triggered()
+                trigger_times[iT] = station.get_trigger(trigger_name).get_trigger_time()
                 for iSh in local_shower_index:  # now save trigger information per shower of the current station
                     sg['multiple_triggers'][iSh][iT] = station.get_trigger(trigger_name).has_triggered()
+                    sg['trigger_times'][iSh][iT] = trigger_times[iT]
         for iSh, iSh2 in zip(local_shower_index, global_shower_index):  # now save trigger information per shower of the current station
             sg['triggered'][iSh] = np.any(sg['multiple_triggers'][iSh])
             self._mout['triggered'][iSh2] |= sg['triggered'][iSh]
             self._mout['multiple_triggers'][iSh2] |= sg['multiple_triggers'][iSh]
+            self._mout['trigger_times'][iSh2] = np.fmin(self._mout['trigger_times'][iSh2], sg['trigger_times'][iSh])
         sg['event_id_per_shower'][local_shower_index] = event.get_id()
         sg['event_group_id_per_shower'][local_shower_index] = event.get_run_number()
         self._output_multiple_triggers_station[self._station_id].append(multiple_triggers)
+        self._output_trigger_times_station[self._station_id].append(trigger_times)
         self._output_triggered_station[self._station_id].append(np.any(multiple_triggers))
 
     def _create_empty_multiple_triggers(self):
@@ -296,9 +310,7 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
         # we first create this data structure
         if 'multiple_triggers' not in self._mout:
             self._mout['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
-#             for station_id in self._station_ids:
-#                 sg = self._mout_groups[station_id]
-#                 sg['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            self._mout['trigger_times'] = np.nan * np.zeros_like(self._mout['multiple_triggers'], dtype=float)
         elif extend_array:
             tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
             nx, ny = self._mout['multiple_triggers'].shape
