@@ -228,6 +228,7 @@ def get_Veff_Aeff_single(
     
     list of dictionaries
         Each file is one entry. The dictionary keys store all relevant properties
+    
     """
     if(veff_aeff not in ["veff", "aeff_surface_muons"]):
         raise AttributeError(f"the paramter `veff_aeff` needs to be one of either `veff` or `aeff_surface_muons`")
@@ -626,12 +627,12 @@ def get_Veff_Aeff_array(data):
     last tuple is the effective volume, its uncertainty, the weighted sum of triggered events, lower 68% uncertainty, upper 68% uncertainty
 
     Parameters
-    -----------
+    ----------
     data: dict
         the result of the `get_Veff` function
 
     Returns
-    --------
+    -------
     
     * (n_energy, n_zenith_bins, n_triggernames, 5) dimensional array of floats
     * array of unique mean energies (the mean is calculated in the logarithm of the energy)
