@@ -42,6 +42,11 @@ pp_m = 1.e2
 pp_km = 1.e5
 
 
+def convert_energy_units(pp_energy):
+    """ Convert energy from proposal unit to NuRadioMC unit. """
+    return pp_energy / pp_MeV * units.MeV
+
+
 class SecondaryProperties:
     """
     This class stores the properties from secondary particles that are
@@ -332,7 +337,7 @@ class ProposalFunctions(object):
         propagator: PROPOSAL propagator
             Propagator that can be used to calculate the interactions of a muon or tau
         """
-        if(particle_code not in self.__propagators):
+        if particle_code not in self.__propagators:
             self.__logger.info(f"initializing propagator for particle code {particle_code}")
 
             pp.InterpolationSettings.tables_path = self.__tables_path
@@ -353,8 +358,8 @@ class ProposalFunctions(object):
             try:
                 p_def = pp.particle.get_ParticleDef_for_type(particle_code)
             except:
-                error_str = "The propagation of this particle via PROPOSAL is not currently supported.\n"
-                error_str += "Please choose between -/+muon (13/-13) and -/+tau (15/-15)"
+                error_str = "The propagation of this particle via PROPOSAL is not currently supported.\n" + \
+                    "Please choose between -/+muon (13/-13) and -/+tau (15/-15)"
                 raise NotImplementedError(error_str)
 
             self.__propagators[particle_code] = pp.Propagator(particle_def=p_def, path_to_config_file=self.__config_file_full_path)
@@ -508,13 +513,13 @@ class ProposalFunctions(object):
 
                 distance = ProposalFunctions.__calculate_distance(sec.position, lepton_position)
 
-                energy = sec.energy * units.MeV
+                energy = convert_energy_units(sec.energy)
 
                 shower_type, code, name = self.__shower_properties(sec.type)
                 
                 shower_inducing_prods.append(
                     SecondaryProperties(distance, energy, shower_type, code, name, 
-                                        sec.parent_particle_energy * units.MeV))
+                                        convert_energy_units(sec.parent_particle_energy)))
 
         return shower_inducing_prods
 
@@ -559,7 +564,7 @@ class ProposalFunctions(object):
             # all decay_particles have the same position, so we can just look at the first in list
             distance = ProposalFunctions.__calculate_distance(decay_products[0].position, lepton_position)
 
-            return SecondaryProperties(distance, sum_decay_particle_energy * units.MeV, 
+            return SecondaryProperties(distance, convert_energy_units(sum_decay_particle_energy), 
                                        'had', 86, particle_names.particle_name(86), 
                                        decay_energy)
         return None
@@ -662,7 +667,7 @@ class ProposalFunctions(object):
                         # We have already handled the muon, remove it to avoid double counting.
                         decay_products.remove(decay_particle)
 
-            decay_energy = secondaries.final_state().energy * units.MeV  # energy of the lepton before decay
+            decay_energy = convert_energy_units(secondaries.final_state().energy)  # energy of the lepton before decay
             grouped_decay_products = self.__group_decay_products(decay_products, min_energy_loss, lepton_position, decay_energy)
 
             if grouped_decay_products is not None:
@@ -734,7 +739,7 @@ class ProposalFunctions(object):
 
                 decay_particles = secondaries.decay_products()
                 decay_energies = np.array([p.energy for p in decay_particles])
-                decay_energy = np.sum(decay_energies) * units.MeV
+                decay_energy = convert_energy_units(np.sum(decay_energies))
 
                 # TODO: Is it physical to repeat the propagation until a decay (before the energy of low) happened?
                 if (len(decay_particles) == 0):
