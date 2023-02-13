@@ -18,6 +18,7 @@ def get_threshold_triggers(trace, threshold):
         the signal trace
     threshold: float
         the threshold
+    
     Returns
     -------
     triggered bins: array of bools

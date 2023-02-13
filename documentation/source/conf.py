@@ -19,6 +19,7 @@
 #
 import os
 import sys
+import time
 import fnmatch
 import NuRadioMC # we need this for the version number
 sys.path.insert(0, os.path.abspath('.'))
@@ -61,7 +62,7 @@ master_doc = 'main'
 
 # General information about the project.
 project = 'NuRadio'
-copyright = '2021, The NuRadio Group'
+copyright = '{}, The NuRadio Group'.format(time.asctime()[-4:])
 author = 'The NuRadio Group'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -219,16 +220,31 @@ autosectionlabel_prefix_document = True
 # Don't make toctrees for class methods (doesn't seem to work with apidoc)
 numpydoc_class_members_toctree = False
 
+autoclass_content = 'both' # include __init__ docstrings in class description
 # 
 # coverage_ignore_modules
 
 
 autodoc_mock_imports = [
     'ROOT', 'mysql-python', 'pygdsm', 'MySQLdb', 'healpy', 'scripts',
-    'uproot', 'proposal', 'radiopropa', 'plotly', 'past'
+    'uproot', 'radiopropa', 'plotly', 'past',
+    'nifty5'
     ]
 # Raise warnings if any cross-references are broken
 nitpicky = True
+
+# this ignores some cross-reference errors inside docstrings
+# that we don't care about
+nitpick_ignore_regex = [
+    ("py:class", "NuRadioReco.*"),
+    ("py:class", "NuRadioMC.*"),
+    ("py:class", "aenum.Enum"),
+    ("py:class", "tinydb_serialization.Serializer"),
+    ("py:class", "radiopropa.ScalarField"),
+    ("py:obj", "NuRadioReco.*"),
+    ("py:obj", "NuRadioMC.*"),
+    ("py:class", "nifty5.*")
+]
 
 # def skip_modules(app, what, name, obj, skip, options):
 #     if skip: # we ignore anything autodoc is configured to ignore

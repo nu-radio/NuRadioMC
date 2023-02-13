@@ -201,7 +201,7 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
         bounds_theta should be a (two-item) list, but will care only about the min/max values
     
     Returns
-    ----------
+    -------
     list of dictionaries
         Each file is one entry. The dictionary keys store all relevant properties
     """
@@ -449,7 +449,7 @@ def get_Veff_Aeff_single(filename, trigger_names, trigger_names_dict, trigger_co
     return out
 
 
-def tmp(args):
+def get_Veff_Aeff_single_wrapper(args):
     return get_Veff_Aeff_single(*args)
 
 
@@ -534,11 +534,14 @@ def get_Veff_Aeff(folder,
             elif prev_deposited != deposited:
                 raise AttributeError("The deposited parameter is not consistent among the input files!")
 
-        if('trigger_names' in fin.attrs):
+    for iF, filename in enumerate(filenames):
+        fin = h5py.File(filename, 'r')
+        if 'trigger_names' in fin.attrs:
             trigger_names = fin.attrs['trigger_names']
-            if(len(trigger_names) > 0):
+            if len(trigger_names) > 0:
                 for iT, trigger_name in enumerate(trigger_names):
                     trigger_names_dict[trigger_name] = iT
+                
                 logger.info(f"first file with triggernames {filename}: {trigger_names}")
                 break
 
@@ -575,11 +578,11 @@ def get_Veff_Aeff(folder,
     if n_cores == 1:
         output = []
         for arg in args:
-            output.append(tmp(arg))
+            output.append(get_Veff_Aeff_single_wrapper(arg))
         return output
     else:
         with Pool(n_cores) as p:
-            output = p.map(tmp, args)
+            output = p.map(get_Veff_Aeff_single_wrapper, args)
             print("output")
             print(output)
             return output
@@ -593,12 +596,12 @@ def get_Veff_Aeff_array(data):
     last tuple is the effective volume, its uncertainty, the weighted sum of triggered events, lower 68% uncertainty, upper 68% uncertainty
 
     Parameters
-    -----------
+    ----------
     data: dict
         the result of the `get_Veff` function
 
     Returns
-    --------
+    -------
     
     * (n_energy, n_zenith_bins, n_triggernames, 5) dimensional array of floats
     * array of unique mean energies (the mean is calculated in the logarithm of the energy)
@@ -741,23 +744,23 @@ def export(filename, data, trigger_names=None, export_format='yaml'):
     """
     output = []
     for i in range(len(data)):
-        tmp = {}
+        tmp_out = {}
         for key in data[i]:
             if (key not in  ['veffs', 'aeff_surface_muons']):
                 if isinstance(data[i][key], np.generic):
-                    tmp[key] = data[i][key].item()
+                    tmp_out[key] = data[i][key].item()
                 else:
-                    tmp[key] = data[i][key]
+                    tmp_out[key] = data[i][key]
         for key in ["veffs", "aeff_surface_muons"]:
             if(key in data[i]):
-                tmp[key] = {}
+                tmp_out[key] = {}
                 for trigger_name in data[i][key]:
                     if(trigger_names is None or trigger_name in trigger_names):
                         logger.info(trigger_name)
-                        tmp[key][trigger_name] = []
+                        tmp_out[key][trigger_name] = []
                         for value in data[i][key][trigger_name]:
-                            tmp[key][trigger_name].append(float(value))
-        output.append(tmp)
+                            tmp_out[key][trigger_name].append(float(value))
+        output.append(tmp_out)
 
     with open(filename, 'w') as fout:
         if(export_format == 'yaml'):

@@ -4,6 +4,7 @@ Propagation module
 ------------------
 The modules for the raytracing are stored in the folder **SignalProp**. All the propagation effects (attenuation, focussing) are also taken account for in the raytracer module itself. 
 The configuration of the raytracing and propagation effects are specified in the ``config.yaml`` file under ``propagation`` with the following attributes:
+
 * module: [string] the ray tracing method to use
 * ice_model: [string] the description of the refractive index of the ice and all its special effects
 * attenuation_model: [string] the description of the attenuation of the ice
@@ -31,7 +32,7 @@ How to implement new ice-models and information on all the available ice-models 
 
 Ray tracing
 -----------
-Ray tracing is the module to calculate the trajectory of the emitted radiaton. Depending on the ice model one wants to use, the user can specify which ray tracer method should be used by NuRadioMC. This can be done in the ``config.yaml`` file by setting the propagation module to the desired module name.
+Ray tracing is the module to calculate the trajectory of the emitted radiation. Depending on the ice model one wants to use, the user can specify which ray tracer method should be used by NuRadioMC. This can be done in the ``config.yaml`` file by setting the propagation module to the desired module name.
   
   .. code-block:: yaml
 
@@ -61,18 +62,23 @@ According to the variational principle, the ray path in a medium given by Eq. (1
 
 where y is the horizontal coordinate, :math:`\gamma = \Delta_n \exp(z/z_0)`, :math:`b = 2n_{ice}`, and :math:`d = n_{ice}^2 - C_0^{-2}`. :math:`C_0` is an integration constant related to the angle at launch position and :math:`C_1`  is another integration constant that gives the starting point.
 
-The ray path can be expressed in closed form, as well as the travel time and the path length. However, the calculation of the frequency-dependent attenuation length must be done numerically. To that effect, a C++ version of the code has been implemented, which is called from Python. If the user doesn't have this C++ extension compiled, the code tries to compile it itself, for which the user must have specified the GSLDIR variable, and this must be pointing to the GNU Scientific Library directory.
+The ray path can be expressed in closed form, as well as the travel time and the path length. However, the calculation of the frequency-dependent attenuation length must be done numerically. 
+
+GSL speed-boost
+^^^^^^^^^^^^^^^
+A C++ version of the ray tracer exists, which can be called from Python, and is significantly faster. The C++ version needs to be compiled on the user's system, which is attempted automatically if this is not already the case. However, this requires that the :ref:`GSL library is installed <Introduction/pages/installation:Not pip-installable packages>`, and the ``$GSLDIR`` variable is defined and points to the GNU Scientific Library directory.
 
   .. code-block:: bash
 
     export GSLDIR=/path/to/my/GNU_Scientific_Library
 
-Once GSLDIR is configured, the user can also compile it by hand executing the following instruction in the  SignalProp/CPPAnalyticRayTracing folder:
+Once GSLDIR is configured, the user can also compile it by hand executing the following instruction in the SignalProp/CPPAnalyticRayTracing folder:
 
   .. code-block:: bash
 
     python setup.py build_ext --inplace
 
+The C++ analytic ray tracer can also be used standalone, using the ``MakeFile`` included. For instructions, please refer to the ``README`` included in the ``NuRadioMC/SignalProp/CPPAnalyticRayTracing`` directory.
 
 RadioPropa numerical ray tracer (in development)
 _________________________________________________

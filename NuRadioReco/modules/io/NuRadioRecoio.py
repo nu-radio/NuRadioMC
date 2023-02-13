@@ -166,7 +166,9 @@ class NuRadioRecoio(object):
                                 time_strings = str(value).split(' ')
                                 station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
                             else:
-                                station_time = time
+                                value.in_subfmt = 'date_hms'
+                                value.out_subfmt = 'date_hms'
+                                station_time=value
                         else:
                             station_time = None
                         self.__event_headers[station_id][key].append(station_time)

@@ -208,7 +208,7 @@ NuRadioMC feeds PROPOSAL the lepton properties and PROPOSAL propagates them, sto
         """
         proposal_config: string or path
             The user can specify the path to their own config file or choose among
-            the three available options:
+            the available options:
             -'SouthPole', a config file for the South Pole (spherical Earth). It
             consists of a 2.7 km deep layer of ice, bedrock below and air above.
             -'MooresBay', a config file for Moore's Bay (spherical Earth). It
@@ -217,15 +217,9 @@ NuRadioMC feeds PROPOSAL the lepton properties and PROPOSAL propagates them, sto
             -'InfIce', a config file with a medium of infinite ice
             -'Greenland', a config file for Summit Station, Greenland (spherical Earth),
             same as SouthPole but with a 3 km deep ice layer.
-            IMPORTANT: If these options are used, the code is more efficient if the
-            user requests their own "path_to_tables" and "path_to_tables_readonly",
-            pointing them to a writable directory
-            If one of these three options is chosen, the user is supposed to edit
-            the corresponding config_PROPOSAL_xxx.json.sample file to include valid
-            table paths and then copy this file to config_PROPOSAL_xxx.json.
         """
 
-PROPOSAL needs a configuration file specifying the geometry to be run. The user can choose among the media listed above or they can specify the path to an own file. Important: the listed media need some input from the user. The files that end with ``.sample`` need to have two writable directories on the user's system to save some tables (which makes PROPOSAL faster), and they need to be renamed by removing the suffix ``.sample``.
+PROPOSAL needs a configuration file specifying the geometry to be run. The user can choose among the media listed above or they can specify the path to an own file.
 
     .. code-block:: Python
 
@@ -283,6 +277,8 @@ The following items have the same meaning as the parameters that are passed to t
 
 The HDF5 data sets outlined here are what constitute a NuRadioMC input file produced its generator module. However, any HDF5 file containing equally named data sets (and, depending on the purpose, also the attributes) can be processed by NuRadioMC to simulate a detector. This is useful in case one wants to compare the effect of a different input generation on the simulation output. However, although these comparisons are necessary for cross-checking, we encourage our NuRadioMC users to contribute to our projects and expand on our event generators if they consider that a different or complementary way of drawing input events is advisable.
 
+    .. _particle-code-table:
+    
     .. csv-table:: Particle codes used in NuRadioMC
             :header: "Name", "Symbol", "Code"
             
@@ -299,6 +295,7 @@ The HDF5 data sets outlined here are what constitute a NuRadioMC input file prod
             Antitau (or positive tau), :math:`\tau^+`, -15
             Tau neutrino, :math:`\nu_{\tau}`, 16
             Tau antineutrino, :math:`\bar{\nu}_{\tau}`, -16
+            Particle, , 80
             Bremsstrahlung photon, :math:`\gamma_{brems}`, 81
             Ionised electron, :math:`\delta`, 82 
             Electron-positron pair, :math:`e^+e^-`, 83
@@ -309,6 +306,7 @@ The HDF5 data sets outlined here are what constitute a NuRadioMC input file prod
             Continuous loss, , 88
             Weak interaction, , 89
             Compton, , 90
+            Decay, , 91
             Pion (neutral), :math:`\pi^0`, 111
             Pion (positive), :math:`\pi^+`, 211
             Pion (negative), :math:`\pi^-`, -211
