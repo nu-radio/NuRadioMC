@@ -1255,43 +1255,22 @@ class simulation:
         # simulated triggers is unknown at the beginning. So we check if the key already exists and if not,
         # we first create this data structure
         if 'multiple_triggers' not in self._mout:
-<<<<<<< HEAD
-            self._mout['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
-            self._mout['trigger_times'] = np.nan * np.zeros_like(self._mout['multiple_triggers'], dtype=float)
-#             for station_id in self._station_ids:
-#                 sg = self._mout_groups[station_id]
-#                 sg['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
-=======
             self._mout['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])),
                                                        dtype=np.bool)
             # for station_id in self._station_ids:
             #     sg = self._mout_groups[station_id]
             #     sg['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
->>>>>>> 045b69ff (correct intends)
         elif extend_array:
             tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
             nx, ny = self._mout['multiple_triggers'].shape
             tmp[:, 0:ny] = self._mout['multiple_triggers']
             self._mout['multiple_triggers'] = tmp
-<<<<<<< HEAD
-            # repeat for trigger times
-            tmp_t = np.nan * np.zeros_like(tmp, dtype=float)
-            tmp_t[:, 0:ny] = self._mout['trigger_times']
-            self._mout['trigger_times'] = tmp_t
-#             for station_id in self._station_ids:
-#                 sg = self._mout_groups[station_id]
-#                 tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
-#                 nx, ny = sg['multiple_triggers'].shape
-#                 tmp[:, 0:ny] = sg['multiple_triggers']
-#                 sg['multiple_triggers'] = tmp
-=======
             # for station_id in self._station_ids:
             #     sg = self._mout_groups[station_id]
             #     tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
             #     nx, ny = sg['multiple_triggers'].shape
             #     tmp[:, 0:ny] = sg['multiple_triggers']
             #     sg['multiple_triggers'] = tmp
->>>>>>> 045b69ff (correct intends)
         return extend_array
 
     def _save_triggers_to_hdf5(self, sg, local_shower_index, global_shower_index):
@@ -1391,11 +1370,6 @@ class simulation:
         sg['triggered'] = np.zeros(n_showers, dtype=np.bool)
         # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
         sg['shower_id'] = np.zeros(n_showers, dtype=int) * -1
-<<<<<<< HEAD
-        sg['event_id_per_shower'] = np.zeros(n_showers, dtype=int) * -1
-        sg['event_group_id_per_shower'] = np.zeros(n_showers, dtype=int) * -1
-=======
->>>>>>> 045b69ff (correct intends)
         sg['launch_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
         sg['receive_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
         sg['polarization'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
