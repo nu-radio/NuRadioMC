@@ -42,11 +42,6 @@ pp_m = 1.e2
 pp_km = 1.e5
 
 
-def convert_energy_units(pp_energy):
-    """ Convert energy from proposal unit to NuRadioMC unit. """
-    return pp_energy / pp_MeV * units.MeV
-
-
 class SecondaryProperties:
     """
     This class stores the properties from secondary particles that are
@@ -513,13 +508,13 @@ class ProposalFunctions(object):
 
                 distance = ProposalFunctions.__calculate_distance(sec.position, lepton_position)
 
-                energy = convert_energy_units(sec.energy)
+                energy = sec.energy / pp_MeV * units.MeV
 
                 shower_type, code, name = self.__shower_properties(sec.type)
                 
                 shower_inducing_prods.append(
                     SecondaryProperties(distance, energy, shower_type, code, name, 
-                                        convert_energy_units(sec.parent_particle_energy)))
+                                        sec.parent_particle_energy / pp_MeV * units.MeV))
 
         return shower_inducing_prods
 
@@ -564,7 +559,7 @@ class ProposalFunctions(object):
             # all decay_particles have the same position, so we can just look at the first in list
             distance = ProposalFunctions.__calculate_distance(decay_products[0].position, lepton_position)
 
-            return SecondaryProperties(distance, convert_energy_units(sum_decay_particle_energy), 
+            return SecondaryProperties(distance, sum_decay_particle_energy / pp_MeV * units.MeV,
                                        'had', 86, particle_names.particle_name(86), 
                                        decay_energy)
         return None
@@ -667,7 +662,7 @@ class ProposalFunctions(object):
                         # We have already handled the muon, remove it to avoid double counting.
                         decay_products.remove(decay_particle)
 
-            decay_energy = convert_energy_units(secondaries.final_state().energy)  # energy of the lepton before decay
+            decay_energy = secondaries.final_state().energy / pp_MeV * units.MeV  # energy of the lepton before decay
             grouped_decay_products = self.__group_decay_products(decay_products, min_energy_loss, lepton_position, decay_energy)
 
             if grouped_decay_products is not None:
@@ -739,7 +734,7 @@ class ProposalFunctions(object):
 
                 decay_particles = secondaries.decay_products()
                 decay_energies = np.array([p.energy for p in decay_particles])
-                decay_energy = convert_energy_units(np.sum(decay_energies))
+                decay_energy = np.sum(decay_energies) / pp_MeV * units.MeV
 
                 # TODO: Is it physical to repeat the propagation until a decay (before the energy of low) happened?
                 if (len(decay_particles) == 0):
