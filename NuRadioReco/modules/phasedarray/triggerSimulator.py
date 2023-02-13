@@ -20,6 +20,7 @@ default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_
 class triggerSimulator:
     """
     Calculates the trigger for a phased array with a primary beam.
+    
     The channels that participate in both beams and the pointing angle for each
     subbeam can be specified.
 
@@ -143,6 +144,7 @@ class triggerSimulator:
         triggered_channels: array of ints
             channels ids of the channels that form the primary phasing array
             if None, all channels are taken
+        
         Returns
         -------
         channel_trace_start_time: float
@@ -521,6 +523,7 @@ class triggerSimulator:
             Time step in power integral. If equal to window, there is no time overlap
             in between neighboring integration windows.
             Units of ADC time ticks
+        
         Returns
         -------
         is_triggered: bool

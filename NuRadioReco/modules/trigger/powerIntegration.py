@@ -25,6 +25,7 @@ def get_power_int_triggers(trace, threshold, window=10 * units.ns, dt=1 * units.
         the time binning of the trace
     full_output: bool (default False)
         if True, the integrated power is returned as second argument
+    
     Returns
     -------
     triggered bins: array of bools

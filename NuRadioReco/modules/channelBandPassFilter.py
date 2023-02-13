@@ -137,7 +137,7 @@ class channelBandPassFilter:
 
 
         Returns
-        -----------------
+        -------
          array of complex floats
             the complex filter amplitudes
         """

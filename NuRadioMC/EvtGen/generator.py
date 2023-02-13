@@ -150,7 +150,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
     while True:
         iFile += 1
         filename2 = filename
-        evt_ids_this_file = np.unique(data_sets["event_group_ids"])[iFile * n_events_per_file : (iFile + 1) * n_events_per_file]
+        evt_ids_this_file = np.unique(data_sets["event_group_ids"])[iFile * n_events_per_file: (iFile + 1) * n_events_per_file]
         if(len(evt_ids_this_file) == 0):
             logger.info("no more events to write in file {}".format(iFile))
             break
@@ -196,7 +196,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         # case 2) it is the last file -> total number of simulated events - last event id of previous file
         # case 3) it is the first file -> last event id + 1 - start_event_id
         # case 4) it is the first and last file -> total number of simulated events
-        evt_ids_next_file = np.unique(data_sets["event_group_ids"])[(iFile + 1) * n_events_per_file : (iFile + 2) * n_events_per_file]
+        evt_ids_next_file = np.unique(data_sets["event_group_ids"])[(iFile + 1) * n_events_per_file: (iFile + 2) * n_events_per_file]
         n_events_this_file = None
         if(iFile == 0 and len(evt_ids_next_file) == 0):  # case 4
             n_events_this_file = total_number_of_events
@@ -257,19 +257,11 @@ def ice_cube_nu_fit(energy, slope=-2.19, offset=1.01):
     return flux
 
 
-def get_GZK_1(energy):
-    """
-    model of (van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1) of the cosmogenic neutrino ﬂux
-    for a source evolution parameter of m = 3.4,
-    a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,
-    and a proton fraction of 10% at E = 10^19.6 eV
-    """
-    E, J = np.loadtxt(os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                                     '../examples/Sensitivities/ReasonableNeutrinos1.txt'))
-    E *= units.GeV
-    J *= units.GeV * units.cm ** -2 * units.s ** -1 * units.sr ** -1 / E ** 2
-    get_flux = interpolate.interp1d(E, J, fill_value=0, bounds_error=False)
-    return get_flux(energy)
+def ice_cube_nu_fit_2022(energy, slope=-2.37, offset=1.44):
+    # 9.5 years analysis 2.37+0.09−0.09, offset 1.44 + 0.25 - 0.26, Astrophysical normalization @ 100TeV: 1.44+0.25−0.26 × 10−18 GeV−1cm−2s−1 sr−1
+    flux = 3 * offset * (energy / (100 * units.TeV)) ** slope * 1e-18 * \
+        (units.GeV ** -1 * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+    return flux
 
 
 def get_energy_from_flux(Emin, Emax, n_events, flux, rnd=None):
@@ -289,7 +281,10 @@ def get_energy_from_flux(Emin, Emax, n_events, flux, rnd=None):
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
 
-    Returns: array of energies
+    Returns
+    -------
+    energies: array of floats
+        array of energies
     """
     if(rnd is None):
         rnd = np.random.default_rng()
@@ -338,9 +333,9 @@ def get_product_position_time(data_sets, product, iE):
 def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
     """
     generates a random distribution of enrgies following a certain spectrum
-    
+
     Parameters
-    -----------
+    ----------
     n_events: int
         the total number of events
     Emin: float
@@ -349,17 +344,21 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
         the maximum energy
     spectrum_type: string
         defines the probability distribution for which the neutrino energies are generated
-        
+
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for
-            10% proton fraction (see get_GZK_1 function for details)
+          10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)
+        * 'GZK-2': GZK neutrino flux model from fit to TA data (https://pos.sissa.it/395/338/)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
+        * 'GZK-1+IceCube-nu-2022': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux
+        * 'GZK-2+IceCube-nu-2022': a combination of the cosmogenic (GZK-2) and astrophysical (IceCube nu 2022) flux
         
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
     """
+
     if(rnd is None):
         rnd = np.random.default_rng()
     logger.debug("generating energies")
@@ -382,13 +381,31 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
         a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,
         and a proton fraction of 10% at E = 10^19.6 eV
         """
-        energies = get_energy_from_flux(Emin, Emax, n_events, get_GZK_1, rnd)
+        from NuRadioMC.examples.Sensitivities.E2_fluxes3 import get_proton_10
+        energies = get_energy_from_flux(Emin, Emax, n_events, get_proton_10, rnd)
     elif(spectrum_type == "IceCube-nu-2017"):
         energies = get_energy_from_flux(Emin, Emax, n_events, ice_cube_nu_fit, rnd)
+    elif(spectrum_type == "IceCube-nu-2022"):
+        energies = get_energy_from_flux(Emin, Emax, n_events, ice_cube_nu_fit_2022, rnd)
     elif(spectrum_type == "GZK-1+IceCube-nu-2017"):
+        from NuRadioMC.examples.Sensitivities.E2_fluxes3 import get_proton_10
 
         def J(E):
-            return ice_cube_nu_fit(E) + get_GZK_1(E)
+            return ice_cube_nu_fit(E) + get_proton_10(E)
+
+        energies = get_energy_from_flux(Emin, Emax, n_events, J, rnd)
+    elif(spectrum_type == "GZK-1+IceCube-nu-2022"):
+        from NuRadioMC.examples.Sensitivities.E2_fluxes3 import get_proton_10
+
+        def J(E):
+            return ice_cube_nu_fit_2022(E) + get_proton_10(E)
+
+        energies = get_energy_from_flux(Emin, Emax, n_events, J, rnd)
+    elif(spectrum_type == "GZK-2+IceCube-nu-2022"):
+        from NuRadioMC.examples.Sensitivities.E2_fluxes3 import get_TAGZK_flux_ICRC2021
+
+        def J(E):
+            return ice_cube_nu_fit_2022(E) + get_TAGZK_flux_ICRC2021(E)
 
         energies = get_energy_from_flux(Emin, Emax, n_events, J, rnd)
     else:
@@ -400,7 +417,7 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
 def set_volume_attributes(volume, proposal, attributes):
     """
     helper function that interprets the volume settings and sets the relevant quantities as hdf5 attributes.
-    
+
     Parameters
     ----------
     volume: dictionarty
@@ -447,7 +464,7 @@ def set_volume_attributes(volume, proposal, attributes):
             else:
                 tau_95_length = get_tau_95_length(attributes['Emax'])
                 # check if thetamax/thetamin are in same quadrant
-                is_same_quadrant = np.sign(np.cos(attributes['thetamin']))==np.sign(np.cos(attributes['thetamax']))
+                is_same_quadrant = np.sign(np.cos(attributes['thetamin'])) == np.sign(np.cos(attributes['thetamax']))
                 if is_same_quadrant:
                     max_horizontal_dist = np.abs(max(np.abs(np.tan(attributes['thetamin'])), np.abs(np.tan(attributes['thetamax']))) * volume['fiducial_zmin'])  # calculates the maximum horizontal distance through the ice
                 else:
@@ -513,7 +530,7 @@ def set_volume_attributes(volume, proposal, attributes):
                 # extent fiducial by tau decay length
                 tau_95_length = get_tau_95_length(attributes['Emax'])
                 # check if thetamax/thetamin are in same quadrant
-                is_same_quadrant = np.sign(np.cos(attributes['thetamin']))==np.sign(np.cos(attributes['thetamax']))
+                is_same_quadrant = np.sign(np.cos(attributes['thetamin'])) == np.sign(np.cos(attributes['thetamax']))
                 if is_same_quadrant:
                     max_horizontal_dist = np.abs(max(np.abs(np.tan(attributes['thetamin'])), np.abs(np.tan(attributes['thetamax']))) * volume['fiducial_zmin'])  # calculates the maximum horizontal distance through the ice
                 else:
@@ -551,9 +568,9 @@ def set_volume_attributes(volume, proposal, attributes):
 
 def generate_vertex_positions(attributes, n_events, rnd=None):
     """
-    helper function that generates the vertex position randomly distributed in simulation volume. 
+    helper function that generates the vertex position randomly distributed in simulation volume.
     The relevant quantities are also saved into the hdf5 attributes
-    
+
     Parameters
     ----------
     attributes: dicitionary
@@ -583,7 +600,7 @@ def intersection_box_ray(bounds, ray):
     """
     this function calculates the intersection between a ray and an axis-aligned box
     code adapted from https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
-    
+
     Parameters
     ----------
     box: array with shape (2,3)
@@ -698,6 +715,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                            spectrum='log_uniform',
                            start_file_id=0,
                            config_file='SouthPole',
+                           tables_path=None,
                            proposal_kwargs={},
                            log_level=None,
                            max_n_events_batch=1e5,
@@ -741,7 +759,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         * full_zmax: float (optional)
             upper z coordinate of simulated volume (if not set it is set to the fiducial volume)
 
-        or a cube specified with 
+        or a cube specified with
 
         * fiducial_xmin: float
             lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
@@ -767,7 +785,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
             lower z coordinate of simulated volume (if not set it is set to the fiducial volume)
         * full_zmax: float (optional)
             upper z coordinate of simulated volume (if not set it is set to the fiducial volume)
-        
+
     thetamin: float
         lower zenith angle for neutrino arrival direction
     thetamax: float
@@ -790,38 +808,32 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         This is useful to split up the computing on multiple cores.
     spectrum: string
         defines the probability distribution for which the neutrino energies are generated
-        
+
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 
-            for 10% proton fraction (see get_GZK_1 function for details)
+          for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
-        
+
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
         if True, generate deposited energies instead of primary neutrino energies
     config_file: string
         The user can specify the path to their own config file or choose among
-        the three available options:
-        
+        the available options:
+
         * 'SouthPole', a config file for the South Pole (spherical Earth). It
-            consists of a 2.7 km deep layer of ice, bedrock below and air above.
+          consists of a 2.7 km deep layer of ice, bedrock below and air above.
         * 'MooresBay', a config file for Moore's Bay (spherical Earth). It
-            consists of a 576 m deep ice layer with a 2234 m deep water layer below,
-            and bedrock below that.
+          consists of a 576 m deep ice layer with a 2234 m deep water layer below,
+          and bedrock below that.
         * 'InfIce', a config file with a medium of infinite ice
         * 'Greenland', a config file for Summit Station, Greenland (spherical Earth),
-            same as SouthPole but with a 3 km deep ice layer.
-        
-        .. Important:: If these options are used, the code is more efficient if the
-            user requests their own "path_to_tables" and "path_to_tables_readonly",
-            pointing them to a writable directory
-            If one of these three options is chosen, the user is supposed to edit
-            the corresponding config_PROPOSAL_xxx.json.sample file to include valid
-            table paths and then copy this file to config_PROPOSAL_xxx.json.
-        
+          same as SouthPole but with a 3 km deep ice layer.
+    tables_path: path
+        path where the proposal cross section tables are stored or should be generated
     proposal_kwargs: dict
         additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
     log_level: logging log level or None
@@ -837,7 +849,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     t_start = time.time()
     max_n_events_batch = int(max_n_events_batch)
     from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
-    proposal_functions = ProposalFunctions(config_file=config_file)
+    proposal_functions = ProposalFunctions(config_file=config_file, tables_path=tables_path)
 
     attributes = {}
     n_events = int(n_events)
@@ -942,7 +954,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                                                                            np.array([lepton_positions[iE]]),
                                                                            np.array([lepton_directions[iE]]),
                                                                            **proposal_kwargs)
-                products = products_array[0]
+                products = products_array[0]  # get secondaries from first (and only) lepton
 
                 n_interaction = 1
 
@@ -1014,6 +1026,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 deposited=False,
                                 proposal=False,
                                 proposal_config='SouthPole',
+                                proposal_tables_path=None,
                                 start_file_id=0,
                                 log_level=None,
                                 proposal_kwargs={},
@@ -1058,7 +1071,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             lower z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)
         * full_zmax: float (optional)
             upper z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume , if second vertices are not activated it is set to the fiducial volume)
-        
+
         or a cube specified with
 
         * fiducial_xmin: float
@@ -1085,7 +1098,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             lower z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
         * full_zmax: float (optional)
             upper z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)
-    
+
     thetamin: float
         lower zenith angle for neutrino arrival direction (default 0deg)
     thetamax: float
@@ -1121,9 +1134,13 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
+        * 'IceCube-nu-2022': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.48550/arXiv.2111.10299)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 
-            for 10% proton fraction (see get_GZK_1 function for details)
+          for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)
+        * 'GZK-2': GZK neutrino flux model from fit to TA data (https://pos.sissa.it/395/338/)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
+        * 'GZK-1+IceCube-nu-2022': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux
+        * 'GZK-2+IceCube-nu-2022': a combination of the cosmogenic (GZK-2) and astrophysical (IceCube nu 2022) flux
 
     deposited: bool
         if True, generate deposited energies instead of primary neutrino energies
@@ -1131,7 +1148,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         if True, the tau and muon secondaries are calculated using PROPOSAL
     proposal_config: string or path
         The user can specify the path to their own config file or choose among
-        the three available options:
+        the available options:
 
         * 'SouthPole', a config file for the South Pole (spherical Earth). It
           consists of a 2.7 km deep layer of ice, bedrock below and air above.
@@ -1141,14 +1158,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         * 'InfIce', a config file with a medium of infinite ice
         * 'Greenland', a config file for Summit Station, Greenland (spherical Earth),
           same as SouthPole but with a 3 km deep ice layer.
-
-        .. Important:: If these options are used, the code is more efficient if the
-            user requests their own "path_to_tables" and "path_to_tables_readonly",
-            pointing them to a writable directory
-            If one of these three options is chosen, the user is supposed to edit
-            the corresponding config_PROPOSAL_xxx.json.sample file to include valid
-            table paths and then copy this file to config_PROPOSAL_xxx.json.
-
+    proposal_tables_path: path
+        path where the proposal cross section tables are stored or should be generated
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
@@ -1164,7 +1175,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     seed: None of int
         seed of the random state
     interaction_type: string
-        the interaction type. default is "ccnc" which randomly choses neutral current (NC) or charged-current (CC) interactions. 
+        the interaction type. default is "ccnc" which randomly choses neutral current (NC) or charged-current (CC) interactions.
         The use can also specify "nc" or "cc" to exclusively simulate NC or CC interactions
     """
     rnd = Generator(Philox(seed))
@@ -1175,8 +1186,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     
     if proposal:
         from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
-        proposal_functions = ProposalFunctions(config_file=proposal_config)
-    
+        proposal_functions = ProposalFunctions(config_file=proposal_config, tables_path=proposal_tables_path)
     max_n_events_batch = int(max_n_events_batch)
     attributes = {}
     n_events = int(n_events)
