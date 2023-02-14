@@ -570,6 +570,18 @@
   <h1>Source code for NuRadioMC.EvtGen.generator</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Philox</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">six</span> <span class="kn">import</span> <span class="n">iterkeys</span><span class="p">,</span> <span class="n">iteritems</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">constants</span><span class="p">,</span> <span class="n">interpolate</span>
+<span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">import</span> <span class="nn">NuRadioMC</span>
+<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">particle_names</span>
+<span class="kn">from</span> <span class="nn">NuRadioMC.utilities</span> <span class="kn">import</span> <span class="n">inelasticities</span>
+<span class="kn">from</span> <span class="nn">NuRadioMC.simulation.simulation</span> <span class="kn">import</span> <span class="n">pretty_time_delta</span>
 
 <span class="n">STATUS</span> <span class="o">=</span> <span class="mi">31</span>
 
@@ -588,28 +600,8 @@
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(levelname)s</span><span class="s1">:</span><span class="si">%(name)s</span><span class="s1">:</span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">NuRadioMC</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-<span class="kn">from</span> <span class="nn">NuRadioMC.utilities</span> <span class="kn">import</span> <span class="n">inelasticities</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">version</span>
-<span class="kn">from</span> <span class="nn">six</span> <span class="kn">import</span> <span class="n">iterkeys</span><span class="p">,</span> <span class="n">iteritems</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">quad</span>
-<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
-<span class="kn">import</span> <span class="nn">scipy.interpolate</span> <span class="k">as</span> <span class="nn">interpolate</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">fsolve</span>
-<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">RectBivariateSpline</span>
-<span class="kn">import</span> <span class="nn">h5py</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">NuRadioMC.simulation.simulation</span> <span class="kn">import</span> <span class="n">pretty_time_delta</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">math</span>
-<span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Philox</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-
-<span class="n">VERSION_MAJOR</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="n">VERSION_MINOR</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">VERSION_MAJOR</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">VERSION_MINOR</span> <span class="o">=</span> <span class="mi">0</span>
 
 <span class="n">HEADER</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2"># all quantities are in the default NuRadioMC units (i.e., meters, radians and eV)</span>
@@ -1928,10 +1920,15 @@
 
                                 <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;n_interaction&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_interaction</span>  <span class="c1"># specify that new event is a secondary interaction</span>
                                 <span class="n">n_interaction</span> <span class="o">+=</span> <span class="mi">1</span>
+                                
+                                <span class="c1"># store energy of parent lepton before producing the shower</span>
+                                <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;energies&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">product</span><span class="o">.</span><span class="n">parent_energy</span>
                                 <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;shower_energies&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">product</span><span class="o">.</span><span class="n">energy</span>
                                 <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;inelasticity&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-                                <span class="c1"># interaction_type is either &#39;had&#39; or &#39;em&#39; for proposal products</span>
-                                <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;interaction_type&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">product</span><span class="o">.</span><span class="n">shower_type</span>
+                                
+                                <span class="c1"># For neutrino interactions &#39;interaction_type&#39; contains &#39;cc&#39; or &#39;nc&#39;</span>
+                                <span class="c1"># For energy losses of leptons use name of produced particle </span>
+                                <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;interaction_type&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_name</span><span class="p">(</span><span class="n">product</span><span class="o">.</span><span class="n">code</span><span class="p">)</span>
                                 <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;shower_type&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">product</span><span class="o">.</span><span class="n">shower_type</span>
 
                                 <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;xx&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
@@ -1941,8 +1938,9 @@
                                 <span class="c1"># Calculating vertex interaction time with respect to the primary neutrino</span>
                                 <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;vertex_times&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertex_time</span>
 
-                                <span class="c1"># Flavors are particle codes taken from NuRadioProposal.py</span>
-                                <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;flavors&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">product</span><span class="o">.</span><span class="n">code</span>
+                                <span class="c1"># Store flavor/particle code of parent particle</span>
+                                <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;flavors&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">lepton_codes</span><span class="p">[</span><span class="n">iE</span><span class="p">]</span>
+            
             <span class="n">time_proposal</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">init_time</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span><span class="p">(</span><span class="n">n_batches</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>

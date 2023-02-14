@@ -616,12 +616,13 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This class stores the properties from secondary particles that are</span>
 <span class="sd">    relevant for NuRadioMC, namely:</span>
-<span class="sd">    - distance, the distance to the first interaction vertex</span>
-<span class="sd">    - energy, the particle energy</span>
-<span class="sd">    - shower_type, whether the shower they induce is hadronic or electromagnetic</span>
-<span class="sd">    - name, its name according to the particle_name dictionary on this module</span>
+<span class="sd">    - distance      : Distance to the first interaction vertex</span>
+<span class="sd">    - energy        : Particle energy</span>
+<span class="sd">    - shower_type   : Whether the shower they induce is hadronic or electromagnetic</span>
+<span class="sd">    - name          : Name according to NuRadioReco.utilities.particle_names</span>
+<span class="sd">    - parent_energy : Energy of the parent particle</span>
 
-<span class="sd">    Distance and energy are expected to be in NuRadioMC units</span>
+<span class="sd">    Distance and energy are in NuRadioMC units</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -629,18 +630,21 @@
                  <span class="n">energy</span><span class="p">,</span>
                  <span class="n">shower_type</span><span class="p">,</span>
                  <span class="n">code</span><span class="p">,</span>
-                 <span class="n">name</span><span class="p">):</span>
+                 <span class="n">name</span><span class="p">,</span>
+                 <span class="n">parent_energy</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">distance</span> <span class="o">=</span> <span class="n">distance</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="n">energy</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shower_type</span> <span class="o">=</span> <span class="n">shower_type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">code</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent_energy</span> <span class="o">=</span> <span class="n">parent_energy</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;Particle and code: </span><span class="si">{:}</span><span class="s2"> (</span><span class="si">{:}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">)</span>
-        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;Energy in PeV: </span><span class="si">{:}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">)</span>
-        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;Distance from vertex in km: </span><span class="si">{:}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distance</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="p">)</span>
-        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;Shower type: </span><span class="si">{:}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shower_type</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span>  <span class="s2">&quot;Particle and code    : </span><span class="si">{:}</span><span class="s2"> (</span><span class="si">{:}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;Energy               : </span><span class="si">{:}</span><span class="s2"> PeV</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;Distance from vertex : </span><span class="si">{:}</span><span class="s2"> km</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distance</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;Shower type          : </span><span class="si">{:}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shower_type</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;Parent energy        : </span><span class="si">{:}</span><span class="s2"> PeV&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_energy</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">PeV</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">s</span></div>
 
 <span class="sd">&quot;&quot;&quot;</span>
@@ -825,7 +829,6 @@
             <span class="s1">&#39;SouthPole&#39;</span><span class="p">:</span>  <span class="s1">&#39;config_PROPOSAL.json&#39;</span><span class="p">,</span> <span class="s1">&#39;MooresBay&#39;</span><span class="p">:</span> <span class="s1">&#39;config_PROPOSAL_mooresbay.json&#39;</span><span class="p">,</span>
             <span class="s1">&#39;InfIce&#39;</span><span class="p">:</span> <span class="s1">&#39;config_PROPOSAL_infice.json&#39;</span><span class="p">,</span> <span class="s1">&#39;Greenland&#39;</span><span class="p">:</span> <span class="s1">&#39;config_PROPOSAL_greenland.json&#39;</span><span class="p">}</span>
 
-
         <span class="k">if</span> <span class="n">tables_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">tables_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;proposal_tables&quot;</span><span class="p">)</span>
         
@@ -899,7 +902,7 @@
 <span class="sd">        propagator: PROPOSAL propagator</span>
 <span class="sd">            Propagator that can be used to calculate the interactions of a muon or tau</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">particle_code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">particle_code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;initializing propagator for particle code </span><span class="si">{</span><span class="n">particle_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="n">pp</span><span class="o">.</span><span class="n">InterpolationSettings</span><span class="o">.</span><span class="n">tables_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tables_path</span>
@@ -920,8 +923,8 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">p_def</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">get_ParticleDef_for_type</span><span class="p">(</span><span class="n">particle_code</span><span class="p">)</span>
             <span class="k">except</span><span class="p">:</span>
-                <span class="n">error_str</span> <span class="o">=</span> <span class="s2">&quot;The propagation of this particle via PROPOSAL is not currently supported.</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="n">error_str</span> <span class="o">+=</span> <span class="s2">&quot;Please choose between -/+muon (13/-13) and -/+tau (15/-15)&quot;</span>
+                <span class="n">error_str</span> <span class="o">=</span> <span class="s2">&quot;The propagation of this particle via PROPOSAL is not currently supported.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> \
+                    <span class="s2">&quot;Please choose between -/+muon (13/-13) and -/+tau (15/-15)&quot;</span>
                 <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">error_str</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">__propagators</span><span class="p">[</span><span class="n">particle_code</span><span class="p">]</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Propagator</span><span class="p">(</span><span class="n">particle_def</span><span class="o">=</span><span class="n">p_def</span><span class="p">,</span> <span class="n">path_to_config_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__config_file_full_path</span><span class="p">)</span>
@@ -1075,18 +1078,21 @@
 
                 <span class="n">distance</span> <span class="o">=</span> <span class="n">ProposalFunctions</span><span class="o">.</span><span class="n">__calculate_distance</span><span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">)</span>
 
-                <span class="n">energy</span> <span class="o">=</span> <span class="n">sec</span><span class="o">.</span><span class="n">energy</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span>
+                <span class="n">energy</span> <span class="o">=</span> <span class="n">sec</span><span class="o">.</span><span class="n">energy</span> <span class="o">/</span> <span class="n">pp_MeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span>
 
                 <span class="n">shower_type</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__shower_properties</span><span class="p">(</span><span class="n">sec</span><span class="o">.</span><span class="n">type</span><span class="p">)</span>
-
-                <span class="n">shower_inducing_prods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SecondaryProperties</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">energy</span><span class="p">,</span> <span class="n">shower_type</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+                
+                <span class="n">shower_inducing_prods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">SecondaryProperties</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">energy</span><span class="p">,</span> <span class="n">shower_type</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> 
+                                        <span class="n">sec</span><span class="o">.</span><span class="n">parent_particle_energy</span> <span class="o">/</span> <span class="n">pp_MeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">shower_inducing_prods</span>
 
     <span class="k">def</span> <span class="nf">__group_decay_products</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                <span class="n">decay_products</span><span class="p">,</span>
                                <span class="n">min_energy_loss</span><span class="p">,</span>
-                               <span class="n">lepton_position</span><span class="p">):</span>
+                               <span class="n">lepton_position</span><span class="p">,</span>
+                               <span class="n">decay_energy</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        group remaining shower-inducing decay products so that they create a single shower</span>
 <span class="sd">        </span>
@@ -1098,6 +1104,8 @@
 <span class="sd">            Threshold for shower production, in PROPOSAL units (MeV)</span>
 <span class="sd">        lepton_position: (float, float, float) tuple</span>
 <span class="sd">            Original lepton positions in proposal units (cm)</span>
+<span class="sd">        decay_energy: float</span>
+<span class="sd">            Energy of the lepton before decaying (in NuRadioMC units)</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1116,13 +1124,14 @@
         <span class="k">for</span> <span class="n">decay_particle</span> <span class="ow">in</span> <span class="n">decay_products</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">is_shower_primary</span><span class="p">(</span><span class="n">decay_particle</span><span class="o">.</span><span class="n">type</span><span class="p">):</span>
                 <span class="n">sum_decay_particle_energy</span> <span class="o">+=</span> <span class="n">decay_particle</span><span class="o">.</span><span class="n">energy</span>
-
+        
         <span class="k">if</span> <span class="n">sum_decay_particle_energy</span> <span class="o">&gt;</span> <span class="n">min_energy_loss</span><span class="p">:</span>
             <span class="c1"># all decay_particles have the same position, so we can just look at the first in list</span>
             <span class="n">distance</span> <span class="o">=</span> <span class="n">ProposalFunctions</span><span class="o">.</span><span class="n">__calculate_distance</span><span class="p">(</span><span class="n">decay_products</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">)</span>
 
-            <span class="k">return</span> <span class="n">SecondaryProperties</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">sum_decay_particle_energy</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span><span class="p">,</span> 
-                                      <span class="s1">&#39;had&#39;</span><span class="p">,</span> <span class="mi">86</span><span class="p">,</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_name</span><span class="p">(</span><span class="mi">86</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">SecondaryProperties</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">sum_decay_particle_energy</span> <span class="o">/</span> <span class="n">pp_MeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span><span class="p">,</span>
+                                       <span class="s1">&#39;had&#39;</span><span class="p">,</span> <span class="mi">86</span><span class="p">,</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_name</span><span class="p">(</span><span class="mi">86</span><span class="p">),</span> 
+                                       <span class="n">decay_energy</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span>
 
 
@@ -1198,7 +1207,6 @@
                                                               <span class="n">min_energy_loss</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">)</span>
 
             <span class="n">decay_products</span> <span class="o">=</span> <span class="n">secondaries</span><span class="o">.</span><span class="n">decay_products</span><span class="p">()</span> <span class="c1"># array of decay particles</span>
-
             <span class="c1"># Checking if there is a muon in the decay products</span>
             <span class="k">if</span> <span class="n">propagate_decay_muons</span><span class="p">:</span>
 
@@ -1224,7 +1232,8 @@
                         <span class="c1"># We have already handled the muon, remove it to avoid double counting.</span>
                         <span class="n">decay_products</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">decay_particle</span><span class="p">)</span>
 
-            <span class="n">grouped_decay_products</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__group_decay_products</span><span class="p">(</span><span class="n">decay_products</span><span class="p">,</span> <span class="n">min_energy_loss</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">)</span>
+            <span class="n">decay_energy</span> <span class="o">=</span> <span class="n">secondaries</span><span class="o">.</span><span class="n">final_state</span><span class="p">()</span><span class="o">.</span><span class="n">energy</span> <span class="o">/</span> <span class="n">pp_MeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span>  <span class="c1"># energy of the lepton before decay</span>
+            <span class="n">grouped_decay_products</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__group_decay_products</span><span class="p">(</span><span class="n">decay_products</span><span class="p">,</span> <span class="n">min_energy_loss</span><span class="p">,</span> <span class="n">lepton_position</span><span class="p">,</span> <span class="n">decay_energy</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">grouped_decay_products</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">shower_inducing_prods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">grouped_decay_products</span><span class="p">)</span>
@@ -1295,7 +1304,7 @@
 
                 <span class="n">decay_particles</span> <span class="o">=</span> <span class="n">secondaries</span><span class="o">.</span><span class="n">decay_products</span><span class="p">()</span>
                 <span class="n">decay_energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">energy</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">decay_particles</span><span class="p">])</span>
-                <span class="n">decay_energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">decay_energies</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span>
+                <span class="n">decay_energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">decay_energies</span><span class="p">)</span> <span class="o">/</span> <span class="n">pp_MeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MeV</span>
 
                 <span class="c1"># TODO: Is it physical to repeat the propagation until a decay (before the energy of low) happened?</span>
                 <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">decay_particles</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>

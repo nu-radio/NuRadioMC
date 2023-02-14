@@ -715,15 +715,16 @@ properties are in NuRadioMC units.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.EvtGen.NuRadioProposal.SecondaryProperties">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal.</span></span><span class="sig-name descname"><span class="pre">SecondaryProperties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#SecondaryProperties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.SecondaryProperties" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal.</span></span><span class="sig-name descname"><span class="pre">SecondaryProperties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_energy</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#SecondaryProperties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.SecondaryProperties" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>This class stores the properties from secondary particles that are
 relevant for NuRadioMC, namely:
-- distance, the distance to the first interaction vertex
-- energy, the particle energy
-- shower_type, whether the shower they induce is hadronic or electromagnetic
-- name, its name according to the particle_name dictionary on this module</p>
-<p>Distance and energy are expected to be in NuRadioMC units</p>
+- distance      : Distance to the first interaction vertex
+- energy        : Particle energy
+- shower_type   : Whether the shower they induce is hadronic or electromagnetic
+- name          : Name according to NuRadioReco.utilities.particle_names
+- parent_energy : Energy of the parent particle</p>
+<p>Distance and energy are in NuRadioMC units</p>
 </dd></dl>
 
 <dl class="py function">
