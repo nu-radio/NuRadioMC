@@ -247,6 +247,7 @@ class neutrinoDirectionReconstructor:
             if pol_sim is None: # for some reason, didn't manage to obtain simulated vw / polarization angle
                 pol_sim = np.nan * np.ones(3) # we still set them, so the debug plots don't fail
                 vw_sim = np.nan
+                sim_station = False # skip anything involving the sim station to avoid errors
             self._launch_vector_sim = lv_sim # not used?
             logger.debug(
                 "Simulated viewing angle: {:.1f} deg / Polarization angle: {:.1f} deg".format(
@@ -563,7 +564,7 @@ class neutrinoDirectionReconstructor:
                     # because of the debug plot
                     vmax = None
                 plt.imshow(
-                    (chi2_grid[:,:,min_energy_index].T),
+                    (np.nanmin(chi2_grid, axis=2).T),
                     extent=extent,
                     aspect='auto',
                     vmax=vmax,
