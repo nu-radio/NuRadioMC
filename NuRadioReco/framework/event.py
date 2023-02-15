@@ -33,7 +33,7 @@ class Event:
         registers modules applied to this event
 
         Parameters
-        -----------
+        ----------
         instance: module instance
             the instance of the module that should be registered
         name: module name
@@ -49,7 +49,7 @@ class Event:
         registers modules applied to this event
 
         Parameters
-        -----------
+        ----------
         station_id: int
             the station id
         instance: module instance
@@ -264,7 +264,7 @@ class Event:
         Adds a radio shower to the event
 
         Parameters
-        ------------------------
+        ----------
         shower: RadioShower object
             The shower to be added to the event
         """
@@ -278,7 +278,7 @@ class Event:
         Returns an iterator over the showers stored in the event
 
         Parameters
-        ---------------------------
+        ----------
         ids: list of integers
             A list of station IDs. Only showers that are associated with
             all stations in the list are returned
@@ -314,7 +314,7 @@ class Event:
         when there is only one shower in the event.
 
         Parameters
-        ---------------------------
+        ----------
         ids: list of integers
             A list of station IDs. The first shower that is associated with
             all stations in the list is returned
@@ -334,7 +334,7 @@ class Event:
         Add a simulated shower to the event
 
         Parameters
-        ------------------------
+        ----------
         sim_shower: RadioShower object
             The shower to be added to the event
         """
@@ -366,7 +366,7 @@ class Event:
         when there is only one shower in the event.
 
         Parameters
-        ---------------------------
+        ----------
         ids: list of integers
             A list of station IDs. The first shower that is associated with
             all stations in the list is returned

@@ -1,5 +1,17 @@
 # -*- coding: utf-8 -*-
 import logging
+import numpy as np
+from numpy.random import Generator, Philox
+import copy
+from six import iterkeys, iteritems
+from scipy import constants, interpolate
+import h5py
+import time
+
+import NuRadioMC
+from NuRadioReco.utilities import units, version, particle_names
+from NuRadioMC.utilities import inelasticities
+from NuRadioMC.simulation.simulation import pretty_time_delta
 
 STATUS = 31
 
@@ -18,28 +30,8 @@ assert isinstance(logger, NuRadioMCLogger)
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 logger.setLevel(logging.INFO)
 
-import numpy as np
-import NuRadioMC
-from NuRadioReco.utilities import units
-from NuRadioMC.utilities import inelasticities
-from NuRadioReco.utilities import version
-from six import iterkeys, iteritems
-from scipy import constants
-from scipy.integrate import quad
-from scipy.interpolate import interp1d
-import scipy.interpolate as interpolate
-from scipy.optimize import fsolve
-from scipy.interpolate import RectBivariateSpline
-import h5py
-import time
-from NuRadioMC.simulation.simulation import pretty_time_delta
-import os
-import math
-from numpy.random import Generator, Philox
-import copy
-
-VERSION_MAJOR = 2
-VERSION_MINOR = 2
+VERSION_MAJOR = 3
+VERSION_MINOR = 0
 
 HEADER = """
 # all quantities are in the default NuRadioMC units (i.e., meters, radians and eV)
@@ -281,7 +273,10 @@ def get_energy_from_flux(Emin, Emax, n_events, flux, rnd=None):
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
 
-    Returns: array of energies
+    Returns
+    -------
+    energies: array of floats
+        array of energies
     """
     if(rnd is None):
         rnd = np.random.default_rng()
@@ -332,7 +327,7 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
     generates a random distribution of enrgies following a certain spectrum
 
     Parameters
-    -----------
+    ----------
     n_events: int
         the total number of events
     Emin: float
@@ -341,7 +336,7 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
         the maximum energy
     spectrum_type: string
         defines the probability distribution for which the neutrino energies are generated
-        
+
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
@@ -565,7 +560,7 @@ def set_volume_attributes(volume, proposal, attributes):
 
 def generate_vertex_positions(attributes, n_events, rnd=None):
     """
-    helper function that generates the vertex position randomly distributed in simulation volume. 
+    helper function that generates the vertex position randomly distributed in simulation volume.
     The relevant quantities are also saved into the hdf5 attributes
 
     Parameters
@@ -712,6 +707,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                            spectrum='log_uniform',
                            start_file_id=0,
                            config_file='SouthPole',
+                           tables_path=None,
                            proposal_kwargs={},
                            log_level=None,
                            max_n_events_batch=1e5,
@@ -755,7 +751,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         * full_zmax: float (optional)
             upper z coordinate of simulated volume (if not set it is set to the fiducial volume)
 
-        or a cube specified with 
+        or a cube specified with
 
         * fiducial_xmin: float
             lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
@@ -781,7 +777,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
             lower z coordinate of simulated volume (if not set it is set to the fiducial volume)
         * full_zmax: float (optional)
             upper z coordinate of simulated volume (if not set it is set to the fiducial volume)
-        
+
     thetamin: float
         lower zenith angle for neutrino arrival direction
     thetamax: float
@@ -804,22 +800,22 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         This is useful to split up the computing on multiple cores.
     spectrum: string
         defines the probability distribution for which the neutrino energies are generated
-        
+
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 
           for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
-        
+
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
         if True, generate deposited energies instead of primary neutrino energies
     config_file: string
         The user can specify the path to their own config file or choose among
-        the three available options:
-        
+        the available options:
+
         * 'SouthPole', a config file for the South Pole (spherical Earth). It
           consists of a 2.7 km deep layer of ice, bedrock below and air above.
         * 'MooresBay', a config file for Moore's Bay (spherical Earth). It
@@ -828,14 +824,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         * 'InfIce', a config file with a medium of infinite ice
         * 'Greenland', a config file for Summit Station, Greenland (spherical Earth),
           same as SouthPole but with a 3 km deep ice layer.
-        
-        .. Important:: If these options are used, the code is more efficient if the
-            user requests their own "path_to_tables" and "path_to_tables_readonly",
-            pointing them to a writable directory
-            If one of these three options is chosen, the user is supposed to edit
-            the corresponding config_PROPOSAL_xxx.json.sample file to include valid
-            table paths and then copy this file to config_PROPOSAL_xxx.json.
-        
+    tables_path: path
+        path where the proposal cross section tables are stored or should be generated
     proposal_kwargs: dict
         additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
     log_level: logging log level or None
@@ -851,7 +841,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     t_start = time.time()
     max_n_events_batch = int(max_n_events_batch)
     from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
-    proposal_functions = ProposalFunctions(config_file=config_file)
+    proposal_functions = ProposalFunctions(config_file=config_file, tables_path=tables_path)
 
     attributes = {}
     n_events = int(n_events)
@@ -956,7 +946,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                                                                            np.array([lepton_positions[iE]]),
                                                                            np.array([lepton_directions[iE]]),
                                                                            **proposal_kwargs)
-                products = products_array[0]
+                products = products_array[0]  # get secondaries from first (and only) lepton
 
                 n_interaction = 1
 
@@ -1028,6 +1018,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 deposited=False,
                                 proposal=False,
                                 proposal_config='SouthPole',
+                                proposal_tables_path=None,
                                 start_file_id=0,
                                 log_level=None,
                                 proposal_kwargs={},
@@ -1072,7 +1063,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             lower z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)
         * full_zmax: float (optional)
             upper z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume , if second vertices are not activated it is set to the fiducial volume)
-        
+
         or a cube specified with
 
         * fiducial_xmin: float
@@ -1099,7 +1090,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             lower z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
         * full_zmax: float (optional)
             upper z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)
-    
+
     thetamin: float
         lower zenith angle for neutrino arrival direction (default 0deg)
     thetamax: float
@@ -1149,7 +1140,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         if True, the tau and muon secondaries are calculated using PROPOSAL
     proposal_config: string or path
         The user can specify the path to their own config file or choose among
-        the three available options:
+        the available options:
 
         * 'SouthPole', a config file for the South Pole (spherical Earth). It
           consists of a 2.7 km deep layer of ice, bedrock below and air above.
@@ -1159,14 +1150,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         * 'InfIce', a config file with a medium of infinite ice
         * 'Greenland', a config file for Summit Station, Greenland (spherical Earth),
           same as SouthPole but with a 3 km deep ice layer.
-
-        .. Important:: If these options are used, the code is more efficient if the
-            user requests their own "path_to_tables" and "path_to_tables_readonly",
-            pointing them to a writable directory
-            If one of these three options is chosen, the user is supposed to edit
-            the corresponding config_PROPOSAL_xxx.json.sample file to include valid
-            table paths and then copy this file to config_PROPOSAL_xxx.json.
-
+    proposal_tables_path: path
+        path where the proposal cross section tables are stored or should be generated
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
@@ -1182,7 +1167,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     seed: None of int
         seed of the random state
     interaction_type: string
-        the interaction type. default is "ccnc" which randomly choses neutral current (NC) or charged-current (CC) interactions. 
+        the interaction type. default is "ccnc" which randomly choses neutral current (NC) or charged-current (CC) interactions.
         The use can also specify "nc" or "cc" to exclusively simulate NC or CC interactions
     """
     rnd = Generator(Philox(seed))
@@ -1191,7 +1176,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         logger.setLevel(log_level)
     if proposal:
         from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
-        proposal_functions = ProposalFunctions(config_file=proposal_config)
+        proposal_functions = ProposalFunctions(config_file=proposal_config, tables_path=proposal_tables_path)
     max_n_events_batch = int(max_n_events_batch)
     attributes = {}
     n_events = int(n_events)
@@ -1365,10 +1350,15 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
                                 data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
                                 n_interaction += 1
+                                
+                                # store energy of parent lepton before producing the shower
+                                data_sets_fiducial['energies'][-1] = product.parent_energy
                                 data_sets_fiducial['shower_energies'][-1] = product.energy
                                 data_sets_fiducial['inelasticity'][-1] = np.nan
-                                # interaction_type is either 'had' or 'em' for proposal products
-                                data_sets_fiducial['interaction_type'][-1] = product.shower_type
+                                
+                                # For neutrino interactions 'interaction_type' contains 'cc' or 'nc'
+                                # For energy losses of leptons use name of produced particle 
+                                data_sets_fiducial['interaction_type'][-1] = particle_names.particle_name(product.code)
                                 data_sets_fiducial['shower_type'][-1] = product.shower_type
 
                                 data_sets_fiducial['xx'][-1] = x
@@ -1378,8 +1368,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 # Calculating vertex interaction time with respect to the primary neutrino
                                 data_sets_fiducial['vertex_times'][-1] = vertex_time
 
-                                # Flavors are particle codes taken from NuRadioProposal.py
-                                data_sets_fiducial['flavors'][-1] = product.code
+                                # Store flavor/particle code of parent particle
+                                data_sets_fiducial['flavors'][-1] = lepton_codes[iE]
+            
             time_proposal = time.time() - init_time
         else:
             if(n_batches == 1):

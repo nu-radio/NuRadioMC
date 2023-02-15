@@ -79,7 +79,7 @@ release = NuRadioMC.__version__
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -227,7 +227,7 @@ autoclass_content = 'both' # include __init__ docstrings in class description
 
 autodoc_mock_imports = [
     'ROOT', 'mysql-python', 'pygdsm', 'MySQLdb', 'healpy', 'scripts',
-    'uproot', 'proposal', 'radiopropa', 'plotly', 'past',
+    'uproot', 'radiopropa', 'plotly', 'past',
     'nifty5'
     ]
 # Raise warnings if any cross-references are broken

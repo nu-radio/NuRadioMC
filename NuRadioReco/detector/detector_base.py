@@ -160,8 +160,8 @@ class DetectorBase(object):
             appending e.g. '_InfFirn' to the antenna model name.
             if False, the antenna model as specified in the database is used.
         create_new: bool (default:False)
-            Can be used to force the creation of a new detector object. By default, the __init__ will anly create a new
-            object of none already exists.
+            Can be used to force the creation of a new detector object. By default, the __init__ will only create a new
+            object if none already exists.
         """
         self._serialization = SerializationMiddleware()
         self._serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
@@ -469,7 +469,7 @@ class DetectorBase(object):
             the station id
 
         Returns
-        ----------------
+        -------
         3-dim array of absolute station position in easting, northing and depth wrt. to snow level at
         time of measurement
         """
@@ -496,7 +496,7 @@ class DetectorBase(object):
             the position identifier e.g. "G"
 
         Returns
-        ---------------
+        -------
         3-dim array of absolute station position in easting, northing and depth wrt. to snow level at
         time of measurement
         """
@@ -527,7 +527,7 @@ class DetectorBase(object):
             specify if relative position of a channel or a device is asked for
 
         Returns
-        ---------------
+        -------
         3-dim array of relative station position
         """
         if mode == 'channel': res = self.__get_channel(station_id, channel_id)
@@ -755,7 +755,7 @@ class DetectorBase(object):
             the channel id
 
         Returns
-        ---------------
+        -------
         tuple of floats
             * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
             * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
