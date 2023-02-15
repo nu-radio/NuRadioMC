@@ -5,6 +5,7 @@ import plotly.graph_objs as go
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
 from NuRadioReco.detector.webinterface.utils.helper import build_success_page, single_S_data_validation, create_double_plot
 from NuRadioReco.detector.webinterface.utils.helper_cable import select_cable, validate_global_cable, insert_cable_to_db
+from NuRadioReco.detector.webinterface.utils.helper_protocol import load_measurement_protocols_from_db
 from NuRadioReco.utilities import units
 
 page_name = 'surface_cable'
@@ -28,7 +29,9 @@ def build_main_page(main_cont):
     input_units[0] = col11.selectbox('Units:', ['Hz', 'GHz', 'MHz'])
     input_units[1] = col22.selectbox('', ['dB','MAG'])
     input_units[2] = col33.selectbox('', ['deg', 'rad'])
-    protocol = main_cont.selectbox('Specify the measurement protocol:', ['Chicago2020', 'Erlangen2020'])
+    protocols_db = load_measurement_protocols_from_db()
+    protocol = main_cont.selectbox('Specify the measurement protocol: (description of the protocols can be found [here](https://radio.uchicago.edu/wiki/index.php/Measurement_protocols))', protocols_db,
+                                   help='Your measurement protocol is not listed? Please add it to the database [here](Add_measurement_protocol)')
 
     # upload the data
     uploaded_magnitude = main_cont.file_uploader('Select your magnitude measurement:', accept_multiple_files=False)
