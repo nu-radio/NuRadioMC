@@ -2038,24 +2038,10 @@ class Detector(object):
                                                 'measurement_time': measurement_time
                                             }}}, upsert=True)
 
-    def add_contact_information(self, contact_name, contact_email):
-        # insert the new contact information
-        self.db['contact_information'].insert_one({'name': contact_name,
-                                                   'email': contact_email})
-
-    def get_contact_information(self, contact_name=None, contact_email=None):
-        collection = 'contact_information'
-
-        contact_filter = [{"$match": {}}]
-        if contact_name is not None:
-            contact_filter[0]["$match"]['name'] = contact_name
-        if contact_email is not None:
-            contact_filter[0]["$match"]['email'] = contact_email
-
-        # get all contact information that fit the filter
-        contact_information = list(self.db[collection].aggregate(contact_filter))
-
-        return contact_information
+    def add_measurement_protocol(self, protocol_name):
+        # insert the new measurement protocol
+        self.db['measurement_protocol'].insert_one({'protocol': protocol_name,
+                                                   'inserted': datetime.datetime.utcnow()})
 
     # other
 
