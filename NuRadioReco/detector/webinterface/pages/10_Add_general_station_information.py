@@ -44,7 +44,7 @@ def insert_station_info(cont_station_warning, cont_station_info, selected_statio
         st.session_state.station_success = False
 
 
-def insert_channel_info(collection_name, warning_cont, info_cont, selected_station_id, selected_channel, signal_chain, ant_name, channel_type, channel_comment, commission_time, decommission_time, station_info):
+def insert_channel_info(collection_name, warning_cont, info_cont, selected_station_id, selected_channel, signal_chain, ant_type, ant_VEL, s11_measurement, channel_comment, commission_time, decommission_time, station_info):
     if st.session_state.insert_channel:
         if station_info != {}:
             channel_info = station_info[selected_station_id]['channels']
@@ -55,7 +55,7 @@ def insert_channel_info(collection_name, warning_cont, info_cont, selected_stati
                 yes_button = col_b1.button('YES')
                 no_button = col_b2.button('NO')
                 if yes_button:
-                    insert_general_channel_info_to_db(selected_station_id, collection_name, selected_channel, signal_chain, ant_name, channel_type, channel_comment, commission_time, decommission_time)
+                    insert_general_channel_info_to_db(selected_station_id, collection_name, selected_channel, signal_chain, ant_type, ant_VEL, s11_measurement, channel_comment, commission_time, decommission_time)
                     st.session_state.insert_channel = False
                     st.session_state.channel_success = True
                     st.experimental_rerun()
@@ -66,7 +66,7 @@ def insert_channel_info(collection_name, warning_cont, info_cont, selected_stati
                     st.experimental_rerun()
             else:
                 # information will be inserted into the database, without requiring any action
-                insert_general_channel_info_to_db(selected_station_id, collection_name, selected_channel, signal_chain, ant_name, channel_type, channel_comment, commission_time, decommission_time)
+                insert_general_channel_info_to_db(selected_station_id, collection_name, selected_channel, signal_chain, ant_type, ant_VEL, s11_measurement, channel_comment, commission_time, decommission_time)
                 st.session_state.insert_channel = False
                 st.session_state.channel_success = True
 
@@ -141,8 +141,7 @@ def build_main_page(main_cont):
     main_cont.subheader('Input channel information')
     cont_channel = main_cont.container()
 
-    selected_channel, selected_antenna_name, selected_antenna_type, comm_date_ant, decomm_date_ant, signal_chain_ant, cha_comment, function_channel = input_channel_information(cont_channel, selected_station_id,
-                                                                                                                                                                                collection_name, station_info)
+    selected_channel, selected_antenna_type, selected_antenna_VEL, selected_s11, comm_date_ant, decomm_date_ant, signal_chain_ant, cha_comment, function_channel = input_channel_information(cont_channel, selected_station_id, collection_name, station_info)
 
     # container for warnings/infos at the botton
     cont_warning_bottom = main_cont.container()
@@ -155,8 +154,7 @@ def build_main_page(main_cont):
 
     if insert_channel:
         st.session_state.insert_channel = True
-    insert_channel_info(collection_name, cont_channel_warning, cont_warning_bottom, selected_station_id, selected_channel, signal_chain_ant, selected_antenna_name, selected_antenna_type, cha_comment,
-                        comm_date_ant, decomm_date_ant, station_info)
+    insert_channel_info(collection_name, cont_channel_warning, cont_warning_bottom, selected_station_id, selected_channel, signal_chain_ant, selected_antenna_type, selected_antenna_VEL, selected_s11, cha_comment, comm_date_ant, decomm_date_ant, station_info)
 
     main_cont.subheader('Input device information')
     cont_device = main_cont.container()

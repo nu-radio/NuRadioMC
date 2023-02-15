@@ -296,27 +296,56 @@ def input_channel_information(cont, station_id, coll_name, station_info):
         selected_channel = int(selected_channel)
 
     # if the channel exist make the existing antenna name the default argument, else display the names as listed here
-    antenna_names = ['Phased Array Vpol', 'Power String Hpol', "Power String Vpol", "Helper String B Vpol", "Helper String B Hpol", 'rno_surface, Power String', 'rno_surface, Helper B', 'rno_surface, Helper C',
-                     'Helper String C Vpol', 'Helper String C Hpol']
+    antenna_types = ['VPol', 'HPol', 'LPDA']
     if channel_info != {}:
-        db_ant_name = channel_info['ant_name']
-        db_ant_name_index = np.where(np.asarray(antenna_names) == db_ant_name)[0][0]
+        db_ant_type = channel_info['ant_type']
+        db_ant_type_index = np.where(np.asarray(antenna_types) == db_ant_type)[0][0]
 
         # add the existing antenna name to the front of the list
-        antenna_names.pop(db_ant_name_index)
-        antenna_names.insert(0, db_ant_name)
-
-    selected_antenna_name = col33.selectbox('Select a antenna name:', antenna_names)
+        antenna_types.pop(db_ant_type_index)
+        antenna_types.insert(0, db_ant_type)
+    else:
+        # put the fitting channel on top
+        if selected_channel in [4,8,11,21]:
+            db_ant_type_index = np.where(np.asarray(antenna_types) == 'HPol')[0][0]
+            antenna_types.pop(db_ant_type_index)
+            antenna_types.insert(0, 'HPol')
+            default_VEL = 'RNOG_quadslot_v3_air_rescaled_to_n1.74'
+        elif selected_channel in np.arange(12,21,1):
+            db_ant_type_index = np.where(np.asarray(antenna_types) == 'LPDA')[0][0]
+            antenna_types.pop(db_ant_type_index)
+            antenna_types.insert(0, 'LPDA')
+            default_VEL = 'createLPDA_100MHz_InfFirn_n1.4'
+        else:
+            # VPol is already at the top
+            default_VEL = 'RNOG_vpol_4inch_center_1.73'
+    col_ant1, col_ant2, col_ant3 = cont.columns([1,1,1])
+    selected_antenna_type = col_ant1.selectbox('Select a antenna type:', antenna_types)
 
     # select the antenna type; if the channel exists, the antenna type of the db will be used as default otherwise the antenna types as shown in the list will be given
-    diff_antenna_types = ["RNOG_vpol_4inch_center_1.73", "RNOG_quadslot_v3_air_rescaled_to_n1.74", "createLPDA_100MHz_InfFirn_n1.4"]
+    diff_antenna_VEL = ["RNOG_vpol_4inch_center_1.73", "RNOG_quadslot_v3_air_rescaled_to_n1.74", "createLPDA_100MHz_InfFirn_n1.4"]
     if channel_info != {}:
-        db_ant_type = channel_info['type']
-        db_type_index = np.where(np.asarray(diff_antenna_types) == db_ant_type)[0][0]
-        # isert the antenna type as the defalut
-        diff_antenna_types.pop(db_type_index)
-        diff_antenna_types.insert(0, db_ant_type)
-    selected_antenna_type = cont.selectbox('Select antenna type:', diff_antenna_types)
+        db_ant_VEL = channel_info['ant_VEL']
+        db_VEL_index = np.where(np.asarray(diff_antenna_VEL) == db_ant_VEL)[0][0]
+        # insert the antenna type as the default
+        diff_antenna_VEL.pop(db_VEL_index)
+        diff_antenna_VEL.insert(0, db_ant_VEL)
+    else:
+        # shuffel default VEL to the top
+        db_VEL_index = np.where(np.asarray(diff_antenna_VEL) == default_VEL)[0][0]
+        # insert the antenna type as the default
+        diff_antenna_VEL.pop(db_VEL_index)
+        diff_antenna_VEL.insert(0, default_VEL)
+    selected_antenna_VEL = col_ant2.selectbox('Select antenna VEL:', diff_antenna_VEL)
+
+    # load the S11 measurements from the database:
+    disable_s11 = False
+    if selected_antenna_VEL == 'LPDA':
+        s11_measurements = ['no measurements available']
+        disable_s11 = True
+    else:
+        s11_measurements = det.get_quantity_names(selected_antenna_type.lower(), 'name')
+    selected_s11_measurement = col_ant3.selectbox('Select an S11 measurement:', s11_measurements, disabled=disable_s11)
 
     # input the (de)commisschon time of the channel (can be used to set a channel to be broken); if the channel exist the dates from the db will be used as a default
     coltime1, coltime2 = cont.columns([1, 1])
@@ -339,6 +368,7 @@ def input_channel_information(cont, station_id, coll_name, station_info):
     # input the signal chain; if the channel already exists the entries from the db will be used as the default
     cont.markdown('Signal chain:')
 
+    #TODO
     # get the signal chain from the db
     # if channel_info != {}:
     #     db_signal_chain = channel_info['signal_ch']
@@ -358,56 +388,41 @@ def input_channel_information(cont, station_id, coll_name, station_info):
         initial_comment = ''
     comment = cont.text_area('Comment about the channel performance:', value=initial_comment, label_visibility='collapsed')
 
-    return selected_channel, selected_antenna_name, selected_antenna_type, comm_date_ant, decomm_date_ant, signal_chain, comment, function_channel
+    return selected_channel, selected_antenna_type, selected_antenna_VEL, selected_s11_measurement, comm_date_ant, decomm_date_ant, signal_chain, comment, function_channel
 
 
 def input_device_information(cont, station_id, station_info):
     # load all devices which are already in the database
-    print(station_info)
     if station_info != {}:
-        devices_db = list(station_info[station_id]['devices'].keys())
+        devices_db = []
+        for device_id_db in station_info[station_id]['devices'].keys():
+            devices_db.append(station_info[station_id]['devices'][device_id_db]['device_name'])
     else:
         devices_db = []
-    cont.info(f'Number of devices stored in the database: {len(devices_db)}')
+    cont.info(f'Devices stored in the database: {devices_db}')
 
     cont.markdown('General information:')
-    col_d1, col_d2, col_d3 = cont.columns([0.5, 0.5, 1])
-
-    devices_help = devices_db
-    devices_help.insert(0, 'new device id')
-    device_id = col_d1.selectbox('Select a device id or enter a new device id:', devices_help, help='The channel number must be an integer between 0 and 23.')
-    disabled_id_input = True
-    if device_id == 'new device id':
-        disabled_id_input = False
-    new_device_id = col_d2.text_input('', disabled=disabled_id_input, placeholder='device id')
-    if device_id == 'new device id':
-        selected_device_id = new_device_id
-    else:
-        selected_device_id = device_id
-
-    # if the device already exist in the database, the device info will be loaded
-    if device_id == 'new device id':
-        device_info = {}
-    else:
-        device_info = station_info[station_id]['devices'][selected_device_id]
-
-    # tranform the device id from a string into an int
-    if selected_device_id != '':
-        selected_device_id = int(selected_device_id)
+    col_d1, col_d2 = cont.columns([1, 1])
 
     # if the device exist make the existing device name the default argument, else display the names as listed here
-    device_names = ['Helper String B CAL Vpol', 'Helper String C CAL Vpol', 'Surface CAL Vpol', 'Solar panel 1', 'Solar panel 1', 'wind-turbine', 'daq box']
-    if device_info != {}:
-        db_device_name = device_info['device_name']
-        db_device_name_index = np.where(np.asarray(device_names) == db_device_name)[0][0]
+    device_names = ['Helper string B pulser','Helper string C pulser','Surface pulser', 'Solar panel 1', 'Solar panel 2', 'wind-turbine', 'daq box']
+    corresponding_device_ids = [1, 0, 2, 101, 102, 103, 100]
+    selected_device_name = col_d1.selectbox('Select a device name:', device_names)
+    selected_corresponding_device_id = corresponding_device_ids[np.where(np.asarray(device_names) == selected_device_name)[0][0]]
 
-        # add the existing antenna name to the front of the list
-        device_names.pop(db_device_name_index)
-        device_names.insert(0, db_device_name)
+    # col_d2.markdown(f'<p style="color:#FFFFFF">device id: {selected_corresponding_device_id}</p>', unsafe_allow_html=True)
+    col_d2.markdown("#")
+    col_d2.markdown(f'device id: {selected_corresponding_device_id}')
 
-    selected_device_name = col_d3.selectbox('Select a device name:', device_names)
-
-    # input the (de)commisschon time of the device; if the device exist the dates from the db will be used as a default
+    # if the device already exist in the database, the device info will be loaded
+    if station_info != {}:
+        if selected_corresponding_device_id in station_info[station_id]['devices'].keys():
+            device_info = station_info[station_id]['devices'][selected_corresponding_device_id]
+        else:
+            device_info = {}
+    else:
+        device_info = {}
+    # input the (de)commission time of the device; if the device exist the dates from the db will be used as a default
     col_d_time1, col_d_time2 = cont.columns([1, 1])
     if device_info != {}:
         dev_comm_starting_date = device_info['commission_time']
@@ -441,7 +456,7 @@ def input_device_information(cont, station_id, station_info):
         initial_comment = ''
     comment = cont.text_area('Comment about the device performance:', value=initial_comment, label_visibility='collapsed')
 
-    return selected_device_id, selected_device_name, dev_comm_date, dev_decomm_date, comment, function_device, selected_amp
+    return selected_corresponding_device_id, selected_device_name, dev_comm_date, dev_decomm_date, comment, function_device, selected_amp
 
 
 def validate_station_inputs(container_bottom, comm_date_station, decomm_date_station):
@@ -538,7 +553,7 @@ def insert_general_station_info_to_db(station_id, collection_name, station_name,
     det.add_general_station_info(collection_name, station_id, station_name, station_comment, station_comm_time, station_decomm_time)
 
 
-def insert_general_channel_info_to_db(station_id, collection_name, channel_id, signal_chain, ant_name, channel_type, channel_comment, commission_time, decommission_time):
+def insert_general_channel_info_to_db(station_id, collection_name, channel_id, signal_chain, ant_type, ant_VEL, s11_measurement, channel_comment, commission_time, decommission_time):
     # convert the signal chain to the correct format
     # converted_signal_chain = []
     # # for i in range(int(len(signal_chain)/2)):
@@ -550,7 +565,7 @@ def insert_general_channel_info_to_db(station_id, collection_name, channel_id, s
     #
     # # the check if the channel already exists happens in add_channel_to_station
     # det.add_general_channel_info_to_station(collection_name, station_id, channel_id, converted_signal_chain, ant_name, channel_type, channel_comment, commission_time, decommission_time)
-    det.add_general_channel_info_to_station(collection_name, station_id, channel_id, signal_chain, ant_name, channel_type, channel_comment, commission_time, decommission_time)
+    det.add_general_channel_info_to_station(collection_name, station_id, channel_id, signal_chain, ant_type, ant_VEL, s11_measurement, channel_comment, commission_time, decommission_time)
 
 
 def insert_general_device_info_to_db(station_id, collection_name, device_id, device_name, amp_name, device_comment, commission_time, decommission_time):

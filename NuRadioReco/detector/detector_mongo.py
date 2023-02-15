@@ -1115,7 +1115,7 @@ class Detector(object):
                 self.db[collection].update_one({'_id': object_id}, {'$set': {'channels.$[updateIndex].decommission_time': decomm_time}},
                                                array_filters=[{"updateIndex.id": channel_id}])
 
-    def add_general_channel_info_to_station(self, collection, station_id, channel_id, signal_chain, ant_name, channel_type, channel_comment, commission_time, decommission_time=datetime.datetime(2080, 1, 1)):
+    def add_general_channel_info_to_station(self, collection, station_id, channel_id, signal_chain, ant_type, ant_VEL, s11_measurement, channel_comment, commission_time, decommission_time=datetime.datetime(2080, 1, 1)):
         # get the current active station
         # filter to get all active stations with the correct id
         time = self.__current_time
@@ -1147,8 +1147,9 @@ class Detector(object):
         self.db[collection].update_one({'_id': unique_station_id},
                                {"$push": {'channels': {
                                    'id': channel_id,
-                                   'ant_name': ant_name,
-                                   'type': channel_type,
+                                   'ant_type': ant_type,
+                                   'ant_VEL': ant_VEL,
+                                   'ant_S11': s11_measurement,
                                    'commission_time': commission_time,
                                    'decommission_time': decommission_time,
                                    'signal_ch': signal_chain,
