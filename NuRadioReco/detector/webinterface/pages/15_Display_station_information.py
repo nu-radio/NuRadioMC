@@ -125,23 +125,25 @@ def build_main_page(cont):
     def get_general_channel_info_table():
         if cha_dic != {}:
             # transform the channel data in a dataframe
-            antenna_name = []
             antenna_type = []
+            antenna_VEL = []
+            antenna_S11 = []
             commission_time = []
             decommission_time = []
             comments = []
             channel_ids = []
             for cha in cha_dic.keys():
                 channel_ids.append(cha)
-                antenna_name.append(cha_dic[cha]['ant_name'])
-                antenna_type.append(cha_dic[cha]['type'])
+                antenna_type.append(cha_dic[cha]['ant_type'])
+                antenna_VEL.append(cha_dic[cha]['ant_VEL'])
+                antenna_S11.append(cha_dic[cha]['ant_S11'])
                 commission_time.append(cha_dic[cha]['commission_time'].date())
                 decommission_time.append(cha_dic[cha]['decommission_time'].date())
                 if 'channel_comment' in cha_dic[cha].keys():
                     comments.append(cha_dic[cha]['channel_comment'])
                 else:
                     comments.append('')
-            df = pd.DataFrame({'id': channel_ids, 'antenna name': antenna_name, 'antenna type': antenna_type, 'commission': commission_time, 'decommission': decommission_time, 'comment': comments})
+            df = pd.DataFrame({'id': channel_ids, 'antenna type': antenna_type, 'antenna VEL': antenna_VEL, 'antenna S11': antenna_S11, 'commission': commission_time, 'decommission': decommission_time, 'comment': comments})
         else:
             df = pd.DataFrame({'A': []})
 
