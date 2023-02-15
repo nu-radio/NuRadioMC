@@ -200,7 +200,7 @@ class Detector(object):
             the position identifier (e.g. "A" or "X")
 
         Returns
-        ------------
+        -------
             * easting (float)
             * northing (float)
             * UTM zone (string)

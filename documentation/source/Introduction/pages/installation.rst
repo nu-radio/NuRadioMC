@@ -23,7 +23,7 @@ The pip installation will also install all core dependencies.
   Some optional dependencies cannot be installed using pip and 
   :ref:`have to be installed manually <Introduction/pages/installation:Not pip-installable packages>`.
 
-.. Important:: If you want the current version or you want to contribute to NuRadioReco, you need to install it manually.
+.. Note:: If you want the current version or you want to contribute to NuRadioReco, you need to install it manually.
 
 Development version
 ---------------------------
@@ -189,7 +189,14 @@ These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's 
 
   .. code-block:: bash
 
-    pip install proposal==6.1.6
+    pip install proposal==7.5.0
+
+  Note that the pip installation for this version of proposal may not work on all systems, in particular:
+
+  - conda cannot be used on all systems (eg. on Mac), in that case use a python venv, see details `here <https://github.com/tudo-astroparticlephysics/PROPOSAL/issues/209>`_
+
+  - if the linux kernel is too old (eg. on some computing clusters), refer to `this step-by-step guide <https://github.com/tudo-astroparticlephysics/PROPOSAL/wiki/Installing-PROPOSAL-on-a-Linux-kernel---4.11>`_
+  
 
 - To use the channelGalacticNoiseAdder, you need the `PyGDSM <https://github.com/telegraphic/pygdsm>`_ package.
 
@@ -200,8 +207,6 @@ These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's 
 Not pip-installable packages
 ____________________________
 
-- To read ARIANNA files, `Snowshovel <https://arianna.ps.uci.edu/mediawiki/index.php/Local_DAQ_Instructions>`_ needs to be installed.
-- To read ARA files, `ARA ROOT <http://www.hep.ucl.ac.uk/uhen/ara/araroot/branches/3.13/index.shtml>`_ needs to be installed.
 - To speed up the :mod:`analytic ray tracing module <NuRadioMC.SignalProp.analyticraytracing>`, `GSL <https://www.gnu.org/software/gsl/>`_ needs 
   to be installed, and ``$GSL_DIR`` should point at the correct installation folder. On Linux, GSL can be installed using 
 
@@ -209,7 +214,10 @@ ____________________________
 
     sudo apt-get install libgsl-dev
 
-  With GSL installed, compile the CPP ray tracer by navigating to `NuRadioMC/NuRadioMC/SignalProp`
-  and running the included `install.sh` script.
+  (On MacOS, use ``brew install gsl`` instead - you may have to install `homebrew <https://brew.sh/>`_ first).
+  With GSL installed, compile the CPP ray tracer by navigating to ``NuRadioMC/NuRadioMC/SignalProp``
+  and running the included ``install.sh`` script.
 - To use the :mod:`RadioPropa numerical ray tracing <NuRadioMC.SignalProp.radioproparaytracing>` module, ``radiopropa`` needs to be installed.
   The radiopropa github, with installation instructions, can be found `here <https://github.com/nu-radio/RadioPropa>`_.
+- To read ARIANNA files, `Snowshovel <https://arianna.ps.uci.edu/mediawiki/index.php/Local_DAQ_Instructions>`_ needs to be installed.
+- To read ARA files, `ARA ROOT <http://www.hep.ucl.ac.uk/uhen/ara/araroot/branches/3.13/index.shtml>`_ needs to be installed.

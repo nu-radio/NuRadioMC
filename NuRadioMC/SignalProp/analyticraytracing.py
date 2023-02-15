@@ -141,7 +141,7 @@ class ray_tracing_2D(ray_tracing_base):
             related to C_0 parameter via c = self.medium.n_ice ** 2 - C_0 ** -2
 
         Returns
-        ----------
+        -------
         typle (gamma, z coordinate of turning point)
         """
         gamma2 = self.__b * 0.5 - (0.25 * self.__b ** 2 - c) ** 0.5  # first solution discarded
@@ -636,7 +636,7 @@ class ray_tracing_2D(ray_tracing_base):
             * 2: rays start downwards
 
         Returns
-        --------
+        -------
         (original x1, x1 of path segment, original x2, x2 of path segment, C_0, C_1 of path segment)
         """
         x1 = copy.copy(x1)
@@ -2022,7 +2022,7 @@ class ray_tracing(ray_tracing_base):
             Index of the raytracing solution the propagation effects should be based on
 
         Returns
-        -------------
+        -------
         efield: ElectricField object
             The modified ElectricField object
         """

@@ -161,7 +161,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         calculate distance to center of Earth as a function of travel distance
         
         Parameters
-        -----------
+        ----------
         t: 3dim array
             travel distance
         v: 3dim array
@@ -176,7 +176,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         calculates density as a function of travel distance
         
         Parameters
-        -----------
+        ----------
         t: 3dim array
             travel distance
         v: 3dim array
@@ -191,7 +191,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         calculates slant depth (grammage) as a function of travel distance
         
         Parameters
-        -----------
+        ----------
         t: 3dim array
             travel distance
         v: 3dim array
@@ -207,7 +207,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         calculates slant depth (grammage) as a function of travel distance
         
         Parameters
-        -----------
+        ----------
         t: 3dim array
             travel distance
         v: 3dim array
@@ -234,7 +234,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         determines if point lies within a cylinder
         
         Parameters
-        -----------
+        ----------
         pt1: 3dim array
             lowest point on cylinder axis
         pt2: 3dim array

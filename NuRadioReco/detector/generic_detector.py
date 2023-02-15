@@ -306,7 +306,7 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
         If a station with the same ID already exists, this function does nothing.
 
         Parameters
-        --------------
+        ----------
         station_dict: dictionary
             dictionary containing the station properties. Needs to at least include
             a station_id, any other missing parameters will be taken from the
@@ -354,7 +354,7 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
         description.
 
         Parameters
-        ------------------
+        ----------
         properties: dictionary
             Dictionary of the properties that should be changed, with keys being
             any of the property names in the detector description and values the
@@ -379,7 +379,7 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
         detector description for a given station and event
 
         Parameters
-        ----------------------
+        ----------
         run_number: integer
             Run number of the event for which the changes should be returned
         event_id: integer
@@ -404,7 +404,7 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
         will be ignored
 
         Parameters
-        ------------------
+        ----------
         run_number: integer
             Run number of the event the detector should be set to
         event_id: integer
@@ -479,7 +479,7 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
         from the default station. Event-specific changes are also ignored.
 
         Parameters
-        --------------------------
+        ----------
         station_id: integer
             ID of the requested station
         """
@@ -500,7 +500,7 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
         from the default channel.
 
         Parameters
-        --------------------------
+        ----------
         station_id: integer
             ID of the requested channel's station
         channel_id: integer
