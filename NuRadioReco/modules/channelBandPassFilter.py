@@ -47,7 +47,7 @@ class channelBandPassFilter:
         Run the filter
 
         Parameters
-        ---------
+        ----------
 
         evt, station, det
             Event, Station, Detector
@@ -104,7 +104,7 @@ class channelBandPassFilter:
         `get_filter` functions of other modules, e.g. the hardwareResponseIncorporator.
 
         Parameters
-        -----------
+        ----------
         frequencies: array of floats
             the frequency array for which the filter should be returned
         station_id: int
@@ -137,7 +137,7 @@ class channelBandPassFilter:
 
 
         Returns
-        -----------------
+        -------
          array of complex floats
             the complex filter amplitudes
         """

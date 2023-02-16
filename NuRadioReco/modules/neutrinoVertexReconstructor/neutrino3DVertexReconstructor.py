@@ -18,7 +18,7 @@ class neutrino3DVertexReconstructor:
         Constructor for the vertex reconstructor
 
         Parameters
-        --------------
+        ----------
         lookup_table_location: string
             path to the folder in which the lookup tables for the signal travel
             times are stored
@@ -84,7 +84,7 @@ class neutrino3DVertexReconstructor:
         General settings for vertex reconstruction
 
         Parameters
-        -------------
+        ----------
         station_id: integer
             ID of the station to be used for the reconstruction
         channel_ids: array of integers
@@ -408,8 +408,8 @@ class neutrino3DVertexReconstructor:
         from the station center and then calling
         self.get_correlation_for_pos, which does the actual work.
 
-        Parameters:
-        --------------
+        Parameters
+        ----------
         x, z: array
             Coordinates of the points for which calculations are
             to be calculated. Correspond to the (r, z) pair
@@ -438,8 +438,8 @@ class neutrino3DVertexReconstructor:
         Returns the correlations corresponding to the different
         signal travel times between channels for the given positions.
 
-        Parameters:
-        --------------
+        Parameters
+        ----------
         d_hor, z: array
             Coordinates of the points for which calculations are
             to be calculated. Correspond to the (r, z) pair
@@ -462,8 +462,8 @@ class neutrino3DVertexReconstructor:
         Calculate the signal travel time between a position and the
         channel
 
-        Parameters:
-        ------------
+        Parameters
+        ----------
         d_hor, z: numbers or arrays of numbers
             Coordinates of the point from which to calculate the
             signal travel times. Correspond to (r, z) coordinates

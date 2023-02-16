@@ -13,6 +13,8 @@ except ImportError:
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
+from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 
 import logging
 logging.basicConfig()
@@ -33,19 +35,16 @@ except:
                                  "install.sh"))
         from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
         cpp_available = True
-        print("compilation was sucessful, using CPP version of ray tracer")
+        print("compilation was successful, using CPP version of ray tracer")
     except:
-        print("compilation was not sucessful, using python version of ray tracer")
+        print("compilation was not successful, using python version of ray tracer")
+        print("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
         cpp_available = False
 
 """
 analytic ray tracing solution
 """
 speed_of_light = scipy.constants.c * units.m / units.s
-
-solution_types = {1: 'direct',
-                  2: 'refracted',
-                  3: 'reflected'}
 
 
 @lru_cache(maxsize=32)
@@ -68,7 +67,7 @@ def get_z_deep(ice_params):
     return res
 
 
-class ray_tracing_2D():
+class ray_tracing_2D(ray_tracing_base):
 
     def __init__(self, medium, attenuation_model="SP1",
                  log_level=logging.WARNING,
@@ -142,7 +141,7 @@ class ray_tracing_2D():
             related to C_0 parameter via c = self.medium.n_ice ** 2 - C_0 ** -2
 
         Returns
-        ----------
+        -------
         typle (gamma, z coordinate of turning point)
         """
         gamma2 = self.__b * 0.5 - (0.25 * self.__b ** 2 - c) ** 0.5  # first solution discarded
@@ -192,7 +191,7 @@ class ray_tracing_2D():
         analytic form of the ray tracing part given an exponential index of refraction profile
 
         Parameters
-        -------
+        ----------
         gamma: (float or array)
             gamma is a function of the depth z
         C_0: (float)
@@ -238,7 +237,7 @@ class ray_tracing_2D():
         so that this function is defined for all z
 
         Parameters
-        -------
+        ----------
         z: (float or array)
             depth z
         C_0: (float)
@@ -632,11 +631,12 @@ class ray_tracing_2D():
             the number of bottom reflections to consider
         reflection_case: int (default 1)
             only relevant if `reflection` is larger than 0
+
             * 1: rays start upwards
             * 2: rays start downwards
 
         Returns
-        --------
+        -------
         (original x1, x1 of path segment, original x2, x2 of path segment, C_0, C_1 of path segment)
         """
         x1 = copy.copy(x1)
@@ -691,8 +691,10 @@ class ray_tracing_2D():
             the number of bottom reflections to consider
         reflection_case: int (default 1)
             only relevant if `reflection` is larger than 0
+
             * 1: rays start upwards
             * 2: rays start downwards
+
         """
         last_segment = self.get_path_segments(x_start, x, C_0, reflection, reflection_case)[-1]
         x_start = last_segment[1]
@@ -754,7 +756,7 @@ class ray_tracing_2D():
         the result is only valid if C_0 is a solution to the ray tracing problem
 
         Parameters
-        -------
+        ----------
         x1: array
             start position (y, z)
         x2: array
@@ -811,6 +813,7 @@ class ray_tracing_2D():
             the number of bottom reflections to consider
         reflection_case: int (default 1)
             only relevant if `reflection` is larger than 0
+
             * 1: rays start upwards
             * 2: rays start downwards
 
@@ -984,21 +987,23 @@ class ray_tracing_2D():
         Returns
         -------
         solution_type: int
+
             * 1: 'direct'
             * 2: 'refracted'
             * 3: 'reflected
+
         """
         c = self.medium.n_ice ** 2 - C_0 ** -2
         C_1 = x1[0] - self.get_y_with_z_mirror(x1[1], C_0)
         gamma_turn, z_turn = self.get_turning_point(c)
         y_turn = self.get_y(gamma_turn, C_0, C_1)
         if(x2[0] < y_turn):
-            return 1
+            return solution_types_revert['direct']
         else:
             if(z_turn == 0):
-                return 3
+                return solution_types_revert['reflected']
             else:
-                return 2
+                return solution_types_revert['refracted']
 
     def find_solutions(self, x1, x2, plot=False, reflection=0, reflection_case=1):
         """
@@ -1008,7 +1013,7 @@ class ray_tracing_2D():
         because this requirement can be achieved with a simple coordinate transformation
 
         Parameters
-        -----------
+        ----------
         x1: tuple
             (y,z) coordinate of start point
         x2: tuple
@@ -1128,7 +1133,7 @@ class ray_tracing_2D():
                 import matplotlib.pyplot as plt
                 plt.show()
 
-            return sorted(results, key=itemgetter('type'))
+            return sorted(results, key=itemgetter('reflection', 'C0'))
 
     def plot_result(self, x1, x2, C_0, ax):
         """
@@ -1245,9 +1250,12 @@ class ray_tracing_2D():
         emitted to "skim the surface", i.e. arrive horizontally (angle = 90 deg) at the surface;
         This is used to find the refraction zone.
 
-        returns:
-            C0crit: C0 of critical angle
-            thcrit: critical angle
+        Returns
+        -------
+        C0crit: float
+            C0 of critical angle
+        thcrit: float
+            critical angle
         '''
 
         nlaunch = self.n(x1[1])
@@ -1372,17 +1380,22 @@ class ray_tracing_2D():
         firn just at the point to reach the receiver at x2, entering the firn at the surface at the same
         angle it reached the surface from x1..
 
-        Input:
-            x1, x2: Arrays with x and z positions of emitter x1 and receiver x2
-            infirn: Boolean. Set to True if surface ray travels in the firn, set to False (default) if it travels
-                    in air.
-            angle:  String specifying angle at which ray reaches/leaves the surface. Can be 'Brewster' or 'critical'
-                    If neither of these is chosen, a warning is printed and angle is set to 'critical'
-            chdraw: If None, do not draw the path of the ray. If the ray should be drawn, a string consistent with
-                    the matplotlib.pyplot library has to be specified, e.g. 'r:' to draw a dotted red line.
-                    It is assumed that an appropriate figure on which to draw the ray has been created and set as
-                    current figure by the user before calling this method.
-            label:  Label for plot
+        Parameters
+        ----------
+        x1, x2: arrays
+            Arrays with x and z positions of emitter x1 and receiver x2
+        infirn: Boolean.
+            Set to True if surface ray travels in the firn, set to False (default) if it travels
+            in air.
+        angle:  String
+            specifying angle at which ray reaches/leaves the surface. Can be 'Brewster' or 'critical'
+            If neither of these is chosen, a warning is printed and angle is set to 'critical'
+        chdraw: string or None
+            If None, do not draw the path of the ray. If the ray should be drawn, a string consistent with
+            the matplotlib.pyplot library has to be specified, e.g. 'r:' to draw a dotted red line.
+            It is assumed that an appropriate figure on which to draw the ray has been created and set as
+            current figure by the user before calling this method.
+        label:  Label for plot
         '''
 
         draw = False
@@ -1473,10 +1486,12 @@ class ray_tracing_2D():
         depth z_refl, for which the emisssion angles to pulser_pos and receiver_pos are the same (i.e. the output
         of angular_diff is zero). The x-position would be output "result" ofoptimize.root() above.
 
-        output:
-               float, is zero if the angles (w.r.t. the vertical) of rays emitted from [x_refl,z_refl] to
-               positions pulser_pos and receiver_pos are the same or greater than zero, if this is not the case.
-               For exact defintion, see "result" in code below
+        Returns
+        -------
+        result: float
+            Is zero if the angles (w.r.t. the vertical) of rays emitted from [x_refl,z_refl] to
+            positions pulser_pos and receiver_pos are the same or greater than zero, if this is not the case.
+            For exact defintion, see "result" in code below
         '''
 
         # treat position of reflection as emitter and Rx/Tx as receivers
@@ -1505,18 +1520,15 @@ class ray_tracing_2D():
         return result
 
 
-class ray_tracing:
+class ray_tracing(ray_tracing_base):
     """
     utility class (wrapper around the 2D analytic ray tracing code) to get
     ray tracing solutions in 3D for two arbitrary points x1 and x2
     """
-    solution_types = {1: 'direct',
-                      2: 'refracted',
-                      3: 'reflected'}
 
     def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
-                 n_frequencies_integration=100,
-                 n_reflections=0, config=None, detector=None):
+                 n_frequencies_integration=100, n_reflections=0, config=None,
+                 detector=None):
         """
         class initilization
 
@@ -1526,52 +1538,58 @@ class ray_tracing:
             class describing the index-of-refraction profile
         attenuation_model: string
             signal attenuation model
+        log_name:  string
+            name under which things should be logged
         log_level: logging object
             specify the log level of the ray tracing class
+
             * logging.ERROR
             * logging.WARNING
             * logging.INFO
             * logging.DEBUG
+
             default is WARNING
         n_frequencies_integration: int
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
-
         n_reflections: int (default 0)
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
+        config: dict
+            a dictionary with the optional config settings. If None, the config is intialized with default values,
+            which is needed to avoid any "key not available" errors. The default settings are
 
+                * self._config = {'propagation': {}}
+                * self._config['propagation']['attenuate_ice'] = True
+                * self._config['propagation']['focusing_limit'] = 2
+                * self._config['propagation']['focusing'] = False
+
+        detector: detector object
         """
-        # make sure that arrays are floats
-        self.__logger = logging.getLogger('ray_tracing')
+        self.__logger = logging.getLogger('ray_tracing_analytic')
         self.__logger.setLevel(log_level)
-        self.__medium = medium
-        self.__attenuation_model = attenuation_model
-        self.__n_frequencies_integration = n_frequencies_integration
-        if(n_reflections):
-            if(not hasattr(self.__medium, "reflection") or self.__medium.reflection is None):
-                self.__logger.warning("ray paths with bottom reflections requested medium does not have any reflective layer, setting number of reflections to zero.")
-                n_reflections = 0
-        self.__n_reflections = n_reflections
-        self.__r2d = ray_tracing_2D(self.__medium, self.__attenuation_model, log_level=log_level,
-                                    n_frequencies_integration=self.__n_frequencies_integration)
-        self.__config = config
-        self.__detector = detector
-        self.__max_detector_frequency = None
-        if self.__detector is not None:
-            for station_id in self.__detector.get_station_ids():
-                sampling_frequency = self.__detector.get_sampling_frequency(station_id, 0)
-                if self.__max_detector_frequency is None or sampling_frequency * .5 > self.__max_detector_frequency:
-                    self.__max_detector_frequency = sampling_frequency * .5
-        self.__X1 = None
-        self.__X2 = None
-        self.__swap = None
-        self.__dPhi = None
-        self.__R = None
-        self.__x1 = None
-        self.__x2 = None
-        self.__shower_axis = None
-        self.__results = None
+
+        from NuRadioMC.utilities.medium_base import IceModelSimple
+        if not isinstance(medium,IceModelSimple):
+            self.__logger.error("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
+            raise TypeError("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
+
+        super().__init__(medium=medium,
+                         attenuation_model=attenuation_model,
+                         log_level=log_level,
+                         n_frequencies_integration=n_frequencies_integration,
+                         n_reflections=n_reflections,
+                         config=config,
+                         detector=detector)
+        self.set_config(config=config)
+        self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
+                                    n_frequencies_integration=self._n_frequencies_integration)
+
+        self._swap = None
+        self._dPhi = None
+        self._R = None
+        self._x1 = None
+        self._x2 = None
 
     def reset_solutions(self):
         """
@@ -1579,88 +1597,53 @@ class ray_tracing:
         points in order to not accidentally use results from previous raytracings.
 
         """
-        self.__X1 = None
-        self.__X2 = None
-        self.__swap = None
-        self.__dPhi = None
-        self.__R = None
-        self.__x1 = None
-        self.__x2 = None
-        self.__results = None
+        super().reset_solutions()
+        self._x1 = None
+        self._x2 = None
+        self._swap = None
+        self._dPhi = None
+        self._R = None
 
     def set_start_and_end_point(self, x1, x2):
         """
         Set the start and end points of the raytracing
 
-        Parameters:
-        ----------------------
+        Parameters
+        ----------
         x1: 3dim np.array
             start point of the ray
         x2: 3dim np.array
             stop point of the ray
         """
 
-        self.reset_solutions()
-        x1 = np.array(x1, dtype=np.float)
-        x2 = np.array(x2, dtype=np.float)
-        self.__swap = False
-        self.__X1 = x1
-        self.__X2 = x2
-        if(x2[2] < x1[2]):
-            self.__swap = True
+        super().set_start_and_end_point(x1, x2)
+
+        self._swap = False
+        if(self._X2[2] < self._X1[2]):
+            self._swap = True
             self.__logger.debug('swap = True')
-            self.__X2 = x1
-            self.__X1 = x2
-        if (self.__n_reflections):
-            if (x1[2] < self.__medium.reflection or x2[2] < self.__medium.reflection):
-                self.__logger.error("start or stop point is below the reflective layer at {:.1f}m".format(
-                    self.__medium.reflection / units.m))
-                raise AttributeError("start or stop point is below the reflective layer at {:.1f}m".format(
-                    self.__medium.reflection / units.m))
-        dX = self.__X2 - self.__X1
-        self.__dPhi = -np.arctan2(dX[1], dX[0])
-        c, s = np.cos(self.__dPhi), np.sin(self.__dPhi)
-        self.__R = np.array(((c, -s, 0), (s, c, 0), (0, 0, 1)))
-        X1r = self.__X1
-        X2r = np.dot(self.__R, self.__X2 - self.__X1) + self.__X1
-        self.__logger.debug("X1 = {}, X2 = {}".format(self.__X1, self.__X2))
-        self.__logger.debug('dphi = {:.1f}'.format(self.__dPhi / units.deg))
-        self.__logger.debug("X2 - X1 = {}, X1r = {}, X2r = {}".format(self.__X2 - self.__X1, X1r, X2r))
-        self.__x1 = np.array([X1r[0], X1r[2]])
-        self.__x2 = np.array([X2r[0], X2r[2]])
-        self.__logger.debug("2D points {} {}".format(self.__x1, self.__x2))
+            self._X2 = np.array(x1, dtype =np.float)
+            self._X1 = np.array(x2, dtype =np.float)
 
-    def use_optional_function(self, function_name, *args, **kwargs):
-        """
-        Use optional function which may be different for each ray tracer. 
-        If the name of the function is not present for the ray tracer this function does nothing.
+        dX = self._X2 - self._X1
+        self._dPhi = -np.arctan2(dX[1], dX[0])
+        c, s = np.cos(self._dPhi), np.sin(self._dPhi)
+        self._R = np.array(((c, -s, 0), (s, c, 0), (0, 0, 1)))
+        X1r = self._X1
+        X2r = np.dot(self._R, self._X2 - self._X1) + self._X1
+        self.__logger.debug("X1 = {}, X2 = {}".format(self._X1, self._X2))
+        self.__logger.debug('dphi = {:.1f}'.format(self._dPhi / units.deg))
+        self.__logger.debug("X2 - X1 = {}, X1r = {}, X2r = {}".format(self._X2 - self._X1, X1r, X2r))
+        self._x1 = np.array([X1r[0], X1r[2]])
+        self._x2 = np.array([X2r[0], X2r[2]])
+        self.__logger.debug("2D points {} {}".format(self._x1, self._x2))
 
-        Parameters
-        ----------
-        function_name: string
-                       name of the function to use
-        *args: type of the argument required by function
-               all the neseccary arguments for the function separated by a comma
-        **kwargs: type of keyword argument of function
-                  all all the neseccary keyword arguments for the function in the
-                  form of key=argument and separated by a comma
-
-        Example
-        -------
-        use_optional_function('set_shower_axis',np.array([0,0,1]))
-        use_optional_function('set_iterative_sphere_sizes',sphere_sizes=np.aray([3,1,.5]))
-        """
-        if not hasattr(self,function_name):
-            pass
-        else:
-            getattr(self,function_name)(*args,**kwargs)
-        
     def set_solution(self, raytracing_results):
         """
         Read an already calculated raytracing solution from the input array
 
-        Parameters:
-        -------------
+        Parameters
+        ----------
         raytracing_results: dict
             The dictionary containing the raytracing solution.
         """
@@ -1668,7 +1651,7 @@ class ray_tracing:
         C0s = raytracing_results['ray_tracing_C0']
         for i in range(len(C0s)):
             if(not np.isnan(C0s[i])):
-                if 'ray_tracing_reflection' in raytracing_results.keys():   # for backward compatibility: Check if reflection layer information exists in data file
+                if 'ray_tracing_reflection' in raytracing_results.keys():  # for backward compatibility: Check if reflection layer information exists in data file
                     reflection = raytracing_results['ray_tracing_reflection'][i]
                     reflection_case = raytracing_results['ray_tracing_reflection_case'][i]
                 else:
@@ -1679,39 +1662,21 @@ class ray_tracing:
                                 'C1': raytracing_results['ray_tracing_C1'][i],
                                 'reflection': reflection,
                                 'reflection_case': reflection_case})
-        self.__results = results
+        self._results = results
 
     def find_solutions(self):
         """
         find all solutions between x1 and x2
         """
-        self.__results = self.__r2d.find_solutions(self.__x1, self.__x2)
-        for i in range(self.__n_reflections):
+        self._results = self._r2d.find_solutions(self._x1, self._x2)
+        for i in range(self._n_reflections):
             for j in range(2):
-                self.__results.extend(self.__r2d.find_solutions(self.__x1, self.__x2, reflection=i + 1, reflection_case=j + 1))
+                self._results.extend(self._r2d.find_solutions(self._x1, self._x2, reflection=i + 1, reflection_case=j + 1))
 
         # check if not too many solutions were found (the same solution can potentially found twice because of numerical imprecision)
         if(self.get_number_of_solutions() > self.get_number_of_raytracing_solutions()):
             self.__logger.error(f"{self.get_number_of_solutions()} were found but only {self.get_number_of_raytracing_solutions()} are allowed! Returning zero solutions")
-            self.__results = []
-
-    def has_solution(self):
-        """
-        checks if ray tracing solution exists
-        """
-        return len(self.__results) > 0
-
-    def get_number_of_solutions(self):
-        """
-        returns the number of solutions
-        """
-        return len(self.__results)
-
-    def get_results(self):
-        """
-        returns dictionary of results (the parameters of the analytic ray path function)
-        """
-        return self.__results
+            self._results = []
 
     def get_solution_type(self, iS):
         """ returns the type of the solution
@@ -1725,25 +1690,23 @@ class ray_tracing:
         Returns
         -------
         solution_type: int
-            * 1: 'direct'
-            * 2: 'refracted'
-            * 3: 'reflected
+            integer corresponding to the types in the dictionary solution_types
         """
-        return self.__r2d.determine_solution_type(self.__x1, self.__x2, self.__results[iS]['C0'])
+        return self._r2d.determine_solution_type(self._x1, self._x2, self._results[iS]['C0'])
 
     def get_path(self, iS, n_points=1000):
         n = self.get_number_of_solutions()
         if(iS >= n):
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
-        result = self.__results[iS]
-        xx, zz = self.__r2d.get_path_reflections(self.__x1, self.__x2, result['C0'], n_points=n_points,
+        result = self._results[iS]
+        xx, zz = self._r2d.get_path_reflections(self._x1, self._x2, result['C0'], n_points=n_points,
                                                  reflection=result['reflection'],
                                                  reflection_case=result['reflection_case'])
         path_2d = np.array([xx, np.zeros_like(xx), zz]).T
-        dP = path_2d - np.array([self.__X1[0], 0, self.__X1[2]])
-        MM = np.matmul(self.__R.T, dP.T)
-        path = MM.T + self.__X1
+        dP = path_2d - np.array([self._X1[0], 0, self._X1[2]])
+        MM = np.matmul(self._R.T, dP.T)
+        path = MM.T + self._X1
         return path
 
     def get_launch_vector(self, iS):
@@ -1766,17 +1729,17 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        result = self.__results[iS]
-        alpha = self.__r2d.get_launch_angle(self.__x1, result['C0'], reflection=result['reflection'],
+        result = self._results[iS]
+        alpha = self._r2d.get_launch_angle(self._x1, result['C0'], reflection=result['reflection'],
                                             reflection_case=result['reflection_case'])
         launch_vector_2d = np.array([np.sin(alpha), 0, np.cos(alpha)])
-        if self.__swap:
-            alpha = self.__r2d.get_receive_angle(self.__x1, self.__x2, result['C0'],
+        if self._swap:
+            alpha = self._r2d.get_receive_angle(self._x1, self._x2, result['C0'],
                                                  reflection=result['reflection'],
                                                  reflection_case=result['reflection_case'])
             launch_vector_2d = np.array([-np.sin(alpha), 0, np.cos(alpha)])
-        self.__logger.debug(self.__R.T)
-        launch_vector = np.dot(self.__R.T, launch_vector_2d)
+        self.__logger.debug(self._R.T)
+        launch_vector = np.dot(self._R.T, launch_vector_2d)
         return launch_vector
 
     def get_receive_vector(self, iS):
@@ -1799,17 +1762,17 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        result = self.__results[iS]
-        alpha = self.__r2d.get_receive_angle(self.__x1, self.__x2, result['C0'],
+        result = self._results[iS]
+        alpha = self._r2d.get_receive_angle(self._x1, self._x2, result['C0'],
                                              reflection=result['reflection'],
                                              reflection_case=result['reflection_case'])
         receive_vector_2d = np.array([-np.sin(alpha), 0, np.cos(alpha)])
-        if self.__swap:
-            alpha = self.__r2d.get_launch_angle(self.__x1, result['C0'],
+        if self._swap:
+            alpha = self._r2d.get_launch_angle(self._x1, result['C0'],
                                                 reflection=result['reflection'],
                                                 reflection_case=result['reflection_case'])
             receive_vector_2d = np.array([np.sin(alpha), 0, np.cos(alpha)])
-        receive_vector = np.dot(self.__R.T, receive_vector_2d)
+        receive_vector = np.dot(self._R.T, receive_vector_2d)
         return receive_vector
 
     def get_reflection_angle(self, iS):
@@ -1832,8 +1795,8 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        result = self.__results[iS]
-        return self.__r2d.get_reflection_angle(self.__x1, self.__x2, result['C0'],
+        result = self._results[iS]
+        return self._r2d.get_reflection_angle(self._x1, self._x2, result['C0'],
                                                reflection=result['reflection'], reflection_case=result['reflection_case'])
 
     def get_path_length(self, iS, analytic=True):
@@ -1859,21 +1822,21 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        result = self.__results[iS]
+        result = self._results[iS]
         if analytic:
             try:
-                analytic_length = self.__r2d.get_path_length_analytic(self.__x1, self.__x2, result['C0'],
+                analytic_length = self._r2d.get_path_length_analytic(self._x1, self._x2, result['C0'],
                                                                       reflection=result['reflection'],
                                                                       reflection_case=result['reflection_case'])
                 if (analytic_length != None):
                     return analytic_length
             except:
                 self.__logger.warning("analytic calculation of travel time failed, switching to numerical integration")
-                return self.__r2d.get_path_length(self.__x1, self.__x2, result['C0'],
+                return self._r2d.get_path_length(self._x1, self._x2, result['C0'],
                                                   reflection=result['reflection'],
                                                   reflection_case=result['reflection_case'])
         else:
-            return self.__r2d.get_path_length(self.__x1, self.__x2, result['C0'],
+            return self._r2d.get_path_length(self._x1, self._x2, result['C0'],
                                               reflection=result['reflection'],
                                               reflection_case=result['reflection_case'])
 
@@ -1900,21 +1863,21 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        result = self.__results[iS]
+        result = self._results[iS]
         if(analytic):
             try:
-                analytic_time = self.__r2d.get_travel_time_analytic(self.__x1, self.__x2, result['C0'],
+                analytic_time = self._r2d.get_travel_time_analytic(self._x1, self._x2, result['C0'],
                                                                 reflection=result['reflection'],
                                                                 reflection_case=result['reflection_case'])
                 if (analytic_time != None):
                     return analytic_time
             except:
                 self.__logger.warning("analytic calculation of travel time failed, switching to numerical integration")
-                return self.__r2d.get_travel_time(self.__x1, self.__x2, result['C0'],
+                return self._r2d.get_travel_time(self._x1, self._x2, result['C0'],
                                                   reflection=result['reflection'],
                                                   reflection_case=result['reflection_case'])
         else:
-            return self.__r2d.get_travel_time(self.__x1, self.__x2, result['C0'],
+            return self._r2d.get_travel_time(self._x1, self._x2, result['C0'],
                                               reflection=result['reflection'],
                                               reflection_case=result['reflection_case'])
 
@@ -1947,8 +1910,8 @@ class ray_tracing:
             self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
             raise IndexError
 
-        result = self.__results[iS]
-        return self.__r2d.get_attenuation_along_path(self.__x1, self.__x2, result['C0'], frequency, max_detector_freq,
+        result = self._results[iS]
+        return self._r2d.get_attenuation_along_path(self._x1, self._x2, result['C0'], frequency, max_detector_freq,
                                                      reflection=result['reflection'],
                                                      reflection_case=result['reflection_case'])
 
@@ -1961,15 +1924,15 @@ class ray_tracing:
         iS: int
             choose for which solution to compute the launch vector, counting
             starts at zero
-
         dz: float
             the infinitesimal change of the depth of the receiver, 1cm by default
         limit: float
             The maximum signal focusing.
+
         Returns
         -------
-        focusing: a float
-            gain of the signal at the receiver due to the focusing effect:
+        focusing: float
+            gain of the signal at the receiver due to the focusing effect
         """
         recVec = self.get_receive_vector(iS)
         recVec = -1.0 * recVec
@@ -1980,25 +1943,26 @@ class ray_tracing:
         # we need to be careful here. If X1 (the emitter) is above the X2 (the receiver) the positions are swapped
         # do to technical reasons. Here, we want to change the receiver position slightly, so we need to check
         # is X1 and X2 was swapped and use the receiver value!
-        if self.__swap:
-            vetPos = copy.copy(self.__X2)
-            recPos = copy.copy(self.__X1)
-            recPos1 = np.array([self.__X1[0], self.__X1[1], self.__X1[2] + dz])
+        if self._swap:
+            vetPos = copy.copy(self._X2)
+            recPos = copy.copy(self._X1)
+            recPos1 = np.array([self._X1[0], self._X1[1], self._X1[2] + dz])
         else:
-            vetPos = copy.copy(self.__X1)
-            recPos = copy.copy(self.__X2)
-            recPos1 = np.array([self.__X2[0], self.__X2[1], self.__X2[2] + dz])
+            vetPos = copy.copy(self._X1)
+            recPos = copy.copy(self._X2)
+            recPos1 = np.array([self._X2[0], self._X2[1], self._X2[2] + dz])
         if not hasattr(self, "_r1"):
-            self._r1 = ray_tracing(self.__medium, self.__attenuation_model, logging.WARNING,
-                             self.__n_frequencies_integration, self.__n_reflections)
+            self._r1 = ray_tracing(self._medium, self._attenuation_model, logging.WARNING,
+                             self._n_frequencies_integration, self._n_reflections)
         self._r1.set_start_and_end_point(vetPos, recPos1)
         self._r1.find_solutions()
         if iS < self._r1.get_number_of_solutions():
             lauVec1 = self._r1.get_launch_vector(iS)
             lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
             focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
-            if(self.get_solution_type(iS) != self._r1.get_solution_type(iS)):
-                self.__logger.error("solution types are not the same")
+            if (self.get_results()[iS]['reflection'] != self._r1.get_results()[iS]['reflection'] 
+                    or self.get_results()[iS]['reflection_case'] != self._r1.get_results()[iS]['reflection_case']):
+                self.__logger.error("Number or type of reflections are different between solutions - focusing correction may not be reliable.")
         else:
             focusing = 1.0
             self.__logger.info("too few ray tracing solutions, setting focusing factor to 1")
@@ -2008,18 +1972,18 @@ class ray_tracing:
             focusing = limit
 
         # now also correct for differences in refractive index between emitter and receiver position
-        if self.__swap:
-            n1 = self.__medium.get_index_of_refraction(self.__X2)  # emitter
-            n2 = self.__medium.get_index_of_refraction(self.__X1)  # receiver
+        if self._swap:
+            n1 = self._medium.get_index_of_refraction(self._X2)  # emitter
+            n2 = self._medium.get_index_of_refraction(self._X1)  # receiver
         else:
-            n1 = self.__medium.get_index_of_refraction(self.__X1)  # emitter
-            n2 = self.__medium.get_index_of_refraction(self.__X2)  # receiver
+            n1 = self._medium.get_index_of_refraction(self._X1)  # emitter
+            n2 = self._medium.get_index_of_refraction(self._X2)  # receiver
         return focusing * (n1 / n2) ** 0.5
 
     def get_ray_path(self, iS):
-        return self.__r2d.get_path_reflections(self.__x1, self.__x2, self.__results[iS]['C0'], 10000,
-                                   reflection=self.__results[iS]['reflection'],
-                                   reflection_case=self.__results[iS]['reflection_case'])
+        return self._r2d.get_path_reflections(self._x1, self._x2, self._results[iS]['C0'], 10000,
+                                   reflection=self._results[iS]['reflection'],
+                                   reflection_case=self._results[iS]['reflection_case'])
 
     def get_output_parameters(self):
         return [
@@ -2031,13 +1995,10 @@ class ray_tracing:
             {'name': 'ray_tracing_solution_type', 'ndim': 1}
         ]
 
-    def get_number_of_raytracing_solutions(self):
-        return 2 + 4 * self.__n_reflections  # number of possible ray-tracing solutions
-
     def get_raytracing_output(self, i_solution):
-        if self.__config['propagation']['focusing']:    
-            focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
-        else: 
+        if self._config['propagation']['focusing']:
+            focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
+        else:
             focusing = 1
         output_dict = {
             'ray_tracing_C0': self.get_results()[i_solution]['C0'],
@@ -2054,28 +2015,25 @@ class ray_tracing:
         Apply propagation effects to the electric field
         Note that the 1/r weakening of the electric field is already accounted for in the signal generation
 
-        Parameters:
-        ----------------
+        Parameters
+        ----------
         efield: ElectricField object
             The electric field that the effects should be applied to
         i_solution: int
             Index of the raytracing solution the propagation effects should be based on
 
         Returns
-        -------------
+        -------
         efield: ElectricField object
             The modified ElectricField object
         """
         spec = efield.get_frequency_spectrum()
-        if self.__config is None:   # done for easier compatibility, by default we do attenuation
-            apply_attenuation = True
-        else:
-            apply_attenuation = self.__config['propagation']['attenuate_ice']
+        apply_attenuation = self._config['propagation']['attenuate_ice']
         if apply_attenuation:
-            if self.__max_detector_frequency is None:
+            if self._max_detector_frequency is None:
                 max_freq = np.max(efield.get_frequencies())
             else:
-                max_freq = self.__max_detector_frequency
+                max_freq = self._max_detector_frequency
             attenuation = self.get_attenuation(i_solution, efield.get_frequencies(), max_freq)
             spec *= attenuation
 
@@ -2084,9 +2042,9 @@ class ray_tracing:
             if (zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
                 continue
             r_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(
-                zenith_reflection, n_2=1., n_1=self.__medium.get_index_of_refraction([self.__X2[0], self.__X2[1], -1 * units.cm]))
+                zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
             r_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(
-                zenith_reflection, n_2=1., n_1=self.__medium.get_index_of_refraction([self.__X2[0], self.__X2[1], -1 * units.cm]))
+                zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
             efield[efp.reflection_coefficient_theta] = r_theta
             efield[efp.reflection_coefficient_phi] = r_phi
 
@@ -2099,8 +2057,8 @@ class ray_tracing:
         i_reflections = self.get_results()[i_solution]['reflection']
         if (i_reflections > 0):  # take into account possible bottom reflections
             # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
-            reflection_coefficient = self.__medium.reflection_coefficient ** i_reflections
-            phase_shift = (i_reflections * self.__medium.reflection_phase_shift) % (2 * np.pi)
+            reflection_coefficient = self._medium.reflection_coefficient ** i_reflections
+            phase_shift = (i_reflections * self._medium.reflection_phase_shift) % (2 * np.pi)
             # we assume that both efield components are equally affected
             spec[1] *= reflection_coefficient * np.exp(1j * phase_shift)
             spec[2] *= reflection_coefficient * np.exp(1j * phase_shift)
@@ -2108,8 +2066,8 @@ class ray_tracing:
                 f"ray is reflecting {i_reflections:d} times at the bottom -> reducing the signal by a factor of {reflection_coefficient:.2f}")
 
         # apply the focusing effect
-        if self.__config['propagation']['focusing']:
-            focusing = self.get_focusing(i_solution, limit=float(self.__config['propagation']['focusing_limit']))
+        if self._config['propagation']['focusing']:
+            focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
             spec[1:] *= focusing
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
@@ -2119,15 +2077,16 @@ class ray_tracing:
         """
         Change the configuration file used by the raytracer
 
-        Parameters:
-        ------------------
-        config: dict
+        Parameters
+        ----------
+        config: dict or None
             The new configuration settings
+            If None, the default config settings will be applied
         """
-        self.__config = config
-
-    def get_config(self):
-        """
-        Returns the current configuration file
-        """
-        return self.__config
+        if(config is None):
+            self._config = {'propagation': {}}
+            self._config['propagation']['attenuate_ice'] = True
+            self._config['propagation']['focusing_limit'] = 2
+            self._config['propagation']['focusing'] = False
+        else:
+            self._config = config

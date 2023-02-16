@@ -18,7 +18,7 @@ class channelStopFilter:
     @register_run()
     def run(self, evt, station, det, filter_size=0.1, prepend=128 * units.ns, append=128 * units.ns):
         """
-        parameters
+        Parameters
         ----------
         evt: Event
             The event to run the module on
@@ -39,8 +39,8 @@ class channelStopFilter:
             sampling_rate = channel.get_sampling_rate()
             window = scipy.signal.windows.tukey(len(trace), filter_size)
             trace *= window
-            trace = np.append(np.zeros(np.int(np.round(prepend * sampling_rate))), trace)
-            trace = np.append(trace, np.zeros(np.int(np.round(append * sampling_rate))))
+            trace = np.append(np.zeros(int(np.round(prepend * sampling_rate))), trace)
+            trace = np.append(trace, np.zeros(int(np.round(append * sampling_rate))))
             channel.set_trace(trace, sampling_rate)
 
     def end(self):

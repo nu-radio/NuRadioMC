@@ -1,0 +1,62 @@
+name: Build and publish
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Get the master branch (for checks)
+      uses: actions/checkout@v3
+      with:
+        ref: 'refs/heads/master'
+
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.7
+    - name: Cache pip
+      uses: actions/cache@v3
+      with:
+        # This path is specific to Ubuntu
+        path: ~/.cache/pip
+        # Look to see if there is a cache hit for the corresponding requirements file
+        key: ${{ runner.os }}-pip-${{ hashFiles('NuRadioMC/test/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          ${{ runner.os }}-
+
+    - name: Install poetry
+      run: |
+        python -m pip install --upgrade pip
+        pip install poetry
+      # poetry recommends using curl to install - probably doesn't make a difference though?
+    - name: Check if version is updated
+      run: |
+        git checkout origin/master
+        export master_version=$(poetry version)
+        git checkout $GITHUB_REF_NAME
+        if [ "$master_version" = "$(poetry version)" ]
+        then
+          echo Version number is the same as existing release. Please update the version number!
+          # exit 1
+        fi
+
+    - name: Build NuRadioMC # let's always build - maybe this will occasionally catch errors
+      run: poetry build
+
+    - name: Publish distribution 📦 to Test PyPI
+      if: ${{ github.ref == 'refs/heads/master'}} # only runs if the push is to master
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        repository_url: https://test.pypi.org/legacy/
+
+    - name: Publish distribution 📦 to PyPI
+      if: ${{ github.ref == 'refs/heads/master'}} # only runs if the push is to master
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}

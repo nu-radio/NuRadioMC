@@ -4,6 +4,8 @@ from NuRadioReco.utilities import units
 import logging
 logging.basicConfig()
 
+logger = medium_base.logger
+
 try:
     import radiopropa as RP
     radiopropa_is_imported = True
@@ -142,7 +144,7 @@ class greenland_firn(medium_base.IceModel):
         profiles also
 
         Parameters
-        ---------
+        ----------
         z_air_boundary:  float, NuRadio length units
                          z coordinate of the surface of the glacier
         z_bottom:  float, NuRadio length units
@@ -166,8 +168,8 @@ class greenland_firn(medium_base.IceModel):
         """
 
         if not medium_base.radiopropa_is_imported:
-            medium_base.logger.error('This ice model depends fully on RadioPropa, which was not import, and can therefore not be used.'+
-                                     '\nMore info on https://github.com/nu-radio/RadioPropa')
+            logger.error('This ice model depends fully on RadioPropa, which was not import, and can therefore not be used.'+
+                         '\nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('This ice model depends fully on RadioPropa, which could not be imported')
 
         super().__init__(z_bottom = -3000*units.meter)
@@ -192,12 +194,12 @@ class greenland_firn(medium_base.IceModel):
         Overwrites function of the mother class
 
         Parameters
-        ---------
+        ----------
         position:  3dim np.array
                     point
 
-        Returns:
-        --------
+        Returns
+        -------
         n:  float
             index of refraction
         """
@@ -245,33 +247,66 @@ class greenland_firn(medium_base.IceModel):
         return self._scalarfield.getGradient(pos) * (1 / (units.meter/RP.meter))
 
     
-    def get_ice_model_radiopropa(self):
+    def _compute_default_ice_model_radiopropa(self):
         """
-        Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
-        that define the medium in radiopropa. It uses the parameters of the medium object to 
-        contruct some modules, like a discontinuity object for the air boundary. Additional modules
-        can be added in this function
+        Computes a default object holding the radiopropa scalarfield and necessary radiopropa 
+        moduldes that define the medium in radiopropa. It uses the parameters of the medium 
+        object to contruct the scalar field (using the firn ice model implementation 
+        in radiopropa) and some modules (like a discontinuity object for the air boundary). 
         
         Overwrites function of the mother class
 
         Returns
         -------
-        ice:    RadioPropaIceWrapper
-                object holding the radiopropa scalarfield and modules
+        ice_model_radiopropa:   RadioPropaIceWrapper
+                                object holding the radiopropa scalarfield and modules
         """
-        ice = medium_base.RadioPropaIceWrapper(self, self._scalarfield)
+        return medium_base.RadioPropaIceWrapper(self, self._scalarfield)
+
+class greenland_perturbation(greenland_firn):
+    def __init__(self):
+        greenland_firn.__init__(self)
+        
+    def _compute_default_ice_model_radiopropa(self,discontinuity=False):
+        """
+        Computes a default object holding the radiopropa scalarfield and necessary radiopropa 
+        moduldes that define the medium in radiopropa. It uses the parameters of the medium 
+        object to contruct some modules using the default computation of the firn model.
+        An additional module for the perturbation layer is then added to the object.
+        
+        Overwrites function of the mother class
+
+        Returns
+        -------
+        ice_model_radiopropa:   RadioPropaIceWrapper
+                                object holding the radiopropa scalarfield and modules
+        """
+        ice = greenland_firn._compute_default_ice_model_radiopropa(self)
+        #fraction from ArXiv 1805.12576 table IV last row
+        perturbation_horz = RP.PerturbationHorizontal(-100*RP.meter,2*RP.meter, fraction=1)
+        ice.add_module('horizontal perturbation',perturbation_horz)
         return ice
 
 
-
+class uniform_ice(medium_base.IceModelSimple):
+    """
+    uniform ice with refractive index of typical deep ice (1.78)
+    """
+    def __init__(self, z_bottom=None):
+        super().__init__(
+            z_bottom = z_bottom, 
+            n_ice = 1.78, 
+            z_0 = 1*units.meter, 
+            delta_n = 0,
+            )
 
 
 def get_ice_model(name):
     """
     function to access the right ice model class by name of the class
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     name: string
           name of the class of the requested ice model
 
@@ -281,7 +316,7 @@ def get_ice_model(name):
                object of the class with the name of the requested model
     """
     if globals()[name]() == None:
-        medium_base.logger.error('The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.')
+        logger.error('The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.')
         raise NotImplementedError('The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.')
     else:
         return globals()[name]()
