@@ -1,38 +1,46 @@
 from functools import lru_cache
 from NuRadioMC.SignalProp import propagation
 from NuRadioMC.SignalGen import askaryan as signalgen
-from NuRadioReco.detector import detector
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import units
 from radiotools import coordinatesystems as cstrans
-from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.framework.electric_field import ElectricField
-from scipy import signal
 from NuRadioReco.utilities import trace_utilities, bandpass_filter
 from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator
 import NuRadioReco.modules.io.eventReader
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from radiotools import helper as hp
 import numpy as np
-from pathlib import Path
 import logging
-import pickle
-from NuRadioMC.SignalGen import ARZ
 import copy
 
-logger = logging.getLogger("sim")
+logger = logging.getLogger("analytic_pulse")
 # logger.setLevel(logging.DEBUG)
 from NuRadioReco.detector import antennapattern
-from NuRadioReco.framework.parameters import showerParameters as shp
 eventreader = NuRadioReco.modules.io.eventReader.eventReader()
 
 hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
 
 class simulation():
 
-	def __init__(self, template = False, vertex = [0,0,-1000], distances = [200, 300, 400, 500, 600, 700,800, 900, 1000, 1100,1143, 1200, 1300,1400,  1500, 1600, 1800, 2100, 2200, 2500, 3000, 300, 3500, 4000]):
+	def __init__(self, template = False, vertex = [0,0,-1000], distances = None):
+		"""
+		Class used to return a modelled pulse
+
+		This class is used to generate a modeled Askaryan pulse, and forward-fold it with
+		the expected propagation effects and detector response, in order to use it in 
+		a forward-folding fit.
+
+		Other Parameters
+		----------------
+		template: bool, default: False
+			Whether to use template-based fitting. This will currently
+			raise a ``NotImplementedError``. If no template is used, the
+			Askaryan model specified in ``self.simulation`` is used.
+		
+		"""
 		self._template = template
 		self.antenna_provider = antennapattern.AntennaPatternProvider()
 		self._raytracing = dict()
@@ -42,59 +50,108 @@ class simulation():
 		self._pol = None
 
 		if self._template: ## I tried fitting with templates, but this is not better than fitting ARZ with Alvarez.
-			self._templates_path = '/lustre/fs22/group/radio/plaisier/software/simulations/TotalFit/first_test/inIceMCCall/Uncertainties/templates'
-			distance_event = np.sqrt(vertex[0]**2 + vertex[1]**2 + vertex[2]**2) ## assume station is at 000
-			print("distance event", distance_event)
+			raise NotImplementedError('Fit using templates has not been implemented yet')
+			# if distances is None:
+			# 	distances = [200, 300, 400, 500, 600, 700,800, 900, 1000, 1100,1143, 1200, 1300,1400,  1500, 1600, 1800, 2100, 2200, 2500, 3000, 300, 3500, 4000]
+			# self._templates_path = '/lustre/fs22/group/radio/plaisier/software/simulations/TotalFit/first_test/inIceMCCall/Uncertainties/templates'
+			# distance_event = np.sqrt(vertex[0]**2 + vertex[1]**2 + vertex[2]**2) ## assume station is at 000
+			# print("distance event", distance_event)
 
-			R = distances[np.abs(np.array(distances) - distance_event).argmin()]
-			print("selected distance", R)
-			my_file = Path("/lustre/fs22/group/radio/plaisier/software/simulations/TotalFit/first_test/inIceMCCall/Uncertainties/templates/templates_{}.pkl".format(R, R))
-			if my_file.is_file():
-				f = NuRadioReco.utilities.io_utilities.read_pickle('{}'.format(my_file))
-				self._templates = f
-				self._templates_energies = f['header']['energies']
-				self._templates_viewingangles = f['header']['viewing angles']
-				self._templates_R = f['header']['R']
-			else:
-				## open look up tables
-				viewing_angles = np.arange(40, 70, .2)
-				self._header = {}
-				self._templates = { 'header': {'energies': 0, 'viewing angles': 0, 'R': 0, 'n_indes': 0} }
-				self._templates_viewingangles = []
-				for viewing_angle in viewing_angles:
-					if viewing_angle not in self._templates.keys():
-						try:
-							print("viewing angle", round(viewing_angle, 2))
-							f = NuRadioReco.utilities.io_utilities.read_pickle('{}/templates_ARZ2020_{}_1200.pkl'.format(self._templates_path,int(viewing_angle*10))) #### in future 10 should be removed.
-							if 1:#f['header']['R'] == 1500:
-								self._templates[np.round(viewing_angle, 2)] = f
-								self._templates_viewingangles.append(np.round(viewing_angle,2 ))
-								self._templates_R = f['header']['R']
-								print('done')
-								self._templates['header']['R'] = self._templates_R
-								self._templates['header']['energies'] = f['header']['energies']
-								print("HEADER", self._templates['header']['R'])
+			# R = distances[np.abs(np.array(distances) - distance_event).argmin()]
+			# print("selected distance", R)
+			# my_file = Path("/lustre/fs22/group/radio/plaisier/software/simulations/TotalFit/first_test/inIceMCCall/Uncertainties/templates/templates_{}.pkl".format(R, R))
+			# if my_file.is_file():
+			# 	f = NuRadioReco.utilities.io_utilities.read_pickle('{}'.format(my_file))
+			# 	self._templates = f
+			# 	self._templates_energies = f['header']['energies']
+			# 	self._templates_viewingangles = f['header']['viewing angles']
+			# 	self._templates_R = f['header']['R']
+			# else:
+			# 	## open look up tables
+			# 	viewing_angles = np.arange(40, 70, .2)
+			# 	self._header = {}
+			# 	self._templates = { 'header': {'energies': 0, 'viewing angles': 0, 'R': 0, 'n_indes': 0} }
+			# 	self._templates_viewingangles = []
+			# 	for viewing_angle in viewing_angles:
+			# 		if viewing_angle not in self._templates.keys():
+			# 			try:
+			# 				print("viewing angle", round(viewing_angle, 2))
+			# 				f = NuRadioReco.utilities.io_utilities.read_pickle('{}/templates_ARZ2020_{}_1200.pkl'.format(self._templates_path,int(viewing_angle*10))) #### in future 10 should be removed.
+			# 				if 1:#f['header']['R'] == 1500:
+			# 					self._templates[np.round(viewing_angle, 2)] = f
+			# 					self._templates_viewingangles.append(np.round(viewing_angle,2 ))
+			# 					self._templates_R = f['header']['R']
+			# 					print('done')
+			# 					self._templates['header']['R'] = self._templates_R
+			# 					self._templates['header']['energies'] = f['header']['energies']
+			# 					print("HEADER", self._templates['header']['R'])
 
-						except:
-							print("template for viewing angle {} does not exist".format(int(viewing_angle*10)))
-				self._templates_energies = f['header']['energies']
-				print("template energies", self._template_energies)
-				self._templates['header']['viewing angles'] = self._templates_viewingangles
-				with open('{}/templates_343.pkl'.format(self._templates_path), 'wb') as f: #### this should be args.viewingangle/10
-					pickle.dump(self._templates, f)
+			# 			except:
+			# 				print("template for viewing angle {} does not exist".format(int(viewing_angle*10)))
+			# 	self._templates_energies = f['header']['energies']
+			# 	print("template energies", self._template_energies)
+			# 	self._templates['header']['viewing angles'] = self._templates_viewingangles
+			# 	with open('{}/templates_343.pkl'.format(self._templates_path), 'wb') as f: #### this should be args.viewingangle/10
+			# 		pickle.dump(self._templates, f)
 		return
 
 	def begin(
 			self, det, station, use_channels, raytypesolution,
-			ch_Vpol = None,
-			passband = [96 * units.MHz, 1000 * units.MHz],
-			ice_model="greenland_simple", att_model = 'GL1',
+			reference_channel, passband = None,
+			ice_model=None, att_model = None, askaryan_model = 'Alvarez2009',
 			propagation_module="analytic", propagation_config=None,
 			shift_for_xmax=False, systematics = None):
-		""" initialize filter and amplifier """
+		""" 
+		Initialize settings for the simulated pulse
+
+		Used to specify the settings to use for the simulated pulse.
+		
+		Parameters
+		----------
+		det : Detector
+		station : Station
+			The Station for which to run the reconstruction. Used here only to
+			obtain the appropriate sampling rate
+		use_channels : list of ints
+			the channel ids for which to simulate pulses.
+		raytypesolution : int
+			In addition to the simulated pulse, a launch vector and polarization
+			can also be computed. These depend on the raytypesolution. Should generally
+			be either 0 (lower/direct ray) or 1 (upper/reflected ray)
+		reference_channel : int
+			channel_id of the channel to use as the 'reference' channel
+			(for launch vector, polarization, ...). Should be the upper Vpol in the phased
+			array for an RNO-G-type detector
+		passband : None | list | dict
+			passband to use for the simulated pulses (after applying detector effects)
+			If None, no passband is applied. If a list, should be of the form [highpass, lowpass].
+			If a dict, the keys should be the channel ids, and the entries 
+			should be lists of the form [highpass, lowpass].
+		propagation_module : string, default: "analytic"
+			Which propagation module to use for the propagation effects
+		propagation_config : string | dict
+			The propagation config to use for the reconstruction (usually the same 
+			as used for the simulation, if applicable).
+		
+		
+		Other Parameters
+		----------------
+		shift_for_xmax : bool, default: False
+			If True, shift the viewing angle by an energy-dependent parametrization
+			for the expected distance between neutrino vertex and shower maximum for 
+			hadronic showers.
+		ice_model : string | medium.IceModel instance | None (default)
+			If not None, use this ice model rather than the one specified in the
+			``propagation_config``
+		att_model : string | None (default)
+			If not None, use this attenuation model rather than the one specified
+			in ``propagation_config``
+		
+		
+		"""
 
 		self._systematics = systematics
-		self._ch_Vpol = ch_Vpol
+		self._ch_Vpol = reference_channel
 		sim_to_data = True
 		self._raytypesolution= raytypesolution
 		channl = station.get_channel(use_channels[0])
@@ -102,12 +159,18 @@ class simulation():
 		time_trace = 200 #ns
 		self._dt = 1./self._sampling_rate
 		self._n_samples = int(time_trace * self._sampling_rate) ## templates are 800 samples long. The analytic models can be longer.
-		self._att_model = att_model
+		self._first_iteration = True
 
+		if ice_model is None:
+			ice_model = propagation_config['propagation']['ice_model']
 		if isinstance(ice_model, str):
 			self._ice_model = medium.get_ice_model(ice_model)
 		else:
 			self._ice_model = ice_model
+		if att_model is None:
+			att_model = propagation_config['propagation']['attenuation_model']
+		self._att_model = att_model
+		self._askaryan_model = askaryan_model
 		self._prop = propagation.get_propagation_module(propagation_module)
 		self._prop_config = propagation_config
 		self._shift_for_xmax = shift_for_xmax
@@ -119,15 +182,18 @@ class simulation():
 
 		self._h = dict()
 		for channel_id in use_channels:
-			passband_i = passband[channel_id]
-			filter_response_1 = bandpass_filter.get_filter_response(self._ff, [passband_i[0], 1150*units.MHz], 'butter', 8)
-			filter_response_2 = bandpass_filter.get_filter_response(self._ff, [0*units.MHz, passband_i[1]], 'butter', 10)
-			self._h[channel_id] = filter_response_1 * filter_response_2 #fb * fa
+			passband_i = passband[channel_id] #TODO - move to single bandpass filter by default?
+			if passband_i is None:
+				self._h[channel_id] = 1
+			else:
+				filter_response_1 = bandpass_filter.get_filter_response(self._ff, [passband_i[0], 1150*units.MHz], 'butter', 8)
+				filter_response_2 = bandpass_filter.get_filter_response(self._ff, [0*units.MHz, passband_i[1]], 'butter', 10)
+				self._h[channel_id] = filter_response_1 * filter_response_2 
 
 		self._amp = {}
 		for channel_id in use_channels:
 			self._amp[channel_id] = {}
-			self._amp[channel_id] = hardwareResponseIncorporator.get_filter(self._ff, station.get_id(), channel_id, det, sim_to_data = sim_to_data)
+			self._amp[channel_id] = det.get_amplifier_response(station_id=station.get_id(), channel_id=channel_id, frequencies=self._ff) #hardwareResponseIncorporator.get_filter(self._ff, station.get_id(), channel_id, det, sim_to_data = sim_to_data)
 
 		pass
 
@@ -156,9 +222,42 @@ class simulation():
 
 	def simulation(
 			self, det, station, vertex_x, vertex_y, vertex_z, nu_zenith,
-			nu_azimuth, energy, use_channels, fit = 'seperate',
-			first_iter = False, model = 'Alvarez2009',
-			starting_values = False, pol_angle = None):
+			nu_azimuth, energy, use_channels,
+			first_iteration = False,
+			starting_values = False):
+		"""
+		Generate simulated pulses
+
+		Generate the simulated pulses (usually, in order to compare them
+		to our 'actual' voltage traces).
+
+		Parameters
+		----------
+		det
+		station
+		vertex_x
+		vertex_y
+		vertex_z
+		nu_zenith
+		nu_azimuth
+		energy
+		use_channels
+
+		Other Parameters
+		----------------
+		first_iteration
+		starting_values
+
+		Returns
+		-------
+		traces 
+		timing
+		launch_vector 
+		viewingangle
+		raytype
+		pol
+		
+		"""
 		ice = self._ice_model
 
 		vertex = np.array([vertex_x, vertex_y, vertex_z])
@@ -166,7 +265,7 @@ class simulation():
 		n_index = ice.get_index_of_refraction(vertex)
 
 		raytracing = self._raytracing # dictionary to store ray tracing properties
-		if(first_iter): # we run the ray tracer only on the first iteration
+		if (self._first_iteration or first_iteration): # we run the ray tracer only on the first iteration
 
 			launch_vectors = []
 			polarizations = []
@@ -279,7 +378,7 @@ class simulation():
 					spectrum = signalgen.get_frequency_spectrum(
 						energy , theta_prime, self._n_samples,
 						self._dt, "HAD", n_index,
-						raytracing[channel_id][iS]["trajectory length"],model)
+						raytracing[channel_id][iS]["trajectory length"],self._askaryan_model)
 
 				viewingangles[ich,i_s] = viewing_angle
 
@@ -345,22 +444,19 @@ class simulation():
 				raytype[channel_id][iS] = raytracing[channel_id][iS]["raytype"]
 		# logger.debug("Found solutions for channels {}".format(raytracing.keys()))
 
-		if(first_iter):
+		if (self._first_iteration or first_iteration):
 			for i, iS in enumerate(raytracing[self._ch_Vpol]):
 				if iS == self._raytypesolution:
 					self._launch_vector = launch_vectors[i]
 					self._viewingangle = viewing_angles[i]
 					self._pol = polarizations[i]
-
+			self._first_iteration = False
+		
 		if self._pol is None:
-			if not first_iter:
-				logger.warning(
-					"Possibly not all relevant quantities were calculated - try running with first_iter=True")
-			else:
-				logger.warning((
-					"No ray tracing solution exists for ch_Vpol with type {}."
-					"Therefore no viewing angle or polarization could be returned."
-				).format(self._raytypesolution))
+			logger.warning((
+				"No ray tracing solution exists for ch_Vpol with type {}."
+				"Therefore no viewing angle or polarization could be returned."
+			).format(self._raytypesolution))
 
 
 		return traces, timing, self._launch_vector, self._viewingangle, raytype, self._pol

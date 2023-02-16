@@ -26,7 +26,7 @@ class neutrinoDirectionReconstructor:
         pass
 
     def begin(
-            self, station, det, event, shower_ids, use_channels=[6, 14], ch_Vpol = 6,
+            self, station, det, event, shower_ids, use_channels=[6, 14], reference_channel = 6,
             ch_Hpol = 8,sim = True, single_pulse_fit = False, PA_cluster_channels= [0,1,2,3,7,8],
             Hpol_channels = [7,8], window_Vpol = [-10, +50], window_Hpol = [10, 40],
             PA_channels = [0,1,2,3], Vrms_Hpol = 8.2 * units.mV, Vrms_Vpol = 8.2 * units.mV,
@@ -72,14 +72,14 @@ class neutrinoDirectionReconstructor:
         if sim: rt = self._station[stnp.raytype_sim]
         if not sim: rt = self._station[stnp.raytype]
         simulation.begin(
-            det, station, use_channels, raytypesolution = rt, ch_Vpol = ch_Vpol,
+            det, station, use_channels, raytypesolution = rt, reference_channel= reference_channel,
             ice_model=self._ice_model, att_model=self._att_model,
             passband=self._passband, propagation_config=self._prop_config
         )
         self._launch_vector_sim, view =  simulation.simulation(
             det, station, vertex[0],vertex[1], vertex[2], self._simulated_zenith,
             self._simulated_azimuth, simulated_energy, use_channels,
-            first_iter = True)[2:4]
+            first_iteration = True)[2:4]
         self._simulation = simulation
         self._single_pulse_fit = single_pulse_fit
         self._PA_cluster_channels = PA_cluster_channels
@@ -215,7 +215,7 @@ class neutrinoDirectionReconstructor:
             rt = self._station[stnp.raytype_sim]
             simulation.begin(
                 det, station, use_channels, raytypesolution = rt,
-                ch_Vpol = ch_Vpol,
+                reference_channel = ch_Vpol,
                 ice_model=self._ice_model, att_model=self._att_model,
                 passband=self._passband, propagation_config=self._prop_config, systematics = systematics)
             tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(
@@ -223,7 +223,7 @@ class neutrinoDirectionReconstructor:
                 event.get_sim_shower(shower_id)[shp.vertex][1],
                 event.get_sim_shower(shower_id)[shp.vertex][2],
                 simulated_zenith, simulated_azimuth, simulated_energy,
-                use_channels, first_iter = True)
+                use_channels, first_iteration = True)
             # if pol_sim is None: # occasionally (if the vertex position is wrong), no solution may exist for the sim vertex and the given ray type.
             #     if rt == 1:
             #         sim_rt = 2
@@ -273,14 +273,14 @@ class neutrinoDirectionReconstructor:
 
         simulation.begin(
             det, station, use_channels, raytypesolution = rt,
-            ch_Vpol = ch_Vpol,
+            reference_channel = ch_Vpol,
             ice_model=self._ice_model, att_model=self._att_model,
             passband=self._passband, propagation_config=self._prop_config,
             systematics = systematics)
         self._simulation = simulation
         self._launch_vector = simulation.simulation(
             det, station, *reconstructed_vertex, np.pi/2, 0, 1e17,
-            use_channels, first_iter=True)[2]
+            use_channels, first_iteration=True)[2]
         # signal_zenith, signal_azimuth = hp.cartesian_to_spherical(*self._launch_vector)
         # sig_dir = hp.spherical_to_cartesian(signal_zenith, signal_azimuth)
         
@@ -432,7 +432,7 @@ class neutrinoDirectionReconstructor:
             fmin_simdir_recvertex = self.minimizer([simulated_zenith, simulated_azimuth, results.x[0]], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = True, ch_Vpol = ch_Vpol, ch_Hpol = ch_Hpol, full_station = full_station)
 
         ### values for reconstructed vertex and reconstructed direction
-        traces_rec, timing_rec, launch_vector_rec, viewingangle_rec, a, pol_rec =  simulation.simulation( det, station, reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], rec_zenith, rec_azimuth, rec_energy, use_channels, first_iter = True)
+        traces_rec, timing_rec, launch_vector_rec, viewingangle_rec, a, pol_rec =  simulation.simulation( det, station, reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], rec_zenith, rec_azimuth, rec_energy, use_channels, first_iteration = True)
 
         print("make debug plots....")
         if debug_plots:
@@ -675,7 +675,7 @@ class neutrinoDirectionReconstructor:
         minimize: Boolean
             If true, minimization output is given (chi2). If False, parameters are returned. Default minimize = True.
         first_iter: Boolean
-            If true, raytracing is performed. If false, raytracing is not perfomred. Default first_iter = False.
+            If true, raytracing is performed. If false, raytracing is not performed. Default first_iter = False.
         banana: Boolean
             If true, input values are viewing angle and energy. If false, input values should be theta and phi. Default banana = False.
         direction: list
@@ -732,13 +732,12 @@ class neutrinoDirectionReconstructor:
 
         azimuth = self.transform_azimuth(azimuth)
 
-        pol_angle = 0
-        if self._single_pulse_fit:
-            pol_angle = self._pol_angle
+        # pol_angle = 0
+        # if self._single_pulse_fit:
+        #     pol_angle = self._pol_angle
         traces, timing, launch_vector, viewingangles, raytypes, pol = self._simulation.simulation(
             self._det, self._station, vertex_x, vertex_y, vertex_z, zenith, azimuth, energy,
-            self._use_channels, first_iter = first_iter, starting_values = starting_values,
-            pol_angle = pol_angle) ## get traces due to neutrino direction and vertex position
+            self._use_channels, first_iteration = first_iter, starting_values = starting_values,) ## get traces due to neutrino direction and vertex position
         chi2 = 0
         all_chi2 = dict()
         over_reconstructed = [] ## list for channel ids where reconstruction is larger than data
