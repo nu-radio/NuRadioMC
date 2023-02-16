@@ -30,6 +30,7 @@ class stationParameters(Enum):
     distance_correlations = 30
     shower_energy = 31 # the energy of the shower 
     viewing_angles = 32 # reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float
+    vertex_search_path = 33
 
 
 class channelParameters(Enum):
@@ -45,11 +46,12 @@ class channelParameters(Enum):
     noise_rms = 11  # the root mean square of the noise
     signal_regions = 12     # list of start and end times of regions that likely contain a signal
     noise_regions = 13      # list of start and end times of regions that likel do not contain any signals
-    signal_time_offset = 14     # the relative timing differences of the signal arrival times between channels
-    signal_receiving_zenith = 15    # the zenith angle of direction at which the radio signal arrived at the antenna
-    signal_ray_type = 16        # type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted
-    signal_receiving_azimuth = 17   # the azimuth angle of direction at which the radio signal arrived at the antenna
-
+    signal_time_offsets = 14     # the relative timing differences of the signal arrival times between channels
+    signal_receiving_zeniths = 15    # the zenith angle of direction at which the radio signal arrived at the antenna
+    signal_ray_types = 16        # type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted
+    signal_receiving_azimuths = 17   # the azimuth angle of direction at which the radio signal arrived at the antenna
+    pulse_times = 18            # list of times where the waveform contains radio pulses
+    signal_region_snrs = 19
 
 class electricFieldParameters(Enum):
     ray_path_type = 1  # the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
