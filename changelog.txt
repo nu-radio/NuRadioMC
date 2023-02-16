@@ -7,7 +7,8 @@ new features:
 - upgrade to proposal v 7.5.0 with new NuRadioProposal interface and improved LPM treatment
 - add script to generate / download pre-calculated proposal tables for known detector configurations
 - adding default RadioPropa ice model object to medium with the feature to set a personlised object as alternative
-- add positions array funcionality to simple ice model in average and gradient functions
+- add positions array functionality to simple ice model in average and gradient functions
+- analytic ray tracing solutions are now sorted consistently from lowest to highest ray
 bugfixes:
 
 
