@@ -2,8 +2,8 @@ import json
 import plotly
 import numpy as np
 from NuRadioReco.framework.parameters import stationParameters as stnp
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import html
+from dash import dcc
 from dash.dependencies import Input, Output, State
 from NuRadioReco.eventbrowser.app import app
 import NuRadioReco.eventbrowser.dataprovider
@@ -30,14 +30,17 @@ def plot_rec_directions(filename, trigger, jcurrent_selection, station_id, juser
         return {}
     user_id = json.loads(juser_id)
     current_selection = json.loads(jcurrent_selection)
-    ariio = provider.get_arianna_io(user_id, filename)
+    nurio = provider.get_file_handler(user_id, filename)
     traces = []
-    keys = ariio.get_header()[station_id].keys()
+    header = nurio.get_header()
+    if header is None:
+        return None
+    keys = header[station_id].keys()
     if stnp.zenith in keys and stnp.azimuth in keys:
         traces.append(plotly.graph_objs.Scatterpolar(
-            r=np.rad2deg(ariio.get_header()[station_id][stnp.zenith]),
-            theta=np.rad2deg(ariio.get_header()[station_id][stnp.azimuth]),
-            text=[str(x) for x in ariio.get_event_ids()],
+            r=np.rad2deg(nurio.get_header()[station_id][stnp.zenith]),
+            theta=np.rad2deg(nurio.get_header()[station_id][stnp.azimuth]),
+            text=[str(x) for x in nurio.get_event_ids()],
             mode='markers',
             name='all events',
             opacity=1,

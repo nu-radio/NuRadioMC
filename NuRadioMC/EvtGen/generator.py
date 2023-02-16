@@ -1,5 +1,17 @@
 # -*- coding: utf-8 -*-
 import logging
+import numpy as np
+from numpy.random import Generator, Philox
+import copy
+from six import iterkeys, iteritems
+from scipy import constants, interpolate
+import h5py
+import time
+
+import NuRadioMC
+from NuRadioReco.utilities import units, version, particle_names
+from NuRadioMC.utilities import inelasticities
+from NuRadioMC.simulation.simulation import pretty_time_delta
 
 STATUS = 31
 
@@ -18,28 +30,8 @@ assert isinstance(logger, NuRadioMCLogger)
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 logger.setLevel(logging.INFO)
 
-import numpy as np
-import NuRadioMC
-from NuRadioReco.utilities import units
-from NuRadioMC.utilities import inelasticities
-from NuRadioReco.utilities import version
-from six import iterkeys, iteritems
-from scipy import constants
-from scipy.integrate import quad
-from scipy.interpolate import interp1d
-import scipy.interpolate as interpolate
-from scipy.optimize import fsolve
-from scipy.interpolate import RectBivariateSpline
-import h5py
-import time
-from NuRadioMC.simulation.simulation import pretty_time_delta
-import os
-import math
-from numpy.random import Generator, Philox
-import copy
-
-VERSION_MAJOR = 2
-VERSION_MINOR = 2
+VERSION_MAJOR = 3
+VERSION_MINOR = 0
 
 HEADER = """
 # all quantities are in the default NuRadioMC units (i.e., meters, radians and eV)
@@ -150,7 +142,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
     while True:
         iFile += 1
         filename2 = filename
-        evt_ids_this_file = np.unique(data_sets["event_group_ids"])[iFile * n_events_per_file : (iFile + 1) * n_events_per_file]
+        evt_ids_this_file = np.unique(data_sets["event_group_ids"])[iFile * n_events_per_file: (iFile + 1) * n_events_per_file]
         if(len(evt_ids_this_file) == 0):
             logger.info("no more events to write in file {}".format(iFile))
             break
@@ -196,7 +188,7 @@ def write_events_to_hdf5(filename, data_sets, attributes, n_events_per_file=None
         # case 2) it is the last file -> total number of simulated events - last event id of previous file
         # case 3) it is the first file -> last event id + 1 - start_event_id
         # case 4) it is the first and last file -> total number of simulated events
-        evt_ids_next_file = np.unique(data_sets["event_group_ids"])[(iFile + 1) * n_events_per_file : (iFile + 2) * n_events_per_file]
+        evt_ids_next_file = np.unique(data_sets["event_group_ids"])[(iFile + 1) * n_events_per_file: (iFile + 2) * n_events_per_file]
         n_events_this_file = None
         if(iFile == 0 and len(evt_ids_next_file) == 0):  # case 4
             n_events_this_file = total_number_of_events
@@ -257,19 +249,11 @@ def ice_cube_nu_fit(energy, slope=-2.19, offset=1.01):
     return flux
 
 
-def get_GZK_1(energy):
-    """
-    model of (van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1) of the cosmogenic neutrino ﬂux
-    for a source evolution parameter of m = 3.4,
-    a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,
-    and a proton fraction of 10% at E = 10^19.6 eV
-    """
-    E, J = np.loadtxt(os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                                     '../examples/Sensitivities/ReasonableNeutrinos1.txt'))
-    E *= units.GeV
-    J *= units.GeV * units.cm ** -2 * units.s ** -1 * units.sr ** -1 / E ** 2
-    get_flux = interpolate.interp1d(E, J, fill_value=0, bounds_error=False)
-    return get_flux(energy)
+def ice_cube_nu_fit_2022(energy, slope=-2.37, offset=1.44):
+    # 9.5 years analysis 2.37+0.09−0.09, offset 1.44 + 0.25 - 0.26, Astrophysical normalization @ 100TeV: 1.44+0.25−0.26 × 10−18 GeV−1cm−2s−1 sr−1
+    flux = 3 * offset * (energy / (100 * units.TeV)) ** slope * 1e-18 * \
+        (units.GeV ** -1 * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
+    return flux
 
 
 def get_energy_from_flux(Emin, Emax, n_events, flux, rnd=None):
@@ -289,7 +273,10 @@ def get_energy_from_flux(Emin, Emax, n_events, flux, rnd=None):
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
 
-    Returns: array of energies
+    Returns
+    -------
+    energies: array of floats
+        array of energies
     """
     if(rnd is None):
         rnd = np.random.default_rng()
@@ -338,9 +325,9 @@ def get_product_position_time(data_sets, product, iE):
 def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
     """
     generates a random distribution of enrgies following a certain spectrum
-    
+
     Parameters
-    -----------
+    ----------
     n_events: int
         the total number of events
     Emin: float
@@ -349,15 +336,21 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
         the maximum energy
     spectrum_type: string
         defines the probability distribution for which the neutrino energies are generated
+
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for
-                   10% proton fraction (see get_GZK_1 function for details)
+          10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)
+        * 'GZK-2': GZK neutrino flux model from fit to TA data (https://pos.sissa.it/395/338/)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
+        * 'GZK-1+IceCube-nu-2022': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux
+        * 'GZK-2+IceCube-nu-2022': a combination of the cosmogenic (GZK-2) and astrophysical (IceCube nu 2022) flux
+        
     rnd: random generator object
         if None is provided, a new default random generator object is initialized
     """
+
     if(rnd is None):
         rnd = np.random.default_rng()
     logger.debug("generating energies")
@@ -380,13 +373,31 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
         a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,
         and a proton fraction of 10% at E = 10^19.6 eV
         """
-        energies = get_energy_from_flux(Emin, Emax, n_events, get_GZK_1, rnd)
+        from NuRadioMC.examples.Sensitivities.E2_fluxes3 import get_proton_10
+        energies = get_energy_from_flux(Emin, Emax, n_events, get_proton_10, rnd)
     elif(spectrum_type == "IceCube-nu-2017"):
         energies = get_energy_from_flux(Emin, Emax, n_events, ice_cube_nu_fit, rnd)
+    elif(spectrum_type == "IceCube-nu-2022"):
+        energies = get_energy_from_flux(Emin, Emax, n_events, ice_cube_nu_fit_2022, rnd)
     elif(spectrum_type == "GZK-1+IceCube-nu-2017"):
+        from NuRadioMC.examples.Sensitivities.E2_fluxes3 import get_proton_10
 
         def J(E):
-            return ice_cube_nu_fit(E) + get_GZK_1(E)
+            return ice_cube_nu_fit(E) + get_proton_10(E)
+
+        energies = get_energy_from_flux(Emin, Emax, n_events, J, rnd)
+    elif(spectrum_type == "GZK-1+IceCube-nu-2022"):
+        from NuRadioMC.examples.Sensitivities.E2_fluxes3 import get_proton_10
+
+        def J(E):
+            return ice_cube_nu_fit_2022(E) + get_proton_10(E)
+
+        energies = get_energy_from_flux(Emin, Emax, n_events, J, rnd)
+    elif(spectrum_type == "GZK-2+IceCube-nu-2022"):
+        from NuRadioMC.examples.Sensitivities.E2_fluxes3 import get_TAGZK_flux_ICRC2021
+
+        def J(E):
+            return ice_cube_nu_fit_2022(E) + get_TAGZK_flux_ICRC2021(E)
 
         energies = get_energy_from_flux(Emin, Emax, n_events, J, rnd)
     else:
@@ -398,13 +409,14 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
 def set_volume_attributes(volume, proposal, attributes):
     """
     helper function that interprets the volume settings and sets the relevant quantities as hdf5 attributes.
-    
+
     Parameters
+    ----------
     volume: dictionarty
         dict specifying the volume
     proposal: bool
         specifies if secondary interaction via proposal are calculated
-    attributes: dicitionary
+    attributes: dictionary
         dict storing hdf5 attributes
     """
     n_events = attributes['n_events']
@@ -443,7 +455,14 @@ def set_volume_attributes(volume, proposal, attributes):
                 rmax = volume['full_rmax']
             else:
                 tau_95_length = get_tau_95_length(attributes['Emax'])
-                max_horizontal_dist = np.abs(max(np.abs(np.tan(attributes['thetamin'])), np.abs(np.tan(attributes['thetamax']))) * volume['fiducial_zmin'])  # calculates the maximum horizontal distance through the ice
+                # check if thetamax/thetamin are in same quadrant
+                is_same_quadrant = np.sign(np.cos(attributes['thetamin'])) == np.sign(np.cos(attributes['thetamax']))
+                if is_same_quadrant:
+                    max_horizontal_dist = np.abs(max(np.abs(np.tan(attributes['thetamin'])), np.abs(np.tan(attributes['thetamax']))) * volume['fiducial_zmin'])  # calculates the maximum horizontal distance through the ice
+                else:
+                    # not same quadrant: theta range surpasses pi/2 -> horizontal trajectories
+                    # geometric trajectory is infinite, but not acutally used. distance is limited by the min() to allowed length below
+                    max_horizontal_dist = np.inf
                 d_extent = min(tau_95_length, max_horizontal_dist)
                 logger.info(f"95% quantile of tau decay length is {tau_95_length/units.km:.1f}km. Maximum horizontal distance for zenith range of {attributes['thetamin']/units.deg:.0f} - {attributes['thetamax']/units.deg:.0f}deg and depth of {volume['fiducial_zmin']/units.km:.1f}km is {max_horizontal_dist/units.km:.1f}km -> extending horizontal volume by {d_extent/units.km:.1f}km")
 
@@ -502,7 +521,14 @@ def set_volume_attributes(volume, proposal, attributes):
             if('full_xmax' not in volume):  # assuming that also full_xmin, full_ymin, full_ymax are not set.
                 # extent fiducial by tau decay length
                 tau_95_length = get_tau_95_length(attributes['Emax'])
-                max_horizontal_dist = np.abs(max(np.abs(np.tan(attributes['thetamin'])), np.abs(np.tan(attributes['thetamax']))) * volume['fiducial_zmin'])  # calculates the maximum horizontal distance through the ice
+                # check if thetamax/thetamin are in same quadrant
+                is_same_quadrant = np.sign(np.cos(attributes['thetamin'])) == np.sign(np.cos(attributes['thetamax']))
+                if is_same_quadrant:
+                    max_horizontal_dist = np.abs(max(np.abs(np.tan(attributes['thetamin'])), np.abs(np.tan(attributes['thetamax']))) * volume['fiducial_zmin'])  # calculates the maximum horizontal distance through the ice
+                else:
+                    # not same quadrant: theta range surpasses pi/2 -> horizontal trajectories
+                    # geometric trajectory is infinite, but not acutally used. distance is limited by the min() to allowed length below
+                    max_horizontal_dist = np.inf
                 d_extent = min(tau_95_length, max_horizontal_dist)
                 logger.info(f"95% quantile of tau decay length is {tau_95_length/units.km:.1f}km. Maximum horizontal distance for zenith range of {attributes['thetamin']/units.deg:.0f} - {attributes['thetamax']/units.deg:.0f}deg and depth of {volume['fiducial_zmin']/units.km:.1f}km is {max_horizontal_dist/units.km:.1f}km -> extending horizontal volume by {d_extent/units.km:.1f}km")
                 xmax += d_extent
@@ -534,10 +560,11 @@ def set_volume_attributes(volume, proposal, attributes):
 
 def generate_vertex_positions(attributes, n_events, rnd=None):
     """
-    helper function that generates the vertex position randomly distributed in simulation volume. 
+    helper function that generates the vertex position randomly distributed in simulation volume.
     The relevant quantities are also saved into the hdf5 attributes
-    
+
     Parameters
+    ----------
     attributes: dicitionary
         dict storing hdf5 attributes
     rnd: random generator object
@@ -565,7 +592,7 @@ def intersection_box_ray(bounds, ray):
     """
     this function calculates the intersection between a ray and an axis-aligned box
     code adapted from https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
-    
+
     Parameters
     ----------
     box: array with shape (2,3)
@@ -576,7 +603,7 @@ def intersection_box_ray(bounds, ray):
     orig = np.array(ray[0])
     direction = np.array(ray[1])
     invdir = 1 / direction
-    sign = np.zeros(3, dtype=np.int)
+    sign = np.zeros(3, dtype=int)
     sign[0] = (invdir[0] < 0)
     sign[1] = (invdir[1] < 0)
     sign[2] = (invdir[2] < 0)
@@ -680,6 +707,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                            spectrum='log_uniform',
                            start_file_id=0,
                            config_file='SouthPole',
+                           tables_path=None,
                            proposal_kwargs={},
                            log_level=None,
                            max_n_events_batch=1e5,
@@ -703,49 +731,53 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         the maximum neutrino energy (energies are randomly chosen assuming a
         uniform distribution in the logarithm of the energy)
     volume: dict
-            a dictionary specifying the simulation volume
-            can be either a cylinder spefified via the keys
-                * fiducial_rmin: float
-                    lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * fiducial_rmax: float
-                    upper r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * fiducial_zmin: float
-                    lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * fiducial_zmax: float
-                    upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * full_rmin: float (optional)
-                    lower r coordinate of simulated volume (if not set it is set to the fiducial volume)
-                * full_rmax: float (optional)
-                    upper r coordinate of simulated volume (if not set it is set to the fiducial volume)
-                * full_zmin: float (optional)
-                    lower z coordinate of simulated volume (if not set it is set to the fiducial volume)
-                * full_zmax: float (optional)
-                    upper z coordinate of simulated volume (if not set it is set to the fiducial volume)
-            or a cube specified with 
-                * fiducial_xmin: float
-                    lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * fiducial_xmax: float
-                    upper x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * fiducial_ymin: float
-                    lower y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * fiducial_ymax: float
-                    upper y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * fiducial_zmin: float
-                    lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * fiducial_zmax: float
-                    upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * full_xmin: float (optional)
-                    lower x coordinate of simulated volume (if not set it is set to the fiducial volume)
-                * full_xmax: float (optional)
-                    upper x coordinate of simulated volume (if not set it is set to the fiducial volume)
-                * full_ymin: float (optional)
-                    lower y coordinate of simulated volume (if not set it is set to the fiducial volume)
-                * full_ymax: float (optional)
-                    upper y coordinate of simulated volume (if not set it is set to the fiducial volume)
-                * full_zmin: float (optional)
-                    lower z coordinate of simulated volume (if not set it is set to the fiducial volume)
-                * full_zmax: float (optional)
-                    upper z coordinate of simulated volume (if not set it is set to the fiducial volume)
+        a dictionary specifying the simulation volume
+        can be either a cylinder spefified via the keys
+
+        * fiducial_rmin: float
+            lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_rmax: float
+            upper r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_zmin: float
+            lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_zmax: float
+            upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * full_rmin: float (optional)
+            lower r coordinate of simulated volume (if not set it is set to the fiducial volume)
+        * full_rmax: float (optional)
+            upper r coordinate of simulated volume (if not set it is set to the fiducial volume)
+        * full_zmin: float (optional)
+            lower z coordinate of simulated volume (if not set it is set to the fiducial volume)
+        * full_zmax: float (optional)
+            upper z coordinate of simulated volume (if not set it is set to the fiducial volume)
+
+        or a cube specified with
+
+        * fiducial_xmin: float
+            lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_xmax: float
+            upper x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_ymin: float
+            lower y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_ymax: float
+            upper y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_zmin: float
+            lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_zmax: float
+            upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * full_xmin: float (optional)
+            lower x coordinate of simulated volume (if not set it is set to the fiducial volume)
+        * full_xmax: float (optional)
+            upper x coordinate of simulated volume (if not set it is set to the fiducial volume)
+        * full_ymin: float (optional)
+            lower y coordinate of simulated volume (if not set it is set to the fiducial volume)
+        * full_ymax: float (optional)
+            upper y coordinate of simulated volume (if not set it is set to the fiducial volume)
+        * full_zmin: float (optional)
+            lower z coordinate of simulated volume (if not set it is set to the fiducial volume)
+        * full_zmax: float (optional)
+            upper z coordinate of simulated volume (if not set it is set to the fiducial volume)
+
     thetamin: float
         lower zenith angle for neutrino arrival direction
     thetamax: float
@@ -753,7 +785,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     phimin: float
         lower azimuth angle for neutrino arrival direction
     phimax: float
-         upper azimuth angle for neutrino arrival direction
+        upper azimuth angle for neutrino arrival direction
     start_event: int
         default: 1
         event number of first event
@@ -768,33 +800,32 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         This is useful to split up the computing on multiple cores.
     spectrum: string
         defines the probability distribution for which the neutrino energies are generated
+
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
-        * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for
-                   10% proton fraction (see get_GZK_1 function for details)
+        * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 
+          for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
+
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
         if True, generate deposited energies instead of primary neutrino energies
     config_file: string
         The user can specify the path to their own config file or choose among
-        the three available options:
-        -'SouthPole', a config file for the South Pole (spherical Earth). It
-        consists of a 2.7 km deep layer of ice, bedrock below and air above.
-        -'MooresBay', a config file for Moore's Bay (spherical Earth). It
-        consists of a 576 m deep ice layer with a 2234 m deep water layer below,
-        and bedrock below that.
-        -'InfIce', a config file with a medium of infinite ice
-        -'Greenland', a config file for Summit Station, Greenland (spherical Earth),
-        same as SouthPole but with a 3 km deep ice layer.
-        IMPORTANT: If these options are used, the code is more efficient if the
-        user requests their own "path_to_tables" and "path_to_tables_readonly",
-        pointing them to a writable directory
-        If one of these three options is chosen, the user is supposed to edit
-        the corresponding config_PROPOSAL_xxx.json.sample file to include valid
-        table paths and then copy this file to config_PROPOSAL_xxx.json.
+        the available options:
+
+        * 'SouthPole', a config file for the South Pole (spherical Earth). It
+          consists of a 2.7 km deep layer of ice, bedrock below and air above.
+        * 'MooresBay', a config file for Moore's Bay (spherical Earth). It
+          consists of a 576 m deep ice layer with a 2234 m deep water layer below,
+          and bedrock below that.
+        * 'InfIce', a config file with a medium of infinite ice
+        * 'Greenland', a config file for Summit Station, Greenland (spherical Earth),
+          same as SouthPole but with a 3 km deep ice layer.
+    tables_path: path
+        path where the proposal cross section tables are stored or should be generated
     proposal_kwargs: dict
         additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
     log_level: logging log level or None
@@ -810,7 +841,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
     t_start = time.time()
     max_n_events_batch = int(max_n_events_batch)
     from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
-    proposal_functions = ProposalFunctions(config_file=config_file)
+    proposal_functions = ProposalFunctions(config_file=config_file, tables_path=tables_path)
 
     attributes = {}
     n_events = int(n_events)
@@ -858,8 +889,8 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         # zenith directions are distruted as sin(theta) (to make the distribution istotropic) * cos(theta) (to account for the projection onto the surface)
         data_sets["zeniths"] = np.arcsin(rnd.uniform(np.sin(thetamin) ** 2, np.sin(thetamax) ** 2, n_events_batch) ** 0.5)
 
-        data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch, dtype=np.int) + start_event_id
-        data_sets["n_interaction"] = np.ones(n_events_batch, dtype=np.int)
+        data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch, dtype=int) + start_event_id
+        data_sets["n_interaction"] = np.ones(n_events_batch, dtype=int)
         data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=np.float)
 
         # generate neutrino flavors randomly
@@ -915,7 +946,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                                                                            np.array([lepton_positions[iE]]),
                                                                            np.array([lepton_directions[iE]]),
                                                                            **proposal_kwargs)
-                products = products_array[0]
+                products = products_array[0]  # get secondaries from first (and only) lepton
 
                 n_interaction = 1
 
@@ -970,7 +1001,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         data_sets_fiducial['flavors'] = np.array([14])
         data_sets_fiducial['shower_energies'] = np.array([0])
 
-    data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=np.int)
+    data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=int)
     write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
     logger.status(f"finished in {pretty_time_delta(time.time() - t_start)}")
     return None
@@ -987,6 +1018,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 deposited=False,
                                 proposal=False,
                                 proposal_config='SouthPole',
+                                proposal_tables_path=None,
                                 start_file_id=0,
                                 log_level=None,
                                 proposal_kwargs={},
@@ -1013,48 +1045,52 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         the maximum neutrino energy
     volume: dict
         a dictionary specifying the simulation volume
-            can be either a cylinder spefified via the keys
-                * fiducial_rmin: float
-                    lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * fiducial_rmax: float
-                    upper r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * fiducial_zmin: float
-                    lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * fiducial_zmax: float
-                    upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * full_rmin: float (optional)
-                    lower r coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-                * full_rmax: float (optional)
-                    upper r coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
-                * full_zmin: float (optional)
-                    lower z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)
-                * full_zmax: float (optional)
-                    upper z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume , if second vertices are not activated it is set to the fiducial volume)
-            or a cube specified with 
-                * fiducial_xmin: float
-                    lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * fiducial_xmax: float
-                    upper x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * fiducial_ymin: float
-                    lower y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * fiducial_ymax: float
-                    upper y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * fiducial_zmin: float
-                    lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * fiducial_zmax: float
-                    upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
-                * full_xmin: float (optional)
-                    lower x coordinate of simulated volume (if not set it is set to the fiducial volume - the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
-                * full_xmax: float (optional)
-                    upper x coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
-                * full_ymin: float (optional)
-                    lower y coordinate of simulated volume (if not set it is set to the fiducial volume - the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
-                * full_ymax: float (optional)
-                    upper y coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
-                * full_zmin: float (optional)
-                    lower z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
-                * full_zmax: float (optional)
-                    upper z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+        can be either a cylinder spefified via the keys
+
+        * fiducial_rmin: float
+            lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_rmax: float
+            upper r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_zmin: float
+            lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_zmax: float
+            upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * full_rmin: float (optional)
+            lower r coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+        * full_rmax: float (optional)
+            upper r coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+        * full_zmin: float (optional)
+            lower z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+        * full_zmax: float (optional)
+            upper z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume , if second vertices are not activated it is set to the fiducial volume)
+
+        or a cube specified with
+
+        * fiducial_xmin: float
+            lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_xmax: float
+            upper x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_ymin: float
+            lower y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_ymax: float
+            upper y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_zmin: float
+            lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_zmax: float
+            upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * full_xmin: float (optional)
+            lower x coordinate of simulated volume (if not set it is set to the fiducial volume - the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+        * full_xmax: float (optional)
+            upper x coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+        * full_ymin: float (optional)
+            lower y coordinate of simulated volume (if not set it is set to the fiducial volume - the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+        * full_ymax: float (optional)
+            upper y coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+        * full_zmin: float (optional)
+            lower z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)
+        * full_zmax: float (optional)
+            upper z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)
+
     thetamin: float
         lower zenith angle for neutrino arrival direction (default 0deg)
     thetamax: float
@@ -1070,12 +1106,15 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         default: [12, -12, 14, -14, 16, -16]
         specify which neutrino flavors to generate. A uniform distribution of
         all specified flavors is assumed.
+
         The neutrino flavor (integer) encoded as using PDF numbering scheme,
         particles have positive sign, anti-particles have negative sign,
         relevant for us are:
+
         * 12: electron neutrino
         * 14: muon neutrino
         * 16: tau neutrino
+
     n_events_per_file: int or None
         the maximum number of events per output files. Default is None, which
         means that all events are saved in one file. If 'n_events_per_file' is
@@ -1083,33 +1122,36 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         This is useful to split up the computing on multiple cores.
     spectrum: string
         defines the probability distribution for which the neutrino energies are generated
+
         * 'log_uniform': uniformly distributed in the logarithm of energy
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
-        * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for
-                   10% proton fraction (see get_GZK_1 function for details)
+        * 'IceCube-nu-2022': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.48550/arXiv.2111.10299)
+        * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 
+          for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)
+        * 'GZK-2': GZK neutrino flux model from fit to TA data (https://pos.sissa.it/395/338/)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
+        * 'GZK-1+IceCube-nu-2022': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux
+        * 'GZK-2+IceCube-nu-2022': a combination of the cosmogenic (GZK-2) and astrophysical (IceCube nu 2022) flux
+
     deposited: bool
         if True, generate deposited energies instead of primary neutrino energies
     proposal: bool
         if True, the tau and muon secondaries are calculated using PROPOSAL
     proposal_config: string or path
         The user can specify the path to their own config file or choose among
-        the three available options:
-        -'SouthPole', a config file for the South Pole (spherical Earth). It
-        consists of a 2.7 km deep layer of ice, bedrock below and air above.
-        -'MooresBay', a config file for Moore's Bay (spherical Earth). It
-        consists of a 576 m deep ice layer with a 2234 m deep water layer below,
-        and bedrock below that.
-        -'InfIce', a config file with a medium of infinite ice
-        -'Greenland', a config file for Summit Station, Greenland (spherical Earth),
-        same as SouthPole but with a 3 km deep ice layer.
-        IMPORTANT: If these options are used, the code is more efficient if the
-        user requests their own "path_to_tables" and "path_to_tables_readonly",
-        pointing them to a writable directory
-        If one of these three options is chosen, the user is supposed to edit
-        the corresponding config_PROPOSAL_xxx.json.sample file to include valid
-        table paths and then copy this file to config_PROPOSAL_xxx.json.
+        the available options:
+
+        * 'SouthPole', a config file for the South Pole (spherical Earth). It
+          consists of a 2.7 km deep layer of ice, bedrock below and air above.
+        * 'MooresBay', a config file for Moore's Bay (spherical Earth). It
+          consists of a 576 m deep ice layer with a 2234 m deep water layer below,
+          and bedrock below that.
+        * 'InfIce', a config file with a medium of infinite ice
+        * 'Greenland', a config file for Summit Station, Greenland (spherical Earth),
+          same as SouthPole but with a 3 km deep ice layer.
+    proposal_tables_path: path
+        path where the proposal cross section tables are stored or should be generated
     start_file_id: int (default 0)
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
@@ -1125,7 +1167,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     seed: None of int
         seed of the random state
     interaction_type: string
-        the interaction type. default is "ccnc" which randomly choses neutral current (NC) or charged-current (CC) interactions. 
+        the interaction type. default is "ccnc" which randomly choses neutral current (NC) or charged-current (CC) interactions.
         The use can also specify "nc" or "cc" to exclusively simulate NC or CC interactions
     """
     rnd = Generator(Philox(seed))
@@ -1134,7 +1176,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         logger.setLevel(log_level)
     if proposal:
         from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
-        proposal_functions = ProposalFunctions(config_file=proposal_config)
+        proposal_functions = ProposalFunctions(config_file=proposal_config, tables_path=proposal_tables_path)
     max_n_events_batch = int(max_n_events_batch)
     attributes = {}
     n_events = int(n_events)
@@ -1177,7 +1219,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         logger.debug("generating event ids")
         data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch) + start_event_id
         logger.debug("generating number of interactions")
-        data_sets["n_interaction"] = np.ones(n_events_batch, dtype=np.int)
+        data_sets["n_interaction"] = np.ones(n_events_batch, dtype=int)
         data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=np.float)
 
         # generate neutrino flavors randomly
@@ -1217,7 +1259,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         for key in data_sets:  # transform datatype to list so that inserting elements is faster
             data_sets[key] = list(data_sets[key])
         n_inserted = 0
-        for i in np.arange(n_events_batch, dtype=np.int)[em_shower_mask]:  # loop over all events where an EM shower needs to be inserted
+        for i in np.arange(n_events_batch, dtype=int)[em_shower_mask]:  # loop over all events where an EM shower needs to be inserted
             for key in data_sets:
                 data_sets[key].insert(i + 1 + n_inserted, data_sets[key][i + n_inserted])  # copy event
             data_sets['shower_energies'][i + 1 + n_inserted] = (1 - data_sets['inelasticity'][i + 1 + n_inserted]) * data_sets['energies'][i + 1 + n_inserted]
@@ -1308,10 +1350,15 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
                                 data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
                                 n_interaction += 1
+                                
+                                # store energy of parent lepton before producing the shower
+                                data_sets_fiducial['energies'][-1] = product.parent_energy
                                 data_sets_fiducial['shower_energies'][-1] = product.energy
                                 data_sets_fiducial['inelasticity'][-1] = np.nan
-                                # interaction_type is either 'had' or 'em' for proposal products
-                                data_sets_fiducial['interaction_type'][-1] = product.shower_type
+                                
+                                # For neutrino interactions 'interaction_type' contains 'cc' or 'nc'
+                                # For energy losses of leptons use name of produced particle 
+                                data_sets_fiducial['interaction_type'][-1] = particle_names.particle_name(product.code)
                                 data_sets_fiducial['shower_type'][-1] = product.shower_type
 
                                 data_sets_fiducial['xx'][-1] = x
@@ -1321,8 +1368,9 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 # Calculating vertex interaction time with respect to the primary neutrino
                                 data_sets_fiducial['vertex_times'][-1] = vertex_time
 
-                                # Flavors are particle codes taken from NuRadioProposal.py
-                                data_sets_fiducial['flavors'][-1] = product.code
+                                # Store flavor/particle code of parent particle
+                                data_sets_fiducial['flavors'][-1] = lepton_codes[iE]
+            
             time_proposal = time.time() - init_time
         else:
             if(n_batches == 1):
@@ -1340,7 +1388,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     logger.info(f"number of fiducial showers {len(data_sets_fiducial['xx'])}")
 
     # assign every shower a unique id
-    data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=np.int)
+    data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=int)
     # make the event group ids consecutive, this is useful if secondary interactions are simulated where many of the
     # initially generated neutrinos don't end up in the fiducial volume
     data_sets_fiducial['event_group_ids'] = np.asarray(data_sets_fiducial['event_group_ids'])

@@ -19,8 +19,8 @@ def interpolate_linear(x, x0, x1, y0, y1, interpolation_method='complex'):
     """
     helper function to linearly interpolate between two complex numbers
 
-    Parameters:
-    ------
+    Parameters
+    ----------
     x: float
         the requested position
     x0, y0: float, complex float
@@ -29,10 +29,13 @@ def interpolate_linear(x, x0, x1, y0, y1, interpolation_method='complex'):
         the second data point
     interpolation_method: string
         specifies if interpolation is in
+
         * complex (default) i.e. real and imaginary part
         * magnitude and phase
 
-    Returns: compex float
+    Returns
+    -------
+    y: complex float
         the interpolated value
     """
     if x0 == x1:
@@ -85,37 +88,40 @@ def get_group_delay(vector_effective_length, df):
     """
     helper function to calculate the group delay from the vector effecitve length
 
-    Parameters:
+    Parameters
     ----------
     vector_effective_length: complex float
         the vector effective length of an antenna
     df: float
         the size of a frequency bin
 
-    Returns: float (the group delay)
+    Returns
+    -------
+    dt: float
+        the group delay
 
 
     """
     return -np.diff(np.unwrap(np.angle(vector_effective_length))) / df / units.ns / 2 / np.pi
 
 
-def parse_RNOG_XFDTD_file(path_gain, path_phases):
+def parse_RNOG_XFDTD_file(path_gain, path_phases, encoding = None):
     """"
     reads in XFDTD data
 
-    Paramters:
+    Parameters
     ----------
     path_gain: string
         path to gain file
     path_phases:
         path to phases file
 
-    Returns:
-    ----------
+    Returns
+    -------
     all paramters of the file
     """""
 
-    with open(path_gain, 'r') as fin:
+    with open(path_gain, 'r', encoding = encoding) as fin:
         ff = []
         phis = []
         thetas = []
@@ -134,7 +140,7 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
 
             line_count += 1
 
-    with open(path_phases, 'r') as fin:
+    with open(path_phases, 'r', encoding = encoding) as fin:
         phase_phi = []
         phase_theta = []
         csv_reader = csv.reader(fin, delimiter=',')
@@ -142,24 +148,24 @@ def parse_RNOG_XFDTD_file(path_gain, path_phases):
         for row in csv_reader:
             if 1:  # (line_count % 2) == 0:
                 if line_count != 0:
-                    complex_phi = float(row[3]) + 1j * float(row[4])
-                    phase_phi.append(cmath.phase(complex_phi))
-                    complex_theta = float(row[5] + 1j * float(row[6]))
-                    phase_theta.append(cmath.phase(complex_theta))
+                    complex = float(row[3]) + 1j * float(row[4])
+                    phase_phi.append(cmath.phase(complex))
+                    complex = float(row[5]) + 1j * float(row[6])
+                    phase_theta.append(cmath.phase(complex))
 
             line_count += 1
 
     return np.array(ff), np.array(phis), np.array(thetas), np.array(gain_phi), np.array(gain_theta), np.array(phase_phi), np.array(phase_theta)
 
 
-def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74):
+def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74, encoding = None):
     """"
     Preprocess an antenna pattern in XFDTD file format. The vector effective length is calculated and the output is saved to the NuRadioReco pickle format.
 
     This conversion function ASSUMES THAT THE XFDTD SIMULATION IS DONE IN AIR! HERE WE DO A FIRST ORDER RESCALING
     TO A DIFFERENT INDEX OF REFRACTION by just rescaling the frequencies by f -> f/n.
 
-    Parameters:
+    Parameters
     ----------
     path_gain: string
         path to gain file
@@ -171,7 +177,7 @@ def preprocess_RNOG_XFDTD(path_gain, path_phases, outputfilename, n_index=1.74):
         refractive index for requested antenna file. The method assumes that simulations are done in air (n = 1)
     """
 
-    ff, phi, theta, gain_phi, gain_theta, phase_phi, phase_theta = parse_RNOG_XFDTD_file(path_gain, path_phases)
+    ff, phi, theta, gain_phi, gain_theta, phase_phi, phase_theta = parse_RNOG_XFDTD_file(path_gain, path_phases, encoding = encoding)
     c = constants.c * units.m / units.s
     Z_0 = 119.9169 * np.pi
 
@@ -222,7 +228,7 @@ def parse_WIPLD_file(ad1, ra1, orientation, gen_num=1, s_parameters=None):
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
 
     Returns
-    -----------------
+    -------
     all parameters of the files
     """
     if s_parameters is None:
@@ -297,16 +303,25 @@ def preprocess_WIPLD_old(path, gen_num=1, s_parameters=None):
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
 
     Returns
-    ---------------
-        * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
-        * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
-        * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
-        * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
-        * ff2: array of frequencies
-        * theta: zenith angle of inicdent electric field
-        * phi: azimuth angle of incident electric field
-        * H_phi: the complex vector effective length of the ePhi polarization component
-        * H_theta: the complex vector effective length of the eTheta polarization component
+    -------
+    orientation theta: float
+        orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+    orientation phi: float
+        orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+    rotation theta: float
+        rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+    rotation phi: float
+        rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+    ff2: array of floats
+        array of frequencies
+    theta: float
+        zenith angle of inicdent electric field
+    phi: float
+        azimuth angle of incident electric field
+    H_phi: float
+        the complex vector effective length of the ePhi polarization component
+    H_theta: float
+        the complex vector effective length of the eTheta polarization component
     """
     if s_parameters is None:
         s_parameters = [1, 1]
@@ -382,16 +397,25 @@ def preprocess_WIPLD(path, gen_num=1, s_parameters=None):
         determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).
 
     Returns
-    ------------
-        * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
-        * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
-        * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
-        * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
-        * ff2: array of frequencies
-        * theta: zenith angle of inicdent electric field
-        * phi: azimuth angle of incident electric field
-        * H_phi: the complex vector effective length of the ePhi polarization component
-        * H_theta: the complex vector effective length of the eTheta polarization component
+    -------
+    orientation theta: float
+        orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+    orientation phi: float
+        orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+    rotation theta: float
+        rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+    rotation phi: float
+        rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+    ff2: array of floats
+        array of frequencies
+    theta: float
+        zenith angle of inicdent electric field
+    phi: float
+        azimuth angle of incident electric field
+    H_phi: float
+        the complex vector effective length of the ePhi polarization component
+    H_theta: float
+        the complex vector effective length of the eTheta polarization component
     """
     if s_parameters is None:
         s_parameters = [1, 1]
@@ -516,11 +540,11 @@ def save_preprocessed_WIPLD_forARA(path):
 def get_pickle_antenna_response(path):
     """
     opens and return the pickle file containing the preprocessed WIPL-D antenna simulation
+
     If the pickle file is not present on the local file system, or if the file is outdated (verified via a sha1 hash sum),
     the file will be downloaded from a central data server
 
-
-    Parameters:
+    Parameters
     ----------
     path: string
         the path to the pickle file
@@ -693,22 +717,23 @@ def parse_ARA_file(ara):
     """
     Helper function that parses the ARAsim ASCII files containig antenna responses
 
-    Parameters:
+    Parameters
     ----------
     ara: string
         path to the file
 
-    Returns:
-        * ff: array of floats
-            frequencies
-        * thetas: array of floats
-            zenith angle of inicdent electric field
-        * phis: array of floats
-            azimuth angle of inicdent electric field
-        * gains: array of floats
-            corresponding linear gain values
-        * phases: array of floats
-            corresponding phases
+    Returns
+    -------
+    ff: array of floats
+        frequencies
+    thetas: array of floats
+        zenith angle of inicdent electric field
+    phis: array of floats
+        azimuth angle of inicdent electric field
+    gains: array of floats
+        corresponding linear gain values
+    phases: array of floats
+        corresponding phases
      """
     with open(ara, 'r') as fin:
         ff = []
@@ -752,10 +777,12 @@ def parse_ARA_file(ara):
 
 def preprocess_ARA(path):
     """
-    preprocess an antenna pattern in the ARASim ASCII file format. The vector effective length is calculated and
+    preprocess an antenna pattern in the ARASim ASCII file format.
+
+    The vector effective length is calculated and
     the output is saved to the NuRadioReco pickle format.
 
-    Parameters:
+    Parameters
     ----------
     path: string
         the path to the file
@@ -784,26 +811,27 @@ def parse_HFSS_file(hfss):
     """
     Helper function that parses the HFSS files containig antenna responses
 
-    Parameters:
+    Parameters
     ----------
     hfss: string
         path to the file
 
-    Returns:
-        * ff: array of floats
-            frequencies
-        * thetas: array of floats
-            zenith angle of inicdent electric field
-        * phis: array of floats
-            azimuth angle of inicdent electric field
-        * magnitudes_theta: array of floats
-            corresponding logarithmic magnitude values theta component
-        * magnitudes_phi: array of floats
-            corresponding logarithmic magnitude values phi component
-        * phases_phi: array of floats
-            corresponding phases phi component
-        * phases_theta: array of floats
-            corresponding phases theta component
+    Returns
+    -------
+    ff: array of floats
+        frequencies
+    thetas: array of floats
+        zenith angle of inicdent electric field
+    phis: array of floats
+        azimuth angle of inicdent electric field
+    magnitudes_theta: array of floats
+        corresponding logarithmic magnitude values theta component
+    magnitudes_phi: array of floats
+        corresponding logarithmic magnitude values phi component
+    phases_phi: array of floats
+        corresponding phases phi component
+    phases_theta: array of floats
+        corresponding phases theta component
      """
     ff, phi, theta, mag_phi, mag_theta, phase_phi, phase_theta = [], [], [], [], [], [], []
     import re
@@ -854,7 +882,7 @@ def preprocess_HFSS(path):
     The frequencies, theta, phi, magnitude theta, magnitude phi, phase theta and phase phi are read from the csv file and than ordered according to the NuRadioReco format.
 
 
-    Parameters:
+    Parameters
     ----------
     path: string
         the path to the file
@@ -898,7 +926,7 @@ def preprocess_XFDTD(path):
     preprocess an antenna pattern in the XFDTD file format. The vector effective length is calculated and
     the output is saved to the NuRadioReco pickle format.
 
-    Parameters:
+    Parameters
     ----------
     path: string
         the path to the file
@@ -946,7 +974,7 @@ class AntennaPatternBase:
     def _get_antenna_rotation(self, orientation_theta, orientation_phi, rotation_theta, rotation_phi):
         """
 
-        Parameters:
+        Parameters
         ----------
 
         """
@@ -976,7 +1004,7 @@ class AntennaPatternBase:
         transform zenith and azimuth angle in ARIANNA coordinate system to the WIPLD coordinate system.
         In addition the orientation of the antenna as deployed in the field is taken into account.
 
-        Parameters:
+        Parameters
         ----------
         """
 
@@ -1076,6 +1104,7 @@ class AntennaPattern(AntennaPatternBase):
             path to folder containing the antenna models
         interpolation_mode: string
             specify in which domain the interpolation should be performed, can be either
+
             * 'complex' (default) interpolate real and imaginary part of vector effective length
             * 'magphase' interpolate magnitude and phase of vector effective length
         """
@@ -1173,10 +1202,10 @@ class AntennaPattern(AntennaPatternBase):
         else:
             iTheta_lower = np.array(np.floor(
                 (theta - self.theta_lower_bound) / (self.theta_upper_bound - self.theta_lower_bound) * (
-                    self.n_theta - 1)), dtype=np.int)
+                    self.n_theta - 1)), dtype=int)
             iTheta_upper = np.array(np.ceil(
                 (theta - self.theta_lower_bound) / (self.theta_upper_bound - self.theta_lower_bound) * (
-                    self.n_theta - 1)), dtype=np.int)
+                    self.n_theta - 1)), dtype=int)
         theta_lower = self.theta_angles[iTheta_lower]
         theta_upper = self.theta_angles[iTheta_upper]
         if self.phi_upper_bound == self.phi_lower_bound:
@@ -1185,19 +1214,19 @@ class AntennaPattern(AntennaPatternBase):
         else:
             iPhi_lower = np.array(np.floor(
                 (phi - self.phi_lower_bound) / (self.phi_upper_bound - self.phi_lower_bound) * (self.n_phi - 1)),
-                dtype=np.int)
+                dtype=int)
             iPhi_upper = np.array(np.ceil(
                 (phi - self.phi_lower_bound) / (self.phi_upper_bound - self.phi_lower_bound) * (self.n_phi - 1)),
-                dtype=np.int)
+                dtype=int)
         phi_lower = self.phi_angles[iPhi_lower]
         phi_upper = self.phi_angles[iPhi_upper]
 
         iFrequency_lower = np.array(np.floor(
             (freq - self.frequency_lower_bound) / (self.frequency_upper_bound - self.frequency_lower_bound) * (
-                self.n_freqs - 1)), dtype=np.int)
+                self.n_freqs - 1)), dtype=int)
         iFrequency_upper = np.array(np.ceil(
             (freq - self.frequency_lower_bound) / (self.frequency_upper_bound - self.frequency_lower_bound) * (
-                self.n_freqs - 1)), dtype=np.int)
+                self.n_freqs - 1)), dtype=int)
         # handling frequency out of bound cases properly
         out_of_bound_freqs_low = freq < self.frequency_lower_bound
         out_of_bound_freqs_high = freq > self.frequency_upper_bound
@@ -1392,17 +1421,18 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 class AntennaPatternProvider(object):
     __instance = None
 
-    def __new__(cls):
+    def __new__(cls, *args, **kwargs):
         if AntennaPatternProvider.__instance is None:
             AntennaPatternProvider.__instance = object.__new__(cls)
         return AntennaPatternProvider.__instance
 
-    def __init__(self):
+    def __init__(self, log_level=logging.WARNING):
         """
         Provider class for antenna pattern. The usage of antenna pattern through this class ensures
         that an antenna pattern is loaded only once into memory which takes a significant time and occupies a
         significant amount of memory.
         """
+        logger.setLevel(log_level)
         self._open_antenna_patterns = {}
         self._antenna_model_replacements = {}
 
@@ -1416,7 +1446,7 @@ class AntennaPatternProvider(object):
         """
         loads an antenna pattern and returns the antenna pattern class
 
-        Paramters
+        Parameters
         ----------
         name: string
             the name of the antenna pattern

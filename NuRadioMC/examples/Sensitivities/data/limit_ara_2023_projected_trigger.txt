@@ -1,0 +1,17 @@
+# Source: Projected ARA Limit by 2023 (Trigger Level  SES)
+# Data type: Single Event Sensitivity
+# Energy bins per decade: 1
+# Column values:
+# Energy [GeV]
+# Flux [GeV cm^-2 s^-1 sr^-1]
+# Flux band minimum
+# Flux band maximum
+
+3.162278e+07 3.570426e-08 0 0
+1.000000e+08 1.508577e-08 0 0
+3.162278e+08 9.464551e-09 0 0
+1.000000e+09 7.722422e-09 0 0
+3.162278e+09 8.032262e-09 0 0
+1.000000e+10 9.685805e-09 0 0
+3.162278e+10 1.122384e-08 0 0
+1.000000e+11 1.517349e-08 0 0

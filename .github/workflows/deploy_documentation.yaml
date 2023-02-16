@@ -1,0 +1,91 @@
+name: Deploy Documentation
+
+on: [push, pull_request]
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      runtests: ${{ steps.check.outputs.runtests }}
+    steps:
+    - id: check
+      run: |
+        output='false'
+        if [[ "${{ github.event_name }}" != pull_request ]]
+        then
+          runtests='true'
+        elif [[ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.event.pull_request.base.repo.full_name }}" ]]
+        then
+          runtests='true'
+        fi
+        echo "runtests=${runtests}" >> $GITHUB_OUTPUT
+
+  build:
+    needs: [prepare]
+    if: needs.prepare.outputs.runtests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3 # get the develop branch
+        with:
+          ref: 'refs/heads/develop'
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.7
+
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          # This path is specific to Ubuntu
+          path: ~/.cache/pip
+          # Look to see if there is a cache hit for the corresponding requirements file
+          key: ${{ runner.os }}-pip-${{ hashFiles('NuRadioMC/test/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+      - name: Install dependencies
+        run: |
+          sudo apt-get install libgsl-dev
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          export GSLDIR=$(gsl-config --prefix)
+          python install_dev.py --install --dev documentation proposal --no-interactive
+          export PYTHONPATH=$PWD:$PYTHONPATH
+          echo $PYTHONPATH
+
+      - name: Debugging
+        run: |
+          echo checking git status...
+          git status
+          echo show last 3 commits
+          git log -n 3
+          echo show list of files modified wrt develop
+          git diff origin/develop --name-only
+          echo checking PYTHONPATH
+          echo $PYTHONPATH
+          echo checking current directory
+          echo $(pwd)
+          echo checking NuRadioReco folder structure
+          echo $(ls NuRadioReco)
+          echo checking NuRadioMC folder structure
+          echo $(ls NuRadioMC)
+
+      - name: Build Documentation
+        run: |
+          export PYTHONPATH=$(pwd):$PYTHONPATH
+          cd documentation/
+          python make_docs.py
+
+      - name: No Jekyll
+        if: ${{ github.ref == 'refs/heads/develop'}}
+        run: |
+          touch documentation/build/html/.nojekyll
+
+
+      - name: Deploy 🚀
+        if: ${{ github.ref == 'refs/heads/develop'}} # only runs if the push is to develop
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: documentation/build/html # The folder the action should deploy.

@@ -47,7 +47,7 @@ class channelGalacticNoiseAdder:
         Set up important parameters for the module
 
         Parameters
-        ---------------
+        ----------
         debug: bool, default: False
             It True, debug plots will be shown
         n_side: int, default: 4
@@ -80,7 +80,7 @@ class channelGalacticNoiseAdder:
         Adds noise resulting from galactic radio emission to the channel traces
 
         Parameters
-        --------------
+        ----------
         event: Event object
             The event containing the station to whose channels noise shall be added
         station: Station object
@@ -189,7 +189,7 @@ class channelGalacticNoiseAdder:
                 if detector.get_relative_position(station.get_id(), channel.get_id())[2] < 0:
                     t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_ice, 1)
                     t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_ice, 1)
-                    fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, 1., n_ice)
+                    fresnel_zenith = geometryUtilities.get_fresnel_angle(zenith, n_ice, 1.)
                     if fresnel_zenith is None:
                         continue
                 else:
