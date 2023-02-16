@@ -333,9 +333,9 @@ class triggerSimulator:
             the delays for the primary channels that have caused a trigger.
             If there is no trigger, it's an empty dictionary
         trigger_time: float
-            the earliest trigger time with respect to interaction time.
+            the earliest trigger time with respect to first interaction time.
         trigger_times: dictionary
-            all time bins that fulfil the trigger condition per beam. The key is the beam number. Time with respect to interaction time.
+            all time bins that fulfil the trigger condition per beam. The key is the beam number. Time with respect to first interaction time.
         """
 
         if(triggered_channels is None):
@@ -566,7 +566,7 @@ class triggerSimulator:
         trigger.set_triggered(is_triggered)
         
         if is_triggered:
-            #trigger_time(s)= time(s) from start of trace + start time of trace with respect to moment of interaction = trigger time from moment of interaction; time offset to interaction time (channel_trace_start_time) already recognized in self.phased_trigger
+            #trigger_time(s)= time(s) from start of trace + start time of trace with respect to moment of first interaction = trigger time from moment of first interaction; time offset to interaction time (channel_trace_start_time) already recognized in self.phased_trigger
             trigger.set_trigger_time(trigger_time)# 
             trigger.set_trigger_times(trigger_times)
             trigger.set_trigger_time(None)
