@@ -10,6 +10,7 @@ new features:
 - add positions array functionality to simple ice model in average and gradient functions
 - analytic ray tracing solutions are now sorted consistently from lowest to highest ray
 bugfixes:
+- fixed/improved C++ raytracer not finding solutions for some near-horizontal or near-shadowzone vertices
 
 
 version 2.1.7
