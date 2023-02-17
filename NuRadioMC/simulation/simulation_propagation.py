@@ -21,7 +21,7 @@ class simulation_propagation(NuRadioMC.simulation.simulation_base.simulation_bas
             self,
             sg,
             iSh,
-            channel_id,
+            i_channel,
             cherenkov_angle
     ):
         delta_Cs = []
@@ -29,9 +29,9 @@ class simulation_propagation(NuRadioMC.simulation.simulation_base.simulation_bas
         # loop through all ray tracing solution
         for iS in range(self._raytracer.get_number_of_solutions()):
             for key, value in self._raytracer.get_raytracing_output(iS).items():
-                sg[key][iSh, channel_id, iS] = value
+                sg[key][iSh, i_channel, iS] = value
             self._launch_vector = self._raytracer.get_launch_vector(iS)
-            sg['launch_vectors'][iSh, channel_id, iS] = self._launch_vector
+            sg['launch_vectors'][iSh, i_channel, iS] = self._launch_vector
             # calculates angle between shower axis and launch vector
             viewing_angle = radiotools.helper.get_angle(self._shower_axis, self._launch_vector)
             viewing_angles.append(viewing_angle)

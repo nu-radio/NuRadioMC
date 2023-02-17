@@ -63,7 +63,7 @@ class ray_tracing_base:
         self._max_detector_frequency = None
         if self._detector is not None:
             for station_id in self._detector.get_station_ids():
-                sampling_frequency = self._detector.get_sampling_frequency(station_id, 0)
+                sampling_frequency = self._detector.get_sampling_frequency(station_id, self._detector.get_channel_ids(station_id)[0])
                 if self._max_detector_frequency is None or sampling_frequency * .5 > self._max_detector_frequency:
                     self._max_detector_frequency = sampling_frequency * .5
 

@@ -265,7 +265,7 @@ class simulation_base:
             for station_id in self._bandwidth_per_channel:
                 self._Vrms_per_channel[station_id] = {}
                 self._noiseless_channels[station_id] = []
-                for channel_id in self._bandwidth_per_channel[station_id]:
+                for channel_id in self._det.get_channel_ids(station_id):
                     if self._noise_temp is None:
                         noise_temp_channel = self._det.get_noise_temperature(station_id, channel_id)
                     else:
@@ -307,18 +307,18 @@ class simulation_base:
         for iSt, self._station_id in enumerate(self._station_ids):
             self._shower_index = 0
             self._primary_index = 0
+            self._channel_ids = self._det.get_channel_ids(self._station_id)
+            first_channel_id = self._channel_ids[0]
             dummy_event = NuRadioReco.framework.event.Event(0, self._primary_index)
             dummy_sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
-            self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
-            #                 logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
-            self._n_samples = self._det.get_number_of_samples(self._station_id,
-                                                              0) / self._sampling_rate_detector / self._dt
+            self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, first_channel_id)
+            self._n_samples = self._det.get_number_of_samples(self._station_id, first_channel_id) / self._sampling_rate_detector / self._dt
             self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)  # round to nearest even integer
             self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
             self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
 
             self._create_sim_station()
-            for channel_id in range(self._det.get_number_of_channels(self._station_id)):
+            for channel_id in self._channel_ids:
                 electric_field = NuRadioReco.framework.electric_field.ElectricField(
                     [channel_id],
                     self._det.get_relative_position(
@@ -344,7 +344,7 @@ class simulation_base:
             self._detector_simulation_filter_amp(dummy_event, dummy_station, self._det)
             self._bandwidth_per_channel[self._station_id] = {}
             self._amplification_per_channel[self._station_id] = {}
-            for channel_id in range(self._det.get_number_of_channels(self._station_id)):
+            for channel_id in self._det.get_channel_ids(self._station_id):
                 ff = np.linspace(0, 0.5 / self._dt, 10000)
                 filt = np.ones_like(ff, dtype=np.complex)
                 for i, (name, instance, kwargs) in enumerate(dummy_event.iter_modules(self._station_id)):

@@ -116,8 +116,8 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
             for station_id in self._mout_groups:
                 n_channels = self._det.get_number_of_channels(station_id)
                 positions = np.zeros((n_channels, 3))
-                for channel_id in range(n_channels):
-                    positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
+                for channel_id in self._det.get_channel_ids(station_id):
+                    positions[self._get_channel_index(channel_id)] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
                 fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
                 fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
                 fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._bandwidth_per_channel[station_id].values())

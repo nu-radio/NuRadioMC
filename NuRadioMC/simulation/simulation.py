@@ -175,13 +175,13 @@ class simulation(
                         continue
 
                 candidate_station = False
-                self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, 0)
+                self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, self._channel_ids[0])
 #                 logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
-                self._n_samples = self._det.get_number_of_samples(self._station_id, 0) / self._sampling_rate_detector / self._dt
+                self._n_samples = self._det.get_number_of_samples(self._station_id, self._channel_ids[0]) / self._sampling_rate_detector / self._dt
                 self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)  # round to nearest even integer
                 self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
                 self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
-
+                self._channel_ids = list(self._det.get_channel_ids(self._station_id))
                 ray_tracing_performed = False
                 if 'station_{:d}'.format(self._station_id) in self._fin_stations:
                     ray_tracing_performed = (self._raytracer.get_output_parameters()[0]['name'] in self._fin_stations['station_{:d}'.format(self._station_id)]) and self._was_pre_simulated
@@ -237,13 +237,24 @@ class simulation(
                     mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup']['distance_cut_sum_length']
                     shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
 
-                    candidate_shower = self._simulate_shower(
-                        sg,
-                        iSh,
-                        shower_energy_sum,
-                        pre_simulated,
-                        ray_tracing_performed
-                    )
+                    cherenkov_angle, n_index = self._simulate_shower()
+                    candidate_shower = False
+                    t2 = time.time()
+                    for channel_id in self._channel_ids:
+                        is_candidate_channel = self._simulate_channel(
+                            channel_id,
+                            pre_simulated,
+                            cherenkov_angle,
+                            n_index,
+                            sg,
+                            iSh,
+                            ray_tracing_performed,
+                            shower_energy_sum
+                        )
+                        if is_candidate_channel:
+                            candidate_shower = True
+                    t3 = time.time()
+                    self._rayTracingTime += t3 - t2
                     if candidate_shower:
                         candidate_station = True
 
@@ -266,8 +277,8 @@ class simulation(
                     self._channelSignalReconstructor.run(self._evt_tmp, self._station.get_sim_station(), self._det)
                     for channel in self._station.get_sim_station().iter_channels():
                         tmp_index = np.argwhere(event_indices == self._get_shower_index(channel.get_shower_id()))[0]
-                        sg['max_amp_shower_and_ray'][tmp_index, channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
-                        sg['time_shower_and_ray'][tmp_index, channel.get_id(), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.signal_time)
+                        sg['max_amp_shower_and_ray'][tmp_index, self._get_channel_index(channel.get_id()), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
+                        sg['time_shower_and_ray'][tmp_index, self._get_channel_index(channel.get_id()), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.signal_time)
                 start_times = []
                 channel_identifiers = []
                 for channel in self._sim_station.iter_channels():
@@ -399,6 +410,11 @@ class simulation(
         else:
             return self._shower_index_array[shower_id]
 
+    def _get_channel_index(self, channel_id):
+        index = self._channel_ids.index(channel_id)
+        if index < 0:
+            raise ValueError('Channel with ID {} not found in station {} of detector description!'.format(channel_id, self._station_id))
+        return index
     def _is_simulate_noise(self):
         """
         returns True if noise should be added
@@ -466,8 +482,8 @@ class simulation(
             amplitudes = np.zeros(station.get_number_of_channels())
             amplitudes_envelope = np.zeros(station.get_number_of_channels())
             for channel in station.iter_channels():
-                amplitudes[channel.get_id()] = channel.get_parameter(chp.maximum_amplitude)
-                amplitudes_envelope[channel.get_id()] = channel.get_parameter(chp.maximum_amplitude_envelope)
+                amplitudes[self._get_channel_index(channel.get_id())] = channel.get_parameter(chp.maximum_amplitude)
+                amplitudes_envelope[self._get_channel_index(channel.get_id())] = channel.get_parameter(chp.maximum_amplitude_envelope)
             self._output_maximum_amplitudes[station.get_id()].append(amplitudes)
             self._output_maximum_amplitudes_envelope[station.get_id()].append(amplitudes_envelope)
 
@@ -556,7 +572,7 @@ class simulation(
         station_barycenter = np.zeros((len(self._station_ids), 3))
         for iSt, station_id in enumerate(self._station_ids):
             pos = []
-            for channel_id in range(self._det.get_number_of_channels(station_id)):
+            for channel_id in self._det.get_channel_ids(station_id):
                 pos.append(self._det.get_relative_position(station_id, channel_id))
             station_barycenter[iSt] = np.mean(np.array(pos), axis=0) + self._det.get_absolute_position(station_id)
         return station_barycenter
@@ -682,12 +698,7 @@ class simulation(
             return True
         return True
     def _simulate_shower(
-            self,
-            sg,
-            iSh,
-            shower_energy_sum,
-            pre_simulated,
-            ray_tracing_performed
+            self
     ):
 
         # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
@@ -727,29 +738,47 @@ class simulation(
         cherenkov_angle = np.arccos(1. / n_index)
 
         # first step: perform raytracing to see if solution exists
-        t2 = time.time()
-        for channel_id in range(self._det.get_number_of_channels(self._station_id)):
-            ray_tracing_solution_found = self._perform_raytracing_for_channel(
-                channel_id,
-                pre_simulated,
+        return cherenkov_angle, n_index
+
+    def _simulate_channel(
+            self,
+            channel_id,
+            pre_simulated,
+            cherenkov_angle,
+            n_index,
+            sg,
+            iSh,
+            ray_tracing_performed,
+            shower_energy_sum
+    ):
+        ray_tracing_solution_found = self._perform_raytracing_for_channel(
+            channel_id,
+            pre_simulated,
+            ray_tracing_performed,
+            shower_energy_sum
+        )
+        if not ray_tracing_solution_found:
+            return False
+        delta_Cs, viewing_angles = self._calculate_viewing_angles(
+            sg,
+            iSh,
+            self._get_channel_index(channel_id),
+            cherenkov_angle
+        )
+
+        # discard event if delta_C (angle off cherenkov cone) is too large
+        if min(np.abs(delta_Cs)) > self._cfg['speedup']['delta_C_cut']:
+            logger.debug('delta_C too large, event unlikely to be observed, skipping event')
+            return False
+
+        if ray_tracing_solution_found:
+            is_candidate_channel = self._calculate_polarization_angles(
+                sg,
+                iSh,
+                delta_Cs,
+                viewing_angles,
                 ray_tracing_performed,
-                shower_energy_sum
-            )
-            if not ray_tracing_solution_found:
-                continue
-            delta_Cs, viewing_angles = self._calculate_viewing_angles(sg, iSh, channel_id, cherenkov_angle)
-
-            # discard event if delta_C (angle off cherenkov cone) is too large
-            if min(np.abs(delta_Cs)) > self._cfg['speedup']['delta_C_cut']:
-                logger.debug('delta_C too large, event unlikely to be observed, skipping event')
-                continue
-
-            if ray_tracing_solution_found:
-                is_candidate_channel = self._calculate_polarization_angles(sg, iSh, delta_Cs, viewing_angles,
-                                                                   ray_tracing_performed,
-                                                                   channel_id, n_index)
-                if is_candidate_channel:
-                    candidate_shower = True
-        t3 = time.time()
-        self._rayTracingTime += t3 - t2
-        return candidate_shower
+                channel_id, n_index)
+            return is_candidate_channel
+        else:
+            return False

@@ -194,6 +194,7 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
             channel_id,
             n_index
     ):
+        i_channel = self._get_channel_index(channel_id)
         candidate_station = False
         for iS in range(self._raytracer.get_number_of_solutions()):  # loop through all ray tracing solution
             # skip individual channels where the viewing angle difference is too large
@@ -203,19 +204,19 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
                 continue
             if self._check_if_was_pre_simulated() and ray_tracing_performed and not self._cfg['speedup']['redo_raytracing']:
                 sg_pre = self._fin_stations["station_{:d}".format(self._station_id)]
-                R = sg_pre['travel_distances'][self._shower_index, channel_id, iS]
-                T = sg_pre['travel_times'][self._shower_index, channel_id, iS]
+                R = sg_pre['travel_distances'][self._shower_index, i_channel, iS]
+                T = sg_pre['travel_times'][self._shower_index, i_channel, iS]
             else:
                 R = self._raytracer.get_path_length(iS)  # calculate path length
                 T = self._raytracer.get_travel_time(iS)  # calculate travel time
                 if R is None or T is None:
                     continue
-            sg['travel_distances'][iSh, channel_id, iS] = R
-            sg['travel_times'][iSh, channel_id, iS] = T
+            sg['travel_distances'][iSh, i_channel, iS] = R
+            sg['travel_times'][iSh, i_channel, iS] = T
             self._launch_vector = self._raytracer.get_launch_vector(iS)
             receive_vector = self._raytracer.get_receive_vector(iS)
             # save receive vector
-            sg['receive_vectors'][iSh, channel_id, iS] = receive_vector
+            sg['receive_vectors'][iSh, i_channel, iS] = receive_vector
 
             # get neutrino pulse from Askaryan module
 
@@ -231,5 +232,5 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
             )
             if candidate_ray:
                 candidate_station = True
-            sg['polarization'][iSh, channel_id, iS] = polarization_angle
+            sg['polarization'][iSh, i_channel, iS] = polarization_angle
         return candidate_station
