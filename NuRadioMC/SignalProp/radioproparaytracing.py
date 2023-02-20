@@ -106,6 +106,10 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
         self.set_config(config=config)
         self._ice_model = self._medium.get_ice_model_radiopropa()
+        self._ice_model.remove_module("air boundary") #remove the air boundary
+                                                      #to get solutions even when 
+                                                      #starting in air
+
 
         self.set_minimizer_tolerance()
         self._shower_axis = None ## this is given so we can limit the rays that are checked around the cherenkov angle
@@ -431,10 +435,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         def MinimizeAble(lower,upper):
             #This checks if there are 2 distinct regions, takes about 10^-6% of the total time
             if ((len(lower) == 2) and (len(upper)==2)):
-                if (lower[1] > upper[0]) and (lower[0] < upper[0]) and (lower[1] < upper[1]):
-                    return True
-                else:
-                    return False
+                return (lower[1] > upper[0]) and (lower[0] < upper[0]) and (lower[1] < upper[1])
             else:
                 return False
 
