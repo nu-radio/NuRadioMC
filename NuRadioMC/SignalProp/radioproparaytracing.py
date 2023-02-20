@@ -106,10 +106,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
         self.set_config(config=config)
         self._ice_model = self._medium.get_ice_model_radiopropa()
-        self._ice_model.remove_module("air boundary") #remove the air boundary
-                                                      #to get solutions even when 
-                                                      #starting in air
-
 
         self.set_minimizer_tolerance()
         self._shower_axis = None ## this is given so we can limit the rays that are checked around the cherenkov angle
