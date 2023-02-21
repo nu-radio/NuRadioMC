@@ -1,5 +1,17 @@
 # -*- coding: utf-8 -*-
 import logging
+import numpy as np
+from numpy.random import Generator, Philox
+import copy
+from six import iterkeys, iteritems
+from scipy import constants, interpolate
+import h5py
+import time
+
+import NuRadioMC
+from NuRadioReco.utilities import units, version, particle_names
+from NuRadioMC.utilities import inelasticities
+from NuRadioMC.simulation.simulation import pretty_time_delta
 
 STATUS = 31
 
@@ -18,28 +30,8 @@ assert isinstance(logger, NuRadioMCLogger)
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 logger.setLevel(logging.INFO)
 
-import numpy as np
-import NuRadioMC
-from NuRadioReco.utilities import units
-from NuRadioMC.utilities import inelasticities
-from NuRadioReco.utilities import version
-from six import iterkeys, iteritems
-from scipy import constants
-from scipy.integrate import quad
-from scipy.interpolate import interp1d
-import scipy.interpolate as interpolate
-from scipy.optimize import fsolve
-from scipy.interpolate import RectBivariateSpline
-import h5py
-import time
-from NuRadioMC.simulation.simulation import pretty_time_delta
-import os
-import math
-from numpy.random import Generator, Philox
-import copy
-
-VERSION_MAJOR = 2
-VERSION_MINOR = 2
+VERSION_MAJOR = 3
+VERSION_MINOR = 0
 
 HEADER = """
 # all quantities are in the default NuRadioMC units (i.e., meters, radians and eV)
@@ -1372,11 +1364,15 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
                                 data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
                                 n_interaction += 1
+                                
+                                # store energy of parent lepton before producing the shower
+                                data_sets_fiducial['energies'][-1] = product.parent_energy
                                 data_sets_fiducial['shower_energies'][-1] = product.energy
                                 data_sets_fiducial['inelasticity'][-1] = np.nan
                                 
-                                # interaction_type is either 'had' or 'em' for proposal products
-                                data_sets_fiducial['interaction_type'][-1] = product.shower_type
+                                # For neutrino interactions 'interaction_type' contains 'cc' or 'nc'
+                                # For energy losses of leptons use name of produced particle 
+                                data_sets_fiducial['interaction_type'][-1] = particle_names.particle_name(product.code)
                                 data_sets_fiducial['shower_type'][-1] = product.shower_type
 
                                 data_sets_fiducial['xx'][-1] = x
@@ -1386,8 +1382,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 # Calculating vertex interaction time with respect to the primary neutrino
                                 data_sets_fiducial['vertex_times'][-1] = vertex_time
 
-                                # Flavors are particle codes taken from NuRadioProposal.py
-                                data_sets_fiducial['flavors'][-1] = product.code
+                                # Store flavor/particle code of parent particle
+                                data_sets_fiducial['flavors'][-1] = lepton_codes[iE]
             
             time_proposal = time.time() - init_time
         else:
