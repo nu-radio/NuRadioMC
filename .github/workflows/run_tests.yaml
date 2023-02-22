@@ -23,7 +23,7 @@ jobs:
   build:
     needs: [prepare]
     if: needs.prepare.outputs.runtests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
