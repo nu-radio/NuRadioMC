@@ -392,13 +392,15 @@ class radiopropa_ray_tracing(ray_tracing_base):
         self.__ztol = ztol
 
     def raytracer_birefringence(self, launch_v, efield, s_rate, n_reflections=0):
-        #(self._source, self._antenna, spec, path_type=i_solution, samp_rate = s_rate)
-        #(self._source, self._antenna, spec, path_type=i_solution, samp_rate = s_rate)
+
         """
-        Uses RadioPropa to find all the numerical ray tracing solutions between sphere X1 and X2.
-        If reflections is bigger than 0, also bottom reflected rays are searched for with a max
-        of n_reflections of the bottom
+        Uses RadioPropa propagate an electric field through the correct solution of the ray path. To use add to the config.yaml file:
+        propagation:
+            module: radiopropa
+            ice_model: southpole_2015
+            birefringence: True
         """
+        
         try:
             X1 = self._X1 * (radiopropa.meter/units.meter)
             X2 = self._X2 * (radiopropa.meter/units.meter)
@@ -406,7 +408,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
             self.__logger.error('NoneType: start or endpoint not initialized')
             raise TypeError('NoneType: start or endpoint not initialized')
 
-      
         v = (self._X2 - self._X1)
         u = copy.deepcopy(v)
         u[2] = 0
@@ -444,19 +445,13 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 launch_upper.append(np.pi)
         """
 
-
-        #sim.add(radiopropa.PropagationCK(self._ice_model.get_scalar_field(), 1E-8, .001, 1., efield, s_rate, True)) ## add propagation to module list
-
         ##define module list for simulation
         sim = radiopropa.ModuleList()
         sim.add(radiopropa.PropagationCK(self._ice_model.get_scalar_field(), 1E-8, .001, 1., True)) ## add propagation to module list
-        #sim.add(radiopropa.PropagationCK(self._ice_model.get_scalar_field(), 1E-8, .001, 1., False)) ## add propagation to module list
-        #sim.add(radiopropa.PropagationCK(self._ice_model.get_scalar_field(), 1E-8, .001, 1.)) ## add propagation to module list
         for module in self._ice_model.get_modules().values(): 
             sim.add(module)
         sim.add(radiopropa.MaximumTrajectoryLength(self._max_traj_length * (radiopropa.meter/units.meter)))
 
-        
         ## define observer for detection (channel)            
         obs = radiopropa.Observer()
         obs.setDeactivateOnDetection(True)
@@ -464,7 +459,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
         obs.add(channel)
         sim.add(obs)
         
-
         ## define observer for stopping simulation (boundaries)
         obs2 = radiopropa.Observer()
         obs2.setDeactivateOnDetection(True)
@@ -483,24 +477,14 @@ class radiopropa_ray_tracing(ray_tracing_base):
             new_scanning_range = np.arange(launch_lower[iL], launch_upper[iL]+step, step)
             theta_scanning_range = np.concatenate((theta_scanning_range, new_scanning_range))
         """
-        print('this is my vector')
-        print(launch_v)
+
         source = radiopropa.Source()
-        #start_field = radiopropa.ParticleState().getElectricField() 
         source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*X1)))
         source.add(radiopropa.SourceDirection(radiopropa.Vector3d(*launch_v)))
+        source.add(radiopropa.SourceElectricField(efield))
         
-        source.add(radiopropa.SourceElectricField(efield).prepareParticle())
-        
-
-        #sim.setShowProgress(True)
         ray = source.getCandidate()
-        print(ray.getDescription())
-
-        print('test4')
         sim.run(ray, True)
-        #end_field = radiopropa.ParticleState().getElectricField() 
-        print('test5')
 
         R_real = ray.get().current.getElectricField().getTraces()[0].getFrequencySpectrum_real()
         R_imag = ray.get().current.getElectricField().getTraces()[0].getFrequencySpectrum_imag()
@@ -508,20 +492,13 @@ class radiopropa_ray_tracing(ray_tracing_base):
         Th_imag = ray.get().current.getElectricField().getTraces()[1].getFrequencySpectrum_imag()
         Ph_real = ray.get().current.getElectricField().getTraces()[2].getFrequencySpectrum_real()
         Ph_imag = ray.get().current.getElectricField().getTraces()[2].getFrequencySpectrum_imag()
-        s_rate = ray.get().current.getElectricField().getTraces()[0].getSamplingRate()
 
-        print('this is it')
-        print(R_real)
-        R = np.vectorize(complex)(R_real, R_imag)
+        Radius = np.vectorize(complex)(R_real, R_imag)
         Th = np.vectorize(complex)(Th_real, Th_imag)
         Ph = np.vectorize(complex)(Ph_real, Ph_imag)
 
-        end_field = np.vstack((R, Th, Ph))
-        
-        print(end_field)
-        print(end_field.shape)
+        end_field = np.vstack((Radius, Th, Ph))
 
-        #return R_real
         return end_field
         
     def raytracer_minimizer(self, n_reflections=0):
@@ -1127,8 +1104,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
         n2 = self._medium.get_index_of_refraction(self._X2)  # receiver
         return focusing * (n1 / n2) ** 0.5
         
-        
-
     def apply_propagation_effects(self, efield, i_solution):
         """
         Apply propagation effects to the electric field
@@ -1150,7 +1125,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
         s_rate = efield.get_sampling_rate()
         spec = efield.get_frequency_spectrum()
 
-        
         ## aply attenuation
         apply_attenuation = self._config['propagation']['attenuate_ice']
         if apply_attenuation:
@@ -1192,8 +1166,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             spec[2] *= reflection_coefficient * np.exp(1j * phase_shift)
             self.__logger.debug(
                 f"ray is reflecting {i_reflections:d} times at the bottom -> reducing the signal by a factor of {reflection_coefficient:.2f}")
-
-
+        
         ## apply focussing effect
         if self._config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
@@ -1203,9 +1176,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
         if self._config['propagation']['birefringence']:
         
             launch_v = self.get_launch_vector(i_solution)
-
-            print(spec)
-            print(spec.shape)
 
             spec_r_real = radiopropa.DoubleVector_1D()
             spec_theta_real = radiopropa.DoubleVector_1D()
@@ -1222,20 +1192,17 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 spec_theta_imag.push_back(spec[1][i].imag)
                 spec_phi_imag.push_back(spec[2][i].imag)
 
-            E = radiopropa.ElectricField()
+            El_field = radiopropa.ElectricField()
 
-            E.setFrequencySpectrum(spec_r_real,spec_r_imag,
+            El_field.setFrequencySpectrum(spec_r_real,spec_r_imag,
 					   spec_theta_real,spec_theta_imag,
 					   spec_phi_real,spec_phi_imag,
 					   s_rate)
 
-            print('test3')
-
-            spec = self.raytracer_birefringence(launch_v, E, s_rate)
+            spec = self.raytracer_birefringence(launch_v, El_field, s_rate)
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
-
 
     def get_output_parameters(self):
         """
@@ -1300,10 +1267,10 @@ class radiopropa_ray_tracing(ray_tracing_base):
         if config == None:
             config = dict()
             config['propagation'] = dict(
-                attenuate_ice = False,
+                attenuate_ice = True,
                 focusing_limit = 2,
                 focusing = False,
-                birefringence = True,
+                birefringence = False,
                 radiopropa = dict(
                     mode = 'iterative',
                     iter_steps_channel = [25., 2., .5], #unit is meter
