@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import NuRadioReco.detector.detector
 import NuRadioReco.modules.io.eventReader
 import NuRadioReco.modules.io.eventWriter
