@@ -166,7 +166,7 @@ class triggerSimulator:
             start_time = ch_start_time
 
         if ipred != len(triggered_channels):
-            msg = f"Expected the channels: {triggered_channels} in the file, but found {ipred} waveforms. Maybe some of these channels do not exist in the file"
+            msg = f"[{trigger_name}] Expected the channels: {triggered_channels} in the file, but found {ipred} waveforms. Maybe some of these channels do not exist in the file"
             self.logger.error(msg)
             raise ValueError(msg)
 
@@ -180,16 +180,16 @@ class triggerSimulator:
         # Run the network a few times on this data to build up the hidden state
         if self.__h is None:
             n_warmup = 10
-            self.logger.info(f"Running one time warmup of the GRU on the passed in waveforms. Will process this waveform {n_warmup} times")
+            self.logger.info(f"[{trigger_name}] Running one time warmup of the GRU on the passed in waveforms. Will process this waveform {n_warmup} times")
             self.__h = self._model.init_hidden()
             for i in range(n_warmup):  # Do a little warm up to get the hidden state built up
-                yhat, self.__h = self._model(torch_tensor, self.__h)
+                yhat, self.__h = self._model(torch_tensor.to(self._device), self.__h)
 
         # Apply the network to this event's data and calculate TOT on the output
-        yhat, self.__h = self._model(torch_tensor, self.__h)
-        tot_intervals = CalculateTimeOverThresholdIntervals(threshold, tot_bins, yhat)
+        yhat, self.__h = self._model(torch_tensor.to(self._device), self.__h)
+        tot_intervals = CalculateTimeOverThresholdIntervals(threshold, tot_bins, yhat.cpu())
         has_triggered = len(tot_intervals) > 0  # Any number of tot passings constitute a global success for this waveform
-        self.logger.debug(f"Found {len(tot_intervals)} instances of the trigger being passed")
+        self.logger.debug(f"[{trigger_name}] Found {len(tot_intervals)} instances of the trigger being passed")
 
         # Set the trigger results and times
         trigger = TimeOverThresholdTrigger(trigger_name, threshold, tot_bins, channels=triggered_channels)
@@ -201,11 +201,11 @@ class triggerSimulator:
             trigger_times = start_time + dt * tot_intervals[:, 0]
             trigger.set_trigger_time(trigger_times[0])
             trigger.set_trigger_times(trigger_times)
-            self.logger.info(f"Station has passed trigger, trigger times are {trigger_times / units.ns} ns")
-            self.logger.debug(f"\t--> Non-relative times: {trigger_times - start_time / units.ns} ns")
-            self.logger.debug(f"\t--> trigger bins: {tot_intervals[:, 0]}, of {yhat.shape[1]} bins")
+            self.logger.debug(f"[{trigger_name}] Station has passed trigger, trigger times are {trigger_times / units.ns} ns")
+            self.logger.debug(f"[{trigger_name}] \t--> Time since waveform start: {trigger_times - start_time / units.ns} ns")
+            self.logger.debug(f"[{trigger_name}] \t--> trigger bins: {tot_intervals[:, 0]}, of {yhat.shape[1]} bins")
         else:
-            self.logger.info("Station has NOT passed trigger")
+            self.logger.debug(f"[{trigger_name}] Station has NOT passed trigger")
 
         station.set_trigger(trigger)
 
