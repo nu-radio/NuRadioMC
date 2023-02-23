@@ -431,7 +431,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         def MinimizeAble(lower,upper):
             #This checks if there are 2 distinct regions, takes about 10^-6% of the total time
             if ((len(lower) == 2) and (len(upper)==2)):
-                return (lower[1] > upper[0]) and (lower[0] < upper[0]) and (lower[1] < upper[1])
+                return ((lower[1] > upper[0]) and (lower[0] < upper[0]) and (lower[1] < upper[1]))
             else:
                 return False
 
