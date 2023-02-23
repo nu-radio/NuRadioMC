@@ -17,14 +17,15 @@ from datetime import datetime
 det = Detector(database_connection=config.DATABASE_TARGET)
 
 
-def select_cable(page_name, main_container, warning_container_top):
-    col1_cable, col2_cable, col3_cable = main_container.columns([1,1,1])
+def select_cable_old(page_name, main_container, warning_container_top):
+    col1_cable, col2_cable, col3_cable = main_container.columns([1, 1, 1])
     cable_types = []
     cable_stations = []
     cable_channels = []
     if page_name == 'surface_cable':
-        cable_types=['Choose an option', '11 meter signal']
-        cable_stations = ['Choose an option', 'Station 1 (11 Nanoq)', 'Station 2 (12 Terianniaq)', 'Station 3 (13 Ukaleq)', 'Station 4 (14 Tuttu)', 'Station 5 (15 Umimmak)', 'Station 6 (21 Amaroq)', 'Station 7 (22 Avinngaq)', 'Station 8 (23 Ukaliatsiaq)', 'Station 9 (24 Qappik)','Station 10 (25 Aataaq)']
+        cable_types = ['Choose an option', '11 meter signal']
+        cable_stations = ['Choose an option', 'Station 1 (11 Nanoq)', 'Station 2 (12 Terianniaq)', 'Station 3 (13 Ukaleq)', 'Station 4 (14 Tuttu)', 'Station 5 (15 Umimmak)', 'Station 6 (21 Amaroq)',
+                          'Station 7 (22 Avinngaq)', 'Station 8 (23 Ukaliatsiaq)', 'Station 9 (24 Qappik)', 'Station 10 (25 Aataaq)']
         cable_channels = ['Choose an option', 'Channel 1 (0)', 'Channel 2 (1)', 'Channel 3 (2)', 'Channel 4 (3)', 'Channel 5 (4)', 'Channel 6 (5)', 'Channel 7 (6)', 'Channel 8 (7)', 'Channel 9 (8)']
     elif page_name == 'downhole_cable':
         cable_types = ['Choose an option', 'Orange (1m)', 'Blue (2m)', 'Green (3m)', 'White (4m)', 'Brown (5m)', 'Red/Grey (6m)']
@@ -38,9 +39,9 @@ def select_cable(page_name, main_container, warning_container_top):
 
     cable_name = ""
     if page_name == 'surface_cable':
-        cable_name = cable_station[cable_station.find('(')+1:cable_station.find('(')+3] + cable_channel[cable_channel.find('(')+1:cable_channel.rfind(')')] + cable_type[:cable_type.find(' meter')]
+        cable_name = cable_station[cable_station.find('(') + 1:cable_station.find('(') + 3] + cable_channel[cable_channel.find('(') + 1:cable_channel.rfind(')')] + cable_type[:cable_type.find(' meter')]
     elif page_name == 'downhole_cable':
-        cable_name = cable_station[len('stations'): len('stations') + 2] + cable_channel[:1] + cable_type[cable_type.find('(')+1:cable_type.find(')')-1]
+        cable_name = cable_station[len('stations'): len('stations') + 2] + cable_channel[:1] + cable_type[cable_type.find('(') + 1:cable_type.find(')') - 1]
 
     if cable_name in det.get_object_names(page_name):
         if page_name == 'surface_cable':
@@ -48,16 +49,72 @@ def select_cable(page_name, main_container, warning_container_top):
         elif page_name == 'downhole_cable':
             warning_container_top.warning(f'You are about to override the {page_name} unit \'{cable_name[-1:]} meter, station {cable_name[:2]}, string {cable_name[2:-1]}\'!')
 
-
     return cable_type, cable_station, cable_channel, cable_name
 
 
-def validate_global_cable(container_bottom, cable_type, cable_sta, cable_cha, channel_working, Sdata_validated_magnitude, Sdata_validated_phase, uploaded_data_magnitude, uploaded_data_phase):
+def select_cable(page_name, main_container, warning_container_top):
+    col1_cable, col2_cable = main_container.columns([1, 1])
+
+    # load cable names from the database
+    cable_names_db = det.get_object_names(page_name)
+
+    cable_names_db.insert(0, 'new cable')
+    cable_name = col1_cable.selectbox('Select existing cable or enter unique name of new cable:', cable_names_db)
+    disable_text_input = False
+    if cable_name == 'new cable':
+        disable_text_input = False
+    new_cable_name = col2_cable.text_input('Select existing cable :', placeholder='new cable name', label_visibility='hidden', disabled=disable_text_input)
+    if cable_name == 'new cable':
+        selected_cable_name = new_cable_name
+    else:
+        selected_cable_name = cable_name
+    main_container.markdown(selected_cable_name)
+    print('cable_name', selected_cable_name)
+    if selected_cable_name in cable_names_db:
+        warning_container_top.warning(f'You are about to override the {page_name} with the name \'{selected_cable_name}\'!')
+
+    return selected_cable_name
+
+
+def validate_global_cable_old(container_bottom, cable_type, cable_sta, cable_cha, channel_working, Sdata_validated_magnitude, Sdata_validated_phase, uploaded_data_magnitude, uploaded_data_phase):
     disable_insert_button = True
     name_validation = False
     # if nothing is chosen, a warning is given and the INSERT button stays disabled
     if cable_type == 'Choose an option' or cable_sta == 'Choose an option' or cable_cha == 'Choose an option':
         container_bottom.error('Not all cable options are selected')
+        name_validation = False
+    else:
+        name_validation = True
+
+    if name_validation:
+        if not Sdata_validated_magnitude and uploaded_data_magnitude is not None:
+            container_bottom.error('There is a problem with the magnitude input data')
+            disable_insert_button = True
+
+        if not Sdata_validated_phase and uploaded_data_phase is not None:
+            container_bottom.error('There is a problem with the phase input data')
+            disable_insert_button = True
+
+        if Sdata_validated_magnitude and Sdata_validated_phase:
+            disable_insert_button = False
+            container_bottom.success('All inputs validated')
+
+        if not channel_working:
+            container_bottom.warning('The channel is set to not working')
+            disable_insert_button = False
+            container_bottom.success('All inputs validated')
+    else:
+        disable_insert_button = True
+
+    return disable_insert_button
+
+
+def validate_global_cable(container_bottom, cable_name, channel_working, Sdata_validated_magnitude, Sdata_validated_phase, uploaded_data_magnitude, uploaded_data_phase):
+    disable_insert_button = True
+    name_validation = False
+    # if nothing is chosen, a warning is given and the INSERT button stays disabled
+    if cable_name == '':
+        container_bottom.error('No cable name is given!')
         name_validation = False
     else:
         name_validation = True
