@@ -18,7 +18,8 @@ def build_main_page(main_cont):
     cont_warning_top = main_cont.container()
 
     # select the cable
-    cable_type, cable_station, cable_channel, cable_name= select_cable(page_name, main_cont, cont_warning_top)
+    # cable_type, cable_station, cable_channel, cable_name = select_cable(page_name, main_cont, cont_warning_top)
+    cable_name = select_cable(page_name, main_cont, cont_warning_top)
 
     # input of checkboxes, data_format, units and protocol
     working = main_cont.checkbox('channel is working', value=True)
@@ -43,7 +44,8 @@ def build_main_page(main_cont):
     # # input checks and enable the INSERT button
     S_magnitude, smagnitude_validated = single_S_data_validation(cont_warning_bottom, uploaded_magnitude, [input_units[0],input_units[1]], 'magnitude')
     S_phase, sphase_validated = single_S_data_validation(cont_warning_bottom, uploaded_phase, [input_units[0],input_units[2]], 'phase')
-    disable_button = validate_global_cable(cont_warning_bottom, cable_type, cable_station, cable_channel, working, smagnitude_validated, sphase_validated, uploaded_magnitude, uploaded_phase)
+    # disable_button = validate_global_cable(cont_warning_bottom, cable_type, cable_station, cable_channel, working, smagnitude_validated, sphase_validated, uploaded_magnitude, uploaded_phase)
+    disable_button = validate_global_cable(cont_warning_bottom, cable_name, working, smagnitude_validated, sphase_validated, uploaded_magnitude, uploaded_phase)
     figure = create_double_plot(s_name, cont_warning_bottom, S_magnitude, S_phase, ['frequency', 'magnitude'], ['frequency', 'phase'], ['MHz',input_units[1]], ['MHz',input_units[2]])
     main_cont.plotly_chart(figure, use_container_width=True)
 
