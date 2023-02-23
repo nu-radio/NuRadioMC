@@ -9,6 +9,7 @@ new features:
 - adding default RadioPropa ice model object to medium with the feature to set a personlised object as alternative
 - add positions array functionality to simple ice model in average and gradient functions
 - analytic ray tracing solutions are now sorted consistently from lowest to highest ray
+- added ability to generate high-low-triggered noise on a narrow band but return full-band waveforms
 bugfixes:
 
 
