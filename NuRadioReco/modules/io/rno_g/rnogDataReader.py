@@ -68,7 +68,7 @@ class RNOGDataReader:
     def get_n_events(self):
         return self.get_event_ids().shape[0]
 
-    @lru_cache(maxsize=1) # probably not actually relevant outside the data viewer?
+    # @lru_cache(maxsize=1) # probably not actually relevant outside the data viewer?
     def get_event_i(self, i_event):
         read_time = time.time()
         event = NuRadioReco.framework.event.Event(*self.get_event_ids()[i_event])

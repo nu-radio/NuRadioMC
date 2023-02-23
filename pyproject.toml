@@ -46,7 +46,7 @@ numba = "*"
 Sphinx = "*"
 sphinx-rtd-theme = "*"
 numpydoc = "1.1.0"
-proposal = "6.1.6"
+proposal = "7.5.0"
 pygdsm = {git = "https://github.com/telegraphic/pygdsm"}
 nifty5 = {git = "https://gitlab.mpcdf.mpg.de/ift/nifty.git", branch="NIFTy_5"}
 pypocketfft = {git = "https://gitlab.mpcdf.mpg.de/mtr/pypocketfft"}
