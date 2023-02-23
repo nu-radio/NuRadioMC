@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.channelResampler
@@ -26,7 +26,7 @@ class mySimulation(simulation.simulation):
 
 sim = mySimulation(
     inputfilename='NuRadioReco/test/trigger_tests/trigger_test_eventlist.hdf5',
-    outputfilename='input.hdf5',
+    outputfilename='NuRadioReco/test/trigger_tests/trigger_test_input.hdf5',
     detectorfile='NuRadioReco/test/trigger_tests/trigger_test_detector.json',
     outputfilenameNuRadioReco='NuRadioReco/test/trigger_tests/trigger_test_input.nur',
     config_file='NuRadioReco/test/trigger_tests/config.yaml',

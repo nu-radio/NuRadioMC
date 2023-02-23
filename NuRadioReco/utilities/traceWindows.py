@@ -32,7 +32,8 @@ def get_window_around_maximum(station,
         Times to be sustracted from the points defined by the ratio cut to
         create the window
 
-    Returns:
+    Returns
+    -------
     (left_time, right_time): (float, float) tuple
         Tuple containing the edges of the time window
     """

@@ -344,7 +344,7 @@
       "station_id": 11
     },
     "22": {
-      "ant_comment": "Helper string B",
+      "ant_comment": "Helper string A",
       "amp_type": "iglu",
       "ant_orientation_phi": 0.0,
       "ant_orientation_theta": 0.0,
@@ -359,7 +359,7 @@
       "station_id": 11
     },
     "23": {
-      "ant_comment": "Helper string B",
+      "ant_comment": "Helper string A",
       "amp_type": "iglu",
       "ant_orientation_phi": 0.0,
       "ant_orientation_theta": 0.0,
