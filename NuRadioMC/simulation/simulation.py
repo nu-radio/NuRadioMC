@@ -155,13 +155,11 @@ class simulation(
             vertex_positions = np.array([np.array(self._fin['xx'])[event_indices],
                                          np.array(self._fin['yy'])[event_indices],
                                          np.array(self._fin['zz'])[event_indices]]).T
-            vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
             self._distance_cut_time += time.time() - t_tmp
 
 
             # loop over all stations (each station is treated independently)
             for iSt, self._station_id in enumerate(self._station_ids):
-                t1 = time.time()
                 logger.debug(f"simulating station {self._station_id}")
 
                 if self._cfg['speedup']['distance_cut']:
@@ -195,13 +193,13 @@ class simulation(
                 # loop over all showers in event group
                 # create output data structure for this channel
                 sg = self._create_station_output_structure(len(event_indices), self._det.get_number_of_channels(self._station_id))
+
                 for iSh, self._shower_index in enumerate(event_indices):
-                    sg['shower_id'][iSh] = self._shower_ids[self._shower_index]
                     iCounter += 1
-#                     if(iCounter % max(1, int(n_shower_station / 100.)) == 0):
-                    if (time.time() - t_last_update) > 60 :
+                    if (time.time() - t_last_update) > 60:
                         t_last_update = time.time()
-                        eta = NuRadioMC.simulation.simulation_base.pretty_time_delta((time.time() - t_start) * (n_shower_station - iCounter) / iCounter)
+                        eta = NuRadioMC.simulation.simulation_base.pretty_time_delta(
+                            (time.time() - t_start) * (n_shower_station - iCounter) / iCounter)
                         total_time_sum = self._input_time + self._rayTracingTime + self._detSimTime + self._outputTime + self._weightTime + self._distance_cut_time  # askaryan time is part of the ray tracing time, so it is not counted here.
                         total_time = time.time() - t_start
                         tmp_att = 0
@@ -222,40 +220,16 @@ class simulation(
                                     100. * self._weightTime / total_time,
                                     100 * self._distance_cut_time / total_time,
                                     100 * (total_time - total_time_sum) / total_time))
-
-                    self._read_input_shower_properties()
-                    if self._particle_mode:
-                        logger.debug(f"simulating shower {self._shower_index}: {self._fin['shower_type'][self._shower_index]} with E = {self._fin['shower_energies'][self._shower_index]/units.eV:.2g}eV")
-
-                    if not self._distance_cut_shower(
+                    is_candidate_shower = self._simulate_event(
                         iSh,
                         iSt,
-                        vertex_distances,
-                        shower_energies
-                    ):
-                        continue
-                    mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup']['distance_cut_sum_length']
-                    shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
-
-                    cherenkov_angle, n_index = self._simulate_shower()
-                    candidate_shower = False
-                    t2 = time.time()
-                    for channel_id in self._channel_ids:
-                        is_candidate_channel = self._simulate_channel(
-                            channel_id,
-                            pre_simulated,
-                            cherenkov_angle,
-                            n_index,
-                            sg,
-                            iSh,
-                            ray_tracing_performed,
-                            shower_energy_sum
-                        )
-                        if is_candidate_channel:
-                            candidate_shower = True
-                    t3 = time.time()
-                    self._rayTracingTime += t3 - t2
-                    if candidate_shower:
+                        sg,
+                        vertex_positions,
+                        shower_energies,
+                        pre_simulated,
+                        ray_tracing_performed
+                    )
+                    if is_candidate_shower:
                         candidate_station = True
 
                 # now perform first part of detector simulation -> convert each efield to voltage
@@ -697,6 +671,57 @@ class simulation(
             self._distance_cut_time += time.time() - t_tmp
             return True
         return True
+
+    def _simulate_event(
+            self,
+            iSh,
+            iSt,
+            sg,
+            vertex_positions,
+            shower_energies,
+            pre_simulated,
+            ray_tracing_performed
+    ):
+        sg['shower_id'][iSh] = self._shower_ids[self._shower_index]
+
+        self._read_input_shower_properties()
+        if self._particle_mode:
+            logger.debug(
+                f"simulating shower {self._shower_index}: {self._fin['shower_type'][self._shower_index]} with E = {self._fin['shower_energies'][self._shower_index] / units.eV:.2g}eV")
+
+        vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
+
+        if not self._distance_cut_shower(
+                iSh,
+                iSt,
+                vertex_distances,
+                shower_energies
+        ):
+            return False
+        mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup'][
+            'distance_cut_sum_length']
+        shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
+
+        cherenkov_angle, n_index = self._simulate_shower()
+        candidate_shower = False
+        t2 = time.time()
+        for channel_id in self._channel_ids:
+            is_candidate_channel = self._simulate_channel(
+                channel_id,
+                pre_simulated,
+                cherenkov_angle,
+                n_index,
+                sg,
+                iSh,
+                ray_tracing_performed,
+                shower_energy_sum
+            )
+            if is_candidate_channel:
+                candidate_shower = True
+        t3 = time.time()
+        self._rayTracingTime += t3 - t2
+        return candidate_shower
+
     def _simulate_shower(
             self
     ):
