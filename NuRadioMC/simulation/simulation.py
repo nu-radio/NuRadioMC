@@ -78,8 +78,8 @@ class simulation(
             logger.status(f"terminating simulation")
             return 0
         logger.status(f"Starting NuRadioMC simulation")
-        t_start = time.time()
-        t_last_update = t_start
+        self._t_start = time.time()
+        t_last_update = self._t_start
 
         unique_event_group_ids = np.unique(self._fin['event_group_ids'])
         self._n_showers = len(self._fin['event_group_ids'])
@@ -191,28 +191,14 @@ class simulation(
                 for iSh, self._shower_index in enumerate(event_indices):
                     iCounter += 1
                     if (time.time() - t_last_update) > 60:
+                        self._write_progress_output(
+                            n_shower_station,
+                            iCounter,
+                            i_event_group_id,
+                            unique_event_group_ids
+                        )
                         t_last_update = time.time()
-                        eta = NuRadioMC.simulation.simulation_base.pretty_time_delta(
-                            (time.time() - t_start) * (n_shower_station - iCounter) / iCounter)
-                        total_time_sum = self._input_time + self._rayTracingTime + self._detSimTime + self._outputTime + self._weightTime + self._distance_cut_time  # askaryan time is part of the ray tracing time, so it is not counted here.
-                        total_time = time.time() - t_start
-                        if total_time > 0:
-                            logger.status(
-                                "processing event group {}/{} and shower {}/{} ({} showers triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}%, askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
-                                    i_event_group_id,
-                                    len(unique_event_group_ids),
-                                    iCounter,
-                                    n_shower_station,
-                                    np.sum(self._mout['triggered']),
-                                    100. * iCounter / n_shower_station,
-                                    eta,
-                                    100. * (self._rayTracingTime - self._askaryan_time) / total_time,
-                                    100. * self._askaryan_time / total_time,
-                                    100. * self._detSimTime / total_time,
-                                    100. * self._input_time / total_time,
-                                    100. * self._weightTime / total_time,
-                                    100 * self._distance_cut_time / total_time,
-                                    100 * (total_time - total_time_sum) / total_time))
+
                     is_candidate_shower = self._simulate_event(
                         iSh,
                         iSt,
@@ -257,7 +243,7 @@ class simulation(
         except:
             logger.error("error in calculating effective volume")
 
-        t_total = time.time() - t_start
+        t_total = time.time() - self._t_start
         self._outputTime = time.time() - t5
 
         output_NuRadioRecoTime = "Timing of NuRadioReco modules \n"

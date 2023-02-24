@@ -5,6 +5,7 @@ from six import iteritems
 import six
 import logging
 import yaml
+import time
 import NuRadioMC.simulation.simulation_base
 import NuRadioReco.framework.particle
 from NuRadioReco.framework.parameters import particleParameters as simp
@@ -382,3 +383,31 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
             self._eventWriter.run(event, self._det, mode=output_mode)
         else:
             self._eventWriter.run(event, mode=output_mode)
+
+    def _write_progress_output(
+            self,
+            n_shower_station,
+            iCounter,
+            i_event_group_id,
+            unique_event_group_ids
+    ):
+        eta = NuRadioMC.simulation.simulation_base.pretty_time_delta((time.time() - self._t_start) * (n_shower_station - iCounter) / iCounter)
+        total_time_sum = self._input_time + self._rayTracingTime + self._detSimTime + self._outputTime + self._weightTime + self._distance_cut_time  # askaryan time is part of the ray tracing time, so it is not counted here.
+        total_time = time.time() - self._t_start
+        if total_time > 0:
+            logger.status(
+                "processing event group {}/{} and shower {}/{} ({} showers triggered) = {:.1f}%, ETA {}, time consumption: ray tracing = {:.0f}%, askaryan = {:.0f}%, detector simulation = {:.0f}% reading input = {:.0f}%, calculating weights = {:.0f}%, distance cut {:.0f}%, unaccounted = {:.0f}% ".format(
+                    i_event_group_id,
+                    len(unique_event_group_ids),
+                    iCounter,
+                    n_shower_station,
+                    np.sum(self._mout['triggered']),
+                    100. * iCounter / n_shower_station,
+                    eta,
+                    100. * (self._rayTracingTime - self._askaryan_time) / total_time,
+                    100. * self._askaryan_time / total_time,
+                    100. * self._detSimTime / total_time,
+                    100. * self._input_time / total_time,
+                    100. * self._weightTime / total_time,
+                    100 * self._distance_cut_time / total_time,
+                    100 * (total_time - total_time_sum) / total_time))
