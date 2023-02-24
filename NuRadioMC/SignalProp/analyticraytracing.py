@@ -1133,7 +1133,7 @@ class ray_tracing_2D(ray_tracing_base):
                 import matplotlib.pyplot as plt
                 plt.show()
 
-            return sorted(results, key=itemgetter('type'))
+            return sorted(results, key=itemgetter('reflection', 'C0'))
 
     def plot_result(self, x1, x2, C_0, ax):
         """
@@ -1960,8 +1960,9 @@ class ray_tracing(ray_tracing_base):
             lauVec1 = self._r1.get_launch_vector(iS)
             lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
             focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
-            if(self.get_solution_type(iS) != self._r1.get_solution_type(iS)):
-                self.__logger.error("solution types are not the same")
+            if (self.get_results()[iS]['reflection'] != self._r1.get_results()[iS]['reflection'] 
+                    or self.get_results()[iS]['reflection_case'] != self._r1.get_results()[iS]['reflection_case']):
+                self.__logger.error("Number or type of reflections are different between solutions - focusing correction may not be reliable.")
         else:
             focusing = 1.0
             self.__logger.info("too few ray tracing solutions, setting focusing factor to 1")
