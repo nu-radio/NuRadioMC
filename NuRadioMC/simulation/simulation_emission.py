@@ -20,6 +20,7 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
 
     def _simulate_radio_emission(
             self,
+            sim_shower,
             channel_id,
             viewing_angles,
             iS,
@@ -45,11 +46,11 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
             else:
                 # check if the shower was already simulated (e.g. for a different channel or ray tracing solution)
                 if self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]:
-                    if self._sim_shower.has_parameter(shp.charge_excess_profile_id):
-                        kwargs = {'iN': self._sim_shower.get_parameter(shp.charge_excess_profile_id)}
+                    if sim_shower.has_parameter(shp.charge_excess_profile_id):
+                        kwargs = {'iN': sim_shower.get_parameter(shp.charge_excess_profile_id)}
                 if self._cfg['signal']['model'] == "Alvarez2009":
-                    if self._sim_shower.has_parameter(shp.k_L):
-                        kwargs = {'k_L': self._sim_shower.get_parameter(shp.k_L)}
+                    if sim_shower.has_parameter(shp.k_L):
+                        kwargs = {'k_L': sim_shower.get_parameter(shp.k_L)}
                         logger.debug(f"reusing k_L parameter of Alvarez2009 model of k_L = {kwargs['k_L']:.4g}")
 
             spectrum, additional_output = NuRadioMC.SignalGen.askaryan.get_frequency_spectrum(
@@ -69,15 +70,15 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
             if self._cfg['signal']['model'] in ["ARZ2019", "ARZ2020"]:
                 if 'shower_realization_ARZ' not in self._mout:
                     self._mout['shower_realization_ARZ'] = np.zeros(self._n_showers)
-                if not self._sim_shower.has_parameter(shp.charge_excess_profile_id):
-                    self._sim_shower.set_parameter(shp.charge_excess_profile_id, additional_output['iN'])
+                if not sim_shower.has_parameter(shp.charge_excess_profile_id):
+                    sim_shower.set_parameter(shp.charge_excess_profile_id, additional_output['iN'])
                     self._mout['shower_realization_ARZ'][self._shower_index] = additional_output['iN']
                     logger.debug(f"setting shower profile for ARZ shower library to i = {additional_output['iN']}")
             if self._cfg['signal']['model'] == "Alvarez2009":
                 if 'shower_realization_Alvarez2009' not in self._mout:
                     self._mout['shower_realization_Alvarez2009'] = np.zeros(self._n_showers)
-                if not self._sim_shower.has_parameter(shp.k_L):
-                    self._sim_shower.set_parameter(shp.k_L, additional_output['k_L'])
+                if not sim_shower.has_parameter(shp.k_L):
+                    sim_shower.set_parameter(shp.k_L, additional_output['k_L'])
                     self._mout['shower_realization_Alvarez2009'][self._shower_index] = additional_output['k_L']
                     logger.debug(f"setting k_L parameter of Alvarez2009 model to k_L = {additional_output['k_L']:.4g}")
             self._askaryan_time += (time.time() - t_ask)
@@ -186,6 +187,7 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
 
     def _calculate_polarization_angles(
             self,
+            sim_shower,
             output_data,
             iSh,
             delta_Cs,
@@ -221,6 +223,7 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
             # get neutrino pulse from Askaryan module
 
             candidate_ray, polarization_angle = self._simulate_radio_emission(
+                sim_shower,
                 channel_id,
                 viewing_angles,
                 iS,

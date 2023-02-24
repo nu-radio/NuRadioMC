@@ -176,12 +176,8 @@ class simulation(
                 ray_tracing_performed = False
                 if 'station_{:d}'.format(self._station_id) in self._fin_stations:
                     ray_tracing_performed = (self._raytracer.get_output_parameters()[0]['name'] in self._fin_stations['station_{:d}'.format(self._station_id)]) and self._was_pre_simulated
-                self._evt_tmp = NuRadioReco.framework.event.Event(0, 0)
-
-                if self._particle_mode:
-                    # add the primary particle to the temporary event
-                    self._evt_tmp.add_particle(self.primary)
-
+                self._dummy_event = NuRadioReco.framework.event.Event(0, 0) # a dummy event object, which does nothing but is needed because some modules require an event to be passed
+                sim_showers = {}
                 self._create_sim_station()
                 # loop over all showers in event group
                 # create output data structure for this channel
@@ -197,7 +193,7 @@ class simulation(
                         )
                         t_last_update = time.time()
 
-                    is_candidate_shower = self._simulate_event(
+                    is_candidate_shower, sim_shower = self._simulate_event(
                         iSh,
                         iSt,
                         output_data,
@@ -206,6 +202,8 @@ class simulation(
                         pre_simulated,
                         ray_tracing_performed
                     )
+                    if sim_shower is not None:
+                        sim_showers[str(sim_shower.get_id())] = sim_shower
                     if is_candidate_shower:
                         candidate_station = True
 
@@ -217,7 +215,8 @@ class simulation(
                     continue
                 self._detector_simulation(
                     event_indices,
-                    output_data
+                    output_data,
+                    sim_showers
                 )
 
             # end station loop
@@ -388,20 +387,20 @@ class simulation(
         creates a sim_shower object and saves the meta arguments such as neutrino direction, shower energy and self.input_particle[flavor]
         """
         # create NuRadioReco event structure
-        self._sim_shower = NuRadioReco.framework.radio_shower.RadioShower(self._shower_ids[self._shower_index])
+        sim_shower = NuRadioReco.framework.radio_shower.RadioShower(self._shower_ids[self._shower_index])
         # save relevant neutrino properties
-        self._sim_shower[shp.zenith] = self.input_particle[simp.zenith]
-        self._sim_shower[shp.azimuth] = self.input_particle[simp.azimuth]
-        self._sim_shower[shp.energy] = self._fin['shower_energies'][self._shower_index]
-        self._sim_shower[shp.flavor] = self.input_particle[simp.flavor]
-        self._sim_shower[shp.interaction_type] = self.input_particle[simp.interaction_type]
-        self._sim_shower[shp.vertex] = self.input_particle[simp.vertex]
-        self._sim_shower[shp.vertex_time] = self._vertex_time
-        self._sim_shower[shp.type] = self._fin['shower_type'][self._shower_index]
+        sim_shower[shp.zenith] = self.input_particle[simp.zenith]
+        sim_shower[shp.azimuth] = self.input_particle[simp.azimuth]
+        sim_shower[shp.energy] = self._fin['shower_energies'][self._shower_index]
+        sim_shower[shp.flavor] = self.input_particle[simp.flavor]
+        sim_shower[shp.interaction_type] = self.input_particle[simp.interaction_type]
+        sim_shower[shp.vertex] = self.input_particle[simp.vertex]
+        sim_shower[shp.vertex_time] = self._vertex_time
+        sim_shower[shp.type] = self._fin['shower_type'][self._shower_index]
         # TODO direct parent does not necessarily need to be the primary in general, but full
         # interaction chain is currently not populated in the input files.
-        self._sim_shower[shp.parent_id] = self.primary.get_id()
-
+        sim_shower[shp.parent_id] = self.primary.get_id()
+        return sim_shower
 
 
     def calculate_Veff(self):
@@ -594,13 +593,14 @@ class simulation(
             'distance_cut_sum_length']
         shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
 
-        cherenkov_angle, n_index = self._simulate_shower()
-        candidate_shower = False
+        sim_shower, cherenkov_angle, n_index = self._simulate_shower()
+        is_candidate_shower = False
         t2 = time.time()
         for channel_id in self._channel_ids:
             is_candidate_channel = self._simulate_channel(
                 channel_id,
                 pre_simulated,
+                sim_shower,
                 cherenkov_angle,
                 n_index,
                 output_data,
@@ -609,10 +609,10 @@ class simulation(
                 shower_energy_sum
             )
             if is_candidate_channel:
-                candidate_shower = True
+                is_candidate_shower = True
         t3 = time.time()
         self._rayTracingTime += t3 - t2
-        return candidate_shower
+        return is_candidate_shower, sim_shower
 
     def _simulate_shower(
             self
@@ -635,9 +635,9 @@ class simulation(
                 return False
 
         if self._particle_mode:
-            self._create_sim_shower()  # create sim shower
-            self._evt_tmp.add_sim_shower(self._sim_shower)
-
+            sim_shower = self._create_sim_shower()  # create sim shower
+        else:
+            sim_shower = None
         # generate unique and increasing event id per station
         self._event_ids_counter[self._station_id] += 1
         self._event_id = self._event_ids_counter[self._station_id]
@@ -655,12 +655,13 @@ class simulation(
         cherenkov_angle = np.arccos(1. / n_index)
 
         # first step: perform raytracing to see if solution exists
-        return cherenkov_angle, n_index
+        return sim_shower, cherenkov_angle, n_index
 
     def _simulate_channel(
             self,
             channel_id,
             pre_simulated,
+            sim_shower,
             cherenkov_angle,
             n_index,
             output_data,
@@ -690,6 +691,7 @@ class simulation(
 
         if ray_tracing_solution_found:
             is_candidate_channel = self._calculate_polarization_angles(
+                sim_shower,
                 output_data,
                 iSh,
                 delta_Cs,

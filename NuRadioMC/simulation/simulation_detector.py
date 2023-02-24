@@ -37,19 +37,19 @@ class simulation_detector(NuRadioMC.simulation.simulation_base.simulation_base):
     def _detector_simulation(
             self,
             event_indices,
-            output_data
+            output_data,
+            sim_showers
     ):
         t1 = time.time()
         self._station = NuRadioReco.framework.station.Station(self._station_id)
         self._station.set_sim_station(self._sim_station)
 
         self._simulate_sim_station_detector_response(
-            self._evt_tmp,
             self._station
         )
 
         if self._cfg['speedup']['amp_per_ray_solution']:
-            self._channelSignalReconstructor.run(self._evt_tmp, self._station.get_sim_station(), self._det)
+            self._channelSignalReconstructor.run(self._dummy_event, self._station.get_sim_station(), self._det)
             for channel in self._station.get_sim_station().iter_channels():
                 tmp_index = np.argwhere(event_indices == self._get_shower_index(channel.get_shower_id()))[0]
                 output_data['max_amp_shower_and_ray'][tmp_index, self._get_channel_index(
@@ -89,10 +89,11 @@ class simulation_detector(NuRadioMC.simulation.simulation_base.simulation_base):
                 tmp = tmp[:-2] + " ns"
                 logger.info(
                     f"creating event {iEvent} of event group {self._event_group_id} ranging rom {iStart} to {iStop} with indices {indices} corresponding to signal times of {tmp}")
-            new_event, new_station = self._create_event_structure(
+            new_event, new_station, shower_ids_of_sub_event = self._create_event_structure(
                 iEvent,
                 indices,
-                channel_identifiers
+                channel_identifiers,
+                sim_showers
             )
             self._evt = new_event
 
@@ -112,7 +113,7 @@ class simulation_detector(NuRadioMC.simulation.simulation_base.simulation_base):
                 new_station
             )
 
-            global_shower_indices = self._get_shower_index(self._shower_ids_of_sub_event)
+            global_shower_indices = self._get_shower_index(shower_ids_of_sub_event)
             local_shower_index = np.atleast_1d(
                 np.squeeze(np.argwhere(np.isin(event_indices, global_shower_indices, assume_unique=True))))
             self._save_triggers_to_hdf5(new_event, new_station, output_data, local_shower_index, global_shower_indices)
@@ -138,16 +139,15 @@ class simulation_detector(NuRadioMC.simulation.simulation_base.simulation_base):
 
     def _simulate_sim_station_detector_response(
             self,
-            event,
             station
     ):
         # convert efields to voltages at digitizer
         self._efieldToVoltageConverterPerEfield.run(
-            event,
+            self._dummy_event,
             station,
             self._det)  # convolve efield with antenna pattern
-        self._detector_simulation_filter_amp(event, station.get_sim_station(), self._det)
-        self._channelAddCableDelay.run(event, station.get_sim_station(), self._det)
+        self._detector_simulation_filter_amp(self._dummy_event, station.get_sim_station(), self._det)
+        self._channelAddCableDelay.run(self._dummy_event, station.get_sim_station(), self._det)
 
     def _simulate_detector_response(
             self,
