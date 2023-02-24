@@ -175,7 +175,6 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
         self._output_trigger_times_station = {}
         for station_id in self._station_ids:
             self._mout_groups[station_id] = {}
-            sg = self._mout_groups[station_id]
             self._output_event_group_ids[station_id] = []
             self._output_sub_event_ids[station_id] = []
             self._output_triggered_station[station_id] = []
@@ -186,26 +185,26 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
 
     def _create_station_output_structure(self, n_showers, n_antennas):
         nS = self._raytracer.get_number_of_raytracing_solutions()  # number of possible ray-tracing solutions
-        sg = {}
-        sg['triggered'] = np.zeros(n_showers, dtype=np.bool)
+        station_output_structure = {}
+        station_output_structure['triggered'] = np.zeros(n_showers, dtype=np.bool)
         # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
-        sg['shower_id'] = np.zeros(n_showers, dtype=int) * -1
-        sg['event_id_per_shower'] = np.zeros(n_showers, dtype=int) * -1
-        sg['event_group_id_per_shower'] = np.zeros(n_showers, dtype=int) * -1
-        sg['launch_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
-        sg['receive_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
-        sg['polarization'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
-        sg['travel_times'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
-        sg['travel_distances'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
+        station_output_structure['shower_id'] = np.zeros(n_showers, dtype=int) * -1
+        station_output_structure['event_id_per_shower'] = np.zeros(n_showers, dtype=int) * -1
+        station_output_structure['event_group_id_per_shower'] = np.zeros(n_showers, dtype=int) * -1
+        station_output_structure['launch_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
+        station_output_structure['receive_vectors'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
+        station_output_structure['polarization'] = np.zeros((n_showers, n_antennas, nS, 3)) * np.nan
+        station_output_structure['travel_times'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
+        station_output_structure['travel_distances'] = np.zeros((n_showers, n_antennas, nS)) * np.nan
         if self._cfg['speedup']['amp_per_ray_solution']:
-            sg['max_amp_shower_and_ray'] = np.zeros((n_showers, n_antennas, nS))
-            sg['time_shower_and_ray'] = np.zeros((n_showers, n_antennas, nS))
+            station_output_structure['max_amp_shower_and_ray'] = np.zeros((n_showers, n_antennas, nS))
+            station_output_structure['time_shower_and_ray'] = np.zeros((n_showers, n_antennas, nS))
         for parameter_entry in self._raytracer.get_output_parameters():
             if parameter_entry['ndim'] == 1:
-                sg[parameter_entry['name']] = np.zeros((n_showers, n_antennas, nS)) * np.nan
+                station_output_structure[parameter_entry['name']] = np.zeros((n_showers, n_antennas, nS)) * np.nan
             else:
-                sg[parameter_entry['name']] = np.zeros((n_showers, n_antennas, nS, parameter_entry['ndim'])) * np.nan
-        return sg
+                station_output_structure[parameter_entry['name']] = np.zeros((n_showers, n_antennas, nS, parameter_entry['ndim'])) * np.nan
+        return station_output_structure
 
     def _read_input_particle_properties(self, idx=None):
         if idx is None:
@@ -245,23 +244,23 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
         if 'vertex_times' in self._fin:
             self._vertex_time = self._fin['vertex_times'][self._shower_index]
 
-    def _save_triggers_to_hdf5(self, event, station, sg, local_shower_index, global_shower_index):
+    def _save_triggers_to_hdf5(self, event, station, output_data, local_shower_index, global_shower_index):
         extend_array = self._create_trigger_structures(station)
         # now we also need to create the trigger structure also in the sg (station group) dictionary that contains
         # the information fo the current station and event group
-        n_showers = sg['launch_vectors'].shape[0]
-        if 'multiple_triggers' not in sg:
-            sg['multiple_triggers'] = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
-            sg['trigger_times'] = np.nan * np.zeros_like(sg['multiple_triggers'], dtype=float)
+        n_showers = output_data['launch_vectors'].shape[0]
+        if 'multiple_triggers' not in output_data:
+            output_data['multiple_triggers'] = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            output_data['trigger_times'] = np.nan * np.zeros_like(output_data['multiple_triggers'], dtype=float)
         elif extend_array:
             tmp = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
-            nx, ny = sg['multiple_triggers'].shape
-            tmp[:, 0:ny] = sg['multiple_triggers']
-            sg['multiple_triggers'] = tmp
+            nx, ny = output_data['multiple_triggers'].shape
+            tmp[:, 0:ny] = output_data['multiple_triggers']
+            output_data['multiple_triggers'] = tmp
             # repeat for trigger times
             tmp_t = np.nan * np.zeros_like(tmp, dtype=float)
-            tmp_t[:, :ny] = sg['trigger_times']
-            sg['trigger_times'] = tmp_t
+            tmp_t[:, :ny] = output_data['trigger_times']
+            output_data['trigger_times'] = tmp_t
         self._output_event_group_ids[self._station_id].append(event.get_run_number())
         self._output_sub_event_ids[self._station_id].append(event.get_id())
         multiple_triggers = np.zeros(len(self._mout_attrs['trigger_names']), dtype=np.bool)
@@ -271,15 +270,15 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
                 multiple_triggers[iT] = station.get_trigger(trigger_name).has_triggered()
                 trigger_times[iT] = station.get_trigger(trigger_name).get_trigger_time()
                 for iSh in local_shower_index:  # now save trigger information per shower of the current station
-                    sg['multiple_triggers'][iSh][iT] = station.get_trigger(trigger_name).has_triggered()
-                    sg['trigger_times'][iSh][iT] = trigger_times[iT]
+                    output_data['multiple_triggers'][iSh][iT] = station.get_trigger(trigger_name).has_triggered()
+                    output_data['trigger_times'][iSh][iT] = trigger_times[iT]
         for iSh, iSh2 in zip(local_shower_index, global_shower_index):  # now save trigger information per shower of the current station
-            sg['triggered'][iSh] = np.any(sg['multiple_triggers'][iSh])
-            self._mout['triggered'][iSh2] |= sg['triggered'][iSh]
-            self._mout['multiple_triggers'][iSh2] |= sg['multiple_triggers'][iSh]
-            self._mout['trigger_times'][iSh2] = np.fmin(self._mout['trigger_times'][iSh2], sg['trigger_times'][iSh])
-        sg['event_id_per_shower'][local_shower_index] = event.get_id()
-        sg['event_group_id_per_shower'][local_shower_index] = event.get_run_number()
+            output_data['triggered'][iSh] = np.any(output_data['multiple_triggers'][iSh])
+            self._mout['triggered'][iSh2] |= output_data['triggered'][iSh]
+            self._mout['multiple_triggers'][iSh2] |= output_data['multiple_triggers'][iSh]
+            self._mout['trigger_times'][iSh2] = np.fmin(self._mout['trigger_times'][iSh2], output_data['trigger_times'][iSh])
+        output_data['event_id_per_shower'][local_shower_index] = event.get_id()
+        output_data['event_group_id_per_shower'][local_shower_index] = event.get_run_number()
         self._output_multiple_triggers_station[self._station_id].append(multiple_triggers)
         self._output_trigger_times_station[self._station_id].append(trigger_times)
         self._output_triggered_station[self._station_id].append(np.any(multiple_triggers))
@@ -289,10 +288,9 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
             self._mout_attrs['trigger_names'] = np.array([])
             self._mout['multiple_triggers'] = np.zeros((self._n_showers, 1), dtype=np.bool)
             for station_id in self._station_ids:
-                sg = self._mout_groups[station_id]
-                n_showers = sg['launch_vectors'].shape[0]
-                sg['multiple_triggers'] = np.zeros((n_showers, 1), dtype=np.bool)
-                sg['triggered'] = np.zeros(n_showers, dtype=np.bool)
+                n_showers = self._mout_groups[station_id]['launch_vectors'].shape[0]
+                self._mout_groups[station_id]['multiple_triggers'] = np.zeros((n_showers, 1), dtype=np.bool)
+                self._mout_groups[station_id]['triggered'] = np.zeros(n_showers, dtype=np.bool)
 
     def _create_trigger_structures(
             self,
@@ -317,12 +315,6 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
             nx, ny = self._mout['multiple_triggers'].shape
             tmp[:, 0:ny] = self._mout['multiple_triggers']
             self._mout['multiple_triggers'] = tmp
-#             for station_id in self._station_ids:
-#                 sg = self._mout_groups[station_id]
-#                 tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
-#                 nx, ny = sg['multiple_triggers'].shape
-#                 tmp[:, 0:ny] = sg['multiple_triggers']
-#                 sg['multiple_triggers'] = tmp
         return extend_array
 
     def _create_event_structure(
@@ -386,11 +378,11 @@ class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_ba
 
     def _write_progress_output(
             self,
-            n_shower_station,
             iCounter,
             i_event_group_id,
             unique_event_group_ids
     ):
+        n_shower_station = len(self._station_ids) * self._n_showers
         eta = NuRadioMC.simulation.simulation_base.pretty_time_delta((time.time() - self._t_start) * (n_shower_station - iCounter) / iCounter)
         total_time_sum = self._input_time + self._rayTracingTime + self._detSimTime + self._outputTime + self._weightTime + self._distance_cut_time  # askaryan time is part of the ray tracing time, so it is not counted here.
         total_time = time.time() - self._t_start

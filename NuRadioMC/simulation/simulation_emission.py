@@ -186,7 +186,7 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
 
     def _calculate_polarization_angles(
             self,
-            sg,
+            output_data,
             iSh,
             delta_Cs,
             viewing_angles,
@@ -211,12 +211,12 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
                 T = self._raytracer.get_travel_time(iS)  # calculate travel time
                 if R is None or T is None:
                     continue
-            sg['travel_distances'][iSh, i_channel, iS] = R
-            sg['travel_times'][iSh, i_channel, iS] = T
+            output_data['travel_distances'][iSh, i_channel, iS] = R
+            output_data['travel_times'][iSh, i_channel, iS] = T
             self._launch_vector = self._raytracer.get_launch_vector(iS)
             receive_vector = self._raytracer.get_receive_vector(iS)
             # save receive vector
-            sg['receive_vectors'][iSh, i_channel, iS] = receive_vector
+            output_data['receive_vectors'][iSh, i_channel, iS] = receive_vector
 
             # get neutrino pulse from Askaryan module
 
@@ -232,5 +232,5 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
             )
             if candidate_ray:
                 candidate_station = True
-            sg['polarization'][iSh, i_channel, iS] = polarization_angle
+            output_data['polarization'][iSh, i_channel, iS] = polarization_angle
         return candidate_station

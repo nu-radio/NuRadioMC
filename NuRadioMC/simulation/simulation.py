@@ -113,7 +113,6 @@ class simulation(
         self._weightTime = 0.0
         self._distance_cut_time = 0.0
 
-        n_shower_station = len(self._station_ids) * self._n_showers
         iCounter = 0
 
         # calculate bary centers of station
@@ -186,13 +185,12 @@ class simulation(
                 self._create_sim_station()
                 # loop over all showers in event group
                 # create output data structure for this channel
-                sg = self._create_station_output_structure(len(event_indices), self._det.get_number_of_channels(self._station_id))
+                output_data = self._create_station_output_structure(len(event_indices), self._det.get_number_of_channels(self._station_id))
 
                 for iSh, self._shower_index in enumerate(event_indices):
                     iCounter += 1
                     if (time.time() - t_last_update) > 60:
                         self._write_progress_output(
-                            n_shower_station,
                             iCounter,
                             i_event_group_id,
                             unique_event_group_ids
@@ -202,7 +200,7 @@ class simulation(
                     is_candidate_shower = self._simulate_event(
                         iSh,
                         iSt,
-                        sg,
+                        output_data,
                         vertex_positions,
                         shower_energies,
                         pre_simulated,
@@ -219,7 +217,7 @@ class simulation(
                     continue
                 self._detector_simulation(
                     event_indices,
-                    sg
+                    output_data
                 )
 
             # end station loop
@@ -570,13 +568,13 @@ class simulation(
             self,
             iSh,
             iSt,
-            sg,
+            output_data,
             vertex_positions,
             shower_energies,
             pre_simulated,
             ray_tracing_performed
     ):
-        sg['shower_id'][iSh] = self._shower_ids[self._shower_index]
+        output_data['shower_id'][iSh] = self._shower_ids[self._shower_index]
 
         self._read_input_shower_properties()
         if self._particle_mode:
@@ -605,7 +603,7 @@ class simulation(
                 pre_simulated,
                 cherenkov_angle,
                 n_index,
-                sg,
+                output_data,
                 iSh,
                 ray_tracing_performed,
                 shower_energy_sum
@@ -665,7 +663,7 @@ class simulation(
             pre_simulated,
             cherenkov_angle,
             n_index,
-            sg,
+            output_data,
             iSh,
             ray_tracing_performed,
             shower_energy_sum
@@ -679,7 +677,7 @@ class simulation(
         if not ray_tracing_solution_found:
             return False
         delta_Cs, viewing_angles = self._calculate_viewing_angles(
-            sg,
+            output_data,
             iSh,
             self._get_channel_index(channel_id),
             cherenkov_angle
@@ -692,7 +690,7 @@ class simulation(
 
         if ray_tracing_solution_found:
             is_candidate_channel = self._calculate_polarization_angles(
-                sg,
+                output_data,
                 iSh,
                 delta_Cs,
                 viewing_angles,

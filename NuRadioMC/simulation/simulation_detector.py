@@ -37,7 +37,7 @@ class simulation_detector(NuRadioMC.simulation.simulation_base.simulation_base):
     def _detector_simulation(
             self,
             event_indices,
-            sg
+            output_data
     ):
         t1 = time.time()
         self._station = NuRadioReco.framework.station.Station(self._station_id)
@@ -52,10 +52,10 @@ class simulation_detector(NuRadioMC.simulation.simulation_base.simulation_base):
             self._channelSignalReconstructor.run(self._evt_tmp, self._station.get_sim_station(), self._det)
             for channel in self._station.get_sim_station().iter_channels():
                 tmp_index = np.argwhere(event_indices == self._get_shower_index(channel.get_shower_id()))[0]
-                sg['max_amp_shower_and_ray'][tmp_index, self._get_channel_index(
+                output_data['max_amp_shower_and_ray'][tmp_index, self._get_channel_index(
                     channel.get_id()), channel.get_ray_tracing_solution_id()] = channel.get_parameter(
                     chp.maximum_amplitude_envelope)
-                sg['time_shower_and_ray'][tmp_index, self._get_channel_index(
+                output_data['time_shower_and_ray'][tmp_index, self._get_channel_index(
                     channel.get_id()), channel.get_ray_tracing_solution_id()] = channel.get_parameter(chp.signal_time)
         start_times = []
         channel_identifiers = []
@@ -115,7 +115,7 @@ class simulation_detector(NuRadioMC.simulation.simulation_base.simulation_base):
             global_shower_indices = self._get_shower_index(self._shower_ids_of_sub_event)
             local_shower_index = np.atleast_1d(
                 np.squeeze(np.argwhere(np.isin(event_indices, global_shower_indices, assume_unique=True))))
-            self._save_triggers_to_hdf5(new_event, new_station, sg, local_shower_index, global_shower_indices)
+            self._save_triggers_to_hdf5(new_event, new_station, output_data, local_shower_index, global_shower_indices)
             if self._outputfilenameNuRadioReco is not None:
                 self._write_nur_file(
                     new_event,
@@ -127,11 +127,11 @@ class simulation_detector(NuRadioMC.simulation.simulation_base.simulation_base):
         if event_group_has_triggered:
             if self._station_id not in self._mout_groups:
                 self._mout_groups[self._station_id] = {}
-            for key in sg:
+            for key in output_data:
                 if key not in self._mout_groups[self._station_id]:
-                    self._mout_groups[self._station_id][key] = list(sg[key])
+                    self._mout_groups[self._station_id][key] = list(output_data[key])
                 else:
-                    self._mout_groups[self._station_id][key].extend(sg[key])
+                    self._mout_groups[self._station_id][key].extend(output_data[key])
         # print(self._mout_groups[self._station_id]['travel_times'])
         self._detSimTime += time.time() - t1
 
