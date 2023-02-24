@@ -173,13 +173,7 @@ class simulation(
                         continue
 
                 candidate_station = False
-                self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, self._channel_ids[0])
-#                 logger.warning('internal sampling rate is {:.3g}GHz, final detector sampling rate is {:.3g}GHz'.format(self.get_sampling_rate(), self._sampling_rate_detector))
-                self._n_samples = self._det.get_number_of_samples(self._station_id, self._channel_ids[0]) / self._sampling_rate_detector / self._dt
-                self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)  # round to nearest even integer
-                self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
-                self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
-                self._channel_ids = list(self._det.get_channel_ids(self._station_id))
+                self._set_detector_properties()
                 ray_tracing_performed = False
                 if 'station_{:d}'.format(self._station_id) in self._fin_stations:
                     ray_tracing_performed = (self._raytracer.get_output_parameters()[0]['name'] in self._fin_stations['station_{:d}'.format(self._station_id)]) and self._was_pre_simulated

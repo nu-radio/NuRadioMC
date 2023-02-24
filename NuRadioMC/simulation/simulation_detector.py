@@ -190,3 +190,11 @@ class simulation_detector(NuRadioMC.simulation.simulation_base.simulation_base):
         self._detector_simulation_filter_amp(event, station, self._det)
 
         self._detector_simulation_trigger(event, station, self._det)
+
+    def _set_detector_properties(self):
+        self._sampling_rate_detector = self._det.get_sampling_frequency(self._station_id, self._channel_ids[0])
+        self._n_samples = self._det.get_number_of_samples(self._station_id, self._channel_ids[0]) / self._sampling_rate_detector / self._dt
+        self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)  # round to nearest even integer
+        self._ff = np.fft.rfftfreq(self._n_samples, self._dt)
+        self._tt = np.arange(0, self._n_samples * self._dt, self._dt)
+        self._channel_ids = list(self._det.get_channel_ids(self._station_id))
