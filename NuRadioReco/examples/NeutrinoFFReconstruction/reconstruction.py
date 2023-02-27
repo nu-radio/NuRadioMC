@@ -379,28 +379,18 @@ if __name__ == "__main__":
             PA_cluster_channels = np.concatenate([channel_dict['PA_ids_baseline'], [7,8]]) # PA + adjacent Hpols
 
             neutrinodirectionreconstructor.begin(
-                station, det, evt, use_channels=use_channels,
-                reference_channel=ch_Vpol_rec,
-                ch_Hpol=np.min(Hpol),
+                evt, station, det, use_channels=use_channels,
+                reference_Vpol=ch_Vpol_rec,
+                reference_Hpol=np.min(Hpol),
                 PA_cluster_channels=PA_cluster_channels,
-                shower_ids=shower_ids,
                 sim=False, template=False, Hpol_channels=Hpol,
                 propagation_config=prop_config,
+                restricted_input = restricted_input,
+                Vrms_Vpol=noise_level, Vrms_Hpol=noise_level,
                 **cfg['direction'], debug_formats=['.pdf']
             )
             try:
-                neutrinodirectionreconstructor.run(
-                    evt, station, det, restricted_input = restricted_input,
-                    debug_plots = debug_direction, only_simulation =False,
-                    sim_vertex = False, use_channels = use_channels,
-                    debugplots_path = output_csv_dir, filenumber = run_number,
-                    template = False, shower_ids=shower_ids,
-                    Vrms_Vpol=noise_level, Vrms_Hpol=noise_level,
-                    starting_values=False,
-                    PA_channels=channel_dict['PA_ids_baseline'],
-                    ch_Vpol= ch_Vpol_rec,
-                    ch_Hpol = np.min(channel_dict['hpol_ids_baseline']),
-                    full_station = True, PA_cluster_channels=PA_cluster_channels, Hpol_channels=Hpol)
+                neutrinodirectionreconstructor.run(debug_path = output_csv_dir)
             except ValueError as e:
                 logger.warning("Direction reconstruction failed. Error message:")
                 logger.exception(e)
