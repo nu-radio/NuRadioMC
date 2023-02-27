@@ -35,7 +35,7 @@ def trigger_overview_properties(filename, evt_counter, station_id, juser_id):
         for setting_name in trigger.get_trigger_settings():
             display_value = '{}'
             setting_value = trigger.get_trigger_settings()[setting_name]
-            if type(setting_value) in [float, np.float32, np.float64, np.float128]:
+            if isinstance(setting_value, float):
                 display_value = '{:.5g}'
             props.append(
                 html.Div([
