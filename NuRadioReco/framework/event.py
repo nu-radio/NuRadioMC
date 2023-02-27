@@ -128,7 +128,30 @@ class Event:
     def get_run_number(self):
         return self.__run_number
 
-    def get_station(self, station_id):
+    def get_station(self, station_id=None):
+        """
+        Returns the station for a given station id.
+
+        Paramters
+        ---------
+
+        station_id: int
+            Id of the station you want to get. If None and event has only one station
+            return it, otherwise raise error. (Default: None)
+
+        Return
+        ------
+
+        station: NuRadioReco.framework.station
+        """
+        if station_id is None:
+            if len(self.get_station_ids()) == 1:
+                return self.__stations[self.get_station_ids()[0]]
+            else:
+                err = "Event has more than one station, you have to specify \"station_id\""
+                logger.error(err)
+                raise ValueError(err)
+
         return self.__stations[station_id]
 
     def get_stations(self):
