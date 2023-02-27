@@ -15,7 +15,7 @@ from datetime import datetime
 # GENERAL
 
 def build_success_page(cont_success, measurement_name):
-    cont_success.success(f'{measurement_name} was successfully added to the data base.')
+    cont_success.success(f'{measurement_name} was successfully added to the database.')
     # if the button is pressed the code is rerun from the top
     if cont_success.button('Add another measurement'):
         cont_success.empty()
@@ -72,6 +72,19 @@ def read_measurement_time(uploaded_data_file):
         measurement_time = datetime.strptime(m_time, '%A %B %d %Y %X')
 
     return measurement_time
+
+
+def read_position_data(waring_container, uploaded_file):
+    complete_data = {}
+    if uploaded_file is not None:
+        try:
+            channel_id, x_pos, y_pos, z_pos, rot_theta, rot_phi, ori_theta, ori_phi = np.loadtxt(uploaded_file, dtype='float', skiprows=1, delimiter=',', unpack=True)
+            for i, ch_id in enumerate(channel_id):
+                complete_data[int(ch_id)] = {'position': [x_pos[i], y_pos[i], z_pos[i]], 'rotation': {'theta': rot_theta[i], 'phi': rot_phi[i]}, 'orientation': {'theta': ori_theta[i], 'phi': ori_phi[i]}}
+        except:
+            waring_container.error('Input file has the wrong format and cannot be loaded!')
+
+    return complete_data
 
 
 # HPol and VPol

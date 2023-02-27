@@ -1257,7 +1257,7 @@ class Detector(object):
         station_info = dictionarize_nested_lists(stations_for_buffer, parent_key="id", nested_field="channels", nested_key="id")
         # dictionarize the device information
         station_info_help = dictionarize_nested_lists(stations_for_buffer, parent_key="id", nested_field="devices", nested_key="id")
-        print(station_info_help)
+        # print(station_info_help)
         station_info[station_id]['devices'] = station_info_help[station_id]['devices']
 
         if 'channels' not in station_info[station_id].keys():
