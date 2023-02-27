@@ -132,15 +132,15 @@ class Event:
         """
         Returns the station for a given station id.
 
-        Paramters
-        ---------
+        Parameters
+        ----------
 
         station_id: int
             Id of the station you want to get. If None and event has only one station
             return it, otherwise raise error. (Default: None)
 
-        Return
-        ------
+        Returns
+        -------
 
         station: NuRadioReco.framework.station
         """
