@@ -6,8 +6,8 @@ from plotly import subplots
 import plotly.graph_objs as go
 import numpy as np
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
-from NuRadioReco.detector.webinterface.utils.helper import build_success_page
-from NuRadioReco.detector.webinterface.utils.helper_station import insert_channel_position_to_db, load_measurement_names
+from NuRadioReco.detector.webinterface.utils.helper import build_success_page, read_position_data
+from NuRadioReco.detector.webinterface.utils.helper_station import insert_channel_position_to_db, load_measurement_names, load_general_station_infos, load_measurement_station_information, load_station_ids
 from NuRadioReco.utilities import units
 from datetime import datetime
 from datetime import time
@@ -16,45 +16,10 @@ page_name = 'station'
 collection_name = 'station_rnog'
 
 
-def insert_channel_info(warning_cont, info_cont, selected_station_id, selected_channel, measurement_name, measurement_time, position, orientation, rotation, primary):
-    if st.session_state.insert_channel:
-        # TODO:
-        # station_info = load_station_infos(selected_station_id, collection_name)
-        station_info = {}
-        if station_info != {}:
-            channel_info = station_info[selected_station_id]['channels']
-            if selected_channel in channel_info.keys():
-                warning_cont.warning('YOU ARE ABOUT TO CHANGE AN EXISTING CHANNEL!')
-                warning_cont.markdown('Do you really want to change an existing channel?')
-                col_b1, col_b2, phold = warning_cont.columns([0.2, 0.2, 1.6])
-                yes_button = col_b1.button('YES')
-                no_button = col_b2.button('NO')
-                if yes_button:
-                    insert_channel_position_to_db(selected_station_id, selected_channel, measurement_name, measurement_time, position, orientation, rotation, primary)
-                    st.session_state.insert_channel = False
-                    st.session_state.channel_success = True
-                    st.experimental_rerun()
-
-                if no_button:
-                    st.session_state.insert_channel = False
-                    st.session_state.channel_success = False
-                    st.experimental_rerun()
-        else:
-            # information will be inserted into the database, without requiring any action
-            insert_channel_position_to_db(selected_station_id, selected_channel, measurement_name, measurement_time, position, orientation, rotation, primary)
-            st.session_state.insert_channel = False
-            st.session_state.channel_success = True
-
-    if st.session_state.channel_success:
-        info_cont.success('Channel successfully added to the database!')
-        st.session_state.channel_success = False
-
-        # if there is no corresponding station in the database -> the insert button is disabled (see validate_channel_inputs())
-
-
-def validate_inputs(container_bottom, station_name, measurement_name, channel):
+def validate_inputs(container_bottom, station_id, selected_measurement_name, channel, channels_db):
     channel_correct = False
     station_in_db = False
+    channel_in_db = False
     measurement_name_correct = False
 
     disable_insert_button = True
@@ -68,149 +33,196 @@ def validate_inputs(container_bottom, station_name, measurement_name, channel):
             container_bottom.error('The channel number must be between 0 and 23.')
 
     # validate that a valid measurement name is given
-    if measurement_name != '' and measurement_name != 'new measurement':
+    if selected_measurement_name != '' and selected_measurement_name != 'new measurement':
         measurement_name_correct = True
     else:
         container_bottom.error('Measurement name is not valid.')
 
-    # TODO:
-    # # check if there is an entry for the station in the db
-    # if station_name in det.get_object_names(collection):
-    #     station_in_db = True
-    # else:
-    #     container_bottom.error('There is no corresponding entry for the station in the database.')
-    station_in_db = True
-    if channel_correct and station_in_db and measurement_name_correct:
+    # check if there is an entry for the station in the db
+    if station_id in load_station_ids():
+        station_in_db = True
+    else:
+        container_bottom.error('There is no corresponding entry for the station in the database. Please insert the general station information first!')
+
+    # check if the channel already exits in the db for this measurement
+    if channel in channels_db:
+        container_bottom.error('There is already a channel position information saved in the database for this measurement name and this channel id.')
+    else:
+        channel_in_db = True
+
+    if channel_correct and station_in_db and measurement_name_correct and channel_in_db:
         disable_insert_button = False
 
     return disable_insert_button
 
-def build_main_page(main_cont):
-    main_cont.title('Add channel position and orientation information')
-    main_cont.markdown(page_name)
 
-    if 'insert_channel' not in st.session_state:
-        st.session_state.insert_channel = False
+def validate_csv_inputs(container_bottom, selected_measurement_name, input_data, channel_id_in_db):
+    disable_input_button = True
 
-    # select a unique name for the measurement (survey_01, tape_measurement, ...)
-    col1_name, col2_name = main_cont.columns([1, 1])
-    measurement_list = load_measurement_names('channel_position')
-    measurement_list.insert(0, 'new measurement')
-    selected_name = col1_name.selectbox('Select or enter a unique name for the measurement:', measurement_list)
-    disabled_name_input = True
-    if selected_name == 'new measurement':
-        disabled_name_input = False
-    name_input = col2_name.text_input('Select or enter a unique name for the measurement:', disabled=disabled_name_input, label_visibility='hidden')
-    measurement_name = selected_name
-    if measurement_name == 'new measurement':
-        measurement_name = name_input
-
-    # enter the information for the single stations
-    cont_warning_top = main_cont.container()
-    station_list = ['Station 11 (Nanoq)', 'Station 12 (Terianniaq)', 'Station 13 (Ukaleq)', 'Station 14 (Tuttu)', 'Station 15 (Umimmak)', 'Station 21 (Amaroq)', 'Station 22 (Avinngaq)',
-                    'Station 23 (Ukaliatsiaq)', 'Station 24 (Qappik)', 'Station 25 (Aataaq)']
-    selected_station = main_cont.selectbox('Select a station', station_list)
-    # get the name and id out of the string
-    selected_station_name = selected_station[selected_station.find('(') + 1:-1]
-    selected_station_id = int(selected_station[len('Station '):len('Station ') + 2])
-
-
-    # page to enter the station information
-    cont_warning_top = main_cont.container()
-
-    main_cont.subheader('Input channel information')
-    cont_channel = main_cont.container()
-
-    # TODO load the station information
-    # station_info = load_station_infos(station_id, coll_name)
-
-    # TODO
-    # # load all channels which are already in the database
-    # if station_info != {}:
-    #     channels_db = list(station_info[station_id]['channels'].keys())
-    # else:
-    #     channels_db = []
-    # cont.info(f'Channels included in the database: {len(channels_db)}/24')
-
-    # if not all channels are in the db, add the possibility to add another channel number
-    channels_db  = [] # TODO: load this from the database
-    channel_help = channels_db
-    if len(channels_db) < 24:
-        channel_help.insert(0, 'new channel number')
-        disable_new_entry = False
+    # check if a file is given
+    check_file = False
+    if input_data != {}:
+        check_file = True
     else:
-        disable_new_entry = True
-    col1_cha, col2_cha = main_cont.columns([1,1])
-    channel = col1_cha.selectbox('Select a channel or enter a new channel number:', channel_help, help='The channel number must be an integer between 0 and 23.')
-    new_cha = col2_cha.text_input('', placeholder='channel number', disabled=disable_new_entry)
-    if channel == 'new channel number':
-        if new_cha == '':
-            selected_channel = -10
+        container_bottom.error('No position data file selected.')
+
+    # check if a measurement name is given
+    check_measurement_name = False
+    # validate that a valid measurement name is given
+    if selected_measurement_name != '' and selected_measurement_name != 'new measurement':
+        check_measurement_name = True
+    else:
+        container_bottom.error('Measurement name is not valid.')
+
+    # check if the channel ids are allowed
+    check_csv_channel_ids = False
+    check_value_channel = 0
+    for key in input_data.keys():
+        if key > 23 or key < 0:
+            check_value_channel = 1
+    if check_value_channel == 0:
+        check_csv_channel_ids = True
+    else:
+        container_bottom.error('The channel numbers in the input file are out of bounds. They must be between 0 and 23.')
+
+    # check that rotation and orientation are realistic values (0,360°)
+    check_csv_rot_ori = False
+    check_value_rot = 0
+    check_value_ori = 0
+    for key in input_data.keys():
+        if not 0 <= input_data[key]['rotation']['theta'] <= 360 or not 0 <= input_data[key]['rotation']['phi'] <= 360:
+            check_value_rot = 1
+        if not 0 <= input_data[key]['orientation']['theta'] <= 360 or not 0 <= input_data[key]['orientation']['phi'] <= 360:
+            check_value_ori = 1
+
+    if check_value_rot == 1:
+        container_bottom.error('The rotation values are invalid. Please give values between 0° and 360°.')
+    elif check_value_ori == 1:
+        container_bottom.error('The orientation values are invalid. Please give values between 0° and 360°.')
+    else:
+        check_csv_rot_ori = True
+
+    # check if the all inserted channels are not already in the database
+    check_channel_in_db = False
+    check_val = 0
+    for key in input_data.keys():
+        if key in channel_id_in_db:
+            check_val = 1
+            break
+    if check_val == 0:
+        check_channel_in_db = True
+    else:
+        container_bottom.error('Some of the channels are already in the database. The file cannot be uploaded.')
+
+    if check_csv_channel_ids and check_channel_in_db and check_measurement_name and check_csv_rot_ori and check_file:
+        disable_input_button = False
+
+    return disable_input_button
+
+
+def build_main_page(input_cont, selected_input_option):
+    cont = input_cont.container()
+    if selected_input_option == 'single channel input':
+        cont.empty()
+        channel = cont.selectbox('Select a channel:', channel_help)
+        print(channel)
+        if channel is not None:
+            selected_channel = int(channel)
         else:
-            selected_channel = int(new_cha)
-    else:
-        selected_channel = int(channel)
+            selected_channel = -10
 
-    # # if the channel already exist in the database, the channel info will be loaded
-    # if channel == 'new channel number':
-    #     channel_info = {}
-    # else:
-    #     channel_info = station_info[station_id]['channels'][selected_channel]
-    #
-    # # tranform the channel number from a string into an int
-    # if selected_channel != '':
-    #     selected_channel = int(selected_channel)
+        # if the channel already exist in the database, the channel info will be loaded
+        current_channel_info_db = {}
+        if selected_channel != -10:
+            for entry in measurement_info:
+                if int(entry['measurements']['channel_id']) == selected_channel:
+                    current_channel_info_db = entry['measurements']
 
-    # primary measurement?
-    primary = main_cont.checkbox('Is this the primary measurement?', value=True)
+        # primary measurement?
+        primary = cont.checkbox('Is this the primary measurement?', value=True)
 
-    # measurement time
-    measurement_time = main_cont.date_input('Enter the time of the measurement:', value=datetime.utcnow(), help='The date when the measurement was conducted.')
-    measurement_time = datetime.combine(measurement_time, time(0, 0, 0))
+        # if the channel already exist enter the existing channel information, otherwise fall back to the default
+        default_position = [0, 0, 0]
+        default_rot = {'theta': 0, 'phi': 0}
+        default_ori = {'theta': 0, 'phi': 0}
+        default_measurement_time = datetime.utcnow()
+        # if current_channel_info_db != {}:
+        #     default_measurement_time = datetime.date(current_channel_info_db['measurement_time'])
+        #     default_position = current_channel_info_db['position']
+        #     default_rot = current_channel_info_db['orientation']
+        #     default_ori = current_channel_info_db['rotation']
 
-    # insert the position of the antenna; if the channel already exist enter the position of the existing channel
-    col1_pos, col2_pos, col3_pos = main_cont.columns([1, 1, 1])
-    # TODO load the already existing information
-    db_ant_position = [0, 0, 0]
+        # measurement time
+        measurement_time = cont.date_input('Enter the time of the measurement:', value=default_measurement_time, help='The date when the measurement was conducted.')
+        measurement_time = datetime.combine(measurement_time, time(0, 0, 0))
 
-    x_pos_ant = col1_pos.text_input('x position', key='x_antenna', value=db_ant_position[0])
-    y_pos_ant = col2_pos.text_input('y position', key='y_antenna', value=db_ant_position[1])
-    z_pos_ant = col3_pos.text_input('z position', key='z_antenna', value=db_ant_position[2])
-    position = [x_pos_ant, y_pos_ant, z_pos_ant]
+        # insert the position of the antenna;
+        col1_pos, col2_pos, col3_pos = cont.columns([1, 1, 1])
+        x_pos_ant = col1_pos.text_input('x position', key='x_antenna', value=default_position[0])
+        y_pos_ant = col2_pos.text_input('y position', key='y_antenna', value=default_position[1])
+        z_pos_ant = col3_pos.text_input('z position', key='z_antenna', value=default_position[2])
+        position = [x_pos_ant, y_pos_ant, z_pos_ant]
 
-    # input the orientation, rotation of the antenna; if the channel already exist, insert the values from the database
-    col1a, col2a, col3a, col4a = main_cont.columns([1, 1, 1, 1])
-    # TODO load the already existing information
-    db_ori_rot = [0, 0, 0, 0]
-    ant_ori_theta = col1a.text_input('orientation (theta):', value=db_ori_rot[0])
-    ant_ori_phi = col2a.text_input('orientation (phi):', value=db_ori_rot[1])
-    ant_rot_theta = col3a.text_input('rotation (theta):', value=db_ori_rot[2])
-    ant_rot_phi = col4a.text_input('rotation (phi):', value=db_ori_rot[3])
-    ori = {'theta': ant_ori_theta, 'phi': ant_ori_phi}
-    rot = {'theta': ant_rot_theta, 'phi': ant_rot_phi}
+        # input the orientation, rotation of the antenna; if the channel already exist, insert the values from the database
+        col1a, col2a, col3a, col4a = cont.columns([1, 1, 1, 1])
 
-    # container for warnings/infos at the botton
-    cont_warning_bottom = main_cont.container()
+        ant_ori_theta = col1a.text_input('orientation (theta):', value=default_ori['theta'])
+        ant_ori_phi = col2a.text_input('orientation (phi):', value=default_ori['phi'])
+        ant_rot_theta = col3a.text_input('rotation (theta):', value=default_rot['theta'])
+        ant_rot_phi = col4a.text_input('rotation (phi):', value=default_rot['phi'])
+        ori = {'theta': ant_ori_theta, 'phi': ant_ori_phi}
+        rot = {'theta': ant_rot_theta, 'phi': ant_rot_phi}
 
-    disable_insert_button = validate_inputs(cont_warning_bottom, selected_station_name, measurement_name, selected_channel)
+        # container for warnings/infos at the botton
+        cont_warning_bottom = cont.container()
 
-    insert_channel = main_cont.button('INSERT CHANNEL TO DB', disabled=disable_insert_button)
+        disable_insert_button = validate_inputs(cont_warning_bottom, selected_station_id, measurement_name, selected_channel, measurement_channel_ids_db)
 
-    cont_channel_warning = main_cont.container()
+        insert_channel = cont.button('INSERT CHANNEL TO DB', disabled=disable_insert_button, key='1')
 
-    if insert_channel:
-        st.session_state.insert_channel = True
-    print(st.session_state.insert_channel)
-    insert_channel_info(cont_channel_warning, cont_warning_bottom, selected_station_id, selected_channel, measurement_name, measurement_time, position, ori, rot, primary)
+        cont_channel_warning = cont.container()
+
+        if insert_channel:
+            insert_channel_position_to_db(selected_station_id, selected_channel, measurement_name, measurement_time, position, ori, rot, primary)
+            cont.empty()
+            st.session_state.key = '1'
+            st.experimental_rerun()
+
+    elif selected_input_option == 'file input':
+        cont.empty()
+        csv_file = cont.file_uploader('Please upload a position CSV file.', type='csv')
+
+        position_data = read_position_data(cont, csv_file)
+
+        # primary measurement?
+        primary = cont.checkbox('Is this the primary measurement?', value=True)
+
+        # measurement time
+        default_measurement_time = datetime.utcnow()
+        measurement_time = cont.date_input('Enter the time of the measurement:', value=default_measurement_time, help='The date when the measurement was conducted.')
+        measurement_time = datetime.combine(measurement_time, time(0, 0, 0))
+
+        cont_warning_bottom_csv = cont.container()
+
+        disable_insert_csv_button = validate_csv_inputs(cont_warning_bottom_csv, measurement_name, position_data, measurement_channel_ids_db)
+
+        # necessary to replace the button by the spinner, when the data is uploaded
+        button_cont = cont.empty()
+
+        insert_channel_csv = button_cont.button('INSERT CHANNEL TO DB', disabled=disable_insert_csv_button, key='2')
+
+        if insert_channel_csv:
+            button_cont.empty()
+            with st.spinner('Data is being uploaded ...'):
+                for key in position_data.keys():
+                    insert_channel_position_to_db(selected_station_id, key, measurement_name, measurement_time, position_data[key]['position'], position_data[key]['orientation'], position_data[key]['rotation'], primary)
+            cont.empty()
+            st.session_state.key = '1'
+            st.experimental_rerun()
+
 
 # main page setup
 page_configuration()
-
-if 'station_success' not in st.session_state:
-    st.session_state['station_success'] = False
-
-if 'channel_success' not in st.session_state:
-    st.session_state['channel_success'] = False
 
 # initialize the session key (will be used to display different pages depending on the button clicked)
 if 'key' not in st.session_state:
@@ -219,8 +231,56 @@ if 'key' not in st.session_state:
 main_container = st.container()  # container for the main part of the page (with all the input filed)
 success_container = st.container()  # container to display the page when the data was submitted
 
+main_container.title('Add channel position and orientation information')
+main_container.markdown(page_name)
+
+# select a unique name for the measurement (survey_01, tape_measurement, ...)
+col1_name, col2_name = main_container.columns([1, 1])
+measurement_list = load_measurement_names('channel_position')
+measurement_list.insert(0, 'new measurement')
+selected_name = col1_name.selectbox('Select or enter a unique name for the measurement:', measurement_list)
+disabled_name_input = True
+if selected_name == 'new measurement':
+    disabled_name_input = False
+name_input = col2_name.text_input('Select or enter a unique name for the measurement:', disabled=disabled_name_input, label_visibility='hidden')
+measurement_name = selected_name
+if measurement_name == 'new measurement':
+    measurement_name = name_input
+
+# enter the information for the single stations
+cont_warning_top = main_container.container()
+station_list = ['Station 11 (Nanoq)', 'Station 12 (Terianniaq)', 'Station 13 (Ukaleq)', 'Station 14 (Tuttu)', 'Station 15 (Umimmak)', 'Station 21 (Amaroq)', 'Station 22 (Avinngaq)',
+                'Station 23 (Ukaliatsiaq)', 'Station 24 (Qappik)', 'Station 25 (Aataaq)']
+selected_station = main_container.selectbox('Select a station', station_list)
+# get the name and id out of the string
+selected_station_name = selected_station[selected_station.find('(') + 1:-1]
+selected_station_id = int(selected_station[len('Station '):len('Station ') + 2])
+
+# page to enter the station information
+cont_warning_top = main_container.container()
+
+main_container.subheader('Input channel information')
+# tab1, tab2 = main_container.tabs(['single channel input', 'file input'])
+
+# load the selected measurement information  (to display how many channels are inserted for this specific measurement)
+measurement_info = load_measurement_station_information(selected_station_id, measurement_name)
+
+# extract the channel ids from the measurement info (also used from checking if a channel already exists)
+measurement_channel_ids_db = []
+for entry in measurement_info:
+    measurement_channel_ids_db.append(entry['measurements']['channel_id'])
+
+main_container.info(f'Channels included in the database: {len(measurement_channel_ids_db)}/24')
+
+channel_help = []
+for cha in range(24):
+    if cha not in measurement_channel_ids_db:
+        channel_help.append(cha)
+
+input_option = main_container.radio('Input form of channel position:', ['single channel input', 'file input'], horizontal=True, index=0)
+
 if st.session_state.key == '0':
-    build_main_page(main_container)  # after clicking the submit button, the session key is set to '1' and the page is rerun
+    build_main_page(main_container, input_option)  # after clicking the submit button, the session key is set to '1' and the page is rerun
 
 if st.session_state.key == '1':
-    build_success_page(success_container, page_name)  # after clicking the 'add another measurement' button, the session key is set to '0' and the page is rerun
+    build_success_page(success_container, 'channel position')  # after clicking the 'add another measurement' button, the session key is set to '0' and the page is rerun
