@@ -698,7 +698,30 @@
 <div class="viewcode-block" id="Event.get_run_number"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_run_number">[docs]</a>    <span class="k">def</span> <span class="nf">get_run_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__run_number</span></div>
 
-<div class="viewcode-block" id="Event.get_station"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_station">[docs]</a>    <span class="k">def</span> <span class="nf">get_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+<div class="viewcode-block" id="Event.get_station"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_station">[docs]</a>    <span class="k">def</span> <span class="nf">get_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the station for a given station id.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        station_id: int</span>
+<span class="sd">            Id of the station you want to get. If None and event has only one station</span>
+<span class="sd">            return it, otherwise raise error. (Default: None)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        station: NuRadioReco.framework.station</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">station_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_station_ids</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_station_ids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">err</span> <span class="o">=</span> <span class="s2">&quot;Event has more than one station, you have to specify </span><span class="se">\&quot;</span><span class="s2">station_id</span><span class="se">\&quot;</span><span class="s2">&quot;</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Event.get_stations"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_stations">[docs]</a>    <span class="k">def</span> <span class="nf">get_stations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
