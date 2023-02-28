@@ -576,18 +576,12 @@ class radiopropa_ray_tracing(ray_tracing_base):
         if LetsMinimize:
             iterative = False
             ##define module list for simulation, this needs to be redone to get rid of the spherical observer
-            sim = radiopropa.ModuleList()
-            sim.add(radiopropa.PropagationCK(self._ice_model.get_scalar_field(), 1E-8, .001, 1.)) ## add propagation to module list
-            for module in self._ice_model.get_modules().values():
-                sim.add(module)
-            sim.add(radiopropa.MaximumTrajectoryLength(self._max_traj_length*(radiopropa.meter/units.meter)))
-
+            sim.remove(4) #remove spherical observer
+            sim.remove(4) #remove (now at place 4) detector behind channel
             ## define observer for detection (channel)
             obs = radiopropa.Observer()
             obs.setDeactivateOnDetection(True)
-            #a bigger normal value makes the calculation faster, a smaller one more precise
-            #NormalScale = 2.5
-            w = (u / np.linalg.norm(u)) #* NormalScale
+            w = (u / np.linalg.norm(u))
             plane_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*X2), radiopropa.Vector3d(*w)))
             obs.add(plane_channel)
             sim.add(obs)
