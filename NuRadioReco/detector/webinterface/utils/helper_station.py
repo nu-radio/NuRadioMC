@@ -26,6 +26,10 @@ def load_measurement_station_information(stationid, measurement_name):
     return det.get_collection_information('channel_position', stationid, measurement_name=measurement_name)
 
 
+def load_measurement_station_position_information(stationid, measurement_name):
+    return det.get_collection_information('station_position', stationid, measurement_name=measurement_name)
+
+
 def load_object_names(obj_type):
     return det.get_object_names(obj_type)
 
