@@ -11,6 +11,7 @@ new features:
 - analytic ray tracing solutions are now sorted consistently from lowest to highest ray
 - added ability to generate high-low-triggered noise on a narrow band but return full-band waveforms
 bugfixes:
+- fixed/improved C++ raytracer not finding solutions for some near-horizontal or near-shadowzone vertices
 
 
 version 2.1.7
