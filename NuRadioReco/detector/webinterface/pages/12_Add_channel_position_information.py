@@ -16,7 +16,7 @@ page_name = 'station'
 collection_name = 'station_rnog'
 
 
-def validate_inputs(container_bottom, station_id, selected_measurement_name, channel, channels_db):
+def validate_inputs(container_bottom, station_id, selected_measurement_name, channel, channels_db, orientation, rotation):
     channel_correct = False
     station_in_db = False
     channel_in_db = False
@@ -50,7 +50,23 @@ def validate_inputs(container_bottom, station_id, selected_measurement_name, cha
     else:
         channel_in_db = True
 
-    if channel_correct and station_in_db and measurement_name_correct and channel_in_db:
+    # check that rotation and orientation are realistic values (0,360°)
+    check_rot_ori = False
+    check_value_rot = 0
+    check_value_ori = 0
+    if not 0 <= rotation['theta'] <= 360 or not 0 <= rotation['phi'] <= 360:
+        check_value_rot = 1
+    if not 0 <= orientation['theta'] <= 360 or not 0 <= orientation['phi'] <= 360:
+        check_value_ori = 1
+
+    if check_value_rot == 1:
+        container_bottom.error('The rotation values are invalid. Please give values between 0° and 360°.')
+    elif check_value_ori == 1:
+        container_bottom.error('The orientation values are invalid. Please give values between 0° and 360°.')
+    else:
+        check_rot_ori = True
+
+    if channel_correct and station_in_db and measurement_name_correct and channel_in_db and check_rot_ori:
         disable_insert_button = False
 
     return disable_insert_button
@@ -125,7 +141,6 @@ def build_main_page(input_cont, selected_input_option):
     if selected_input_option == 'single channel input':
         cont.empty()
         channel = cont.selectbox('Select a channel:', channel_help)
-        print(channel)
         if channel is not None:
             selected_channel = int(channel)
         else:
@@ -170,13 +185,13 @@ def build_main_page(input_cont, selected_input_option):
         ant_ori_phi = col2a.text_input('orientation (phi):', value=default_ori['phi'])
         ant_rot_theta = col3a.text_input('rotation (theta):', value=default_rot['theta'])
         ant_rot_phi = col4a.text_input('rotation (phi):', value=default_rot['phi'])
-        ori = {'theta': ant_ori_theta, 'phi': ant_ori_phi}
-        rot = {'theta': ant_rot_theta, 'phi': ant_rot_phi}
+        ori = {'theta': float(ant_ori_theta), 'phi': float(ant_ori_phi)}
+        rot = {'theta': float(ant_rot_theta), 'phi': float(ant_rot_phi)}
 
         # container for warnings/infos at the botton
         cont_warning_bottom = cont.container()
 
-        disable_insert_button = validate_inputs(cont_warning_bottom, selected_station_id, measurement_name, selected_channel, measurement_channel_ids_db)
+        disable_insert_button = validate_inputs(cont_warning_bottom, selected_station_id, measurement_name, selected_channel, measurement_channel_ids_db, ori, rot)
 
         insert_channel = cont.button('INSERT CHANNEL TO DB', disabled=disable_insert_button, key='1')
 

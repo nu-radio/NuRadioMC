@@ -3,7 +3,7 @@ import time
 import streamlit as st
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
 from NuRadioReco.detector.webinterface.utils.helper import build_success_page
-from NuRadioReco.detector.webinterface.utils.helper_station import insert_station_position_to_db, load_general_station_infos, load_measurement_station_position_information
+from NuRadioReco.detector.webinterface.utils.helper_station import insert_station_position_to_db, load_general_station_infos, load_measurement_station_position_information, load_measurement_names
 from NuRadioReco.utilities import units
 from datetime import datetime
 from datetime import time
@@ -21,7 +21,7 @@ def validate_inputs(cont, measurement_name, station_id, measurement_time):
     check_measurement_name_in_db = False
 
     # check if a measurement name as a input is given
-    if measurement_name != '':
+    if measurement_name != '' and measurement_name != 'new measurement':
         check_measurement_name = True
     else:
         cont.error('No measurement name is entered.')
@@ -105,7 +105,17 @@ selected_station = st.selectbox('Select a station', station_list)
 selected_station_id = int(selected_station[len('Station '):len('Station ') + 2])
 
 # select a unique name for the measurement (survey_01, tape_measurement, ...)
-measurement_name = st.text_input('Enter a unique name for the measurement:')
+col1_name, col2_name = st.columns([1, 1])
+measurement_list = load_measurement_names('station_position')
+measurement_list.insert(0, 'new measurement')
+selected_name = col1_name.selectbox('Select a measurement or enter a unique name:', measurement_list)
+text_input_disabled = True
+if selected_name == 'new measurement':
+    text_input_disabled = False
+name_input = col2_name.text_input('Select a measurement or enter a unique name:', label_visibility='hidden', disabled=text_input_disabled)
+measurement_name = selected_name
+if measurement_name == 'new measurement':
+    measurement_name = name_input
 
 main_container = st.container()  # container for the main part of the page (with all the input filed)
 success_container = st.container()  # container to display the page when the data was submitted
