@@ -109,7 +109,8 @@ html_theme_options = {
     'sticky_navigation': True,
     'navigation_depth': 5
 }
-html_css_files = [os.path.abspath('custom_scripts/styling.css')]
+html_static_path = ['custom_scripts']
+html_css_files = ['styling.css']
 
 html_logo = 'logo_small.png'
 
