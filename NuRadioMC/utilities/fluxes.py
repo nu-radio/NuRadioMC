@@ -207,7 +207,7 @@ def get_number_of_events_for_flux(energies, flux, Veff, livetime, nuCrsScn='ctw'
     calculates the number of expected neutrinos for a certain flux assumption
 
     Parameters
-    -----------
+    ----------
     energies: array of floats
         energies (the bin centers), the binning in log10(E) must be equidistant!
     flux: array of floats

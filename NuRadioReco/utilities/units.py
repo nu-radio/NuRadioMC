@@ -139,7 +139,7 @@ femtosecond = femto * second
 minute = 60 * second
 hour = 60 * minute
 day = 24 * hour
-year = 356 * day
+year = 365.25 * day
 
 hertz = 1 / second
 kilohertz = kilo * hertz
@@ -175,6 +175,8 @@ exaelectronvolt = exa * electronvolt
 zettaelectronvolt = zetta * electronvolt
 
 joule = electronvolt / eSI  # joule = 6.24150 e+12 * MeV
+
+erg = 1e-7 * joule  # erg = 624.15 GeV
 
 # symbols
 eV = electronvolt

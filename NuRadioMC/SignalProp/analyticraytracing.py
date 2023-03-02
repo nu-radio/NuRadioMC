@@ -35,9 +35,10 @@ except:
                                  "install.sh"))
         from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
         cpp_available = True
-        print("compilation was sucessful, using CPP version of ray tracer")
+        print("compilation was successful, using CPP version of ray tracer")
     except:
-        print("compilation was not sucessful, using python version of ray tracer")
+        print("compilation was not successful, using python version of ray tracer")
+        print("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
         cpp_available = False
 
 """
@@ -140,7 +141,7 @@ class ray_tracing_2D(ray_tracing_base):
             related to C_0 parameter via c = self.medium.n_ice ** 2 - C_0 ** -2
 
         Returns
-        ----------
+        -------
         typle (gamma, z coordinate of turning point)
         """
         gamma2 = self.__b * 0.5 - (0.25 * self.__b ** 2 - c) ** 0.5  # first solution discarded
@@ -635,7 +636,7 @@ class ray_tracing_2D(ray_tracing_base):
             * 2: rays start downwards
 
         Returns
-        --------
+        -------
         (original x1, x1 of path segment, original x2, x2 of path segment, C_0, C_1 of path segment)
         """
         x1 = copy.copy(x1)
@@ -1132,7 +1133,7 @@ class ray_tracing_2D(ray_tracing_base):
                 import matplotlib.pyplot as plt
                 plt.show()
 
-            return sorted(results, key=itemgetter('type'))
+            return sorted(results, key=itemgetter('reflection', 'C0'))
 
     def plot_result(self, x1, x2, C_0, ax):
         """
@@ -1249,9 +1250,12 @@ class ray_tracing_2D(ray_tracing_base):
         emitted to "skim the surface", i.e. arrive horizontally (angle = 90 deg) at the surface;
         This is used to find the refraction zone.
 
-        returns:
-            C0crit: C0 of critical angle
-            thcrit: critical angle
+        Returns
+        -------
+        C0crit: float
+            C0 of critical angle
+        thcrit: float
+            critical angle
         '''
 
         nlaunch = self.n(x1[1])
@@ -1380,10 +1384,10 @@ class ray_tracing_2D(ray_tracing_base):
         ----------
         x1, x2: arrays
             Arrays with x and z positions of emitter x1 and receiver x2
-        infirn: Boolean. 
+        infirn: Boolean.
             Set to True if surface ray travels in the firn, set to False (default) if it travels
             in air.
-        angle:  String 
+        angle:  String
             specifying angle at which ray reaches/leaves the surface. Can be 'Brewster' or 'critical'
             If neither of these is chosen, a warning is printed and angle is set to 'critical'
         chdraw: string or None
@@ -1521,9 +1525,9 @@ class ray_tracing(ray_tracing_base):
     utility class (wrapper around the 2D analytic ray tracing code) to get
     ray tracing solutions in 3D for two arbitrary points x1 and x2
     """
-    
+
     def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
-                 n_frequencies_integration=100, n_reflections=0, config=None, 
+                 n_frequencies_integration=100, n_reflections=0, config=None,
                  detector=None):
         """
         class initilization
@@ -1538,11 +1542,12 @@ class ray_tracing(ray_tracing_base):
             name under which things should be logged
         log_level: logging object
             specify the log level of the ray tracing class
+
             * logging.ERROR
             * logging.WARNING
             * logging.INFO
             * logging.DEBUG
-            
+
             default is WARNING
         n_frequencies_integration: int
             the number of frequencies for which the frequency dependent attenuation
@@ -1553,10 +1558,12 @@ class ray_tracing(ray_tracing_base):
         config: dict
             a dictionary with the optional config settings. If None, the config is intialized with default values,
             which is needed to avoid any "key not available" errors. The default settings are
-                self._config = {'propagation': {}}
-                self._config['propagation']['attenuate_ice'] = True
-                self._config['propagation']['focusing_limit'] = 2
-                self._config['propagation']['focusing'] = False
+
+                * self._config = {'propagation': {}}
+                * self._config['propagation']['attenuate_ice'] = True
+                * self._config['propagation']['focusing_limit'] = 2
+                * self._config['propagation']['focusing'] = False
+
         detector: detector object
         """
         self.__logger = logging.getLogger('ray_tracing_analytic')
@@ -1567,12 +1574,12 @@ class ray_tracing(ray_tracing_base):
             self.__logger.error("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
             raise TypeError("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
 
-        super().__init__(medium=medium, 
+        super().__init__(medium=medium,
                          attenuation_model=attenuation_model,
                          log_level=log_level,
-                         n_frequencies_integration=n_frequencies_integration, 
+                         n_frequencies_integration=n_frequencies_integration,
                          n_reflections=n_reflections,
-                         config=config, 
+                         config=config,
                          detector=detector)
         self.set_config(config=config)
         self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
@@ -1583,7 +1590,7 @@ class ray_tracing(ray_tracing_base):
         self._R = None
         self._x1 = None
         self._x2 = None
-        
+
     def reset_solutions(self):
         """
         Resets the raytracing solutions back to None. This is useful to do when changing the start and end
@@ -1630,7 +1637,7 @@ class ray_tracing(ray_tracing_base):
         self._x1 = np.array([X1r[0], X1r[2]])
         self._x2 = np.array([X2r[0], X2r[2]])
         self.__logger.debug("2D points {} {}".format(self._x1, self._x2))
-        
+
     def set_solution(self, raytracing_results):
         """
         Read an already calculated raytracing solution from the input array
@@ -1917,15 +1924,15 @@ class ray_tracing(ray_tracing_base):
         iS: int
             choose for which solution to compute the launch vector, counting
             starts at zero
-
         dz: float
             the infinitesimal change of the depth of the receiver, 1cm by default
         limit: float
             The maximum signal focusing.
+
         Returns
         -------
-        focusing: a float
-            gain of the signal at the receiver due to the focusing effect:
+        focusing: float
+            gain of the signal at the receiver due to the focusing effect
         """
         recVec = self.get_receive_vector(iS)
         recVec = -1.0 * recVec
@@ -1953,8 +1960,9 @@ class ray_tracing(ray_tracing_base):
             lauVec1 = self._r1.get_launch_vector(iS)
             lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
             focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
-            if(self.get_solution_type(iS) != self._r1.get_solution_type(iS)):
-                self.__logger.error("solution types are not the same")
+            if (self.get_results()[iS]['reflection'] != self._r1.get_results()[iS]['reflection'] 
+                    or self.get_results()[iS]['reflection_case'] != self._r1.get_results()[iS]['reflection_case']):
+                self.__logger.error("Number or type of reflections are different between solutions - focusing correction may not be reliable.")
         else:
             focusing = 1.0
             self.__logger.info("too few ray tracing solutions, setting focusing factor to 1")
@@ -1988,9 +1996,9 @@ class ray_tracing(ray_tracing_base):
         ]
 
     def get_raytracing_output(self, i_solution):
-        if self._config['propagation']['focusing']:    
+        if self._config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
-        else: 
+        else:
             focusing = 1
         output_dict = {
             'ray_tracing_C0': self.get_results()[i_solution]['C0'],
@@ -2015,7 +2023,7 @@ class ray_tracing(ray_tracing_base):
             Index of the raytracing solution the propagation effects should be based on
 
         Returns
-        -------------
+        -------
         efield: ElectricField object
             The modified ElectricField object
         """

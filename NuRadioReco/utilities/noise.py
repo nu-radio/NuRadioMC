@@ -113,7 +113,7 @@ def rolled_sum_slicing(traces, rolling):
 class thermalNoiseGenerator():
 
     def __init__(self, n_samples, sampling_rate, Vrms, threshold, time_coincidence, n_majority, time_coincidence_majority,
-                 n_channels, trigger_time, filt, noise_type="rayleigh"):
+                 n_channels, trigger_time, filt, noise_type="rayleigh", keep_full_band=False):
         """
         Efficient algorithms to generate thermal noise fluctuations that fulfill a high/low trigger + a majority
         coincidence logic (as used by ARIANNA)
@@ -144,6 +144,9 @@ class thermalNoiseGenerator():
             the type of the noise, can be
             * "rayleigh" (default)
             * "noise"
+        keep_full_band: bool
+            Flag to keep the full-band waveform instead of the one with the filter applied. Allows for
+            triggering on a different (i.e. `filt`) band than what is returned, (default is False)
         """
         self.n_samples = n_samples
         self.sampling_rate = sampling_rate
@@ -171,6 +174,8 @@ class thermalNoiseGenerator():
 
         self.noise = channelGenericNoiseAdder.channelGenericNoiseAdder()
 
+        self.keep_full_band = keep_full_band
+
     def generate_noise(self):
         """
         generates noise traces for all channels that will cause a high/low majority logic trigger
@@ -183,17 +188,22 @@ class thermalNoiseGenerator():
             while n_traces[iCh] is None:
                 spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples, self.sampling_rate,
                                                     self.amplitude, self.noise_type, time_domain=False)
+
+                if self.keep_full_band:
+                    trace_copy = fft.freq2time(spec, self.sampling_rate)
+
                 spec *= self.filt
                 trace = fft.freq2time(spec, self.sampling_rate)
                 if(np.any(trace > self.threshold) and np.any(trace < -self.threshold)):
                     triggered_bins = get_high_low_triggers(trace, self.threshold, -self.threshold, self.time_coincidence, self.dt)
                     if(True in triggered_bins):
                         t_bins[iCh] = triggered_bins
+                        trace_to_keep = trace if not self.keep_full_band else trace_copy
                         if(iCh == 0):
-                            n_traces[iCh] = np.roll(trace, self.trigger_bin - np.argwhere(triggered_bins is True)[0])
+                            n_traces[iCh] = np.roll(trace_to_keep, self.trigger_bin - np.argwhere(triggered_bins == True)[0])
                         else:
                             tmp = np.random.randint(self.trigger_bin_low, self.trigger_bin)
-                            n_traces[iCh] = np.roll(trace, tmp - np.argwhere(triggered_bins is True)[0])
+                            n_traces[iCh] = np.roll(trace, tmp - np.argwhere(triggered_bins == True)[0])
         traces = np.zeros((self.n_channels, self.n_samples))
         rnd_iterator = list(range(self.n_channels))
         np.random.shuffle(rnd_iterator)
@@ -203,8 +213,11 @@ class thermalNoiseGenerator():
             else:
                 spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples, self.sampling_rate,
                                                     self.amplitude, type=self.noise_type, time_domain=False)
-                spec *= self.filt
-                traces[iCh] = fft.freq2time(spec, self.sampling_rate)
+
+                if self.keep_full_band:
+                    traces[iCh] = fft.freq2time(spec, self.sampling_rate)
+                else:
+                    traces[iCh] = fft.freq2time(spec * self.filt, self.sampling_rate)
         return traces
 
 
