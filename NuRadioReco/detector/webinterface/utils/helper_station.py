@@ -21,6 +21,10 @@ def load_general_station_infos(station_id, coll_name):
     return station_info
 
 
+def load_collection_information(collection_name, station_id, measurement_name):
+    return det.get_collection_information(collection_name, station_id, measurement_name=measurement_name)
+
+
 def load_measurement_station_information(stationid, measurement_name):
     # det.update(datetime.now(), 'channel_position)
     return det.get_collection_information('channel_position', stationid, measurement_name=measurement_name)
