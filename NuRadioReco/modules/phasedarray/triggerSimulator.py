@@ -20,16 +20,18 @@ default_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_
 class triggerSimulator:
     """
     Calculates the trigger for a phased array with a primary beam.
+    
     The channels that participate in both beams and the pointing angle for each
     subbeam can be specified.
 
     See https://arxiv.org/pdf/1809.04573.pdf
     """
 
-    def __init__(self):
+    def __init__(self, log_level=logging.WARNING):
         self.__t = 0
         self.__pre_trigger_time = None
         self.__debug = None
+        logger.setLevel(log_level)
         self.begin()
 
     def begin(self, debug=False, pre_trigger_time=100 * units.ns):
@@ -123,8 +125,8 @@ class triggerSimulator:
 
             subbeam_rolls = dict(zip(triggered_channels, roll))
 
-            logger.debug("angle:", angle / units.deg)
-            logger.debug(subbeam_rolls)
+            # logger.debug("angle:", angle / units.deg)
+            # logger.debug(subbeam_rolls)
 
             beam_rolls.append(subbeam_rolls)
 
@@ -142,6 +144,7 @@ class triggerSimulator:
         triggered_channels: array of ints
             channels ids of the channels that form the primary phasing array
             if None, all channels are taken
+        
         Returns
         -------
         channel_trace_start_time: float
@@ -199,6 +202,7 @@ class triggerSimulator:
             in between neighboring integration windows
             Units of ADC time ticks.
         adc_output: string
+
             - 'voltage' to store the ADC output as discretised voltage trace
             - 'counts' to store the ADC output in ADC counts
 
@@ -320,6 +324,7 @@ class triggerSimulator:
             Time step in power integral. If equal to window, there is no time overlap
             in between neighboring integration windows.
             Units of ADC time ticks
+
         Returns
         -------
         is_triggered: bool
@@ -327,6 +332,10 @@ class triggerSimulator:
         trigger_delays: dictionary
             the delays for the primary channels that have caused a trigger.
             If there is no trigger, it's an empty dictionary
+        trigger_time: float
+            the earliest trigger time
+        trigger_times: dictionary
+            all time bins that fulfil the trigger condition per beam. The key is the beam number.
         """
 
         if(triggered_channels is None):
@@ -341,7 +350,7 @@ class triggerSimulator:
         is_triggered = False
         trigger_delays = {}
 
-        logger.debug("trigger channels:", triggered_channels)
+        logger.debug(f"trigger channels: {triggered_channels}")
 
         traces = {}
         for channel in station.iter_channels(use_channels=triggered_channels):
@@ -410,22 +419,35 @@ class triggerSimulator:
 
         phased_traces = self.phase_signals(traces, beam_rolls)
 
+        trigger_time = None
+        trigger_times = {}
+        channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
+
+        trigger_delays = {}
         for iTrace, phased_trace in enumerate(phased_traces):
 
             # Create a sliding window
             squared_mean, num_frames = self.power_sum(coh_sum=phased_trace, window=window, step=step, adc_output=adc_output)
 
             if True in (squared_mean > threshold):
-
-                trigger_delays = {}
+                trigger_delays[iTrace] = {}
 
                 for channel_id in beam_rolls[iTrace]:
-                    trigger_delays[channel_id] = beam_rolls[iTrace][channel_id] * time_step
+                    trigger_delays[iTrace][channel_id] = beam_rolls[iTrace][channel_id] * time_step
 
-                logger.debug("Station has triggered")
+                triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(squared_mean > threshold)))
+                # logger.debug(f"Station has triggered, at bins {triggered_bins}")
+                # logger.debug(trigger_delays)
+                # logger.debug(f"trigger_delays {trigger_delays[iTrace][triggered_channels[0]]}")
                 is_triggered = True
+                trigger_times[iTrace] = trigger_delays[iTrace][triggered_channels[0]] + triggered_bins * step * time_step + channel_trace_start_time
+                # logger.debug(f"trigger times  = {trigger_times[iTrace]}")
+        if is_triggered:
+            # logger.debug(trigger_times)
+            trigger_time = min([x.min() for x in trigger_times.values()])
+            # logger.debug(f"minimum trigger time is {trigger_time:.0f}ns")
 
-        return is_triggered, trigger_delays
+        return is_triggered, trigger_delays, trigger_time, trigger_times
 
     @register_run()
     def run(self, evt, station, det,
@@ -483,8 +505,10 @@ class triggerSimulator:
         clock_offset: float
             Overall clock offset, for adc clock jitter reasons
         adc_output: string
+
             - 'voltage' to store the ADC output as discretised voltage trace
             - 'counts' to store the ADC output in ADC counts
+
         trigger_filter: array floats
             Freq. domain of the response to be applied to post-ADC traces
             Must be length for "MC freq"
@@ -499,6 +523,7 @@ class triggerSimulator:
             Time step in power integral. If equal to window, there is no time overlap
             in between neighboring integration windows.
             Units of ADC time ticks
+        
         Returns
         -------
         is_triggered: bool
@@ -515,34 +540,34 @@ class triggerSimulator:
         is_triggered = False
         trigger_delays = {}
 
-        channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
-
         if(set_not_triggered):
             is_triggered = False
             trigger_delays = {}
         else:
-            is_triggered, trigger_delays = self.phased_trigger(station=station,
-                                                               det=det,
-                                                               Vrms=Vrms,
-                                                               threshold=threshold,
-                                                               triggered_channels=triggered_channels,
-                                                               phasing_angles=phasing_angles,
-                                                               ref_index=ref_index,
-                                                               trigger_adc=trigger_adc,
-                                                               clock_offset=clock_offset,
-                                                               adc_output=adc_output,
-                                                               trigger_filter=trigger_filter,
-                                                               upsampling_factor=upsampling_factor,
-                                                               window=window,
-                                                               step=step)
+            is_triggered, trigger_delays, trigger_time, trigger_times = self.phased_trigger(station=station,
+                                                                             det=det,
+                                                                             Vrms=Vrms,
+                                                                             threshold=threshold,
+                                                                             triggered_channels=triggered_channels,
+                                                                             phasing_angles=phasing_angles,
+                                                                             ref_index=ref_index,
+                                                                             trigger_adc=trigger_adc,
+                                                                             clock_offset=clock_offset,
+                                                                             adc_output=adc_output,
+                                                                             trigger_filter=trigger_filter,
+                                                                             upsampling_factor=upsampling_factor,
+                                                                             window=window,
+                                                                             step=step)
 
         # Create a trigger object to be returned to the station
-        trigger = SimplePhasedTrigger(trigger_name, threshold, triggered_channels, phasing_angles, trigger_delays)
+        trigger = SimplePhasedTrigger(trigger_name, threshold, channels=triggered_channels,
+                                      primary_angles=phasing_angles, trigger_delays=trigger_delays)
 
         trigger.set_triggered(is_triggered)
 
         if is_triggered:
-            trigger.set_trigger_time(channel_trace_start_time)
+            trigger.set_trigger_time(trigger_time)
+            trigger.set_trigger_times(trigger_times)
         else:
             trigger.set_trigger_time(None)
 

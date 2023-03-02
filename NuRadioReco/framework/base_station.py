@@ -179,15 +179,21 @@ class BaseStation():
 
     def is_neutrino(self):
         if self._particle_type == '':
-            logger.error("Stations particle type has not been set")
-            raise ValueError("Stations particle type has not been set")
+            msg = "Stations particle type has not been set. Please call the module `eventTypeIdentifier.run(event, station, mode='forced', forced_event_type='neutrino'/'cosmic_ray')`."
+            msg += " This flag is used to differentiate between signals that originate from air vs. signals that originate from within the ice which is needed to e.g. determine if refraction "
+            msg += "into the ice needs to be considered."
+            logger.error(msg)
+            raise ValueError(msg)
 
         return self._particle_type == 'nu'
 
     def is_cosmic_ray(self):
         if self._particle_type == '':
-            logger.error("Stations particle type has not been set")
-            raise ValueError("Stations particle type has not been set")
+            msg = "Stations particle type has not been set. Please call the module `eventTypeIdentifier.run(event, station, mode='forced', forced_event_type='neutrino'/'cosmic_ray')`."
+            msg += " This flag is used to differentiate between signals that originate from air vs. signals that originate from within the ice which is needed to e.g. determine if refraction "
+            msg += "into the ice needs to be considered."
+            logger.error(msg)
+            raise ValueError(msg)
 
         return self._particle_type == 'cr'
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import absolute_import, division, print_function
 import os
 from NuRadioReco.utilities import units
@@ -35,4 +35,5 @@ generate_surface_muons(os.path.join(path, '1e18_full.hdf5'),
                        2.5e3, 1e18 * units.eV, 1e18 * units.eV,
                        volume,
                        thetamin=thetamin, thetamax=thetamax,
-                       config_file=os.path.join(path, 'config_PROPOSAL_greenland.json'))
+                       config_file="Greenland",
+                       tables_path=os.path.join(path,"tables"))

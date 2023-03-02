@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import absolute_import, division, print_function
 import sys
 import h5py
@@ -69,7 +69,7 @@ def test_almost_equal_attributes(keys, fin1=fin1, fin2=fin2, error=error):
 
 
 def test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error, accuracy=accuracy):
-    gids = np.array(fin1["station_101"]['event_group_ids'])
+    gids = np.array(fin1['event_group_ids'])
     for key in keys:
         arr1 = np.array(fin1['station_101'][key])
         arr2 = np.array(fin2['station_101'][key])
@@ -169,19 +169,21 @@ u'ray_tracing_solution_type'
 error = test_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error)
 
 keys = [
+ u'trigger_times',
  u'weights']
 
 error = test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error)
 
 keys = [
- u'max_amp_shower_and_ray',
- u'polarization',
  u'ray_tracing_C0',
+ u'ray_tracing_C1',
  u'launch_vectors',
  u'receive_vectors',
  u'travel_times',
+ u'trigger_times',
  u'travel_distances',
- u'ray_tracing_C1',
+ u'polarization',
+ u'max_amp_shower_and_ray',
  ]
 
 error = test_almost_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error)

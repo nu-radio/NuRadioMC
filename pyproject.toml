@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "NuRadioMC"
-version = "2.1.5-dev"
+version = "2.2.0-dev"
 authors = ["Christian Glaser et al."]
 homepage = "https://github.com/nu-radio/NuRadioMC"
 documentation = "https://nu-radio.github.io/NuRadioMC/main.html"
@@ -45,8 +45,8 @@ numba = "*"
 [tool.poetry.dev-dependencies]
 Sphinx = "*"
 sphinx-rtd-theme = "*"
-numpydoc = "*"
-proposal = "6.1.6"
+numpydoc = "1.1.0"
+proposal = {git = "https://github.com/tudo-astroparticlephysics/PROPOSAL.git", rev="b95628a"}
 pygdsm = {git = "https://github.com/telegraphic/pygdsm"}
 nifty5 = {git = "https://gitlab.mpcdf.mpg.de/ift/nifty.git", branch="NIFTy_5"}
 pypocketfft = {git = "https://gitlab.mpcdf.mpg.de/mtr/pypocketfft"}
