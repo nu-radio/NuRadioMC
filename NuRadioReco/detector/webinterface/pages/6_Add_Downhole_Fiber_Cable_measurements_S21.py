@@ -35,8 +35,8 @@ def build_main_page(main_cont):
                                    help='Your measurement protocol is not listed? Please add it to the database [here](Add_measurement_protocol)')
 
     # upload the data
-    uploaded_magnitude = main_cont.file_uploader('Select your magnitude measurement:', accept_multiple_files=False)
-    uploaded_phase = main_cont.file_uploader('Select your phase measurement:', accept_multiple_files=False)
+    uploaded_magnitude = main_cont.file_uploader('Select your magnitude measurement:', accept_multiple_files=False, key=page_name + 'mag')
+    uploaded_phase = main_cont.file_uploader('Select your phase measurement:', accept_multiple_files=False, key=page_name + 'phase')
 
     # container for warnings/infos at the botton
     cont_warning_bottom = main_cont.container()
