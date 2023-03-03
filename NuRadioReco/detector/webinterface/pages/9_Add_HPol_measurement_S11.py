@@ -33,7 +33,7 @@ def build_main_page(main_cont):
                                    help='Your measurement protocol is not listed? Please add it to the database [here](Add_measurement_protocol)')
 
     # upload the data
-    uploaded_data = main_cont.file_uploader('Select File', accept_multiple_files=False)
+    uploaded_data = main_cont.file_uploader('Select File', accept_multiple_files=False, key=page_name)
     # container for warnings/infos at the botton
     cont_warning_bottom = main_cont.container()
 

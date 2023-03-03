@@ -38,7 +38,7 @@ def build_main_page(main_cont):
                                          help='Read off the group delay from the left group delay plot below (after inserting data) and input the result here. A plot for the group delay corrected plot will be shown below on the right.')
     group_delay_arr = [0, 0, group_delay, 0]
     # upload the data
-    uploaded_data = main_cont.file_uploader('Select your measurement:', accept_multiple_files=False)
+    uploaded_data = main_cont.file_uploader('Select your measurement:', accept_multiple_files=False, key=page_name)
     uploaded_data_copy = copy.deepcopy(uploaded_data)  # copy needed to extract the measurement time
     # container for warnings/infos at the botton
     cont_warning_bottom = main_cont.container()
