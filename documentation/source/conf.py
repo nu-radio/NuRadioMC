@@ -213,7 +213,12 @@ epub_exclude_files = ['search.html']
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy', None),
+    'numpy': ("https://numpy.org/doc/stable", None)
+}
+default_role = 'autolink' #TODO: probably switch to py:obj?
 
 # Make sure the target is unique
 autosectionlabel_prefix_document = True
@@ -222,6 +227,11 @@ autosectionlabel_prefix_document = True
 numpydoc_class_members_toctree = False
 
 autoclass_content = 'both' # include __init__ docstrings in class description
+autodoc_default_options = {
+    'show-inheritance': True, # show 'Bases: Parent' for classes that inherit from parent classes
+    'inherited-members': True, # also document inherited methods; mostly done to avoid missing cross-references
+}
+autodoc_member_order = 'bysource' # list methods/variables etc. by the order they are defined, rather than alphabetically
 # 
 # coverage_ignore_modules
 
@@ -237,14 +247,11 @@ nitpicky = True
 # this ignores some cross-reference errors inside docstrings
 # that we don't care about
 nitpick_ignore_regex = [
-    ("py:class", "NuRadioReco.*"),
-    ("py:class", "NuRadioMC.*"),
     ("py:class", "aenum.Enum"),
     ("py:class", "tinydb_serialization.Serializer"),
     ("py:class", "radiopropa.ScalarField"),
-    ("py:obj", "NuRadioReco.*"),
-    ("py:obj", "NuRadioMC.*"),
-    ("py:class", "nifty5.*")
+    ("py:class", "nifty5.*"),
+    ("py:obj",".*__call__") # not sure why this method is listed sometimes - it shouldn't be?
 ]
 
 # def skip_modules(app, what, name, obj, skip, options):
