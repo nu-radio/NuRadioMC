@@ -632,6 +632,7 @@ class ray_tracing_2D(ray_tracing_base):
                     # of integrating over dt (the exponent of the attenuation factor), we integrate only over ds (the path length)
                     # and evaluate the attenuation (as function of depth and frequency) for the central depth of this segment 
                     # (because this is what takes time)
+                    # For more details and comparisons see PR #507 : https://github.com/nu-radio/NuRadioMC/pull/507
 
                     # define the width of the vertical (!) segments over which we sum. 
                     # Since we use linspace the actual width will differ slightly
