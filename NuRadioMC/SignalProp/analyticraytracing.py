@@ -45,6 +45,12 @@ analytic ray tracing solution
 """
 speed_of_light = scipy.constants.c * units.m / units.s
 
+"""
+Models in the following list will use the speed-optimized algorithm to calculate the attenuation along the path.
+Can be overwritten by init.
+"""
+speedup_attenuation_models = ["GL3"]
+
 
 def get_n_steps(x1, x2, dx):
     """ Returns number of segments necessary for width to be approx dx """
@@ -85,7 +91,8 @@ class ray_tracing_2D(ray_tracing_base):
     def __init__(self, medium, attenuation_model="SP1",
                  log_level=logging.WARNING,
                  n_frequencies_integration=25,
-                 use_optimized_start_values=False):
+                 use_optimized_start_values=False,
+                 overwrite_speedup=None):
         """
         initialize 2D analytic ray tracing class
 
@@ -102,7 +109,9 @@ class ray_tracing_2D(ray_tracing_base):
         use_optimized_start_value: bool
             if True, the initial C_0 paramter (launch angle) is set to the ray that skims the surface
             (default: False)
-
+        overwrite_speedup: bool
+            If not None, use value to overwrite _use_optimized_calculation. (Default: None)
+            
         """
         self.medium = medium
         if(not hasattr(self.medium, "reflection")):
@@ -118,6 +127,10 @@ class ray_tracing_2D(ray_tracing_base):
         self.__n_frequencies_integration = n_frequencies_integration
         self.__use_optimized_start_values = use_optimized_start_values
         
+        self._use_optimized_calculation = self.attenuation_model in speedup_attenuation_models
+        if overwrite_speedup is not None:
+            self._use_optimized_calculation = overwrite_speedup
+                    
 
     def n(self, z):
         """
@@ -620,8 +633,9 @@ class ray_tracing_2D(ray_tracing_base):
                 mask = frequency > 0
                 freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
                 gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+                print("_use_optimized_calculation", self._use_optimized_calculation)
 
-                if self.attenuation_model == "GL3":
+                if self._use_optimized_calculation:
                     # The integration of the attenuation factor along the path with scipy.quad is inefficient. The 
                     # reason for this is that attenuation profile is varying a lot with depth. Hence, to improve
                     # performance we sum over discrete segments with loss of some accuracy. 
@@ -1625,7 +1639,7 @@ class ray_tracing(ray_tracing_base):
 
     def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  n_frequencies_integration=100, n_reflections=0, config=None,
-                 detector=None):
+                 detector=None, ray_tracing_2D_kwards={}):
         """
         class initilization
 
@@ -1633,10 +1647,13 @@ class ray_tracing(ray_tracing_base):
         ----------
         medium: medium class
             class describing the index-of-refraction profile
+        
         attenuation_model: string
             signal attenuation model
+        
         log_name:  string
             name under which things should be logged
+        
         log_level: logging object
             specify the log level of the ray tracing class
 
@@ -1646,12 +1663,15 @@ class ray_tracing(ray_tracing_base):
             * logging.DEBUG
 
             default is WARNING
+        
         n_frequencies_integration: int
             the number of frequencies for which the frequency dependent attenuation
             length is being calculated. The attenuation length for all other frequencies
             is obtained via linear interpolation.
+        
         n_reflections: int (default 0)
             in case of a medium with a reflective layer at the bottom, how many reflections should be considered
+        
         config: dict
             a dictionary with the optional config settings. If None, the config is intialized with default values,
             which is needed to avoid any "key not available" errors. The default settings are
@@ -1662,6 +1682,10 @@ class ray_tracing(ray_tracing_base):
                 * self._config['propagation']['focusing'] = False
 
         detector: detector object
+        
+        ray_tracing_2D_kwards: dict
+            Additional arguments which are passed to ray_tracing_2D
+            
         """
         self.__logger = logging.getLogger('ray_tracing_analytic')
         self.__logger.setLevel(log_level)
@@ -1679,8 +1703,10 @@ class ray_tracing(ray_tracing_base):
                          config=config,
                          detector=detector)
         self.set_config(config=config)
+        
         self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
-                                    n_frequencies_integration=self._n_frequencies_integration)
+                                    n_frequencies_integration=self._n_frequencies_integration,
+                                    **ray_tracing_2D_kwards)
 
         self._swap = None
         self._dPhi = None
