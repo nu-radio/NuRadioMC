@@ -122,6 +122,7 @@ it just needs to be added to the
 .. admonition:: For Developers
 
   New parameters should always be added to the bottom of the list. Do not re-use old Enums!
+  A description should be added to each new parameter with a comment docstring starting with ``#:``.
 
 Additionally, parameters can be written and accessed via indexing, like one
 would do to a dictionary:
