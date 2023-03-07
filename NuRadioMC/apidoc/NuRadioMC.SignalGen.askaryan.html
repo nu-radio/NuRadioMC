@@ -7,7 +7,7 @@
   <title>NuRadioMC.SignalGen.askaryan module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -576,75 +576,9 @@
   <section id="module-NuRadioMC.SignalGen.askaryan">
 <span id="nuradiomc-signalgen-askaryan-module"></span><h1>NuRadioMC.SignalGen.askaryan module<a class="headerlink" href="#module-NuRadioMC.SignalGen.askaryan" title="Permalink to this heading"></a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.SignalGen.askaryan.get_frequency_spectrum">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.askaryan.</span></span><span class="sig-name descname"><span class="pre">get_frequency_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/askaryan.html#get_frequency_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.askaryan.get_frequency_spectrum" title="Permalink to this definition"></a></dt>
-<dd><p>returns the complex amplitudes of the frequency spectrum of the neutrino radio signal</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>energy</strong><span class="classifier">float</span></dt><dd><p>energy of the shower</p>
-</dd>
-<dt><strong>theta: float</strong></dt><dd><p>viewangle: angle between shower axis (neutrino direction) and the line
-of sight between interaction and detector</p>
-</dd>
-<dt><strong>N</strong><span class="classifier">int</span></dt><dd><p>number of samples in the time domain</p>
-</dd>
-<dt><strong>dt: float</strong></dt><dd><p>time bin width, i.e. the inverse of the sampling rate</p>
-</dd>
-<dt><strong>shower_type: string (default “HAD”)</strong></dt><dd><p>type of shower, either “HAD” (hadronic), “EM” (electromagnetic)
-or “TAU” (tau lepton induced)
-note that TAU showers are currently only implemented in the ARZ2019 model</p>
-</dd>
-<dt><strong>n_index: float</strong></dt><dd><p>index of refraction at interaction vertex</p>
-</dd>
-<dt><strong>R: float</strong></dt><dd><p>distance from vertex to observer</p>
-</dd>
-<dt><strong>model: string</strong></dt><dd><p>specifies the signal model</p>
-<ul class="simple">
-<li><p>ZHS1992: the original ZHS parametrization from
-E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992),
-<a class="reference external" href="https://doi.org/10.1103/PhysRevD.45.362">https://doi.org/10.1103/PhysRevD.45.362</a>,
-this parametrization does not contain any phase information</p></li>
-<li><p>Alvarez2000: parameterization based on ZHS
-mainly based on J. Alvarez-Muniz, R. A. Vazquez, and E. Zas,
-Calculation methods for radio pulses from high energy showers,
-Physical Review D62 (2000) <a class="reference external" href="https://doi.org/10.1103/PhysRevD.84.103003">https://doi.org/10.1103/PhysRevD.84.103003</a></p></li>
-<li><p>Alvarez2009: parameterization based on ZHS
-from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas,
-Coherent cherenkov radio pulses from hadronic showers up to EeV energies,
-Astroparticle Physics 35 (2012), no. 6 287 – 299
-and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas,
-Thinned simulations of extremely energetic showers in dense media
-for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111</p></li>
-<li><p>HCRB2017: analytic model from J. Hanson, A. Connolly
-Astroparticle Physics 91 (2017) 75-89</p></li>
-<li><p>ARZ2019: semi MC time domain model
-from Alvarez-Muñiz, J., Romero-Wolf, A., &amp; Zas, E. (2011).
-Practical and accurate calculations of Askaryan radiation.
-Physical Review D - Particles, Fields, Gravitation and Cosmology, 84(10).
-<a class="reference external" href="https://doi.org/10.1103/PhysRevD.84.103003">https://doi.org/10.1103/PhysRevD.84.103003</a></p></li>
-<li><p>ARZ2020: semi MC time domain model
-updated version of ARZ2019 with parameters taken from
-J. Alvarez-Muñiz, P.M. Hansen, A. Romero-Wolf and E. Zas,
-Askaryan radiation from neutrino-induced showers in ice,
-Phys. Rev. D 101 (2020) 083005.
-<a class="reference external" href="https://doi.org/10.1103/PhysRevD.101.083005">https://doi.org/10.1103/PhysRevD.101.083005</a></p></li>
-</ul>
-</dd>
-<dt><strong>full_output: bool (default False)</strong></dt><dd><p>if True, askaryan modules can return additional output</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>spectrum: array</dt><dd><p>the complex amplitudes for the given frequencies</p>
-</dd>
-<dt>additional information: dict</dt><dd><p>only available if <cite>full_output</cite> enabled</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
+<dt class="sig sig-object py" id="NuRadioMC.SignalGen.askaryan.set_log_level">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.askaryan.</span></span><span class="sig-name descname"><span class="pre">set_log_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/askaryan.html#set_log_level"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.askaryan.set_log_level" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.SignalGen.askaryan.get_time_trace">
@@ -724,7 +658,7 @@ see description there for more details</p>
 <dd class="field-even"><dl class="simple">
 <dt>time trace: array</dt><dd><p>the amplitudes for each time bin</p>
 </dd>
-<dt>additional information: dict</dt><dd><p>only available if <cite>full_output</cite> enabled</p>
+<dt>additional information: dict</dt><dd><p>only available if <em class="xref py py-obj">full_output</em> enabled</p>
 </dd>
 </dl>
 </dd>
@@ -732,9 +666,75 @@ see description there for more details</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.SignalGen.askaryan.set_log_level">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.askaryan.</span></span><span class="sig-name descname"><span class="pre">set_log_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/askaryan.html#set_log_level"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.askaryan.set_log_level" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="NuRadioMC.SignalGen.askaryan.get_frequency_spectrum">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.askaryan.</span></span><span class="sig-name descname"><span class="pre">get_frequency_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/askaryan.html#get_frequency_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.askaryan.get_frequency_spectrum" title="Permalink to this definition"></a></dt>
+<dd><p>returns the complex amplitudes of the frequency spectrum of the neutrino radio signal</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>energy</strong><span class="classifier">float</span></dt><dd><p>energy of the shower</p>
+</dd>
+<dt><strong>theta: float</strong></dt><dd><p>viewangle: angle between shower axis (neutrino direction) and the line
+of sight between interaction and detector</p>
+</dd>
+<dt><strong>N</strong><span class="classifier">int</span></dt><dd><p>number of samples in the time domain</p>
+</dd>
+<dt><strong>dt: float</strong></dt><dd><p>time bin width, i.e. the inverse of the sampling rate</p>
+</dd>
+<dt><strong>shower_type: string (default “HAD”)</strong></dt><dd><p>type of shower, either “HAD” (hadronic), “EM” (electromagnetic)
+or “TAU” (tau lepton induced)
+note that TAU showers are currently only implemented in the ARZ2019 model</p>
+</dd>
+<dt><strong>n_index: float</strong></dt><dd><p>index of refraction at interaction vertex</p>
+</dd>
+<dt><strong>R: float</strong></dt><dd><p>distance from vertex to observer</p>
+</dd>
+<dt><strong>model: string</strong></dt><dd><p>specifies the signal model</p>
+<ul class="simple">
+<li><p>ZHS1992: the original ZHS parametrization from
+E. Zas, F. Halzen, and T. Stanev, Phys. Rev. D 45, 362 (1992),
+<a class="reference external" href="https://doi.org/10.1103/PhysRevD.45.362">https://doi.org/10.1103/PhysRevD.45.362</a>,
+this parametrization does not contain any phase information</p></li>
+<li><p>Alvarez2000: parameterization based on ZHS
+mainly based on J. Alvarez-Muniz, R. A. Vazquez, and E. Zas,
+Calculation methods for radio pulses from high energy showers,
+Physical Review D62 (2000) <a class="reference external" href="https://doi.org/10.1103/PhysRevD.84.103003">https://doi.org/10.1103/PhysRevD.84.103003</a></p></li>
+<li><p>Alvarez2009: parameterization based on ZHS
+from J. Alvarez-Muniz, W. R. Carvalho, M. Tueros, and E. Zas,
+Coherent cherenkov radio pulses from hadronic showers up to EeV energies,
+Astroparticle Physics 35 (2012), no. 6 287 – 299
+and J. Alvarez-Muniz, C. James, R. Protheroe, and E. Zas,
+Thinned simulations of extremely energetic showers in dense media
+for radio applications, Astroparticle Physics 32 (2009), no. 2 100 – 111</p></li>
+<li><p>HCRB2017: analytic model from J. Hanson, A. Connolly
+Astroparticle Physics 91 (2017) 75-89</p></li>
+<li><p>ARZ2019: semi MC time domain model
+from Alvarez-Muñiz, J., Romero-Wolf, A., &amp; Zas, E. (2011).
+Practical and accurate calculations of Askaryan radiation.
+Physical Review D - Particles, Fields, Gravitation and Cosmology, 84(10).
+<a class="reference external" href="https://doi.org/10.1103/PhysRevD.84.103003">https://doi.org/10.1103/PhysRevD.84.103003</a></p></li>
+<li><p>ARZ2020: semi MC time domain model
+updated version of ARZ2019 with parameters taken from
+J. Alvarez-Muñiz, P.M. Hansen, A. Romero-Wolf and E. Zas,
+Askaryan radiation from neutrino-induced showers in ice,
+Phys. Rev. D 101 (2020) 083005.
+<a class="reference external" href="https://doi.org/10.1103/PhysRevD.101.083005">https://doi.org/10.1103/PhysRevD.101.083005</a></p></li>
+</ul>
+</dd>
+<dt><strong>full_output: bool (default False)</strong></dt><dd><p>if True, askaryan modules can return additional output</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>spectrum: array</dt><dd><p>the complex amplitudes for the given frequencies</p>
+</dd>
+<dt>additional information: dict</dt><dd><p>only available if <em class="xref py py-obj">full_output</em> enabled</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 

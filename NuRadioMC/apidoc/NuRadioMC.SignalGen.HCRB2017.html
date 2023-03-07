@@ -7,7 +7,7 @@
   <title>NuRadioMC.SignalGen.HCRB2017 module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -576,29 +576,30 @@
   <section id="module-NuRadioMC.SignalGen.HCRB2017">
 <span id="nuradiomc-signalgen-hcrb2017-module"></span><h1>NuRadioMC.SignalGen.HCRB2017 module<a class="headerlink" href="#module-NuRadioMC.SignalGen.HCRB2017" title="Permalink to this heading"></a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.SignalGen.HCRB2017.gauss">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.HCRB2017.</span></span><span class="sig-name descname"><span class="pre">gauss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/HCRB2017.html#gauss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.HCRB2017.gauss" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.SignalGen.HCRB2017.get_N_AskDepthA">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.HCRB2017.</span></span><span class="sig-name descname"><span class="pre">get_N_AskDepthA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">EM</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LPM</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fudge_LPM</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/HCRB2017.html#get_N_AskDepthA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.HCRB2017.get_N_AskDepthA" title="Permalink to this definition"></a></dt>
-<dd><p>calculates the Gaussian width (sigma) of the shower profile using the
-Greisen profile for EM showers and the Gaisser-Hillas profile for HAD showers.
-If the LPM flag is activated, for EM shower of the shower width of 10.1103/PhysRevD.82.074017 is used.</p>
-<p>Please note that the parameterization of the shower width for LPM showers is not compatible with the Greisen
-parameterization event at regimes where the LPM effect is negligible!!!</p>
+<dt class="sig sig-object py" id="NuRadioMC.SignalGen.HCRB2017.get_time_trace">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.HCRB2017.</span></span><span class="sig-name descname"><span class="pre">get_time_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_em_shower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LPM</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/HCRB2017.html#get_time_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.HCRB2017.get_time_trace" title="Permalink to this definition"></a></dt>
+<dd><p>returns the Askaryan pulse in the time domain</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>E: float</strong></dt><dd><p>the energy of the shower</p>
+<dt><strong>energy</strong><span class="classifier">float</span></dt><dd><p>energy of the shower</p>
 </dd>
-<dt><strong>EM: bool (default True)</strong></dt><dd><p>switch between EM and had. showers</p>
+<dt><strong>theta: float</strong></dt><dd><p>viewangle: angle between shower axis (neutrino direction) and the line
+of sight between interaction and detector</p>
+</dd>
+<dt><strong>N</strong><span class="classifier">int</span></dt><dd><p>number of samples in the time domain</p>
+</dd>
+<dt><strong>dt: float</strong></dt><dd><p>time bin width, i.e. the inverse of the sampling rate</p>
+</dd>
+<dt><strong>is_em_shower: bool</strong></dt><dd><p>true if EM shower, false otherwise</p>
+</dd>
+<dt><strong>n: float</strong></dt><dd><p>index of refraction at interaction vertex</p>
+</dd>
+<dt><strong>R: float</strong></dt><dd><p>distance from vertex to observer</p>
 </dd>
 <dt><strong>LPM: bool (default True)</strong></dt><dd><p>enable/disable LPD effect</p>
 </dd>
-<dt><strong>fudge_LPM: bool (default False)</strong></dt><dd><p>if True, the shower width parameterization of LPM showers is rescaled to match
-the Greisen parameterization at energies below the E_LPM, i.e., at energies where the LPM effect is negligible</p>
+<dt><strong>a: float or None (default Nont)</strong></dt><dd><p>if variable set, the shower width is manually set to this value</p>
 </dd>
 </dl>
 </dd>
@@ -637,30 +638,29 @@ of sight between interaction and detector</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.SignalGen.HCRB2017.get_time_trace">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.HCRB2017.</span></span><span class="sig-name descname"><span class="pre">get_time_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_em_shower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LPM</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/HCRB2017.html#get_time_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.HCRB2017.get_time_trace" title="Permalink to this definition"></a></dt>
-<dd><p>returns the Askaryan pulse in the time domain</p>
+<dt class="sig sig-object py" id="NuRadioMC.SignalGen.HCRB2017.gauss">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.HCRB2017.</span></span><span class="sig-name descname"><span class="pre">gauss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/HCRB2017.html#gauss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.HCRB2017.gauss" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalGen.HCRB2017.get_N_AskDepthA">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.HCRB2017.</span></span><span class="sig-name descname"><span class="pre">get_N_AskDepthA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">EM</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LPM</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fudge_LPM</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/HCRB2017.html#get_N_AskDepthA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.HCRB2017.get_N_AskDepthA" title="Permalink to this definition"></a></dt>
+<dd><p>calculates the Gaussian width (sigma) of the shower profile using the
+Greisen profile for EM showers and the Gaisser-Hillas profile for HAD showers.
+If the LPM flag is activated, for EM shower of the shower width of 10.1103/PhysRevD.82.074017 is used.</p>
+<p>Please note that the parameterization of the shower width for LPM showers is not compatible with the Greisen
+parameterization event at regimes where the LPM effect is negligible!!!</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>energy</strong><span class="classifier">float</span></dt><dd><p>energy of the shower</p>
+<dt><strong>E: float</strong></dt><dd><p>the energy of the shower</p>
 </dd>
-<dt><strong>theta: float</strong></dt><dd><p>viewangle: angle between shower axis (neutrino direction) and the line
-of sight between interaction and detector</p>
-</dd>
-<dt><strong>N</strong><span class="classifier">int</span></dt><dd><p>number of samples in the time domain</p>
-</dd>
-<dt><strong>dt: float</strong></dt><dd><p>time bin width, i.e. the inverse of the sampling rate</p>
-</dd>
-<dt><strong>is_em_shower: bool</strong></dt><dd><p>true if EM shower, false otherwise</p>
-</dd>
-<dt><strong>n: float</strong></dt><dd><p>index of refraction at interaction vertex</p>
-</dd>
-<dt><strong>R: float</strong></dt><dd><p>distance from vertex to observer</p>
+<dt><strong>EM: bool (default True)</strong></dt><dd><p>switch between EM and had. showers</p>
 </dd>
 <dt><strong>LPM: bool (default True)</strong></dt><dd><p>enable/disable LPD effect</p>
 </dd>
-<dt><strong>a: float or None (default Nont)</strong></dt><dd><p>if variable set, the shower width is manually set to this value</p>
+<dt><strong>fudge_LPM: bool (default False)</strong></dt><dd><p>if True, the shower width parameterization of LPM showers is rescaled to match
+the Greisen parameterization at energies below the E_LPM, i.e., at energies where the LPM effect is negligible</p>
 </dd>
 </dl>
 </dd>

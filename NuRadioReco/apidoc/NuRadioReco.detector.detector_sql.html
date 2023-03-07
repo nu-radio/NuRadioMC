@@ -7,7 +7,7 @@
   <title>NuRadioReco.detector.detector_sql module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -646,6 +646,31 @@
 </tbody>
 </table>
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.update" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_everything">
+<span class="sig-name descname"><span class="pre">get_everything</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_everything"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_everything" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_everything_channels">
+<span class="sig-name descname"><span class="pre">get_everything_channels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_everything_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_everything_channels" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_everything_stations">
+<span class="sig-name descname"><span class="pre">get_everything_stations</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_everything_stations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_everything_stations" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_everything_positions">
+<span class="sig-name descname"><span class="pre">get_everything_positions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_everything_positions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_everything_positions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_absolute_position_site">
 <span class="sig-name descname"><span class="pre">get_absolute_position_site</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_absolute_position_site"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_absolute_position_site" title="Permalink to this definition"></a></dt>
 <dd><p>returns the UTM coordinates</p>
@@ -674,35 +699,23 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_amplifier_type">
-<span class="sig-name descname"><span class="pre">get_amplifier_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_amplifier_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_amplifier_type" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_relative_position">
+<span class="sig-name descname"><span class="pre">get_relative_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_relative_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_relative_position" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_antenna_deployment_time">
-<span class="sig-name descname"><span class="pre">get_antenna_deployment_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_antenna_deployment_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_antenna_deployment_time" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_relative_positions">
+<span class="sig-name descname"><span class="pre">get_relative_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_relative_positions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_relative_positions" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_antenna_model">
-<span class="sig-name descname"><span class="pre">get_antenna_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_antenna_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_antenna_model" title="Permalink to this definition"></a></dt>
-<dd><p>determine correct antenna model from antenna type, position and orientation of antenna</p>
-<p>so far only infinite firn and infinite air cases are differentiated</p>
-</dd></dl>
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_site">
+<span class="sig-name descname"><span class="pre">get_site</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_site"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_site" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_antenna_orientation">
-<span class="sig-name descname"><span class="pre">get_antenna_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_antenna_orientation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_antenna_orientation" title="Permalink to this definition"></a></dt>
-<dd><p>returns the orientation of a specific antenna
-* orientation theta: boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
-* orientation phi: boresight direction (azimuth angle counting from East counterclockwise)
-* rotation theta: rotation of the antenna, vector in plane of tines pointing away from connector
-* rotation phi: rotation of the antenna, vector in plane of tines pointing away from connector</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_antenna_type">
-<span class="sig-name descname"><span class="pre">get_antenna_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_antenna_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_antenna_type" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_number_of_channels">
+<span class="sig-name descname"><span class="pre">get_number_of_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_number_of_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_number_of_channels" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -716,43 +729,28 @@
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_everything">
-<span class="sig-name descname"><span class="pre">get_everything</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_everything"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_everything" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_antenna_type">
+<span class="sig-name descname"><span class="pre">get_antenna_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_antenna_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_antenna_type" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_everything_channels">
-<span class="sig-name descname"><span class="pre">get_everything_channels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_everything_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_everything_channels" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_antenna_deployment_time">
+<span class="sig-name descname"><span class="pre">get_antenna_deployment_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_antenna_deployment_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_antenna_deployment_time" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_everything_positions">
-<span class="sig-name descname"><span class="pre">get_everything_positions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_everything_positions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_everything_positions" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_antenna_orientation">
+<span class="sig-name descname"><span class="pre">get_antenna_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_antenna_orientation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_antenna_orientation" title="Permalink to this definition"></a></dt>
+<dd><p>returns the orientation of a specific antenna
+* orientation theta: boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)
+* orientation phi: boresight direction (azimuth angle counting from East counterclockwise)
+* rotation theta: rotation of the antenna, vector in plane of tines pointing away from connector
+* rotation phi: rotation of the antenna, vector in plane of tines pointing away from connector</p>
+</dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_everything_stations">
-<span class="sig-name descname"><span class="pre">get_everything_stations</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_everything_stations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_everything_stations" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_number_of_channels">
-<span class="sig-name descname"><span class="pre">get_number_of_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_number_of_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_number_of_channels" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_number_of_samples">
-<span class="sig-name descname"><span class="pre">get_number_of_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_number_of_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_number_of_samples" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_relative_position">
-<span class="sig-name descname"><span class="pre">get_relative_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_relative_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_relative_position" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_relative_positions">
-<span class="sig-name descname"><span class="pre">get_relative_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_relative_positions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_relative_positions" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_amplifier_type">
+<span class="sig-name descname"><span class="pre">get_amplifier_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_amplifier_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_amplifier_type" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -761,31 +759,18 @@
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_site">
-<span class="sig-name descname"><span class="pre">get_site</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_site"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_site" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_number_of_samples">
+<span class="sig-name descname"><span class="pre">get_number_of_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_number_of_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_number_of_samples" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.update">
-<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.update" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.Detector.get_antenna_model">
+<span class="sig-name descname"><span class="pre">get_antenna_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#Detector.get_antenna_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.Detector.get_antenna_model" title="Permalink to this definition"></a></dt>
+<dd><p>determine correct antenna model from antenna type, position and orientation of antenna</p>
+<p>so far only infinite firn and infinite air cases are differentiated</p>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.get_amplifier_type">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector_sql.</span></span><span class="sig-name descname"><span class="pre">get_amplifier_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#get_amplifier_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.get_amplifier_type" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.get_antenna_model_file">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector_sql.</span></span><span class="sig-name descname"><span class="pre">get_antenna_model_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#get_antenna_model_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.get_antenna_model_file" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.get_antenna_type">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector_sql.</span></span><span class="sig-name descname"><span class="pre">get_antenna_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#get_antenna_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.get_antenna_type" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.get_cable_delays">
@@ -793,8 +778,8 @@
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.get_number_of_channels">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector_sql.</span></span><span class="sig-name descname"><span class="pre">get_number_of_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#get_number_of_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.get_number_of_channels" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.get_antenna_model_file">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector_sql.</span></span><span class="sig-name descname"><span class="pre">get_antenna_model_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#get_antenna_model_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.get_antenna_model_file" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -808,8 +793,23 @@
 <dd></dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.get_antenna_type">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector_sql.</span></span><span class="sig-name descname"><span class="pre">get_antenna_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#get_antenna_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.get_antenna_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.get_amplifier_type">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector_sql.</span></span><span class="sig-name descname"><span class="pre">get_amplifier_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#get_amplifier_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.get_amplifier_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.get_station_type">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector_sql.</span></span><span class="sig-name descname"><span class="pre">get_station_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#get_station_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.get_station_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sql.get_number_of_channels">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.detector_sql.</span></span><span class="sig-name descname"><span class="pre">get_number_of_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sql.html#get_number_of_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sql.get_number_of_channels" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>

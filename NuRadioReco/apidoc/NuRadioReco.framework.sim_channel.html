@@ -7,7 +7,7 @@
   <title>NuRadioReco.framework.sim_channel module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -585,25 +585,25 @@ a shower and ray tracing solution id</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_time_shift</span></code>(delta_t[, silent])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.apply_time_shift" title="NuRadioReco.framework.sim_channel.SimChannel.apply_time_shift"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_time_shift</span></code></a>(delta_t[, silent])</p></td>
 <td><p>Uses the fourier shift theorem to apply a time shift to the trace Note that this is a cyclic shift, which means the trace will wrap around, which might lead to problems, especially for large time shifts.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_filtered_trace</span></code>(passband[, filter_type, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_filtered_trace" title="NuRadioReco.framework.sim_channel.SimChannel.get_filtered_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_filtered_trace</span></code></a>(passband[, filter_type, ...])</p></td>
 <td><p>Returns the trace after applying a filter to it.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_samples</span></code>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_number_of_samples" title="NuRadioReco.framework.sim_channel.SimChannel.get_number_of_samples"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_samples</span></code></a>()</p></td>
 <td><p>returns the number of samples in the time domain</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_rate</span></code>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate" title="NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_rate</span></code></a>()</p></td>
 <td><p>returns the sampling rate of the trace</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trace" title="NuRadioReco.framework.sim_channel.SimChannel.get_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code></a>()</p></td>
 <td><p>returns the time trace.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier" title="NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_identifier</span></code></a>()</p></td>
 <td><p>returns a unique identifier consisting of the tuple channel_id, shower_id and ray_tracing_id</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code>(trace, sampling_rate)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="NuRadioReco.framework.sim_channel.SimChannel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate)</p></td>
 <td><p>sets the time trace</p></td>
 </tr>
 </tbody>
@@ -685,25 +685,25 @@ a shower and ray tracing solution id</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_time_shift</span></code>(delta_t[, silent])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.apply_time_shift" title="NuRadioReco.framework.sim_channel.SimChannel.apply_time_shift"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_time_shift</span></code></a>(delta_t[, silent])</p></td>
 <td><p>Uses the fourier shift theorem to apply a time shift to the trace Note that this is a cyclic shift, which means the trace will wrap around, which might lead to problems, especially for large time shifts.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_filtered_trace</span></code>(passband[, filter_type, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_filtered_trace" title="NuRadioReco.framework.sim_channel.SimChannel.get_filtered_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_filtered_trace</span></code></a>(passband[, filter_type, ...])</p></td>
 <td><p>Returns the trace after applying a filter to it.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_samples</span></code>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_number_of_samples" title="NuRadioReco.framework.sim_channel.SimChannel.get_number_of_samples"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_samples</span></code></a>()</p></td>
 <td><p>returns the number of samples in the time domain</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_rate</span></code>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate" title="NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_rate</span></code></a>()</p></td>
 <td><p>returns the sampling rate of the trace</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trace" title="NuRadioReco.framework.sim_channel.SimChannel.get_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trace</span></code></a>()</p></td>
 <td><p>returns the time trace.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier" title="NuRadioReco.framework.sim_channel.SimChannel.get_unique_identifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_identifier</span></code></a>()</p></td>
 <td><p>returns a unique identifier consisting of the tuple channel_id, shower_id and ray_tracing_id</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code>(trace, sampling_rate)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="NuRadioReco.framework.sim_channel.SimChannel.set_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trace</span></code></a>(trace, sampling_rate)</p></td>
 <td><p>sets the time trace</p></td>
 </tr>
 </tbody>
@@ -770,18 +770,13 @@ a shower and ray tracing solution id</p>
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.deserialize">
-<span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel.deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.deserialize" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_shower_id">
+<span class="sig-name descname"><span class="pre">get_shower_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel.get_shower_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_shower_id" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_ray_tracing_solution_id">
 <span class="sig-name descname"><span class="pre">get_ray_tracing_solution_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel.get_ray_tracing_solution_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_ray_tracing_solution_id" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_shower_id">
-<span class="sig-name descname"><span class="pre">get_shower_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel.get_shower_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_shower_id" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -793,6 +788,185 @@ a shower and ray tracing solution id</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.serialize">
 <span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_trace</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel.serialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.serialize" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.deserialize">
+<span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_channel.html#SimChannel.deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.deserialize" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.add_trace_start_time">
+<span class="sig-name descname"><span class="pre">add_trace_start_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.add_trace_start_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.apply_time_shift">
+<span class="sig-name descname"><span class="pre">apply_time_shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.apply_time_shift" title="Permalink to this definition"></a></dt>
+<dd><p>Uses the fourier shift theorem to apply a time shift to the trace
+Note that this is a cyclic shift, which means the trace will wrap
+around, which might lead to problems, especially for large time shifts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>delta_t: float</strong></dt><dd><p>Time by which the trace should be shifted</p>
+</dd>
+<dt><strong>silent: boolean (default:False)</strong></dt><dd><p>Turn off warnings if time shift is larger than 10% of trace length
+Only use this option if you are sure that your trace is long enough
+to acommodate the time shift</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_filtered_trace">
+<span class="sig-name descname"><span class="pre">get_filtered_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">passband</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'butter'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_filtered_trace" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the trace after applying a filter to it. This does not change the stored trace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>passband: list of floats</strong></dt><dd><p>lower and upper bound of the filter passband</p>
+</dd>
+<dt><strong>filter_type: string</strong></dt><dd><p>type of the applied filter. Options are rectangular, butter and butterabs</p>
+</dd>
+<dt><strong>order: int</strong></dt><dd><p>Order of the Butterworth filter, if the filter types butter or butterabs are chosen</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_frequencies">
+<span class="sig-name descname"><span class="pre">get_frequencies</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_frequencies" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_frequency_spectrum">
+<span class="sig-name descname"><span class="pre">get_frequency_spectrum</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_frequency_spectrum" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_hilbert_envelope">
+<span class="sig-name descname"><span class="pre">get_hilbert_envelope</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_hilbert_envelope" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_hilbert_envelope_mag">
+<span class="sig-name descname"><span class="pre">get_hilbert_envelope_mag</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_hilbert_envelope_mag" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_id">
+<span class="sig-name descname"><span class="pre">get_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_id" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_number_of_samples">
+<span class="sig-name descname"><span class="pre">get_number_of_samples</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_number_of_samples" title="Permalink to this definition"></a></dt>
+<dd><p>returns the number of samples in the time domain</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>n_samples: int</dt><dd><p>number of samples in time domain</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_parameter">
+<span class="sig-name descname"><span class="pre">get_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_parameters">
+<span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate">
+<span class="sig-name descname"><span class="pre">get_sampling_rate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_sampling_rate" title="Permalink to this definition"></a></dt>
+<dd><p>returns the sampling rate of the trace</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>sampling_rate: float</dt><dd><p>sampling rate, i.e., the inverse of the bin width</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_times">
+<span class="sig-name descname"><span class="pre">get_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_times" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_trace">
+<span class="sig-name descname"><span class="pre">get_trace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trace" title="Permalink to this definition"></a></dt>
+<dd><p>returns the time trace.</p>
+<p>If the frequency spectrum was modified before,
+an ifft is performed automatically to have the time domain representation
+up to date.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>trace: np.array of floats</dt><dd><p>the time trace</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.get_trace_start_time">
+<span class="sig-name descname"><span class="pre">get_trace_start_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.get_trace_start_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.has_parameter">
+<span class="sig-name descname"><span class="pre">has_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.has_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.resample">
+<span class="sig-name descname"><span class="pre">resample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.resample" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.set_frequency_spectrum">
+<span class="sig-name descname"><span class="pre">set_frequency_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency_spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_frequency_spectrum" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.set_parameter">
+<span class="sig-name descname"><span class="pre">set_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.set_trace">
+<span class="sig-name descname"><span class="pre">set_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace" title="Permalink to this definition"></a></dt>
+<dd><p>sets the time trace</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace: np.array of floats</strong></dt><dd><p>the time series</p>
+</dd>
+<dt><strong>sampling_rate: float</strong></dt><dd><p>the sampling rage of the trace, i.e., the inverse of the bin width</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_channel.SimChannel.set_trace_start_time">
+<span class="sig-name descname"><span class="pre">set_trace_start_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_channel.SimChannel.set_trace_start_time" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

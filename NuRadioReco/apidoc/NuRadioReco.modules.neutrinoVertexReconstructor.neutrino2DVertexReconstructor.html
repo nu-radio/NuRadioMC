@@ -7,7 +7,7 @@
   <title>NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -649,30 +649,35 @@ created.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.find_ray_type">
-<span class="sig-name descname"><span class="pre">find_ray_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ch1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/neutrinoVertexReconstructor/neutrino2DVertexReconstructor.html#neutrino2DVertexReconstructor.find_ray_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.find_ray_type" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate the most likely ray type (direct, reflected
-or refracted) of the signal that reached the detector.
-This is done by taking the reconstructed vertex position,
-calculating the expected time offset between channels and
-checking for which ray type scenario the correlation
-between channels is largest.</p>
+<dt class="sig sig-object py" id="NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_spacing</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction_guess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_dnr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/neutrinoVertexReconstructor/neutrino2DVertexReconstructor.html#neutrino2DVertexReconstructor.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.run" title="Permalink to this definition"></a></dt>
+<dd><p>Execute the 2D vertex reconstruction</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>station: station object</strong></dt><dd><p>The station on which this reconstruction was run</p>
+<dt><strong>station: Station</strong></dt><dd><p>The station for which the vertex shall be reconstructed</p>
 </dd>
-<dt><strong>ch1: channel object</strong></dt><dd><p>The channel for which the ray type shall be determined</p>
+<dt><strong>max_distance: number</strong></dt><dd><p>Maximum distance up to which the vertex position shall be searched</p>
+</dd>
+<dt><strong>z_width: number</strong></dt><dd><p>Vertical size of the search area. If direction_guess is specified, a
+stripe of z_width to each side of the initial direction will be searched.
+If direction_guess is not specified, z_width is the maximum depth up
+to which the vertex will be searched.</p>
+</dd>
+<dt><strong>grid_spacing: number</strong></dt><dd><p>Distance between two points of the grid on which the vertex is searched</p>
+</dd>
+<dt><strong>direction_guess: number, defaults to None</strong></dt><dd><p>Zenith for an initial guess of the vertex direction. If specified,
+a strip if width 2*z_width around the guessed direction will be searched</p>
+</dd>
+<dt><strong>debug: boolean</strong></dt><dd><p>If True, debug plots will be produced</p>
+</dd>
+<dt><strong>use_dnr: boolean</strong></dt><dd><p>If True, DnR pulses are included in the reconstruction by correlating
+the channel waveforms with themselves.</p>
 </dd>
 </dl>
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.find_receiving_zenith">
-<span class="sig-name descname"><span class="pre">find_receiving_zenith</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ray_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/neutrinoVertexReconstructor/neutrino2DVertexReconstructor.html#neutrino2DVertexReconstructor.find_receiving_zenith"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.find_receiving_zenith" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.get_correlation_array_2d">
@@ -734,35 +739,30 @@ are direct, reflected and refracted</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_spacing</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction_guess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_dnr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/neutrinoVertexReconstructor/neutrino2DVertexReconstructor.html#neutrino2DVertexReconstructor.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.run" title="Permalink to this definition"></a></dt>
-<dd><p>Execute the 2D vertex reconstruction</p>
+<dt class="sig sig-object py" id="NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.find_ray_type">
+<span class="sig-name descname"><span class="pre">find_ray_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ch1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/neutrinoVertexReconstructor/neutrino2DVertexReconstructor.html#neutrino2DVertexReconstructor.find_ray_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.find_ray_type" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the most likely ray type (direct, reflected
+or refracted) of the signal that reached the detector.
+This is done by taking the reconstructed vertex position,
+calculating the expected time offset between channels and
+checking for which ray type scenario the correlation
+between channels is largest.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>station: Station</strong></dt><dd><p>The station for which the vertex shall be reconstructed</p>
+<dt><strong>station: station object</strong></dt><dd><p>The station on which this reconstruction was run</p>
 </dd>
-<dt><strong>max_distance: number</strong></dt><dd><p>Maximum distance up to which the vertex position shall be searched</p>
-</dd>
-<dt><strong>z_width: number</strong></dt><dd><p>Vertical size of the search area. If direction_guess is specified, a
-stripe of z_width to each side of the initial direction will be searched.
-If direction_guess is not specified, z_width is the maximum depth up
-to which the vertex will be searched.</p>
-</dd>
-<dt><strong>grid_spacing: number</strong></dt><dd><p>Distance between two points of the grid on which the vertex is searched</p>
-</dd>
-<dt><strong>direction_guess: number, defaults to None</strong></dt><dd><p>Zenith for an initial guess of the vertex direction. If specified,
-a strip if width 2*z_width around the guessed direction will be searched</p>
-</dd>
-<dt><strong>debug: boolean</strong></dt><dd><p>If True, debug plots will be produced</p>
-</dd>
-<dt><strong>use_dnr: boolean</strong></dt><dd><p>If True, DnR pulses are included in the reconstruction by correlating
-the channel waveforms with themselves.</p>
+<dt><strong>ch1: channel object</strong></dt><dd><p>The channel for which the ray type shall be determined</p>
 </dd>
 </dl>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.find_receiving_zenith">
+<span class="sig-name descname"><span class="pre">find_receiving_zenith</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ray_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/neutrinoVertexReconstructor/neutrino2DVertexReconstructor.html#neutrino2DVertexReconstructor.find_receiving_zenith"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.neutrinoVertexReconstructor.neutrino2DVertexReconstructor.neutrino2DVertexReconstructor.find_receiving_zenith" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 

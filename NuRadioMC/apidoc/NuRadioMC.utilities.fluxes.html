@@ -7,7 +7,7 @@
   <title>NuRadioMC.utilities.fluxes module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -576,39 +576,55 @@
   <section id="module-NuRadioMC.utilities.fluxes">
 <span id="nuradiomc-utilities-fluxes-module"></span><h1>NuRadioMC.utilities.fluxes module<a class="headerlink" href="#module-NuRadioMC.utilities.fluxes" title="Permalink to this heading"></a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.fluxes.get_exposure">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_exposure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Veff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_of_view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.283185307179586</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_exposure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_exposure" title="Permalink to this definition"></a></dt>
-<dd><p>calculate exposure from effective volume</p>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.fluxes.get_limit_from_aeff">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_limit_from_aeff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aeff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signalEff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energyBinsPerDecade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperLimOnEvents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.44</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_limit_from_aeff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_limit_from_aeff" title="Permalink to this definition"></a></dt>
+<dd><p>Limit from effective volume</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>energy: float</strong></dt><dd><p>neutrino energy (needed to calculate interaction length)</p>
+<dt><strong>energy: array of floats</strong></dt><dd><p>neutrino energy</p>
 </dd>
-<dt><strong>Veff: float</strong></dt><dd><p>effective volume</p>
+<dt><strong>veff: array of floats</strong></dt><dd><p>effective volumes</p>
 </dd>
-<dt><strong>field_of_view: float</strong></dt><dd><p>the field of view of the detector</p>
+<dt><strong>livetime: float</strong></dt><dd><p>time used</p>
 </dd>
-</dl>
+<dt><strong>signalEff: float</strong></dt><dd><p>efficiency of signal reconstruction</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>float: exposure</dt><dd></dd>
+<dt><strong>energyBinsPerDecade: float</strong></dt><dd><p>1 for decade bins, 2 for half-decade bins, etc.</p>
+</dd>
+<dt><strong>upperLimOnEvents: float</strong></dt><dd><p>2.3 for Neyman UL w/ 0 background,
+2.44 for F-C UL w/ 0 background, etc</p>
+</dd>
 </dl>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.fluxes.get_fluence_limit">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_fluence_limit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">int_exp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_fluence_limit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_fluence_limit" title="Permalink to this definition"></a></dt>
-<dd><p>calculates the fluence limit for a integrated exposure</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.fluxes.get_integrated_exposure">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_integrated_exposure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exp_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E_low</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E_high</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_integrated_exposure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_integrated_exposure" title="Permalink to this definition"></a></dt>
-<dd><p>calculates the integral int(E^-2 * exposure(E) dE)</p>
-<p>integration is performed in log space</p>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.fluxes.get_limit_flux">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_limit_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">veff_sr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signalEff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energyBinsPerDecade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperLimOnEvents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.44</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nuCrsScn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_limit_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_limit_flux" title="Permalink to this definition"></a></dt>
+<dd><p>Limit from effective volume</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>energy: array of floats</strong></dt><dd><p>neutrino energy</p>
+</dd>
+<dt><strong>veff_sr: array of floats</strong></dt><dd><p>effective volume x solid angle</p>
+</dd>
+<dt><strong>livetime: float</strong></dt><dd><p>time used</p>
+</dd>
+<dt><strong>signalEff: float</strong></dt><dd><p>efficiency of signal reconstruction</p>
+</dd>
+<dt><strong>energyBinsPerDecade: float</strong></dt><dd><p>1 for decade bins, 2 for half-decade bins, etc.</p>
+</dd>
+<dt><strong>upperLimOnEvents: float</strong></dt><dd><p>2.3 for Neyman UL w/ 0 background,
+2.44 for F-C UL w/ 0 background, etc</p>
+</dd>
+<dt><strong>nuCrsScn: str</strong></dt><dd><p>type of neutrino cross-section</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -666,58 +682,6 @@
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.fluxes.get_limit_flux">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_limit_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">veff_sr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signalEff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energyBinsPerDecade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperLimOnEvents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.44</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nuCrsScn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inttype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_limit_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_limit_flux" title="Permalink to this definition"></a></dt>
-<dd><p>Limit from effective volume</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>energy: array of floats</strong></dt><dd><p>neutrino energy</p>
-</dd>
-<dt><strong>veff_sr: array of floats</strong></dt><dd><p>effective volume x solid angle</p>
-</dd>
-<dt><strong>livetime: float</strong></dt><dd><p>time used</p>
-</dd>
-<dt><strong>signalEff: float</strong></dt><dd><p>efficiency of signal reconstruction</p>
-</dd>
-<dt><strong>energyBinsPerDecade: float</strong></dt><dd><p>1 for decade bins, 2 for half-decade bins, etc.</p>
-</dd>
-<dt><strong>upperLimOnEvents: float</strong></dt><dd><p>2.3 for Neyman UL w/ 0 background,
-2.44 for F-C UL w/ 0 background, etc</p>
-</dd>
-<dt><strong>nuCrsScn: str</strong></dt><dd><p>type of neutrino cross-section</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.fluxes.get_limit_from_aeff">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_limit_from_aeff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aeff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signalEff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energyBinsPerDecade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperLimOnEvents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.44</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_limit_from_aeff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_limit_from_aeff" title="Permalink to this definition"></a></dt>
-<dd><p>Limit from effective volume</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>energy: array of floats</strong></dt><dd><p>neutrino energy</p>
-</dd>
-<dt><strong>veff: array of floats</strong></dt><dd><p>effective volumes</p>
-</dd>
-<dt><strong>livetime: float</strong></dt><dd><p>time used</p>
-</dd>
-<dt><strong>signalEff: float</strong></dt><dd><p>efficiency of signal reconstruction</p>
-</dd>
-<dt><strong>energyBinsPerDecade: float</strong></dt><dd><p>1 for decade bins, 2 for half-decade bins, etc.</p>
-</dd>
-<dt><strong>upperLimOnEvents: float</strong></dt><dd><p>2.3 for Neyman UL w/ 0 background,
-2.44 for F-C UL w/ 0 background, etc</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.fluxes.get_number_of_events_for_flux">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_number_of_events_for_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Veff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">livetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nuCrsScn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_number_of_events_for_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_number_of_events_for_flux" title="Permalink to this definition"></a></dt>
 <dd><p>calculates the number of expected neutrinos for a certain flux assumption</p>
@@ -740,6 +704,42 @@
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.fluxes.get_exposure">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_exposure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Veff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_of_view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.283185307179586</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_exposure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_exposure" title="Permalink to this definition"></a></dt>
+<dd><p>calculate exposure from effective volume</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>energy: float</strong></dt><dd><p>neutrino energy (needed to calculate interaction length)</p>
+</dd>
+<dt><strong>Veff: float</strong></dt><dd><p>effective volume</p>
+</dd>
+<dt><strong>field_of_view: float</strong></dt><dd><p>the field of view of the detector</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float: exposure</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.fluxes.get_integrated_exposure">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_integrated_exposure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exp_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E_low</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E_high</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_integrated_exposure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_integrated_exposure" title="Permalink to this definition"></a></dt>
+<dd><p>calculates the integral int(E^-2 * exposure(E) dE)</p>
+<p>integration is performed in log space</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.fluxes.get_fluence_limit">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.fluxes.</span></span><span class="sig-name descname"><span class="pre">get_fluence_limit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">int_exp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/fluxes.html#get_fluence_limit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.fluxes.get_fluence_limit" title="Permalink to this definition"></a></dt>
+<dd><p>calculates the fluence limit for a integrated exposure</p>
 </dd></dl>
 
 </section>

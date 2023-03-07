@@ -7,7 +7,7 @@
   <title>NuRadioReco.utilities.trace_utilities module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -576,26 +576,76 @@
   <section id="module-NuRadioReco.utilities.trace_utilities">
 <span id="nuradioreco-utilities-trace-utilities-module"></span><h1>NuRadioReco.utilities.trace_utilities module<a class="headerlink" href="#module-NuRadioReco.utilities.trace_utilities" title="Permalink to this heading"></a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.apply_butterworth">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">apply_butterworth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#apply_butterworth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.apply_butterworth" title="Permalink to this definition"></a></dt>
-<dd><p>Calculates the response from a Butterworth filter and applies it to the
-input spectrum</p>
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_efield_antenna_factor">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_efield_antenna_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_pattern_provider</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_efield_antenna_factor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_efield_antenna_factor" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the antenna response to a radio signal coming from a specific direction</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>spectrum: array of complex</strong></dt><dd><p>Fourier spectrum to be filtere</p>
+<dt><strong>station: Station</strong></dt><dd></dd>
+<dt><strong>frequencies: array of complex</strong></dt><dd><p>frequencies of the radio signal for which the antenna response is needed</p>
 </dd>
-<dt><strong>frequencies: array of floats</strong></dt><dd><p>Frequencies of the input spectrum</p>
+<dt><strong>channels: array of int</strong></dt><dd><p>IDs of the channels</p>
 </dd>
-<dt><strong>passband: (float, float) tuple</strong></dt><dd><p>Tuple indicating the cutoff frequencies</p>
+<dt><strong>detector: Detector</strong></dt><dd></dd>
+<dt><strong>zenith, azimuth: float, float</strong></dt><dd><p>incoming direction of the signal. Note that refraction and reflection at the ice/air boundary are taken into account</p>
 </dd>
-<dt><strong>order: integer</strong></dt><dd><p>Filter order</p>
+<dt><strong>antenna_pattern_provider: AntennaPatternProvider</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_channel_voltage_from_efield">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_channel_voltage_from_efield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">electric_field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_pattern_provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_spectrum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_channel_voltage_from_efield"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_channel_voltage_from_efield" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the voltage traces that would result in the channels from the station’s E-field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station: Station</strong></dt><dd></dd>
+<dt><strong>electric_field: ElectricField</strong></dt><dd></dd>
+<dt><strong>channels: array of int</strong></dt><dd><p>IDs of the channels for which the expected voltages should be calculated</p>
+</dd>
+<dt><strong>detector: Detector</strong></dt><dd></dd>
+<dt><strong>zenith, azimuth: float</strong></dt><dd><p>incoming direction of the signal. Note that reflection and refraction
+at the air/ice boundary are already being taken into account.</p>
+</dd>
+<dt><strong>antenna_pattern_provider: AntennaPatternProvider</strong></dt><dd></dd>
+<dt><strong>return_spectrum: boolean</strong></dt><dd><p>if True, returns the spectrum, if False return the time trace</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_electric_field_energy_fluence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">electric_field_trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_window_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_window_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_electric_field_energy_fluence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.upsampling_fir">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">upsampling_fir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_sampling_frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">int_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ntaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#upsampling_fir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.upsampling_fir" title="Permalink to this definition"></a></dt>
+<dd><p>This function performs an upsampling by inserting a number of zeroes
+between samples and then applying a finite impulse response (FIR) filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace: array of floats</strong></dt><dd><p>Trace to be upsampled</p>
+</dd>
+<dt><strong>original_sampling_frequency: float</strong></dt><dd><p>Sampling frequency of the input trace</p>
+</dd>
+<dt><strong>int_factor: integer</strong></dt><dd><p>Upsampling factor. The resulting trace will have a sampling frequency
+int_factor times higher than the original one</p>
+</dd>
+<dt><strong>ntaps: integer</strong></dt><dd><p>Number of taps (order) of the FIR filter</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>filtered_spectrum: array of complex</dt><dd><p>The filtered spectrum</p>
+<dt>upsampled_trace: array of floats</dt><dd><p>The upsampled trace</p>
 </dd>
 </dl>
 </dd>
@@ -629,6 +679,33 @@ input spectrum</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.apply_butterworth">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">apply_butterworth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passband</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#apply_butterworth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.apply_butterworth" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the response from a Butterworth filter and applies it to the
+input spectrum</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>spectrum: array of complex</strong></dt><dd><p>Fourier spectrum to be filtere</p>
+</dd>
+<dt><strong>frequencies: array of floats</strong></dt><dd><p>Frequencies of the input spectrum</p>
+</dd>
+<dt><strong>passband: (float, float) tuple</strong></dt><dd><p>Tuple indicating the cutoff frequencies</p>
+</dd>
+<dt><strong>order: integer</strong></dt><dd><p>Filter order</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>filtered_spectrum: array of complex</dt><dd><p>The filtered spectrum</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.delay_trace">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">delay_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_delay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delayed_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#delay_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.delay_trace" title="Permalink to this definition"></a></dt>
 <dd><p>Delays a trace by transforming it to frequency and multiplying by phases.
@@ -653,83 +730,6 @@ if None: the trace is not cut</p>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>delayed_trace: array of floats</dt><dd><p>The delayed, cropped trace</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_channel_voltage_from_efield">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_channel_voltage_from_efield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">electric_field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_pattern_provider</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_spectrum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_channel_voltage_from_efield"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_channel_voltage_from_efield" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the voltage traces that would result in the channels from the station’s E-field.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station: Station</strong></dt><dd></dd>
-<dt><strong>electric_field: ElectricField</strong></dt><dd></dd>
-<dt><strong>channels: array of int</strong></dt><dd><p>IDs of the channels for which the expected voltages should be calculated</p>
-</dd>
-<dt><strong>detector: Detector</strong></dt><dd></dd>
-<dt><strong>zenith, azimuth: float</strong></dt><dd><p>incoming direction of the signal. Note that reflection and refraction
-at the air/ice boundary are already being taken into account.</p>
-</dd>
-<dt><strong>antenna_pattern_provider: AntennaPatternProvider</strong></dt><dd></dd>
-<dt><strong>return_spectrum: boolean</strong></dt><dd><p>if True, returns the spectrum, if False return the time trace</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_efield_antenna_factor">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_efield_antenna_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antenna_pattern_provider</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_efield_antenna_factor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_efield_antenna_factor" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the antenna response to a radio signal coming from a specific direction</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station: Station</strong></dt><dd></dd>
-<dt><strong>frequencies: array of complex</strong></dt><dd><p>frequencies of the radio signal for which the antenna response is needed</p>
-</dd>
-<dt><strong>channels: array of int</strong></dt><dd><p>IDs of the channels</p>
-</dd>
-<dt><strong>detector: Detector</strong></dt><dd></dd>
-<dt><strong>zenith, azimuth: float, float</strong></dt><dd><p>incoming direction of the signal. Note that refraction and reflection at the ice/air boundary are taken into account</p>
-</dd>
-<dt><strong>antenna_pattern_provider: AntennaPatternProvider</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">get_electric_field_energy_fluence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">electric_field_trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_window_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_window_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#get_electric_field_energy_fluence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.trace_utilities.upsampling_fir">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.trace_utilities.</span></span><span class="sig-name descname"><span class="pre">upsampling_fir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_sampling_frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">int_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ntaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/trace_utilities.html#upsampling_fir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.trace_utilities.upsampling_fir" title="Permalink to this definition"></a></dt>
-<dd><p>This function performs an upsampling by inserting a number of zeroes
-between samples and then applying a finite impulse response (FIR) filter.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>trace: array of floats</strong></dt><dd><p>Trace to be upsampled</p>
-</dd>
-<dt><strong>original_sampling_frequency: float</strong></dt><dd><p>Sampling frequency of the input trace</p>
-</dd>
-<dt><strong>int_factor: integer</strong></dt><dd><p>Upsampling factor. The resulting trace will have a sampling frequency
-int_factor times higher than the original one</p>
-</dd>
-<dt><strong>ntaps: integer</strong></dt><dd><p>Number of taps (order) of the FIR filter</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>upsampled_trace: array of floats</dt><dd><p>The upsampled trace</p>
 </dd>
 </dl>
 </dd>

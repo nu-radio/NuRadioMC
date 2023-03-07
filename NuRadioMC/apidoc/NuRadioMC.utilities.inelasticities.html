@@ -7,7 +7,7 @@
   <title>NuRadioMC.utilities.inelasticities module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -576,6 +576,27 @@
   <section id="module-NuRadioMC.utilities.inelasticities">
 <span id="nuradiomc-utilities-inelasticities-module"></span><h1>NuRadioMC.utilities.inelasticities module<a class="headerlink" href="#module-NuRadioMC.utilities.inelasticities" title="Permalink to this heading"></a></h1>
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.inelasticities.get_neutrino_inelasticity">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.inelasticities.</span></span><span class="sig-name descname"><span class="pre">get_neutrino_inelasticity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/inelasticities.html#get_neutrino_inelasticity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.inelasticities.get_neutrino_inelasticity" title="Permalink to this definition"></a></dt>
+<dd><p>Standard inelasticity for deep inelastic scattering used so far.
+Ported from ShelfMC</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>n_events: int</strong></dt><dd><p>Number of events to be returned</p>
+</dd>
+<dt><strong>rnd: random generator object</strong></dt><dd><p>if None is provided, a new default random generator object is initialized</p>
+</dd>
+<dt><strong>Returns</strong></dt><dd></dd>
+<dt><strong>——-</strong></dt><dd></dd>
+<dt><strong>inelasticies: array</strong></dt><dd><p>Array with the inelasticities</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.inelasticities.get_ccnc">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.inelasticities.</span></span><span class="sig-name descname"><span class="pre">get_ccnc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/inelasticities.html#get_ccnc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.inelasticities.get_ccnc" title="Permalink to this definition"></a></dt>
 <dd><p>Get the nature of the interaction current: cc or nc
@@ -599,20 +620,18 @@ Ported from Shelf MC</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.inelasticities.get_neutrino_inelasticity">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.inelasticities.</span></span><span class="sig-name descname"><span class="pre">get_neutrino_inelasticity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/inelasticities.html#get_neutrino_inelasticity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.inelasticities.get_neutrino_inelasticity" title="Permalink to this definition"></a></dt>
-<dd><p>Standard inelasticity for deep inelastic scattering used so far.
-Ported from ShelfMC</p>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.inelasticities.random_tau_branch">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.inelasticities.</span></span><span class="sig-name descname"><span class="pre">random_tau_branch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/inelasticities.html#random_tau_branch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.inelasticities.random_tau_branch" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates a random tau branch decay
+See <a class="reference external" href="http://dx.doi.org/10.1016/j.cpc.2013.04.001">http://dx.doi.org/10.1016/j.cpc.2013.04.001</a></p>
+<dl class="simple">
+<dt>rnd: random generator object</dt><dd><p>if None is provided, a new default random generator object is initialized</p>
+</dd>
+</dl>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>n_events: int</strong></dt><dd><p>Number of events to be returned</p>
-</dd>
-<dt><strong>rnd: random generator object</strong></dt><dd><p>if None is provided, a new default random generator object is initialized</p>
-</dd>
-<dt><strong>Returns</strong></dt><dd></dd>
-<dt><strong>——-</strong></dt><dd></dd>
-<dt><strong>inelasticies: array</strong></dt><dd><p>Array with the inelasticities</p>
+<dt>branch: string</dt><dd><p>The corresponding decay branch</p>
 </dd>
 </dl>
 </dd>
@@ -639,25 +658,6 @@ and <a class="reference external" href="https://arxiv.org/pdf/1607.00193.pdf">ht
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>inelasticity: float</dt><dd><p>The fraction of energy carried by the leptonic or hadronic products</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.inelasticities.random_tau_branch">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.inelasticities.</span></span><span class="sig-name descname"><span class="pre">random_tau_branch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/inelasticities.html#random_tau_branch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.inelasticities.random_tau_branch" title="Permalink to this definition"></a></dt>
-<dd><p>Calculates a random tau branch decay
-See <a class="reference external" href="http://dx.doi.org/10.1016/j.cpc.2013.04.001">http://dx.doi.org/10.1016/j.cpc.2013.04.001</a></p>
-<dl class="simple">
-<dt>rnd: random generator object</dt><dd><p>if None is provided, a new default random generator object is initialized</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt>branch: string</dt><dd><p>The corresponding decay branch</p>
 </dd>
 </dl>
 </dd>

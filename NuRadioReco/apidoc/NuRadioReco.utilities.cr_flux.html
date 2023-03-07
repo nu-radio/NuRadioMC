@@ -7,7 +7,7 @@
   <title>NuRadioReco.utilities.cr_flux module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -576,6 +576,49 @@
   <section id="module-NuRadioReco.utilities.cr_flux">
 <span id="nuradioreco-utilities-cr-flux-module"></span><h1>NuRadioReco.utilities.cr_flux module<a class="headerlink" href="#module-NuRadioReco.utilities.cr_flux" title="Permalink to this heading"></a></h1>
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.cr_flux.get_measured_data">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.cr_flux.</span></span><span class="sig-name descname"><span class="pre">get_measured_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data_auger_19'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/cr_flux.html#get_measured_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.cr_flux.get_measured_data" title="Permalink to this definition"></a></dt>
+<dd><p>Helper function get data points in NuRadio base units</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>type: string</strong></dt><dd><p>choose between data_auger_19 and data_TA_21</p>
+</dd>
+<dt><strong>Returns</strong></dt><dd></dd>
+<dt><strong>——-</strong></dt><dd></dd>
+<dt><strong>E: array of floats</strong></dt><dd><p>energie in eV</p>
+</dd>
+<dt><strong>J: array of floats</strong></dt><dd><p>flux of cosmic ray</p>
+</dd>
+<dt><strong>Err_up: array of floats</strong></dt><dd><p>upper error bar on flux</p>
+</dd>
+<dt><strong>Err_low: array of floats</strong></dt><dd><p>lower error bar on flux</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.cr_flux.get_interpolated_cr_flux">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.cr_flux.</span></span><span class="sig-name descname"><span class="pre">get_interpolated_cr_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log10_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data_auger_19'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/cr_flux.html#get_interpolated_cr_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.cr_flux.get_interpolated_cr_flux" title="Permalink to this definition"></a></dt>
+<dd><p>Evaluates the scipy interpolation of the measured data at a given energy</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>log10_energy: float</strong></dt><dd><p>energies (in log10(E / eV)))</p>
+</dd>
+<dt><strong>type: string</strong></dt><dd><p>choose between data_auger_19 and data_TA_21</p>
+</dd>
+<dt><strong>Return</strong></dt><dd></dd>
+<dt><strong>——-</strong></dt><dd><p>scipy interpolation of data in NuRadio base units (which are 1/(eV m^2 sr ns) )</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.cr_flux.get_analytic_cr_flux">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.cr_flux.</span></span><span class="sig-name descname"><span class="pre">get_analytic_cr_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log10_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auger_19'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/cr_flux.html#get_analytic_cr_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.cr_flux.get_analytic_cr_flux" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
@@ -588,32 +631,6 @@
 <dt><strong>Returns</strong></dt><dd></dd>
 <dt><strong>——-</strong></dt><dd></dd>
 <dt><strong>analytic parametrization of spectrum in NuRadio base units (which are 1/(eV m^2 sr ns)</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.cr_flux.get_cr_event_rate">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.cr_flux.</span></span><span class="sig-name descname"><span class="pre">get_cr_event_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log10energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8726646259971648</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_eff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auger_19'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/cr_flux.html#get_cr_event_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.cr_flux.get_cr_event_rate" title="Permalink to this definition"></a></dt>
-<dd><p>Cosmic ray event rate at a specific energy and zenith angle assuming a detector with effective area
-‘A_eff’. The detector projection and solid range are taken into account.
-The flux is calculated with the analytic spectrum.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>log10energy: float</strong></dt><dd><p>energy in units log10(energy/eV)</p>
-</dd>
-<dt><strong>zenith: float</strong></dt><dd><p>zenith angle</p>
-</dd>
-<dt><strong>a_eff:</strong></dt><dd><p>effective area of detector</p>
-</dd>
-<dt><strong>type: string</strong></dt><dd><p>choose between auger_17, auger_19 and TA_19</p>
-</dd>
-<dt><strong>Returns</strong></dt><dd></dd>
-<dt><strong>——-</strong></dt><dd></dd>
-<dt><strong>eventrate for an isotropic flux with given energy and zenith angle.</strong></dt><dd></dd>
-<dt><strong>The differential flux is returned in d/d zenith_angle, not d/d solid_angle.</strong></dt><dd></dd>
 </dl>
 </dd>
 </dl>
@@ -643,43 +660,26 @@ The flux is calculated with the analytic spectrum.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.cr_flux.get_interpolated_cr_flux">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.cr_flux.</span></span><span class="sig-name descname"><span class="pre">get_interpolated_cr_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log10_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data_auger_19'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/cr_flux.html#get_interpolated_cr_flux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.cr_flux.get_interpolated_cr_flux" title="Permalink to this definition"></a></dt>
-<dd><p>Evaluates the scipy interpolation of the measured data at a given energy</p>
+<dt class="sig sig-object py" id="NuRadioReco.utilities.cr_flux.get_cr_event_rate">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.cr_flux.</span></span><span class="sig-name descname"><span class="pre">get_cr_event_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log10energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8726646259971648</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_eff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auger_19'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/cr_flux.html#get_cr_event_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.cr_flux.get_cr_event_rate" title="Permalink to this definition"></a></dt>
+<dd><p>Cosmic ray event rate at a specific energy and zenith angle assuming a detector with effective area
+‘A_eff’. The detector projection and solid range are taken into account.
+The flux is calculated with the analytic spectrum.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>log10_energy: float</strong></dt><dd><p>energies (in log10(E / eV)))</p>
+<dt><strong>log10energy: float</strong></dt><dd><p>energy in units log10(energy/eV)</p>
 </dd>
-<dt><strong>type: string</strong></dt><dd><p>choose between data_auger_19 and data_TA_21</p>
+<dt><strong>zenith: float</strong></dt><dd><p>zenith angle</p>
 </dd>
-<dt><strong>Return</strong></dt><dd></dd>
-<dt><strong>——-</strong></dt><dd><p>scipy interpolation of data in NuRadio base units (which are 1/(eV m^2 sr ns) )</p>
+<dt><strong>a_eff:</strong></dt><dd><p>effective area of detector</p>
 </dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.cr_flux.get_measured_data">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.cr_flux.</span></span><span class="sig-name descname"><span class="pre">get_measured_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data_auger_19'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/cr_flux.html#get_measured_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.cr_flux.get_measured_data" title="Permalink to this definition"></a></dt>
-<dd><p>Helper function get data points in NuRadio base units</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>type: string</strong></dt><dd><p>choose between data_auger_19 and data_TA_21</p>
+<dt><strong>type: string</strong></dt><dd><p>choose between auger_17, auger_19 and TA_19</p>
 </dd>
 <dt><strong>Returns</strong></dt><dd></dd>
 <dt><strong>——-</strong></dt><dd></dd>
-<dt><strong>E: array of floats</strong></dt><dd><p>energie in eV</p>
-</dd>
-<dt><strong>J: array of floats</strong></dt><dd><p>flux of cosmic ray</p>
-</dd>
-<dt><strong>Err_up: array of floats</strong></dt><dd><p>upper error bar on flux</p>
-</dd>
-<dt><strong>Err_low: array of floats</strong></dt><dd><p>lower error bar on flux</p>
-</dd>
+<dt><strong>eventrate for an isotropic flux with given energy and zenith angle.</strong></dt><dd></dd>
+<dt><strong>The differential flux is returned in d/d zenith_angle, not d/d solid_angle.</strong></dt><dd></dd>
 </dl>
 </dd>
 </dl>

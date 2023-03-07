@@ -7,7 +7,7 @@
   <title>NuRadioMC.SignalGen.parametrizations module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -576,6 +576,11 @@
   <section id="module-NuRadioMC.SignalGen.parametrizations">
 <span id="nuradiomc-signalgen-parametrizations-module"></span><h1>NuRadioMC.SignalGen.parametrizations module<a class="headerlink" href="#module-NuRadioMC.SignalGen.parametrizations" title="Permalink to this heading"></a></h1>
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalGen.parametrizations.set_log_level">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.parametrizations.</span></span><span class="sig-name descname"><span class="pre">set_log_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/parametrizations.html#set_log_level"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.parametrizations.set_log_level" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.SignalGen.parametrizations.get_parametrizations">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.parametrizations.</span></span><span class="sig-name descname"><span class="pre">get_parametrizations</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/parametrizations.html#get_parametrizations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.parametrizations.get_parametrizations" title="Permalink to this definition"></a></dt>
 <dd><p>returns a list of all implemented parametrizations</p>
@@ -623,7 +628,7 @@ signal for both ray tracing solutions from the same shower.</p>
 </dd>
 <dt><strong>k_L: None or float</strong></dt><dd><p>the k_L parameter for EM showers of the Alvarez2009 model. If a this parameter is provided, this value is used
 and the parameter will not be drawn from a random distribution.
-This setting overrides the <cite>same_shower</cite> setting</p>
+This setting overrides the <em class="xref py py-obj">same_shower</em> setting</p>
 </dd>
 <dt><strong>full_output: bool (default False)</strong></dt><dd><p>if True, askaryan modules can return additional output. The additional output is always a dictionary</p>
 <ul class="simple">
@@ -639,17 +644,12 @@ This setting overrides the <cite>same_shower</cite> setting</p>
 <dd class="field-even"><dl class="simple">
 <dt>spectrum: array</dt><dd><p>the complex amplitudes for the given frequencies</p>
 </dd>
-<dt>additional information: dict</dt><dd><p>only available if <cite>full_output</cite> enabled</p>
+<dt>additional information: dict</dt><dd><p>only available if <em class="xref py py-obj">full_output</em> enabled</p>
 </dd>
 </dl>
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.SignalGen.parametrizations.set_log_level">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.parametrizations.</span></span><span class="sig-name descname"><span class="pre">set_log_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/parametrizations.html#set_log_level"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.parametrizations.set_log_level" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
 
 </section>
 

@@ -7,7 +7,7 @@
   <title>NuRadioReco.modules.beamFormingDirectionFitter module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -575,6 +575,29 @@
              
   <section id="module-NuRadioReco.modules.beamFormingDirectionFitter">
 <span id="nuradioreco-modules-beamformingdirectionfitter-module"></span><h1>NuRadioReco.modules.beamFormingDirectionFitter module<a class="headerlink" href="#module-NuRadioReco.modules.beamFormingDirectionFitter" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.beamFormingDirectionFitter.get_array_of_channels">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.beamFormingDirectionFitter.</span></span><span class="sig-name descname"><span class="pre">get_array_of_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polarization</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/beamFormingDirectionFitter.html#get_array_of_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.beamFormingDirectionFitter.get_array_of_channels" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an array of the channel traces that is cut to the physical overlapping time</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station: Station</strong></dt><dd><p>Station from which to take the channels</p>
+</dd>
+<dt><strong>det: Detector</strong></dt><dd><p>The detector description</p>
+</dd>
+<dt><strong>zenith: float</strong></dt><dd><p>Arrival zenith angle at antenna</p>
+</dd>
+<dt><strong>azimuth: float</strong></dt><dd><p>Arrival azimuth angle at antenna</p>
+</dd>
+<dt><strong>polarization: int</strong></dt><dd><p>0: eTheta
+1: ePhi</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.modules.beamFormingDirectionFitter.beamFormingDirectionFitter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.beamFormingDirectionFitter.</span></span><span class="sig-name descname"><span class="pre">beamFormingDirectionFitter</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/beamFormingDirectionFitter.html#beamFormingDirectionFitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.beamFormingDirectionFitter.beamFormingDirectionFitter" title="Permalink to this definition"></a></dt>
@@ -601,11 +624,6 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.beamFormingDirectionFitter.beamFormingDirectionFitter.begin">
 <span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/beamFormingDirectionFitter.html#beamFormingDirectionFitter.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.beamFormingDirectionFitter.beamFormingDirectionFitter.begin" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.beamFormingDirectionFitter.beamFormingDirectionFitter.end">
-<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/beamFormingDirectionFitter.html#beamFormingDirectionFitter.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.beamFormingDirectionFitter.beamFormingDirectionFitter.end" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -640,29 +658,11 @@ default is 0-360deg</p>
 </dl>
 </dd></dl>
 
-</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.beamFormingDirectionFitter.beamFormingDirectionFitter.end">
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/beamFormingDirectionFitter.html#beamFormingDirectionFitter.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.beamFormingDirectionFitter.beamFormingDirectionFitter.end" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.modules.beamFormingDirectionFitter.get_array_of_channels">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.beamFormingDirectionFitter.</span></span><span class="sig-name descname"><span class="pre">get_array_of_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polarization</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/beamFormingDirectionFitter.html#get_array_of_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.beamFormingDirectionFitter.get_array_of_channels" title="Permalink to this definition"></a></dt>
-<dd><p>Returns an array of the channel traces that is cut to the physical overlapping time</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station: Station</strong></dt><dd><p>Station from which to take the channels</p>
-</dd>
-<dt><strong>det: Detector</strong></dt><dd><p>The detector description</p>
-</dd>
-<dt><strong>zenith: float</strong></dt><dd><p>Arrival zenith angle at antenna</p>
-</dd>
-<dt><strong>azimuth: float</strong></dt><dd><p>Arrival azimuth angle at antenna</p>
-</dd>
-<dt><strong>polarization: int</strong></dt><dd><p>0: eTheta
-1: ePhi</p>
-</dd>
-</dl>
-</dd>
-</dl>
 </dd></dl>
 
 </section>

@@ -7,7 +7,7 @@
   <title>NuRadioReco.modules.io.coreas.coreas module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -578,23 +578,18 @@
   <section id="module-NuRadioReco.modules.io.coreas.coreas">
 <span id="nuradioreco-modules-io-coreas-coreas-module"></span><h1>NuRadioReco.modules.io.coreas.coreas module<a class="headerlink" href="#module-NuRadioReco.modules.io.coreas.coreas" title="Permalink to this heading"></a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.calculate_simulation_weights">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">calculate_simulation_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'summit'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#calculate_simulation_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.calculate_simulation_weights" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate weights according to the area that one simulated position represents.
-Weights are therefore given in units of area.
-Note: The volume of a 2d convex hull is the area.</p>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.get_angles">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">get_angles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corsika</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#get_angles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.get_angles" title="Permalink to this definition"></a></dt>
 <dd><p>Converting angles in corsika coordinates to local coordinates</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.make_sim_shower">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">make_sim_shower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corsika</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#make_sim_shower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.make_sim_shower" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.calculate_simulation_weights">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">calculate_simulation_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'summit'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#calculate_simulation_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.calculate_simulation_weights" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate weights according to the area that one simulated position represents.
+Weights are therefore given in units of area.
+Note: The volume of a 2d convex hull is the area.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.make_sim_station">
@@ -621,6 +616,11 @@ Note: The volume of a 2d convex hull is the area.</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.make_sim_shower">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">make_sim_shower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corsika</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#make_sim_shower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.make_sim_shower" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 </section>
 

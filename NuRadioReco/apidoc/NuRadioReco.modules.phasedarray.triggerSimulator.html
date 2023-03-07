@@ -7,7 +7,7 @@
   <title>NuRadioReco.modules.phasedarray.triggerSimulator module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -629,6 +629,33 @@ subbeam can be specified.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.get_antenna_positions">
+<span class="sig-name descname"><span class="pre">get_antenna_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.get_antenna_positions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.get_antenna_positions" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the vertical coordinates of the antennas of the detector</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station: Station object</strong></dt><dd><p>Description of the current station</p>
+</dd>
+<dt><strong>det: Detector object</strong></dt><dd><p>Description of the current detector</p>
+</dd>
+<dt><strong>triggered_channels: array of ints</strong></dt><dd><p>channels ids of the channels that form the primary phasing array
+if None, all channels are taken</p>
+</dd>
+<dt><strong>component: int</strong></dt><dd><p>Which cartesian coordinate to return</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ant_pos: array of floatss</dt><dd><p>Desired antenna position in requested coordinate</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.calculate_time_delays">
 <span class="sig-name descname"><span class="pre">calculate_time_delays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phasing_angles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([-0.959931089,</span> <span class="pre">-0.714608352,</span> <span class="pre">-0.513801244,</span> <span class="pre">-0.333826648,</span> <span class="pre">-0.164572284,</span> <span class="pre">1.11022302e-16,</span> <span class="pre">0.164572284,</span> <span class="pre">0.333826648,</span> <span class="pre">0.513801244,</span> <span class="pre">0.714608352,</span> <span class="pre">0.959931089])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.calculate_time_delays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.calculate_time_delays" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates the delays needed for phasing the array.</p>
@@ -659,6 +686,30 @@ if None, all channels are taken</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.get_channel_trace_start_time">
+<span class="sig-name descname"><span class="pre">get_channel_trace_start_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.get_channel_trace_start_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.get_channel_trace_start_time" title="Permalink to this definition"></a></dt>
+<dd><p>Finds the start time of the desired traces.
+Throws an error if all the channels dont have the same start time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station: Station object</strong></dt><dd><p>Description of the current station</p>
+</dd>
+<dt><strong>triggered_channels: array of ints</strong></dt><dd><p>channels ids of the channels that form the primary phasing array
+if None, all channels are taken</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>channel_trace_start_time: float</dt><dd><p>Channel start time</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.check_vertical_string">
 <span class="sig-name descname"><span class="pre">check_vertical_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.check_vertical_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.check_vertical_string" title="Permalink to this definition"></a></dt>
 <dd><p>Checks if the triggering antennas lie in a straight vertical line
@@ -679,55 +730,33 @@ if None, all channels are taken</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.end">
-<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.end" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.get_antenna_positions">
-<span class="sig-name descname"><span class="pre">get_antenna_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.get_antenna_positions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.get_antenna_positions" title="Permalink to this definition"></a></dt>
-<dd><p>Calculates the vertical coordinates of the antennas of the detector</p>
+<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.power_sum">
+<span class="sig-name descname"><span class="pre">power_sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coh_sum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.power_sum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.power_sum" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate power summed over a length defined by ‘window’, overlapping at intervals defined by ‘step’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>station: Station object</strong></dt><dd><p>Description of the current station</p>
+<dt><strong>coh_sum: array of floats</strong></dt><dd><p>Phased signal to be integrated over</p>
 </dd>
-<dt><strong>det: Detector object</strong></dt><dd><p>Description of the current detector</p>
+<dt><strong>window: int</strong></dt><dd><p>Power integral window
+Units of ADC time ticks</p>
 </dd>
-<dt><strong>triggered_channels: array of ints</strong></dt><dd><p>channels ids of the channels that form the primary phasing array
-if None, all channels are taken</p>
+<dt><strong>step: int</strong></dt><dd><p>Time step in power integral. If equal to window, there is no time overlap
+in between neighboring integration windows
+Units of ADC time ticks.</p>
 </dd>
-<dt><strong>component: int</strong></dt><dd><p>Which cartesian coordinate to return</p>
+<dt><strong>adc_output: string</strong></dt><dd><ul class="simple">
+<li><p>‘voltage’ to store the ADC output as discretised voltage trace</p></li>
+<li><p>‘counts’ to store the ADC output in ADC counts</p></li>
+</ul>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>ant_pos: array of floatss</dt><dd><p>Desired antenna position in requested coordinate</p>
+<dt>power:</dt><dd><p>Integrated power in each integration window</p>
 </dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.get_channel_trace_start_time">
-<span class="sig-name descname"><span class="pre">get_channel_trace_start_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.get_channel_trace_start_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.get_channel_trace_start_time" title="Permalink to this definition"></a></dt>
-<dd><p>Finds the start time of the desired traces.
-Throws an error if all the channels dont have the same start time.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station: Station object</strong></dt><dd><p>Description of the current station</p>
-</dd>
-<dt><strong>triggered_channels: array of ints</strong></dt><dd><p>channels ids of the channels that form the primary phasing array
-if None, all channels are taken</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>channel_trace_start_time: float</dt><dd><p>Channel start time</p>
+<dt>num_frames</dt><dd><p>Number of integration windows calculated</p>
 </dd>
 </dl>
 </dd>
@@ -822,40 +851,6 @@ If there is no trigger, it’s an empty dictionary</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.power_sum">
-<span class="sig-name descname"><span class="pre">power_sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coh_sum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.power_sum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.power_sum" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate power summed over a length defined by ‘window’, overlapping at intervals defined by ‘step’</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>coh_sum: array of floats</strong></dt><dd><p>Phased signal to be integrated over</p>
-</dd>
-<dt><strong>window: int</strong></dt><dd><p>Power integral window
-Units of ADC time ticks</p>
-</dd>
-<dt><strong>step: int</strong></dt><dd><p>Time step in power integral. If equal to window, there is no time overlap
-in between neighboring integration windows
-Units of ADC time ticks.</p>
-</dd>
-<dt><strong>adc_output: string</strong></dt><dd><ul class="simple">
-<li><p>‘voltage’ to store the ADC output as discretised voltage trace</p></li>
-<li><p>‘counts’ to store the ADC output in ADC counts</p></li>
-</ul>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>power:</dt><dd><p>Integrated power in each integration window</p>
-</dd>
-<dt>num_frames</dt><dd><p>Number of integration windows calculated</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.run">
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'simple_phased_threshold'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phasing_angles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([-0.959931089,</span> <span class="pre">-0.714608352,</span> <span class="pre">-0.513801244,</span> <span class="pre">-0.333826648,</span> <span class="pre">-0.164572284,</span> <span class="pre">1.11022302e-16,</span> <span class="pre">0.164572284,</span> <span class="pre">0.333826648,</span> <span class="pre">0.513801244,</span> <span class="pre">0.714608352,</span> <span class="pre">0.959931089])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_not_triggered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_adc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clock_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adc_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'voltage'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upsampling_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.run" title="Permalink to this definition"></a></dt>
 <dd><p>simulates phased array trigger for each event</p>
@@ -923,6 +918,11 @@ Units of ADC time ticks</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.end">
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/phasedarray/triggerSimulator.html#triggerSimulator.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.end" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 

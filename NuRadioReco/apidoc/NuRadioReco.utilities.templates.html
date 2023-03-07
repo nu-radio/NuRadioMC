@@ -7,7 +7,7 @@
   <title>NuRadioReco.utilities.templates module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -613,10 +613,9 @@
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.templates.Templates.get_cr_ref_template">
-<span class="sig-name descname"><span class="pre">get_cr_ref_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/templates.html#Templates.get_cr_ref_template"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.templates.Templates.get_cr_ref_template" title="Permalink to this definition"></a></dt>
-<dd><p>returns one cosmic ray template for the reference direction, the same for all channels</p>
-</dd></dl>
+<dt class="sig sig-object py" id="NuRadioReco.utilities.templates.Templates.set_template_directory">
+<span class="sig-name descname"><span class="pre">set_template_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/templates.html#Templates.set_template_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.templates.Templates.set_template_directory" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.templates.Templates.get_cr_ref_templates">
@@ -625,15 +624,15 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.templates.Templates.get_nu_ref_template">
-<span class="sig-name descname"><span class="pre">get_nu_ref_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/templates.html#Templates.get_nu_ref_template"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.templates.Templates.get_nu_ref_template" title="Permalink to this definition"></a></dt>
-<dd><p>returns one neutrino template for the reference direction and on the cherenkov cone, the same for all channels</p>
+<dt class="sig sig-object py" id="NuRadioReco.utilities.templates.Templates.get_cr_ref_template">
+<span class="sig-name descname"><span class="pre">get_cr_ref_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/templates.html#Templates.get_cr_ref_template"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.templates.Templates.get_cr_ref_template" title="Permalink to this definition"></a></dt>
+<dd><p>returns one cosmic ray template for the reference direction, the same for all channels</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.templates.Templates.get_nu_ref_templates">
-<span class="sig-name descname"><span class="pre">get_nu_ref_templates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/templates.html#Templates.get_nu_ref_templates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.templates.Templates.get_nu_ref_templates" title="Permalink to this definition"></a></dt>
-<dd><p>returns one neutrino template per channel for the reference direction and on the cherenkov cone</p>
+<dt class="sig sig-object py" id="NuRadioReco.utilities.templates.Templates.get_set_of_cr_templates_full">
+<span class="sig-name descname"><span class="pre">get_set_of_cr_templates_full</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/templates.html#Templates.get_set_of_cr_templates_full"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.templates.Templates.get_set_of_cr_templates_full" title="Permalink to this definition"></a></dt>
+<dd><p>gets set of n templates to allow for the calculation of average templates</p>
 </dd></dl>
 
 <dl class="py method">
@@ -646,12 +645,6 @@ and then over zenith angles of 60, 50 and 70 degree</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.templates.Templates.get_set_of_cr_templates_full">
-<span class="sig-name descname"><span class="pre">get_set_of_cr_templates_full</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/templates.html#Templates.get_set_of_cr_templates_full"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.templates.Templates.get_set_of_cr_templates_full" title="Permalink to this definition"></a></dt>
-<dd><p>gets set of n templates to allow for the calculation of average templates</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.templates.Templates.get_set_of_nu_templates">
 <span class="sig-name descname"><span class="pre">get_set_of_nu_templates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/templates.html#Templates.get_set_of_nu_templates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.templates.Templates.get_set_of_nu_templates" title="Permalink to this definition"></a></dt>
 <dd><p>gets set of n templates to allow for the calculation of average templates</p>
@@ -661,9 +654,16 @@ and then over zenith angles of 100, 120 and 140 degree</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.templates.Templates.set_template_directory">
-<span class="sig-name descname"><span class="pre">set_template_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/templates.html#Templates.set_template_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.templates.Templates.set_template_directory" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="NuRadioReco.utilities.templates.Templates.get_nu_ref_templates">
+<span class="sig-name descname"><span class="pre">get_nu_ref_templates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/templates.html#Templates.get_nu_ref_templates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.templates.Templates.get_nu_ref_templates" title="Permalink to this definition"></a></dt>
+<dd><p>returns one neutrino template per channel for the reference direction and on the cherenkov cone</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.templates.Templates.get_nu_ref_template">
+<span class="sig-name descname"><span class="pre">get_nu_ref_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/templates.html#Templates.get_nu_ref_template"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.templates.Templates.get_nu_ref_template" title="Permalink to this definition"></a></dt>
+<dd><p>returns one neutrino template for the reference direction and on the cherenkov cone, the same for all channels</p>
+</dd></dl>
 
 </dd></dl>
 

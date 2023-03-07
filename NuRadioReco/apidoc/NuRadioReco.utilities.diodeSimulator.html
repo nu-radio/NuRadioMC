@@ -7,7 +7,7 @@
   <title>NuRadioReco.utilities.diodeSimulator module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -611,6 +611,34 @@ the diode filtering. If a lowpass filter is needed, please pass a
 </tbody>
 </table>
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.diodeSimulator.diodeSimulator.tunnel_diode">
+<span class="sig-name descname"><span class="pre">tunnel_diode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/diodeSimulator.html#diodeSimulator.tunnel_diode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.diodeSimulator.diodeSimulator.tunnel_diode" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate a signal as processed by the tunnel diode.
+The given signal is convolved with the tunnel diode response as in
+AraSim.</p>
+<p>The diode model used in this module returns a dimensionless power trace,
+where the antenna resistance is only a normalisation for the final
+voltage. That’s why the antenna resistance has been fixed to a value
+of 8.5 ohms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>channel: Channel</strong></dt><dd><p>Signal to be processed by the tunnel diode.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>trace_after_tunnel_diode: array</dt><dd><p>Signal output of the tunnel diode for the input <em class="xref py py-obj">channel</em>.
+Careful! This trace is dimensionless and comes from a convolution
+of the power with the diode response.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.diodeSimulator.diodeSimulator.calculate_noise_parameters">
 <span class="sig-name descname"><span class="pre">calculate_noise_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9.999999999999999e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rayleigh'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_tries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/diodeSimulator.html#diodeSimulator.calculate_noise_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.diodeSimulator.diodeSimulator.calculate_noise_parameters" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates the mean and the standard deviation for the diode-filtered noise.</p>
@@ -649,34 +677,6 @@ averages for the mean and the standard deviation.</p>
 <dt class="sig sig-object py" id="NuRadioReco.utilities.diodeSimulator.diodeSimulator.end">
 <span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/diodeSimulator.html#diodeSimulator.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.diodeSimulator.diodeSimulator.end" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.diodeSimulator.diodeSimulator.tunnel_diode">
-<span class="sig-name descname"><span class="pre">tunnel_diode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/diodeSimulator.html#diodeSimulator.tunnel_diode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.diodeSimulator.diodeSimulator.tunnel_diode" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate a signal as processed by the tunnel diode.
-The given signal is convolved with the tunnel diode response as in
-AraSim.</p>
-<p>The diode model used in this module returns a dimensionless power trace,
-where the antenna resistance is only a normalisation for the final
-voltage. That’s why the antenna resistance has been fixed to a value
-of 8.5 ohms.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>channel: Channel</strong></dt><dd><p>Signal to be processed by the tunnel diode.</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>trace_after_tunnel_diode: array</dt><dd><p>Signal output of the tunnel diode for the input <cite>channel</cite>.
-Careful! This trace is dimensionless and comes from a convolution
-of the power with the diode response.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
 
 </dd></dl>
 

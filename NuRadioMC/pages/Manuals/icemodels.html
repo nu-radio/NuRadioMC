@@ -7,7 +7,7 @@
   <title>Ice and attenuation models &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -608,7 +608,7 @@
 <div><div class="math notranslate nohighlight">
 \[n(z) = n_{ice} - \Delta_n \exp(z/z_0)\]</div>
 </div></blockquote>
-<p>where z is the depth and <span class="math notranslate nohighlight">\(n_{ice}\)</span>, <span class="math notranslate nohighlight">\(\Delta_n\)</span>, <cite>math:`z_0</cite> are the parameters of the model. As an example of how to implement a specific simple ice model into <code class="docutils literal notranslate"><span class="pre">medium.py</span></code> is illustrated below with the help of the <code class="docutils literal notranslate"><span class="pre">greenland_simple</span></code> ice model.</p>
+<p>where z is the depth and <span class="math notranslate nohighlight">\(n_{ice}\)</span>, <span class="math notranslate nohighlight">\(\Delta_n\)</span>, <em class="xref py py-obj">math:`z_0</em> are the parameters of the model. As an example of how to implement a specific simple ice model into <code class="docutils literal notranslate"><span class="pre">medium.py</span></code> is illustrated below with the help of the <code class="docutils literal notranslate"><span class="pre">greenland_simple</span></code> ice model.</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">greenland_simple</span><span class="p">(</span><span class="n">IceModel_Simple</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

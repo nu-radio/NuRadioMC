@@ -7,7 +7,7 @@
   <title>NuRadioMC.EvtGen.proposal_table_manager module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -576,10 +576,9 @@
   <section id="module-NuRadioMC.EvtGen.proposal_table_manager">
 <span id="nuradiomc-evtgen-proposal-table-manager-module"></span><h1>NuRadioMC.EvtGen.proposal_table_manager module<a class="headerlink" href="#module-NuRadioMC.EvtGen.proposal_table_manager" title="Permalink to this heading"></a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.EvtGen.proposal_table_manager.download_proposal_tables">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.proposal_table_manager.</span></span><span class="sig-name descname"><span class="pre">download_proposal_tables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tables_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/proposal_table_manager.html#download_proposal_tables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.proposal_table_manager.download_proposal_tables" title="Permalink to this definition"></a></dt>
-<dd><p>download precalculated proposal tables for all relevant flavors
-from the NuRadioMC data storage</p>
+<dt class="sig sig-object py" id="NuRadioMC.EvtGen.proposal_table_manager.produce_proposal_tables">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.proposal_table_manager.</span></span><span class="sig-name descname"><span class="pre">produce_proposal_tables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tables_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/proposal_table_manager.html#produce_proposal_tables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.proposal_table_manager.produce_proposal_tables" title="Permalink to this definition"></a></dt>
+<dd><p>produce proposal tables for all relevant flavors</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -598,9 +597,11 @@ from the NuRadioMC data storage</p>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.EvtGen.proposal_table_manager.produce_proposal_tables">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.proposal_table_manager.</span></span><span class="sig-name descname"><span class="pre">produce_proposal_tables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tables_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/proposal_table_manager.html#produce_proposal_tables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.proposal_table_manager.produce_proposal_tables" title="Permalink to this definition"></a></dt>
-<dd><p>produce proposal tables for all relevant flavors</p>
+<dt class="sig sig-object py" id="NuRadioMC.EvtGen.proposal_table_manager.produce_proposal_tables_tarball">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.proposal_table_manager.</span></span><span class="sig-name descname"><span class="pre">produce_proposal_tables_tarball</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tables_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/proposal_table_manager.html#produce_proposal_tables_tarball"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.proposal_table_manager.produce_proposal_tables_tarball" title="Permalink to this definition"></a></dt>
+<dd><p>produce proposal tables tarball for all relevant flavors
+Note: the produced tarballs need to be placed in the
+NuRadioMC/proposal_tables/{version}/{compiler} directory on the desy cluster.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -614,11 +615,10 @@ from the NuRadioMC data storage</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.EvtGen.proposal_table_manager.produce_proposal_tables_tarball">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.proposal_table_manager.</span></span><span class="sig-name descname"><span class="pre">produce_proposal_tables_tarball</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tables_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/proposal_table_manager.html#produce_proposal_tables_tarball"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.proposal_table_manager.produce_proposal_tables_tarball" title="Permalink to this definition"></a></dt>
-<dd><p>produce proposal tables tarball for all relevant flavors
-Note: the produced tarballs need to be placed in the
-NuRadioMC/proposal_tables/{version}/{compiler} directory on the desy cluster.</p>
+<dt class="sig sig-object py" id="NuRadioMC.EvtGen.proposal_table_manager.download_proposal_tables">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.proposal_table_manager.</span></span><span class="sig-name descname"><span class="pre">download_proposal_tables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tables_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/proposal_table_manager.html#download_proposal_tables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.proposal_table_manager.download_proposal_tables" title="Permalink to this definition"></a></dt>
+<dd><p>download precalculated proposal tables for all relevant flavors
+from the NuRadioMC data storage</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">

@@ -7,7 +7,7 @@
   <title>HDF5 output structure &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -748,23 +748,27 @@ is the number of showers (which may be larger than the number of events), and <c
 <td><p>(<code class="docutils literal notranslate"><span class="pre">n_showers</span></code>)</p></td>
 <td><p>A boolean; <code class="docutils literal notranslate"><span class="pre">True</span></code> if any trigger fired for this shower, <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">n_interaction</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">trigger_times</span></code></p></td>
+<td><p>(<code class="docutils literal notranslate"><span class="pre">n_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_triggers</span></code>)</p></td>
+<td><p>The trigger times (relative to the first interaction) at which each shower triggered. If there are multiple stations, this will be the earliest trigger time.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">n_interaction</span></code></p></td>
 <td><p>(<code class="docutils literal notranslate"><span class="pre">n_showers</span></code>)</p></td>
 <td><p>Hierarchical counter for the number of showers per event (also accounts for showers which did not trigger and might not be saved)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">shower_ids</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">shower_ids</span></code></p></td>
 <td><p>(<code class="docutils literal notranslate"><span class="pre">n_showers</span></code>)</p></td>
 <td><p>Hierarchical counter for the number of triggered showers</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">shower_realization_ARZ</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">shower_realization_ARZ</span></code></p></td>
 <td><p>(<code class="docutils literal notranslate"><span class="pre">n_showers</span></code>)</p></td>
 <td><p>Which realization from the ARZ shower library was used for each shower (only if ARZ was used for signal generation).</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">shower_type</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">shower_type</span></code></p></td>
 <td><p>(<code class="docutils literal notranslate"><span class="pre">n_showers</span></code>)</p></td>
 <td><p>Type of the shower (so far we only have “em” and “had”)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">weights</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">weights</span></code></p></td>
 <td><p>(<code class="docutils literal notranslate"><span class="pre">n_showers</span></code>)</p></td>
 <td><p>Weight for the probability that the neutrino reached the interaction vertex taking into account the attenuation from the earth (Does not include interaction probability in the volume)</p></td>
 </tr>
@@ -885,6 +889,10 @@ station triggered, with which amplitude, etc. The same approach works for <code 
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">triggered_per_event</span></code></p></td>
 <td><p>(<code class="docutils literal notranslate"><span class="pre">m_events</span></code>)</p></td>
 <td><p>Whether each event fulfilled any trigger condition.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">trigger_times</span></code></p></td>
+<td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_triggers</span></code>)</p></td>
+<td><p>The trigger times for each shower and trigger.</p></td>
 </tr>
 </tbody>
 </table>

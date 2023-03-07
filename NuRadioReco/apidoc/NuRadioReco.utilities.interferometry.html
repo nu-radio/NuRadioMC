@@ -7,7 +7,7 @@
   <title>NuRadioReco.utilities.interferometry module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -576,6 +576,86 @@
   <section id="module-NuRadioReco.utilities.interferometry">
 <span id="nuradioreco-utilities-interferometry-module"></span><h1>NuRadioReco.utilities.interferometry module<a class="headerlink" href="#module-NuRadioReco.utilities.interferometry" title="Permalink to this heading"></a></h1>
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.interferometry.get_signal">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.interferometry.</span></span><span class="sig-name descname"><span class="pre">get_signal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sum_trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tstep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'power'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/interferometry.html#get_signal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.interferometry.get_signal" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates signal quantity from beam-formed waveform</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sum_trace</strong><span class="classifier">np.array(m,)</span></dt><dd><p>beam-formed waveform with m samples</p>
+</dd>
+<dt><strong>tstep</strong><span class="classifier">double</span></dt><dd><p>Sampling bin size</p>
+</dd>
+<dt><strong>window_width</strong><span class="classifier">double</span></dt><dd><p>Time window size to calculate power</p>
+</dd>
+<dt><strong>kind</strong><span class="classifier">str</span></dt><dd><p>Key-word what to do: “amplitude”, “power”, or “hilbert_sum”</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>signal</strong><span class="classifier">double</span></dt><dd><p>Signal calculated according to the specified metric</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.interferometry.interfere_traces_interpolation">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.interferometry.</span></span><span class="sig-name descname"><span class="pre">interfere_traces_interpolation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/interferometry.html#interfere_traces_interpolation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.interferometry.interfere_traces_interpolation" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate sum of time shifted waveforms.</p>
+<p>Performs a linear interpolation between samples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>target_pos</strong><span class="classifier">np.array(3,)</span></dt><dd><p>source/traget location</p>
+</dd>
+<dt><strong>positions</strong><span class="classifier">np.array(n, 3)</span></dt><dd><p>observer positions</p>
+</dd>
+<dt><strong>traces</strong><span class="classifier">np.array(n, m)</span></dt><dd><p>waveforms of n observers with m samples</p>
+</dd>
+<dt><strong>times</strong><span class="classifier">np.array(n, m)</span></dt><dd><p>time stampes of the waveforms of each observer</p>
+</dd>
+<dt><strong>tab</strong><span class="classifier">radiotools.atmosphere.refractivity.RefractivityTable</span></dt><dd><p>Tabulated table of the avg. refractive index between two points</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>sum_trace</strong><span class="classifier">np.array(n, m)</span></dt><dd><p>Summed trace</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.interferometry.get_time_shifts">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.interferometry.</span></span><span class="sig-name descname"><span class="pre">get_time_shifts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/interferometry.html#get_time_shifts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.interferometry.get_time_shifts" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the time delay of an electromagnetic wave along a straight trajectories between 
+a source/traget location and several observers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>target_pos</strong><span class="classifier">np.array(3,)</span></dt><dd><p>source/traget location</p>
+</dd>
+<dt><strong>positions</strong><span class="classifier">np.array(n, 3)</span></dt><dd><p>observer positions (n observers)</p>
+</dd>
+<dt><strong>tab</strong><span class="classifier">radiotools.atmosphere.refractivity.RefractivityTable</span></dt><dd><p>Tabulated table of the avg. refractive index between two points</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>tshifts</strong><span class="classifier">np.array(n,)</span></dt><dd><p>Time delay in sec</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.interferometry.fit_axis">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.interferometry.</span></span><span class="sig-name descname"><span class="pre">fit_axis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coreX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coreY</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/interferometry.html#fit_axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.interferometry.fit_axis" title="Permalink to this definition"></a></dt>
 <dd><p>Predicts the intersetction of an axis/line with horizontal layers at different heights.</p>
@@ -630,86 +710,6 @@ given height(s) z. Resulting array (positions) is flatten.</p>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt><strong>psi</strong><span class="classifier">array(3,)</span></dt><dd><p>Position of the intersection between plane and line</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.interferometry.get_signal">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.interferometry.</span></span><span class="sig-name descname"><span class="pre">get_signal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sum_trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tstep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'power'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/interferometry.html#get_signal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.interferometry.get_signal" title="Permalink to this definition"></a></dt>
-<dd><p>Calculates signal quantity from beam-formed waveform</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>sum_trace</strong><span class="classifier">np.array(m,)</span></dt><dd><p>beam-formed waveform with m samples</p>
-</dd>
-<dt><strong>tstep</strong><span class="classifier">double</span></dt><dd><p>Sampling bin size</p>
-</dd>
-<dt><strong>window_width</strong><span class="classifier">double</span></dt><dd><p>Time window size to calculate power</p>
-</dd>
-<dt><strong>kind</strong><span class="classifier">str</span></dt><dd><p>Key-word what to do: “amplitude”, “power”, or “hilbert_sum”</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt><strong>signal</strong><span class="classifier">double</span></dt><dd><p>Signal calculated according to the specified metric</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.interferometry.get_time_shifts">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.interferometry.</span></span><span class="sig-name descname"><span class="pre">get_time_shifts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/interferometry.html#get_time_shifts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.interferometry.get_time_shifts" title="Permalink to this definition"></a></dt>
-<dd><p>Calculates the time delay of an electromagnetic wave along a straight trajectories between 
-a source/traget location and several observers.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>target_pos</strong><span class="classifier">np.array(3,)</span></dt><dd><p>source/traget location</p>
-</dd>
-<dt><strong>positions</strong><span class="classifier">np.array(n, 3)</span></dt><dd><p>observer positions (n observers)</p>
-</dd>
-<dt><strong>tab</strong><span class="classifier">radiotools.atmosphere.refractivity.RefractivityTable</span></dt><dd><p>Tabulated table of the avg. refractive index between two points</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt><strong>tshifts</strong><span class="classifier">np.array(n,)</span></dt><dd><p>Time delay in sec</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.interferometry.interfere_traces_interpolation">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.interferometry.</span></span><span class="sig-name descname"><span class="pre">interfere_traces_interpolation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tab</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/interferometry.html#interfere_traces_interpolation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.interferometry.interfere_traces_interpolation" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate sum of time shifted waveforms.</p>
-<p>Performs a linear interpolation between samples.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>target_pos</strong><span class="classifier">np.array(3,)</span></dt><dd><p>source/traget location</p>
-</dd>
-<dt><strong>positions</strong><span class="classifier">np.array(n, 3)</span></dt><dd><p>observer positions</p>
-</dd>
-<dt><strong>traces</strong><span class="classifier">np.array(n, m)</span></dt><dd><p>waveforms of n observers with m samples</p>
-</dd>
-<dt><strong>times</strong><span class="classifier">np.array(n, m)</span></dt><dd><p>time stampes of the waveforms of each observer</p>
-</dd>
-<dt><strong>tab</strong><span class="classifier">radiotools.atmosphere.refractivity.RefractivityTable</span></dt><dd><p>Tabulated table of the avg. refractive index between two points</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt><strong>sum_trace</strong><span class="classifier">np.array(n, m)</span></dt><dd><p>Summed trace</p>
 </dd>
 </dl>
 </dd>

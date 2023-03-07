@@ -7,7 +7,7 @@
   <title>NuRadioReco.framework.sim_station module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -585,7 +585,7 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.add_channel" title="NuRadioReco.framework.sim_station.SimStation.add_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_channel</span></code></a>(channel)</p></td>
 <td><p>adds a NuRadioReco.framework.sim_channel to the SimStation object</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ARIANNA_parameter</span></code>(key)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_ARIANNA_parameter" title="NuRadioReco.framework.sim_station.SimStation.get_ARIANNA_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ARIANNA_parameter</span></code></a>(key)</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_channel" title="NuRadioReco.framework.sim_station.SimStation.get_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_channel</span></code></a>(unique_identifier)</p></td>
@@ -609,22 +609,22 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_shower_ids" title="NuRadioReco.framework.sim_station.SimStation.get_shower_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_shower_ids</span></code></a>()</p></td>
 <td><p>returns a list with the shower IDs of all simChannels of the simStation</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggers</span></code>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_triggers" title="NuRadioReco.framework.sim_station.SimStation.get_triggers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggers</span></code></a>()</p></td>
 <td><p>returns a dictionary of the triggers.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_trigger</span></code>(trigger_name)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.has_trigger" title="NuRadioReco.framework.sim_station.SimStation.has_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_trigger</span></code></a>(trigger_name)</p></td>
 <td><p>checks if station has a trigger with a certain name</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code>([trigger_name])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.has_triggered" title="NuRadioReco.framework.sim_station.SimStation.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
 <td><p>convenience function.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_cosmic_ray</span></code>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_is_cosmic_ray" title="NuRadioReco.framework.sim_station.SimStation.set_is_cosmic_ray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_cosmic_ray</span></code></a>()</p></td>
 <td><p>set station type to cosmic rays (relevant e.g.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_neutrino</span></code>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_is_neutrino" title="NuRadioReco.framework.sim_station.SimStation.set_is_neutrino"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_neutrino</span></code></a>()</p></td>
 <td><p>set station type to neutrino</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code>([triggered])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_triggered" title="NuRadioReco.framework.sim_station.SimStation.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>convenience function to set a simple trigger.</p></td>
 </tr>
 </tbody>
@@ -721,15 +721,35 @@
 </tbody>
 </table>
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_magnetic_field_vector">
+<span class="sig-name descname"><span class="pre">get_magnetic_field_vector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.get_magnetic_field_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_magnetic_field_vector" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.set_magnetic_field_vector">
+<span class="sig-name descname"><span class="pre">set_magnetic_field_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">magnetic_field_vector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.set_magnetic_field_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.set_magnetic_field_vector" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_simulation_weight">
+<span class="sig-name descname"><span class="pre">get_simulation_weight</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.get_simulation_weight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_simulation_weight" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.set_simulation_weight">
+<span class="sig-name descname"><span class="pre">set_simulation_weight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_weight</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.set_simulation_weight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.set_simulation_weight" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.iter_channels">
+<span class="sig-name descname"><span class="pre">iter_channels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.iter_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.iter_channels" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.add_channel">
 <span class="sig-name descname"><span class="pre">add_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.add_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.add_channel" title="Permalink to this definition"></a></dt>
 <dd><p>adds a NuRadioReco.framework.sim_channel to the SimStation object</p>
 </dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.deserialize">
-<span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.deserialize" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_channel">
@@ -744,15 +764,21 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_channels_by_channel_id">
-<span class="sig-name descname"><span class="pre">get_channels_by_channel_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.get_channels_by_channel_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_channels_by_channel_id" title="Permalink to this definition"></a></dt>
-<dd><p>returns all simChannels that have the given channel_id</p>
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_shower_ids">
+<span class="sig-name descname"><span class="pre">get_shower_ids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.get_shower_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_shower_ids" title="Permalink to this definition"></a></dt>
+<dd><p>returns a list with the shower IDs of all simChannels of the simStation</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_channels_by_ray_tracing_id">
-<span class="sig-name descname"><span class="pre">get_channels_by_ray_tracing_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ray_tracing_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.get_channels_by_ray_tracing_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_channels_by_ray_tracing_id" title="Permalink to this definition"></a></dt>
-<dd><p>returns all simChannels that have the given ray_tracing_id</p>
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_ray_tracing_ids">
+<span class="sig-name descname"><span class="pre">get_ray_tracing_ids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.get_ray_tracing_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_ray_tracing_ids" title="Permalink to this definition"></a></dt>
+<dd><p>returns a list with the raytracing IDs of all simChannels of the simStation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_channels_by_channel_id">
+<span class="sig-name descname"><span class="pre">get_channels_by_channel_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.get_channels_by_channel_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_channels_by_channel_id" title="Permalink to this definition"></a></dt>
+<dd><p>returns all simChannels that have the given channel_id</p>
 </dd></dl>
 
 <dl class="py method">
@@ -762,31 +788,10 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_magnetic_field_vector">
-<span class="sig-name descname"><span class="pre">get_magnetic_field_vector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.get_magnetic_field_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_magnetic_field_vector" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_ray_tracing_ids">
-<span class="sig-name descname"><span class="pre">get_ray_tracing_ids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.get_ray_tracing_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_ray_tracing_ids" title="Permalink to this definition"></a></dt>
-<dd><p>returns a list with the raytracing IDs of all simChannels of the simStation</p>
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_channels_by_ray_tracing_id">
+<span class="sig-name descname"><span class="pre">get_channels_by_ray_tracing_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ray_tracing_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.get_channels_by_ray_tracing_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_channels_by_ray_tracing_id" title="Permalink to this definition"></a></dt>
+<dd><p>returns all simChannels that have the given ray_tracing_id</p>
 </dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_shower_ids">
-<span class="sig-name descname"><span class="pre">get_shower_ids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.get_shower_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_shower_ids" title="Permalink to this definition"></a></dt>
-<dd><p>returns a list with the shower IDs of all simChannels of the simStation</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_simulation_weight">
-<span class="sig-name descname"><span class="pre">get_simulation_weight</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.get_simulation_weight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_simulation_weight" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.iter_channels">
-<span class="sig-name descname"><span class="pre">iter_channels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.iter_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.iter_channels" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.serialize">
@@ -794,14 +799,185 @@
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.set_magnetic_field_vector">
-<span class="sig-name descname"><span class="pre">set_magnetic_field_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">magnetic_field_vector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.set_magnetic_field_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.set_magnetic_field_vector" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.deserialize">
+<span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.deserialize" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.set_simulation_weight">
-<span class="sig-name descname"><span class="pre">set_simulation_weight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_weight</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/sim_station.html#SimStation.set_simulation_weight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.set_simulation_weight" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.add_electric_field">
+<span class="sig-name descname"><span class="pre">add_electric_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">electric_field</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.add_electric_field" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_ARIANNA_parameter">
+<span class="sig-name descname"><span class="pre">get_ARIANNA_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_ARIANNA_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_ARIANNA_parameters">
+<span class="sig-name descname"><span class="pre">get_ARIANNA_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_ARIANNA_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_electric_fields">
+<span class="sig-name descname"><span class="pre">get_electric_fields</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_electric_fields" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_electric_fields_for_channels">
+<span class="sig-name descname"><span class="pre">get_electric_fields_for_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ray_path_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_electric_fields_for_channels" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_id">
+<span class="sig-name descname"><span class="pre">get_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_id" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_parameter">
+<span class="sig-name descname"><span class="pre">get_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_parameter_error">
+<span class="sig-name descname"><span class="pre">get_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_parameter_error" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_parameters">
+<span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_station_time">
+<span class="sig-name descname"><span class="pre">get_station_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_station_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_trigger">
+<span class="sig-name descname"><span class="pre">get_trigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_trigger" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_triggers">
+<span class="sig-name descname"><span class="pre">get_triggers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_triggers" title="Permalink to this definition"></a></dt>
+<dd><p>returns a dictionary of the triggers. key is the trigger name, value is a trigger object</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.has_ARIANNA_parameter">
+<span class="sig-name descname"><span class="pre">has_ARIANNA_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.has_ARIANNA_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.has_parameter">
+<span class="sig-name descname"><span class="pre">has_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.has_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.has_trigger">
+<span class="sig-name descname"><span class="pre">has_trigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.has_trigger" title="Permalink to this definition"></a></dt>
+<dd><p>checks if station has a trigger with a certain name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_name: string</strong></dt><dd><p>the name of the trigger</p>
+</dd>
+<dt><strong>Returns bool</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.has_triggered">
+<span class="sig-name descname"><span class="pre">has_triggered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.has_triggered" title="Permalink to this definition"></a></dt>
+<dd><p>convenience function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trigger_name: string or None (default None)</strong></dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>if None: The function returns False if not trigger was set. If one or multiple triggers were set,</dt><dd><p>it returns True if any of those triggers triggered</p>
+</dd>
+</dl>
+</li>
+<li><p>if trigger name is set: return if the trigger with name ‘trigger_name’ has a trigger</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.is_cosmic_ray">
+<span class="sig-name descname"><span class="pre">is_cosmic_ray</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.is_cosmic_ray" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.is_neutrino">
+<span class="sig-name descname"><span class="pre">is_neutrino</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.is_neutrino" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.remove_parameter">
+<span class="sig-name descname"><span class="pre">remove_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.remove_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.remove_triggers">
+<span class="sig-name descname"><span class="pre">remove_triggers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.remove_triggers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.set_ARIANNA_parameter">
+<span class="sig-name descname"><span class="pre">set_ARIANNA_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.set_ARIANNA_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.set_electric_fields">
+<span class="sig-name descname"><span class="pre">set_electric_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">electric_fields</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.set_electric_fields" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.set_is_cosmic_ray">
+<span class="sig-name descname"><span class="pre">set_is_cosmic_ray</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.set_is_cosmic_ray" title="Permalink to this definition"></a></dt>
+<dd><p>set station type to cosmic rays (relevant e.g. for refraction into the snow)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.set_is_neutrino">
+<span class="sig-name descname"><span class="pre">set_is_neutrino</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.set_is_neutrino" title="Permalink to this definition"></a></dt>
+<dd><p>set station type to neutrino</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.set_parameter">
+<span class="sig-name descname"><span class="pre">set_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.set_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.set_parameter_error">
+<span class="sig-name descname"><span class="pre">set_parameter_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.set_parameter_error" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.set_station_time">
+<span class="sig-name descname"><span class="pre">set_station_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.set_station_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.set_trigger">
+<span class="sig-name descname"><span class="pre">set_trigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.set_trigger" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.set_triggered">
+<span class="sig-name descname"><span class="pre">set_triggered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.set_triggered" title="Permalink to this definition"></a></dt>
+<dd><p>convenience function to set a simple trigger. The recommended interface is to set triggers through the
+set_trigger() interface.</p>
+</dd></dl>
 
 </dd></dl>
 

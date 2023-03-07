@@ -7,7 +7,7 @@
   <title>NuRadioReco.detector.ARIANNA.analog_components module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -577,13 +577,26 @@
   <section id="module-NuRadioReco.detector.ARIANNA.analog_components">
 <span id="nuradioreco-detector-arianna-analog-components-module"></span><h1>NuRadioReco.detector.ARIANNA.analog_components module<a class="headerlink" href="#module-NuRadioReco.detector.ARIANNA.analog_components" title="Permalink to this heading"></a></h1>
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.ARIANNA.analog_components.load_amplifier_response">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.ARIANNA.analog_components.</span></span><span class="sig-name descname"><span class="pre">load_amplifier_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amp_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'100'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/home/runner/work/NuRadioMC/NuRadioMC/NuRadioReco/detector/ARIANNA'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/ARIANNA/analog_components.html#load_amplifier_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.ARIANNA.analog_components.load_amplifier_response" title="Permalink to this definition"></a></dt>
+<dd><p>Read out amplifier gain and phase. Currently only examples have been implemented.
+Needs a better structure in the future, possibly with database.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.ARIANNA.analog_components.load_amp_measurement">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.ARIANNA.analog_components.</span></span><span class="sig-name descname"><span class="pre">load_amp_measurement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amp_measurement</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/ARIANNA/analog_components.html#load_amp_measurement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.ARIANNA.analog_components.load_amp_measurement" title="Permalink to this definition"></a></dt>
+<dd><p>load individual amp measurement from file and buffer interpolation function</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.detector.ARIANNA.analog_components.get_amplifier_response">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.ARIANNA.analog_components.</span></span><span class="sig-name descname"><span class="pre">get_amplifier_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp_measurement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/ARIANNA/analog_components.html#get_amplifier_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.ARIANNA.analog_components.get_amplifier_response" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.ARIANNA.analog_components.get_available_amplifiers">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.ARIANNA.analog_components.</span></span><span class="sig-name descname"><span class="pre">get_available_amplifiers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/ARIANNA/analog_components.html#get_available_amplifiers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.ARIANNA.analog_components.get_available_amplifiers" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.ARIANNA.analog_components.get_cable_response_parametrized">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.ARIANNA.analog_components.</span></span><span class="sig-name descname"><span class="pre">get_cable_response_parametrized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cable_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cable_length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/ARIANNA/analog_components.html#get_cable_response_parametrized"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.ARIANNA.analog_components.get_cable_response_parametrized" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -593,22 +606,9 @@
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.ARIANNA.analog_components.get_cable_response_parametrized">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.ARIANNA.analog_components.</span></span><span class="sig-name descname"><span class="pre">get_cable_response_parametrized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cable_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cable_length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/ARIANNA/analog_components.html#get_cable_response_parametrized"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.ARIANNA.analog_components.get_cable_response_parametrized" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.ARIANNA.analog_components.get_available_amplifiers">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.ARIANNA.analog_components.</span></span><span class="sig-name descname"><span class="pre">get_available_amplifiers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/ARIANNA/analog_components.html#get_available_amplifiers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.ARIANNA.analog_components.get_available_amplifiers" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.ARIANNA.analog_components.load_amp_measurement">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.ARIANNA.analog_components.</span></span><span class="sig-name descname"><span class="pre">load_amp_measurement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amp_measurement</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/ARIANNA/analog_components.html#load_amp_measurement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.ARIANNA.analog_components.load_amp_measurement" title="Permalink to this definition"></a></dt>
-<dd><p>load individual amp measurement from file and buffer interpolation function</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.ARIANNA.analog_components.load_amplifier_response">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.ARIANNA.analog_components.</span></span><span class="sig-name descname"><span class="pre">load_amplifier_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amp_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'100'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/home/runner/work/NuRadioMC/NuRadioMC/NuRadioReco/detector/ARIANNA'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/ARIANNA/analog_components.html#load_amplifier_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.ARIANNA.analog_components.load_amplifier_response" title="Permalink to this definition"></a></dt>
-<dd><p>Read out amplifier gain and phase. Currently only examples have been implemented.
-Needs a better structure in the future, possibly with database.</p>
-</dd></dl>
 
 </section>
 

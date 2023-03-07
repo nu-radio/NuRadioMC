@@ -7,7 +7,7 @@
   <title>NuRadioMC.utilities.Veff module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -576,6 +576,30 @@
   <section id="module-NuRadioMC.utilities.Veff">
 <span id="nuradiomc-utilities-veff-module"></span><h1>NuRadioMC.utilities.Veff module<a class="headerlink" href="#module-NuRadioMC.utilities.Veff" title="Permalink to this heading"></a></h1>
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.Veff.remove_duplicate_triggers">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></span><span class="sig-name descname"><span class="pre">remove_duplicate_triggers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggered</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/Veff.html#remove_duplicate_triggers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.remove_duplicate_triggers" title="Permalink to this definition"></a></dt>
+<dd><p>remove duplicate entried from triggered array</p>
+<p>The hdf5 file contains a line per shower. One event can contain many showers, i.e. if we count all triggeres
+from all showers we overestimate the effective volume. This function modifies the triggered array such
+that it contains not more than one True value for each event group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>triggered: array of bools</strong></dt><dd></dd>
+<dt><strong>gids: array of ints</strong></dt><dd><p>the event group ids</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>array of bools</dt><dd><p>the corrected triggered array</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.Veff.FC_limits">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></span><span class="sig-name descname"><span class="pre">FC_limits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">counts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/Veff.html#FC_limits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.FC_limits" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the 68% confidence belt for a number of counts, using the
@@ -597,28 +621,118 @@ Feldman-Cousins method.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.Veff.export">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></span><span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'yaml'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/Veff.html#export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.export" title="Permalink to this definition"></a></dt>
-<dd><p>export effective volumes (or effective areas) into a human readable JSON or YAML file</p>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.Veff.get_Veff_water_equivalent">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></span><span class="sig-name descname"><span class="pre">get_Veff_water_equivalent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Veff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density_medium</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.723464435717068e+39</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.241509744511524e+39</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/Veff.html#get_Veff_water_equivalent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.get_Veff_water_equivalent" title="Permalink to this definition"></a></dt>
+<dd><p>convenience function to converte the effective volume of a medium with density <em class="xref py py-obj">density_medium</em> to the
+water equivalent effective volume</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>filename: string</strong></dt><dd><p>the output filename of the JSON file</p>
+<dt><strong>Veff: float or array</strong></dt><dd><p>the effective volume</p>
 </dd>
-<dt><strong>data: array</strong></dt><dd><p>the output of the <cite>getVeff</cite> function</p>
+<dt><strong>dentity_medium: float (optional)</strong></dt><dd><p>the density of the medium of the Veff simulation (default deep ice)</p>
 </dd>
-<dt><strong>trigger_names: list of strings (optional, default None)</strong></dt><dd><p>save only specific trigger names, if None all triggers are exported</p>
+<dt><strong>density water: float (optional)</strong></dt><dd><p>the density of water</p>
 </dd>
-<dt><strong>export_format: string (default “yaml”)</strong></dt><dd><p>specify output format, choose</p>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>water equivalen effective volume</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.Veff.get_veff_output">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></span><span class="sig-name descname"><span class="pre">get_veff_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">volume</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">counts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_events</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/Veff.html#get_veff_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.get_veff_output" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.Veff.get_Veff_Aeff_single">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></span><span class="sig-name descname"><span class="pre">get_Veff_Aeff_single</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_names_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_combinations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deposited</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">veff_aeff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'veff'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds_theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">3.141592653589793]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/Veff.html#get_Veff_Aeff_single"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.get_Veff_Aeff_single" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the effective volume or effective area from surface muons from 
+a single NuRadioMC hdf5 file</p>
+<p>The effective volume is NOT normalized to a water equivalent. It is also NOT 
+multiplied with the solid angle (typically 4pi).</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename: string</strong></dt><dd><p>filename of the hdf5 file</p>
+</dd>
+<dt><strong>trigger_names: list of strings</strong></dt><dd><p>list of the trigger names contained in the file</p>
+</dd>
+<dt><strong>trigger_names_dict: dict</strong></dt><dd><p>map from trigger name to index</p>
+</dd>
+<dt><strong>trigger_combinations: dict, optional</strong></dt><dd><p>keys are the names of triggers to calculate. Values are dicts again:</p>
 <ul class="simple">
-<li><p>“yaml”</p></li>
-<li><p>“json”</p></li>
+<li><dl class="simple">
+<dt>‘triggers’: list of strings</dt><dd><p>name of individual triggers that are combined with an OR</p>
+</dd>
+</dl>
+</li>
 </ul>
+<p>the following additional options are optional</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>‘efficiency’: dict</dt><dd><p>allows to apply an (analysis) efficiency cut for calculating effective volumes</p>
+<ul>
+<li><dl class="simple">
+<dt>‘func’: function</dt><dd><p>a function that paramaterized the efficiency as a function of SNR (=Vmax/Vrms)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>‘channel_ids’: array on ints</dt><dd><p>the channels for which the maximum signal amplitude should be determined</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>‘scale’: float</dt><dd><p>rescaling of the efficiency curve by SNR’ = SNR * scale</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>‘n_reflections’: int</dt><dd><p>the number of bottom reflections of the ray tracing solution that likely triggered
+assuming that the solution with the shortest travel time caused the trigger, only considering channel 0</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt><strong>station: int</strong></dt><dd><p>the station that should be considered</p>
+</dd>
+<dt><strong>veff_aeff: string</strong></dt><dd><p>specifiy if the effective volume or the effective area for surface muons is calculated
+can be</p>
+<ul class="simple">
+<li><p>“veff” (default)</p></li>
+<li><p>“aeff_surface_muons”</p></li>
+</ul>
+</dd>
+<dt><strong>bounds_theta: list of floats</strong></dt><dd><p>restrict theta to sub-range wrt. the simulated range in the file
+Note: assumes events were simulated uniformly in cos(theta)
+bounds_theta should be a (two-item) list, but will care only about the min/max values</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>list of dictionaries</dt><dd><p>Each file is one entry. The dictionary keys store all relevant properties</p>
 </dd>
 </dl>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.Veff.get_Veff_Aeff_single_wrapper">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></span><span class="sig-name descname"><span class="pre">get_Veff_Aeff_single_wrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/Veff.html#get_Veff_Aeff_single_wrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.get_Veff_Aeff_single_wrapper" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.Veff.get_Veff_Aeff">
@@ -711,7 +825,7 @@ last tuple is the effective volume, its uncertainty, the weighted sum of trigger
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>data: dict</strong></dt><dd><p>the result of the <cite>get_Veff</cite> function</p>
+<dt><strong>data: dict</strong></dt><dd><p>the result of the <em class="xref py py-obj">get_Veff</em> function</p>
 </dd>
 </dl>
 </dd>
@@ -792,142 +906,28 @@ last tuple is the effective volume, its uncertainty, the weighted sum of trigger
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.Veff.get_Veff_Aeff_single">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></span><span class="sig-name descname"><span class="pre">get_Veff_Aeff_single</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_names_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_combinations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deposited</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">veff_aeff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'veff'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds_theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">3.141592653589793]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/Veff.html#get_Veff_Aeff_single"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.get_Veff_Aeff_single" title="Permalink to this definition"></a></dt>
-<dd><p>Calculates the effective volume or effective area from surface muons from 
-a single NuRadioMC hdf5 file</p>
-<p>The effective volume is NOT normalized to a water equivalent. It is also NOT 
-multiplied with the solid angle (typically 4pi).</p>
-<dl class="field-list">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl>
-<dt><strong>filename: string</strong></dt><dd><p>filename of the hdf5 file</p>
-</dd>
-<dt><strong>trigger_names: list of strings</strong></dt><dd><p>list of the trigger names contained in the file</p>
-</dd>
-<dt><strong>trigger_names_dict: dict</strong></dt><dd><p>map from trigger name to index</p>
-</dd>
-<dt><strong>trigger_combinations: dict, optional</strong></dt><dd><p>keys are the names of triggers to calculate. Values are dicts again:</p>
-<ul class="simple">
-<li><dl class="simple">
-<dt>‘triggers’: list of strings</dt><dd><p>name of individual triggers that are combined with an OR</p>
-</dd>
-</dl>
-</li>
-</ul>
-<p>the following additional options are optional</p>
-<ul class="simple">
-<li><dl class="simple">
-<dt>‘efficiency’: dict</dt><dd><p>allows to apply an (analysis) efficiency cut for calculating effective volumes</p>
-<ul>
-<li><dl class="simple">
-<dt>‘func’: function</dt><dd><p>a function that paramaterized the efficiency as a function of SNR (=Vmax/Vrms)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>‘channel_ids’: array on ints</dt><dd><p>the channels for which the maximum signal amplitude should be determined</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>‘scale’: float</dt><dd><p>rescaling of the efficiency curve by SNR’ = SNR * scale</p>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>‘n_reflections’: int</dt><dd><p>the number of bottom reflections of the ray tracing solution that likely triggered
-assuming that the solution with the shortest travel time caused the trigger, only considering channel 0</p>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-<dt><strong>station: int</strong></dt><dd><p>the station that should be considered</p>
-</dd>
-<dt><strong>veff_aeff: string</strong></dt><dd><p>specifiy if the effective volume or the effective area for surface muons is calculated
-can be</p>
-<ul class="simple">
-<li><p>“veff” (default)</p></li>
-<li><p>“aeff_surface_muons”</p></li>
-</ul>
-</dd>
-<dt><strong>bounds_theta: list of floats</strong></dt><dd><p>restrict theta to sub-range wrt. the simulated range in the file
-Note: assumes events were simulated uniformly in cos(theta)
-bounds_theta should be a (two-item) list, but will care only about the min/max values</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>list of dictionaries</dt><dd><p>Each file is one entry. The dictionary keys store all relevant properties</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.Veff.get_Veff_Aeff_single_wrapper">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></span><span class="sig-name descname"><span class="pre">get_Veff_Aeff_single_wrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/Veff.html#get_Veff_Aeff_single_wrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.get_Veff_Aeff_single_wrapper" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.Veff.get_Veff_water_equivalent">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></span><span class="sig-name descname"><span class="pre">get_Veff_water_equivalent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Veff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density_medium</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.723464435717068e+39</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.241509744511524e+39</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/Veff.html#get_Veff_water_equivalent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.get_Veff_water_equivalent" title="Permalink to this definition"></a></dt>
-<dd><p>convenience function to converte the effective volume of a medium with density <cite>density_medium</cite> to the
-water equivalent effective volume</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>Veff: float or array</strong></dt><dd><p>the effective volume</p>
-</dd>
-<dt><strong>dentity_medium: float (optional)</strong></dt><dd><p>the density of the medium of the Veff simulation (default deep ice)</p>
-</dd>
-<dt><strong>density water: float (optional)</strong></dt><dd><p>the density of water</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>water equivalen effective volume</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.Veff.get_index">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></span><span class="sig-name descname"><span class="pre">get_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/Veff.html#get_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.get_index" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.Veff.get_veff_output">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></span><span class="sig-name descname"><span class="pre">get_veff_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">volume</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">counts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_events</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/Veff.html#get_veff_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.get_veff_output" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.Veff.remove_duplicate_triggers">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></span><span class="sig-name descname"><span class="pre">remove_duplicate_triggers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triggered</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/Veff.html#remove_duplicate_triggers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.remove_duplicate_triggers" title="Permalink to this definition"></a></dt>
-<dd><p>remove duplicate entried from triggered array</p>
-<p>The hdf5 file contains a line per shower. One event can contain many showers, i.e. if we count all triggeres
-from all showers we overestimate the effective volume. This function modifies the triggered array such
-that it contains not more than one True value for each event group.</p>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.Veff.export">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.Veff.</span></span><span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'yaml'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/Veff.html#export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.Veff.export" title="Permalink to this definition"></a></dt>
+<dd><p>export effective volumes (or effective areas) into a human readable JSON or YAML file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>triggered: array of bools</strong></dt><dd></dd>
-<dt><strong>gids: array of ints</strong></dt><dd><p>the event group ids</p>
+<dt><strong>filename: string</strong></dt><dd><p>the output filename of the JSON file</p>
 </dd>
-</dl>
+<dt><strong>data: array</strong></dt><dd><p>the output of the <em class="xref py py-obj">getVeff</em> function</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>array of bools</dt><dd><p>the corrected triggered array</p>
+<dt><strong>trigger_names: list of strings (optional, default None)</strong></dt><dd><p>save only specific trigger names, if None all triggers are exported</p>
+</dd>
+<dt><strong>export_format: string (default “yaml”)</strong></dt><dd><p>specify output format, choose</p>
+<ul class="simple">
+<li><p>“yaml”</p></li>
+<li><p>“json”</p></li>
+</ul>
 </dd>
 </dl>
 </dd>

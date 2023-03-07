@@ -7,7 +7,7 @@
   <title>NuRadioReco.utilities.fft module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -576,6 +576,22 @@
   <section id="module-NuRadioReco.utilities.fft">
 <span id="nuradioreco-utilities-fft-module"></span><h1>NuRadioReco.utilities.fft module<a class="headerlink" href="#module-NuRadioReco.utilities.fft" title="Permalink to this heading"></a></h1>
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.fft.time2freq">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.fft.</span></span><span class="sig-name descname"><span class="pre">time2freq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/fft.html#time2freq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.fft.time2freq" title="Permalink to this definition"></a></dt>
+<dd><p>performs forward FFT with correct normalization that conserves the power</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace: np.array</strong></dt><dd><p>time trace to be transformed into frequency space</p>
+</dd>
+<dt><strong>sampling_rate: float</strong></dt><dd><p>sampling rate of the trace</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.fft.freq2time">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.fft.</span></span><span class="sig-name descname"><span class="pre">freq2time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/fft.html#freq2time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.fft.freq2time" title="Permalink to this definition"></a></dt>
 <dd><p>performs backward FFT with correct normalization that conserves the power</p>
@@ -587,22 +603,6 @@
 <dt><strong>sampling_rate: float</strong></dt><dd><p>sampling rate of the spectrum</p>
 </dd>
 <dt><strong>n: int</strong></dt><dd><p>the number of sample in the time domain (relevant if time trace has an odd number of samples)</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.fft.time2freq">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.fft.</span></span><span class="sig-name descname"><span class="pre">time2freq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/fft.html#time2freq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.fft.time2freq" title="Permalink to this definition"></a></dt>
-<dd><p>performs forward FFT with correct normalization that conserves the power</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>trace: np.array</strong></dt><dd><p>time trace to be transformed into frequency space</p>
-</dd>
-<dt><strong>sampling_rate: float</strong></dt><dd><p>sampling rate of the trace</p>
 </dd>
 </dl>
 </dd>

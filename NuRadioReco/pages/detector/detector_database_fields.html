@@ -7,7 +7,7 @@
   <title>Properties of Detector Description &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -607,15 +607,15 @@ For dipoles, it can point in any direction that is perpendicular to the first ve
 </pre></div>
 </div>
 <p>For an LPDA, the orientation vector is along the boresight direction, and so to
-point the antenna downward, we specify <cite>orientation_theta=180</cite>.
-Because the antenna is completely pointed down, <cite>orientation_phi</cite> can be any
+point the antenna downward, we specify <em class="xref py py-obj">orientation_theta=180</em>.
+Because the antenna is completely pointed down, <em class="xref py py-obj">orientation_phi</em> can be any
 value, so we specify 0 for simplicity.
-Because the orientation vector points <em>down</em> (<cite>orientation_theta = 180</cite>),
+Because the orientation vector points <em>down</em> (<em class="xref py py-obj">orientation_theta = 180</em>),
 and because the rotation vector is perpendicular to the orientation vector,
 we must specify the rotation vector to point <em>sideways</em>, and so
-we set <cite>rotation_theta = 90</cite>.
+we set <em class="xref py py-obj">rotation_theta = 90</em>.
 Finally, to orient the tines correctly: the rotation vector is in the plane
-<em>perpendicular</em> to the tines, so we must rotate by 90 (<cite>rotation_phi = 90</cite>)
+<em>perpendicular</em> to the tines, so we must rotate by 90 (<em class="xref py py-obj">rotation_phi = 90</em>)
 to have the tines themselves be aligned with the <em>x</em>-axis.</p>
 <p>2. For a dipole, the following specifies a traditional “upright” dipole.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">orientation_phi</span> <span class="o">=</span> <span class="mi">0</span>
@@ -626,17 +626,17 @@ to have the tines themselves be aligned with the <em>x</em>-axis.</p>
 </div>
 <p>For an dipole, the orientation vector is along the rod direction
 (i.e., going vertically through the cones).
-Because we want the antenna to be vertical, we set <cite>orientation_theta=0</cite>.
-Because the antenna is completely vertical, <cite>orientation_phi</cite> can be any
+Because we want the antenna to be vertical, we set <em class="xref py py-obj">orientation_theta=0</em>.
+Because the antenna is completely vertical, <em class="xref py py-obj">orientation_phi</em> can be any
 value, so we specify 0 for simplicity.
-Because the orientation vector points vertically (<cite>orientation_theta = 0</cite>),
+Because the orientation vector points vertically (<em class="xref py py-obj">orientation_theta = 0</em>),
 and because the rotation vector is perpendicular to the orientation vector,
 we must specify the rotation vector to point <em>sideways</em>, and so
-we set <cite>rotation_theta = 90</cite>.
-Because the dipole is azimuthally symmetric, we can fix <cite>rotation_phi</cite> to any
+we set <em class="xref py py-obj">rotation_theta = 90</em>.
+Because the dipole is azimuthally symmetric, we can fix <em class="xref py py-obj">rotation_phi</em> to any
 value, and choose 0 for simplicity.</p>
 <p>Antenna positions can be visualized in 3D using the script
-<cite>NuRadioReco/detector/visualize_detector.py my_detector.json</cite></p>
+<em class="xref py py-obj">NuRadioReco/detector/visualize_detector.py my_detector.json</em></p>
 <p>Additionally, for the antenna, the  user must specify</p>
 <ul class="simple">
 <li><p>deployment_time: the time of antenna deployment aka the time when the antenna depth was measured (relevant because the depth changes because of snow accumulation)</p></li>
@@ -651,11 +651,11 @@ The solution was instead to specify the antenna orientation with
 two orthogonal vectors that are more intuitive,
 and that together over-determine the three Euler angles, and therefore,
 the antenna orientation.</p>
-<p><cite>orientation_phi</cite> is roughly the equivalent of the first Euler angle,
+<p><em class="xref py py-obj">orientation_phi</em> is roughly the equivalent of the first Euler angle,
 the rotation around the <em>z</em>-axis.
-<cite>orientation_theta</cite> is roughly the equivalent of the second Euler angle,
+<em class="xref py py-obj">orientation_theta</em> is roughly the equivalent of the second Euler angle,
 the rotation around the <em>x’</em>-axis.
-<cite>rotation_theta</cite> and <cite>rotation_phi</cite> together specify the third Euler angle,
+<em class="xref py py-obj">rotation_theta</em> and <em class="xref py py-obj">rotation_phi</em> together specify the third Euler angle,
 the rotation around the <em>z’’</em>-axis.
 (Here referring to the intrinsic Euler angle definition in the z-x’-z’’ convention).</p>
 </section>

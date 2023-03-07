@@ -7,7 +7,7 @@
   <title>Data Structure &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -681,7 +681,8 @@ it just needs to be added to the
 <a class="reference internal" href="../apidoc/NuRadioReco.framework.parameters.html#module-NuRadioReco.framework.parameters" title="NuRadioReco.framework.parameters"><code class="xref py py-mod docutils literal notranslate"><span class="pre">list</span> <span class="pre">of</span> <span class="pre">parameters</span></code></a>.</p>
 <div class="admonition-for-developers admonition">
 <p class="admonition-title">For Developers</p>
-<p>New parameters should always be added to the bottom of the list. Do not re-use old Enums!</p>
+<p>New parameters should always be added to the bottom of the list. Do not re-use old Enums!
+A description should be added to each new parameter with a comment docstring starting with <code class="docutils literal notranslate"><span class="pre">#:</span></code>.</p>
 </div>
 <p>Additionally, parameters can be written and accessed via indexing, like one
 would do to a dictionary:</p>

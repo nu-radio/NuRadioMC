@@ -7,7 +7,7 @@
   <title>NuRadioReco.framework.base_trace module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -643,34 +643,21 @@
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.add_trace_start_time">
-<span class="sig-name descname"><span class="pre">add_trace_start_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.add_trace_start_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.add_trace_start_time" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.apply_time_shift">
-<span class="sig-name descname"><span class="pre">apply_time_shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.apply_time_shift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.apply_time_shift" title="Permalink to this definition"></a></dt>
-<dd><p>Uses the fourier shift theorem to apply a time shift to the trace
-Note that this is a cyclic shift, which means the trace will wrap
-around, which might lead to problems, especially for large time shifts.</p>
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.get_trace">
+<span class="sig-name descname"><span class="pre">get_trace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.get_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.get_trace" title="Permalink to this definition"></a></dt>
+<dd><p>returns the time trace.</p>
+<p>If the frequency spectrum was modified before,
+an ifft is performed automatically to have the time domain representation
+up to date.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>delta_t: float</strong></dt><dd><p>Time by which the trace should be shifted</p>
-</dd>
-<dt><strong>silent: boolean (default:False)</strong></dt><dd><p>Turn off warnings if time shift is larger than 10% of trace length
-Only use this option if you are sure that your trace is long enough
-to acommodate the time shift</p>
+<dt>trace: np.array of floats</dt><dd><p>the time trace</p>
 </dd>
 </dl>
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.deserialize">
-<span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.deserialize" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.get_filtered_trace">
@@ -691,13 +678,68 @@ to acommodate the time shift</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.get_frequencies">
-<span class="sig-name descname"><span class="pre">get_frequencies</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.get_frequencies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.get_frequencies" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.get_frequency_spectrum">
+<span class="sig-name descname"><span class="pre">get_frequency_spectrum</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.get_frequency_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.get_frequency_spectrum" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.get_frequency_spectrum">
-<span class="sig-name descname"><span class="pre">get_frequency_spectrum</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.get_frequency_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.get_frequency_spectrum" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.set_trace">
+<span class="sig-name descname"><span class="pre">set_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.set_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.set_trace" title="Permalink to this definition"></a></dt>
+<dd><p>sets the time trace</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace: np.array of floats</strong></dt><dd><p>the time series</p>
+</dd>
+<dt><strong>sampling_rate: float</strong></dt><dd><p>the sampling rage of the trace, i.e., the inverse of the bin width</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.set_frequency_spectrum">
+<span class="sig-name descname"><span class="pre">set_frequency_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency_spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.set_frequency_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.set_frequency_spectrum" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.get_sampling_rate">
+<span class="sig-name descname"><span class="pre">get_sampling_rate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.get_sampling_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.get_sampling_rate" title="Permalink to this definition"></a></dt>
+<dd><p>returns the sampling rate of the trace</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>sampling_rate: float</dt><dd><p>sampling rate, i.e., the inverse of the bin width</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.get_times">
+<span class="sig-name descname"><span class="pre">get_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.get_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.get_times" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.set_trace_start_time">
+<span class="sig-name descname"><span class="pre">set_trace_start_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.set_trace_start_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.set_trace_start_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.add_trace_start_time">
+<span class="sig-name descname"><span class="pre">add_trace_start_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.add_trace_start_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.add_trace_start_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time">
+<span class="sig-name descname"><span class="pre">get_trace_start_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.get_trace_start_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.get_frequencies">
+<span class="sig-name descname"><span class="pre">get_frequencies</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.get_frequencies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.get_frequencies" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -725,45 +767,24 @@ to acommodate the time shift</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.get_sampling_rate">
-<span class="sig-name descname"><span class="pre">get_sampling_rate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.get_sampling_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.get_sampling_rate" title="Permalink to this definition"></a></dt>
-<dd><p>returns the sampling rate of the trace</p>
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.apply_time_shift">
+<span class="sig-name descname"><span class="pre">apply_time_shift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.apply_time_shift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.apply_time_shift" title="Permalink to this definition"></a></dt>
+<dd><p>Uses the fourier shift theorem to apply a time shift to the trace
+Note that this is a cyclic shift, which means the trace will wrap
+around, which might lead to problems, especially for large time shifts.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt>sampling_rate: float</dt><dd><p>sampling rate, i.e., the inverse of the bin width</p>
+<dt><strong>delta_t: float</strong></dt><dd><p>Time by which the trace should be shifted</p>
+</dd>
+<dt><strong>silent: boolean (default:False)</strong></dt><dd><p>Turn off warnings if time shift is larger than 10% of trace length
+Only use this option if you are sure that your trace is long enough
+to acommodate the time shift</p>
 </dd>
 </dl>
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.get_times">
-<span class="sig-name descname"><span class="pre">get_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.get_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.get_times" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.get_trace">
-<span class="sig-name descname"><span class="pre">get_trace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.get_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.get_trace" title="Permalink to this definition"></a></dt>
-<dd><p>returns the time trace.</p>
-<p>If the frequency spectrum was modified before,
-an ifft is performed automatically to have the time domain representation
-up to date.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt>trace: np.array of floats</dt><dd><p>the time trace</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time">
-<span class="sig-name descname"><span class="pre">get_trace_start_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.get_trace_start_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.get_trace_start_time" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.resample">
@@ -776,29 +797,8 @@ up to date.</p>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.set_frequency_spectrum">
-<span class="sig-name descname"><span class="pre">set_frequency_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency_spectrum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.set_frequency_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.set_frequency_spectrum" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.set_trace">
-<span class="sig-name descname"><span class="pre">set_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.set_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.set_trace" title="Permalink to this definition"></a></dt>
-<dd><p>sets the time trace</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>trace: np.array of floats</strong></dt><dd><p>the time series</p>
-</dd>
-<dt><strong>sampling_rate: float</strong></dt><dd><p>the sampling rage of the trace, i.e., the inverse of the bin width</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.set_trace_start_time">
-<span class="sig-name descname"><span class="pre">set_trace_start_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.set_trace_start_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.set_trace_start_time" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.framework.base_trace.BaseTrace.deserialize">
+<span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_pkl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/framework/base_trace.html#BaseTrace.deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.framework.base_trace.BaseTrace.deserialize" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

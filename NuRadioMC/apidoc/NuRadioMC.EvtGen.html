@@ -7,7 +7,7 @@
   <title>NuRadioMC.EvtGen package &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -580,16 +580,16 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="NuRadioMC.EvtGen.NuRadioMCtoAraSim.html">NuRadioMC.EvtGen.NuRadioMCtoAraSim module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="NuRadioMC.EvtGen.NuRadioProposal.html">NuRadioMC.EvtGen.NuRadioProposal module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions"><code class="docutils literal notranslate"><span class="pre">ProposalFunctions</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_decays"><code class="docutils literal notranslate"><span class="pre">ProposalFunctions.get_decays()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_secondaries_array"><code class="docutils literal notranslate"><span class="pre">ProposalFunctions.get_secondaries_array()</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.SecondaryProperties"><code class="docutils literal notranslate"><span class="pre">SecondaryProperties</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.particle_code"><code class="docutils literal notranslate"><span class="pre">particle_code()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_em_primary"><code class="docutils literal notranslate"><span class="pre">is_em_primary()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_had_primary"><code class="docutils literal notranslate"><span class="pre">is_had_primary()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.is_shower_primary"><code class="docutils literal notranslate"><span class="pre">is_shower_primary()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.particle_code"><code class="docutils literal notranslate"><span class="pre">particle_code()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions"><code class="docutils literal notranslate"><span class="pre">ProposalFunctions</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_secondaries_array"><code class="docutils literal notranslate"><span class="pre">ProposalFunctions.get_secondaries_array()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.NuRadioProposal.html#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_decays"><code class="docutils literal notranslate"><span class="pre">ProposalFunctions.get_decays()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="NuRadioMC.EvtGen.create_tau_tab.html">NuRadioMC.EvtGen.create_tau_tab module</a></li>
@@ -601,25 +601,50 @@
 <li class="toctree-l1"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html">NuRadioMC.EvtGen.generator module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.status"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.status()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.addFilter"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.addFilter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.addHandler"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.addHandler()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.callHandlers"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.callHandlers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.critical"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.critical()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.debug"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.debug()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.error"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.exception"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.exception()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.fatal"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.fatal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.filter"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.filter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.findCaller"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.findCaller()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.getChild"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.getChild()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.getEffectiveLevel"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.getEffectiveLevel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.handle"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.handle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.hasHandlers"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.hasHandlers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.info"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.isEnabledFor"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.isEnabledFor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.log"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.log()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.makeRecord"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.makeRecord()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.manager"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.manager</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.removeFilter"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.removeFilter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.removeHandler"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.removeHandler()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.root"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.root</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.setLevel"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.setLevel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.warn"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.warn()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.NuRadioMCLogger.warning"><code class="docutils literal notranslate"><span class="pre">NuRadioMCLogger.warning()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.generate_eventlist_cylinder"><code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.generate_surface_muons"><code class="docutils literal notranslate"><span class="pre">generate_surface_muons()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.generate_vertex_positions"><code class="docutils literal notranslate"><span class="pre">generate_vertex_positions()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_energies"><code class="docutils literal notranslate"><span class="pre">get_energies()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_energy_from_flux"><code class="docutils literal notranslate"><span class="pre">get_energy_from_flux()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_intersection_volume_neutrino"><code class="docutils literal notranslate"><span class="pre">get_intersection_volume_neutrino()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_product_position_time"><code class="docutils literal notranslate"><span class="pre">get_product_position_time()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.load_input_hdf5"><code class="docutils literal notranslate"><span class="pre">load_input_hdf5()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_tau_95_length"><code class="docutils literal notranslate"><span class="pre">get_tau_95_length()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.write_events_to_hdf5"><code class="docutils literal notranslate"><span class="pre">write_events_to_hdf5()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.primary_energy_from_deposited"><code class="docutils literal notranslate"><span class="pre">primary_energy_from_deposited()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.ice_cube_nu_fit"><code class="docutils literal notranslate"><span class="pre">ice_cube_nu_fit()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.ice_cube_nu_fit_2022"><code class="docutils literal notranslate"><span class="pre">ice_cube_nu_fit_2022()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.intersection_box_ray"><code class="docutils literal notranslate"><span class="pre">intersection_box_ray()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.is_in_fiducial_volume"><code class="docutils literal notranslate"><span class="pre">is_in_fiducial_volume()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.load_input_hdf5"><code class="docutils literal notranslate"><span class="pre">load_input_hdf5()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.mask_arrival_azimuth"><code class="docutils literal notranslate"><span class="pre">mask_arrival_azimuth()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.primary_energy_from_deposited"><code class="docutils literal notranslate"><span class="pre">primary_energy_from_deposited()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_energy_from_flux"><code class="docutils literal notranslate"><span class="pre">get_energy_from_flux()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_product_position_time"><code class="docutils literal notranslate"><span class="pre">get_product_position_time()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_energies"><code class="docutils literal notranslate"><span class="pre">get_energies()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.set_volume_attributes"><code class="docutils literal notranslate"><span class="pre">set_volume_attributes()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.write_events_to_hdf5"><code class="docutils literal notranslate"><span class="pre">write_events_to_hdf5()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.generate_vertex_positions"><code class="docutils literal notranslate"><span class="pre">generate_vertex_positions()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.intersection_box_ray"><code class="docutils literal notranslate"><span class="pre">intersection_box_ray()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_intersection_volume_neutrino"><code class="docutils literal notranslate"><span class="pre">get_intersection_volume_neutrino()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.is_in_fiducial_volume"><code class="docutils literal notranslate"><span class="pre">is_in_fiducial_volume()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.mask_arrival_azimuth"><code class="docutils literal notranslate"><span class="pre">mask_arrival_azimuth()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.generate_surface_muons"><code class="docutils literal notranslate"><span class="pre">generate_surface_muons()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.generate_eventlist_cylinder"><code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="NuRadioMC.EvtGen.generator_ASCII.html">NuRadioMC.EvtGen.generator_ASCII module</a><ul>
@@ -632,15 +657,15 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="NuRadioMC.EvtGen.hdf5_to_ASCII.html">NuRadioMC.EvtGen.hdf5_to_ASCII module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="NuRadioMC.EvtGen.proposal_table_manager.html">NuRadioMC.EvtGen.proposal_table_manager module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.proposal_table_manager.html#NuRadioMC.EvtGen.proposal_table_manager.download_proposal_tables"><code class="docutils literal notranslate"><span class="pre">download_proposal_tables()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.proposal_table_manager.html#NuRadioMC.EvtGen.proposal_table_manager.get_compiler"><code class="docutils literal notranslate"><span class="pre">get_compiler()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.proposal_table_manager.html#NuRadioMC.EvtGen.proposal_table_manager.produce_proposal_tables"><code class="docutils literal notranslate"><span class="pre">produce_proposal_tables()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.proposal_table_manager.html#NuRadioMC.EvtGen.proposal_table_manager.get_compiler"><code class="docutils literal notranslate"><span class="pre">get_compiler()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.proposal_table_manager.html#NuRadioMC.EvtGen.proposal_table_manager.produce_proposal_tables_tarball"><code class="docutils literal notranslate"><span class="pre">produce_proposal_tables_tarball()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.proposal_table_manager.html#NuRadioMC.EvtGen.proposal_table_manager.download_proposal_tables"><code class="docutils literal notranslate"><span class="pre">download_proposal_tables()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="NuRadioMC.EvtGen.readARAEventList.html">NuRadioMC.EvtGen.readARAEventList module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.readARAEventList.html#NuRadioMC.EvtGen.readARAEventList.convert_to_hdf5"><code class="docutils literal notranslate"><span class="pre">convert_to_hdf5()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.readARAEventList.html#NuRadioMC.EvtGen.readARAEventList.read_ARA_eventlist"><code class="docutils literal notranslate"><span class="pre">read_ARA_eventlist()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioMC.EvtGen.readARAEventList.html#NuRadioMC.EvtGen.readARAEventList.convert_to_hdf5"><code class="docutils literal notranslate"><span class="pre">convert_to_hdf5()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="NuRadioMC.EvtGen.readEventList_ASCII.html">NuRadioMC.EvtGen.readEventList_ASCII module</a><ul>

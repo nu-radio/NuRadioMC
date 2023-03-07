@@ -7,7 +7,7 @@
   <title>NuRadioReco.utilities.noise module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -598,21 +598,15 @@
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.noise.rolled_sum_slicing">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.noise.</span></span><span class="sig-name descname"><span class="pre">rolled_sum_slicing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rolling</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#rolled_sum_slicing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.rolled_sum_slicing" title="Permalink to this definition"></a></dt>
-<dd><p>calculates rolled sum via slicing</p>
+<dt class="sig sig-object py" id="NuRadioReco.utilities.noise.rolling_indices">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.noise.</span></span><span class="sig-name descname"><span class="pre">rolling_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rolling</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#rolling_indices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.rolling_indices" title="Permalink to this definition"></a></dt>
+<dd><p>pre calculates rolling index array for rolled sum via take</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>traces: list</strong></dt><dd><p>list containing 1D traces</p>
+<dt><strong>traces: list</strong></dt><dd><p>list containing (at least one) 1D trace</p>
 </dd>
 <dt><strong>rolling: list</strong></dt><dd><p>list of offsets per trace for rolling</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>sumtr: np.array</dt><dd><p>1D array of summed traces</p>
 </dd>
 </dl>
 </dd>
@@ -642,15 +636,21 @@
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.noise.rolling_indices">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.noise.</span></span><span class="sig-name descname"><span class="pre">rolling_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rolling</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#rolling_indices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.rolling_indices" title="Permalink to this definition"></a></dt>
-<dd><p>pre calculates rolling index array for rolled sum via take</p>
+<dt class="sig sig-object py" id="NuRadioReco.utilities.noise.rolled_sum_slicing">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.noise.</span></span><span class="sig-name descname"><span class="pre">rolled_sum_slicing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rolling</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#rolled_sum_slicing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.rolled_sum_slicing" title="Permalink to this definition"></a></dt>
+<dd><p>calculates rolled sum via slicing</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>traces: list</strong></dt><dd><p>list containing (at least one) 1D trace</p>
+<dt><strong>traces: list</strong></dt><dd><p>list containing 1D traces</p>
 </dd>
 <dt><strong>rolling: list</strong></dt><dd><p>list of offsets per trace for rolling</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>sumtr: np.array</dt><dd><p>1D array of summed traces</p>
 </dd>
 </dl>
 </dd>
@@ -691,7 +691,7 @@ coincidence logic (as used by ARIANNA)</p>
 * “noise”</p>
 </dd>
 <dt><strong>keep_full_band: bool</strong></dt><dd><p>Flag to keep the full-band waveform instead of the one with the filter applied. Allows for
-triggering on a different (i.e. <cite>filt</cite>) band than what is returned, (default is False)</p>
+triggering on a different (i.e. <em class="xref py py-obj">filt</em>) band than what is returned, (default is False)</p>
 </dd>
 </dl>
 </dd>

@@ -7,7 +7,7 @@
   <title>NuRadioMC.utilities.medium module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -576,13 +576,13 @@
   <section id="module-NuRadioMC.utilities.medium">
 <span id="nuradiomc-utilities-medium-module"></span><h1>NuRadioMC.utilities.medium module<a class="headerlink" href="#module-NuRadioMC.utilities.medium" title="Permalink to this heading"></a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.ARAsim_southpole">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">ARAsim_southpole</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#ARAsim_southpole"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.ARAsim_southpole" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_simple">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">southpole_simple</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#southpole_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_simple" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
 <p>initiaion of a simple exponential ice model</p>
 <p>The bottom defined here is a boundary condition used in simulations and
 should always be defined. Note: it is not the same as reflective bottom.
-The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
+The latter can be added using the <em class="xref py py-obj">add_reflective_layer</em> function.</p>
 <p>The z_shift is a variable introduced to be able to shift the exponential
 up or down along the z direction. For simple models this is almost never
 but it is used to construct more complex ice models which rely on exp.
@@ -609,46 +609,1068 @@ of the snow at the surface</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.southpole_simple.add_reflective_bottom" title="NuRadioMC.utilities.medium.southpole_simple.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
 <td><p>function which adds a reflective bottom to your ice model</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code>(position1, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.southpole_simple.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.southpole_simple.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
 <td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.southpole_simple.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.southpole_simple.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.southpole_simple.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.southpole_simple.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
 <td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.southpole_simple.get_index_of_refraction" title="NuRadioMC.utilities.medium.southpole_simple.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the index of refraction at position.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code>(ice_model_radiopropa)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.southpole_simple.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.southpole_simple.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
 <td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.get_ice_model">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">get_ice_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#get_ice_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.get_ice_model" title="Permalink to this definition"></a></dt>
-<dd><p>function to access the right ice model class by name of the class</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_simple.add_reflective_bottom">
+<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_simple.add_reflective_bottom" title="Permalink to this definition"></a></dt>
+<dd><p>function which adds a reflective bottom to your ice model</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>name: string</strong></dt><dd><p>name of the class of the requested ice model</p>
+<dt><strong>refl_z:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bottom reflective layer</p>
+</dd>
+<dt><strong>refl_coef:  float between 0 and 1</strong></dt><dd><p>fraction of the electric field that gets reflected</p>
+</dd>
+<dt><strong>refl_phase_shift:  float, NuRadio angukar units</strong></dt><dd><p>phase shoft that the reflected electric field receives</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_simple.get_average_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_simple.get_average_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the average index of refraction between two points
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position1: 1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of average refraction are returned</p>
+</dd>
+<dt><strong>position2: 1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of average refraction are returned</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>ice_model: IceModel object</dt><dd><p>object of the class with the name of the requested model</p>
+<dt>n_average:  float of 1D numpy array (n,)</dt><dd><p>averaged index of refraction between the two points</p>
 </dd>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_simple.get_gradient_of_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_simple.get_gradient_of_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the gradient of index of refraction at position
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position: 1D or 2D numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the gradient
+of index of refraction is returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n_nabla:    1D (3,) or 2D (n,3) numpy array</dt><dd><p>gradient of index of refraction at the point</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_simple.get_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_simple.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
+that define the medium in radiopropa. If no specific model is set by the user it returns
+the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
+<p>This seperation allows having the posibility to set a more specific/adjusted radiopropa 
+ice model in case they need it, without losing the access to the default model.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ice:    RadioPropaIceWrapper</dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_simple.get_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_simple.get_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the index of refraction at position.
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position:  1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of refraction are returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n:  float or 1D numpy array (n,)</dt><dd><p>index of refraction</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_simple.set_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_simple.set_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>If radiopropa is installed, this function can be used
+to set a specific RadioPropaIceWrapper object as the
+ice model used for RadioPropa.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ice_model_radioprop:    RadioPropaIceWrapper</strong></dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_2015">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">southpole_2015</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#southpole_2015"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_2015" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
+<p>initiaion of a simple exponential ice model</p>
+<p>The bottom defined here is a boundary condition used in simulations and
+should always be defined. Note: it is not the same as reflective bottom.
+The latter can be added using the <em class="xref py py-obj">add_reflective_layer</em> function.</p>
+<p>The z_shift is a variable introduced to be able to shift the exponential
+up or down along the z direction. For simple models this is almost never
+but it is used to construct more complex ice models which rely on exp.
+profiles also</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+</dd>
+<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dd>
+<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
+</dd>
+<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
+of the snow at the surface</p>
+</dd>
+<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
+</dd>
+<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.southpole_2015.add_reflective_bottom" title="NuRadioMC.utilities.medium.southpole_2015.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
+<td><p>function which adds a reflective bottom to your ice model</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.southpole_2015.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.southpole_2015.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
+<td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.southpole_2015.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.southpole_2015.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.southpole_2015.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.southpole_2015.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
+<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.southpole_2015.get_index_of_refraction" title="NuRadioMC.utilities.medium.southpole_2015.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>returns the index of refraction at position.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.southpole_2015.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.southpole_2015.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
+<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_2015.add_reflective_bottom">
+<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_2015.add_reflective_bottom" title="Permalink to this definition"></a></dt>
+<dd><p>function which adds a reflective bottom to your ice model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>refl_z:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bottom reflective layer</p>
+</dd>
+<dt><strong>refl_coef:  float between 0 and 1</strong></dt><dd><p>fraction of the electric field that gets reflected</p>
+</dd>
+<dt><strong>refl_phase_shift:  float, NuRadio angukar units</strong></dt><dd><p>phase shoft that the reflected electric field receives</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_2015.get_average_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_2015.get_average_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the average index of refraction between two points
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position1: 1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of average refraction are returned</p>
+</dd>
+<dt><strong>position2: 1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of average refraction are returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n_average:  float of 1D numpy array (n,)</dt><dd><p>averaged index of refraction between the two points</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_2015.get_gradient_of_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_2015.get_gradient_of_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the gradient of index of refraction at position
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position: 1D or 2D numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the gradient
+of index of refraction is returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n_nabla:    1D (3,) or 2D (n,3) numpy array</dt><dd><p>gradient of index of refraction at the point</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_2015.get_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_2015.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
+that define the medium in radiopropa. If no specific model is set by the user it returns
+the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
+<p>This seperation allows having the posibility to set a more specific/adjusted radiopropa 
+ice model in case they need it, without losing the access to the default model.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ice:    RadioPropaIceWrapper</dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_2015.get_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_2015.get_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the index of refraction at position.
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position:  1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of refraction are returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n:  float or 1D numpy array (n,)</dt><dd><p>index of refraction</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_2015.set_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_2015.set_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>If radiopropa is installed, this function can be used
+to set a specific RadioPropaIceWrapper object as the
+ice model used for RadioPropa.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ice_model_radioprop:    RadioPropaIceWrapper</strong></dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.ARAsim_southpole">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">ARAsim_southpole</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#ARAsim_southpole"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.ARAsim_southpole" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
+<p>initiaion of a simple exponential ice model</p>
+<p>The bottom defined here is a boundary condition used in simulations and
+should always be defined. Note: it is not the same as reflective bottom.
+The latter can be added using the <em class="xref py py-obj">add_reflective_layer</em> function.</p>
+<p>The z_shift is a variable introduced to be able to shift the exponential
+up or down along the z direction. For simple models this is almost never
+but it is used to construct more complex ice models which rely on exp.
+profiles also</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+</dd>
+<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dd>
+<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
+</dd>
+<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
+of the snow at the surface</p>
+</dd>
+<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
+</dd>
+<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.ARAsim_southpole.add_reflective_bottom" title="NuRadioMC.utilities.medium.ARAsim_southpole.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
+<td><p>function which adds a reflective bottom to your ice model</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.ARAsim_southpole.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.ARAsim_southpole.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
+<td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.ARAsim_southpole.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.ARAsim_southpole.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.ARAsim_southpole.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.ARAsim_southpole.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
+<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.ARAsim_southpole.get_index_of_refraction" title="NuRadioMC.utilities.medium.ARAsim_southpole.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>returns the index of refraction at position.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.ARAsim_southpole.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.ARAsim_southpole.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
+<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.ARAsim_southpole.add_reflective_bottom">
+<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.ARAsim_southpole.add_reflective_bottom" title="Permalink to this definition"></a></dt>
+<dd><p>function which adds a reflective bottom to your ice model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>refl_z:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bottom reflective layer</p>
+</dd>
+<dt><strong>refl_coef:  float between 0 and 1</strong></dt><dd><p>fraction of the electric field that gets reflected</p>
+</dd>
+<dt><strong>refl_phase_shift:  float, NuRadio angukar units</strong></dt><dd><p>phase shoft that the reflected electric field receives</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.ARAsim_southpole.get_average_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.ARAsim_southpole.get_average_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the average index of refraction between two points
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position1: 1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of average refraction are returned</p>
+</dd>
+<dt><strong>position2: 1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of average refraction are returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n_average:  float of 1D numpy array (n,)</dt><dd><p>averaged index of refraction between the two points</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.ARAsim_southpole.get_gradient_of_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.ARAsim_southpole.get_gradient_of_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the gradient of index of refraction at position
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position: 1D or 2D numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the gradient
+of index of refraction is returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n_nabla:    1D (3,) or 2D (n,3) numpy array</dt><dd><p>gradient of index of refraction at the point</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.ARAsim_southpole.get_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.ARAsim_southpole.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
+that define the medium in radiopropa. If no specific model is set by the user it returns
+the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
+<p>This seperation allows having the posibility to set a more specific/adjusted radiopropa 
+ice model in case they need it, without losing the access to the default model.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ice:    RadioPropaIceWrapper</dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.ARAsim_southpole.get_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.ARAsim_southpole.get_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the index of refraction at position.
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position:  1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of refraction are returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n:  float or 1D numpy array (n,)</dt><dd><p>index of refraction</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.ARAsim_southpole.set_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.ARAsim_southpole.set_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>If radiopropa is installed, this function can be used
+to set a specific RadioPropaIceWrapper object as the
+ice model used for RadioPropa.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ice_model_radioprop:    RadioPropaIceWrapper</strong></dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">mooresbay_simple</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#mooresbay_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
+<p>initiaion of a simple exponential ice model</p>
+<p>The bottom defined here is a boundary condition used in simulations and
+should always be defined. Note: it is not the same as reflective bottom.
+The latter can be added using the <em class="xref py py-obj">add_reflective_layer</em> function.</p>
+<p>The z_shift is a variable introduced to be able to shift the exponential
+up or down along the z direction. For simple models this is almost never
+but it is used to construct more complex ice models which rely on exp.
+profiles also</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+</dd>
+<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dd>
+<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
+</dd>
+<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
+of the snow at the surface</p>
+</dd>
+<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
+</dd>
+<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.mooresbay_simple.add_reflective_bottom" title="NuRadioMC.utilities.medium.mooresbay_simple.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
+<td><p>function which adds a reflective bottom to your ice model</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.mooresbay_simple.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.mooresbay_simple.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
+<td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.mooresbay_simple.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.mooresbay_simple.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.mooresbay_simple.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.mooresbay_simple.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
+<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.mooresbay_simple.get_index_of_refraction" title="NuRadioMC.utilities.medium.mooresbay_simple.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>returns the index of refraction at position.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.mooresbay_simple.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.mooresbay_simple.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
+<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple.add_reflective_bottom">
+<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple.add_reflective_bottom" title="Permalink to this definition"></a></dt>
+<dd><p>function which adds a reflective bottom to your ice model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>refl_z:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bottom reflective layer</p>
+</dd>
+<dt><strong>refl_coef:  float between 0 and 1</strong></dt><dd><p>fraction of the electric field that gets reflected</p>
+</dd>
+<dt><strong>refl_phase_shift:  float, NuRadio angukar units</strong></dt><dd><p>phase shoft that the reflected electric field receives</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple.get_average_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple.get_average_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the average index of refraction between two points
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position1: 1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of average refraction are returned</p>
+</dd>
+<dt><strong>position2: 1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of average refraction are returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n_average:  float of 1D numpy array (n,)</dt><dd><p>averaged index of refraction between the two points</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple.get_gradient_of_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple.get_gradient_of_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the gradient of index of refraction at position
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position: 1D or 2D numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the gradient
+of index of refraction is returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n_nabla:    1D (3,) or 2D (n,3) numpy array</dt><dd><p>gradient of index of refraction at the point</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple.get_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
+that define the medium in radiopropa. If no specific model is set by the user it returns
+the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
+<p>This seperation allows having the posibility to set a more specific/adjusted radiopropa 
+ice model in case they need it, without losing the access to the default model.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ice:    RadioPropaIceWrapper</dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple.get_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple.get_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the index of refraction at position.
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position:  1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of refraction are returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n:  float or 1D numpy array (n,)</dt><dd><p>index of refraction</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple.set_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple.set_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>If radiopropa is installed, this function can be used
+to set a specific RadioPropaIceWrapper object as the
+ice model used for RadioPropa.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ice_model_radioprop:    RadioPropaIceWrapper</strong></dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple_2">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">mooresbay_simple_2</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#mooresbay_simple_2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple_2" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
+<p>initiaion of a simple exponential ice model</p>
+<p>The bottom defined here is a boundary condition used in simulations and
+should always be defined. Note: it is not the same as reflective bottom.
+The latter can be added using the <em class="xref py py-obj">add_reflective_layer</em> function.</p>
+<p>The z_shift is a variable introduced to be able to shift the exponential
+up or down along the z direction. For simple models this is almost never
+but it is used to construct more complex ice models which rely on exp.
+profiles also</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+</dd>
+<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dd>
+<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
+</dd>
+<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
+of the snow at the surface</p>
+</dd>
+<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
+</dd>
+<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.mooresbay_simple_2.add_reflective_bottom" title="NuRadioMC.utilities.medium.mooresbay_simple_2.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
+<td><p>function which adds a reflective bottom to your ice model</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.mooresbay_simple_2.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.mooresbay_simple_2.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
+<td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.mooresbay_simple_2.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.mooresbay_simple_2.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.mooresbay_simple_2.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.mooresbay_simple_2.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
+<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.mooresbay_simple_2.get_index_of_refraction" title="NuRadioMC.utilities.medium.mooresbay_simple_2.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>returns the index of refraction at position.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.mooresbay_simple_2.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.mooresbay_simple_2.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
+<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple_2.add_reflective_bottom">
+<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple_2.add_reflective_bottom" title="Permalink to this definition"></a></dt>
+<dd><p>function which adds a reflective bottom to your ice model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>refl_z:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bottom reflective layer</p>
+</dd>
+<dt><strong>refl_coef:  float between 0 and 1</strong></dt><dd><p>fraction of the electric field that gets reflected</p>
+</dd>
+<dt><strong>refl_phase_shift:  float, NuRadio angukar units</strong></dt><dd><p>phase shoft that the reflected electric field receives</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple_2.get_average_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple_2.get_average_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the average index of refraction between two points
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position1: 1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of average refraction are returned</p>
+</dd>
+<dt><strong>position2: 1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of average refraction are returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n_average:  float of 1D numpy array (n,)</dt><dd><p>averaged index of refraction between the two points</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple_2.get_gradient_of_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple_2.get_gradient_of_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the gradient of index of refraction at position
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position: 1D or 2D numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the gradient
+of index of refraction is returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n_nabla:    1D (3,) or 2D (n,3) numpy array</dt><dd><p>gradient of index of refraction at the point</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple_2.get_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple_2.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
+that define the medium in radiopropa. If no specific model is set by the user it returns
+the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
+<p>This seperation allows having the posibility to set a more specific/adjusted radiopropa 
+ice model in case they need it, without losing the access to the default model.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ice:    RadioPropaIceWrapper</dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple_2.get_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple_2.get_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the index of refraction at position.
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position:  1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of refraction are returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n:  float or 1D numpy array (n,)</dt><dd><p>index of refraction</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple_2.set_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple_2.set_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>If radiopropa is installed, this function can be used
+to set a specific RadioPropaIceWrapper object as the
+ice model used for RadioPropa.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ice_model_radioprop:    RadioPropaIceWrapper</strong></dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_simple">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">greenland_simple</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#greenland_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_simple" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
+<p>initiaion of a simple exponential ice model</p>
+<p>The bottom defined here is a boundary condition used in simulations and
+should always be defined. Note: it is not the same as reflective bottom.
+The latter can be added using the <em class="xref py py-obj">add_reflective_layer</em> function.</p>
+<p>The z_shift is a variable introduced to be able to shift the exponential
+up or down along the z direction. For simple models this is almost never
+but it is used to construct more complex ice models which rely on exp.
+profiles also</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+</dd>
+<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dd>
+<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
+</dd>
+<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
+of the snow at the surface</p>
+</dd>
+<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
+</dd>
+<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_simple.add_reflective_bottom" title="NuRadioMC.utilities.medium.greenland_simple.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
+<td><p>function which adds a reflective bottom to your ice model</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_simple.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_simple.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
+<td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_simple.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_simple.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_simple.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_simple.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
+<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_simple.get_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_simple.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>returns the index of refraction at position.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_simple.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_simple.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
+<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_simple.add_reflective_bottom">
+<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_simple.add_reflective_bottom" title="Permalink to this definition"></a></dt>
+<dd><p>function which adds a reflective bottom to your ice model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>refl_z:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bottom reflective layer</p>
+</dd>
+<dt><strong>refl_coef:  float between 0 and 1</strong></dt><dd><p>fraction of the electric field that gets reflected</p>
+</dd>
+<dt><strong>refl_phase_shift:  float, NuRadio angukar units</strong></dt><dd><p>phase shoft that the reflected electric field receives</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_simple.get_average_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_simple.get_average_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the average index of refraction between two points
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position1: 1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of average refraction are returned</p>
+</dd>
+<dt><strong>position2: 1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of average refraction are returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n_average:  float of 1D numpy array (n,)</dt><dd><p>averaged index of refraction between the two points</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_simple.get_gradient_of_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_simple.get_gradient_of_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the gradient of index of refraction at position
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position: 1D or 2D numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the gradient
+of index of refraction is returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n_nabla:    1D (3,) or 2D (n,3) numpy array</dt><dd><p>gradient of index of refraction at the point</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_simple.get_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_simple.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
+that define the medium in radiopropa. If no specific model is set by the user it returns
+the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
+<p>This seperation allows having the posibility to set a more specific/adjusted radiopropa 
+ice model in case they need it, without losing the access to the default model.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ice:    RadioPropaIceWrapper</dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_simple.get_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_simple.get_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the index of refraction at position.
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position:  1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of refraction are returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n:  float or 1D numpy array (n,)</dt><dd><p>index of refraction</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_simple.set_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_simple.set_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>If radiopropa is installed, this function can be used
+to set a specific RadioPropaIceWrapper object as the
+ice model used for RadioPropa.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ice_model_radioprop:    RadioPropaIceWrapper</strong></dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -660,7 +1682,7 @@ Therefor, the model is implemented through radiopropa.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.add_reflective_bottom" title="NuRadioMC.utilities.medium.greenland_firn.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
 <td><p>function which adds a reflective bottom to your ice model</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_firn.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
@@ -669,13 +1691,13 @@ Therefor, the model is implemented through radiopropa.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_firn.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_firn.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
 <td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.get_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_firn.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the index of refraction at position.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code>(ice_model_radiopropa)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_firn.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
 <td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
 </tr>
 </tbody>
@@ -683,7 +1705,7 @@ Therefor, the model is implemented through radiopropa.</p>
 <p>initiation of a double exponential ice model at summit, Greenland</p>
 <p>The bottom defined here is a boundary condition used in simulations and
 should always be defined. Note: it is not the same as reflective bottom.
-The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
+The latter can be added using the <em class="xref py py-obj">add_reflective_layer</em> function.</p>
 <p>The z_shift is a variable introduced to be able to shift the exponential
 up or down along the z direction. For simple models this is almost never
 but it is used to construct more complex ice models which rely on exp.
@@ -715,7 +1737,7 @@ of the snow at the surface</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.add_reflective_bottom" title="NuRadioMC.utilities.medium.greenland_firn.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
 <td><p>function which adds a reflective bottom to your ice model</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_firn.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
@@ -724,17 +1746,38 @@ of the snow at the surface</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_firn.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_firn.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
 <td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.get_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_firn.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the index of refraction at position.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code>(ice_model_radiopropa)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_firn.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_firn.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
 <td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
 </tr>
 </tbody>
 </table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_firn.get_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#greenland_firn.get_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_firn.get_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the index of refraction at position.
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position:  3dim np.array</strong></dt><dd><p>point</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n:  float</dt><dd><p>index of refraction</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_firn.get_average_index_of_refraction">
 <span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#greenland_firn.get_average_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_firn.get_average_index_of_refraction" title="Permalink to this definition"></a></dt>
@@ -780,20 +1823,53 @@ Overwrites function of the mother class</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_firn.get_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#greenland_firn.get_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_firn.get_index_of_refraction" title="Permalink to this definition"></a></dt>
-<dd><p>returns the index of refraction at position.
-Overwrites function of the mother class</p>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_firn.add_reflective_bottom">
+<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_firn.add_reflective_bottom" title="Permalink to this definition"></a></dt>
+<dd><p>function which adds a reflective bottom to your ice model</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>position:  3dim np.array</strong></dt><dd><p>point</p>
+<dt><strong>refl_z:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bottom reflective layer</p>
+</dd>
+<dt><strong>refl_coef:  float between 0 and 1</strong></dt><dd><p>fraction of the electric field that gets reflected</p>
+</dd>
+<dt><strong>refl_phase_shift:  float, NuRadio angukar units</strong></dt><dd><p>phase shoft that the reflected electric field receives</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>n:  float</dt><dd><p>index of refraction</p>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_firn.get_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_firn.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
+that define the medium in radiopropa. If no specific model is set by the user it returns
+the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
+<p>This seperation allows having the posibility to set a more specific/adjusted radiopropa 
+ice model in case they need it, without losing the access to the default model.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ice:    RadioPropaIceWrapper</dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_firn.set_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_firn.set_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>If radiopropa is installed, this function can be used
+to set a specific RadioPropaIceWrapper object as the
+ice model used for RadioPropa.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ice_model_radioprop:    RadioPropaIceWrapper</strong></dt><dd><p>object holding the radiopropa scalarfield and modules</p>
 </dd>
 </dl>
 </dd>
@@ -809,7 +1885,7 @@ Overwrites function of the mother class</p>
 <p>initiation of a double exponential ice model at summit, Greenland</p>
 <p>The bottom defined here is a boundary condition used in simulations and
 should always be defined. Note: it is not the same as reflective bottom.
-The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
+The latter can be added using the <em class="xref py py-obj">add_reflective_layer</em> function.</p>
 <p>The z_shift is a variable introduced to be able to shift the exponential
 up or down along the z direction. For simple models this is almost never
 but it is used to construct more complex ice models which rely on exp.
@@ -841,306 +1917,145 @@ of the snow at the surface</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_perturbation.add_reflective_bottom" title="NuRadioMC.utilities.medium.greenland_perturbation.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
 <td><p>function which adds a reflective bottom to your ice model</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code>(position1, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_perturbation.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_perturbation.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
 <td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_perturbation.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_perturbation.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_perturbation.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_perturbation.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
 <td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_perturbation.get_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_perturbation.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the index of refraction at position.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code>(ice_model_radiopropa)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_perturbation.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_perturbation.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
 <td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_simple">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">greenland_simple</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#greenland_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_simple" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
-<p>initiaion of a simple exponential ice model</p>
-<p>The bottom defined here is a boundary condition used in simulations and
-should always be defined. Note: it is not the same as reflective bottom.
-The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
-<p>The z_shift is a variable introduced to be able to shift the exponential
-up or down along the z direction. For simple models this is almost never
-but it is used to construct more complex ice models which rely on exp.
-profiles also</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_perturbation.add_reflective_bottom">
+<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_perturbation.add_reflective_bottom" title="Permalink to this definition"></a></dt>
+<dd><p>function which adds a reflective bottom to your ice model</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+<dt><strong>refl_z:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bottom reflective layer</p>
 </dd>
-<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+<dt><strong>refl_coef:  float between 0 and 1</strong></dt><dd><p>fraction of the electric field that gets reflected</p>
 </dd>
-<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
-</dd>
-<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
-of the snow at the surface</p>
-</dd>
-<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
-</dd>
-<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+<dt><strong>refl_phase_shift:  float, NuRadio angukar units</strong></dt><dd><p>phase shoft that the reflected electric field receives</p>
 </dd>
 </dl>
 </dd>
 </dl>
-<p class="rubric">Methods</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
-<td><p>function which adds a reflective bottom to your ice model</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code>(position1, ...)</p></td>
-<td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code>(position)</p></td>
-<td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code>()</p></td>
-<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code>(position)</p></td>
-<td><p>returns the index of refraction at position.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code>(ice_model_radiopropa)</p></td>
-<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">mooresbay_simple</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#mooresbay_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
-<p>initiaion of a simple exponential ice model</p>
-<p>The bottom defined here is a boundary condition used in simulations and
-should always be defined. Note: it is not the same as reflective bottom.
-The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
-<p>The z_shift is a variable introduced to be able to shift the exponential
-up or down along the z direction. For simple models this is almost never
-but it is used to construct more complex ice models which rely on exp.
-profiles also</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_perturbation.get_average_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_perturbation.get_average_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the average index of refraction between two points
+Overwrites function of the mother class</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+<dt><strong>position1: 3dim np.array</strong></dt><dd><p>point</p>
 </dd>
-<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+<dt><strong>position2: 3dim np.array</strong></dt><dd><p>point</p>
 </dd>
-<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
+</dl>
 </dd>
-<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
-of the snow at the surface</p>
-</dd>
-<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
-</dd>
-<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n_average:  float</dt><dd><p>averaged index of refraction between the two points</p>
 </dd>
 </dl>
 </dd>
 </dl>
-<p class="rubric">Methods</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
-<td><p>function which adds a reflective bottom to your ice model</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code>(position1, ...)</p></td>
-<td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code>(position)</p></td>
-<td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code>()</p></td>
-<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code>(position)</p></td>
-<td><p>returns the index of refraction at position.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code>(ice_model_radiopropa)</p></td>
-<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.mooresbay_simple_2">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">mooresbay_simple_2</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#mooresbay_simple_2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.mooresbay_simple_2" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
-<p>initiaion of a simple exponential ice model</p>
-<p>The bottom defined here is a boundary condition used in simulations and
-should always be defined. Note: it is not the same as reflective bottom.
-The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
-<p>The z_shift is a variable introduced to be able to shift the exponential
-up or down along the z direction. For simple models this is almost never
-but it is used to construct more complex ice models which rely on exp.
-profiles also</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_perturbation.get_gradient_of_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_perturbation.get_gradient_of_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the gradient of index of refraction at position
+Overwrites function of the mother class</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+<dt><strong>position: 3dim np.array</strong></dt><dd><p>point</p>
 </dd>
-<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dl>
 </dd>
-<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
-</dd>
-<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
-of the snow at the surface</p>
-</dd>
-<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
-</dd>
-<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n_nabla:    (3,) np.array</dt><dd><p>gradient of index of refraction at the point</p>
 </dd>
 </dl>
 </dd>
 </dl>
-<p class="rubric">Methods</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
-<td><p>function which adds a reflective bottom to your ice model</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code>(position1, ...)</p></td>
-<td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code>(position)</p></td>
-<td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code>()</p></td>
-<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code>(position)</p></td>
-<td><p>returns the index of refraction at position.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code>(ice_model_radiopropa)</p></td>
-<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_2015">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">southpole_2015</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#southpole_2015"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_2015" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
-<p>initiaion of a simple exponential ice model</p>
-<p>The bottom defined here is a boundary condition used in simulations and
-should always be defined. Note: it is not the same as reflective bottom.
-The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
-<p>The z_shift is a variable introduced to be able to shift the exponential
-up or down along the z direction. For simple models this is almost never
-but it is used to construct more complex ice models which rely on exp.
-profiles also</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_perturbation.get_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_perturbation.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
+that define the medium in radiopropa. If no specific model is set by the user it returns
+the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
+<p>This seperation allows having the posibility to set a more specific/adjusted radiopropa 
+ice model in case they need it, without losing the access to the default model.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ice:    RadioPropaIceWrapper</dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_perturbation.get_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_perturbation.get_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the index of refraction at position.
+Overwrites function of the mother class</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
+<dt><strong>position:  3dim np.array</strong></dt><dd><p>point</p>
 </dd>
-<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
+</dl>
 </dd>
-<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
-</dd>
-<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
-of the snow at the surface</p>
-</dd>
-<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
-</dd>
-<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n:  float</dt><dd><p>index of refraction</p>
 </dd>
 </dl>
 </dd>
 </dl>
-<p class="rubric">Methods</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
-<td><p>function which adds a reflective bottom to your ice model</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code>(position1, ...)</p></td>
-<td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code>(position)</p></td>
-<td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code>()</p></td>
-<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code>(position)</p></td>
-<td><p>returns the index of refraction at position.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code>(ice_model_radiopropa)</p></td>
-<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.southpole_simple">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">southpole_simple</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#southpole_simple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.southpole_simple" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelSimple" title="NuRadioMC.utilities.medium_base.IceModelSimple"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelSimple</span></code></a></p>
-<p>initiaion of a simple exponential ice model</p>
-<p>The bottom defined here is a boundary condition used in simulations and
-should always be defined. Note: it is not the same as reflective bottom.
-The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
-<p>The z_shift is a variable introduced to be able to shift the exponential
-up or down along the z direction. For simple models this is almost never
-but it is used to construct more complex ice models which rely on exp.
-profiles also</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_perturbation.set_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_perturbation.set_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>If radiopropa is installed, this function can be used
+to set a specific RadioPropaIceWrapper object as the
+ice model used for RadioPropa.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>z_air_boundary:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the surface of the glacier</p>
-</dd>
-<dt><strong>z_bottom:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bedrock/bottom of the glacier.</p>
-</dd>
-<dt><strong>n_ice:  float, dimensionless</strong></dt><dd><p>refractive index of the deep bulk ice</p>
-</dd>
-<dt><strong>delta_n:  float, NuRadio length units</strong></dt><dd><p>difference between n_ice and the refractive index
-of the snow at the surface</p>
-</dd>
-<dt><strong>z_0:  float, NuRadio length units</strong></dt><dd><p>scale depth of the exponential</p>
-</dd>
-<dt><strong>z_shift:  float, NuRadio length units</strong></dt><dd><p>up or down shift od the exponential profile</p>
+<dt><strong>ice_model_radioprop:    RadioPropaIceWrapper</strong></dt><dd><p>object holding the radiopropa scalarfield and modules</p>
 </dd>
 </dl>
 </dd>
 </dl>
-<p class="rubric">Methods</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
-<td><p>function which adds a reflective bottom to your ice model</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code>(position1, ...)</p></td>
-<td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code>(position)</p></td>
-<td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code>()</p></td>
-<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code>(position)</p></td>
-<td><p>returns the index of refraction at position.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code>(ice_model_radiopropa)</p></td>
-<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
-</tr>
-</tbody>
-</table>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1151,22 +2066,22 @@ of the snow at the surface</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.uniform_ice.add_reflective_bottom" title="NuRadioMC.utilities.medium.uniform_ice.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
 <td><p>function which adds a reflective bottom to your ice model</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code>(position1, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.uniform_ice.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.uniform_ice.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
 <td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.uniform_ice.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.uniform_ice.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.uniform_ice.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.uniform_ice.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
 <td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.uniform_ice.get_index_of_refraction" title="NuRadioMC.utilities.medium.uniform_ice.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the index of refraction at position.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code>(ice_model_radiopropa)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.uniform_ice.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.uniform_ice.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
 <td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
 </tr>
 </tbody>
@@ -1174,7 +2089,7 @@ of the snow at the surface</p>
 <p>initiaion of a simple exponential ice model</p>
 <p>The bottom defined here is a boundary condition used in simulations and
 should always be defined. Note: it is not the same as reflective bottom.
-The latter can be added using the <cite>add_reflective_layer</cite> function.</p>
+The latter can be added using the <em class="xref py py-obj">add_reflective_layer</em> function.</p>
 <p>The z_shift is a variable introduced to be able to shift the exponential
 up or down along the z direction. For simple models this is almost never
 but it is used to construct more complex ice models which rely on exp.
@@ -1201,26 +2116,173 @@ of the snow at the surface</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code>(refl_z, refl_coef, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.uniform_ice.add_reflective_bottom" title="NuRadioMC.utilities.medium.uniform_ice.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
 <td><p>function which adds a reflective bottom to your ice model</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code>(position1, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.uniform_ice.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.uniform_ice.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
 <td><p>returns the average index of refraction between two points Overwrites function of the mother class</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.uniform_ice.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.uniform_ice.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the gradient of index of refraction at position Overwrites function of the mother class</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.uniform_ice.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.uniform_ice.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
 <td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes  that define the medium in radiopropa.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.uniform_ice.get_index_of_refraction" title="NuRadioMC.utilities.medium.uniform_ice.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>returns the index of refraction at position.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code>(ice_model_radiopropa)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.uniform_ice.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.uniform_ice.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
 <td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
 </tr>
 </tbody>
 </table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.uniform_ice.add_reflective_bottom">
+<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.uniform_ice.add_reflective_bottom" title="Permalink to this definition"></a></dt>
+<dd><p>function which adds a reflective bottom to your ice model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>refl_z:  float, NuRadio length units</strong></dt><dd><p>z coordinate of the bottom reflective layer</p>
+</dd>
+<dt><strong>refl_coef:  float between 0 and 1</strong></dt><dd><p>fraction of the electric field that gets reflected</p>
+</dd>
+<dt><strong>refl_phase_shift:  float, NuRadio angukar units</strong></dt><dd><p>phase shoft that the reflected electric field receives</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.uniform_ice.get_average_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.uniform_ice.get_average_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the average index of refraction between two points
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position1: 1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of average refraction are returned</p>
+</dd>
+<dt><strong>position2: 1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of average refraction are returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n_average:  float of 1D numpy array (n,)</dt><dd><p>averaged index of refraction between the two points</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.uniform_ice.get_gradient_of_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.uniform_ice.get_gradient_of_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the gradient of index of refraction at position
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position: 1D or 2D numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the gradient
+of index of refraction is returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n_nabla:    1D (3,) or 2D (n,3) numpy array</dt><dd><p>gradient of index of refraction at the point</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.uniform_ice.get_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.uniform_ice.get_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
+that define the medium in radiopropa. If no specific model is set by the user it returns
+the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
+<p>This seperation allows having the posibility to set a more specific/adjusted radiopropa 
+ice model in case they need it, without losing the access to the default model.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ice:    RadioPropaIceWrapper</dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.uniform_ice.get_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.uniform_ice.get_index_of_refraction" title="Permalink to this definition"></a></dt>
+<dd><p>returns the index of refraction at position.
+Overwrites function of the mother class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position:  1D (3,) or 2D (n,3) numpy array</strong></dt><dd><p>Either one position or an array
+of positions for which the indices
+of refraction are returned</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>n:  float or 1D numpy array (n,)</dt><dd><p>index of refraction</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.uniform_ice.set_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.uniform_ice.set_ice_model_radiopropa" title="Permalink to this definition"></a></dt>
+<dd><p>If radiopropa is installed, this function can be used
+to set a specific RadioPropaIceWrapper object as the
+ice model used for RadioPropa.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ice_model_radioprop:    RadioPropaIceWrapper</strong></dt><dd><p>object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.get_ice_model">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">get_ice_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#get_ice_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.get_ice_model" title="Permalink to this definition"></a></dt>
+<dd><p>function to access the right ice model class by name of the class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name: string</strong></dt><dd><p>name of the class of the requested ice model</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ice_model: IceModel object</dt><dd><p>object of the class with the name of the requested model</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

@@ -7,7 +7,7 @@
   <title>NuRadioMC.utilities.earth_attenuation module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -575,190 +575,10 @@
              
   <section id="module-NuRadioMC.utilities.earth_attenuation">
 <span id="nuradiomc-utilities-earth-attenuation-module"></span><h1>NuRadioMC.utilities.earth_attenuation module<a class="headerlink" href="#module-NuRadioMC.utilities.earth_attenuation" title="Permalink to this heading"></a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.earth_attenuation.</span></span><span class="sig-name descname"><span class="pre">CoreMantleCrustModel</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/earth_attenuation.html#CoreMantleCrustModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.PREM" title="NuRadioMC.utilities.earth_attenuation.PREM"><code class="xref py py-class docutils literal notranslate"><span class="pre">PREM</span></code></a></p>
-<p>Class describing the Earth’s density.</p>
-<p>Uses densities from the Core-Mantle-Crust model. Parameters from ARASim</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>earth_radius</strong><span class="classifier">float</span></dt><dd><p>Mean radius of the Earth (m).</p>
-</dd>
-<dt><strong>radii</strong><span class="classifier">tuple</span></dt><dd><p>Boundary radii (m) at which the functional form of the density of the
-Earth changes. The density function in <cite>densities</cite> at index <cite>i</cite>
-corresponds to the radius range from radius at index <cite>i-1</cite> to radius
-at index <cite>i</cite>.</p>
-</dd>
-<dt><strong>densities</strong><span class="classifier">tuple</span></dt><dd><p>Functions which calculate the density of the Earth (g/cm^3) in a
-specific radius range as described by <cite>radii</cite>. The parameter of each
-function is the fractional radius, e.g. radius divided by
-<cite>earth_radius</cite>. Scalar values denote constant density over the range of
-radii.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<p class="rubric">Methods</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">density</span></code>(r)</p></td>
-<td><p>Calculates the Earth's density at a given radius.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">slant_depth</span></code>(endpoint, direction[, step])</p></td>
-<td><p>Calculates the column density of a chord cutting through Earth.</p></td>
-</tr>
-</tbody>
-</table>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.densities">
-<span class="sig-name descname"><span class="pre">densities</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(8.738113642316134e+40,</span> <span class="pre">2.122113313133918e+40,</span> <span class="pre">1.810037825908342e+40)</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.densities" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.earth_radius">
-<span class="sig-name descname"><span class="pre">earth_radius</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6378140.0</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.earth_radius" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.radii">
-<span class="sig-name descname"><span class="pre">radii</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(3464101.6151377545,</span> <span class="pre">6338140.0,</span> <span class="pre">6378140.0)</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.radii" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.PREM">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.earth_attenuation.</span></span><span class="sig-name descname"><span class="pre">PREM</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/earth_attenuation.html#PREM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Class describing the Earth’s density.</p>
-<p>Uses densities from the Preliminary reference Earth Model (PREM).</p>
-<p class="rubric">Notes</p>
-<p>The density calculation is based on the Preliminary reference Earth Model
-<a class="reference internal" href="#r63282dc6282d-1" id="id1">[1]</a>.</p>
-<p class="rubric">References</p>
-<div role="list" class="citation-list">
-<div class="citation" id="r63282dc6282d-1" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>A. Dziewonski &amp; D. Anderson, “Preliminary reference Earth model.”
-Physics of the Earth and Planetary Interiors <strong>25</strong>, 297–356 (1981). <a class="reference external" href="https://doi.org/10.1016/0031-9201(81)90046-7">https://doi.org/10.1016/0031-9201(81)90046-7</a></p>
-</div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>earth_radius</strong><span class="classifier">float</span></dt><dd><p>Mean radius of the Earth (m).</p>
-</dd>
-<dt><strong>radii</strong><span class="classifier">tuple</span></dt><dd><p>Boundary radii at which the functional form of the density of the
-Earth changes. The density function in <cite>densities</cite> at index <cite>i</cite>
-corresponds to the radius range from radius at index <cite>i-1</cite> to radius
-at index <cite>i</cite>.</p>
-</dd>
-<dt><strong>densities</strong><span class="classifier">tuple</span></dt><dd><p>Functions which calculate the density of the Earth in a
-specific radius range as described by <cite>radii</cite>. The parameter of each
-function is the fractional radius, e.g. radius divided by
-<cite>earth_radius</cite>. Scalar values denote constant density over the range of
-radii.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<p class="rubric">Methods</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.PREM.density" title="NuRadioMC.utilities.earth_attenuation.PREM.density"><code class="xref py py-obj docutils literal notranslate"><span class="pre">density</span></code></a>(r)</p></td>
-<td><p>Calculates the Earth's density at a given radius.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.PREM.slant_depth" title="NuRadioMC.utilities.earth_attenuation.PREM.slant_depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slant_depth</span></code></a>(endpoint, direction[, step])</p></td>
-<td><p>Calculates the column density of a chord cutting through Earth.</p></td>
-</tr>
-</tbody>
-</table>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.PREM.densities">
-<span class="sig-name descname"><span class="pre">densities</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">1.810037825908342e+40,</span> <span class="pre">1.6227925335729963e+40,</span> <span class="pre">6.366339939401755e+39)</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM.densities" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.PREM.density">
-<span class="sig-name descname"><span class="pre">density</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/earth_attenuation.html#PREM.density"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM.density" title="Permalink to this definition"></a></dt>
-<dd><p>Calculates the Earth’s density at a given radius.</p>
-<p>Supports passing an array of radii or a single radius.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>r</strong><span class="classifier">array_like</span></dt><dd><p>Radius (m) at which to calculate density.</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>array_like</dt><dd><p>Density (g/cm^3) of the Earth at the given radii.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.PREM.earth_radius">
-<span class="sig-name descname"><span class="pre">earth_radius</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6371000.0</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM.earth_radius" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.PREM.radii">
-<span class="sig-name descname"><span class="pre">radii</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(1221500.0,</span> <span class="pre">3480000.0,</span> <span class="pre">5701000.0,</span> <span class="pre">5771000.0,</span> <span class="pre">5971000.0,</span> <span class="pre">6151000.0,</span> <span class="pre">6346600.0,</span> <span class="pre">6356000.0,</span> <span class="pre">6368000.0,</span> <span class="pre">6371000.0)</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM.radii" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.PREM.slant_depth">
-<span class="sig-name descname"><span class="pre">slant_depth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endpoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/earth_attenuation.html#PREM.slant_depth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM.slant_depth" title="Permalink to this definition"></a></dt>
-<dd><p>Calculates the column density of a chord cutting through Earth.</p>
-<p>Integrates the Earth’s density along the chord, resulting in a column
-density (or material thickness) with units of mass per area.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>endpoint</strong><span class="classifier">array_like</span></dt><dd><p>Vector position of the chord endpoint, in a coordinate system
-centered on the surface of the Earth (e.g. a negative third
-coordinate represents the depth below the surface).</p>
-</dd>
-<dt><strong>direction</strong><span class="classifier">array_like</span></dt><dd><p>Vector direction of the chord, in a coordinate system
-centered on the surface of the Earth (e.g. a negative third
-coordinate represents the chord pointing into the Earth).</p>
-</dd>
-<dt><strong>step</strong><span class="classifier">float, optional</span></dt><dd><p>Step size for the integration.</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>float</dt><dd><p>Column density along the chord starting from <cite>depth</cite> and
-passing through the Earth at <cite>angle</cite>.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<dl class="simple">
-<dt><a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.PREM.density" title="NuRadioMC.utilities.earth_attenuation.PREM.density"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PREM.density</span></code></a></dt><dd><p>Calculates the Earth’s density at a given radius.</p>
-</dd>
-</dl>
-</div>
-</dd></dl>
-
-</dd></dl>
-
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.get_core_mantle_crust_weight">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.earth_attenuation.</span></span><span class="sig-name descname"><span class="pre">get_core_mantle_crust_weight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta_nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pnu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/earth_attenuation.html#get_core_mantle_crust_weight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.get_core_mantle_crust_weight" title="Permalink to this definition"></a></dt>
-<dd><p>calculates neutrino weight due to Earth absorption with a three layers earth model, i.e. probability of the
-neutrino to reach the detector</p>
-<p>simple parametrization using momentum, zenith angle, flavor and current type information
-of the neutrino</p>
-<p>parameters from ARAsim (2018)</p>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.get_weight">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.earth_attenuation.</span></span><span class="sig-name descname"><span class="pre">get_weight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta_nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pnu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'simple'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertex_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/earth_attenuation.html#get_weight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.get_weight" title="Permalink to this definition"></a></dt>
+<dd><p>calculates neutrino weight due to Earth absorption for different models</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -766,7 +586,18 @@ of the neutrino</p>
 </dd>
 <dt><strong>pnu: float or array of floats</strong></dt><dd><p>the momentum of the neutrino</p>
 </dd>
-<dt><strong>flavors: float or array of floats</strong></dt><dd><p>the flavor of the neutrino</p>
+<dt><strong>mode: string</strong></dt><dd><ul class="simple">
+<li><p>‘simple’: assuming interaction happens at the surface and approximating the Earth with constant density</p></li>
+<li><p>‘core_mantle_crust_simple’: assuming interaction happens at the surface and approximating the Earth with 3 layers of constant density</p></li>
+<li><p>‘core_mantle_crust’: approximating the Earth with 3 layers of constant density, path through Earth to interaction vertex is considered</p></li>
+<li><p>‘PREM’: density of Earth is parameterized as a fuction of radius, path through Earth to interaction vertex is considered</p></li>
+</ul>
+</dd>
+<dt><strong>cross_section_type: string</strong></dt><dd><p>‘ghandi’, ‘ctw’ or ‘csms’ (see description in <em class="xref py py-obj">cross_sections.py</em>)</p>
+</dd>
+<dt><strong>vertex_position: 3-dim array or None (default)</strong></dt><dd><p>the position of the neutrino interaction</p>
+</dd>
+<dt><strong>phi_nu: float</strong></dt><dd><p>the azimuth angle of the neutrino direction</p>
 </dd>
 </dl>
 </dd>
@@ -793,9 +624,13 @@ of the neutrino, adapted from ShelfMC</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.get_weight">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.earth_attenuation.</span></span><span class="sig-name descname"><span class="pre">get_weight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta_nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pnu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'simple'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertex_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/earth_attenuation.html#get_weight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.get_weight" title="Permalink to this definition"></a></dt>
-<dd><p>calculates neutrino weight due to Earth absorption for different models</p>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.get_core_mantle_crust_weight">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.earth_attenuation.</span></span><span class="sig-name descname"><span class="pre">get_core_mantle_crust_weight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta_nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pnu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctw'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/earth_attenuation.html#get_core_mantle_crust_weight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.get_core_mantle_crust_weight" title="Permalink to this definition"></a></dt>
+<dd><p>calculates neutrino weight due to Earth absorption with a three layers earth model, i.e. probability of the
+neutrino to reach the detector</p>
+<p>simple parametrization using momentum, zenith angle, flavor and current type information
+of the neutrino</p>
+<p>parameters from ARAsim (2018)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -803,22 +638,246 @@ of the neutrino, adapted from ShelfMC</p>
 </dd>
 <dt><strong>pnu: float or array of floats</strong></dt><dd><p>the momentum of the neutrino</p>
 </dd>
-<dt><strong>mode: string</strong></dt><dd><ul class="simple">
-<li><p>‘simple’: assuming interaction happens at the surface and approximating the Earth with constant density</p></li>
-<li><p>‘core_mantle_crust_simple’: assuming interaction happens at the surface and approximating the Earth with 3 layers of constant density</p></li>
-<li><p>‘core_mantle_crust’: approximating the Earth with 3 layers of constant density, path through Earth to interaction vertex is considered</p></li>
-<li><p>‘PREM’: density of Earth is parameterized as a fuction of radius, path through Earth to interaction vertex is considered</p></li>
-</ul>
-</dd>
-<dt><strong>cross_section_type: string</strong></dt><dd><p>‘ghandi’, ‘ctw’ or ‘csms’ (see description in <cite>cross_sections.py</cite>)</p>
-</dd>
-<dt><strong>vertex_position: 3-dim array or None (default)</strong></dt><dd><p>the position of the neutrino interaction</p>
-</dd>
-<dt><strong>phi_nu: float</strong></dt><dd><p>the azimuth angle of the neutrino direction</p>
+<dt><strong>flavors: float or array of floats</strong></dt><dd><p>the flavor of the neutrino</p>
 </dd>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.PREM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.earth_attenuation.</span></span><span class="sig-name descname"><span class="pre">PREM</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/earth_attenuation.html#PREM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class describing the Earth’s density.</p>
+<p>Uses densities from the Preliminary reference Earth Model (PREM).</p>
+<p class="rubric">Notes</p>
+<p>The density calculation is based on the Preliminary reference Earth Model
+<a class="reference internal" href="#r63282dc6282d-1" id="id1">[1]</a>.</p>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="r63282dc6282d-1" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>A. Dziewonski &amp; D. Anderson, “Preliminary reference Earth model.”
+Physics of the Earth and Planetary Interiors <strong>25</strong>, 297–356 (1981). <a class="reference external" href="https://doi.org/10.1016/0031-9201(81)90046-7">https://doi.org/10.1016/0031-9201(81)90046-7</a></p>
+</div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>earth_radius</strong><span class="classifier">float</span></dt><dd><p>Mean radius of the Earth (m).</p>
+</dd>
+<dt><strong>radii</strong><span class="classifier">tuple</span></dt><dd><p>Boundary radii at which the functional form of the density of the
+Earth changes. The density function in <a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.PREM.densities" title="NuRadioMC.utilities.earth_attenuation.PREM.densities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">densities</span></code></a> at index <em class="xref py py-obj">i</em>
+corresponds to the radius range from radius at index <em class="xref py py-obj">i-1</em> to radius
+at index <em class="xref py py-obj">i</em>.</p>
+</dd>
+<dt><strong>densities</strong><span class="classifier">tuple</span></dt><dd><p>Functions which calculate the density of the Earth in a
+specific radius range as described by <a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.PREM.radii" title="NuRadioMC.utilities.earth_attenuation.PREM.radii"><code class="xref py py-obj docutils literal notranslate"><span class="pre">radii</span></code></a>. The parameter of each
+function is the fractional radius, e.g. radius divided by
+<a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.PREM.earth_radius" title="NuRadioMC.utilities.earth_attenuation.PREM.earth_radius"><code class="xref py py-obj docutils literal notranslate"><span class="pre">earth_radius</span></code></a>. Scalar values denote constant density over the range of
+radii.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.PREM.density" title="NuRadioMC.utilities.earth_attenuation.PREM.density"><code class="xref py py-obj docutils literal notranslate"><span class="pre">density</span></code></a>(r)</p></td>
+<td><p>Calculates the Earth's density at a given radius.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.PREM.slant_depth" title="NuRadioMC.utilities.earth_attenuation.PREM.slant_depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slant_depth</span></code></a>(endpoint, direction[, step])</p></td>
+<td><p>Calculates the column density of a chord cutting through Earth.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.PREM.earth_radius">
+<span class="sig-name descname"><span class="pre">earth_radius</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6371000.0</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM.earth_radius" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.PREM.radii">
+<span class="sig-name descname"><span class="pre">radii</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(1221500.0,</span> <span class="pre">3480000.0,</span> <span class="pre">5701000.0,</span> <span class="pre">5771000.0,</span> <span class="pre">5971000.0,</span> <span class="pre">6151000.0,</span> <span class="pre">6346600.0,</span> <span class="pre">6356000.0,</span> <span class="pre">6368000.0,</span> <span class="pre">6371000.0)</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM.radii" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.PREM.densities">
+<span class="sig-name descname"><span class="pre">densities</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">PREM.&lt;lambda&gt;&gt;,</span> <span class="pre">1.810037825908342e+40,</span> <span class="pre">1.6227925335729963e+40,</span> <span class="pre">6.366339939401755e+39)</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM.densities" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.PREM.density">
+<span class="sig-name descname"><span class="pre">density</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/earth_attenuation.html#PREM.density"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM.density" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the Earth’s density at a given radius.</p>
+<p>Supports passing an array of radii or a single radius.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>r</strong><span class="classifier">array_like</span></dt><dd><p>Radius (m) at which to calculate density.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>array_like</dt><dd><p>Density (g/cm^3) of the Earth at the given radii.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.PREM.slant_depth">
+<span class="sig-name descname"><span class="pre">slant_depth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endpoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/earth_attenuation.html#PREM.slant_depth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.PREM.slant_depth" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the column density of a chord cutting through Earth.</p>
+<p>Integrates the Earth’s density along the chord, resulting in a column
+density (or material thickness) with units of mass per area.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>endpoint</strong><span class="classifier">array_like</span></dt><dd><p>Vector position of the chord endpoint, in a coordinate system
+centered on the surface of the Earth (e.g. a negative third
+coordinate represents the depth below the surface).</p>
+</dd>
+<dt><strong>direction</strong><span class="classifier">array_like</span></dt><dd><p>Vector direction of the chord, in a coordinate system
+centered on the surface of the Earth (e.g. a negative third
+coordinate represents the chord pointing into the Earth).</p>
+</dd>
+<dt><strong>step</strong><span class="classifier">float, optional</span></dt><dd><p>Step size for the integration.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Column density along the chord starting from <em class="xref py py-obj">depth</em> and
+passing through the Earth at <em class="xref py py-obj">angle</em>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.PREM.density" title="NuRadioMC.utilities.earth_attenuation.PREM.density"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PREM.density</span></code></a></dt><dd><p>Calculates the Earth’s density at a given radius.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.earth_attenuation.</span></span><span class="sig-name descname"><span class="pre">CoreMantleCrustModel</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/earth_attenuation.html#CoreMantleCrustModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.PREM" title="NuRadioMC.utilities.earth_attenuation.PREM"><code class="xref py py-class docutils literal notranslate"><span class="pre">PREM</span></code></a></p>
+<p>Class describing the Earth’s density.</p>
+<p>Uses densities from the Core-Mantle-Crust model. Parameters from ARASim</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>earth_radius</strong><span class="classifier">float</span></dt><dd><p>Mean radius of the Earth (m).</p>
+</dd>
+<dt><strong>radii</strong><span class="classifier">tuple</span></dt><dd><p>Boundary radii (m) at which the functional form of the density of the
+Earth changes. The density function in <a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.densities" title="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.densities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">densities</span></code></a> at index <em class="xref py py-obj">i</em>
+corresponds to the radius range from radius at index <em class="xref py py-obj">i-1</em> to radius
+at index <em class="xref py py-obj">i</em>.</p>
+</dd>
+<dt><strong>densities</strong><span class="classifier">tuple</span></dt><dd><p>Functions which calculate the density of the Earth (g/cm^3) in a
+specific radius range as described by <a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.radii" title="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.radii"><code class="xref py py-obj docutils literal notranslate"><span class="pre">radii</span></code></a>. The parameter of each
+function is the fractional radius, e.g. radius divided by
+<a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.earth_radius" title="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.earth_radius"><code class="xref py py-obj docutils literal notranslate"><span class="pre">earth_radius</span></code></a>. Scalar values denote constant density over the range of
+radii.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.density" title="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.density"><code class="xref py py-obj docutils literal notranslate"><span class="pre">density</span></code></a>(r)</p></td>
+<td><p>Calculates the Earth's density at a given radius.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.slant_depth" title="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.slant_depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slant_depth</span></code></a>(endpoint, direction[, step])</p></td>
+<td><p>Calculates the column density of a chord cutting through Earth.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.earth_radius">
+<span class="sig-name descname"><span class="pre">earth_radius</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6378140.0</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.earth_radius" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.radii">
+<span class="sig-name descname"><span class="pre">radii</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(3464101.6151377545,</span> <span class="pre">6338140.0,</span> <span class="pre">6378140.0)</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.radii" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.densities">
+<span class="sig-name descname"><span class="pre">densities</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(8.738113642316134e+40,</span> <span class="pre">2.122113313133918e+40,</span> <span class="pre">1.810037825908342e+40)</span></em><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.densities" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.density">
+<span class="sig-name descname"><span class="pre">density</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.density" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the Earth’s density at a given radius.</p>
+<p>Supports passing an array of radii or a single radius.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>r</strong><span class="classifier">array_like</span></dt><dd><p>Radius (m) at which to calculate density.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>array_like</dt><dd><p>Density (g/cm^3) of the Earth at the given radii.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.slant_depth">
+<span class="sig-name descname"><span class="pre">slant_depth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endpoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel.slant_depth" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the column density of a chord cutting through Earth.</p>
+<p>Integrates the Earth’s density along the chord, resulting in a column
+density (or material thickness) with units of mass per area.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>endpoint</strong><span class="classifier">array_like</span></dt><dd><p>Vector position of the chord endpoint, in a coordinate system
+centered on the surface of the Earth (e.g. a negative third
+coordinate represents the depth below the surface).</p>
+</dd>
+<dt><strong>direction</strong><span class="classifier">array_like</span></dt><dd><p>Vector direction of the chord, in a coordinate system
+centered on the surface of the Earth (e.g. a negative third
+coordinate represents the chord pointing into the Earth).</p>
+</dd>
+<dt><strong>step</strong><span class="classifier">float, optional</span></dt><dd><p>Step size for the integration.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Column density along the chord starting from <em class="xref py py-obj">depth</em> and
+passing through the Earth at <em class="xref py py-obj">angle</em>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#NuRadioMC.utilities.earth_attenuation.PREM.density" title="NuRadioMC.utilities.earth_attenuation.PREM.density"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PREM.density</span></code></a></dt><dd><p>Calculates the Earth’s density at a given radius.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
 </dd></dl>
 
 </section>

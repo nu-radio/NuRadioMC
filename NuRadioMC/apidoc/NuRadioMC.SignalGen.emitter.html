@@ -7,7 +7,7 @@
   <title>NuRadioMC.SignalGen.emitter module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -576,45 +576,6 @@
   <section id="module-NuRadioMC.SignalGen.emitter">
 <span id="nuradiomc-signalgen-emitter-module"></span><h1>NuRadioMC.SignalGen.emitter module<a class="headerlink" href="#module-NuRadioMC.SignalGen.emitter" title="Permalink to this heading"></a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.SignalGen.emitter.get_frequency_spectrum">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.emitter.</span></span><span class="sig-name descname"><span class="pre">get_frequency_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amplitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/emitter.html#get_frequency_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.emitter.get_frequency_spectrum" title="Permalink to this definition"></a></dt>
-<dd><p>returns the complex amplitudes of the frequency spectrum of an emitter</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>amplitude</strong><span class="classifier">float</span></dt><dd><p>strength of a pulse</p>
-</dd>
-<dt><strong>N</strong><span class="classifier">int</span></dt><dd><p>number of samples in the time domain</p>
-</dd>
-<dt><strong>dt: float</strong></dt><dd><p>time bin width, i.e. the inverse of the sampling rate</p>
-</dd>
-<dt><strong>model: string</strong></dt><dd><p>specifies the signal model</p>
-<ul class="simple">
-<li><p>delta_pulse: a simple signal model of a delta pulse emitter</p></li>
-<li><p>cw : a sinusoidal wave of given frequency</p></li>
-<li><p>square : a rectangular pulse of given amplituede and width</p></li>
-<li><p>tone_burst : a short sine wave pulse of given frequency and desired width</p></li>
-<li><p>idl1 &amp; hvsp1 : these are the waveforms generated in KU lab and stored in hdf5 files</p></li>
-<li><p>gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum</p></li>
-<li><p>ARA02-calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02</p></li>
-</ul>
-</dd>
-<dt><strong>full_output: bool (default False)</strong></dt><dd><p>if True, can return additional output</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>time trace: 2d array, shape (3, N)</dt><dd><p>the amplitudes for each time bin</p>
-</dd>
-<dt>additional information: dict</dt><dd><p>only available if <cite>full_output</cite> enabled</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.SignalGen.emitter.get_time_trace">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.emitter.</span></span><span class="sig-name descname"><span class="pre">get_time_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amplitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/emitter.html#get_time_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.emitter.get_time_trace" title="Permalink to this definition"></a></dt>
 <dd><p>returns the voltage trace of an emitter</p>
@@ -651,7 +612,46 @@ to be known by the user.</p>
 <dd class="field-even"><dl class="simple">
 <dt>time trace: 2d array, shape (3, N)</dt><dd><p>the amplitudes for each time bin</p>
 </dd>
-<dt>additional information: dict</dt><dd><p>only available if <cite>full_output</cite> enabled</p>
+<dt>additional information: dict</dt><dd><p>only available if <em class="xref py py-obj">full_output</em> enabled</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalGen.emitter.get_frequency_spectrum">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalGen.emitter.</span></span><span class="sig-name descname"><span class="pre">get_frequency_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amplitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/emitter.html#get_frequency_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.emitter.get_frequency_spectrum" title="Permalink to this definition"></a></dt>
+<dd><p>returns the complex amplitudes of the frequency spectrum of an emitter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>amplitude</strong><span class="classifier">float</span></dt><dd><p>strength of a pulse</p>
+</dd>
+<dt><strong>N</strong><span class="classifier">int</span></dt><dd><p>number of samples in the time domain</p>
+</dd>
+<dt><strong>dt: float</strong></dt><dd><p>time bin width, i.e. the inverse of the sampling rate</p>
+</dd>
+<dt><strong>model: string</strong></dt><dd><p>specifies the signal model</p>
+<ul class="simple">
+<li><p>delta_pulse: a simple signal model of a delta pulse emitter</p></li>
+<li><p>cw : a sinusoidal wave of given frequency</p></li>
+<li><p>square : a rectangular pulse of given amplituede and width</p></li>
+<li><p>tone_burst : a short sine wave pulse of given frequency and desired width</p></li>
+<li><p>idl1 &amp; hvsp1 : these are the waveforms generated in KU lab and stored in hdf5 files</p></li>
+<li><p>gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum</p></li>
+<li><p>ARA02-calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02</p></li>
+</ul>
+</dd>
+<dt><strong>full_output: bool (default False)</strong></dt><dd><p>if True, can return additional output</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>time trace: 2d array, shape (3, N)</dt><dd><p>the amplitudes for each time bin</p>
+</dd>
+<dt>additional information: dict</dt><dd><p>only available if <em class="xref py py-obj">full_output</em> enabled</p>
 </dd>
 </dl>
 </dd>

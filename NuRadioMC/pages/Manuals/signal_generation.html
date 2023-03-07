@@ -7,7 +7,7 @@
   <title>Signal Generation (electric field) &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -730,7 +730,7 @@ It can be argued that we should use the <strong>average</strong> refractive inde
 <section id="using-the-same-shower-random-seed">
 <h2>Using the same shower. Random seed<a class="headerlink" href="#using-the-same-shower-random-seed" title="Permalink to this heading"></a></h2>
 <p>Two of the most relevant models have randomness added to simulate shower to shower fluctuations: the Alvarez2009 and the ARZ2020 (or 2019) model.</p>
-<p>The randomness in the Alvarez2009 model comes from a crude simulation of the LPM effect for electromagnetic showers. The constant k:sub:<cite>L</cite> is obtained from a log-gaussian distribution to simulate the stretching of the shower due to LPM. This stretching leaves the EM shower with the same smooth profile, only extended along a larger length, unlike a true LPM shower profile which should be bumpy because of the stochastic interactions. Nevertheless, it is a decent first approximation for illustration purposes.</p>
+<p>The randomness in the Alvarez2009 model comes from a crude simulation of the LPM effect for electromagnetic showers. The constant k:sub:<em class="xref py py-obj">L</em> is obtained from a log-gaussian distribution to simulate the stretching of the shower due to LPM. This stretching leaves the EM shower with the same smooth profile, only extended along a larger length, unlike a true LPM shower profile which should be bumpy because of the stochastic interactions. Nevertheless, it is a decent first approximation for illustration purposes.</p>
 <p>The ARZ models give different results each time they are called because the shower profile taken from the shower library changes. This mimics shower-to-shower fluctuations in a rigorous way.</p>
 <p>The problem arises when we want to use the same shower to calculate the field for different positions, like different channels. All we have to do is call any of the <code class="docutils literal notranslate"><span class="pre">get_time_trace</span></code> methods, whether in the Askaryan module, the paremeterisations module or the ARZ module, with the argument:</p>
 <blockquote>

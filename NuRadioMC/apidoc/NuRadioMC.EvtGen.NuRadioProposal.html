@@ -7,7 +7,7 @@
   <title>NuRadioMC.EvtGen.NuRadioProposal module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -576,6 +576,100 @@
   <section id="module-NuRadioMC.EvtGen.NuRadioProposal">
 <span id="nuradiomc-evtgen-nuradioproposal-module"></span><h1>NuRadioMC.EvtGen.NuRadioProposal module<a class="headerlink" href="#module-NuRadioMC.EvtGen.NuRadioProposal" title="Permalink to this heading"></a></h1>
 <dl class="py class">
+<dt class="sig sig-object py" id="NuRadioMC.EvtGen.NuRadioProposal.SecondaryProperties">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal.</span></span><span class="sig-name descname"><span class="pre">SecondaryProperties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_energy</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#SecondaryProperties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.SecondaryProperties" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>This class stores the properties from secondary particles that are
+relevant for NuRadioMC, namely:
+- distance      : Distance to the first interaction vertex
+- energy        : Particle energy
+- shower_type   : Whether the shower they induce is hadronic or electromagnetic
+- name          : Name according to NuRadioReco.utilities.particle_names
+- parent_energy : Energy of the parent particle</p>
+<p>Distance and energy are in NuRadioMC units</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.EvtGen.NuRadioProposal.particle_code">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal.</span></span><span class="sig-name descname"><span class="pre">particle_code</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pp_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#particle_code"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.particle_code" title="Permalink to this definition"></a></dt>
+<dd><p>For an integer, corresponding to a proposal.particle.Interaction_Type or 
+proposal.particle.Particle_Type, it returns the corresponding PDG 
+particle code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>pp_type: int, corresponding to a proposal.particle.Interaction_Type or</strong></dt><dd><p>proposal.particle.Particle_Type</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>integer with the PDG particle code. None if the argument is not a particle</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.EvtGen.NuRadioProposal.is_em_primary">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal.</span></span><span class="sig-name descname"><span class="pre">is_em_primary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pp_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#is_em_primary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.is_em_primary" title="Permalink to this definition"></a></dt>
+<dd><p>For an integer corresponding to a particle type or interaction type of 
+proposal, returns True if the object can be an electromagnetic shower primary 
+and False otherwise</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>pp_type: int, corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>bool, True if the particle can be an electromagnetic shower primary and False otherwise</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.EvtGen.NuRadioProposal.is_had_primary">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal.</span></span><span class="sig-name descname"><span class="pre">is_had_primary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pp_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#is_had_primary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.is_had_primary" title="Permalink to this definition"></a></dt>
+<dd><p>Given an integer corresponding to a particle type or interaction type of 
+proposal, returns True if the object can be a hadronic shower primary 
+and False otherwise</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>pp_type: int, corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>bool, True if the particle can be a hadronic shower primary and False otherwise</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.EvtGen.NuRadioProposal.is_shower_primary">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal.</span></span><span class="sig-name descname"><span class="pre">is_shower_primary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pp_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#is_shower_primary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.is_shower_primary" title="Permalink to this definition"></a></dt>
+<dd><p>Given an integer corresponding to a particle type or interaction type of 
+proposal, returns True if the object can be a shower primary and False otherwise</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>pp_type: int, corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>bool, True if the particle can be a shower primary and False otherwise</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal.</span></span><span class="sig-name descname"><span class="pre">ProposalFunctions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#ProposalFunctions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
@@ -639,38 +733,6 @@ For more details, check the documentation for the
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_decays">
-<span class="sig-name descname"><span class="pre">get_decays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy_leptons_nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lepton_codes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lepton_positions_nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lepton_directions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100000000000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">propagation_length_nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#ProposalFunctions.get_decays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_decays" title="Permalink to this definition"></a></dt>
-<dd><p>Propagates a set of leptons and returns a list with the properties of
-the decay particles.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>energy_leptons_nu: array of floats</strong></dt><dd><p>Array with the energies of the input leptons, in NuRadioMC units (eV)</p>
-</dd>
-<dt><strong>lepton_codes: array of integers</strong></dt><dd><p>Array with the PDG lepton codes</p>
-</dd>
-<dt><strong>lepton_positions_nu: array of (float, float, float) tuples</strong></dt><dd><p>Array containing the lepton positions in NuRadioMC units (m)</p>
-</dd>
-<dt><strong>lepton_directions: array of (float, float, float) tuples</strong></dt><dd><p>Array containing the lepton directions, normalised to 1</p>
-</dd>
-<dt><strong>low_nu: float</strong></dt><dd><p>Low energy limit for the propagating particle in NuRadioMC units (eV)</p>
-</dd>
-<dt><strong>propagation_length_nu: float</strong></dt><dd><p>Maximum propagation length in NuRadioMC units (m)</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>decays_array: array of (float, float) tuples</dt><dd><p>The first element of the tuple contains the decay distance in m
-The second element contains the decay energy in eV (NuRadioMC units)</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_secondaries_array">
 <span class="sig-name descname"><span class="pre">get_secondaries_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy_leptons_nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lepton_codes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lepton_positions_nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lepton_directions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500000000000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">propagation_length_nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_energy_loss_nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500000000000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">propagate_decay_muons</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#ProposalFunctions.get_secondaries_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_secondaries_array" title="Permalink to this definition"></a></dt>
 <dd><p>Propagates a set of leptons and returns a list with the properties for
@@ -711,100 +773,38 @@ properties are in NuRadioMC units.</p>
 </dl>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="NuRadioMC.EvtGen.NuRadioProposal.SecondaryProperties">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal.</span></span><span class="sig-name descname"><span class="pre">SecondaryProperties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_energy</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#SecondaryProperties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.SecondaryProperties" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>This class stores the properties from secondary particles that are
-relevant for NuRadioMC, namely:
-- distance      : Distance to the first interaction vertex
-- energy        : Particle energy
-- shower_type   : Whether the shower they induce is hadronic or electromagnetic
-- name          : Name according to NuRadioReco.utilities.particle_names
-- parent_energy : Energy of the parent particle</p>
-<p>Distance and energy are in NuRadioMC units</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.EvtGen.NuRadioProposal.is_em_primary">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal.</span></span><span class="sig-name descname"><span class="pre">is_em_primary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pp_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#is_em_primary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.is_em_primary" title="Permalink to this definition"></a></dt>
-<dd><p>For an integer corresponding to a particle type or interaction type of 
-proposal, returns True if the object can be an electromagnetic shower primary 
-and False otherwise</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_decays">
+<span class="sig-name descname"><span class="pre">get_decays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy_leptons_nu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lepton_codes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lepton_positions_nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lepton_directions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100000000000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">propagation_length_nu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#ProposalFunctions.get_decays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.ProposalFunctions.get_decays" title="Permalink to this definition"></a></dt>
+<dd><p>Propagates a set of leptons and returns a list with the properties of
+the decay particles.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>pp_type: int, corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type</strong></dt><dd></dd>
-</dl>
+<dt><strong>energy_leptons_nu: array of floats</strong></dt><dd><p>Array with the energies of the input leptons, in NuRadioMC units (eV)</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>bool, True if the particle can be an electromagnetic shower primary and False otherwise</dt><dd></dd>
-</dl>
+<dt><strong>lepton_codes: array of integers</strong></dt><dd><p>Array with the PDG lepton codes</p>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.EvtGen.NuRadioProposal.is_had_primary">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal.</span></span><span class="sig-name descname"><span class="pre">is_had_primary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pp_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#is_had_primary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.is_had_primary" title="Permalink to this definition"></a></dt>
-<dd><p>Given an integer corresponding to a particle type or interaction type of 
-proposal, returns True if the object can be a hadronic shower primary 
-and False otherwise</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>pp_type: int, corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type</strong></dt><dd></dd>
-</dl>
+<dt><strong>lepton_positions_nu: array of (float, float, float) tuples</strong></dt><dd><p>Array containing the lepton positions in NuRadioMC units (m)</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>bool, True if the particle can be a hadronic shower primary and False otherwise</dt><dd></dd>
-</dl>
+<dt><strong>lepton_directions: array of (float, float, float) tuples</strong></dt><dd><p>Array containing the lepton directions, normalised to 1</p>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.EvtGen.NuRadioProposal.is_shower_primary">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal.</span></span><span class="sig-name descname"><span class="pre">is_shower_primary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pp_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#is_shower_primary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.is_shower_primary" title="Permalink to this definition"></a></dt>
-<dd><p>Given an integer corresponding to a particle type or interaction type of 
-proposal, returns True if the object can be a shower primary and False otherwise</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>pp_type: int, corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type</strong></dt><dd></dd>
-</dl>
+<dt><strong>low_nu: float</strong></dt><dd><p>Low energy limit for the propagating particle in NuRadioMC units (eV)</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>bool, True if the particle can be a shower primary and False otherwise</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.EvtGen.NuRadioProposal.particle_code">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal.</span></span><span class="sig-name descname"><span class="pre">particle_code</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pp_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/NuRadioProposal.html#particle_code"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.NuRadioProposal.particle_code" title="Permalink to this definition"></a></dt>
-<dd><p>For an integer, corresponding to a proposal.particle.Interaction_Type or 
-proposal.particle.Particle_Type, it returns the corresponding PDG 
-particle code.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>pp_type: int, corresponding to a proposal.particle.Interaction_Type or</strong></dt><dd><p>proposal.particle.Particle_Type</p>
+<dt><strong>propagation_length_nu: float</strong></dt><dd><p>Maximum propagation length in NuRadioMC units (m)</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>integer with the PDG particle code. None if the argument is not a particle</dt><dd></dd>
+<dt>decays_array: array of (float, float) tuples</dt><dd><p>The first element of the tuple contains the decay distance in m
+The second element contains the decay energy in eV (NuRadioMC units)</p>
+</dd>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>

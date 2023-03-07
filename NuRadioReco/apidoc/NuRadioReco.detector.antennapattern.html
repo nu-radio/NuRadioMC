@@ -7,7 +7,7 @@
   <title>NuRadioReco.detector.antennapattern module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -575,6 +575,445 @@
              
   <section id="module-NuRadioReco.detector.antennapattern">
 <span id="nuradioreco-detector-antennapattern-module"></span><h1>NuRadioReco.detector.antennapattern module<a class="headerlink" href="#module-NuRadioReco.detector.antennapattern" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.interpolate_linear">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">interpolate_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'complex'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#interpolate_linear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.interpolate_linear" title="Permalink to this definition"></a></dt>
+<dd><p>helper function to linearly interpolate between two complex numbers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x: float</strong></dt><dd><p>the requested position</p>
+</dd>
+<dt><strong>x0, y0: float, complex float</strong></dt><dd><p>the first data point</p>
+</dd>
+<dt><strong>x1, y1: float, complex float</strong></dt><dd><p>the second data point</p>
+</dd>
+<dt><strong>interpolation_method: string</strong></dt><dd><p>specifies if interpolation is in</p>
+<ul class="simple">
+<li><p>complex (default) i.e. real and imaginary part</p></li>
+<li><p>magnitude and phase</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>y: complex float</dt><dd><p>the interpolated value</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.interpolate_linear_vectorized">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">interpolate_linear_vectorized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'complex'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#interpolate_linear_vectorized"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.interpolate_linear_vectorized" title="Permalink to this definition"></a></dt>
+<dd><p>Same as <a class="reference internal" href="#NuRadioReco.detector.antennapattern.interpolate_linear" title="NuRadioReco.detector.antennapattern.interpolate_linear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolate_linear</span></code></a> but all parameters can be vectors</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.get_group_delay">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">get_group_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector_effective_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#get_group_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.get_group_delay" title="Permalink to this definition"></a></dt>
+<dd><p>helper function to calculate the group delay from the vector effecitve length</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>vector_effective_length: complex float</strong></dt><dd><p>the vector effective length of an antenna</p>
+</dd>
+<dt><strong>df: float</strong></dt><dd><p>the size of a frequency bin</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>dt: float</dt><dd><p>the group delay</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.parse_RNOG_XFDTD_file">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">parse_RNOG_XFDTD_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#parse_RNOG_XFDTD_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.parse_RNOG_XFDTD_file" title="Permalink to this definition"></a></dt>
+<dd><p>”
+reads in XFDTD data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>path_gain: string</strong></dt><dd><p>path to gain file</p>
+</dd>
+<dt><strong>path_phases:</strong></dt><dd><p>path to phases file</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>all paramters of the file</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.preprocess_RNOG_XFDTD">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">preprocess_RNOG_XFDTD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.74</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#preprocess_RNOG_XFDTD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.preprocess_RNOG_XFDTD" title="Permalink to this definition"></a></dt>
+<dd><p>”
+Preprocess an antenna pattern in XFDTD file format. The vector effective length is calculated and the output is saved to the NuRadioReco pickle format.</p>
+<p>This conversion function ASSUMES THAT THE XFDTD SIMULATION IS DONE IN AIR! HERE WE DO A FIRST ORDER RESCALING
+TO A DIFFERENT INDEX OF REFRACTION by just rescaling the frequencies by f -&gt; f/n.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>path_gain: string</strong></dt><dd><p>path to gain file</p>
+</dd>
+<dt><strong>path_phases: string</strong></dt><dd><p>path to phases file</p>
+</dd>
+<dt><strong>outputfilename: string</strong></dt><dd><p>path to outputfilename</p>
+</dd>
+<dt><strong>n_index: float</strong></dt><dd><p>refractive index for requested antenna file. The method assumes that simulations are done in air (n = 1)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.parse_WIPLD_file">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">parse_WIPLD_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ad1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ra1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#parse_WIPLD_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.parse_WIPLD_file" title="Permalink to this definition"></a></dt>
+<dd><p>reads in WIPLD data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ad1: string</strong></dt><dd><p>path to ad1 file</p>
+</dd>
+<dt><strong>ra1: string</strong></dt><dd><p>path to radiation pattern file</p>
+</dd>
+<dt><strong>orientation: string</strong></dt><dd><p>path to orientation file</p>
+</dd>
+<dt><strong>gen_num: int</strong></dt><dd><p>which antenna (one or two) to pull from</p>
+</dd>
+<dt><strong>s_parameters: list of 2 ints</strong></dt><dd><p>determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>all parameters of the files</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.preprocess_WIPLD_old">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">preprocess_WIPLD_old</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#preprocess_WIPLD_old"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.preprocess_WIPLD_old" title="Permalink to this definition"></a></dt>
+<dd><p>preprocesses WIPLD file</p>
+<p>this function implements the older insufficient calculation of the vector effective length. This VEL only
+relates the incident electric field to the open circuit voltage and not the voltage in a 50 Ohm system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>path: string</strong></dt><dd><p>path to folder containing ad1, ra1, and orientation files.</p>
+</dd>
+<dt><strong>gen_num: int</strong></dt><dd><p>which antenna (one or two) to pull from</p>
+</dd>
+<dt><strong>s_parameters: list of 2 ints</strong></dt><dd><p>determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>orientation theta: float</dt><dd><p>orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p>
+</dd>
+<dt>orientation phi: float</dt><dd><p>orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p>
+</dd>
+<dt>rotation theta: float</dt><dd><p>rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p>
+</dd>
+<dt>rotation phi: float</dt><dd><p>rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p>
+</dd>
+<dt>ff2: array of floats</dt><dd><p>array of frequencies</p>
+</dd>
+<dt>theta: float</dt><dd><p>zenith angle of inicdent electric field</p>
+</dd>
+<dt>phi: float</dt><dd><p>azimuth angle of incident electric field</p>
+</dd>
+<dt>H_phi: float</dt><dd><p>the complex vector effective length of the ePhi polarization component</p>
+</dd>
+<dt>H_theta: float</dt><dd><p>the complex vector effective length of the eTheta polarization component</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.save_preprocessed_WIPLD_old">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">save_preprocessed_WIPLD_old</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#save_preprocessed_WIPLD_old"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.save_preprocessed_WIPLD_old" title="Permalink to this definition"></a></dt>
+<dd><p>saves preprocessed WIPLD files to a pickle file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>path: string</strong></dt><dd><p>path to folder containing ad1, ra1, and orientation files.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.preprocess_WIPLD">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">preprocess_WIPLD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#preprocess_WIPLD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.preprocess_WIPLD" title="Permalink to this definition"></a></dt>
+<dd><p>preprocesses WIPLD file</p>
+<p>this function implements the older insufficient calculation of the vector effective length. This VEL only
+relates the incident electric field to the open circuit voltage and not the voltage in a 50 Ohm system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>path: string</strong></dt><dd><p>path to folder containing ad1, ra1, and orientation files.</p>
+</dd>
+<dt><strong>gen_num: int</strong></dt><dd><p>which antenna (one or two) to pull from</p>
+</dd>
+<dt><strong>s_parameters: list of 2 ints</strong></dt><dd><p>determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>orientation theta: float</dt><dd><p>orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p>
+</dd>
+<dt>orientation phi: float</dt><dd><p>orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p>
+</dd>
+<dt>rotation theta: float</dt><dd><p>rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p>
+</dd>
+<dt>rotation phi: float</dt><dd><p>rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p>
+</dd>
+<dt>ff2: array of floats</dt><dd><p>array of frequencies</p>
+</dd>
+<dt>theta: float</dt><dd><p>zenith angle of inicdent electric field</p>
+</dd>
+<dt>phi: float</dt><dd><p>azimuth angle of incident electric field</p>
+</dd>
+<dt>H_phi: float</dt><dd><p>the complex vector effective length of the ePhi polarization component</p>
+</dd>
+<dt>H_theta: float</dt><dd><p>the complex vector effective length of the eTheta polarization component</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.save_preprocessed_WIPLD">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">save_preprocessed_WIPLD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#save_preprocessed_WIPLD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.save_preprocessed_WIPLD" title="Permalink to this definition"></a></dt>
+<dd><p>saves preprocessed WIPLD files to a pickle file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>path: string</strong></dt><dd><p>path to folder containing ad1, ra1, and orientation files.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.save_preprocessed_WIPLD_forARA">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">save_preprocessed_WIPLD_forARA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#save_preprocessed_WIPLD_forARA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.save_preprocessed_WIPLD_forARA" title="Permalink to this definition"></a></dt>
+<dd><p>this function saves the realized gain in an ARASim readable format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>path: string</strong></dt><dd><p>path to folder containing ad1, ra1, and orientation files.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.get_pickle_antenna_response">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">get_pickle_antenna_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#get_pickle_antenna_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.get_pickle_antenna_response" title="Permalink to this definition"></a></dt>
+<dd><p>opens and return the pickle file containing the preprocessed WIPL-D antenna simulation</p>
+<p>If the pickle file is not present on the local file system, or if the file is outdated (verified via a sha1 hash sum),
+the file will be downloaded from a central data server</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>path: string</strong></dt><dd><p>the path to the pickle file</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.parse_AERA_XML_file">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">parse_AERA_XML_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#parse_AERA_XML_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.parse_AERA_XML_file" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.preprocess_AERA">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">preprocess_AERA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#preprocess_AERA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.preprocess_AERA" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.parse_ARA_file">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">parse_ARA_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ara</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#parse_ARA_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.parse_ARA_file" title="Permalink to this definition"></a></dt>
+<dd><p>Helper function that parses the ARAsim ASCII files containig antenna responses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ara: string</strong></dt><dd><p>path to the file</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ff: array of floats</dt><dd><p>frequencies</p>
+</dd>
+<dt>thetas: array of floats</dt><dd><p>zenith angle of inicdent electric field</p>
+</dd>
+<dt>phis: array of floats</dt><dd><p>azimuth angle of inicdent electric field</p>
+</dd>
+<dt>gains: array of floats</dt><dd><p>corresponding linear gain values</p>
+</dd>
+<dt>phases: array of floats</dt><dd><p>corresponding phases</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.preprocess_ARA">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">preprocess_ARA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#preprocess_ARA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.preprocess_ARA" title="Permalink to this definition"></a></dt>
+<dd><p>preprocess an antenna pattern in the ARASim ASCII file format.</p>
+<p>The vector effective length is calculated and
+the output is saved to the NuRadioReco pickle format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>path: string</strong></dt><dd><p>the path to the file</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.parse_HFSS_file">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">parse_HFSS_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hfss</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#parse_HFSS_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.parse_HFSS_file" title="Permalink to this definition"></a></dt>
+<dd><p>Helper function that parses the HFSS files containig antenna responses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>hfss: string</strong></dt><dd><p>path to the file</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ff: array of floats</dt><dd><p>frequencies</p>
+</dd>
+<dt>thetas: array of floats</dt><dd><p>zenith angle of inicdent electric field</p>
+</dd>
+<dt>phis: array of floats</dt><dd><p>azimuth angle of inicdent electric field</p>
+</dd>
+<dt>magnitudes_theta: array of floats</dt><dd><p>corresponding logarithmic magnitude values theta component</p>
+</dd>
+<dt>magnitudes_phi: array of floats</dt><dd><p>corresponding logarithmic magnitude values phi component</p>
+</dd>
+<dt>phases_phi: array of floats</dt><dd><p>corresponding phases phi component</p>
+</dd>
+<dt>phases_theta: array of floats</dt><dd><p>corresponding phases theta component</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.preprocess_HFSS">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">preprocess_HFSS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#preprocess_HFSS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.preprocess_HFSS" title="Permalink to this definition"></a></dt>
+<dd><p>preprocess an antenna pattern in the HFSS file format. The vector effective length is calculated and the output is saved in the NuRadioReco pickle format.</p>
+<p>The vector effective length calculation still needs to be verified.</p>
+<p>The frequencies, theta, phi, magnitude theta, magnitude phi, phase theta and phase phi are read from the csv file and than ordered according to the NuRadioReco format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>path: string</strong></dt><dd><p>the path to the file</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.preprocess_XFDTD">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">preprocess_XFDTD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#preprocess_XFDTD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.preprocess_XFDTD" title="Permalink to this definition"></a></dt>
+<dd><p>preprocess an antenna pattern in the XFDTD file format. The vector effective length is calculated and
+the output is saved to the NuRadioReco pickle format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>path: string</strong></dt><dd><p>the path to the file</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPatternBase">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">AntennaPatternBase</span></span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#AntennaPatternBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPatternBase" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>base class of utility class that handles access and buffering to antenna pattern</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.antennapattern.AntennaPatternBase.get_antenna_response_vectorized" title="NuRadioReco.detector.antennapattern.AntennaPatternBase.get_antenna_response_vectorized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_response_vectorized</span></code></a>(freq, ...)</p></td>
+<td><p>get the antenna response for a specific frequency, zenith and azimuth angle</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPatternBase.get_antenna_response_vectorized">
+<span class="sig-name descname"><span class="pre">get_antenna_response_vectorized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_phi</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#AntennaPatternBase.get_antenna_response_vectorized"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPatternBase.get_antenna_response_vectorized" title="Permalink to this definition"></a></dt>
+<dd><p>get the antenna response for a specific frequency, zenith and azimuth angle</p>
+<p>All angles are specified in the ARIANNA coordinate system. All units are in ARIANNA default units</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>freq</strong><span class="classifier">float or array of floats</span></dt><dd><p>frequency</p>
+</dd>
+<dt><strong>zenith</strong><span class="classifier">float</span></dt><dd><p>zenith angle of incoming signal direction</p>
+</dd>
+<dt><strong>azimuth</strong><span class="classifier">float</span></dt><dd><p>azimuth angle of incoming signal direction</p>
+</dd>
+<dt><strong>orientation_theta: float</strong></dt><dd><p>orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p>
+</dd>
+<dt><strong>orientation_phi: float</strong></dt><dd><p>orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p>
+</dd>
+<dt><strong>rotation_theta: float</strong></dt><dd><p>rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p>
+</dd>
+<dt><strong>rotation_phi: float</strong></dt><dd><p>rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>VEL: dictonary of complex arrays</dt><dd><p>theta and phi component of the vector effective length, both components
+are complex floats or arrays of complex floats
+of the same length as the frequency input</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPattern">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">AntennaPattern</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">antenna_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/home/runner/work/NuRadioMC/NuRadioMC/NuRadioReco/detector/AntennaModels'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'complex'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#AntennaPattern"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPattern" title="Permalink to this definition"></a></dt>
@@ -583,7 +1022,7 @@
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_response_vectorized</span></code>(freq, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.antennapattern.AntennaPattern.get_antenna_response_vectorized" title="NuRadioReco.detector.antennapattern.AntennaPattern.get_antenna_response_vectorized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_response_vectorized</span></code></a>(freq, ...)</p></td>
 <td><p>get the antenna response for a specific frequency, zenith and azimuth angle</p></td>
 </tr>
 </tbody>
@@ -607,11 +1046,46 @@
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_response_vectorized</span></code>(freq, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.antennapattern.AntennaPattern.get_antenna_response_vectorized" title="NuRadioReco.detector.antennapattern.AntennaPattern.get_antenna_response_vectorized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_response_vectorized</span></code></a>(freq, ...)</p></td>
 <td><p>get the antenna response for a specific frequency, zenith and azimuth angle</p></td>
 </tr>
 </tbody>
 </table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPattern.get_antenna_response_vectorized">
+<span class="sig-name descname"><span class="pre">get_antenna_response_vectorized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_phi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPattern.get_antenna_response_vectorized" title="Permalink to this definition"></a></dt>
+<dd><p>get the antenna response for a specific frequency, zenith and azimuth angle</p>
+<p>All angles are specified in the ARIANNA coordinate system. All units are in ARIANNA default units</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>freq</strong><span class="classifier">float or array of floats</span></dt><dd><p>frequency</p>
+</dd>
+<dt><strong>zenith</strong><span class="classifier">float</span></dt><dd><p>zenith angle of incoming signal direction</p>
+</dd>
+<dt><strong>azimuth</strong><span class="classifier">float</span></dt><dd><p>azimuth angle of incoming signal direction</p>
+</dd>
+<dt><strong>orientation_theta: float</strong></dt><dd><p>orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p>
+</dd>
+<dt><strong>orientation_phi: float</strong></dt><dd><p>orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p>
+</dd>
+<dt><strong>rotation_theta: float</strong></dt><dd><p>rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p>
+</dd>
+<dt><strong>rotation_phi: float</strong></dt><dd><p>rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>VEL: dictonary of complex arrays</dt><dd><p>theta and phi component of the vector effective length, both components
+are complex floats or arrays of complex floats
+of the same length as the frequency input</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -622,7 +1096,7 @@
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_response_vectorized</span></code>(freq, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.get_antenna_response_vectorized" title="NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.get_antenna_response_vectorized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_response_vectorized</span></code></a>(freq, ...)</p></td>
 <td><p>get the antenna response for a specific frequency, zenith and azimuth angle</p></td>
 </tr>
 </tbody>
@@ -637,7 +1111,7 @@
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_response_vectorized</span></code>(freq, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.get_antenna_response_vectorized" title="NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.get_antenna_response_vectorized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_response_vectorized</span></code></a>(freq, ...)</p></td>
 <td><p>get the antenna response for a specific frequency, zenith and azimuth angle</p></td>
 </tr>
 </tbody>
@@ -654,24 +1128,9 @@
 <span class="sig-name descname"><span class="pre">parametric_phase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'theoretical'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#AntennaPatternAnalytic.parametric_phase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.parametric_phase" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPatternBase">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">AntennaPatternBase</span></span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#AntennaPatternBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPatternBase" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>base class of utility class that handles access and buffering to antenna pattern</p>
-<p class="rubric">Methods</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.antennapattern.AntennaPatternBase.get_antenna_response_vectorized" title="NuRadioReco.detector.antennapattern.AntennaPatternBase.get_antenna_response_vectorized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_response_vectorized</span></code></a>(freq, ...)</p></td>
-<td><p>get the antenna response for a specific frequency, zenith and azimuth angle</p></td>
-</tr>
-</tbody>
-</table>
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPatternBase.get_antenna_response_vectorized">
-<span class="sig-name descname"><span class="pre">get_antenna_response_vectorized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_phi</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#AntennaPatternBase.get_antenna_response_vectorized"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPatternBase.get_antenna_response_vectorized" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.get_antenna_response_vectorized">
+<span class="sig-name descname"><span class="pre">get_antenna_response_vectorized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_phi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.get_antenna_response_vectorized" title="Permalink to this definition"></a></dt>
 <dd><p>get the antenna response for a specific frequency, zenith and azimuth angle</p>
 <p>All angles are specified in the ARIANNA coordinate system. All units are in ARIANNA default units</p>
 <dl class="field-list simple">
@@ -730,7 +1189,7 @@ significant amount of memory.</p>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>name: string</strong></dt><dd><p>the name of the antenna pattern</p>
 </dd>
-<dt><strong>**kwargs: dict</strong></dt><dd><p>key word arguments that are passed to the init function of the <cite>AntennaPattern</cite> class (see
+<dt><strong>**kwargs: dict</strong></dt><dd><p>key word arguments that are passed to the init function of the <a class="reference internal" href="#NuRadioReco.detector.antennapattern.AntennaPattern" title="NuRadioReco.detector.antennapattern.AntennaPattern"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AntennaPattern</span></code></a> class (see
 documentation of this class for further information)</p>
 </dd>
 </dl>
@@ -738,395 +1197,6 @@ documentation of this class for further information)</p>
 </dl>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.get_group_delay">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">get_group_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector_effective_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#get_group_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.get_group_delay" title="Permalink to this definition"></a></dt>
-<dd><p>helper function to calculate the group delay from the vector effecitve length</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>vector_effective_length: complex float</strong></dt><dd><p>the vector effective length of an antenna</p>
-</dd>
-<dt><strong>df: float</strong></dt><dd><p>the size of a frequency bin</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>dt: float</dt><dd><p>the group delay</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.get_pickle_antenna_response">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">get_pickle_antenna_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#get_pickle_antenna_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.get_pickle_antenna_response" title="Permalink to this definition"></a></dt>
-<dd><p>opens and return the pickle file containing the preprocessed WIPL-D antenna simulation</p>
-<p>If the pickle file is not present on the local file system, or if the file is outdated (verified via a sha1 hash sum),
-the file will be downloaded from a central data server</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>path: string</strong></dt><dd><p>the path to the pickle file</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.interpolate_linear">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">interpolate_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'complex'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#interpolate_linear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.interpolate_linear" title="Permalink to this definition"></a></dt>
-<dd><p>helper function to linearly interpolate between two complex numbers</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>x: float</strong></dt><dd><p>the requested position</p>
-</dd>
-<dt><strong>x0, y0: float, complex float</strong></dt><dd><p>the first data point</p>
-</dd>
-<dt><strong>x1, y1: float, complex float</strong></dt><dd><p>the second data point</p>
-</dd>
-<dt><strong>interpolation_method: string</strong></dt><dd><p>specifies if interpolation is in</p>
-<ul class="simple">
-<li><p>complex (default) i.e. real and imaginary part</p></li>
-<li><p>magnitude and phase</p></li>
-</ul>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>y: complex float</dt><dd><p>the interpolated value</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.interpolate_linear_vectorized">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">interpolate_linear_vectorized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'complex'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#interpolate_linear_vectorized"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.interpolate_linear_vectorized" title="Permalink to this definition"></a></dt>
-<dd><p>Same as <cite>interpolate_linear</cite> but all parameters can be vectors</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.parse_AERA_XML_file">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">parse_AERA_XML_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#parse_AERA_XML_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.parse_AERA_XML_file" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.parse_ARA_file">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">parse_ARA_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ara</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#parse_ARA_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.parse_ARA_file" title="Permalink to this definition"></a></dt>
-<dd><p>Helper function that parses the ARAsim ASCII files containig antenna responses</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>ara: string</strong></dt><dd><p>path to the file</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>ff: array of floats</dt><dd><p>frequencies</p>
-</dd>
-<dt>thetas: array of floats</dt><dd><p>zenith angle of inicdent electric field</p>
-</dd>
-<dt>phis: array of floats</dt><dd><p>azimuth angle of inicdent electric field</p>
-</dd>
-<dt>gains: array of floats</dt><dd><p>corresponding linear gain values</p>
-</dd>
-<dt>phases: array of floats</dt><dd><p>corresponding phases</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.parse_HFSS_file">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">parse_HFSS_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hfss</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#parse_HFSS_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.parse_HFSS_file" title="Permalink to this definition"></a></dt>
-<dd><p>Helper function that parses the HFSS files containig antenna responses</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>hfss: string</strong></dt><dd><p>path to the file</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>ff: array of floats</dt><dd><p>frequencies</p>
-</dd>
-<dt>thetas: array of floats</dt><dd><p>zenith angle of inicdent electric field</p>
-</dd>
-<dt>phis: array of floats</dt><dd><p>azimuth angle of inicdent electric field</p>
-</dd>
-<dt>magnitudes_theta: array of floats</dt><dd><p>corresponding logarithmic magnitude values theta component</p>
-</dd>
-<dt>magnitudes_phi: array of floats</dt><dd><p>corresponding logarithmic magnitude values phi component</p>
-</dd>
-<dt>phases_phi: array of floats</dt><dd><p>corresponding phases phi component</p>
-</dd>
-<dt>phases_theta: array of floats</dt><dd><p>corresponding phases theta component</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.parse_RNOG_XFDTD_file">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">parse_RNOG_XFDTD_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#parse_RNOG_XFDTD_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.parse_RNOG_XFDTD_file" title="Permalink to this definition"></a></dt>
-<dd><p>”
-reads in XFDTD data</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>path_gain: string</strong></dt><dd><p>path to gain file</p>
-</dd>
-<dt><strong>path_phases:</strong></dt><dd><p>path to phases file</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>all paramters of the file</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.parse_WIPLD_file">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">parse_WIPLD_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ad1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ra1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#parse_WIPLD_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.parse_WIPLD_file" title="Permalink to this definition"></a></dt>
-<dd><p>reads in WIPLD data</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>ad1: string</strong></dt><dd><p>path to ad1 file</p>
-</dd>
-<dt><strong>ra1: string</strong></dt><dd><p>path to radiation pattern file</p>
-</dd>
-<dt><strong>orientation: string</strong></dt><dd><p>path to orientation file</p>
-</dd>
-<dt><strong>gen_num: int</strong></dt><dd><p>which antenna (one or two) to pull from</p>
-</dd>
-<dt><strong>s_parameters: list of 2 ints</strong></dt><dd><p>determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>all parameters of the files</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.preprocess_AERA">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">preprocess_AERA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#preprocess_AERA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.preprocess_AERA" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.preprocess_ARA">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">preprocess_ARA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#preprocess_ARA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.preprocess_ARA" title="Permalink to this definition"></a></dt>
-<dd><p>preprocess an antenna pattern in the ARASim ASCII file format.</p>
-<p>The vector effective length is calculated and
-the output is saved to the NuRadioReco pickle format.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>path: string</strong></dt><dd><p>the path to the file</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.preprocess_HFSS">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">preprocess_HFSS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#preprocess_HFSS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.preprocess_HFSS" title="Permalink to this definition"></a></dt>
-<dd><p>preprocess an antenna pattern in the HFSS file format. The vector effective length is calculated and the output is saved in the NuRadioReco pickle format.</p>
-<p>The vector effective length calculation still needs to be verified.</p>
-<p>The frequencies, theta, phi, magnitude theta, magnitude phi, phase theta and phase phi are read from the csv file and than ordered according to the NuRadioReco format.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>path: string</strong></dt><dd><p>the path to the file</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.preprocess_RNOG_XFDTD">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">preprocess_RNOG_XFDTD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.74</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#preprocess_RNOG_XFDTD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.preprocess_RNOG_XFDTD" title="Permalink to this definition"></a></dt>
-<dd><p>”
-Preprocess an antenna pattern in XFDTD file format. The vector effective length is calculated and the output is saved to the NuRadioReco pickle format.</p>
-<p>This conversion function ASSUMES THAT THE XFDTD SIMULATION IS DONE IN AIR! HERE WE DO A FIRST ORDER RESCALING
-TO A DIFFERENT INDEX OF REFRACTION by just rescaling the frequencies by f -&gt; f/n.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>path_gain: string</strong></dt><dd><p>path to gain file</p>
-</dd>
-<dt><strong>path_phases: string</strong></dt><dd><p>path to phases file</p>
-</dd>
-<dt><strong>outputfilename: string</strong></dt><dd><p>path to outputfilename</p>
-</dd>
-<dt><strong>n_index: float</strong></dt><dd><p>refractive index for requested antenna file. The method assumes that simulations are done in air (n = 1)</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.preprocess_WIPLD">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">preprocess_WIPLD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#preprocess_WIPLD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.preprocess_WIPLD" title="Permalink to this definition"></a></dt>
-<dd><p>preprocesses WIPLD file</p>
-<p>this function implements the older insufficient calculation of the vector effective length. This VEL only
-relates the incident electric field to the open circuit voltage and not the voltage in a 50 Ohm system.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>path: string</strong></dt><dd><p>path to folder containing ad1, ra1, and orientation files.</p>
-</dd>
-<dt><strong>gen_num: int</strong></dt><dd><p>which antenna (one or two) to pull from</p>
-</dd>
-<dt><strong>s_parameters: list of 2 ints</strong></dt><dd><p>determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>orientation theta: float</dt><dd><p>orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p>
-</dd>
-<dt>orientation phi: float</dt><dd><p>orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p>
-</dd>
-<dt>rotation theta: float</dt><dd><p>rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p>
-</dd>
-<dt>rotation phi: float</dt><dd><p>rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p>
-</dd>
-<dt>ff2: array of floats</dt><dd><p>array of frequencies</p>
-</dd>
-<dt>theta: float</dt><dd><p>zenith angle of inicdent electric field</p>
-</dd>
-<dt>phi: float</dt><dd><p>azimuth angle of incident electric field</p>
-</dd>
-<dt>H_phi: float</dt><dd><p>the complex vector effective length of the ePhi polarization component</p>
-</dd>
-<dt>H_theta: float</dt><dd><p>the complex vector effective length of the eTheta polarization component</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.preprocess_WIPLD_old">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">preprocess_WIPLD_old</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gen_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#preprocess_WIPLD_old"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.preprocess_WIPLD_old" title="Permalink to this definition"></a></dt>
-<dd><p>preprocesses WIPLD file</p>
-<p>this function implements the older insufficient calculation of the vector effective length. This VEL only
-relates the incident electric field to the open circuit voltage and not the voltage in a 50 Ohm system.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>path: string</strong></dt><dd><p>path to folder containing ad1, ra1, and orientation files.</p>
-</dd>
-<dt><strong>gen_num: int</strong></dt><dd><p>which antenna (one or two) to pull from</p>
-</dd>
-<dt><strong>s_parameters: list of 2 ints</strong></dt><dd><p>determines which s-parametr to extract (ex: [1,2] extracts S_12 parameter).</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>orientation theta: float</dt><dd><p>orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p>
-</dd>
-<dt>orientation phi: float</dt><dd><p>orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p>
-</dd>
-<dt>rotation theta: float</dt><dd><p>rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p>
-</dd>
-<dt>rotation phi: float</dt><dd><p>rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p>
-</dd>
-<dt>ff2: array of floats</dt><dd><p>array of frequencies</p>
-</dd>
-<dt>theta: float</dt><dd><p>zenith angle of inicdent electric field</p>
-</dd>
-<dt>phi: float</dt><dd><p>azimuth angle of incident electric field</p>
-</dd>
-<dt>H_phi: float</dt><dd><p>the complex vector effective length of the ePhi polarization component</p>
-</dd>
-<dt>H_theta: float</dt><dd><p>the complex vector effective length of the eTheta polarization component</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.preprocess_XFDTD">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">preprocess_XFDTD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#preprocess_XFDTD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.preprocess_XFDTD" title="Permalink to this definition"></a></dt>
-<dd><p>preprocess an antenna pattern in the XFDTD file format. The vector effective length is calculated and
-the output is saved to the NuRadioReco pickle format.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>path: string</strong></dt><dd><p>the path to the file</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.save_preprocessed_WIPLD">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">save_preprocessed_WIPLD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#save_preprocessed_WIPLD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.save_preprocessed_WIPLD" title="Permalink to this definition"></a></dt>
-<dd><p>saves preprocessed WIPLD files to a pickle file</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>path: string</strong></dt><dd><p>path to folder containing ad1, ra1, and orientation files.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.save_preprocessed_WIPLD_forARA">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">save_preprocessed_WIPLD_forARA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#save_preprocessed_WIPLD_forARA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.save_preprocessed_WIPLD_forARA" title="Permalink to this definition"></a></dt>
-<dd><p>this function saves the realized gain in an ARASim readable format</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>path: string</strong></dt><dd><p>path to folder containing ad1, ra1, and orientation files.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.save_preprocessed_WIPLD_old">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">save_preprocessed_WIPLD_old</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#save_preprocessed_WIPLD_old"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.save_preprocessed_WIPLD_old" title="Permalink to this definition"></a></dt>
-<dd><p>saves preprocessed WIPLD files to a pickle file</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>path: string</strong></dt><dd><p>path to folder containing ad1, ra1, and orientation files.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 </dd></dl>
 
 </section>

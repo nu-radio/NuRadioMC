@@ -7,7 +7,7 @@
   <title>NuRadioReco.modules.io.NuRadioRecoio module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -645,38 +645,13 @@ accessed through the get_detector() function</p>
 </tbody>
 </table>
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.openFile">
+<span class="sig-name descname"><span class="pre">openFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/NuRadioRecoio.html#NuRadioRecoio.openFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.openFile" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.close_files">
 <span class="sig-name descname"><span class="pre">close_files</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/NuRadioRecoio.html#NuRadioRecoio.close_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.close_files" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_detector">
-<span class="sig-name descname"><span class="pre">get_detector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/NuRadioRecoio.html#NuRadioRecoio.get_detector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_detector" title="Permalink to this definition"></a></dt>
-<dd><p>If parse_detector was set True in the __init__() function, this function return
-the detector description (assuming there is one in the files). If several
-files with different detectors are read, the detector for the last returned
-event is given.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event">
-<span class="sig-name descname"><span class="pre">get_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/NuRadioRecoio.html#NuRadioRecoio.get_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event_i">
-<span class="sig-name descname"><span class="pre">get_event_i</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_number</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/NuRadioRecoio.html#NuRadioRecoio.get_event_i"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event_i" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event_ids">
-<span class="sig-name descname"><span class="pre">get_event_ids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/NuRadioRecoio.html#NuRadioRecoio.get_event_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event_ids" title="Permalink to this definition"></a></dt>
-<dd><p>returns a list of (run, eventid) tuples of all events contained in the data file</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_events">
-<span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/NuRadioRecoio.html#NuRadioRecoio.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_events" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -690,13 +665,38 @@ event is given.</p>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_n_events">
-<span class="sig-name descname"><span class="pre">get_n_events</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/NuRadioRecoio.html#NuRadioRecoio.get_n_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_n_events" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event_ids">
+<span class="sig-name descname"><span class="pre">get_event_ids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/NuRadioRecoio.html#NuRadioRecoio.get_event_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event_ids" title="Permalink to this definition"></a></dt>
+<dd><p>returns a list of (run, eventid) tuples of all events contained in the data file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event_i">
+<span class="sig-name descname"><span class="pre">get_event_i</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_number</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/NuRadioRecoio.html#NuRadioRecoio.get_event_i"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event_i" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.openFile">
-<span class="sig-name descname"><span class="pre">openFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/NuRadioRecoio.html#NuRadioRecoio.openFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.openFile" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event">
+<span class="sig-name descname"><span class="pre">get_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/NuRadioRecoio.html#NuRadioRecoio.get_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_events">
+<span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/NuRadioRecoio.html#NuRadioRecoio.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_events" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_detector">
+<span class="sig-name descname"><span class="pre">get_detector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/NuRadioRecoio.html#NuRadioRecoio.get_detector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_detector" title="Permalink to this definition"></a></dt>
+<dd><p>If parse_detector was set True in the __init__() function, this function return
+the detector description (assuming there is one in the files). If several
+files with different detectors are read, the detector for the last returned
+event is given.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_n_events">
+<span class="sig-name descname"><span class="pre">get_n_events</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/NuRadioRecoio.html#NuRadioRecoio.get_n_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_n_events" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

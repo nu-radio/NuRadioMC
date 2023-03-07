@@ -7,7 +7,7 @@
   <title>NuRadioReco.utilities.geometryUtilities module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -576,6 +576,44 @@
   <section id="module-NuRadioReco.utilities.geometryUtilities">
 <span id="nuradioreco-utilities-geometryutilities-module"></span><h1>NuRadioReco.utilities.geometryUtilities module<a class="headerlink" href="#module-NuRadioReco.utilities.geometryUtilities" title="Permalink to this heading"></a></h1>
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.get_time_delay_from_direction">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">get_time_delay_from_direction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.000293</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#get_time_delay_from_direction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.get_time_delay_from_direction" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the time delay between given positions for an arrival direction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>zenith: float [rad]</strong></dt><dd><p>Zenith angle in convention up = 0</p>
+</dd>
+<dt><strong>azimuth: float [rad]</strong></dt><dd><p>Azimuth angle in convention East = 0, counter-clock-wise</p>
+</dd>
+<dt><strong>positions: array[N x 3]</strong></dt><dd><p>Positions on ground</p>
+</dd>
+<dt><strong>n: float (default: 1.000293)</strong></dt><dd><p>Index of reflection of propagation medium. By default, air is assumed</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.rot_z">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">rot_z</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#rot_z"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.rot_z" title="Permalink to this definition"></a></dt>
+<dd><p>Angle helper function</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.rot_x">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">rot_x</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#rot_x"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.rot_x" title="Permalink to this definition"></a></dt>
+<dd><p>Angle helper function</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.rot_y">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">rot_y</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#rot_y"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.rot_y" title="Permalink to this definition"></a></dt>
+<dd><p>Angle helper function</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.get_efield_in_spherical_coords">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">get_efield_in_spherical_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">efield</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#get_efield_in_spherical_coords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.get_efield_in_spherical_coords" title="Permalink to this definition"></a></dt>
 <dd><p>Get 3D electric field from cartesian coordinates in spherical coordinates,
@@ -586,30 +624,6 @@ using the arrival directions theta and phi</p>
 <dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.get_fresnel_angle">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">get_fresnel_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zenith_incoming</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#get_fresnel_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.get_fresnel_angle" title="Permalink to this definition"></a></dt>
 <dd><p>Apply Snell’s law for given zenith angle, when a signal travels from n1 to n2</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">get_fresnel_r_p</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zenith_incoming</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#get_fresnel_r_p"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p" title="Permalink to this definition"></a></dt>
-<dd><p>returns the coefficient r which is the ratio of the reflected wave’s
-electric field amplitude to that of the incident wave for parallel polarization (p-wave)
-this polarization corresponds to the eTheta polarization</p>
-<p>parallel and perpendicular refers to the signal’s polarization with respect
-to the ‘plane of incident’ which is defindes as: “the plane of incidence
-is the plane which contains the surface normal and the propagation vector
-of the incoming radiation.”</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">get_fresnel_r_s</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zenith_incoming</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#get_fresnel_r_s"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s" title="Permalink to this definition"></a></dt>
-<dd><p>returns the coefficient r which is the ratio of the reflected wave’s
-electric field amplitude to that of the incident wave for perpendicular polarization (s-wave)
-this polarization corresponds to the ePhi polarization</p>
-<p>parallel and perpendicular refers to the signal’s polarization with respect
-to the ‘plane of incident’ which is defindes as: “the plane of incidence
-is the plane which contains the surface normal and the propagation vector
-of the incoming radiation.”</p>
 </dd></dl>
 
 <dl class="py function">
@@ -637,41 +651,27 @@ of the incoming radiation.”</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.get_time_delay_from_direction">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">get_time_delay_from_direction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.000293</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#get_time_delay_from_direction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.get_time_delay_from_direction" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate the time delay between given positions for an arrival direction</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>zenith: float [rad]</strong></dt><dd><p>Zenith angle in convention up = 0</p>
-</dd>
-<dt><strong>azimuth: float [rad]</strong></dt><dd><p>Azimuth angle in convention East = 0, counter-clock-wise</p>
-</dd>
-<dt><strong>positions: array[N x 3]</strong></dt><dd><p>Positions on ground</p>
-</dd>
-<dt><strong>n: float (default: 1.000293)</strong></dt><dd><p>Index of reflection of propagation medium. By default, air is assumed</p>
-</dd>
-</dl>
-</dd>
-</dl>
+<dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">get_fresnel_r_p</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zenith_incoming</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#get_fresnel_r_p"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p" title="Permalink to this definition"></a></dt>
+<dd><p>returns the coefficient r which is the ratio of the reflected wave’s
+electric field amplitude to that of the incident wave for parallel polarization (p-wave)
+this polarization corresponds to the eTheta polarization</p>
+<p>parallel and perpendicular refers to the signal’s polarization with respect
+to the ‘plane of incident’ which is defindes as: “the plane of incidence
+is the plane which contains the surface normal and the propagation vector
+of the incoming radiation.”</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.rot_x">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">rot_x</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#rot_x"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.rot_x" title="Permalink to this definition"></a></dt>
-<dd><p>Angle helper function</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.rot_y">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">rot_y</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#rot_y"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.rot_y" title="Permalink to this definition"></a></dt>
-<dd><p>Angle helper function</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.rot_z">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">rot_z</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#rot_z"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.rot_z" title="Permalink to this definition"></a></dt>
-<dd><p>Angle helper function</p>
+<dt class="sig sig-object py" id="NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.geometryUtilities.</span></span><span class="sig-name descname"><span class="pre">get_fresnel_r_s</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zenith_incoming</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/geometryUtilities.html#get_fresnel_r_s"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s" title="Permalink to this definition"></a></dt>
+<dd><p>returns the coefficient r which is the ratio of the reflected wave’s
+electric field amplitude to that of the incident wave for perpendicular polarization (s-wave)
+this polarization corresponds to the ePhi polarization</p>
+<p>parallel and perpendicular refers to the signal’s polarization with respect
+to the ‘plane of incident’ which is defindes as: “the plane of incidence
+is the plane which contains the surface normal and the propagation vector
+of the incoming radiation.”</p>
 </dd></dl>
 
 </section>

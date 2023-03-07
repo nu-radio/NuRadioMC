@@ -7,7 +7,7 @@
   <title>NuRadioReco.detector.detector_sys_uncertainties module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="/home/runner/work/NuRadioMC/NuRadioMC/documentation/source/custom_scripts/styling.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -649,63 +649,6 @@ if False, the antenna model as specified in the database is used.</p>
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_antenna_orientation">
-<span class="sig-name descname"><span class="pre">get_antenna_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sys_uncertainties.html#DetectorSysUncertainties.get_antenna_orientation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_antenna_orientation" title="Permalink to this definition"></a></dt>
-<dd><p>returns the orientation of a specific antenna + a systematic offset</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
-</dd>
-<dt><strong>channel_id: int</strong></dt><dd><p>the channel id</p>
-</dd>
-<dt><strong>Returns typle of floats</strong></dt><dd><ul class="simple">
-<li><p>orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p></li>
-<li><p>orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p></li>
-<li><p>rotation theta: rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p></li>
-<li><p>rotation phi: rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p></li>
-</ul>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_relative_position">
-<span class="sig-name descname"><span class="pre">get_relative_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sys_uncertainties.html#DetectorSysUncertainties.get_relative_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_relative_position" title="Permalink to this definition"></a></dt>
-<dd><p>returns the orientation of a specific antenna + a systematic offset</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
-</dd>
-<dt><strong>channel_id: int</strong></dt><dd><p>the channel id</p>
-</dd>
-<dt><strong>Returns tuple of floats</strong></dt><dd><ul class="simple">
-<li><p>x-position of antenna</p></li>
-<li><p>y-position of antenna</p></li>
-<li><p>z-position of antenna</p></li>
-</ul>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.reset_antenna_orientation_offsets">
-<span class="sig-name descname"><span class="pre">reset_antenna_orientation_offsets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sys_uncertainties.html#DetectorSysUncertainties.reset_antenna_orientation_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.reset_antenna_orientation_offsets" title="Permalink to this definition"></a></dt>
-<dd><p>resets all previously set antenna orientation offsets</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.reset_antenna_position_offsets">
-<span class="sig-name descname"><span class="pre">reset_antenna_position_offsets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sys_uncertainties.html#DetectorSysUncertainties.reset_antenna_position_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.reset_antenna_position_offsets" title="Permalink to this definition"></a></dt>
-<dd><p>resets all previously set antenna position offsets</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.set_antenna_orientation_offsets">
 <span class="sig-name descname"><span class="pre">set_antenna_orientation_offsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ori_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ori_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rot_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rot_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sys_uncertainties.html#DetectorSysUncertainties.set_antenna_orientation_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.set_antenna_orientation_offsets" title="Permalink to this definition"></a></dt>
 <dd><p>sets a systematic offset for the antenna orientation</p>
@@ -730,6 +673,35 @@ if False, the antenna model as specified in the database is used.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.reset_antenna_orientation_offsets">
+<span class="sig-name descname"><span class="pre">reset_antenna_orientation_offsets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sys_uncertainties.html#DetectorSysUncertainties.reset_antenna_orientation_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.reset_antenna_orientation_offsets" title="Permalink to this definition"></a></dt>
+<dd><p>resets all previously set antenna orientation offsets</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_antenna_orientation">
+<span class="sig-name descname"><span class="pre">get_antenna_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sys_uncertainties.html#DetectorSysUncertainties.get_antenna_orientation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_antenna_orientation" title="Permalink to this definition"></a></dt>
+<dd><p>returns the orientation of a specific antenna + a systematic offset</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
+</dd>
+<dt><strong>channel_id: int</strong></dt><dd><p>the channel id</p>
+</dd>
+<dt><strong>Returns typle of floats</strong></dt><dd><ul class="simple">
+<li><p>orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p></li>
+<li><p>orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry</p></li>
+<li><p>rotation theta: rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p></li>
+<li><p>rotation phi: rotation of the antenna, is perpendicular to ‘orientation’, for LPDAs: vector perpendicular to the plane containing the the tines</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.set_antenna_position_offsets">
 <span class="sig-name descname"><span class="pre">set_antenna_position_offsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sys_uncertainties.html#DetectorSysUncertainties.set_antenna_position_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.set_antenna_position_offsets" title="Permalink to this definition"></a></dt>
 <dd><p>sets a systematic offset for the antenna position</p>
@@ -745,6 +717,34 @@ if False, the antenna model as specified in the database is used.</p>
 <dt><strong>station_id: int or None</strong></dt><dd><p>the station id, if None offset will be applied to all stations/channels</p>
 </dd>
 <dt><strong>channel_id: int or None</strong></dt><dd><p>the channel id, if None offset will be applied to all channels</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.reset_antenna_position_offsets">
+<span class="sig-name descname"><span class="pre">reset_antenna_position_offsets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sys_uncertainties.html#DetectorSysUncertainties.reset_antenna_position_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.reset_antenna_position_offsets" title="Permalink to this definition"></a></dt>
+<dd><p>resets all previously set antenna position offsets</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_relative_position">
+<span class="sig-name descname"><span class="pre">get_relative_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/detector_sys_uncertainties.html#DetectorSysUncertainties.get_relative_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.detector_sys_uncertainties.DetectorSysUncertainties.get_relative_position" title="Permalink to this definition"></a></dt>
+<dd><p>returns the orientation of a specific antenna + a systematic offset</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>station_id: int</strong></dt><dd><p>the station id</p>
+</dd>
+<dt><strong>channel_id: int</strong></dt><dd><p>the channel id</p>
+</dd>
+<dt><strong>Returns tuple of floats</strong></dt><dd><ul class="simple">
+<li><p>x-position of antenna</p></li>
+<li><p>y-position of antenna</p></li>
+<li><p>z-position of antenna</p></li>
+</ul>
 </dd>
 </dl>
 </dd>
