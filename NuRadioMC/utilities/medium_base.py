@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
+from scipy import integrate, linalg
 from NuRadioReco.utilities import units
 import logging
 logging.basicConfig()
@@ -36,6 +37,7 @@ class IceModel():
         self.reflection = None
         self.reflection_coefficient = None
         self.reflection_phase_shift = None
+        self._ice_model_radiopropa = None
 
     def add_reflective_bottom(self, refl_z, refl_coef, refl_phase_shift):
         """
@@ -93,8 +95,18 @@ class IceModel():
         n_average:  float
                     averaged index of refraction between the two points
         """
-        logger.error('function not defined')
-        raise NotImplementedError('function not defined')
+        logger.warning('Using general implementation of function which might be slow. For faster calculation, overwrite with an ice model specific function')
+
+        def get_index_of_refraction(x,y,z):
+            pos = np.array([x,y,z])
+            return self.get_index_of_refraction(pos)
+
+        ranges = [[position1[0],position2[0]],
+                  [position1[1],position2[1]],
+                  [position1[2],position2[2]]]
+        int_result = integrate.nquad(get_index_of_refraction,ranges)
+        n_average = int_result[0] / linalg.norm(position2-position1)
+        return n_average
 
     def get_gradient_of_index_of_refraction(self, position):
         """
@@ -115,20 +127,74 @@ class IceModel():
         raise NotImplementedError('function not defined')
 
     
-    def get_ice_model_radiopropa(self):
+    def _compute_default_ice_model_radiopropa(self):
         """
-        if radiopropa is installed this will a RadioPropaIceWrapper object
-        which can then be used to insert in the radiopropa tracer
+        Computes a default object holding the radiopropa scalarfield and necessary radiopropa 
+        moduldes that define the medium in radiopropa. It uses the parameters of the medium 
+        object to contruct some modules, like a discontinuity object for the air boundary. 
+        Additional modules can be added in this function
 
+        This is the default and should always be overriden/implemented in new ice model!
+
+
+        Returns
+        -------
+        ice_model_radiopropa:   RadioPropaIceWrapper
+                                object holding the radiopropa scalarfield and modules
         """
-        if radiopropa_is_imported:
-            # when implementing a new ice_model this part of the function should be ice model specific
-            # if the new ice_model cannot be used in RadioPropa, this function should throw an error
-            logger.error('function not defined')
-            raise NotImplementedError('function not defined')
-        else:
+        if not radiopropa_is_imported:
             logger.error('The radiopropa dependancy was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('RadioPropa could not be imported')
+
+        # when implementing a new ice_model this part of the function should be ice model specific
+        # if the new ice_model cannot be used in RadioPropa, this function should throw an error
+        logger.error('function not defined')
+        raise NotImplementedError('function not defined')
+
+    def get_ice_model_radiopropa(self):
+        """
+        Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
+        that define the medium in radiopropa. If no specific model is set by the user it returns
+        the default implemented model using the '_compute_default_ice_model_radiopropa' function.
+
+        This seperation allows having the posibility to set a more specific/adjusted radiopropa 
+        ice model in case they need it, without losing the access to the default model. 
+
+        DO NOT OVERRIDE THIS FUNCTION
+
+        Returns
+        -------
+        ice:    RadioPropaIceWrapper
+                object holding the radiopropa scalarfield and modules
+        """
+        if not radiopropa_is_imported:
+            logger.error('The radiopropa dependancy was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
+            raise ImportError('RadioPropa could not be imported')
+
+        if self._ice_model_radiopropa is None:
+            self._ice_model_radiopropa = self._compute_default_ice_model_radiopropa()
+        
+        return self._ice_model_radiopropa
+
+    def set_ice_model_radiopropa(self, ice_model_radiopropa):
+        """
+        If radiopropa is installed, this function can be used
+        to set a specific RadioPropaIceWrapper object as the
+        ice model used for RadioPropa.
+
+        DO NOT OVERRIDE THIS FUNCTION
+
+        Parameters
+        ----------
+        ice_model_radioprop:    RadioPropaIceWrapper
+                                object holding the radiopropa scalarfield and modules
+
+        """
+        if not radiopropa_is_imported:
+            logger.error('The radiopropa dependancy was not import and can therefore not be used. \nMore info on https://github.com/nu-radio/RadioPropa')
+            raise ImportError('RadioPropa could not be imported')
+
+        self._ice_model_radiopropa = ice_model_radiopropa
 
 
 class IceModelSimple(IceModel):
@@ -185,18 +251,25 @@ class IceModelSimple(IceModel):
 
         Parameters
         ----------
-        position:  3dim np.array
-                    point
+        position:  1D (3,) or 2D (n,3) numpy array
+                    Either one position or an array
+                    of positions for which the indices
+                    of refraction are returned
 
         Returns
         -------
-        n:  float
+        n:  float or 1D numpy array (n,)
             index of refraction
         """
-        if (position[2] - self.z_air_boundary) <=0:
-            return self.n_ice - self.delta_n * np.exp((position[2] - self.z_shift) / self.z_0)
+        if isinstance(position, list) or position.ndim == 1:
+            if (position[2] - self.z_air_boundary) <= 0:
+                return self.n_ice - self.delta_n * np.exp((position[2] - self.z_shift) / self.z_0)
+            else:
+                return 1
         else:
-            return 1
+            ior = self.n_ice - self.delta_n * np.exp((position[:, 2] - self.z_shift) / self.z_0)
+            ior[position[:, 2] >= 0] = 1.
+            return ior
 
     def get_average_index_of_refraction(self, position1, position2):
         """
@@ -205,21 +278,43 @@ class IceModelSimple(IceModel):
 
         Parameters
         ----------
-        position1: 3dim np.array
-                    point
-        position2: 3dim np.array
-                    point
+        position1: 1D (3,) or 2D (n,3) numpy array
+                    Either one position or an array
+                    of positions for which the indices
+                    of average refraction are returned
+        position2: 1D (3,) or 2D (n,3) numpy array
+                    Either one position or an array
+                    of positions for which the indices
+                    of average refraction are returned
 
         Returns
         -------
-        n_average:  float
+        n_average:  float of 1D numpy array (n,)
                     averaged index of refraction between the two points
         """
-        if ((position1[2] - self.z_air_boundary) <=0) and ((position2[2] - self.z_air_boundary) <=0):
-            return (self.n_ice - self.delta_n * self.z_0 / (position2[2] - position1[2]) 
-                    * (np.exp((position2[2]-self.z_shift) / self.z_0) - np.exp((position1[2]-self.z_shift) / self.z_0)))
+
+        def exp_average(z_max, z_min):
+            return (self.n_ice - self.delta_n * self.z_0 / (z_max - z_min) 
+                    * (np.exp((z_max-self.z_shift) / self.z_0) - np.exp((z_min-self.z_shift) / self.z_0)))
+
+        if (isinstance(position1, list) or position1.ndim == 1) and (isinstance(position2, list) or position2.ndim == 1):
+            zmax = max(position1[2], position2[2])
+            zmin = min(position1[2], position2[2])
+            if ((zmax - self.z_air_boundary) <=0):
+                return exp_average(zmax, zmin)
+            elif ((zmin - self.z_air_boundary) <=0):
+                n1 = exp_average(self.z_air_boundary, zmin)
+                n2 = 1
+                return (n1 * (self.z_air_boundary - zmin) + n2 * (zmax - self.z_air_boundary)) / (zmax - zmin)
+            else:
+                return 1
         else:
-            return None
+            if all((position1[:,2] - self.z_air_boundary) <= 0) and all((position2[:,2] - self.z_air_boundary) <= 0):
+                return exp_average(position1[:,2], position2[:,2])
+            elif all((position1[:,2] - self.z_air_boundary) > 0) and all((position2[:,2] - self.z_air_boundary) > 0):
+                return np.ones_like(position1[:,2])
+            else:
+                raise NotImplementedError('function cannot handle averages accros boundary when using arrays of positions.')
 
     def get_gradient_of_index_of_refraction(self, position):
         """
@@ -228,26 +323,37 @@ class IceModelSimple(IceModel):
 
         Parameters
         ----------
-        position: 3dim np.array
-                    point
+        position: 1D or 2D numpy array
+                    Either one position or an array
+                    of positions for which the gradient
+                    of index of refraction is returned
 
         Returns
         -------
-        n_nabla:    (3,) np.array
+        n_nabla:    1D (3,) or 2D (n,3) numpy array 
                     gradient of index of refraction at the point
         """
-        gradient = np.array([0., 0., 0.])
-        if (position[2] - self.z_air_boundary) <=0:
-            gradient[2] = -self.delta_n / self.z_0 * np.exp((position[2] - self.z_shift) / self.z_0)
+        def gradient_z(z):
+            return -self.delta_n / self.z_0 * np.exp((z - self.z_shift) / self.z_0)
+
+        if (isinstance(position, list) or position.ndim == 1):
+            gradient = np.array([0,0,0])
+            if (position[2] - self.z_air_boundary) <= 0:
+                gradient[2] = gradient_z(position[2])
+        else:
+            gradient = gradient_z(position[:,2])
+            gradient[position[:, 2] >= 0] = 0
+            gradient = np.stack((np.zeros_like(gradient),np.zeros_like(gradient),gradient),axis=1)
+        
         return gradient
 
-    def get_ice_model_radiopropa(self):
+    def _compute_default_ice_model_radiopropa(self):
         """
-        If radiopropa is installed this will return an object holding the radiopropa
-        scalarfield and necessary radiopropa moduldes that define the medium in radiopropa. 
-        It uses the parameters of the medium object to contruct the scalar field using the 
-        simple ice model implementation in radiopropa and some modules, like a discontinuity 
-        object for the air boundary
+        If radiopropa is installed this will compute and return a default object holding the 
+        radiopropa scalarfield and necessary radiopropa moduldes that define the medium in 
+        radiopropa. It uses the parameters of the medium object to contruct the scalar field 
+        using the simple ice model implementation in radiopropa and some modules, like a 
+        discontinuity object for the air boundary.
         
         Overwrites function of the mother class
 
@@ -256,16 +362,17 @@ class IceModelSimple(IceModel):
         ice:    RadioPropaIceWrapper
                 object holding the radiopropa scalarfield and modules
         """
-        if radiopropa_is_imported:
-            scalar_field = RP.IceModel_Simple(z_surface=self.z_air_boundary*RP.meter/units.meter, 
-                                            n_ice=self.n_ice, delta_n=self.delta_n, 
-                                            z_0=self.z_0*RP.meter/units.meter,
-                                            z_shift=self.z_shift*RP.meter/units.meter)
-            return RadioPropaIceWrapper(self, scalar_field)
-        else:
+        if not radiopropa_is_imported:
             logger.error('The radiopropa dependency was not import and can therefore not be used.'
                         +'\nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('RadioPropa could not be imported')
+
+        scalar_field = RP.IceModel_Simple(z_surface=self.z_air_boundary*RP.meter/units.meter, 
+                                        n_ice=self.n_ice, delta_n=self.delta_n, 
+                                        z_0=self.z_0*RP.meter/units.meter,
+                                        z_shift=self.z_shift*RP.meter/units.meter)
+        return RadioPropaIceWrapper(self, scalar_field)
+            
 
 
 

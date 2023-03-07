@@ -41,7 +41,7 @@ class channelSignalReconstructor:
     ):
         """
         Parameters
-        -----------
+        ----------
         debug: bool
             Set module to debug output
         signal_window_start: float or None
@@ -65,7 +65,7 @@ class channelSignalReconstructor:
     def get_SNR(self, station_id, channel, det, stored_noise=False, rms_stage=None):
         """
         Parameters
-        -----------
+        ----------
         station_id: int
             ID of the station
         channel, det
@@ -76,7 +76,7 @@ class channelSignalReconstructor:
             See functionality of det.get_noise_RMS
 
         Returns
-        ----------
+        -------
         SNR: dict
             dictionary of various SNR parameters
         """
@@ -157,7 +157,7 @@ class channelSignalReconstructor:
     def run(self, evt, station, det, stored_noise=False, rms_stage='amp'):
         """
         Parameters
-        -----------
+        ----------
         evt, station, det
             Event, Station, Detector
         stored_noise: bool

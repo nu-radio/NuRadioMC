@@ -43,8 +43,12 @@ for model in models:
         #plt.plot(tt, trace, color=col_dict[E], label=label, linestyle=linestyle[model])
         plt.loglog(freqs, np.abs(spectrum) / units.V * units.MHz, color=col_dict[E], label=label, linestyle=linestyle[model])
 
+for key, value in linestyle.items():
+    plt.plot(np.nan, np.nan, color="k", label=key, linestyle=value)
+ 
 #plt.xlabel('Time [ns]')
 plt.xlabel('Frequency [GHz]')
 plt.ylabel('Electric field [V/MHz]')
-plt.legend()
-plt.show()
+plt.legend(ncol=2)
+plt.ylim(1e-7, None)
+plt.savefig("plots/T05.png")
