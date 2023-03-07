@@ -556,11 +556,19 @@ class ray_tracing_2D(ray_tracing_base):
             self.__logger.debug(f"calculating attenuation for frequencies {freqs}")
             return freqs
 
-    def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq, reflection=0, reflection_case=1):
-        tmp_attenuation = None
+
+    def get_attenuation_along_path(self, x1, x2, C_0, frequency, max_detector_freq, 
+                                   reflection=0, reflection_case=1):
+        
+        attenuation = np.ones_like(frequency)
+
         output = f"calculating attenuation for n_ref = {int(reflection):d}: "
-        for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, reflection_case)):
-            if(iS == 0 and reflection_case == 2):  # we can only integrate upward going rays, so if the ray starts downwardgoing, we need to mirror
+        for iS, segment in enumerate(self.get_path_segments(x1, x2, C_0, reflection, 
+                                                            reflection_case)):
+            
+            # we can only integrate upward going rays, so if the ray starts downwardgoing, 
+            # we need to mirror
+            if iS == 0 and reflection_case == 2: 
                 x11, x1, x22, x2, C_0, C_1 = segment
                 x1t = copy.copy(x11)
                 x2t = copy.copy(x2)
@@ -570,17 +578,20 @@ class ray_tracing_2D(ray_tracing_base):
                 x1 = x1t
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
-
-            if(cpp_available):
+                
+            if cpp_available:
                 mask = frequency > 0
                 freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
                 tmp = np.zeros_like(freqs)
                 for i, f in enumerate(freqs):
                     tmp[i] = wrapper.get_attenuation_along_path(
-                        x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n, self.medium.z_0, self.attenuation_model_int)
+                        x1, x2, C_0, f, self.medium.n_ice, self.medium.delta_n, 
+                        self.medium.z_0, self.attenuation_model_int)
+                
                 self.__logger.debug(tmp)
-                attenuation = np.ones_like(frequency)
-                attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
+                tmp_attenuation = np.ones_like(frequency)
+                tmp_attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
+            
             else:
 
                 x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
@@ -588,31 +599,34 @@ class ray_tracing_2D(ray_tracing_base):
                 def dt(t, C_0, frequency):
                     z = self.get_z_unmirrored(t, C_0)
                     return self.ds(t, C_0) / attenuation_util.get_attenuation_length(z, frequency, self.attenuation_model)
-
+                
                 # to speed up things we only calculate the attenuation for a few frequencies
                 # and interpolate linearly between them
                 mask = frequency > 0
                 freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
                 gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
                 points = None
-                if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
+                if x1[1] < z_turn and z_turn < x2_mirrored[1]:
                     points = [z_turn]
-                tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(
+                
+                attenuation_exp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(
                     C_0, f), epsrel=1e-2, points=points)[0] for f in freqs])
-                tmp = np.exp(-1 * tmp)
-        #         tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in frequency[mask]])
-                attenuation = np.ones_like(frequency)
-                attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
+                tmp = np.exp(-1 * attenuation_exp)
+                # tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in frequency[mask]])
+                
+                tmp_attenuation = np.ones_like(frequency)
+                tmp_attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
                 self.__logger.info("calculating attenuation from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) =  a factor {}".format(
-                    x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / attenuation))
+                    x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], 1 / tmp_attenuation))
+            
             iF = len(frequency) // 3
-            output += f"adding attenuation for path segment {iS:d} -> {attenuation[iF]:.2g} at {frequency[iF]/units.MHz:.0f} MHz, "
-            if(tmp_attenuation is None):
-                tmp_attenuation = attenuation
-            else:
-                tmp_attenuation *= attenuation
+            output += f"adding attenuation for path segment {iS:d} -> {tmp_attenuation[iF]:.2g} at {frequency[iF]/units.MHz:.0f} MHz, "
+            
+            attenuation *= tmp_attenuation
+        
         self.__logger.info(output)
-        return tmp_attenuation
+        return attenuation
+
 
     def get_path_segments(self, x1, x2, C_0, reflection=0, reflection_case=1):
         """
