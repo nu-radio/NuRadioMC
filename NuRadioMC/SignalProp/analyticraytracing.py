@@ -15,7 +15,6 @@ from NuRadioMC.utilities import attenuation as attenuation_util
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
-
 import logging
 logging.basicConfig()
 
@@ -45,6 +44,20 @@ except:
 analytic ray tracing solution
 """
 speed_of_light = scipy.constants.c * units.m / units.s
+
+
+def get_n_steps(x1, x2, dx):
+    """ Returns number of segments necessary for width to be approx dx """
+    return max(int(abs(x1 - x2) // dx), 3)
+
+
+def get_segments(x1, x2, dx):
+    """ Returns equi.dist. segments (np.linspace). Choose number of segments such that
+        width of segments is approx. dx
+    """
+    if x1 == x2:
+        return [x1]
+    return np.linspace(x1, x2, get_n_steps(x1, x2, dx))
 
 
 @lru_cache(maxsize=32)
@@ -104,6 +117,7 @@ class ray_tracing_2D(ray_tracing_base):
         self.__logger.setLevel(log_level)
         self.__n_frequencies_integration = n_frequencies_integration
         self.__use_optimized_start_values = use_optimized_start_values
+        
 
     def n(self, z):
         """
@@ -214,6 +228,7 @@ class ray_tracing_2D(ray_tracing_base):
         """
         derivative dy(z)/dz
         """
+
         z = self.get_z_unmirrored(z_raw, C_0)
         c = self.medium.n_ice ** 2 - C_0 ** -2
         B = (0.2e1 * np.sqrt(c) * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n **
@@ -605,14 +620,81 @@ class ray_tracing_2D(ray_tracing_base):
                 mask = frequency > 0
                 freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
                 gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-                points = None
-                if x1[1] < z_turn and z_turn < x2_mirrored[1]:
-                    points = [z_turn]
-                
-                attenuation_exp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(
-                    C_0, f), epsrel=1e-2, points=points)[0] for f in freqs])
+
+                if self.attenuation_model == "GL3":
+                    # The integration of the attenuation factor along the path with scipy.quad is inefficient. The 
+                    # reason for this is that attenuation profile is varying a lot with depth. Hence, to improve
+                    # performance we sum over discrete segments with loss of some accuracy. 
+                    # However, when a path becomes to horizontal (i.e., at the turning point of an refracted ray)
+                    # the calculation via a discrete sum becomes to inaccurate. This is because we describe the
+                    # path as a function of dz (vertical distance) and have the sum over discrete bins in dz. To avoid that
+                    # we fall back to a numerical integration with scipy.quad only around the turning point. However, instead 
+                    # of integrating over dt (the exponent of the attenuation factor), we integrate only over ds (the path length)
+                    # and evaluate the attenuation (as function of depth and frequency) for the central depth of this segment 
+                    # (because this is what takes time)
+
+                    # define the width of the vertical (!) segments over which we sum. 
+                    # Since we use linspace the actual width will differ slightly
+                    dx = 10
+                    # define the vertical window around a turning point within we will fall back to a numerical integration
+                    int_window_size = 20
+                    
+                    # Check if a turning point "z_turn" is within our ray path or close to it (i.e., right behind the antenna)
+                    # if so we need to fallback to numerical integration
+                    fallback = False
+                    if x1[1] - int_window_size / 2 < z_turn and z_turn < x2_mirrored[1] + int_window_size / 2:
+                        fallback = True
+                        
+                    if fallback:
+                        # If we need the fallback, make sure that the turning point is in the middle of a segment (unless it is at
+                        # the edge of a path). Otherwise the segment next to the turning point will be inaccurate
+                        int_window = [max(x1[1], z_turn - int_window_size / 2), 
+                                      min(z_turn + int_window_size / 2, x2_mirrored[1])]
+
+                        # Merge two arrays which start and stop at int_window (and thus include it). The width might be slightly different
+                        segments = np.append(get_segments(x1[1], int_window[0], dx), get_segments(int_window[1], x2_mirrored[1], dx))
+                    else:
+                        segments = get_segments(x1[1], x2_mirrored[1], dx)
+                    
+                    # get the actual width of each segment and their center
+                    dx_actuals = np.diff(segments)
+                    mid_points = segments[:-1] + dx_actuals / 2
+
+                    # calculate attenuation for the different segments using the middle depth of the segment
+                    attenuation_exp_tmp = np.array(
+                        [[dt(x, C_0, f) * dx_actual for x, dx_actual in zip(mid_points, dx_actuals)]
+                        for f in freqs])
+
+                    if fallback:
+                        # for the segment around z_turn fall back to integration. We only integrate ds (and not dt) for performance reasons
+
+                        # find segment which contains z_turn
+                        idx = np.digitize(z_turn, segments) - 1
+                        
+                        # if z_turn is outside of segments
+                        if idx == len(segments) - 1:
+                            idx -= 1
+                        elif idx == -1:
+                            idx = 0
+                        
+                        att_int = np.array(
+                            [integrate.quad(self.ds, segments[idx], segments[idx + 1], args=(C_0), epsrel=1e-2, points=[z_turn])[0] /
+                            attenuation_util.get_attenuation_length(z_turn, f, self.attenuation_model) for f in freqs])
+                            
+                        attenuation_exp_tmp[:, idx] = att_int
+                    
+                    # sum over all segments
+                    attenuation_exp = np.sum(attenuation_exp_tmp, axis=1)
+
+                else:
+                    points = None
+                    if x1[1] < z_turn and z_turn < x2_mirrored[1]:
+                        points = [z_turn]
+                    
+                    attenuation_exp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(
+                        C_0, f), epsrel=1e-2, points=points)[0] for f in freqs])
+
                 tmp = np.exp(-1 * attenuation_exp)
-                # tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in frequency[mask]])
                 
                 tmp_attenuation = np.ones_like(frequency)
                 tmp_attenuation[mask] = np.interp(frequency[mask], freqs, tmp)
