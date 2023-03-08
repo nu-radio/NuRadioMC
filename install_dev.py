@@ -83,6 +83,10 @@ def convert_poetry_to_pip(reqs):
                 req = 'git+{}'.format(version['git'])
                 if 'branch' in version:
                     req+='@{}'.format(version['branch'])
+                elif 'rev' in version:
+                    req+='@{}'.format(version['rev'])
+                elif 'tag' in version:
+                    req+='@{}'.format(version['tag'])
             if 'version' in version:
                 version = version['version']
             else:
