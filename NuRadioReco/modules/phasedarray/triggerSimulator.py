@@ -569,7 +569,7 @@ class triggerSimulator:
             #trigger_time(s)= time(s) from start of trace + start time of trace with respect to moment of first interaction = trigger time from moment of first interaction; time offset to interaction time (channel_trace_start_time) already recognized in self.phased_trigger
             trigger.set_trigger_time(trigger_time)# 
             trigger.set_trigger_times(trigger_times)
-	else:
+        else:
             trigger.set_trigger_time(None)
 
         station.set_trigger(trigger)
