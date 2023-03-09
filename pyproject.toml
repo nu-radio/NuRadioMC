@@ -46,7 +46,7 @@ numba = "*"
 Sphinx = "*"
 sphinx-rtd-theme = "*"
 numpydoc = "1.1.0"
-proposal = {git = "https://github.com/tudo-astroparticlephysics/PROPOSAL.git", rev="b95628a"}
+proposal = "7.5.1"
 pygdsm = {git = "https://github.com/telegraphic/pygdsm"}
 nifty5 = {git = "https://gitlab.mpcdf.mpg.de/ift/nifty.git", branch="NIFTy_5"}
 pypocketfft = {git = "https://gitlab.mpcdf.mpg.de/mtr/pypocketfft"}
