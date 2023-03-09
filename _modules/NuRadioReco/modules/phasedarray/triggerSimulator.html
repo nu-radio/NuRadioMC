@@ -903,9 +903,9 @@
 <span class="sd">            the delays for the primary channels that have caused a trigger.</span>
 <span class="sd">            If there is no trigger, it&#39;s an empty dictionary</span>
 <span class="sd">        trigger_time: float</span>
-<span class="sd">            the earliest trigger time</span>
+<span class="sd">            the earliest trigger time with respect to first interaction time.</span>
 <span class="sd">        trigger_times: dictionary</span>
-<span class="sd">            all time bins that fulfil the trigger condition per beam. The key is the beam number.</span>
+<span class="sd">            all time bins that fulfil the trigger condition per beam. The key is the beam number. Time with respect to first interaction time.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span><span class="p">(</span><span class="n">triggered_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
@@ -1134,9 +1134,10 @@
                                       <span class="n">primary_angles</span><span class="o">=</span><span class="n">phasing_angles</span><span class="p">,</span> <span class="n">trigger_delays</span><span class="o">=</span><span class="n">trigger_delays</span><span class="p">)</span>
 
         <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">(</span><span class="n">is_triggered</span><span class="p">)</span>
-
+        
         <span class="k">if</span> <span class="n">is_triggered</span><span class="p">:</span>
-            <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="n">trigger_time</span><span class="p">)</span>
+            <span class="c1">#trigger_time(s)= time(s) from start of trace + start time of trace with respect to moment of first interaction = trigger time from moment of first interaction; time offset to interaction time (channel_trace_start_time) already recognized in self.phased_trigger</span>
+            <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="n">trigger_time</span><span class="p">)</span><span class="c1"># </span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_times</span><span class="p">(</span><span class="n">trigger_times</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>

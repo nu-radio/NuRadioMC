@@ -753,7 +753,7 @@
 
         <span class="k">if</span> <span class="n">has_triggered</span><span class="p">:</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="n">triggered_times</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">channel_trace_start_time</span><span class="p">)</span>  <span class="c1"># trigger_time = time from the beginning of the trace</span>
+            <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="n">triggered_times</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">+</span><span class="n">channel_trace_start_time</span><span class="p">)</span>  <span class="c1"># trigger_time = time from moment of first interaction</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;station has triggered&quot;</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
