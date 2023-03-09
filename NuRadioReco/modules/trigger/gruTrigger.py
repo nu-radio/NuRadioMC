@@ -95,7 +95,7 @@ class triggerSimulator:
         self._model.eval()
 
     @register_run()
-    def run(self, evt, station, threshold, tot_bins, triggered_channels, vrms_per_channel, trigger_name="default_gru_trigger"):
+    def run(self, evt, station, det, threshold, tot_bins, triggered_channels, vrms_per_channel, trigger_name="default_gru_trigger"):
         """
         Applies the GRU to the waveforms and calculates TOT condition on the output
 
@@ -105,6 +105,8 @@ class triggerSimulator:
             argument needs to be included for the `run` decorator, but is not used
         station: Station
             station to run the module on
+        det: Detector 
+            detector instance
         threshold: float
             threshold value for the TOT calculation on the GRU output values
         tot_bins: int
