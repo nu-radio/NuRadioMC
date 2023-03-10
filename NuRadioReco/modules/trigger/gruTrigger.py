@@ -40,7 +40,9 @@ def CalculateTimeOverThresholdIntervals(threshold, tot_bins, amplitudes):
         intervals = intervals[np.subtract(*intervals.T) <= -tot_bins]
     elif isinstance(amplitudes, torch.Tensor):
         # Calculate intervals over which the values are above threshold
-        intervals = torch.where(torch.diff(amplitudes.squeeze() > threshold, prepend=torch.Tensor([0]), append=torch.Tensor([0])))[0].reshape(-1, 2)
+        intervals = torch.where(
+            torch.diff(amplitudes.squeeze() > threshold, prepend=torch.Tensor([0]), append=torch.Tensor([0]))
+        )[0].reshape(-1, 2)
         # Select only those which are long enough
         intervals = intervals[torch.subtract(*intervals.T) <= -tot_bins].cpu().numpy()
     else:
@@ -95,7 +97,9 @@ class triggerSimulator:
         self._model.eval()
 
     @register_run()
-    def run(self, evt, station, det, threshold, tot_bins, triggered_channels, vrms_per_channel, trigger_name="default_gru_trigger"):
+    def run(
+        self, evt, station, det, threshold, tot_bins, triggered_channels, vrms_per_channel, trigger_name="default_gru_trigger"
+    ):
         """
         Applies the GRU to the waveforms and calculates TOT condition on the output
 
@@ -105,7 +109,7 @@ class triggerSimulator:
             argument needs to be included for the `run` decorator, but is not used
         station: Station
             station to run the module on
-        det: Detector 
+        det: Detector
             detector instance
         threshold: float
             threshold value for the TOT calculation on the GRU output values
@@ -164,7 +168,9 @@ class triggerSimulator:
             # Small safety loop to make sure that the channels start at the same t0
             ch_start_time = channel.get_trace_start_time()
             if start_time is not None and ch_start_time != start_time:
-                self.logger.warning(f"Channel {channel_id} has a trace_start_time that differs from the other channels. The trigger simulator may not work properly")
+                self.logger.warning(
+                    f"Channel {channel_id} has a trace_start_time that differs from the other channels. The trigger simulator may not work properly"
+                )
             start_time = ch_start_time
 
         if ipred != len(triggered_channels):
@@ -181,17 +187,21 @@ class triggerSimulator:
 
         # Run the network a few times on this data to build up the hidden state
         if self.__h is None:
-            n_warmup = 10
-            self.logger.info(f"[{trigger_name}] Running one time warmup of the GRU on the passed in waveforms. Will process this waveform {n_warmup} times")
-            self.__h = self._model.init_hidden()
-            for i in range(n_warmup):  # Do a little warm up to get the hidden state built up
-                yhat, self.__h = self._model(torch_tensor.to(self._device), self.__h)
+            with torch.no_grad():
+                n_warmup = 10
+                self.logger.info(
+                    f"[{trigger_name}] Running one time warmup of the GRU on the passed in waveforms. Will process this waveform {n_warmup} times"
+                )
+                self.__h = self._model.init_hidden()
+                for i in range(n_warmup):  # Do a little warm up to get the hidden state built up
+                    yhat, self.__h = self._model(torch_tensor.to(self._device), self.__h)
 
         # Apply the network to this event's data and calculate TOT on the output
-        yhat, self.__h = self._model(torch_tensor.to(self._device), self.__h)
-        tot_intervals = CalculateTimeOverThresholdIntervals(threshold, tot_bins, yhat.cpu())
-        has_triggered = len(tot_intervals) > 0  # Any number of tot passings constitute a global success for this waveform
-        self.logger.debug(f"[{trigger_name}] Found {len(tot_intervals)} instances of the trigger being passed")
+        with torch.no_grad():
+            yhat, self.__h = self._model(torch_tensor.to(self._device), self.__h)
+            tot_intervals = CalculateTimeOverThresholdIntervals(threshold, tot_bins, yhat.cpu())
+            has_triggered = len(tot_intervals) > 0  # Any number of tot passings constitute a global success for this waveform
+            self.logger.debug(f"[{trigger_name}] Found {len(tot_intervals)} instances of the trigger being passed")
 
         # Set the trigger results and times
         trigger = TimeOverThresholdTrigger(trigger_name, threshold, tot_bins, channels=triggered_channels)
