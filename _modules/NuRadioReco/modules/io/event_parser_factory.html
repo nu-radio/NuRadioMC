@@ -696,8 +696,11 @@
             <span class="k">return</span> <span class="n">scan_files_2_0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">scan_files_2_2</span>
+    <span class="k">elif</span> <span class="n">version_major</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;File version is </span><span class="si">{</span><span class="n">version_major</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">version_major</span><span class="si">}</span><span class="s1"> which might indicate the file is empty&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;File version </span><span class="si">{}</span><span class="s1">.</span><span class="si">{}</span><span class="s1"> is not supported. Major version needs to be 2 but is </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">version_major</span><span class="p">,</span> <span class="n">version_minor</span><span class="p">,</span> <span class="n">version_major</span><span class="p">))</span></div>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;File version </span><span class="si">{}</span><span class="s1">.</span><span class="si">{}</span><span class="s1"> is not supported. Major version needs to be 2 but is </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">version_major</span><span class="p">,</span> <span class="n">version_minor</span><span class="p">,</span> <span class="n">version_major</span><span class="p">))</span></div>
+
 
 
 <div class="viewcode-block" id="iter_events_function"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.event_parser_factory.html#NuRadioReco.modules.io.event_parser_factory.iter_events_function">[docs]</a><span class="k">def</span> <span class="nf">iter_events_function</span><span class="p">(</span><span class="n">version_major</span><span class="p">,</span> <span class="n">version_minor</span><span class="p">):</span>
@@ -755,6 +758,8 @@
             <span class="k">return</span> <span class="n">iter_events_2_0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">iter_events_2_2</span>
+    <span class="k">elif</span> <span class="n">version_major</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;File version is </span><span class="si">{</span><span class="n">version_major</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">version_major</span><span class="si">}</span><span class="s1"> which might indicate the file is empty&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;File version </span><span class="si">{}</span><span class="s1">.</span><span class="si">{}</span><span class="s1"> is not supported. Major version needs to be 2 but is </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">version_major</span><span class="p">,</span> <span class="n">version_minor</span><span class="p">,</span> <span class="n">version_major</span><span class="p">))</span></div>
 </pre></div>
