@@ -6,7 +6,7 @@ import glob
 import os
 import sys
 from NuRadioReco.modules.io import NuRadioRecoio
-logger = logging.getLogger('noiseImporter')
+logger = logging.getLogger('noiseImporterARIANNA')
 
 
 class noiseImporter:
