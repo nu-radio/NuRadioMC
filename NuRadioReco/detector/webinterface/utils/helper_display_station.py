@@ -22,7 +22,6 @@ det = Detector(database_connection=config.DATABASE_TARGET)
 
 
 def build_station_selection(cont, collection_name):
-    # selection of the collection from which the station will be displayed
     # selection of the station which will be displayed
     station_names = det.get_object_names(collection_name)
     station_ids = det.get_station_ids(collection_name)

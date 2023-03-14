@@ -83,14 +83,14 @@ def build_device_position_page(main_cont):
             x_pos_dev1 = col1_pos.text_input('x position', key='x_dev1', value=default_dev_pos1[0])
             y_pos_dev1 = col2_pos.text_input('y position', key='y_dev1', value=default_dev_pos1[1])
             z_pos_dev1 = col3_pos.text_input('z position', key='z_dev1', value=default_dev_pos1[2])
-            position1 = [x_pos_dev1, y_pos_dev1, z_pos_dev1]
+            position1 = [float(x_pos_dev1), float(y_pos_dev1), float(z_pos_dev1)]
 
             main_cont.markdown('Second measurement point:')
             col11_pos, col21_pos, col31_pos = main_cont.columns([1, 1, 1])
             x_pos_dev2 = col11_pos.text_input('x position', key='x_dev2', value=default_dev_pos2[0])
             y_pos_dev2 = col21_pos.text_input('y position', key='y_dev2', value=default_dev_pos2[1])
             z_pos_dev2 = col31_pos.text_input('z position', key='z_dev2', value=default_dev_pos2[2])
-            position2 = [x_pos_dev2, y_pos_dev2, z_pos_dev2]
+            position2 = [float(x_pos_dev2), float(y_pos_dev2), float(z_pos_dev2)]
             position = [position1, position2]
         else:
             default_dev_pos = [0, 0, 0]
@@ -101,7 +101,7 @@ def build_device_position_page(main_cont):
             x_pos_ant = col1_pos.text_input('x position', key='x_antenna', value=default_dev_pos[0])
             y_pos_ant = col2_pos.text_input('y position', key='y_antenna', value=default_dev_pos[1])
             z_pos_ant = col3_pos.text_input('z position', key='z_antenna', value=default_dev_pos[2])
-            position = [x_pos_ant, y_pos_ant, z_pos_ant]
+            position = [float(x_pos_ant), float(y_pos_ant), float(z_pos_ant)]
 
             # input the orientation, rotation of the antenna; if the channel already exist, insert the values from the database
             col1a, col2a, col3a, col4a = main_cont.columns([1, 1, 1, 1])
@@ -109,8 +109,8 @@ def build_device_position_page(main_cont):
             ant_ori_phi = col2a.text_input('orientation (phi):', value=default_ori['phi'])
             ant_rot_theta = col3a.text_input('rotation (theta):', value=default_rot['theta'])
             ant_rot_phi = col4a.text_input('rotation (phi):', value=default_rot['phi'])
-            ori = {'theta': ant_ori_theta, 'phi': ant_ori_phi}
-            rot = {'theta': ant_rot_theta, 'phi': ant_rot_phi}
+            ori = {'theta': float(ant_ori_theta), 'phi': float(ant_ori_phi)}
+            rot = {'theta': float(ant_rot_theta), 'phi': float(ant_rot_phi)}
 
     # container for warnings/infos at the botton
     cont_warning_bottom = main_cont.container()
