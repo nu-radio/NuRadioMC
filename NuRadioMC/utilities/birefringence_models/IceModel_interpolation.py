@@ -11,7 +11,6 @@ from NuRadioMC.utilities import medium
 from NuRadioMC.utilities.medium import southpole_2015
 from NuRadioReco.utilities import units
 import logging
-from sklearn.feature_selection.tests.test_from_model import test_allow_nan_tag_comes_from_estimator
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('raytracing')

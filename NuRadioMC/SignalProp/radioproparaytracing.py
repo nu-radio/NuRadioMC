@@ -9,6 +9,8 @@ import NuRadioReco.utilities.geometryUtilities
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
+from NuRadioMC.SignalProp import analyticraytracing as ana
+from NuRadioMC.utilities import medium
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
 import radiopropa
 import scipy.constants 
@@ -391,7 +393,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         self.__xtol = xtol
         self.__ztol = ztol
 
-    def raytracer_birefringence(self, launch_v, efield, s_rate, n_reflections=0):
+    def raytracer_birefringence(self, launch_v, spec, s_rate):
 
         """
         Uses RadioPropa propagate an electric field through the correct solution of the ray path. To use add to the config.yaml file:
@@ -399,6 +401,23 @@ class radiopropa_ray_tracing(ray_tracing_base):
             module: radiopropa
             ice_model: southpole_2015
             birefringence: True
+
+        Parameters
+        ----------
+        launch_v    (3d array)
+            launch vector calculated by a previous analytical or numerical ray tracing algorithm
+
+        spec        (numpy array)
+            frequency spectrum of the electric field
+
+        s_rate      (float)
+            sampling rate of the electric field
+
+        
+        Output
+        ------
+        spec        (numpy array)
+            modified frequency spectrum of the electric field
         """
         
         try:
@@ -411,39 +430,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
         v = (self._X2 - self._X1)
         u = copy.deepcopy(v)
         u[2] = 0
-        theta_direct, phi_direct = hp.cartesian_to_spherical(*v) # zenith and azimuth for the direct linear ray solution (radians)
-        cherenkov_angle = np.arccos(1. / self._medium.get_index_of_refraction(self._X1))
-        
-        sphere_size = 50 * (radiopropa.meter/units.meter)
-        
 
-        if np.linalg.norm(u) != 0:
-            delta_theta = 2*abs(self.delta_theta_direct(dz=self._sphere_sizes[0]))
-        else:
-            delta_theta = self._step_sizes[0]/units.radian
-            
-        """
-        if n_reflections > 0:
-            if self.medium.reflection is None:
-                self.__logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested,"
-                                    +"but ice model does not specify a reflective layer".format(n_reflections))
-                raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested,"
-                                    +"but ice model does not specify a reflective layer".format(n_reflections))
-            else:
-                z_refl = self._medium.reflection
-                rho_channel = np.linalg.norm(u)
-                if self._X2[2] > self._X1[2]: 
-                    z_up = self._X2[2]
-                    z_down = self._X1[2]
-                else:
-                    z_up = self._X1[2]
-                    z_down = self._X2[2]
-                rho_bottom = (rho_channel * (z_refl - z_down)) / (2*z_refl - z_up - z_down)
-                alpha = np.arctan((z_down - z_refl)/rho_bottom)
-                ## when reflection on the bottom are allowed, a initial region for theta from 180-alpha to 180 degrees is added
-                launch_lower.append(((np.pi/2 + alpha) - 2*abs(self.delta_theta_bottom(dz=self._sphere_sizes[0], z_refl=z_refl) / units.radian)))
-                launch_upper.append(np.pi)
-        """
+        sphere_size = 0.5 * (radiopropa.meter/units.meter)
 
         ##define module list for simulation
         sim = radiopropa.ModuleList()
@@ -468,24 +456,41 @@ class radiopropa_ray_tracing(ray_tracing_base):
         boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0, 0, 1*radiopropa.meter), radiopropa.Vector3d(0, 0, 1)))
         obs2.add(boundary_above_surface)
         sim.add(obs2)
-        
-        """
-        #create total scanning range from the upper and lower thetas of the bundles
-        step = self._step_zeniths[s] / units.radian
-        theta_scanning_range = np.array([])
-        for iL in range(len(launch_lower)):
-            new_scanning_range = np.arange(launch_lower[iL], launch_upper[iL]+step, step)
-            theta_scanning_range = np.concatenate((theta_scanning_range, new_scanning_range))
-        """
 
+        ## define electric field
+        spec_r_real = radiopropa.DoubleVector_1D()
+        spec_theta_real = radiopropa.DoubleVector_1D()
+        spec_phi_real = radiopropa.DoubleVector_1D()
+        spec_r_imag = radiopropa.DoubleVector_1D()
+        spec_theta_imag = radiopropa.DoubleVector_1D()
+        spec_phi_imag = radiopropa.DoubleVector_1D()
+
+        for i in range(len(spec[0])):
+            spec_r_real.push_back(spec[0][i].real)
+            spec_theta_real.push_back(spec[1][i].real)
+            spec_phi_real.push_back(spec[2][i].real)
+            spec_r_imag.push_back(spec[0][i].imag)
+            spec_theta_imag.push_back(spec[1][i].imag)
+            spec_phi_imag.push_back(spec[2][i].imag)
+
+        efield = radiopropa.ElectricField()
+
+        efield.setFrequencySpectrum(spec_r_real,spec_r_imag,
+                    spec_theta_real,spec_theta_imag,
+                    spec_phi_real,spec_phi_imag,
+                    s_rate)
+
+        ## define source
         source = radiopropa.Source()
         source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*X1)))
         source.add(radiopropa.SourceDirection(radiopropa.Vector3d(*launch_v)))
         source.add(radiopropa.SourceElectricField(efield))
         
+        ## run simulation
         ray = source.getCandidate()
         sim.run(ray, True)
 
+        ## extract electric field
         R_real = ray.get().current.getElectricField().getTraces()[0].getFrequencySpectrum_real()
         R_imag = ray.get().current.getElectricField().getTraces()[0].getFrequencySpectrum_imag()
         Th_real = ray.get().current.getElectricField().getTraces()[1].getFrequencySpectrum_real()
@@ -780,6 +785,35 @@ class radiopropa_ray_tracing(ray_tracing_base):
             solution_type = solution_types_revert['direct']
 
         return solution_type
+    
+    def get_launch_vector_analytic(self, iS, ref_index_model ='southpole_2015'):
+        """
+        calculates the launch vector (in 3D) of solution iS (of the analytical ray tracer)
+
+        Parameters
+        ----------
+        iS: int
+            choose for which solution to compute the launch vector, 
+            counting starts at zero
+        ref_index_model:
+            choose the ice model for the analytic ray tracer
+            southpole_2015
+
+        Returns
+        -------
+        launch_vector: np.array of shape (3,)
+            the launch vector
+
+        """
+        ice = medium.get_ice_model(ref_index_model)
+        ana_rays = ana.ray_tracing(ice)
+
+        ana_rays.set_start_and_end_point(self._X1, self._X2)
+        ana_rays.find_solutions()
+
+        launch_vector = ana_rays.get_launch_vector(iS)
+
+        return launch_vector/np.linalg.norm(launch_vector)
 
     def get_launch_vector(self, iS):
         """
@@ -1174,32 +1208,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
         # apply the birefringence effect
         if self._config['propagation']['birefringence']:
-        
             launch_v = self.get_launch_vector(i_solution)
-
-            spec_r_real = radiopropa.DoubleVector_1D()
-            spec_theta_real = radiopropa.DoubleVector_1D()
-            spec_phi_real = radiopropa.DoubleVector_1D()
-            spec_r_imag = radiopropa.DoubleVector_1D()
-            spec_theta_imag = radiopropa.DoubleVector_1D()
-            spec_phi_imag = radiopropa.DoubleVector_1D()
-
-            for i in range(len(spec[0])):
-                spec_r_real.push_back(spec[0][i].real)
-                spec_theta_real.push_back(spec[1][i].real)
-                spec_phi_real.push_back(spec[2][i].real)
-                spec_r_imag.push_back(spec[0][i].imag)
-                spec_theta_imag.push_back(spec[1][i].imag)
-                spec_phi_imag.push_back(spec[2][i].imag)
-
-            El_field = radiopropa.ElectricField()
-
-            El_field.setFrequencySpectrum(spec_r_real,spec_r_imag,
-					   spec_theta_real,spec_theta_imag,
-					   spec_phi_real,spec_phi_imag,
-					   s_rate)
-
-            spec = self.raytracer_birefringence(launch_v, El_field, s_rate)
+            spec = self.raytracer_birefringence(launch_v, spec, s_rate)
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
