@@ -21,10 +21,10 @@ new features:
 - adding minimize mode to the radiopropa propagation module & more configurable settings in config file
 - add uniform ice model with 1.78 refractive index
 - update ARA detector description and add a file to Print ARA detector json file
+- pass evt_time to sim station
 bugfixes:
 - fix bug in NuRadioProposal which pervented muons from tau decays to be propagated
 - update proposal version to 6.1.8 to avoid problems with pypi
-
 
 version 2.1.6
 bugfixes:
