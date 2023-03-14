@@ -1073,11 +1073,13 @@ class Detector(object):
 
         # insert the new station
         self.db[collection].insert_one({'id': station_id,
-                                    'name': station_name,
-                                    'commission_time': commission_time,
-                                    'decommission_time': decommission_time,
-                                    'station_comment': station_comment
-                                    })
+                                        'name': station_name,
+                                        'commission_time': commission_time,
+                                        'decommission_time': decommission_time,
+                                        'station_comment': station_comment,
+                                        'channels': [],
+                                        'devices': []
+                                        })
 
     def decommission_a_channel(self, collection, station_id, channel_id, decomm_time):
         """

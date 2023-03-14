@@ -176,7 +176,7 @@ def build_main_page(input_cont, selected_input_option):
         x_pos_ant = col1_pos.text_input('x position', key='x_antenna', value=default_position[0])
         y_pos_ant = col2_pos.text_input('y position', key='y_antenna', value=default_position[1])
         z_pos_ant = col3_pos.text_input('z position', key='z_antenna', value=default_position[2])
-        position = [x_pos_ant, y_pos_ant, z_pos_ant]
+        position = [float(x_pos_ant), float(y_pos_ant), float(z_pos_ant)]
 
         # input the orientation, rotation of the antenna; if the channel already exist, insert the values from the database
         col1a, col2a, col3a, col4a = cont.columns([1, 1, 1, 1])
