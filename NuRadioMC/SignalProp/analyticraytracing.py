@@ -14,6 +14,7 @@ except ImportError:
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
 
+
 #from NuRadioMC.utilities.medium import birefringence_index
 from NuRadioMC.utilities.medium import birefringence_medium
 
@@ -1578,6 +1579,7 @@ class ray_tracing(ray_tracing_base):
                 * self._config['propagation']['attenuate_ice'] = True
                 * self._config['propagation']['focusing_limit'] = 2
                 * self._config['propagation']['focusing'] = False
+                * self._config['propagation']['birefringence'] = False
 
         detector: detector object
         """
@@ -1769,6 +1771,9 @@ class ray_tracing(ray_tracing_base):
         n1 = np.sqrt((-2*nx**2*ny**2*nz**2)/(ny**2*nz**2*(-1 + sx**2) + nx**2*(nz**2*(-1 + sy**2) + ny**2*(-1 + sz**2)) - np.sqrt(4*nx**2*ny**2*nz**2*(nz**2*(-1 + sx**2 + sy**2) + ny**2*(-1 + sx**2 + sz**2) + nx**2*(-1 + sy**2 + sz**2)) + (ny**2*nz**2*(-1 + sx**2) + nx**2*(nz**2*(-1 + sy**2) + ny**2*(-1 + sz**2)))**2)))
         n2 = np.sqrt((-2*nx**2*ny**2*nz**2)/(ny**2*nz**2*(-1 + sx**2) + nx**2*(nz**2*(-1 + sy**2) + ny**2*(-1 + sz**2)) + np.sqrt(4*nx**2*ny**2*nz**2*(nz**2*(-1 + sx**2 + sy**2) + ny**2*(-1 + sx**2 + sz**2) + nx**2*(-1 + sy**2 + sz**2)) + (ny**2*nz**2*(-1 + sx**2) + nx**2*(nz**2*(-1 + sy**2) + ny**2*(-1 + sz**2)))**2)))
 
+
+
+
         return(n1, n2)
 
     def get_polarization(self, n, direction, nx, ny, nz, rounding=1e-08):
@@ -1916,6 +1921,10 @@ class ray_tracing(ray_tracing_base):
 
             t_0.append(len_diff * n_0 / c)
             t_1.append(len_diff * n_1 / c)
+
+            l = open("ana_l.txt","a+")
+            l.write(str(len_diff) + "\n")
+            l.close()
 
         Dt = np.sum(t_0) - np.sum(t_1)
 
@@ -2130,9 +2139,9 @@ class ray_tracing(ray_tracing_base):
             
             c = polar_theta1[i]
             d = polar_phi1[i]
-            
+
             if np.isclose(a*d - b*c, 0) or np.isnan([a, b, c, d]).any():
-                self.__logger.error("warning: Polarization vectors similar, R-matrix not invertible, iteration" + str(i))
+                self.__logger.warning("warning: Polarization vectors similar, R-matrix not invertible, iteration" + str(i))
                 
                 R = np.matrix([[1, 0], [0, 1]])
                 time_shift = 0
@@ -2488,6 +2497,8 @@ class ray_tracing(ray_tracing_base):
         """
         s_rate = efield.get_sampling_rate()
         spec = efield.get_frequency_spectrum()
+
+        
         apply_attenuation = self._config['propagation']['attenuate_ice']
         if apply_attenuation:
             if self._max_detector_frequency is None:
@@ -2529,10 +2540,23 @@ class ray_tracing(ray_tracing_base):
         if self._config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
             spec[1:] *= focusing
-
+        
         # apply the birefringence effect
         if self._config['propagation']['birefringence']:
-            spec = self.get_pulse_trace_fast(self._source, self._antenna, spec, path_type=i_solution, samp_rate = s_rate)
+        
+            try:
+                #use ice model: southpole_2015
+                from NuRadioMC.SignalProp import radioproparaytracing
+                launch_v = self.get_launch_vector(i_solution)
+                radiopropa_rays = radioproparaytracing.radiopropa_ray_tracing(self._medium)
+                radiopropa_rays.set_start_and_end_point(self._source,self._antenna)
+                spec = radiopropa_rays.raytracer_birefringence(launch_v, spec, s_rate)
+
+            except:
+                #use ice model: birefringence_medium
+                #this might run faster if you install radiopropa
+                spec = self.get_pulse_trace_fast(self._source, self._antenna, spec, path_type=i_solution, samp_rate = s_rate)
+
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
         return efield
@@ -2553,5 +2577,6 @@ class ray_tracing(ray_tracing_base):
             self._config['propagation']['focusing_limit'] = 2
             self._config['propagation']['focusing'] = False
             self._config['propagation']['birefringence'] = False
+
         else:
             self._config = config
