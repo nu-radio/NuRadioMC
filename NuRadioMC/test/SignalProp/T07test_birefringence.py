@@ -15,7 +15,7 @@ logger = logging.getLogger('test_raytracing')
 this unit test checks the output of the birefringence calculations
 """
 
-ice = medium.birefringence_medium(bir_model='southpole_A', exp_model=medium.southpole_2015())
+ice = medium.birefringence_medium(bir_model='A', exp_model=medium.southpole_2015())
 
 np.random.seed(42)  # set seed to have reproducible results
 n_events = int(10)
