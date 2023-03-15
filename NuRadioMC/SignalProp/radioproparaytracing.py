@@ -394,7 +394,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
         self.__ztol = ztol
 
     def raytracer_birefringence(self, launch_v, spec, s_rate):
-
         """
         Uses RadioPropa propagate an electric field through the correct solution of the ray path. To use add to the config.yaml file:
         propagation:
@@ -412,14 +411,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
         s_rate      (float)
             sampling rate of the electric field
-
-        
-        Output
-        ------
-        spec        (numpy array)
-            modified frequency spectrum of the electric field
         """
-        
         try:
             X1 = self._X1 * (radiopropa.meter/units.meter)
             X2 = self._X2 * (radiopropa.meter/units.meter)
@@ -446,7 +438,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         channel = radiopropa.ObserverSurface(radiopropa.Sphere(radiopropa.Vector3d(*X2), sphere_size)) ## when making the radius larger than 2 meters, somethimes three solution times are found
         obs.add(channel)
         sim.add(obs)
-        
+
         ## define observer for stopping simulation (boundaries)
         obs2 = radiopropa.Observer()
         obs2.setDeactivateOnDetection(True)
@@ -485,7 +477,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*X1)))
         source.add(radiopropa.SourceDirection(radiopropa.Vector3d(*launch_v)))
         source.add(radiopropa.SourceElectricField(efield))
-        
+
         ## run simulation
         ray = source.getCandidate()
         sim.run(ray, True)
@@ -497,7 +489,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         Th_imag = ray.get().current.getElectricField().getTraces()[1].getFrequencySpectrum_imag()
         Ph_real = ray.get().current.getElectricField().getTraces()[2].getFrequencySpectrum_real()
         Ph_imag = ray.get().current.getElectricField().getTraces()[2].getFrequencySpectrum_imag()
-
+        
         Radius = np.vectorize(complex)(R_real, R_imag)
         Th = np.vectorize(complex)(Th_real, Th_imag)
         Ph = np.vectorize(complex)(Ph_real, Ph_imag)
@@ -578,7 +570,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             return delta_z(cot_theta)**2
         
         t1 = time.time()
-        #we minimize the cotangens of the zenith to reflect the same resolution in z to the different angles (vertical vs horizontal) 
+        #we minimize the cotangens of the zenith to reflect the same resolution in z to the different angles (vertical vs horizontal)
         root1 = optimize.minimize(delta_z_squared,x0=cot(theta_direct),method='Nelder-Mead',options={'xatol':self.__xtol**2,'fatol':self.__ztol**2})
         t2 = time.time()
         if root1.success:# and np.sqrt(root1.fun) < 1e-2*units.meter:
