@@ -60,6 +60,7 @@ def FC_limits(counts):
     """
     Returns the 68% confidence belt for a number of counts, using the
     Feldman-Cousins method.
+    Published in Phys. Rev. D 57, 3873, DOI 10.1103/PhysRevD.57.3873 
 
     Parameters
     ----------
@@ -99,7 +100,7 @@ def FC_limits(counts):
                     4.25,
                     5.30,
                     6.78,
-                    7, 81,
+                    7.81,
                     9.28,
                     10.30,
                     11.32,
