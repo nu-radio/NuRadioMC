@@ -1,10 +1,8 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import time
 from numpy import testing
 from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
-from NuRadioReco.utilities import io_utilities, units
+from NuRadioReco.utilities import units
 from NuRadioReco.framework import base_trace
 import logging
 from scipy.spatial.tests.test_qhull import points
@@ -33,7 +31,6 @@ points = np.array([xx, yy, zz]).T
 x_receiver = np.array([0., 0., -5.])
 
 stamps = 200000
-
 
 T_start = -50
 T_final = 50
@@ -70,11 +67,9 @@ for iX, x in enumerate(points):
     r = ray.ray_tracing(ice)
     r.set_start_and_end_point(x, x_receiver)
     r.find_solutions()
-    if(r.has_solution()):
+    if r.has_solution():
         for iS in range(r.get_number_of_solutions()):
-
             final_pulse = r.get_pulse_trace_fast(x, x_receiver, 'test_pulse.npy', path_type=iS)
-
             results_theta = np.vstack((results_theta, final_pulse[2]))
             results_phi = np.vstack((results_phi, final_pulse[2]))
 
@@ -83,4 +78,3 @@ reference_array = np.load('reference_birefringence.npy')
 
 testing.assert_allclose(compare_array, reference_array, atol=1e-2  * units.V / units.m, rtol=1e-10)
 print('T07test_birefringence passed without issues')
-

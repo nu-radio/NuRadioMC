@@ -2071,15 +2071,15 @@ class ray_tracing(ray_tracing_base):
                                     [1] - eTheta (np.array) - final frequency spectrum of the theta componentnt
                                     [2] - ePhi (np.array) - final frequency spectrum of the phi component
         """
-        
+
         t_slow = base_trace.BaseTrace()
         t_fast = base_trace.BaseTrace()
-        
+
         t_theta = base_trace.BaseTrace()
         t_phi = base_trace.BaseTrace()
-        
+
         f_spectrum = base_trace.BaseTrace()
-        
+
         if type(pulse) == str:
             style = 'single pulse'
             
@@ -2092,7 +2092,7 @@ class ray_tracing(ray_tracing_base):
             
             t_theta.set_trace(etheta, sampling_rate=1/dt)
             t_phi.set_trace(ephi, sampling_rate=1/dt)
-            
+
         elif type(pulse) == np.ndarray:
             style = 'simulation pulse'
             
@@ -2105,33 +2105,33 @@ class ray_tracing(ray_tracing_base):
             
             t_theta.set_trace(etheta, sampling_rate=samp_rate)
             t_phi.set_trace(ephi, sampling_rate=samp_rate)
-            
+
         else:
             self.__logger.error("error: wrong data type")
-            
+
         TT = t_theta.get_times()
-        
+
         shift = TT[t_theta.get_trace() == max(t_theta.get_trace())]
-        
+
         t_theta.set_trace_start_time(-shift)
         t_phi.set_trace_start_time(-shift)
-        
+
         TT = t_theta.get_times()
-        
+
         time_delay_short = self.get_birefringence_time_delay(source, antenna, path_type=path_type, acc=acc)
         polar_short = self.get_path_polarization(source, antenna, path_type=path_type, acc=acc)
-        
+
         polar_theta0 = polar_short[0][:, 1]
         polar_phi0 = polar_short[0][:, 2]
-        
+
         polar_theta1 = polar_short[1][:, 1]
         polar_phi1 = polar_short[1][:, 2]
-        
+
         diff = time_delay_short[2] - time_delay_short[1]
-        
+
         start_theta = t_theta.get_trace()
         start_phi = t_phi.get_trace()
-        
+
         for i in range(len(diff)):
             
             a = polar_theta0[i]
@@ -2145,11 +2145,11 @@ class ray_tracing(ray_tracing_base):
                 
                 R = np.matrix([[1, 0], [0, 1]])
                 time_shift = 0
-                
+            
             else:
                 R = np.matrix([[a, b], [c, d]])
                 time_shift = diff[i]
-                
+            
             th = t_theta.get_frequency_spectrum()
             ph = t_phi.get_frequency_spectrum()
             t_slow.set_frequency_spectrum(th * R[0, 0] + ph * R[0, 1], sampling_rate=1 / dt)
@@ -2163,7 +2163,7 @@ class ray_tracing(ray_tracing_base):
             sl = t_slow.get_frequency_spectrum()
             t_theta.set_frequency_spectrum(sl * Rinv[0, 0] + fa * Rinv[0, 1], sampling_rate=1 / dt)
             t_phi.set_frequency_spectrum(sl * Rinv[1, 0] + fa * Rinv[1, 1], sampling_rate=1 / dt)
-            
+        
         end_theta = t_theta.get_trace()
         end_phi = t_phi.get_trace()
         
@@ -2173,11 +2173,11 @@ class ray_tracing(ray_tracing_base):
         if style == 'single pulse':
             t_delay = TT[h_th == max(h_th)] - TT[h_ph == max(h_ph)]
             return(start_theta, start_phi, end_theta, end_phi, TT, t_delay)
-            
+        
         elif style == 'simulation pulse':
             el_field = np.vstack((f_spectrum.get_frequency_spectrum()[0], t_theta.get_frequency_spectrum(), t_phi.get_frequency_spectrum()))
             return el_field
-            
+    
     def get_launch_vector(self, iS):
         """
         calculates the launch vector (in 3D) of solution iS
