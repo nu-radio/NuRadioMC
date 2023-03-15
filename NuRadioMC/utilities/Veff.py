@@ -114,6 +114,7 @@ def FC_limits(counts):
                     20.80,
                     21.81,
                     22.82,
+                    23.82,
                     25.30]
 
     if counts > count_list[-1]:
