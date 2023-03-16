@@ -55,7 +55,7 @@ def build_main_page(main_cont):
         link = ""
         description = ""
 
-    quality_link = main_cont.text_input("Link to documentation of quality check", value=link, placeholder="provide link to wiki (github?)")
+    quality_link = main_cont.text_input("Link to documentation of quality check", value=link, placeholder="provide link to wiki (or RNO-G github)")
     quality_description = main_cont.text_area("Short description of quality check", value=description, placeholder="provide a short description")
     
     if quality_name and quality_link and quality_description:
