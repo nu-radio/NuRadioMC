@@ -9,9 +9,24 @@ from NuRadioReco.detector.webinterface.utils.helper_runTable import get_firmware
 from NuRadioReco.utilities import units
 from datetime import datetime, timedelta
 from datetime import time
+from rnog_data.runtable import RUN_TYPES
+from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
 
 page_name = 'runTable'
 
+def color_survived(val):
+    if val==0:
+        color = "red"
+        return f'color: {color}'
+    else:
+        return ''
+
+def color_livetime(val):
+    if val > 7100:
+        color = "green"
+        return f'color: {color}'
+    else:
+        return ''
 
 def delete_cache():
     st.experimental_memo.clear()
@@ -41,47 +56,82 @@ def build_firmware_select(cont):
 
 def build_main_page(main_cont):
     main_cont.title('Summary of data runs transferred from Greenland:')
-    main_cont.markdown(page_name)
-    main_cont.subheader('main settings')
+    #main_cont.markdown(page_name)
+    main_cont.subheader('Main pre-selection settings')
     selected_station = build_station_selection(main_cont)
+    possible_flags = [rt.value for rt in RUN_TYPES]
+    selected_flags = main_cont.multiselect('Select one/multiple run types:',possible_flags, default=possible_flags, key='flags')
     main_cont.markdown('**Select a time range:**')
     col_start1, col_start2, col_end1, col_end2 = main_cont.columns([1,1,1,1])
-    start_date = col_start1.date_input('Start time:', value=datetime.utcnow()-timedelta(days=14), key='start_date')
+    start_date = col_start1.date_input('Start time:', value=datetime.utcnow()-timedelta(days=14), min_value=datetime(1969,1,1), key='start_date')
     start_time = col_start2.time_input('Start time:', value=time(0, 0, 0), label_visibility='hidden', key='start_time')
     start_date = datetime.combine(start_date, start_time)
     end_date = col_end1.date_input('End time:', value=datetime.utcnow(), key='end_date')
     end_time = col_end2.time_input('End time:', value=time(0, 0, 0), label_visibility='hidden', key='end_time')
     end_date = datetime.combine(end_date, end_time)
-    possible_flags = ['calibration', 'physics', 'high_rate', 'daq_issue']
-    selected_flags = main_cont.multiselect('Select one/multiple quality flags:',possible_flags, default=possible_flags, key='flags')
-    main_cont.subheader('secondary settings')
-    col_1, col_2, col_3 = main_cont.columns([1,1,1])
-    possible_trigger = ['rf0', 'rf1', 'ext', 'pps', 'soft']
-    trigger = col_1.multiselect('Select which trigger are enabled:', possible_trigger, default=possible_trigger, key='trigger')
-    duration = col_2.number_input('Select the minimal run duration (min):', min_value=0.0, max_value=120.0, key='duration')
-    duration = duration * units.minute
-    firmware = build_firmware_select(col_3)
+    #main_cont.subheader('secondary settings')
+    #col_1, col_2, col_3 = main_cont.columns([1,1,1])
+    #possible_trigger = ['rf0', 'rf1', 'ext', 'pps', 'soft']
+    #trigger = col_1.multiselect('Select which trigger are enabled:', possible_trigger, default=possible_trigger, key='trigger')
+    #duration = col_2.number_input('Select the minimal run duration (min):', min_value=0.0, max_value=120.0, key='duration')
+    #duration = duration * units.minute
+    #firmware = build_firmware_select(col_3)
+
+
+    newnames = {
+        'trigger_rf0_enabled': "RF0",
+        'trigger_rf1_enabled': "RF1",
+        'trigger_ext_enabled': "PA",
+        'trigger_pps_enabled': "PPS",
+        'trigger_soft_enabled': "soft"}
 
     # load all fitting runs into the cache
     #@st.experimental_memo
     def load_run_data_into_cache():
-        run_info = load_runs(selected_station, start_date, end_date, selected_flags, trigger, duration, firmware)
-        run_info = run_info.drop(labels=['_id', 'path'], axis=1)
-        run_info = run_info.rename(columns={'trigger_rf0_enabled': 'rf0', 'trigger_rf1_enabled': 'rf1', 'trigger_ext_enabled': 'ext', 'trigger_pps_enabled': 'pps', 'trigger_soft_enabled': 'soft'})
-  
+        run_info = load_runs(selected_station, start_date, end_date, selected_flags)
+        run_info = run_info.drop(labels=['_id', 'path', 'quality_flag', 'quality_comment'], axis=1) # TODO remove quality_flag and quality_comment globally from DB
+        run_info = run_info.rename(columns=newnames)
+        run_info.insert(0, 'run_type', run_info.pop('run_type'))
         return run_info
 
     # display them as a df
 
     run_df = load_run_data_into_cache()
 
-    def highlight_cols(s):
-        color = 'yellow'
-        return 'background-color: %s' % color
+    gb = GridOptionsBuilder.from_dataframe(run_df)
+    gb.configure_default_column(enablePivot=True, enableValue=True, enableRowGroup=True, hide=True)
+    gb.configure_selection(selection_mode="multiple", use_checkbox=True)
+    use_columns = ['run_type', 'station', 'run', 'time_start', 'duration', 'trigger_rate', 'daq_config_comment', 'checks_failed'] #'RF0', 'RF1', 'PA', 'PPS', 'soft', 'n_events_recorded'
 
-    main_cont.dataframe(run_df.style.applymap(highlight_cols, subset=pd.IndexSlice[:, ['station']]), use_container_width=True)
+    gb.configure_columns(use_columns, hide=False)
+    gb.configure_side_bar()
+    gridoptions = gb.build()
 
-    main_cont.download_button('DOWNLOAD TABLE AS CSV', run_df.to_csv(), file_name='runtable_data.csv', mime='text/csv')
+
+    with main_cont:
+        response = AgGrid(
+            run_df,
+            height=600,
+            width="100%",
+            gridOptions=gridoptions,
+            enable_enterprise_modules=False,#True,
+            update_mode=GridUpdateMode.MODEL_CHANGED|GridUpdateMode.VALUE_CHANGED|GridUpdateMode.SELECTION_CHANGED,
+            data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
+            fit_columns_on_grid_load=False,
+            header_checkbox_selection_filtered_only=True,
+            use_checkbox=True)
+        st.write("(If no table is displayed, toggle text size (using 'cmd' +  '+/-') ... sorry, still trying to fix this :)")
+
+    v = response['selected_rows'] 
+    if v:
+        outdf = pd.DataFrame(v)
+        #outdf.insert(2, 'checks_failed', outdf.pop('checks_failed'))
+        outdf = outdf.drop(labels=["_selectedRowNodeInfo"], axis=1)
+        styler = outdf.style.applymap(color_livetime, subset=pd.IndexSlice[:, ['duration']])
+        styler.applymap(color_survived, subset=["RF0","RF1", "PA", "PPS", "soft"])
+        main_cont.dataframe(styler, use_container_width=True)
+
+        main_cont.download_button('DOWNLOAD TABLE AS CSV', outdf.to_csv(), file_name='runtable_data.csv', mime='text/csv')
 
 
 # main page setup

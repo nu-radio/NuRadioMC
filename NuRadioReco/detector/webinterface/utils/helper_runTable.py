@@ -10,17 +10,23 @@ from NuRadioReco.detector.webinterface import config
 from datetime import datetime
 from datetime import time
 
+from rnog_data.runtable import RunTable
+runtab = RunTable()
 #det = Detector(config.DATABASE_TARGET)
-det = Detector(database_connection=config.DATABASE_TARGET)
+#det = Detector(database_connection=config.DATABASE_TARGET)
 
 def get_station_ids_from_db():
-    return det.get_quantity_names('runtable', 'station')
+    return runtab.get_quantity_names('runtable', 'station')
 
 
 def get_firmware_from_db():
-    return det.get_quantity_names('runtable', 'firmware_version')
+    return runtab.get_quantity_names('runtable', 'firmware_version')
 
 
-def load_runs(station_list, start_time, end_time, flag_list, trigger_list, min_duration, firmware_list):
-    results = det.get_runs(station_list, start_time, end_time, flag_list, trigger_list, min_duration, firmware_list)
+def load_runs(station_list, start_time, end_time, flag_list):
+    results = runtab.get_runs(station_list, start_time, end_time, flag_list)
+    try:
+        results = runtab.add_quality_flags(results)
+    except:
+        pass
     return results
