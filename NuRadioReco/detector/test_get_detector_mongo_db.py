@@ -1,4 +1,4 @@
-import NuRadioReco.detector.detector_mongo
+import NuRadioReco.detector.db_mongo
 import argparse
 import datetime
 
@@ -8,7 +8,7 @@ if __name__ == "__main__":
                         help='the time to evaluate the DB')
     args = parser.parse_args()
 
-    det = NuRadioReco.detector.detector_mongo.Detector()
+    det = NuRadioReco.detector.db_mongo.Database()
     if args.timestamp is not None:
         det_time = datetime.datetime.strptime(args.timestamp, "%Y-%m-%d")
     else:
