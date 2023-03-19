@@ -13,12 +13,12 @@ import numpy as np
 import pandas as pd
 from NuRadioReco.utilities import units
 import NuRadioReco.utilities.metaclasses
-from NuRadioReco.detector import detector_mongo
+from NuRadioReco.detector import db_mongo
 from NuRadioReco.detector import detector
 from NuRadioReco.detector import generic_detector
 user=os.getenv('RNOG_DB_USER')
 pw=os.getenv('RNOG_DB_PW')
-mongo_detector = detector_mongo.Detector(database_connection=f"mongodb+srv://{user}:{pw}@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority", database_name="RNOG_test")
+mongo_detector = db_mongo.Database(database_connection=f"mongodb+srv://{user}:{pw}@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority", database_name="RNOG_test")
 
 
 fiber_names = {
