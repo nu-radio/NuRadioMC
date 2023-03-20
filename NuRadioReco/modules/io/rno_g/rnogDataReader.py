@@ -6,11 +6,20 @@ import NuRadioReco.framework.channel
 from NuRadioReco.utilities import units
 import astropy.time
 import glob
+import logging
+import time
+from functools import lru_cache
+import six
+import NuRadioReco.utilities.metaclasses
 
+logger = logging.getLogger("RNO-G_IO")
+# logger.setLevel(logging.DEBUG)
 
+# @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton) # maybe?
 class RNOGDataReader:
 
     def __init__(self, filenames, *args, **kwargs):
+        logger.debug("Initializing RNOGDataReader")
         self.__filenames = filenames
         self.__event_ids = None
         self.__sampling_rate = 3.2 * units.GHz #TODO: 3.2 at the beginning of deployment. Will change to 2.4 GHz after firmware update eventually, but info not yet contained in the .root files. Read out once available.
@@ -39,6 +48,7 @@ class RNOGDataReader:
         return self.__event_ids
 
     def __parse_event_ids(self):
+        logger.debug('Parsing event ids')
         event_ids = np.array([], dtype=int)
         run_numbers = np.array([], dtype=int)
         for filename in self.__filenames:
@@ -48,6 +58,7 @@ class RNOGDataReader:
         self.__event_ids = np.array([run_numbers, event_ids]).T
 
     def __open_file(self, filename):
+        logger.debug("Opening file {}".format(filename))
         file = uproot.open(filename)
         if 'combined' in file:
             file = file['combined']
@@ -56,26 +67,28 @@ class RNOGDataReader:
     def get_n_events(self):
         return self.get_event_ids().shape[0]
 
+    # @lru_cache(maxsize=1) # probably not actually relevant outside the data viewer?
     def get_event_i(self, i_event):
+        read_time = time.time()
         event = NuRadioReco.framework.event.Event(*self.get_event_ids()[i_event])
         for i_file, filename in enumerate(self.__filenames):
             if self.__i_events_per_file[i_file, 0] <= i_event < self.__i_events_per_file[i_file, 1]:
                 i_event_in_file = i_event - self.__i_events_per_file[i_file, 0]
                 file = self.__open_file(self.__filenames[i_file])
-                station = NuRadioReco.framework.station.Station((file['waveforms']['station_number'].array(library='np')[i_event_in_file]))
+                station = NuRadioReco.framework.station.Station((file['waveforms']['station_number'].array(library='np', entry_start=i_event_in_file, entry_stop=(i_event_in_file+1))[0]))
                 # station not set properly in first runs, try from header
                 if station.get_id() == 0 and 'header' in file:
-                    station = NuRadioReco.framework.station.Station((file['header']['station_number'].array(library='np')[i_event_in_file]))
+                    station = NuRadioReco.framework.station.Station((file['header']['station_number'].array(library='np', entry_start=i_event_in_file, entry_stop=(i_event_in_file+1))[0]))
                 station.set_is_neutrino()
 
                 if 'header' in file:
-                    unix_time = file['header']['trigger_time'].array(library='np')[i_event_in_file]
+                    unix_time = file['header']['readout_time'].array(library='np', entry_start=i_event_in_file, entry_stop=(i_event_in_file+1))[0]
                     event_time = astropy.time.Time(unix_time, format='unix')
                     station.set_station_time(event_time)
                     ### read in basic trigger data
                     for trigger_key in self._root_trigger_keys:
                         try:
-                            has_triggered = bool(file['header'][trigger_key].array(library='np')[i_event_in_file])
+                            has_triggered = bool(file['header'][trigger_key].array(library='np', entry_start=i_event_in_file, entry_stop=(i_event_in_file+1))[0])
                             trigger = NuRadioReco.framework.trigger.Trigger(trigger_key.split('.')[-1])
                             trigger.set_triggered(has_triggered)
                             # trigger.set_trigger_time(file['header']['trigger_time'])
@@ -89,6 +102,7 @@ class RNOGDataReader:
                     channel.set_trace(waveforms[0, i_channel]*units.mV, self.__sampling_rate)
                     station.add_channel(channel)
                 event.set_station(station)
+                logger.debug("Spent {:.0f} ms reading event {}".format((time.time()-read_time) * 1e3, i_event))
                 return event
         return None
 
