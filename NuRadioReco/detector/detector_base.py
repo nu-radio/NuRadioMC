@@ -61,7 +61,7 @@ class DetectorBase(object):
         self._serialization = SerializationMiddleware()
         self._serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
         
-        self._db = self.buffer_detector_in_tiny_db()
+        self._db = self.buffer_in_tiny_db()
         
         # if source == 'sql':
         #     self._db = buffer_db(in_memory=True)
