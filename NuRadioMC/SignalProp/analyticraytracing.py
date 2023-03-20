@@ -2045,9 +2045,8 @@ class ray_tracing(ray_tracing_base):
         antenna: numpy.array
             position of the receiving antenna
         pulse: string or np.ndarray
-            as str:           .npy file name of the starting pulse shape ([0] - time stamp, [1] - theta component, [2] - phi component)
-            as np.ndarray:    3d array with the frequency spectrum of np.array([eR, eTheta, ePhi]), 
-                                usually provided by the apply_propagation_effects function
+            as str: .npy file name of the starting pulse shape ([0] - time stamp, [1] - theta component, [2] - phi component)
+            as np.ndarray: 3d array with the frequency spectrum of np.array([eR, eTheta, ePhi]), usually provided by the apply_propagation_effects function
         path_type: int
             refers to the short or long path of the radio wave (0 for short, 1 for long)
         acc: int
