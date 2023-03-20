@@ -19,6 +19,11 @@ RUN pip install Werkzeug==2.0.0
 # Add NuRadioMC to PYTHONPATH
 ENV PYTHONPATH="/usr/local/lib/NuRadioMC:$PYTHONPATH"
 
+# copy and install rnog_data
+RUN git clone git@github.com:RNO-G/rnog-data-analysis-and-issues.git /usr/local/lib/rnog_data_analysis
+WORKDIR /usr/local/lib/rnog_data_analysis/rnog_data
+RUN pip install -r requirements.txt .
+
 RUN useradd nuradio
 
 USER nuradio
