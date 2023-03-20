@@ -33,7 +33,7 @@ class DateTimeSerializer(Serializer):
         return datetime.strptime(s, '%Y-%m-%dT%H:%M:%S')
 
 
-def buffer_db(in_memory, filename=None):
+def buffer_db_sql(in_memory, filename=None):
     """
     buffers the complete SQL database into a TinyDB object (either in memory or into a local JSON file)
 
@@ -124,6 +124,133 @@ def buffer_db(in_memory, filename=None):
     return db
 
 
+def buffer_db_mongo():
+
+    serialization = SerializationMiddleware()
+    serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
+
+    db = TinyDB(storage=MemoryStorage)
+    db.truncate()
+    
+    from NuRadioReco.detector.db_mongo import Database
+    import datetime
+    mongo = Database(database_connection='RNOG_test_public')
+    mongo.update(datetime.datetime.utcnow(), 'station_rnog')
+
+    table_stations = db.table('stations')
+    table_stations.truncate()
+    
+    table_channels = db.table('channels')
+    table_channels.truncate()
+    
+    for station_id in mongo.get_station_ids("station_rnog"):
+        print(station_id)
+        full_station_information = mongo.get_complete_station_information(station_id=station_id)
+        
+        table_stations.insert({
+            'station_id': station_id,
+            'commission_time': full_station_information['commission_time'],
+            'decommission_time': full_station_information['decommission_time'],  
+            'pos_site': 'Greenland',
+            'position': full_station_information['station_position']['position'],
+            'pos_measurement_time': full_station_information['station_position']['measurement_time'],
+
+            # 'station_type': result['st.station_type'],
+            # 'board_number': result['st.board_number'],
+            # 'MAC_address': result['st.MAC_address'],
+            # 'MBED_type': result['st.MBED_type'],
+            # 'pos_easting': result['pos.easting'],
+            # 'pos_northing': result['pos.northing'],
+            # 'pos_altitude': result['pos.altitude'],
+            # 'pos_zone': result['pos.zone'],
+            
+        })
+        
+        for channel_id in full_station_information['channels']:
+            channel_data = full_station_information['channels'][channel_id]
+            # print(list(channel_data.keys()))
+            print(list(channel_data['channel_signal_chain']['sig_chain']))
+            pos_data = channel_data['channel_position']
+
+            table_channels.insert({
+                'station_id': station_id,
+                'channel_id': channel_id,
+                'commission_time': channel_data['commission_time'],
+                'decommission_time': channel_data['decommission_time'],
+                'ant_type': channel_data['ant_type'], # VPol or HPol or LPDA or ...
+                'ant_VEL': channel_data['ant_VEL'],  # Name of antenna response file
+                'ant_S11': channel_data['ant_S11'],  # Name of antenna S11 file
+                'ant_orientation_phi': pos_data['orientation']['phi'],
+                'ant_orientation_theta': pos_data['orientation']['theta'],
+                'ant_rotation_phi': pos_data['rotation']['phi'],
+                'ant_rotation_theta': pos_data['rotation']['theta'],
+                'ant_position_x': pos_data['position'][0],
+                'ant_position_y': pos_data['position'][1],
+                'ant_position_z': pos_data['position'][2],
+                # 'ant_deployment_time': channel['ant.deployment_time'],
+                # 'ant_comment': channel['ant.comment'],
+                # 'cab_length': channel['cab.cable_length'],
+                # 'cab_reference_measurement': channel['cab.reference_measurement'],
+                # 'cab_time_delay': channel['cab.time_delay'],
+                # 'cab_id': channel['cab.cable_id'],
+                # 'cab_type': channel['cab.cable_type'],
+                # 'amp_type': channel['amps.amp_type'],
+                # 'amp_reference_measurement': channel['amps.reference_measurement'],
+                # 'adc_id': channel['adcs.adc_id'],
+                # 'adc_time_delay': channel['adcs.time_delay'],
+                # 'adc_nbits': channel['adcs.nbits'],
+                # 'adc_n_samples': channel['adcs.n_samples'],
+                # 'adc_sampling_frequency': channel['adcs.sampling_frequency']            
+            })
+
+
+
+
+    # # results = sqldet.get_everything_channels()
+    # for channel in results:
+    #     table_channels.insert({'station_id': channel['st.station_id'],
+    #                            'channel_id': channel['ch.channel_id'],
+    #                            'commission_time': channel['ch.commission_time'],
+    #                            'decommission_time': channel['ch.decommission_time'],
+    #                            'ant_type': channel['ant.antenna_type'],
+    #                            'ant_orientation_phi': channel['ant.orientation_phi'],
+    #                            'ant_orientation_theta': channel['ant.orientation_theta'],
+    #                            'ant_rotation_phi': channel['ant.rotation_phi'],
+    #                            'ant_rotation_theta': channel['ant.rotation_theta'],
+    #                            'ant_position_x': channel['ant.position_x'],
+    #                            'ant_position_y': channel['ant.position_y'],
+    #                            'ant_position_z': channel['ant.position_z'],
+    #                            'ant_deployment_time': channel['ant.deployment_time'],
+    #                            'ant_comment': channel['ant.comment'],
+    #                            'cab_length': channel['cab.cable_length'],
+    #                            'cab_reference_measurement': channel['cab.reference_measurement'],
+    #                            'cab_time_delay': channel['cab.time_delay'],
+    #                            'cab_id': channel['cab.cable_id'],
+    #                            'cab_type': channel['cab.cable_type'],
+    #                            'amp_type': channel['amps.amp_type'],
+    #                            'amp_reference_measurement': channel['amps.reference_measurement'],
+    #                            'adc_id': channel['adcs.adc_id'],
+    #                            'adc_time_delay': channel['adcs.time_delay'],
+    #                            'adc_nbits': channel['adcs.nbits'],
+    #                            'adc_n_samples': channel['adcs.n_samples'],
+    #                            'adc_sampling_frequency': channel['adcs.sampling_frequency']})
+
+    # # results = sqldet.get_everything_positions()
+    # table_positions = db.table('positions')
+    # table_positions.truncate()
+    # for result in results:
+    #     table_positions.insert({
+    #         'pos_position': result['pos.position'],
+    #         'pos_measurement_time': result['pos.measurement_time'],
+    #         'pos_easting': result['pos.easting'],
+    #         'pos_northing': result['pos.northing'],
+    #         'pos_altitude': result['pos.altitude'],
+    #         'pos_zone': result['pos.zone'],
+    #         'pos_site': result['pos.site']})
+
+    return db
+
+
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class DetectorBase(object):
     """
@@ -166,7 +293,7 @@ class DetectorBase(object):
         self._serialization = SerializationMiddleware()
         self._serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
         if source == 'sql':
-            self._db = buffer_db(in_memory=True)
+            self._db = buffer_db_sql(in_memory=True)
         elif source == 'dictionary':
             self._db = TinyDB(storage=MemoryStorage)
             self._db.truncate()
@@ -176,6 +303,8 @@ class DetectorBase(object):
             channels_table = self._db.table('channels', cache_size=1000)
             for channel in dictionary['channels'].values():
                 channels_table.insert(channel)
+        elif source == "mongo":
+            self._db = buffer_db_mongo()
         else:
             self._db = TinyDB(
                 json_filename,
@@ -411,6 +540,7 @@ class DetectorBase(object):
             self.__current_time = astropy.time.Time(time)
         else:
             self.__current_time = time
+        
         logger.info("updating detector time to {}".format(self.__current_time))
         if not ((self.__current_time > self.__valid_t0) and (self.__current_time < self.__valid_t1)):
             self._buffered_stations = {}
