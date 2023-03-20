@@ -1583,7 +1583,7 @@ class Database(object):
             if help_dic2 != {}:
                 help_dic1['$match'] = help_dic2
                 search_filter.append(help_dic1)
-            print(search_filter)
+            # print(search_filter)
             search_result = list(self.db[collection].aggregate(search_filter))
 
             for key in input_dic.keys():
@@ -1591,7 +1591,7 @@ class Database(object):
                 for entry in search_result:
                     help_list.append(entry['measurements'][key])
                 return_dic[key] = list(set(help_list))
-        print(return_dic)
+        # print(return_dic)
         return return_dic
 
     def change_primary_channel_signal_chain_configuration(self):
@@ -1682,7 +1682,7 @@ class Database(object):
         # got through the signal chain and collect the corresponding measurements
         for cha_id in channel_sig_chain_dic.keys():
             sig_chain = channel_sig_chain_dic[cha_id]['sig_chain']
-            print(channel_sig_chain_dic[cha_id])
+            # print(channel_sig_chain_dic[cha_id])
             # get all collection names to identify the different components
             collection_names = self.get_collection_names()
             measurement_components_dic = {}
@@ -1851,7 +1851,7 @@ class Database(object):
 
             # got through the signal chain and collect the corresponding measurements
             sig_chain = channel_sig_chain_dic[channel_id]['sig_chain']
-            print(channel_sig_chain_dic[channel_id])
+            # print(channel_sig_chain_dic[channel_id])
             # get all collection names to identify the different components
             collection_names = self.get_collection_names()
             measurement_components_dic = {}
