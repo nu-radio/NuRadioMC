@@ -31,7 +31,7 @@ class simulationSelector:
         Crude approximation with n_std sigma * noise
 
         Parameters
-        ------------
+        ----------
         evt: Event
         sim_station: sim_station
             CoREAS simulated efields
@@ -42,7 +42,7 @@ class simulationSelector:
             number of std deviations needed, can make cut stricter, if needed
 
         Returns
-        ------------
+        -------
         selected_sim: bool
             if True then simulation has signal in desired range
 
