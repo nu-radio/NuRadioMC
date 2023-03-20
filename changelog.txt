@@ -12,7 +12,7 @@ new features:
 - added ability to generate high-low-triggered noise on a narrow band but return full-band waveforms
 bugfixes:
 - fixed/improved C++ raytracer not finding solutions for some near-horizontal or near-shadowzone vertices
-
+- fixed wrong number in Feldman-Cousins upper limit
 
 version 2.1.7
 new features:
