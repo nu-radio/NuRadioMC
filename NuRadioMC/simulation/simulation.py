@@ -161,15 +161,14 @@ class simulation(
             for iSt, self._station_id in enumerate(self._station_ids):
                 logger.debug(f"simulating station {self._station_id}")
 
-                if self._cfg['speedup']['distance_cut']:
-                    # perform a quick cut to reject event group completely if no shower is close enough to the station
-                    if not self._distance_cut_station(
+                # perform a quick cut to reject event group completely if no shower is close enough to the station
+                if not self._distance_cut_station(
                         vertex_positions,
                         shower_energies,
                         self._station_barycenter[iSt]
-                    ):
-                        iCounter += 1
-                        continue
+                ):
+                    iCounter += 1
+                    continue
 
                 candidate_station = False
                 self._set_detector_properties()
@@ -523,6 +522,8 @@ class simulation(
         -------
 
         """
+        if not self._cfg['speedup']['distance_cut']:
+            return True
         t_tmp = time.time()
         vertex_distances_to_station = np.linalg.norm(vertex_positions - station_barycenter, axis=1)
         distance_cut = self._get_distance_cut(np.sum(
@@ -540,27 +541,28 @@ class simulation(
             vertex_distances,
             shower_energies
     ):
+        if not self._cfg['speedup']['distance_cut']:
+            return True
         t_tmp = time.time()
 
         # calculate the sum of shower energies for all showers within self._cfg['speedup']['distance_cut_sum_length']
         mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup'][
             'distance_cut_sum_length']
         shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
-        if self._cfg['speedup']['distance_cut']:
-            # quick speedup cut using barycenter of station as position
-            distance_to_station = np.linalg.norm(self._shower_vertex - self._station_barycenter[iSt])
-            distance_cut = self._get_distance_cut(
-                shower_energy_sum) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
+
+        # quick speedup cut using barycenter of station as position
+        distance_to_station = np.linalg.norm(self._shower_vertex - self._station_barycenter[iSt])
+        distance_cut = self._get_distance_cut(
+            shower_energy_sum) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
+        logger.debug(
+            f"calculating distance cut. Current event has energy {self._fin['shower_energies'][self._shower_index]:.4g}, it is event number {iSh} and {np.sum(mask_shower_sum)} are within {self._cfg['speedup']['distance_cut_sum_length'] / units.m:.1f}m -> {shower_energy_sum:.4g}")
+        if distance_to_station > distance_cut:
             logger.debug(
-                f"calculating distance cut. Current event has energy {self._fin['shower_energies'][self._shower_index]:.4g}, it is event number {iSh} and {np.sum(mask_shower_sum)} are within {self._cfg['speedup']['distance_cut_sum_length'] / units.m:.1f}m -> {shower_energy_sum:.4g}")
-            if distance_to_station > distance_cut:
-                logger.debug(
-                    f"skipping station {self._station_id} because distance {distance_to_station / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {self._fin['shower_energies'][self._shower_index]:.2g}eV) between vertex {self._shower_vertex} and bary center of station {self._station_barycenter[iSt]}")
-                self._distance_cut_time += time.time() - t_tmp
-                self._distance_cut_time += time.time() - t_tmp
-                return False
+                f"skipping station {self._station_id} because distance {distance_to_station / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {self._fin['shower_energies'][self._shower_index]:.2g}eV) between vertex {self._shower_vertex} and bary center of station {self._station_barycenter[iSt]}")
             self._distance_cut_time += time.time() - t_tmp
-            return True
+            self._distance_cut_time += time.time() - t_tmp
+            return False
+        self._distance_cut_time += time.time() - t_tmp
         return True
 
     def _simulate_event(
