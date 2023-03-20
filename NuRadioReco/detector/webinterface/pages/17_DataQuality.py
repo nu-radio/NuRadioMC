@@ -109,7 +109,7 @@ def build_main_page(main_cont):
     quality_data_enter_button = main_cont.button(label="enter data to database", disabled=disable_upload)
     if quality_name and quality_data_enter_button and uploaded_file is not None:
         main_cont.info("Uploading quality analysis to database")
-        runtab.insert_quality_check_data(uploaded_file, quality_data_select)
+        runtab.insert_quality_check_data(uploaded_file, quality_name)
 
 
 # main page setup

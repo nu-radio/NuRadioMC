@@ -104,26 +104,26 @@ def build_main_page(main_cont):
     use_columns = ['run_type', 'station', 'run', 'time_start', 'duration', 'trigger_rate', 'daq_config_comment', 'checks_failed'] #'RF0', 'RF1', 'PA', 'PPS', 'soft', 'n_events_recorded'
 
     gb.configure_columns(use_columns, hide=False)
-    gb.configure_side_bar()
+    #gb.configure_side_bar()
     gridoptions = gb.build()
-
 
     with main_cont:
         response = AgGrid(
             run_df,
             height=600,
-            width="100%",
             gridOptions=gridoptions,
             enable_enterprise_modules=False,#True,
-            update_mode=GridUpdateMode.MODEL_CHANGED|GridUpdateMode.VALUE_CHANGED|GridUpdateMode.SELECTION_CHANGED,
+            update_mode=GridUpdateMode.SELECTION_CHANGED,
             data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
             fit_columns_on_grid_load=False,
             header_checkbox_selection_filtered_only=True,
             use_checkbox=True)
+        st.write(f"Total number of rows: {len(run_df)}")
         st.write("(If no table is displayed, toggle text size (using 'cmd' +  '+/-') ... sorry, still trying to fix this :)")
 
     v = response['selected_rows'] 
     if v:
+        print(v)
         outdf = pd.DataFrame(v)
         #outdf.insert(2, 'checks_failed', outdf.pop('checks_failed'))
         outdf = outdf.drop(labels=["_selectedRowNodeInfo"], axis=1)

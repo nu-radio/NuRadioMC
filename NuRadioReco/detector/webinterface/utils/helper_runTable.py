@@ -25,8 +25,5 @@ def get_firmware_from_db():
 
 def load_runs(station_list, start_time, end_time, flag_list):
     results = runtab.get_runs(station_list, start_time, end_time, flag_list)
-    try:
-        results = runtab.add_quality_flags(results)
-    except:
-        pass
+    results = runtab.add_quality_flags(results)
     return results
