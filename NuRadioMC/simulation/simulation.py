@@ -154,7 +154,7 @@ class simulation:
         log_level_propagation: logging.LEVEL
             the log level of the propagation module
         ice_model: medium object (default None)
-            allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom". 
+            allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom".
         """
         logger.setLevel(log_level)
         if 'write_mode' in kwargs.keys():
@@ -1170,6 +1170,7 @@ class simulation:
         # we first create this data structure
         if 'multiple_triggers' not in self._mout:
             self._mout['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            self._mout['trigger_times'] = np.nan * np.zeros_like(self._mout['multiple_triggers'], dtype=float)
 #             for station_id in self._station_ids:
 #                 sg = self._mout_groups[station_id]
 #                 sg['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
@@ -1178,6 +1179,10 @@ class simulation:
             nx, ny = self._mout['multiple_triggers'].shape
             tmp[:, 0:ny] = self._mout['multiple_triggers']
             self._mout['multiple_triggers'] = tmp
+            # repeat for trigger times
+            tmp_t = np.nan * np.zeros_like(tmp, dtype=float)
+            tmp_t[:, 0:ny] = self._mout['trigger_times']
+            self._mout['trigger_times'] = tmp_t
 #             for station_id in self._station_ids:
 #                 sg = self._mout_groups[station_id]
 #                 tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
@@ -1194,27 +1199,38 @@ class simulation:
         n_showers = sg['launch_vectors'].shape[0]
         if 'multiple_triggers' not in sg:
             sg['multiple_triggers'] = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            sg['trigger_times'] = np.nan * np.zeros_like(sg['multiple_triggers'], dtype=float)
         elif extend_array:
             tmp = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
             nx, ny = sg['multiple_triggers'].shape
             tmp[:, 0:ny] = sg['multiple_triggers']
             sg['multiple_triggers'] = tmp
+            # repeat for trigger times
+            tmp_t = np.nan * np.zeros_like(tmp, dtype=float)
+            tmp_t[:, :ny] = sg['trigger_times']
+            sg['trigger_times'] = tmp_t
 
         self._output_event_group_ids[self._station_id].append(self._evt.get_run_number())
         self._output_sub_event_ids[self._station_id].append(self._evt.get_id())
         multiple_triggers = np.zeros(len(self._mout_attrs['trigger_names']), dtype=np.bool)
+        trigger_times = np.nan*np.zeros_like(multiple_triggers)
         for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
             if self._station.has_trigger(trigger_name):
                 multiple_triggers[iT] = self._station.get_trigger(trigger_name).has_triggered()
+                trigger_times[iT] = self._station.get_trigger(trigger_name).get_trigger_time()
                 for iSh in local_shower_index:  # now save trigger information per shower of the current station
                     sg['multiple_triggers'][iSh][iT] = self._station.get_trigger(trigger_name).has_triggered()
+                    sg['trigger_times'][iSh][iT] = trigger_times[iT]
         for iSh, iSh2 in zip(local_shower_index, global_shower_index):  # now save trigger information per shower of the current station
             sg['triggered'][iSh] = np.any(sg['multiple_triggers'][iSh])
             self._mout['triggered'][iSh2] |= sg['triggered'][iSh]
             self._mout['multiple_triggers'][iSh2] |= sg['multiple_triggers'][iSh]
+            self._mout['trigger_times'][iSh2] = np.fmin(
+                self._mout['trigger_times'][iSh2], sg['trigger_times'][iSh])
         sg['event_id_per_shower'][local_shower_index] = self._evt.get_id()
         sg['event_group_id_per_shower'][local_shower_index] = self._evt.get_run_number()
         self._output_multiple_triggers_station[self._station_id].append(multiple_triggers)
+        self._output_trigger_times_station[self._station_id].append(trigger_times)
         self._output_triggered_station[self._station_id].append(np.any(multiple_triggers))
 
     def get_Vrms(self):
@@ -1254,6 +1270,7 @@ class simulation:
         self._output_event_group_ids = {}
         self._output_sub_event_ids = {}
         self._output_multiple_triggers_station = {}
+        self._output_trigger_times_station = {}
         self._output_maximum_amplitudes = {}
         self._output_maximum_amplitudes_envelope = {}
 
@@ -1264,6 +1281,7 @@ class simulation:
             self._output_sub_event_ids[station_id] = []
             self._output_triggered_station[station_id] = []
             self._output_multiple_triggers_station[station_id] = []
+            self._output_trigger_times_station[station_id] = []
             self._output_maximum_amplitudes[station_id] = []
             self._output_maximum_amplitudes_envelope[station_id] = []
 
@@ -1370,7 +1388,7 @@ class simulation:
             # a reference! saved indicates the interactions to be saved, while
             # triggered should indicate if an interaction has produced a trigger
             saved = np.copy(self._mout['triggered'])
-            if 'n_interactions' in self._fin:  # if n_interactions is not specified, there are not parents
+            if 'n_interaction' in self._fin:  # if n_interactions is not specified, there are not parents
                 parent_mask = self._fin['n_interaction'] == 1
                 for event_id in np.unique(self._fin['event_group_ids']):
                     event_mask = self._fin['event_group_ids'] == event_id
@@ -1409,6 +1427,11 @@ class simulation:
                         for iE, values in enumerate(self._output_multiple_triggers_station[station_id]):
                             tmp[iE] = values
                         sg['multiple_triggers_per_event'] = tmp
+                        tmp_t = np.nan * np.zeros_like(tmp, dtype=float)
+                        for iE, values in enumerate(self._output_trigger_times_station[station_id]):
+                            tmp_t[iE] = values
+                        sg['trigger_times_per_event'] = tmp_t
+
 
         # save meta arguments
         for (key, value) in iteritems(self._mout_attrs):
