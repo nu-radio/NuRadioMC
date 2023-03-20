@@ -69,10 +69,7 @@ class Detector(object):
                   'amps.amp_type', 'amps.reference_measurement',
                   'adcs.adc_id', 'adcs.time_delay', 'adcs.nbits', 'adcs.sampling_frequency', 'adcs.n_samples'
                   ]
-        field_str = ""
-        for field in fields:
-            field_str += field + ", "
-        field_str = field_str[:-2]
+        field_str = ", ".join(fields)
         query = """
         SELECT {fields} FROM stations AS st
             JOIN channels AS ch USING(station_uid)
@@ -110,10 +107,8 @@ class Detector(object):
                   'amps.amp_type', 'amps.reference_measurement',
                   'adcs.adc_id', 'adcs.time_delay', 'adcs.nbits', 'adcs.sampling_frequency', 'adcs.n_samples'
                   ]
-        field_str = ""
-        for field in fields:
-            field_str += field + ", "
-        field_str = field_str[:-2]
+
+        field_str = ", ".join(fields)
         query = """
         SELECT {fields} FROM stations AS st
             JOIN channels AS ch USING(station_uid)
@@ -144,10 +139,7 @@ class Detector(object):
                   'st.position', 'st.board_number', 'st.MAC_address', 'st.MBED_type',
                   'pos.position', 'pos.measurement_time', 'pos.easting', 'pos.northing', 'pos.zone',
                   'pos.altitude', 'pos.site']
-        field_str = ""
-        for field in fields:
-            field_str += field + ", "
-        field_str = field_str[:-2]
+        field_str = ", ".join(fields)
         query = """
         SELECT {fields} FROM stations AS st
             JOIN positions AS pos USING(position);
@@ -170,10 +162,7 @@ class Detector(object):
 
         fields = ['pos.position', 'pos.measurement_time', 'pos.easting', 'pos.northing', 'pos.zone',
                   'pos.altitude', 'pos.site', 'pos.comment']
-        field_str = ""
-        for field in fields:
-            field_str += field + ", "
-        field_str = field_str[:-2]
+        field_str = ", ".join(fields)
         query = """
         SELECT {fields} FROM positions AS pos;
             """.format(fields=field_str)
