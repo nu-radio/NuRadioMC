@@ -108,7 +108,7 @@ class DetectorBase(object):
         self._antenna_by_depth = antenna_by_depth
         
         
-    def buffer_detector_in_tiny_db(self):
+    def buffer_in_tiny_db(self):
         """ This class should be implemented in all derived classes """
         raise NotImplementedError()
 

@@ -43,7 +43,7 @@ class SQLDetector(NuRadioReco.detector.detector_base.DetectorBase):
         super(SQLDetector, self).__init__(assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
 
 
-    def buffer_detector_in_tiny_db(self):
+    def buffer_in_tiny_db(self):
         """
         buffers the complete SQL database into a TinyDB object (either in memory or into 
         a local JSON file)
