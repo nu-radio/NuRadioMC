@@ -397,19 +397,19 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         Uses RadioPropa propagate an electric field through the correct solution of the ray path. To use add to the config.yaml file:
         propagation:
-            module: radiopropa
-            ice_model: southpole_2015
-            birefringence: True
+        module: radiopropa
+        ice_model: southpole_2015
+        birefringence: True
 
         Parameters
         ----------
-        launch_v    (3d array)
+        launch_v: 3d array
             launch vector calculated by a previous analytical or numerical ray tracing algorithm
-
-        spec        (numpy array)
+        
+        spec: numpy array
             frequency spectrum of the electric field
 
-        s_rate      (float)
+        s_rate: float
             sampling rate of the electric field
         """
         try:
@@ -489,7 +489,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         Th_imag = ray.get().current.getElectricField().getTraces()[1].getFrequencySpectrum_imag()
         Ph_real = ray.get().current.getElectricField().getTraces()[2].getFrequencySpectrum_real()
         Ph_imag = ray.get().current.getElectricField().getTraces()[2].getFrequencySpectrum_imag()
-        
+
         Radius = np.vectorize(complex)(R_real, R_imag)
         Th = np.vectorize(complex)(Th_real, Th_imag)
         Ph = np.vectorize(complex)(Ph_real, Ph_imag)
