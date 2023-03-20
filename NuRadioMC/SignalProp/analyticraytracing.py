@@ -2071,18 +2071,19 @@ class ray_tracing(ray_tracing_base):
         Returns
         ------------
         single pulse:
-            solution_type: list:    [start_theta, start_phi, end_theta, end_phi, TT, t_delay]
-            meaning:                [0] - start_theta (list) - starting pulse for the theta component
-                                    [1] - start_phi (list) - starting pulse for the phi component
-                                    [2] - end_theta (list) - final pulse for the theta componentnt
-                                    [3] - end_phi (list) - final pulse for the phi component
-                                    [4] - TT (list) - time stamps of the  starting theta pulse
-                                    [5] - t_delay (float) - theoretically calculated time delay
+            solution_type: list 
+            [start_theta, start_phi, end_theta, end_phi, TT, t_delay]
+            [0] - start_theta (list) - starting pulse for the theta component, [1] - start_phi (list) - starting pulse for the phi component
+            [2] - end_theta (list) - final pulse for the theta componentnt
+            [3] - end_phi (list) - final pulse for the phi component
+            [4] - TT (list) - time stamps of the  starting theta pulse
+            [5] - t_delay (float) - theoretically calculated time delay
         simulated pulse:
-            solution_type: np.ndarray:    [eR, eTheta, ePhi]
-            meaning:                [0] - eR (np.array) - final frequency spectrum of the radial component
-                                    [1] - eTheta (np.array) - final frequency spectrum of the theta componentnt
-                                    [2] - ePhi (np.array) - final frequency spectrum of the phi component
+            solution_type: np.ndarray    
+            [eR, eTheta, ePhi]
+            [0] - eR (np.array) - final frequency spectrum of the radial component
+            [1] - eTheta (np.array) - final frequency spectrum of the theta componentnt
+            [2] - ePhi (np.array) - final frequency spectrum of the phi component
         """
 
         t_slow = base_trace.BaseTrace()
