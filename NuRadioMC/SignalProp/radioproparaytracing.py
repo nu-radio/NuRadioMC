@@ -386,10 +386,11 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
     def raytracer_hybrid_minimizer(self,n_reflections=0):
         """
-        Uses RadioPropa to first find all the numerical ray tracing solutions between sphere x1 
-        and sphere x2 for a big sphere. After which it uses the scipy optimize.minimize module
-        to find the best path in these angle intervals. 
-        Tracer does not work for reflective bottoms or secondary creation at the moment
+        Uses RadioPropa to first find all the numerical ray tracing solutions
+        between sphere x1 and sphere x2 for a big sphere. After which it uses
+        the scipy optimize.minimize module to find the best path in these angle
+        intervals.  Tracer does not work for reflective bottoms,
+        but now implementing secondary creation 
         """
 
         try:
@@ -423,6 +424,17 @@ class radiopropa_ray_tracing(ray_tracing_base):
             theta = arccot(cot_theta)
             ray = shoot_ray(theta)
             ray_endpoint = self.get_path_candidate(ray)[-1]
+            globaldeltaz = (ray_endpoint-self._X2)[2]
+            newray = ray
+            #secondaries:
+            for secondary in ray.secondaries:
+                secondaries.append(secondary)
+                ray_endpoint = self.get_path_candidate(secondary)[-1]
+                deltaz = (ray_endpoint-self._X2)[2]
+                if np.abs(deltaz) < globaldeltaz:
+                    globaldeltaz = deltaz
+                    newray = secondary
+            ray_endpoint = self.get_path_candidate(newray)[-1]
             return (ray_endpoint-self._X2)[2]
 
         def delta_z_squared(cot_theta):
