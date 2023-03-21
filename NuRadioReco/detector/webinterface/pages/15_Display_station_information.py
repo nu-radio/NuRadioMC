@@ -1,7 +1,6 @@
-import numpy as np
 import streamlit as st
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
-from NuRadioReco.detector.webinterface.utils.helper_display_station import build_station_selection, load_station_position_info, get_all_station_measurement_names, load_general_info, build_channel_selection, \
+from NuRadioReco.detector.webinterface.utils.helper_display_station import build_station_selection, load_station_position_info, get_all_station_measurement_names, load_general_info, \
     get_all_channel_measurements_names, load_channel_position_info, load_device_position_info, get_all_signal_chain_config_names, load_signal_chain_information, get_all_device_measurements_names
 import pandas as pd
 from datetime import datetime
@@ -31,7 +30,7 @@ def build_main_page(cont):
     @st.cache_data(ttl=1800, max_entries=50)
     def get_general_stat_info(station_id):
         station_info = load_general_info(station_id)
-        print('general station info: LOAD FROM DATABASE')
+        # print('general station info: LOAD FROM DATABASE')
         if 'station_comment' in station_info[station_id].keys():
             db_comment = f'{station_info[station_id]["station_comment"]}'
             if db_comment == '':
@@ -52,7 +51,7 @@ def build_main_page(cont):
 
         return c_time, dc_time, db_comment, channel_dict, device_dic
 
-    print('RERUN')
+    # print('RERUN')
     comm_time, decomm_time, comment, cha_dic, dev_dic = get_general_stat_info(selected_station_id)
 
     # display the (de)commission time
@@ -89,7 +88,7 @@ def build_main_page(cont):
             meas_name = position_info[0]["measurements"]["measurement_name"]
             pos = position_info[0]["measurements"]["position"]
             pri_times = position_info[0]["measurements"]["primary_measurement"]
-        print('station position info: LOAD FROM DATABASE')
+        # print('station position info: LOAD FROM DATABASE')
         return {'name': meas_name, 'position': pos, 'primary': pri_times}
 
     pos_info = get_pos_info(selected_station_id, selected_primary_time, selected_measurement_name)
@@ -117,7 +116,7 @@ def build_main_page(cont):
     # load and cache the channel information (is only loaded once)
     @st.cache_data(ttl=1800, max_entries=50)
     def get_general_channel_info_table(station_id, _channel_dic):
-        print('general channel info: LOAD FROM DATABASE')
+        # print('general channel info: LOAD FROM DATABASE')
         if _channel_dic != {}:
             # transform the channel data in a dataframe
             antenna_type = []
@@ -140,11 +139,9 @@ def build_main_page(cont):
                     comments.append('')
             df = pd.DataFrame(
                 {'id': channel_ids, 'antenna type': antenna_type, 'antenna VEL': antenna_VEL, 'antenna S11': antenna_S11, 'commission': commission_time, 'decommission': decommission_time, 'comment': comments})
+            df = df.sort_values(by=['id'])
         else:
-            df = pd.DataFrame(
-                {'id': [None], 'antenna type': [None], 'antenna VEL': [None], 'antenna S11': [None], 'commission': [None], 'decommission': [None], 'comment': [None]})
-
-        df = df.sort_values(by=['id'])
+            df = pd.DataFrame({'id': [None], 'antenna type': [None], 'antenna VEL': [None], 'antenna S11': [None], 'commission': [None], 'decommission': [None], 'comment': [None]})
 
         return df
 
@@ -171,7 +168,7 @@ def build_main_page(cont):
     # load and cache the channel information (is only loaded once)
     @st.cache_data(ttl=1800, max_entries=50)
     def get_position_channel_info_table(station_id, t_primary, n_measurement):
-        print('channel position info: LOAD FROM THE DATABASE')
+        # print('channel position info: LOAD FROM THE DATABASE')
         cha_positions = load_channel_position_info(station_id=station_id, primary_time=t_primary, measurement_name=n_measurement)
         if cha_positions != [] and cha_positions != {}:
             # transform the channel data in a dataframe
@@ -244,7 +241,7 @@ def build_main_page(cont):
     # load and cache the channel information (is only loaded once)
     @st.cache_data(ttl=1800, max_entries=50)
     def get_signal_chain_info_table(station_id, config_name_cha, t_primary, _channel_dic):
-        print('signal chain info: LOAD FROM DATABASE')
+        # print('signal chain info: LOAD FROM DATABASE')
         if config_name_cha == 'built-in':
             components = []
             channel_ids = []
@@ -307,7 +304,7 @@ def build_main_page(cont):
                 config_name.append(dic['measurements']['measurement_name'])
                 sig_chain = dic['measurements']['sig_chain']
                 if len(sig_chain) > sig_chain_length:
-                    sig_chain_length += len(sig_chain)
+                    sig_chain_length = len(sig_chain)
                 components.append(sig_chain)
 
         # sort the components
@@ -324,9 +321,9 @@ def build_main_page(cont):
                 key = list(sig_dic.keys())[0]
                 comp_type1.append(key)
                 comp_name1.append(str(sig_dic[key]))
-                print(comp_name1)
-                print(comp_type1)
-                print(channel_ids)
+                # print(comp_name1)
+                # print(comp_type1)
+                # print(channel_ids)
             df = pd.DataFrame({'id': channel_ids, 'configuration': config_name, 'comp type': comp_type1, 'comp name': comp_name1, 'primary: start': curr_time_primary_start, 'primary': curr_time_primary_end,
                                'other primary times': other_primary_times})
         elif sig_chain_length == 2:
@@ -414,7 +411,7 @@ def build_main_page(cont):
 
     @st.cache_data(ttl=1800, max_entries=50)
     def get_general_device_info_table(station_id, _device_dic):
-        print('general device info: LOAD FROM DATABASE')
+        # print('general device info: LOAD FROM DATABASE')
         if _device_dic != {} and _device_dic != []:
             # transform the device data in a dataframe
             device_name = []
@@ -460,7 +457,7 @@ def build_main_page(cont):
     # load and cache the channel information (is only loaded once)
     @st.cache_data(ttl=1800, max_entries=50)
     def get_position_device_info_table(station_id, t_primary, n_measurement):
-        print('device position info: LOAD FROM DATABASE')
+        # print('device position info: LOAD FROM DATABASE')
         dev_positions = load_device_position_info(station_id=station_id, primary_time=t_primary, measurement_name=n_measurement)
         if dev_positions != [] and dev_positions != {}:
             # transform the channel data in a dataframe

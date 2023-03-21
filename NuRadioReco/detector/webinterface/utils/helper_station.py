@@ -1,61 +1,53 @@
 import streamlit as st
-from plotly import subplots
-import plotly.graph_objs as go
-import pandas as pd
-from NuRadioReco.detector.webinterface.utils.units_helper import str_to_unit
-from NuRadioReco.utilities import units
 import numpy as np
-from NuRadioReco.detector.db_mongo import Database as Detector
+from NuRadioReco.detector.db_mongo import Database
 from NuRadioReco.detector.webinterface import config
 from datetime import datetime
 from datetime import time
 
-det = Detector(database_connection=config.DATABASE_TARGET)
-# det = Detector(config.DATABASE_TARGET)
-# det = Detector(database_connection='test')
+db = Database(database_connection=config.DATABASE_TARGET)
 
 
 def load_general_station_infos(station_id, coll_name):
-    det.update(datetime.now(), coll_name)
-    station_info = det.get_general_station_information(coll_name, station_id)
+    db.update(datetime.now(), coll_name)
+    station_info = db.get_general_station_information(coll_name, station_id)
     return station_info
 
 
 def load_collection_information(collection_name, station_id, measurement_name):
-    return det.get_collection_information(collection_name, station_id, measurement_name=measurement_name)
+    return db.get_collection_information(collection_name, station_id, measurement_name=measurement_name)
 
 
 def load_measurement_station_information(stationid, measurement_name):
-    # det.update(datetime.now(), 'channel_position)
-    return det.get_collection_information('channel_position', stationid, measurement_name=measurement_name)
+    return db.get_collection_information('channel_position', stationid, measurement_name=measurement_name)
 
 
 def load_measurement_station_position_information(stationid, measurement_name):
-    return det.get_collection_information('station_position', stationid, measurement_name=measurement_name)
+    return db.get_collection_information('station_position', stationid, measurement_name=measurement_name)
 
 
 def load_object_names(obj_type):
-    return det.get_object_names(obj_type)
+    return db.get_object_names(obj_type)
 
 
 def load_station_ids():
-    return det.get_quantity_names('station_rnog', 'id')
+    return db.get_quantity_names('station_rnog', 'id')
 
 
 def load_measurement_names(collection):
-    return det.get_quantity_names(collection, 'measurements.measurement_name')
+    return db.get_quantity_names(collection, 'measurements.measurement_name')
 
 
 def load_current_primary_device_information(station, device_id):
     """function to load the information about the specified device which is currently primary"""
-    return det.get_complete_device_information(station, device_id)
+    return db.get_complete_device_information(station, device_id)
 
 
 def build_collection_input(cont):
     col1, col2 = cont.columns([1, 1])
 
     # get all station collections
-    collection_names = det.get_collection_names()
+    collection_names = db.get_collection_names()
     sta_coll_names = []
     list_help = []
     for coll in collection_names:
@@ -104,11 +96,11 @@ def build_collection_input(cont):
 
     # create an empty collection
     if empty_button:
-        det.create_empty_collection(selected_collection)
+        db.create_empty_collection(selected_collection)
 
     # create a copy of an existing collection
     if copy_button:
-        det.clone_colletion_to_colletion(copy_collection, selected_collection)
+        db.clone_colletion_to_colletion(copy_collection, selected_collection)
 
     return collection_selected, selected_collection
 
@@ -118,8 +110,8 @@ def input_station_information(cont, warning_top, coll_name):
                     'Station 23 (Ukaliatsiaq)', 'Station 24 (Qappik)', 'Station 25 (Aataaq)']
     selected_station = cont.selectbox('Select a station', station_list)
     # get the name and id out of the string
-    selected_station_name = selected_station[selected_station.find('(')+1:-1]
-    selected_station_id = int(selected_station[len('Station '):len('Station ')+2])
+    selected_station_name = selected_station[selected_station.find('(') + 1:-1]
+    selected_station_id = int(selected_station[len('Station '):len('Station ') + 2])
 
     station_info = load_general_station_infos(selected_station_id, coll_name)
 
@@ -154,7 +146,7 @@ def input_station_information(cont, warning_top, coll_name):
 
 def build_individual_container(cont, channel):
     cont_warning = cont.container()
-    if channel in [12,13,14,15,16,17,18,19,20]:
+    if channel in [12, 13, 14, 15, 16, 17, 18, 19, 20]:
         # initialize the surface board name key -> needed to make the surface board component selection possible
         if 'surface_board_name_key' not in st.session_state:
             st.session_state['surface_board_name_key'] = 'Choose a name'
@@ -167,11 +159,11 @@ def build_individual_container(cont, channel):
             disable_surface_board_components = False
 
         # get the surface board and surface cable names from the database:
-        db_surf_board_names = det.get_object_names('surface_board')
-        db_surf_cable_names = det.get_object_names('surface_cable')
+        db_surf_board_names = db.get_object_names('surface_board')
+        db_surf_cable_names = db.get_object_names('surface_cable')
 
         # get all channel-id of the surface board from the database (depends on the selected surface board name)
-        db_surface_board_info = det.get_all_available_signal_chain_configs(collection='surface_board', object_name=search_surface_board_name, input_dic={'channel_id': None})
+        db_surface_board_info = db.get_all_available_signal_chain_configs(collection='surface_board', object_name=search_surface_board_name, input_dic={'channel_id': None})
         db_surface_board_channels = db_surface_board_info['channel_id']
 
         # insert the standard display option
@@ -180,7 +172,7 @@ def build_individual_container(cont, channel):
         db_surface_board_channels.insert(0, 'Select an option')
 
         # create the streamlit page
-        col_surf, col_cable = cont.columns([1,1])
+        col_surf, col_cable = cont.columns([1, 1])
         col_surf.markdown('**surface board**')
         surface_board_name = col_surf.selectbox('surface board name:', db_surf_board_names, label_visibility='collapsed', key='surface_board_name_key')
         surface_board_channel = col_surf.selectbox('channel-id: ', db_surface_board_channels, disabled=disable_surface_board_components)
@@ -201,12 +193,12 @@ def build_individual_container(cont, channel):
             disable_drab_components = False
 
         # get the iglu, drab and cable names from the database
-        db_iglu_board_names = det.get_object_names('iglu_board')
-        db_drab_board_names = det.get_object_names('drab_board')
-        db_down_cable_names = det.get_object_names('downhole_cable')
+        db_iglu_board_names = db.get_object_names('iglu_board')
+        db_drab_board_names = db.get_object_names('drab_board')
+        db_down_cable_names = db.get_object_names('downhole_cable')
 
         # get all channel-id of the drab from the database (depends on the selected drab name)
-        db_drab_info = det.get_all_available_signal_chain_configs(collection='drab_board', object_name=search_drab_name, input_dic={'channel_id': None})
+        db_drab_info = db.get_all_available_signal_chain_configs(collection='drab_board', object_name=search_drab_name, input_dic={'channel_id': None})
         db_drab_channels = db_drab_info['channel_id']
 
         # insert the standard display option
@@ -216,7 +208,7 @@ def build_individual_container(cont, channel):
         db_drab_channels.insert(0, 'Select an option')
 
         # create the streamlit page
-        col_iglu, col_cable, col_drab = cont.columns([1,1,1])
+        col_iglu, col_cable, col_drab = cont.columns([1, 1, 1])
         col_iglu.markdown('**IGLU**')
         iglu_name = col_iglu.selectbox('name:', db_iglu_board_names, key='iglu_name_key', label_visibility='collapsed')
         col_cable.markdown('**downhole cable**')
@@ -258,11 +250,12 @@ def build_complete_container(cont, channel):
             search_downhole_breakout_channel = st.session_state.downhole_chain_breakout_channel_key
 
         # get all possible downhole chain names from the database
-        db_down_chain_name = det.get_object_names('downhole_chain')
+        db_down_chain_name = db.get_object_names('downhole_chain')
         db_down_chain_name.insert(0, 'Choose a name')
 
         # get all channel-id of the drab from the database (depends on the selected drab name)
-        db_downhole_chain_info = det.get_all_available_signal_chain_configs(collection='downhole_chain', object_name=search_downhole_chain_name, input_dic={'breakout': search_downhole_breakout, 'breakout_channel': search_downhole_breakout_channel})
+        db_downhole_chain_info = db.get_all_available_signal_chain_configs(collection='downhole_chain', object_name=search_downhole_chain_name,
+                                                                            input_dic={'breakout': search_downhole_breakout, 'breakout_channel': search_downhole_breakout_channel})
         db_downhole_chain_breakout_ids = db_downhole_chain_info['breakout']
         db_downhole_chain_breakout_channel_ids = db_downhole_chain_info['breakout_channel']
         db_downhole_chain_breakout_ids.insert(0, 'Select an option')
@@ -270,7 +263,8 @@ def build_complete_container(cont, channel):
 
         downhole_name = cont.selectbox('downhole chain name:', db_down_chain_name, key='downhole_chain_name_key')
         downhole_breakout_id = cont.selectbox('downhole chain breakout id:', db_downhole_chain_breakout_ids, key='downhole_chain_breakout_key', disabled=disable_downhole_chain_components)
-        downhole_breakout_channel_id = cont.selectbox('downhole chain breakout channel id:', db_downhole_chain_breakout_channel_ids, key='downhole_chain_breakout_channel_key', disabled=disable_downhole_chain_components)
+        downhole_breakout_channel_id = cont.selectbox('downhole chain breakout channel id:', db_downhole_chain_breakout_channel_ids, key='downhole_chain_breakout_channel_key',
+                                                      disabled=disable_downhole_chain_components)
 
         return {'downhole_chain': downhole_name, 'downhole_chain_breakout': downhole_breakout_id, 'downhole_chain_breakout_channel': downhole_breakout_channel_id}
 
@@ -281,7 +275,6 @@ def input_channel_information(cont, station_id, coll_name, station_info):
         channels_db = []
         for key in station_info[station_id]['channels'].keys():
             channels_db.append(station_info[station_id]['channels'][key]['id'])
-        # channels_db = list(station_info[station_id]['channels'].keys())
     else:
         channels_db = []
     cont.info(f'Channels included in the database: {len(channels_db)}/24')
@@ -296,7 +289,7 @@ def input_channel_information(cont, station_id, coll_name, station_info):
     else:
         disable_new_entry = True
     channel = col11.selectbox('Select a channel or enter a new channel number:', channel_help, help='The channel number must be an integer between 0 and 23.')
-    new_cha = col22.text_input('', placeholder='channel number', disabled=disable_new_entry)
+    new_cha = col22.text_input('Select a channel or enter a new channel number:', placeholder='channel number', disabled=disable_new_entry, label_visibility='hidden')
     if channel == 'new channel number':
         selected_channel = new_cha
     else:
@@ -308,7 +301,7 @@ def input_channel_information(cont, station_id, coll_name, station_info):
     else:
         channel_info = station_info[station_id]['channels'][selected_channel]
 
-    # tranform the channel number from a string into an int
+    # transform the channel number from a string into an int
     if selected_channel != '':
         selected_channel = int(selected_channel)
 
@@ -323,12 +316,12 @@ def input_channel_information(cont, station_id, coll_name, station_info):
         antenna_types.insert(0, db_ant_type)
     else:
         # put the fitting channel on top
-        if selected_channel in [4,8,11,21]:
+        if selected_channel in [4, 8, 11, 21]:
             db_ant_type_index = np.where(np.asarray(antenna_types) == 'HPol')[0][0]
             antenna_types.pop(db_ant_type_index)
             antenna_types.insert(0, 'HPol')
             default_VEL = 'RNOG_quadslot_v3_air_rescaled_to_n1.74'
-        elif selected_channel in np.arange(12,21,1):
+        elif selected_channel in np.arange(12, 21, 1):
             db_ant_type_index = np.where(np.asarray(antenna_types) == 'LPDA')[0][0]
             antenna_types.pop(db_ant_type_index)
             antenna_types.insert(0, 'LPDA')
@@ -336,7 +329,7 @@ def input_channel_information(cont, station_id, coll_name, station_info):
         else:
             # VPol is already at the top
             default_VEL = 'RNOG_vpol_4inch_center_1.73'
-    col_ant1, col_ant2, col_ant3 = cont.columns([1,1,1])
+    col_ant1, col_ant2, col_ant3 = cont.columns([1, 1, 1])
     selected_antenna_type = col_ant1.selectbox('Select a antenna type:', antenna_types)
 
     # select the antenna type; if the channel exists, the antenna type of the db will be used as default otherwise the antenna types as shown in the list will be given
@@ -361,7 +354,7 @@ def input_channel_information(cont, station_id, coll_name, station_info):
         s11_measurements = ['no measurements available']
         disable_s11 = True
     else:
-        s11_measurements = det.get_quantity_names(selected_antenna_type.lower(), 'name')
+        s11_measurements = db.get_quantity_names(selected_antenna_type.lower(), 'name')
     selected_s11_measurement = col_ant3.selectbox('Select an S11 measurement:', s11_measurements, disabled=disable_s11)
 
     # input the (de)commisschon time of the channel (can be used to set a channel to be broken); if the channel exist the dates from the db will be used as a default
@@ -382,15 +375,8 @@ def input_channel_information(cont, station_id, coll_name, station_info):
     cont.markdown('Is the channel working normally?')
     function_channel = cont.checkbox('Channel is working', value=True)
 
-    # input the signal chain; if the channel already exists the entries from the db will be used as the default
+    # input the signal chain
     cont.markdown('Signal chain:')
-
-    #TODO
-    # get the signal chain from the db
-    # if channel_info != {}:
-    #     db_signal_chain = channel_info['signal_ch']
-    # else:
-    #     db_signal_chain = []
 
     signal_chain_cont = cont.container()
     signal_chain = []
@@ -422,12 +408,11 @@ def input_device_information(cont, station_id, station_info):
     col_d1, col_d2 = cont.columns([1, 1])
 
     # if the device exist make the existing device name the default argument, else display the names as listed here
-    device_names = ['Helper string B pulser','Helper string C pulser','Surface pulser', 'Solar panel 1', 'Solar panel 2', 'wind-turbine', 'daq box']
+    device_names = ['Helper string B pulser', 'Helper string C pulser', 'Surface pulser', 'Solar panel 1', 'Solar panel 2', 'wind-turbine', 'daq box']
     corresponding_device_ids = [1, 0, 2, 101, 102, 103, 100]
     selected_device_name = col_d1.selectbox('Select a device name:', device_names)
     selected_corresponding_device_id = corresponding_device_ids[np.where(np.asarray(device_names) == selected_device_name)[0][0]]
 
-    # col_d2.markdown(f'<p style="color:#FFFFFF">device id: {selected_corresponding_device_id}</p>', unsafe_allow_html=True)
     col_d2.markdown("#")
     col_d2.markdown(f'device id: {selected_corresponding_device_id}')
 
@@ -459,8 +444,8 @@ def input_device_information(cont, station_id, station_info):
 
     # select the amplifier (IGLU)
     # only show this if a pulser is selected
-    iglu_db = det.get_object_names('iglu_board')
-    if 'CAL' in selected_device_name:
+    iglu_db = db.get_object_names('iglu_board')
+    if 'pulser' in selected_device_name:
         selected_amp = cont.selectbox('Select an IGLU:', iglu_db)
     else:
         selected_amp = None
@@ -507,21 +492,21 @@ def validate_channel_inputs(collection, container_bottom, station_name, comm_dat
         container_bottom.error('The decommission date of the channel must be later than the commission date.')
 
     # validate that a valid channel is given
-    possible_channel_ids = np.arange(0,24,1)
-    if channel != '':
+    possible_channel_ids = np.arange(0, 24, 1)
+    if channel != '' and type(channel) is int:
         if channel in possible_channel_ids:
             channel_correct = True
         else:
             container_bottom.error('The channel number must be between 0 and 23.')
 
     # validate that signal chain input is given
-    if 'Choose a name' not in signal_chain and 'not existing yet' not in signal_chain:
+    if 'Choose a name' not in signal_chain.values() and 'not existing yet' not in signal_chain.values() and 'Select an option' not in signal_chain.values():
         signal_chain_correct = True
     else:
         container_bottom.error('Not all options for the signal chain are filled.')
 
     # check if there is an entry for the station in the db
-    if station_name in det.get_object_names(collection):
+    if station_name in db.get_object_names(collection):
         station_in_db = True
     else:
         container_bottom.error('There is no corresponding entry for the station in the database.')
@@ -555,7 +540,7 @@ def validate_device_inputs(container_bottom, station_name, comm_date, deomm_date
         container_bottom.error('Please select or enter a device id.')
 
     # check if there is an entry for the station in the db
-    if station_name in det.get_object_names('station_rnog'):
+    if station_name in db.get_object_names('station_rnog'):
         station_in_db = True
     else:
         container_bottom.error('There is no corresponding entry for the station in the database.')
@@ -567,39 +552,28 @@ def validate_device_inputs(container_bottom, station_name, comm_date, deomm_date
 
 
 def insert_general_station_info_to_db(station_id, collection_name, station_name, station_comment, station_comm_time, station_decomm_time):
-    det.add_general_station_info(collection_name, station_id, station_name, station_comment, station_comm_time, station_decomm_time)
+    db.add_general_station_info(collection_name, station_id, station_name, station_comment, station_comm_time, station_decomm_time)
 
 
 def insert_general_channel_info_to_db(station_id, collection_name, channel_id, signal_chain, ant_type, ant_VEL, s11_measurement, channel_comment, commission_time, decommission_time):
-    # convert the signal chain to the correct format
-    # converted_signal_chain = []
-    # # for i in range(int(len(signal_chain)/2)):
-    # #     print(signal_chain)
-    # #     converted_signal_chain.append({'type': signal_chain[2*i], 'uname': signal_chain[2*i + 1]})
-    # print(signal_chain)
-    # for key in signal_chain:
-    #     converted_signal_chain.append({'type': key, 'uname': signal_chain[key]})
-    #
-    # # the check if the channel already exists happens in add_channel_to_station
-    # det.add_general_channel_info_to_station(collection_name, station_id, channel_id, converted_signal_chain, ant_name, channel_type, channel_comment, commission_time, decommission_time)
-    det.add_general_channel_info_to_station(collection_name, station_id, channel_id, signal_chain, ant_type, ant_VEL, s11_measurement, channel_comment, commission_time, decommission_time)
+    db.add_general_channel_info_to_station(collection_name, station_id, channel_id, signal_chain, ant_type, ant_VEL, s11_measurement, channel_comment, commission_time, decommission_time)
 
 
 def insert_general_device_info_to_db(station_id, collection_name, device_id, device_name, amp_name, device_comment, commission_time, decommission_time):
-    det.add_general_device_info_to_station(collection_name, station_id, device_id, device_name, device_comment, amp_name, commission_time, decommission_time)
+    db.add_general_device_info_to_station(collection_name, station_id, device_id, device_name, device_comment, amp_name, commission_time, decommission_time)
 
 
 def insert_channel_position_to_db(station_id, channel_id, measurement_name, measurement_time, position, orientation, rotation, primary):
-    det.add_channel_position(station_id, channel_id, measurement_name, measurement_time, position, orientation, rotation, primary)
+    db.add_channel_position(station_id, channel_id, measurement_name, measurement_time, position, orientation, rotation, primary)
 
 
 def insert_station_position_to_db(station_id, measurement_name, measurement_time, position, primary):
-    det.add_station_position(station_id, measurement_name, measurement_time, position, primary)
+    db.add_station_position(station_id, measurement_name, measurement_time, position, primary)
 
 
 def insert_signal_chain_to_db(station_id, channel_number, config_name, sig_chain, primary, primary_components):
-    det.add_channel_signal_chain(station_id, channel_number, config_name, sig_chain, primary, primary_components)
+    db.add_channel_signal_chain(station_id, channel_number, config_name, sig_chain, primary, primary_components)
 
 
 def insert_device_position_to_db(station_id, device_id, measurement_name, measurement_time, position, orientation, rotation, primary):
-    det.add_device_position(station_id, device_id, measurement_name, measurement_time, position, orientation, rotation, primary)
+    db.add_device_position(station_id, device_id, measurement_name, measurement_time, position, orientation, rotation, primary)

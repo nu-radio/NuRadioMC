@@ -1,14 +1,9 @@
-import copy
-import time
 import streamlit as st
-import pandas as pd
 import numpy as np
-from plotly import subplots
-import plotly.graph_objs as go
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
 from NuRadioReco.detector.webinterface.utils.helper import build_success_page
-from NuRadioReco.detector.webinterface.utils.helper_station import insert_signal_chain_to_db, build_individual_container, build_complete_container, load_measurement_names, load_collection_information, load_station_ids
-from NuRadioReco.utilities import units
+from NuRadioReco.detector.webinterface.utils.helper_station import insert_signal_chain_to_db, build_individual_container, build_complete_container, load_measurement_names, load_collection_information, \
+    load_station_ids
 from datetime import datetime
 
 page_name = 'station'
@@ -91,7 +86,7 @@ def build_main_page(main_cont):
         signal_chain_cont.empty()
         signal_chain = build_individual_container(signal_chain_cont, selected_channel)
         main_cont.markdown('Select an primary time for each measured component (a selected time before 2018/01/01, will be saved as None.):')
-        if selected_channel in [12,13,14,15,16,17,18,19,20]:
+        if selected_channel in [12, 13, 14, 15, 16, 17, 18, 19, 20]:
             col1_pri, col2_pri = main_cont.columns([1, 1])
             primary_surface_board = col1_pri.date_input('surface board', label_visibility='collapsed')
             primary_surface_board_time = col1_pri.time_input('surface_board time', label_visibility='collapsed')
@@ -105,7 +100,7 @@ def build_main_page(main_cont):
                 primary_surface_cable = None
             primary_components = {'surface_board': primary_surface_board, 'surface_cable': primary_surface_cable}
         else:
-            col1_pri, col2_pri, col3_pri = main_cont.columns([1,1,1])
+            col1_pri, col2_pri, col3_pri = main_cont.columns([1, 1, 1])
             primary_iglu = col1_pri.date_input('IGLU', label_visibility='collapsed')
             primary_iglu_time = col1_pri.time_input('IGLU_time', label_visibility='collapsed')
             primary_iglu = datetime.combine(primary_iglu, primary_iglu_time)
@@ -131,7 +126,7 @@ def build_main_page(main_cont):
         primary_chain = datetime.combine(primary_chain, primary_chain_time)
         if primary_chain < datetime(2018, 1, 1, 0, 0, 0):
             primary_chain = None
-        if selected_channel in [12,13,14,15,16,17,18,19,20]:
+        if selected_channel in [12, 13, 14, 15, 16, 17, 18, 19, 20]:
             primary_components = {'surface_chain': primary_chain}
         else:
             primary_components = {'downhole_chain': primary_chain}
@@ -151,7 +146,7 @@ def build_main_page(main_cont):
         main_cont.empty()
         st.session_state.key = '1'
         st.experimental_rerun()
-#    insert_channel_info(cont_channel_warning, cont_warning_bottom, selected_station_id, selected_channel, config_name, signal_chain, primary, primary_components)
+
 
 # main page setup
 page_configuration()
@@ -189,8 +184,8 @@ if config_name == 'new configuration':
 
 # enter the information for the single stations
 cont_warning_top = main_container.container()
-station_list = ['Station 11 (Nanoq)', 'Station 12 (Terianniaq)', 'Station 13 (Ukaleq)', 'Station 14 (Tuttu)', 'Station 15 (Umimmak)', 'Station 21 (Amaroq)', 'Station 22 (Avinngaq)',
-                'Station 23 (Ukaliatsiaq)', 'Station 24 (Qappik)', 'Station 25 (Aataaq)']
+station_list = ['Station 11 (Nanoq)', 'Station 12 (Terianniaq)', 'Station 13 (Ukaleq)', 'Station 14 (Tuttu)', 'Station 15 (Umimmak)', 'Station 21 (Amaroq)', 'Station 22 (Avinngaq)', 'Station 23 (Ukaliatsiaq)',
+                'Station 24 (Qappik)', 'Station 25 (Aataaq)']
 selected_station = main_container.selectbox('Select a station', station_list)
 # get the id out of the string
 selected_station_id = int(selected_station[len('Station '):len('Station ') + 2])

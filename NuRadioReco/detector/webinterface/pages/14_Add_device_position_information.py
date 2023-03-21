@@ -1,14 +1,8 @@
-import copy
 import time
 import streamlit as st
-import pandas as pd
-from plotly import subplots
-import plotly.graph_objs as go
-import numpy as np
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
 from NuRadioReco.detector.webinterface.utils.helper import build_success_page
 from NuRadioReco.detector.webinterface.utils.helper_station import load_station_ids, load_measurement_names, insert_device_position_to_db, load_collection_information
-from NuRadioReco.utilities import units
 from datetime import datetime
 from datetime import time
 
@@ -24,7 +18,7 @@ def validate_inputs(container_bottom, station_id, measurement_name, device_id):
 
     disable_insert_button = True
 
-    # validate that a the device id is correct
+    # validate that the device id is correct
     if device_id >= 0:
         device_id_correct = True
     else:
@@ -126,7 +120,7 @@ def build_device_position_page(main_cont):
         main_cont.empty()
         st.session_state.key = '1'
         st.experimental_rerun()
-     
+
 
 # main page setup
 page_configuration()
@@ -158,8 +152,8 @@ if measurement_name == 'new measurement':
 
 # enter the information for the station
 cont_warning_top = main_container.container()
-station_list = ['Station 11 (Nanoq)', 'Station 12 (Terianniaq)', 'Station 13 (Ukaleq)', 'Station 14 (Tuttu)', 'Station 15 (Umimmak)', 'Station 21 (Amaroq)', 'Station 22 (Avinngaq)',
-                'Station 23 (Ukaliatsiaq)', 'Station 24 (Qappik)', 'Station 25 (Aataaq)']
+station_list = ['Station 11 (Nanoq)', 'Station 12 (Terianniaq)', 'Station 13 (Ukaleq)', 'Station 14 (Tuttu)', 'Station 15 (Umimmak)', 'Station 21 (Amaroq)', 'Station 22 (Avinngaq)', 'Station 23 (Ukaliatsiaq)',
+                'Station 24 (Qappik)', 'Station 25 (Aataaq)']
 selected_station = main_container.selectbox('Select a station', station_list)
 # get the name and id out of the string
 selected_station_id = int(selected_station[len('Station '):len('Station ') + 2])

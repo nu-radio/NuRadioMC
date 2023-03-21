@@ -1,10 +1,8 @@
-import copy
 import time
 import streamlit as st
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
 from NuRadioReco.detector.webinterface.utils.helper import build_success_page
 from NuRadioReco.detector.webinterface.utils.helper_station import insert_station_position_to_db, load_general_station_infos, load_measurement_station_position_information, load_measurement_names
-from NuRadioReco.utilities import units
 from datetime import datetime
 from datetime import time
 
@@ -12,7 +10,6 @@ page_name = 'station_position'
 
 
 def validate_inputs(cont, measurement_name, station_id, measurement_time):
-
     disable_insert_in_db = True
 
     check_measurement_name = False
@@ -31,12 +28,12 @@ def validate_inputs(cont, measurement_name, station_id, measurement_time):
     if general_station_info != {}:
         check_station_in_db = True
     else:
-        cont.error('There is no corresponding in the database. Please insert general station information first.')
+        cont.error('There is no corresponding station in the database. Please insert general station information first.')
 
     # check that there is no existing entry for this measurement in the database
     measurement_info_db = load_measurement_station_position_information(station_id, measurement_name)
     if measurement_name != '':
-        if measurement_info_db == []:
+        if measurement_info_db == [] or measurement_info_db == {}:
             check_measurement_name_in_db = True
         else:
             cont.error('The measurement is already inserted in the database. Please choose a different measurement name.')
@@ -98,8 +95,8 @@ st.markdown(page_name)
 
 # enter the information for the single stations
 cont_warning_top = st.container()
-station_list = ['Station 11 (Nanoq)', 'Station 12 (Terianniaq)', 'Station 13 (Ukaleq)', 'Station 14 (Tuttu)', 'Station 15 (Umimmak)', 'Station 21 (Amaroq)', 'Station 22 (Avinngaq)',
-                'Station 23 (Ukaliatsiaq)', 'Station 24 (Qappik)', 'Station 25 (Aataaq)']
+station_list = ['Station 11 (Nanoq)', 'Station 12 (Terianniaq)', 'Station 13 (Ukaleq)', 'Station 14 (Tuttu)', 'Station 15 (Umimmak)', 'Station 21 (Amaroq)', 'Station 22 (Avinngaq)', 'Station 23 (Ukaliatsiaq)',
+                'Station 24 (Qappik)', 'Station 25 (Aataaq)']
 selected_station = st.selectbox('Select a station', station_list)
 # get the name and id out of the string
 selected_station_id = int(selected_station[len('Station '):len('Station ') + 2])

@@ -1,26 +1,17 @@
-import streamlit as st
-from plotly import subplots
-import plotly.graph_objs as go
-import pandas as pd
-from NuRadioReco.detector.webinterface.utils.units_helper import str_to_unit
-from NuRadioReco.utilities import units
-import numpy as np
-from NuRadioReco.detector.db_mongo import Database as Detector
+from NuRadioReco.detector.db_mongo import Database
 from NuRadioReco.detector.webinterface import config
-from datetime import datetime
-from datetime import time
 
-#det = Detector(config.DATABASE_TARGET)
-det = Detector(database_connection=config.DATABASE_TARGET)
+db = Database(database_connection=config.DATABASE_TARGET)
+
 
 def get_station_ids_from_db():
-    return det.get_quantity_names('runtable', 'station')
+    return db.get_quantity_names('runtable', 'station')
 
 
 def get_firmware_from_db():
-    return det.get_quantity_names('runtable', 'firmware_version')
+    return db.get_quantity_names('runtable', 'firmware_version')
 
 
 def load_runs(station_list, start_time, end_time, flag_list, trigger_list, min_duration, firmware_list):
-    results = det.get_runs(station_list, start_time, end_time, flag_list, trigger_list, min_duration, firmware_list)
+    results = db.get_runs(station_list, start_time, end_time, flag_list, trigger_list, min_duration, firmware_list)
     return results
