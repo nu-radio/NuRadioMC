@@ -1,27 +1,14 @@
-import streamlit as st
-from plotly import subplots
-import plotly.graph_objs as go
-import pandas as pd
-from NuRadioReco.detector.webinterface.utils.units_helper import str_to_unit
-from NuRadioReco.utilities import units
-import numpy as np
-
-from NuRadioReco.detector.db_mongo import Database as Detector
+from NuRadioReco.detector.db_mongo import Database
 from NuRadioReco.detector.webinterface import config
-# from NuRadioReco.detector.db_mongo import Database as Detector
-from datetime import datetime
 
-# det = Detector(config.DATABASE_TARGET)
-# det = Detector(database_connection='env_pw_user')
-# det = Detector(database_connection='test')
-det = Detector(database_connection=config.DATABASE_TARGET)
+db = Database(database_connection=config.DATABASE_TARGET)
 
 
 def select_downhole(page_name, main_container, warning_container):
-    col1_I, col2_I, col3_I, col4_I, col5_I, col6_I, col7_I = main_container.columns([1.35,1.1,0.9,0.9,1,1,0.75])
+    col1_I, col2_I, col3_I, col4_I, col5_I, col6_I, col7_I = main_container.columns([1.35, 1.1, 0.9, 0.9, 1, 1, 0.75])
 
     selected_downhole_name = ''
-    downhole_names = det.get_object_names(page_name)
+    downhole_names = db.get_object_names(page_name)
     downhole_names.insert(0, f'new fiber')
 
     downhole_dropdown = col1_I.selectbox('Select existing fiber or enter unique name of new fiber:', downhole_names)
@@ -35,7 +22,7 @@ def select_downhole(page_name, main_container, warning_container):
         warning_container.warning(f'You are about to override the fiber unit {downhole_dropdown}!')
 
         # load all the information for this board
-        selected_downhole_infos = det.load_board_information(page_name, selected_downhole_name, ['breakout', 'breakout_channel', 'IGLU_id', 'DRAB_id', 'measurement_temp'])
+        selected_downhole_infos = db.load_board_information(page_name, selected_downhole_name, ['breakout', 'breakout_channel', 'IGLU_id', 'DRAB_id', 'measurement_temp'])
 
     new_board_name = col2_I.text_input('', placeholder=f'new unique fiber name', disabled=disable_new_input)
     if downhole_dropdown == f'new fiber':
@@ -58,7 +45,7 @@ def select_downhole(page_name, main_container, warning_container):
     selected_breakout_cha_id = col4_I.selectbox('', breakout_cha_ids)
 
     # if an exiting fiber is selected, change the default option to the saved IGLU
-    iglu_names = det.get_object_names('iglu_board')
+    iglu_names = db.get_object_names('iglu_board')
     if selected_downhole_infos != []:
         if selected_downhole_infos[2] in iglu_names:
             iglu_index = iglu_names.index(selected_downhole_infos[2])
@@ -73,7 +60,7 @@ def select_downhole(page_name, main_container, warning_container):
     selected_IGLU = col5_I.selectbox('', iglu_names)
 
     # if an exiting fiber is selected, change the default option to the saved DRAB
-    drab_names = det.get_object_names('drab_board')
+    drab_names = db.get_object_names('drab_board')
     if selected_downhole_infos != []:
         if selected_downhole_infos[3] in drab_names:
             drab_index = drab_names.index(selected_downhole_infos[3])
@@ -143,6 +130,6 @@ def validate_global_downhole(page_name, container_bottom, surface_name, new_surf
 
 def insert_downhole_to_db(page_name, s_names, downhole_name, data, input_units, working, primary, protocol, breakout_id, breakout_cha_id, iglu_id, drab_id, temp, measurement_time, time_delay):
     if not working:
-        det.set_not_working(page_name, downhole_name, primary, breakout_id=int(breakout_id), breakout_channel_id=breakout_cha_id)
+        db.set_not_working(page_name, downhole_name, primary, breakout_id=int(breakout_id), breakout_channel_id=breakout_cha_id)
     else:
-        det.downhole_add_Sparameters(page_name, s_names, downhole_name, int(breakout_id), breakout_cha_id, iglu_id, drab_id, temp, data, measurement_time, primary, time_delay, protocol, input_units)
+        db.downhole_add_Sparameters(page_name, s_names, downhole_name, int(breakout_id), breakout_cha_id, iglu_id, drab_id, temp, data, measurement_time, primary, time_delay, protocol, input_units)

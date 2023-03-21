@@ -1,27 +1,14 @@
-import streamlit as st
-from plotly import subplots
-import plotly.graph_objs as go
-import pandas as pd
-from NuRadioReco.detector.webinterface.utils.units_helper import str_to_unit
-from NuRadioReco.utilities import units
-import numpy as np
-
-from NuRadioReco.detector.db_mongo import Database as Detector
+from NuRadioReco.detector.db_mongo import Database
 from NuRadioReco.detector.webinterface import config
-# from NuRadioReco.detector.db_mongo import Database as Detector
-from datetime import datetime
 
-# det = Detector(config.DATABASE_TARGET)
-# det = Detector(database_connection='env_pw_user')
-# det = Detector(database_connection='test')
-det = Detector(database_connection=config.DATABASE_TARGET)
+db = Database(database_connection=config.DATABASE_TARGET)
 
 
 def select_surface(page_name, main_container, warning_container):
-    col1_I, col2_I, col3_I, col4_I = main_container.columns([1,1,1,1])
+    col1_I, col2_I, col3_I, col4_I = main_container.columns([1, 1, 1, 1])
 
     selected_surface_name = ''
-    surface_names = det.get_object_names(page_name)
+    surface_names = db.get_object_names(page_name)
     surface_names.insert(0, f'new {page_name}')
 
     surface_dropdown = col1_I.selectbox('Select existing board or enter unique name of new board:', surface_names)
@@ -35,7 +22,7 @@ def select_surface(page_name, main_container, warning_container):
         warning_container.warning(f'You are about to override the {page_name} unit {surface_dropdown}!')
 
         # load all the information for this board
-        selected_surface_infos = det.load_board_information(page_name, selected_surface_name, ['channel_id', 'measurement_temp'])
+        selected_surface_infos = db.load_board_information(page_name, selected_surface_name, ['channel_id', 'measurement_temp'])
 
     new_board_name = col2_I.text_input('', placeholder=f'new unique board name', disabled=disable_new_input)
     if surface_dropdown == f'new {page_name}':
@@ -105,6 +92,6 @@ def validate_global_surface(page_name, container_bottom, surface_name, new_surfa
 
 def insert_surface_to_db(page_name, s_names, surface_name, data, input_units, working, primary, protocol, channel_id, temp, measurement_time, time_delay):
     if not working:
-        det.set_not_working(page_name, surface_name, primary, channel_id=int(channel_id))
+        db.set_not_working(page_name, surface_name, primary, channel_id=int(channel_id))
     else:
-        det.surface_add_Sparameters(page_name, s_names, surface_name, int(channel_id), temp, data, measurement_time, primary, time_delay, protocol, input_units)
+        db.surface_add_Sparameters(page_name, s_names, surface_name, int(channel_id), temp, data, measurement_time, primary, time_delay, protocol, input_units)

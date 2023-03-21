@@ -1,29 +1,16 @@
-import streamlit as st
-from plotly import subplots
-import plotly.graph_objs as go
-import pandas as pd
-from NuRadioReco.detector.webinterface.utils.units_helper import str_to_unit
-from NuRadioReco.utilities import units
-import numpy as np
-
-from NuRadioReco.detector.db_mongo import Database as Detector
+from NuRadioReco.detector.db_mongo import Database
 from NuRadioReco.detector.webinterface import config
-# from NuRadioReco.detector.db_mongo import Database as Detector
-from datetime import datetime
 
-# det = Detector(config.DATABASE_TARGET)
-# det = Detector(database_connection='env_pw_user')
-# det = Detector(database_connection='test')
-det = Detector(database_connection=config.DATABASE_TARGET)
+db = Database(database_connection=config.DATABASE_TARGET)
 
 
 def select_drab(page_name, main_container, warning_container):
-    col1_I, col2_I, col3_I, col4_I, col5_I, col6_I = main_container.columns([1.2,1,1,0.8,1,1])
+    col1_I, col2_I, col3_I, col4_I, col5_I, col6_I = main_container.columns([1.2, 1, 1, 0.8, 1, 1])
 
     selected_drab_name = ''
-    drab_names = det.get_object_names(page_name)
+    drab_names = db.get_object_names(page_name)
     drab_names.insert(0, f'new {page_name}')
-    iglu_names = det.get_object_names('iglu_board')
+    iglu_names = db.get_object_names('iglu_board')
 
     drab_dropdown = col1_I.selectbox('Select existing board or enter unique name of new board:', drab_names)
     if drab_dropdown == f'new {page_name}':
@@ -36,7 +23,7 @@ def select_drab(page_name, main_container, warning_container):
         warning_container.warning(f'You are about to override the {page_name} unit {drab_dropdown}!')
 
         # load all the information for this board
-        selected_drab_infos = det.load_board_information(page_name, selected_drab_name, ['photodiode_serial', 'channel_id', 'IGLU_id', 'measurement_temp'])
+        selected_drab_infos = db.load_board_information(page_name, selected_drab_name, ['photodiode_serial', 'channel_id', 'IGLU_id', 'measurement_temp'])
 
     new_board_name = col2_I.text_input('', placeholder=f'new unique board name', disabled=disable_new_input)
     if drab_dropdown == f'new {page_name}':
@@ -87,7 +74,7 @@ def select_drab(page_name, main_container, warning_container):
     else:
         selected_Temp = int(selected_Temp[:-2])
 
-    return selected_drab_name, drab_dropdown, photodiode_number, selected_channel_id,selected_IGLU, selected_Temp
+    return selected_drab_name, drab_dropdown, photodiode_number, selected_channel_id, selected_IGLU, selected_Temp
 
 
 def validate_global_drab(page_name, container_bottom, drab_name, new_drab_name, photodiode_number, channel_id, channel_working, Sdata_validated, uploaded_data):
@@ -127,6 +114,6 @@ def validate_global_drab(page_name, container_bottom, drab_name, new_drab_name, 
 
 def insert_drab_to_db(page_name, s_names, drab_name, data, input_units, working, primary, protocol, iglu_id, photodiode_id, channel_id, temp, measurement_time, time_delay):
     if not working:
-        det.set_not_working(page_name, drab_name, primary, channel_id=int(channel_id))
+        db.set_not_working(page_name, drab_name, primary, channel_id=int(channel_id))
     else:
-        det.drab_add_Sparameters(page_name, s_names, drab_name, iglu_id, photodiode_id, int(channel_id), temp, data, measurement_time, primary, time_delay, protocol, input_units)
+        db.drab_add_Sparameters(page_name, s_names, drab_name, iglu_id, photodiode_id, int(channel_id), temp, data, measurement_time, primary, time_delay, protocol, input_units)

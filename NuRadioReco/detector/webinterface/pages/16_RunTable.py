@@ -1,9 +1,6 @@
-import copy
 import time
 import streamlit as st
 import pandas as pd
-from plotly import subplots
-import plotly.graph_objs as go
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
 from NuRadioReco.detector.webinterface.utils.helper_runTable import get_firmware_from_db, load_runs, get_station_ids_from_db
 from NuRadioReco.utilities import units
