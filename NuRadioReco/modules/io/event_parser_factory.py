@@ -126,8 +126,11 @@ def scan_files_function(version_major, version_minor):
             return scan_files_2_0
         else:
             return scan_files_2_2
+    elif version_major == 0:
+        raise ValueError(f'File version is {version_major}.{version_major} which might indicate the file is empty')
     else:
-        raise ValueError('File version {}.{} is not supported. Major version needs to be 2 but is {}'.format(version_major, version_minor, version_major))
+        raise ValueError('File version {}.{} is not supported. Major version needs to be 2 but is {}.'.format(version_major, version_minor, version_major))
+
 
 
 def iter_events_function(version_major, version_minor):
@@ -185,5 +188,7 @@ def iter_events_function(version_major, version_minor):
             return iter_events_2_0
         else:
             return iter_events_2_2
+    elif version_major == 0:
+        raise ValueError(f'File version is {version_major}.{version_major} which might indicate the file is empty')
     else:
         raise ValueError('File version {}.{} is not supported. Major version needs to be 2 but is {}'.format(version_major, version_minor, version_major))
