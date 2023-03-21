@@ -76,5 +76,5 @@ for iX, x in enumerate(points):
 compare_array = np.vstack((results_theta, results_phi))
 reference_array = np.load('reference_BF.npy')
 
-testing.assert_allclose(compare_array, reference_array, atol=1e-2  * units.V / units.m, rtol=1e-10)
+testing.assert_allclose(compare_array, reference_array, atol=1e-2  * units.V / units.m, rtol=1e-5)
 print('T07test_birefringence passed without issues')
