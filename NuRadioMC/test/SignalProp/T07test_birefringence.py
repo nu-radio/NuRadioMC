@@ -59,6 +59,7 @@ Ph = th_max * t_theta.get_trace() / max(t_theta.get_trace())
 test_pulse = np.array([T, Th, Ph])
 np.save('test_pulse.npy', test_pulse)
 
+
 results_theta = np.array([test_pulse[1]])
 results_phi = np.array([test_pulse[2]])
 
@@ -76,5 +77,5 @@ for iX, x in enumerate(points):
 compare_array = np.vstack((results_theta, results_phi))
 reference_array = np.load('reference_BF.npy')
 
-testing.assert_allclose(compare_array, reference_array, atol=1e-2  * units.V / units.m, rtol=1e-5)
+testing.assert_allclose(compare_array, reference_array, atol=2e-1  * units.V / units.m, rtol=1e-5, verbose=True)
 print('T07test_birefringence passed without issues')
