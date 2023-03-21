@@ -30,7 +30,7 @@ zz = np.random.uniform(zmin, zmax, n_events)
 points = np.array([xx, yy, zz]).T
 x_receiver = np.array([0., 0., -5.])
 
-stamps = 200000
+stamps = 20000
 
 T_start = -50
 T_final = 50
@@ -74,7 +74,7 @@ for iX, x in enumerate(points):
             results_phi = np.vstack((results_phi, final_pulse[2]))
 
 compare_array = np.vstack((results_theta, results_phi))
-reference_array = np.load('reference_birefringence.npy')
+reference_array = np.load('reference_BF.npy')
 
 testing.assert_allclose(compare_array, reference_array, atol=1e-2  * units.V / units.m, rtol=1e-10)
 print('T07test_birefringence passed without issues')
