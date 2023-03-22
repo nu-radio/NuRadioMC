@@ -1420,7 +1420,8 @@
                 <span class="n">t1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_station</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">station</span><span class="o">.</span><span class="n">Station</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_station</span><span class="o">.</span><span class="n">set_sim_station</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sim_station</span><span class="p">)</span>
-
+                <span class="bp">self</span><span class="o">.</span><span class="n">_station</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">set_station_time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evt_time</span><span class="p">)</span>
+                
                 <span class="c1"># convert efields to voltages at digitizer</span>
                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_detector_simulation_part1&#39;</span><span class="p">):</span>
                     <span class="c1"># we give the user the opportunity to define a custom detector simulation</span>
