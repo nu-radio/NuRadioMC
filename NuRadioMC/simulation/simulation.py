@@ -616,18 +616,29 @@ class simulation(
         is_candidate_shower = False
         t2 = time.time()
         for i_channel,  channel_id in enumerate(self._channel_ids):
+            # is_candidate_channel_old = self._simulate_channel(
+            #     channel_id,
+            #     pre_simulated,
+            #     sim_shower,
+            #     cherenkov_angle,
+            #     n_index,
+            #     output_data,
+            #     iSh,
+            #     ray_tracing_performed,
+            #     shower_energy_sum
+            # )
             efield_objects, launch_vectors, receive_vectors, travel_times, path_lengths, polarization_directions,\
                 efield_amplitudes, raytracing_output = self.__channel_simulator.simulate_channel(channel_id)
-            if len(efield_objects) > 0:
-                output_data['launch_vectors'][iSh, i_channel] = launch_vectors
-                output_data['receive_vectors'][iSh, i_channel] = receive_vectors
-                output_data['travel_times'][iSh, i_channel] = travel_times
-                output_data['travel_distances'][iSh, i_channel] = path_lengths
-                output_data['polarization'][iSh, i_channel] = polarization_directions
-            for i_efield,  efield in enumerate(efield_objects):
-                self._sim_station.add_electric_field(efield)
-                for key, value in raytracing_output[i_efield]:
-                    output_data[key][iSh, i_channel, i_efield] = value
+            for i_ray in range(len(launch_vectors)):
+                output_data['launch_vectors'][iSh, i_channel, i_ray] = launch_vectors[i_ray]
+                output_data['receive_vectors'][iSh, i_channel, i_ray] = receive_vectors[i_ray]
+                output_data['travel_times'][iSh, i_channel, i_ray] = travel_times[i_ray]
+                output_data['travel_distances'][iSh, i_channel, i_ray] = path_lengths[i_ray]
+                output_data['polarization'][iSh, i_channel, i_ray] = polarization_directions[i_ray]
+                for key, value in raytracing_output[i_ray].items():
+                    output_data[key][iSh, i_channel, i_ray] = value
+            for efield_object in efield_objects:
+                self._sim_station.add_electric_field(efield_object)
             if len(efield_objects) > 0 and np.nanmax(efield_amplitudes) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[self._station_id][channel_id]:
                 is_candidate_shower = True
 

@@ -108,8 +108,6 @@ class channelSimulator:
             launch_vectors[i_solution] = self.__raytracer.get_launch_vector(i_solution)
             viewing_angles[i_solution] = radiotools.helper.get_angle(self.__shower_axis, launch_vectors[i_solution])
             delta_Cs[i_solution] = viewing_angles[i_solution] - self.__cherenkov_angle
-        if len(delta_Cs[~np.isnan(delta_Cs)]) == 0 or np.nanmin(np.abs(delta_Cs)) > self.__config['speedup']['delta_C_cut']:
-            return [], [], [], [], [], [], [], []
         path_lenghts = np.zeros(n_solutions)
         travel_times = np.zeros(n_solutions)
         polarization_directions = np.zeros((n_solutions, 3))
@@ -125,6 +123,10 @@ class channelSimulator:
         efield_objects = []
         raytracing_output = []
         for i_solution, solution in enumerate(raytracing_solutions):
+            raytracing_output.append(self.__raytracer.get_raytracing_output(i_solution))
+
+            if np.abs(delta_Cs[i_solution]) >= self.__config['speedup']['delta_C_cut']:
+                continue
             if self.__evt_pre_simulated and self.__evt_ray_tracing_performed and not self.__config['speedup']['redo_raytracing']:
                 input_data = self.__input_data['station_{:d}'.formta(self.__station_id)]
                 dist = input_data['travel_distances'][self.__shower_index, channel_index, i_solution]
@@ -137,7 +139,6 @@ class channelSimulator:
             path_lenghts[i_solution] = dist
             travel_times[i_solution] = prop_time
             receive_vectors[i_solution] = self.__raytracer.get_receive_vector(i_solution)
-            raytracing_output.append(self.__raytracer.get_raytracing_output(i_solution).items())
             if 'simulation_mode' not in self.__input_attributes or self.__input_attributes['simulation_mode'] == 'neutrino':
                 efield_spectrum, polarization_angle = self.__simulate_neutrino_emission(
                     launch_vectors[i_solution],
@@ -176,7 +177,6 @@ class channelSimulator:
             efield[efp.ray_path_type] = self.__raytracer.get_solution_type(i_solution)
             efield[efp.nu_vertex_distance] = path_lenghts[i_solution]
             efield[efp.nu_viewing_angle] = viewing_angles[i_solution]
-
             efield_objects.append(efield)
             efield_amplitudes[i_solution] = np.sqrt(np.max(np.sum(efield.get_trace()**2, axis=0)))
         return efield_objects, launch_vectors, receive_vectors, travel_times, path_lenghts, \

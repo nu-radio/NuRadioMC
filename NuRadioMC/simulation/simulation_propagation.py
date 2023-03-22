@@ -28,8 +28,8 @@ class simulation_propagation(NuRadioMC.simulation.simulation_base.simulation_bas
         viewing_angles = []
         # loop through all ray tracing solution
         for iS in range(self._raytracer.get_number_of_solutions()):
-            for key, value in self._raytracer.get_raytracing_output(iS).items():
-                sg[key][iSh, i_channel, iS] = value
+            # for key, value in self._raytracer.get_raytracing_output(iS).items():
+            #     sg[key][iSh, i_channel, iS] = value
             self._launch_vector = self._raytracer.get_launch_vector(iS)
             # calculates angle between shower axis and launch vector
             viewing_angle = radiotools.helper.get_angle(self._shower_axis, self._launch_vector)
