@@ -110,7 +110,7 @@ class triggerSimulator:
         station: Station
             station to run the module on
         det: Detector
-            detector instance
+            detector instance (to follow normal module format, not used)
         threshold: float
             threshold value for the TOT calculation on the GRU output values
         tot_bins: int
@@ -143,7 +143,7 @@ class triggerSimulator:
             self.logger.error(msg)
             raise TypeError(msg)
 
-        t0 = time.time()
+        t_profile = time.time()
         channels_that_passed_trigger = []
 
         prediction_traces = None
@@ -221,7 +221,7 @@ class triggerSimulator:
 
         station.set_trigger(trigger)
 
-        self.__t += time.time() - t0
+        self.__t += time.time() - t_profile
 
     def end(self):
         from datetime import timedelta
