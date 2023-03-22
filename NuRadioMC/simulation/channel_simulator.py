@@ -266,11 +266,6 @@ class channelSimulator:
 
         distance_cut = self.__get_distance_cut(shower_energy_sum)
         distance = np.linalg.norm(shower_position - channel_position)
-        if distance > distance_cut:
-            logger.debug('A distance speed up cut has been applied')
-            logger.debug('Shower energy: {:.2e} eV'.format(self._fin['shower_energies'][self._shower_index] / units.eV))
-            logger.debug('Distance cut: {:.2f} m'.format(distance_cut / units.m))
-            logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
         return distance <= distance_cut
 
     def __get_distance_cut(self, shower_energy):
