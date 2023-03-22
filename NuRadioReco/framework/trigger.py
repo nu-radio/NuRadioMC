@@ -379,3 +379,26 @@ class RNOGSurfaceTrigger(Trigger):
         self._coinc_window = channel_coincidence_window
         self._temperature = temperature
         self._Vbias = Vbias
+
+
+class TimeOverThresholdTrigger(Trigger):
+
+    def __init__(self, name, threshold, tot_bins, channels=None):
+        """
+        initialize trigger class
+        Parameters
+        ----------
+        name: string
+            unique name of the trigger
+        threshold: float or dict of floats
+            the trigger threshold
+        tot_bins: int
+            number of consecutive bins during which the signal is above `threshold`
+        channels: array of ints or None
+            the channels that are involved in the trigger
+            default: None, i.e. all channels
+        """
+        Trigger.__init__(self, name, channels, 'time_over_threshold')
+        self._threshold = threshold
+        self._tot_bins = tot_bins
+
