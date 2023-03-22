@@ -383,7 +383,6 @@ class RNOGSurfaceTrigger(Trigger):
         self._Vbias = Vbias
 
 
-
 class TimeOverThresholdTrigger(Trigger):
 
     def __init__(self, name, threshold, tot_bins, channels=None):
