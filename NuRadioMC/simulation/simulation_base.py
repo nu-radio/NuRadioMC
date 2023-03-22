@@ -13,6 +13,7 @@ import NuRadioReco.detector.generic_detector
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import generatorAttributes as genattrs
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+
 import scipy.constants
 
 STATUS = 31

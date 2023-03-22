@@ -42,7 +42,7 @@ import NuRadioMC.simulation.simulation_detector
 import NuRadioMC.simulation.simulation_emission
 import NuRadioMC.simulation.simulation_input_output
 import NuRadioMC.simulation.simulation_propagation
-
+import NuRadioMC.simulation.channel_simulator
 STATUS = 31
 
 # logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
@@ -66,7 +66,6 @@ class simulation(
     NuRadioMC.simulation.simulation_detector.simulation_detector,
     NuRadioMC.simulation.simulation_input_output.simulation_input_output
 ):
-
 
     def run(self):
         """
@@ -93,6 +92,17 @@ class simulation(
             n_reflections=self._n_reflections,
             config=self._cfg,
             detector=self._det
+        )
+        self.__channel_simulator = NuRadioMC.simulation.channel_simulator.channelSimulator(
+            self._det,
+            self._raytracer,
+            self._channel_ids,
+            self._cfg,
+            self._fin,
+            self._fin_attrs,
+            self._ice,
+            self._n_samples,
+            1. / self._dt
         )
         for shower_index, shower_id in enumerate(self._shower_ids):
             self._shower_index_array[shower_id] = shower_index
@@ -156,7 +166,7 @@ class simulation(
                                          np.array(self._fin['zz'])[event_indices]]).T
             self._distance_cut_time += time.time() - t_tmp
 
-
+            self.__channel_simulator.set_event_group(np.sum(shower_energies))
             # loop over all stations (each station is treated independently)
             for iSt, self._station_id in enumerate(self._station_ids):
                 logger.debug(f"simulating station {self._station_id}")
@@ -191,7 +201,14 @@ class simulation(
                             unique_event_group_ids
                         )
                         t_last_update = time.time()
-
+                    self.__channel_simulator.set_shower(
+                        self._station_id,
+                        self._fin['shower_ids'][self._shower_index],
+                        self._shower_index,
+                        self._fin['shower_type'][self._shower_index],
+                        pre_simulated,
+                        ray_tracing_performed
+                    )
                     is_candidate_shower, sim_shower = self._simulate_event(
                         iSh,
                         iSt,
@@ -598,20 +615,22 @@ class simulation(
         sim_shower, cherenkov_angle, n_index = self._simulate_shower()
         is_candidate_shower = False
         t2 = time.time()
-        for channel_id in self._channel_ids:
-            is_candidate_channel = self._simulate_channel(
-                channel_id,
-                pre_simulated,
-                sim_shower,
-                cherenkov_angle,
-                n_index,
-                output_data,
-                iSh,
-                ray_tracing_performed,
-                shower_energy_sum
-            )
-            if is_candidate_channel:
+        for i_channel,  channel_id in enumerate(self._channel_ids):
+            efield_objects, launch_vectors, receive_vectors, travel_times, path_lengths, polarization_directions,\
+                efield_amplitudes, raytracing_output = self.__channel_simulator.simulate_channel(channel_id)
+            if len(efield_objects) > 0:
+                output_data['launch_vectors'][iSh, i_channel] = launch_vectors
+                output_data['receive_vectors'][iSh, i_channel] = receive_vectors
+                output_data['travel_times'][iSh, i_channel] = travel_times
+                output_data['travel_distances'][iSh, i_channel] = path_lengths
+                output_data['polarization'][iSh, i_channel] = polarization_directions
+            for i_efield,  efield in enumerate(efield_objects):
+                self._sim_station.add_electric_field(efield)
+                for key, value in raytracing_output[i_efield]:
+                    output_data[key][iSh, i_channel, i_efield] = value
+            if len(efield_objects) > 0 and np.nanmax(efield_amplitudes) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[self._station_id][channel_id]:
                 is_candidate_shower = True
+
         t3 = time.time()
         self._rayTracingTime += t3 - t2
         return is_candidate_shower, sim_shower
@@ -690,7 +709,6 @@ class simulation(
         if min(np.abs(delta_Cs)) > self._cfg['speedup']['delta_C_cut']:
             logger.debug('delta_C too large, event unlikely to be observed, skipping event')
             return False
-
         if ray_tracing_solution_found:
             is_candidate_channel = self._calculate_polarization_angles(
                 sim_shower,

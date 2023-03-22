@@ -175,14 +175,13 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
         electric_field[efp.ray_path_type] = solution_type
         electric_field[efp.nu_vertex_distance] = distance
         electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
-        self._sim_station.add_electric_field(electric_field)
+
 
         # apply a simple threshold cut to speed up the simulation,
         # application of antenna response will just decrease the
         # signal amplitude
         candidate_ray =  np.max(np.abs(electric_field.get_trace())) > float(self._cfg['speedup']['min_efield_amplitude']) * \
                 self._Vrms_efield_per_channel[self._station_id][channel_id]
-
         return candidate_ray, polarization_direction_at_antenna
 
     def _calculate_polarization_angles(
@@ -213,13 +212,8 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
                 T = self._raytracer.get_travel_time(iS)  # calculate travel time
                 if R is None or T is None:
                     continue
-            output_data['travel_distances'][iSh, i_channel, iS] = R
-            output_data['travel_times'][iSh, i_channel, iS] = T
             self._launch_vector = self._raytracer.get_launch_vector(iS)
             receive_vector = self._raytracer.get_receive_vector(iS)
-            # save receive vector
-            output_data['receive_vectors'][iSh, i_channel, iS] = receive_vector
-
             # get neutrino pulse from Askaryan module
 
             candidate_ray, polarization_angle = self._simulate_radio_emission(
@@ -235,5 +229,4 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
             )
             if candidate_ray:
                 candidate_station = True
-            output_data['polarization'][iSh, i_channel, iS] = polarization_angle
         return candidate_station
