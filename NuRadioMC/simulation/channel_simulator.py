@@ -89,7 +89,7 @@ class channelSimulator:
         self.__evt_pre_simulated = evt_pre_simulated
         self.__evt_ray_tracing_performed = evt_ray_tracing_performed
         self.__cherenkov_angle = np.arccos(1. / self.__medium.get_index_of_refraction(self.__vertex_position))
-        self.__shower_parameters = {'k_L': np.nan}
+        self.__shower_parameters = {}
         # print('shower type: ', self.__shower_type)
         if self.__config['signal']['model'] in ["ARZ2019", "ARZ2020"] and "shower_realization_ARZ" in self.__input_data:
             self.__shower_parameters['iN'] = self.__input_data['shower_realization_ARZ'][self.__shower_index]
@@ -312,7 +312,7 @@ class channelSimulator:
             viewing_angle,
             propagation_distance
     ):
-        if np.isnan(self.__shower_parameters['k_L']):
+        if self.__config['signal']['model'] == 'Alvarez2009' and 'k_L' not in self.__shower_parameters.keys():
             self.set_alvarez_k_L()
         spectrum, additional_output = NuRadioMC.SignalGen.askaryan.get_frequency_spectrum(
             self.__shower_energy,
