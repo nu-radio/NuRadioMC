@@ -6,6 +6,8 @@ import NuRadioMC.SignalGen.askaryan
 import NuRadioMC.SignalGen.emitter
 import NuRadioReco.detector.antennapattern
 import NuRadioReco.framework.electric_field
+import NuRadioMC.SignalGen.parametrizations
+from NuRadioMC.SignalGen.parametrizations import _random_generators as shower_random
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.utilities import units
 
@@ -49,14 +51,16 @@ class channelSimulator:
             self.__distance_cut_polynomial = np.polynomial.polynomial.Polynomial(
                 self.__config['speedup']['distance_cut_coefficients']
             )
-
+        self.__shower_generators = shower_random
+        shower_model = self.__config['signal']['model']
+        if shower_model not in shower_random:
+            self.__shower_generators[shower_model] = np.random.RandomState(self.__config['seed'])
 
     def set_event_group(
             self,
             shower_energy_sum
     ):
         self.__shower_energy_sum = shower_energy_sum
-
 
     def set_shower(
             self,
@@ -85,11 +89,33 @@ class channelSimulator:
         self.__evt_pre_simulated = evt_pre_simulated
         self.__evt_ray_tracing_performed = evt_ray_tracing_performed
         self.__cherenkov_angle = np.arccos(1. / self.__medium.get_index_of_refraction(self.__vertex_position))
-        self.__shower_parameters = {}
+        self.__shower_parameters = {'k_L': np.nan}
+        # print('shower type: ', self.__shower_type)
         if self.__config['signal']['model'] in ["ARZ2019", "ARZ2020"] and "shower_realization_ARZ" in self.__input_data:
             self.__shower_parameters['iN'] = self.__input_data['shower_realization_ARZ'][self.__shower_index]
-        elif self.__config['signal']['model'] == "Alvarez2009" and "shower_realization_Alvarez2009" in self.__input_data:
-            self.__shower_parameters['k_L'] = self.__input_data['shower_realization_Alvarez2009'][self.__shower_index]
+        elif self.__config['signal']['model'] == "Alvarez2009":
+            if "shower_realization_Alvarez2009" in self.__input_data:
+                self.__shower_parameters['k_L'] = self.__input_data['shower_realization_Alvarez2009'][self.__shower_index]
+            """
+            TODO: This is commented out to make sure the same random numbers are drawn as in the unit tests.
+            else:
+                self.__shower_parameters['k_L'] = NuRadioMC.SignalGen.parametrizations.get_Alvarez2009_k_L(
+                    False,
+                    False,
+                    self.__input_data['shower_energies'][self.__shower_index],
+                    self.__shower_type.upper()
+                )
+                # print(self.__shower_parameters['k_L'])
+            """
+
+    # TODO: Remove function, it's only here to make sure the same random variables are drawn as in the unit tests
+    def set_alvarez_k_L(self):
+        self.__shower_parameters['k_L'] = NuRadioMC.SignalGen.parametrizations.get_Alvarez2009_k_L(
+            False,
+            False,
+            self.__input_data['shower_energies'][self.__shower_index],
+            self.__shower_type.upper()
+        )
 
     def simulate_channel(
             self,
@@ -286,6 +312,8 @@ class channelSimulator:
             viewing_angle,
             propagation_distance
     ):
+        if np.isnan(self.__shower_parameters['k_L']):
+            self.set_alvarez_k_L()
         spectrum, additional_output = NuRadioMC.SignalGen.askaryan.get_frequency_spectrum(
             self.__shower_energy,
             viewing_angle,
@@ -295,7 +323,6 @@ class channelSimulator:
             self.__index_of_refraction,
             propagation_distance,
             self.__config['signal']['model'],
-            seed=self.__config['seed'],
             full_output=True,
             **self.__shower_parameters
         )

@@ -130,6 +130,9 @@ class simulation(
 
         # loop over event groups
         for i_event_group_id, event_group_id in enumerate(unique_event_group_ids):
+            if i_event_group_id > 10e99:
+                print('breaking')
+                break
             logger.debug(f"simulating event group id {event_group_id}")
             if self._event_group_list is not None and event_group_id not in self._event_group_list:
                 logger.debug(f"skipping event group {event_group_id} because it is not in the event group list provided to the __init__ function")
@@ -616,6 +619,7 @@ class simulation(
         is_candidate_shower = False
         t2 = time.time()
         for i_channel,  channel_id in enumerate(self._channel_ids):
+            # print('------------ {} ------------'.format(channel_id))
             # is_candidate_channel_old = self._simulate_channel(
             #     channel_id,
             #     pre_simulated,
@@ -629,6 +633,7 @@ class simulation(
             # )
             efield_objects, launch_vectors, receive_vectors, travel_times, path_lengths, polarization_directions,\
                 efield_amplitudes, raytracing_output = self.__channel_simulator.simulate_channel(channel_id)
+
             for i_ray in range(len(launch_vectors)):
                 output_data['launch_vectors'][iSh, i_channel, i_ray] = launch_vectors[i_ray]
                 output_data['receive_vectors'][iSh, i_channel, i_ray] = receive_vectors[i_ray]

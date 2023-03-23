@@ -175,7 +175,7 @@ class simulation_emission(NuRadioMC.simulation.simulation_base.simulation_base):
         electric_field[efp.ray_path_type] = solution_type
         electric_field[efp.nu_vertex_distance] = distance
         electric_field[efp.nu_viewing_angle] = viewing_angles[iS]
-
+        print(np.sqrt(np.max(np.sum(electric_field.get_trace()**2, axis=0))))
         # apply a simple threshold cut to speed up the simulation,
         # application of antenna response will just decrease the
         # signal amplitude

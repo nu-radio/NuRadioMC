@@ -30,6 +30,58 @@ def get_parametrizations():
     return ['ZHS1992', 'Alvarez2000', 'Alvarez2009']
 
 
+def get_Alvarez2009_k_L(
+        average_shower,
+        same_shower,
+        energy,
+        shower_type
+):
+    global _Alvarez2009_k_L
+
+    if (shower_type == 'HAD'):
+        k_L_0 = 31.25
+        gamma = 3.01e-2
+        E_L = 1.e15 * units.eV
+        k_L = k_L_0 * (energy / E_L) ** gamma
+        return k_L
+    elif (shower_type == 'EM'):
+        sigma_0 = 3.39e-2
+        log10_E_sigma = 14.99
+        delta_0 = 0
+        delta_1 = 2.25e-2
+        log10_E_0 = np.log10(energy / units.eV)
+
+        if (log10_E_0 < log10_E_sigma):
+            sigma_k_L = sigma_0 + delta_0 * (log10_E_0 - log10_E_sigma)
+        else:
+            sigma_k_L = sigma_0 + delta_1 * (log10_E_0 - log10_E_sigma)
+
+        log10_k_0 = 1.52
+        log10_E_LPM = 16.61
+        gamma_0 = 5.59e-2
+        gamma_1 = 0.39
+        if (log10_E_0 < log10_E_LPM):
+            log10_k_L_bar = log10_k_0 + gamma_0 * (log10_E_0 - log10_E_LPM)
+        else:
+            log10_k_L_bar = log10_k_0 + gamma_1 * (log10_E_0 - log10_E_LPM)
+
+        if (average_shower):
+            k_L = 10 ** log10_k_L_bar
+        elif (same_shower):
+            if _Alvarez2009_k_L is None:
+                logger.error("the same shower was requested but the function hasn't been called before.")
+                raise AttributeError("the same shower was requested but the function hasn't been called before.")
+            else:
+                k_L = _Alvarez2009_k_L
+
+        else:
+            _Alvarez2009_k_L = 10 ** _random_generators['Alvarez2009'].normal(log10_k_L_bar, sigma_k_L)
+            k_L = _Alvarez2009_k_L
+        return k_L
+    else:
+        raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
+
+
 def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=None, same_shower=False,
                    k_L=None, full_output=False, average_shower=False):
     """
@@ -110,7 +162,6 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
             return trace, {}
         else:
             return trace
-
     elif(model == 'Alvarez2009'):
         # This parameterisation is not very accurate for energies above 10 EeV
         # The ARZ model should be used instead
@@ -136,47 +187,14 @@ def get_time_trace(energy, theta, N, dt, shower_type, n_index, R, model, seed=No
         A = k_E_bar * energy / E_C * X_0 / rho * np.sin(theta) * freqs
 
         # calculate nu_L
-        if (shower_type == 'HAD'):
-            k_L_0 = 31.25
-            gamma = 3.01e-2
-            E_L = 1.e15 * units.eV
-            k_L = k_L_0 * (energy / E_L) ** gamma
-        elif (shower_type == 'EM'):
-            sigma_0 = 3.39e-2
-            log10_E_sigma = 14.99
-            delta_0 = 0
-            delta_1 = 2.25e-2
-            log10_E_0 = np.log10(energy / units.eV)
-            if (log10_E_0 < log10_E_sigma):
-                sigma_k_L = sigma_0 + delta_0 * (log10_E_0 - log10_E_sigma)
-            else:
-                sigma_k_L = sigma_0 + delta_1 * (log10_E_0 - log10_E_sigma)
 
-            log10_k_0 = 1.52
-            log10_E_LPM = 16.61
-            gamma_0 = 5.59e-2
-            gamma_1 = 0.39
-            if (log10_E_0 < log10_E_LPM):
-                log10_k_L_bar = log10_k_0 + gamma_0 * (log10_E_0 - log10_E_LPM)
-            else:
-                log10_k_L_bar = log10_k_0 + gamma_1 * (log10_E_0 - log10_E_LPM)
-
-            global _Alvarez2009_k_L
-            if(k_L is None):
-                if(average_shower):
-                    k_L = 10 ** log10_k_L_bar
-                elif(same_shower):
-                    if _Alvarez2009_k_L is None:
-                        logger.error("the same shower was requested but the function hasn't been called before.")
-                        raise AttributeError("the same shower was requested but the function hasn't been called before.")
-                    else:
-                        k_L = _Alvarez2009_k_L
-
-                else:
-                    _Alvarez2009_k_L = 10 ** _random_generators[model].normal(log10_k_L_bar, sigma_k_L)
-                    k_L = _Alvarez2009_k_L
-        else:
-            raise NotImplementedError("shower type {} is not implemented in Alvarez2009 model.".format(shower_type))
+        if k_L is None:
+            k_L = get_Alvarez2009_k_L(
+                average_shower,
+                same_shower,
+                energy,
+                shower_type
+            )
         nu_L = rho / k_L / X_0
         cher_cut = 1.e-8
         if (np.abs(1 - n_index * np.cos(theta)) < cher_cut):
