@@ -38,6 +38,7 @@ class eventWriter:
         self.__event_ids_and_runs = None
         self.__events_per_file = None
         self.__events_in_current_file = 0
+        self.__fout = None
 
     def __write_fout_header(self):
         if self.__number_of_files > 1:
@@ -301,7 +302,9 @@ class eventWriter:
         return
 
     def end(self):
-        if(hasattr(self, "__fout")):
+        if self.__fout is not None:
             self.__fout.close()
-            self.debug(f"closing file.")
+            self.info(f"closing file {self.__filename}.")
+        else:
+            self.warning(f"file {self.__filename} does not exist and won't be closed.")
         return self.__number_of_events
