@@ -110,7 +110,13 @@ class ray_tracing_2D(ray_tracing_base):
             if True, the initial C_0 paramter (launch angle) is set to the ray that skims the surface
             (default: False)
         overwrite_speedup: bool
-            If not None, use value to overwrite _use_optimized_calculation. (Default: None)
+            The signal attenuation is calculated using a numerical integration
+            along the ray path. This calculation can be computational inefficient depending on the details of 
+            the ice model. An optimization is implemented approximating the integral with a discrete sum with the loss
+            of some accuracy, See PR #507. This optimization is used for all ice models listed in 
+            speedup_attenuation_models (i.e., "GL3"). With this argument you can explicitly activate or deactivate
+            (True or False) if you want to use the optimization. (Default: None, i.e., use optimization if ice model is
+            listed in speedup_attenuation_models)
             
         """
         self.medium = medium
