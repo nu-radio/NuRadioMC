@@ -42,8 +42,8 @@ class simulation_detector(NuRadioMC.simulation.simulation_base.simulation_base):
     ):
         t1 = time.time()
         self._station = NuRadioReco.framework.station.Station(self._station_id)
+        self._sim_station.set_station_time(self._evt_time)
         self._station.set_sim_station(self._sim_station)
-
         self._simulate_sim_station_detector_response(
             self._station
         )
