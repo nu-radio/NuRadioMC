@@ -92,9 +92,9 @@ class showerSimulator:
             return True
 
         mask_shower_sum = np.abs(
-            self.__event_group_vertex_distances - self.__event_group_vertex_distances[iSh]
+            self.__event_group_vertex_distances - self.__event_group_vertex_distances[0]
         ) < self.__config['speedup']['distance_cut_sum_length']
-        shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
+        shower_energy_sum = np.sum(self.__event_group_shower_energies[mask_shower_sum])
         distance_to_station = np.linalg.norm(shower_vertex - self.__station_barycenter)
         if shower_energy_sum <= 0:
             distance_cut_value = 200. * units.m
