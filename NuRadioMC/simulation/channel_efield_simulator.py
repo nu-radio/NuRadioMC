@@ -55,7 +55,7 @@ class channelEfieldSimulator:
         shower_model = self.__config['signal']['model']
         if shower_model not in shower_random:
             self.__shower_generators[shower_model] = np.random.RandomState(self.__config['seed'])
-
+        self.__is_neutrino_simulation = 'simulation_mode' not in self.__input_attributes or self.__input_attributes['simulation_mode'] == 'neutrino'
     def set_event_group(
             self,
             shower_energy_sum
@@ -77,14 +77,15 @@ class channelEfieldSimulator:
             self.__input_data['yy'][shower_index],
             self.__input_data['zz'][shower_index]
         ])
-        self.__shower_axis = -1. * radiotools.helper.spherical_to_cartesian(
-            self.__input_data['zeniths'][shower_index],
-            self.__input_data['azimuths'][shower_index]
-        )
-        if 'simulation_mode' not in self.__input_attributes or self.__input_attributes['simulation_mode'] == 'neutrino':
+        if self.__is_neutrino_simulation:
             self.__shower_type = self.__input_data['shower_type'][shower_index]
+            self.__shower_axis = -1. * radiotools.helper.spherical_to_cartesian(
+                self.__input_data['zeniths'][shower_index],
+                self.__input_data['azimuths'][shower_index]
+            )
+            self.__shower_energy = self.__input_data['shower_energies'][shower_index]
+
         self.__index_of_refraction = self.__medium.get_index_of_refraction(self.__vertex_position)
-        self.__shower_energy = self.__input_data['shower_energies'][shower_index]
         self.__shower_index = shower_index
         self.__evt_pre_simulated = evt_pre_simulated
         self.__evt_ray_tracing_performed = evt_ray_tracing_performed
@@ -132,8 +133,9 @@ class channelEfieldSimulator:
 
         for i_solution, solution in enumerate(raytracing_solutions):
             launch_vectors[i_solution] = self.__raytracer.get_launch_vector(i_solution)
-            viewing_angles[i_solution] = radiotools.helper.get_angle(self.__shower_axis, launch_vectors[i_solution])
-            delta_Cs[i_solution] = viewing_angles[i_solution] - self.__cherenkov_angle
+            if self.__is_neutrino_simulation:
+                viewing_angles[i_solution] = radiotools.helper.get_angle(self.__shower_axis, launch_vectors[i_solution])
+                delta_Cs[i_solution] = viewing_angles[i_solution] - self.__cherenkov_angle
         path_lenghts = np.zeros(n_solutions)
         travel_times = np.zeros(n_solutions)
         polarization_directions = np.zeros((n_solutions, 3))
@@ -165,7 +167,7 @@ class channelEfieldSimulator:
             path_lenghts[i_solution] = dist
             travel_times[i_solution] = prop_time
             receive_vectors[i_solution] = self.__raytracer.get_receive_vector(i_solution)
-            if 'simulation_mode' not in self.__input_attributes or self.__input_attributes['simulation_mode'] == 'neutrino':
+            if self.__is_neutrino_simulation:
                 efield_spectrum, polarization_angle = self.__simulate_neutrino_emission(
                     launch_vectors[i_solution],
                     receive_vectors[i_solution],

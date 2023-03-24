@@ -609,7 +609,7 @@ class simulation(
                 vertex_distances,
                 shower_energies
         ):
-            return False
+            return False, None
         mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup'][
             'distance_cut_sum_length']
         shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
