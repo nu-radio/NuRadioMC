@@ -1,4 +1,5 @@
 import numpy as np
+import radiotools.helper
 from NuRadioReco.utilities import units
 
 class showerSimulator:
@@ -8,12 +9,15 @@ class showerSimulator:
             channel_ids,
             config,
             input_data,
+            input_attributes,
             channel_efield_simulator
     ):
         self.__detector = detector
         self.__channel_ids = channel_ids
         self.__config = config
         self.__input_data = input_data
+        self.__input_attributes = input_attributes
+
         self.__station_id = None
         self.__event_group_id = None
         self.__i_event_group = None
@@ -24,7 +28,7 @@ class showerSimulator:
         self.__station_barycenter = None
         self.__channel_efield_simulator = channel_efield_simulator
         if self.__config['speedup']['distance_cut']:
-            self.__distance_cut_polynomial = np.polynomial.polynomial(self.__config['speedup']['distance_cut_coefficients'])
+            self.__distance_cut_polynomial = np.polynomial.polynomial.Polynomial(self.__config['speedup']['distance_cut_coefficients'])
         else:
             self.__distance_cut_polynomial = None
 
@@ -83,6 +87,18 @@ class showerSimulator:
         vertex_time = self.__input_data['vertex_times'][shower_index]
         if not self.__distance_cut(shower_vertex):
             return
+        if not self.__in_fiducial_volume(shower_vertex):
+            return
+        if self.__config['signal']['shower_type'] == "em":
+            if self.__config['shower_type'][shower_index] != "em":
+                return
+        if self.__config['signal']['shower_type'] == "had":
+            if self.__config['shower_type'][shower_index] != "had":
+                return
+        for channel_id in self.__channel_ids:
+            self.__channel_efield_simulator.simulate_efield_at_channel(
+                channel_id
+            )
 
     def __distance_cut(
             self,
@@ -104,3 +120,24 @@ class showerSimulator:
                 10. ** self.__distance_cut_polynomial(np.log10(shower_energy_sum))
             ) + 100. * units.m
         return distance_to_station <= distance_cut_value
+
+    def __in_fiducial_volume(
+            self,
+            shower_vertex
+    ):
+        """
+        checks whether a vertex is in the fiducial volume
+
+        if the fiducial volume is not specified in the input file, True is returned (this is required
+        for the simulation of pulser calibration measuremens)
+        """
+        parameter_names = ['fiducial_rmin', 'fiducial_rmax', 'fiducial_zmin', 'fiducial_zmax']
+        for parameter_name in parameter_names:
+            if parameter_name not in self.__input_attributes:
+                return True
+
+        r = (shower_vertex[0] ** 2 + shower_vertex[1] ** 2) ** 0.5
+        if self.__input_attributes['fiducial_rmin'] <= r <= self.__input_attributes['fiducial_rmax']:
+            if self.__input_attributes['fiducial_zmin'] <= shower_vertex[2] <= self.__input_attributes['fiducial_zmax']:
+                return True
+        return False
