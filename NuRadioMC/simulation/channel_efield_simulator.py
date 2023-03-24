@@ -11,7 +11,7 @@ from NuRadioMC.SignalGen.parametrizations import _random_generators as shower_ra
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.utilities import units
 
-class channelSimulator:
+class channelEfieldSimulator:
     def __init__(
             self,
             detector,
@@ -117,7 +117,7 @@ class channelSimulator:
             self.__shower_type.upper()
         )
 
-    def simulate_channel(
+    def simulate_efield_at_channel(
             self,
             channel_id
     ):

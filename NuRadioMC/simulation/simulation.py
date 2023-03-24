@@ -42,7 +42,7 @@ import NuRadioMC.simulation.simulation_detector
 import NuRadioMC.simulation.simulation_emission
 import NuRadioMC.simulation.simulation_input_output
 import NuRadioMC.simulation.simulation_propagation
-import NuRadioMC.simulation.channel_simulator
+import NuRadioMC.simulation.channel_efield_simulator
 STATUS = 31
 
 # logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
@@ -93,7 +93,7 @@ class simulation(
             config=self._cfg,
             detector=self._det
         )
-        self.__channel_simulator = NuRadioMC.simulation.channel_simulator.channelSimulator(
+        self.__channel_simulator = NuRadioMC.simulation.channel_efield_simulator.channelEfieldSimulator(
             self._det,
             self._raytracer,
             self._channel_ids,
@@ -618,20 +618,8 @@ class simulation(
         is_candidate_shower = False
         t2 = time.time()
         for i_channel,  channel_id in enumerate(self._channel_ids):
-            # print('------------ {} ------------'.format(channel_id))
-            # is_candidate_channel_old = self._simulate_channel(
-            #     channel_id,
-            #     pre_simulated,
-            #     sim_shower,
-            #     cherenkov_angle,
-            #     n_index,
-            #     output_data,
-            #     iSh,
-            #     ray_tracing_performed,
-            #     shower_energy_sum
-            # )
             efield_objects, launch_vectors, receive_vectors, travel_times, path_lengths, polarization_directions,\
-                efield_amplitudes, raytracing_output = self.__channel_simulator.simulate_channel(channel_id)
+                efield_amplitudes, raytracing_output = self.__channel_simulator.simulate_efield_at_channel(channel_id)
 
             for i_ray in range(len(launch_vectors)):
                 output_data['launch_vectors'][iSh, i_channel, i_ray] = launch_vectors[i_ray]
