@@ -204,7 +204,7 @@ class channelSimulator:
             efield[efp.nu_vertex_distance] = path_lenghts[i_solution]
             efield[efp.nu_viewing_angle] = viewing_angles[i_solution]
             efield_objects.append(efield)
-            efield_amplitudes[i_solution] = np.sqrt(np.max(np.sum(efield.get_trace()**2, axis=0)))
+            efield_amplitudes[i_solution] = np.max(np.abs(efield.get_trace()))
         return efield_objects, launch_vectors, receive_vectors, travel_times, path_lenghts, \
             polarization_directions, efield_amplitudes, raytracing_output
 
