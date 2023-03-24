@@ -251,14 +251,14 @@ class IceModelSimple(IceModel):
 
         Parameters
         ----------
-        position:  1D or 2D numpy array
+        position:  1D (3,) or 2D (n,3) numpy array
                     Either one position or an array
                     of positions for which the indices
                     of refraction are returned
 
         Returns
         -------
-        n:  float
+        n:  float or 1D numpy array (n,)
             index of refraction
         """
         if isinstance(position, list) or position.ndim == 1:
@@ -278,31 +278,43 @@ class IceModelSimple(IceModel):
 
         Parameters
         ----------
-        position1: 3dim np.array
-                    point
-        position2: 3dim np.array
-                    point
+        position1: 1D (3,) or 2D (n,3) numpy array
+                    Either one position or an array
+                    of positions for which the indices
+                    of average refraction are returned
+        position2: 1D (3,) or 2D (n,3) numpy array
+                    Either one position or an array
+                    of positions for which the indices
+                    of average refraction are returned
 
         Returns
         -------
-        n_average:  float
+        n_average:  float of 1D numpy array (n,)
                     averaged index of refraction between the two points
         """
-        zmax = max(position1[2], position2[2])
-        zmin = min(position1[2], position2[2])
 
         def exp_average(z_max, z_min):
             return (self.n_ice - self.delta_n * self.z_0 / (z_max - z_min) 
                     * (np.exp((z_max-self.z_shift) / self.z_0) - np.exp((z_min-self.z_shift) / self.z_0)))
 
-        if ((zmax - self.z_air_boundary) <=0):
-            return exp_average(zmax, zmin)
-        elif ((zmin - self.z_air_boundary) <=0):
-            n1 = exp_average(self.z_air_boundary, zmin)
-            n2 = 1
-            return (n1 * (self.z_air_boundary - zmin) + n2 * (zmax - self.z_air_boundary)) / (zmax - zmin)
+        if (isinstance(position1, list) or position1.ndim == 1) and (isinstance(position2, list) or position2.ndim == 1):
+            zmax = max(position1[2], position2[2])
+            zmin = min(position1[2], position2[2])
+            if ((zmax - self.z_air_boundary) <=0):
+                return exp_average(zmax, zmin)
+            elif ((zmin - self.z_air_boundary) <=0):
+                n1 = exp_average(self.z_air_boundary, zmin)
+                n2 = 1
+                return (n1 * (self.z_air_boundary - zmin) + n2 * (zmax - self.z_air_boundary)) / (zmax - zmin)
+            else:
+                return 1
         else:
-            return 1
+            if all((position1[:,2] - self.z_air_boundary) <= 0) and all((position2[:,2] - self.z_air_boundary) <= 0):
+                return exp_average(position1[:,2], position2[:,2])
+            elif all((position1[:,2] - self.z_air_boundary) > 0) and all((position2[:,2] - self.z_air_boundary) > 0):
+                return np.ones_like(position1[:,2])
+            else:
+                raise NotImplementedError('function cannot handle averages accros boundary when using arrays of positions.')
 
     def get_gradient_of_index_of_refraction(self, position):
         """
@@ -311,17 +323,28 @@ class IceModelSimple(IceModel):
 
         Parameters
         ----------
-        position: 3dim np.array
-                    point
+        position: 1D or 2D numpy array
+                    Either one position or an array
+                    of positions for which the gradient
+                    of index of refraction is returned
 
         Returns
         -------
-        n_nabla:    (3,) np.array
+        n_nabla:    1D (3,) or 2D (n,3) numpy array 
                     gradient of index of refraction at the point
         """
-        gradient = np.array([0., 0., 0.])
-        if (position[2] - self.z_air_boundary) <=0:
-            gradient[2] = -self.delta_n / self.z_0 * np.exp((position[2] - self.z_shift) / self.z_0)
+        def gradient_z(z):
+            return -self.delta_n / self.z_0 * np.exp((z - self.z_shift) / self.z_0)
+
+        if (isinstance(position, list) or position.ndim == 1):
+            gradient = np.array([0,0,0])
+            if (position[2] - self.z_air_boundary) <= 0:
+                gradient[2] = gradient_z(position[2])
+        else:
+            gradient = gradient_z(position[:,2])
+            gradient[position[:, 2] >= 0] = 0
+            gradient = np.stack((np.zeros_like(gradient),np.zeros_like(gradient),gradient),axis=1)
+        
         return gradient
 
     def _compute_default_ice_model_radiopropa(self):

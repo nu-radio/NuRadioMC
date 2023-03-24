@@ -850,7 +850,8 @@ class simulation:
                 t1 = time.time()
                 self._station = NuRadioReco.framework.station.Station(self._station_id)
                 self._station.set_sim_station(self._sim_station)
-
+                self._station.get_sim_station().set_station_time(self._evt_time)
+                
                 # convert efields to voltages at digitizer
                 if hasattr(self, '_detector_simulation_part1'):
                     # we give the user the opportunity to define a custom detector simulation
