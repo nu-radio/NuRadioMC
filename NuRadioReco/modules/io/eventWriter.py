@@ -304,7 +304,7 @@ class eventWriter:
     def end(self):
         if self.__fout is not None:
             self.__fout.close()
-            self.info(f"closing file {self.__filename}.")
+            logger.info(f"closing file {self.__filename}.")
         else:
-            self.warning(f"file {self.__filename} does not exist and won't be closed.")
+            logger.warning(f"file {self.__filename} does not exist and won't be closed.")
         return self.__number_of_events
