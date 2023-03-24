@@ -83,6 +83,10 @@ def convert_poetry_to_pip(reqs):
                 req = 'git+{}'.format(version['git'])
                 if 'branch' in version:
                     req+='@{}'.format(version['branch'])
+                elif 'rev' in version:
+                    req+='@{}'.format(version['rev'])
+                elif 'tag' in version:
+                    req+='@{}'.format(version['tag'])
             if 'version' in version:
                 version = version['version']
             else:
@@ -139,6 +143,7 @@ if __name__ == "__main__":
 
     top_dir = os.path.dirname(os.path.realpath(__file__))
     os.chdir(top_dir) # change CWD to repository root
+    retcode = 0
 
     if '.git' in os.listdir(top_dir): # check that we are in a git repository
         ### Install dependencies
@@ -151,7 +156,7 @@ if __name__ == "__main__":
             # print("Installing poetry...")
             # subprocess.call([sys.executable, "-m", "pip", "install", "poetry"])
             # subprocess.call(["poetry", "install", "--no-root"])
-            subprocess.call([sys.executable, '-m', 'pip', 'install', 'toml']+ pip_install_as_user) # we need toml to read pyproject.toml
+            retcode |= subprocess.call([sys.executable, '-m', 'pip', 'install', 'toml']+ pip_install_as_user) # we need toml to read pyproject.toml
             import toml
             toml_dict = toml.load(os.path.join(top_dir, 'pyproject.toml'))
             reqs = toml_dict['tool']['poetry']['dependencies']
@@ -161,7 +166,7 @@ if __name__ == "__main__":
             with tempfile.NamedTemporaryFile(mode='w+t') as req_txt: # make a temporary requirements.txt
                 req_txt.writelines('\n'.join(reqs_pip))
                 req_txt.seek(0)
-                subprocess.call([sys.executable, '-m', 'pip', 'install', '-r', req_txt.name] + pip_install_as_user)
+                retcode |= subprocess.call([sys.executable, '-m', 'pip', 'install', '-r', req_txt.name] + pip_install_as_user)
         
         ### Install optional / dev dependencies
         install_dev_dependencies = yesno_input(
@@ -171,7 +176,7 @@ if __name__ == "__main__":
             try:
                 import toml
             except ImportError:
-                subprocess.call([sys.executable, '-m', 'pip', 'install', 'toml'] + pip_install_as_user) # we need toml to read pyproject.toml
+                retcode |= subprocess.call([sys.executable, '-m', 'pip', 'install', 'toml'] + pip_install_as_user) # we need toml to read pyproject.toml
                 import toml
             toml_dict = toml.load(os.path.join(top_dir, 'pyproject.toml'))
             reqs = toml_dict['tool']['poetry']['dev-dependencies']
@@ -230,7 +235,7 @@ if __name__ == "__main__":
             with tempfile.NamedTemporaryFile(mode='w+t') as req_txt: # make a temporary requirements.txt
                 req_txt.writelines('\n'.join(reqs_pip))
                 req_txt.seek(0)
-                subprocess.call([sys.executable, '-m', 'pip', 'install', '-r', req_txt.name] + pip_install_as_user)
+                retcode |= subprocess.call([sys.executable, '-m', 'pip', 'install', '-r', req_txt.name] + pip_install_as_user)
 
         ### Add NuRadioMC to PYTHONPATH in .bashrc, if not already available
         try:
@@ -270,7 +275,7 @@ if __name__ == "__main__":
                 write_pre_commit_hook = yesno_input("Custom pre-commit file already present at {}. Overwrite?".format(new_file), skip=args['git_hook'])
         if write_pre_commit_hook:
             shutil.copy(old_file, new_file)
-            subprocess.call(['chmod', '+x', new_file])
+            retcode |= subprocess.call(['chmod', '+x', new_file])
             print('Successfully installed pre-commit hook at {}'.format(new_file))
     else:
         msg = (
@@ -279,3 +284,5 @@ if __name__ == "__main__":
             'instructions at https://nu-radio.github.io/NuRadioMC/Introduction/pages/installation.html#manual-installation'
         )
         print(msg)
+
+    sys.exit(retcode)

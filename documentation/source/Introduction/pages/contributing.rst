@@ -214,8 +214,8 @@ Compiling the documentation is then done by running
 
   python documentation/make_docs.py
 
-This will build the documentation at `documentation/build/html`
-(open `main.html` to view it in your browser).
+This will build the documentation at ``documentation/build/html``
+(open ``main.html`` to view it in your browser).
 
 Headings and text
 ^^^^^^^^^^^^^^^^^
