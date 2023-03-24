@@ -208,7 +208,6 @@ class simulation(
                         self._station_id,
                         self._fin['shower_ids'][self._shower_index],
                         self._shower_index,
-                        self._fin['shower_type'][self._shower_index],
                         pre_simulated,
                         ray_tracing_performed
                     )

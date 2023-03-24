@@ -67,13 +67,11 @@ class channelSimulator:
             station_id,
             shower_id,
             shower_index,
-            shower_type,
             evt_pre_simulated,
             evt_ray_tracing_performed,
     ):
         self.__station_id = station_id
         self.__shower_id = shower_id
-        self.__shower_type = shower_type
         self.__vertex_position = np.array([
             self.__input_data['xx'][shower_index],
             self.__input_data['yy'][shower_index],
@@ -83,6 +81,8 @@ class channelSimulator:
             self.__input_data['zeniths'][shower_index],
             self.__input_data['azimuths'][shower_index]
         )
+        if 'simulation_mode' not in self.__input_attributes or self.__input_attributes['simulation_mode'] == 'neutrino':
+            self.__shower_type = self.__input_data['shower_type'][shower_index]
         self.__index_of_refraction = self.__medium.get_index_of_refraction(self.__vertex_position)
         self.__shower_energy = self.__input_data['shower_energies'][shower_index]
         self.__shower_index = shower_index
