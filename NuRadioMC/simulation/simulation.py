@@ -43,6 +43,7 @@ import NuRadioMC.simulation.simulation_emission
 import NuRadioMC.simulation.simulation_input_output
 import NuRadioMC.simulation.simulation_propagation
 import NuRadioMC.simulation.channel_efield_simulator
+import NuRadioMC.simulation.shower_simulator
 STATUS = 31
 
 # logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
@@ -103,6 +104,15 @@ class simulation(
             self._ice,
             self._n_samples,
             1. / self._dt
+        )
+        self.__shower_simulator = NuRadioMC.simulation.shower_simulator.showerSimulator(
+            self._det,
+            self._channel_ids,
+            self._cfg,
+            self._fin,
+            self._fin_attrs,
+            self.__channel_simulator,
+            self._raytracer.get_number_of_raytracing_solutions()
         )
         for shower_index, shower_id in enumerate(self._shower_ids):
             self._shower_index_array[shower_id] = shower_index
@@ -169,7 +179,11 @@ class simulation(
                                          np.array(self._fin['zz'])[event_indices]]).T
             self._distance_cut_time += time.time() - t_tmp
 
-            self.__channel_simulator.set_event_group(np.sum(shower_energies))
+            self.__shower_simulator.set_event_group(
+                i_event_group_id,
+                event_group_id,
+                event_indices
+            )
             # loop over all stations (each station is treated independently)
             for iSt, self._station_id in enumerate(self._station_ids):
                 logger.debug(f"simulating station {self._station_id}")
@@ -194,7 +208,9 @@ class simulation(
                 # loop over all showers in event group
                 # create output data structure for this channel
                 output_data = self._create_station_output_structure(len(event_indices), self._det.get_number_of_channels(self._station_id))
-
+                self.__shower_simulator.set_station(
+                    self._station_id
+                )
                 for iSh, self._shower_index in enumerate(event_indices):
                     iCounter += 1
                     if (time.time() - t_last_update) > 60:
@@ -204,13 +220,18 @@ class simulation(
                             unique_event_group_ids
                         )
                         t_last_update = time.time()
-                    self.__channel_simulator.set_shower(
-                        self._station_id,
+                    efield_objects, launch_vectors, receive_vectors, travel_times, path_lengths, polarization_directions, \
+                    efield_amplitudes, raytracing_output = self.__shower_simulator.simulate_shower(
                         self._fin['shower_ids'][self._shower_index],
                         self._shower_index,
                         pre_simulated,
                         ray_tracing_performed
                     )
+                    output_data['launch_vectors'][iSh] = launch_vectors
+                    output_data['receive_vectors'][iSh] = receive_vectors
+                    output_data['travel_times'][iSh] = travel_times
+                    output_data['travel_distances'][iSh] = path_lengths
+                    output_data['polarization'][iSh] = polarization_directions
                     is_candidate_shower, sim_shower = self._simulate_event(
                         iSh,
                         iSt,
@@ -620,15 +641,10 @@ class simulation(
         for i_channel,  channel_id in enumerate(self._channel_ids):
             efield_objects, launch_vectors, receive_vectors, travel_times, path_lengths, polarization_directions,\
                 efield_amplitudes, raytracing_output = self.__channel_simulator.simulate_efield_at_channel(channel_id)
-
             for i_ray in range(len(launch_vectors)):
-                output_data['launch_vectors'][iSh, i_channel, i_ray] = launch_vectors[i_ray]
-                output_data['receive_vectors'][iSh, i_channel, i_ray] = receive_vectors[i_ray]
-                output_data['travel_times'][iSh, i_channel, i_ray] = travel_times[i_ray]
-                output_data['travel_distances'][iSh, i_channel, i_ray] = path_lengths[i_ray]
-                output_data['polarization'][iSh, i_channel, i_ray] = polarization_directions[i_ray]
                 for key, value in raytracing_output[i_ray].items():
                     output_data[key][iSh, i_channel, i_ray] = value
+
             for efield_object in efield_objects:
                 self._sim_station.add_electric_field(efield_object)
             if len(efield_objects) > 0 and np.nanmax(efield_amplitudes) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[self._station_id][channel_id]:

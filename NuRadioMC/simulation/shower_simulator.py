@@ -10,14 +10,15 @@ class showerSimulator:
             config,
             input_data,
             input_attributes,
-            channel_efield_simulator
+            channel_efield_simulator,
+            n_raytracing_solutions
     ):
         self.__detector = detector
         self.__channel_ids = channel_ids
         self.__config = config
         self.__input_data = input_data
         self.__input_attributes = input_attributes
-
+        self.__n_raytracing_solutions = n_raytracing_solutions
         self.__station_id = None
         self.__event_group_id = None
         self.__i_event_group = None
@@ -60,9 +61,10 @@ class showerSimulator:
             np.array(self.__input_data['zz'])[event_indices]
         ]).T
         self.__event_group_vertex_distances = np.linalg.norm(
-            self.__event_group_vertex_distances - self.__event_group_vertex_distances[0], axis=1
+            self.__event_group_vertices - self.__event_group_vertices[0], axis=1
         )
         self.__event_group_shower_energies = self.__input_data['energies'][event_indices]
+        self.__channel_efield_simulator.set_event_group(np.sum(self.__event_group_shower_energies))
 
     def simulate_shower(
             self,
@@ -86,19 +88,40 @@ class showerSimulator:
         ])
         vertex_time = self.__input_data['vertex_times'][shower_index]
         if not self.__distance_cut(shower_vertex):
-            return
+            return [], [], [], [], [], [], [], []
         if not self.__in_fiducial_volume(shower_vertex):
-            return
+            return [], [], [], [], [], [], [], []
         if self.__config['signal']['shower_type'] == "em":
             if self.__config['shower_type'][shower_index] != "em":
-                return
+                return [], [], [], [], [], [], [], []
         if self.__config['signal']['shower_type'] == "had":
             if self.__config['shower_type'][shower_index] != "had":
-                return
-        for channel_id in self.__channel_ids:
-            self.__channel_efield_simulator.simulate_efield_at_channel(
+                return [], [], [], [], [], [], [], []
+        n_channels = len(self.__channel_ids)
+        efield_list = []
+        launch_vector_list = np.full((n_channels, self.__n_raytracing_solutions, 3), np.nan)
+        receive_vector_list =  np.full((n_channels, self.__n_raytracing_solutions, 3), np.nan)
+        travel_time_list = np.full((n_channels, self.__n_raytracing_solutions), np.nan)
+        path_length_list = np.full((n_channels, self.__n_raytracing_solutions), np.nan)
+        polarization_direction_list = np.full((n_channels, self.__n_raytracing_solutions, 3), np.nan)
+        efield_amplitude_list = np.full((n_channels, self.__n_raytracing_solutions), np.nan)
+        raytracing_output_list = []
+        for i_channel, channel_id in enumerate(self.__channel_ids):
+            efield_objects, launch_vectors, receive_vectors, travel_times, path_lenghts, polarization_directions, \
+                efield_amplitudes, raytracing_output = self.__channel_efield_simulator.simulate_efield_at_channel(
                 channel_id
             )
+            n_efield_entries = path_lenghts.shape[0]
+            efield_list.append(efield_objects)
+            launch_vector_list[i_channel, :n_efield_entries] = launch_vectors
+            receive_vector_list[i_channel, :n_efield_entries] = receive_vectors
+            travel_time_list[i_channel, :n_efield_entries] = travel_times
+            path_length_list[i_channel, :n_efield_entries] = path_lenghts
+            polarization_direction_list[i_channel, :n_efield_entries] = polarization_directions
+            efield_amplitude_list[i_channel, :n_efield_entries] = efield_amplitudes
+            raytracing_output_list.append(raytracing_output)
+        return efield_list, launch_vector_list, receive_vector_list, travel_time_list, path_length_list, \
+                polarization_direction_list, efield_amplitude_list, raytracing_output_list
 
     def __distance_cut(
             self,
