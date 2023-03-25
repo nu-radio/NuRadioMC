@@ -19,8 +19,8 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
             'json', 'dictionary' or 'sql'
             default value is 'json'
             if dictionary is specified, the dictionary passed to __init__ is used
-            if 'sql' is specified, the file 'detector_sql_auth.json' file needs to be present in this folder that
-            specifies the sql server credentials (see 'detector_sql_auth.json.sample' for an example of the syntax)
+            if 'sql' is specified, the file 'sql_auth.json' file needs to be present in this folder that
+            specifies the sql server credentials (see 'sql_auth.json.sample' for an example of the syntax)
         json_filename : str
             the path to the json detector description file (if first checks a path relative to this directory, then a
             path relative to the current working directory of the user)

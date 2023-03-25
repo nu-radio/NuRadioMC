@@ -30,8 +30,8 @@ class Detector(object):
             by json_filename will be used
             If 'dictionary' is passed, the dictionary specified by the parameter
             'dictionary' will be used
-            if 'sql' is specified, the file 'detector_sql_auth.json' file needs to be present in this folder that
-            specifies the sql server credentials (see 'detector_sql_auth.json.sample' for an example of the syntax)
+            if 'sql' is specified, the file 'sql_auth.json' file needs to be present in this folder that
+            specifies the sql server credentials (see 'sql_auth.json.sample' for an example of the syntax)
         dictionary: dict
             If 'dictionary' is passed to the parameter source, the dictionary
             passed to this parameter will be used for the detector description.

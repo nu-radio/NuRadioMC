@@ -54,9 +54,9 @@ def buffer_db(in_memory, filename=None):
         db = TinyDB(filename, storage=serialization, sort_keys=True, indent=4, separators=(',', ': '))
     db.truncate()
 
-    from NuRadioReco.detector import detector_sql
-    sqldet = detector_sql.Detector()
-    results = sqldet.get_everything_stations()
+    from NuRadioReco.detector import sql_db_interface
+    sqldb = sql_db_interface.Database()
+    results = sqldb.get_everything_stations()
     table_stations = db.table('stations')
     table_stations.truncate()
     for result in results:
@@ -78,7 +78,7 @@ def buffer_db(in_memory, filename=None):
 
     table_channels = db.table('channels')
     table_channels.truncate()
-    results = sqldet.get_everything_channels()
+    results = sqldb.get_everything_channels()
     for channel in results:
         table_channels.insert({'station_id': channel['st.station_id'],
                                'channel_id': channel['ch.channel_id'],
@@ -107,7 +107,7 @@ def buffer_db(in_memory, filename=None):
                                'adc_n_samples': channel['adcs.n_samples'],
                                'adc_sampling_frequency': channel['adcs.sampling_frequency']})
 
-    results = sqldet.get_everything_positions()
+    results = sqldb.get_everything_positions()
     table_positions = db.table('positions')
     table_positions.truncate()
     for result in results:
@@ -147,8 +147,8 @@ class DetectorBase(object):
             'json', 'dictionary' or 'sql'
             default value is 'json'
             if dictionary is specified, the dictionary passed to __init__ is used
-            if 'sql' is specified, the file 'detector_sql_auth.json' file needs to be present in this folder that
-            specifies the sql server credentials (see 'detector_sql_auth.json.sample' for an example of the syntax)
+            if 'sql' is specified, the file 'sql_auth.json' file needs to be present in this folder that
+            specifies the sql server credentials (see 'sql_auth.json.sample' for an example of the syntax)
         json_filename : str
             the path to the json detector description file (if first checks a path relative to this directory, then a
             path relative to the current working directory of the user)

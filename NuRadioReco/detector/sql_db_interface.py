@@ -7,21 +7,21 @@ import datetime
 import json
 import logging
 
-logger = logging.getLogger('sql detector')
+logger = logging.getLogger('sql interface')
 
 
-class Detector(object):
+class Database(object):
     __instance = None
 
     def __new__(cls):
-        if Detector.__instance is None:
-            Detector.__instance = object.__new__(cls)
-        return Detector.__instance
+        if Database.__instance is None:
+            Database.__instance = object.__new__(cls)
+        return Database.__instance
 
     def __init__(self):
 
         dir_path = os.path.dirname(os.path.realpath(__file__))  # get the directory of this file
-        filename = os.path.join(dir_path, "detector_sql_auth.json")
+        filename = os.path.join(dir_path, "sql_auth.json")
         fin = open(filename, 'r')
         mysql_opts = json.load(fin)
         fin.close()
