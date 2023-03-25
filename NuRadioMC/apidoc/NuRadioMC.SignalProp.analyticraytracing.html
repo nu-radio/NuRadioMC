@@ -575,6 +575,26 @@
              
   <section id="module-NuRadioMC.SignalProp.analyticraytracing">
 <span id="nuradiomc-signalprop-analyticraytracing-module"></span><h1>NuRadioMC.SignalProp.analyticraytracing module<a class="headerlink" href="#module-NuRadioMC.SignalProp.analyticraytracing" title="Permalink to this heading"></a></h1>
+<dl class="py data">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.speed_of_light">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.analyticraytracing.</span></span><span class="sig-name descname"><span class="pre">speed_of_light</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.299792458</span></em><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.speed_of_light" title="Permalink to this definition"></a></dt>
+<dd><p>Models in the following list will use the speed-optimized algorithm to calculate the attenuation along the path.
+Can be overwritten by init.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.get_n_steps">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.analyticraytracing.</span></span><span class="sig-name descname"><span class="pre">get_n_steps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#get_n_steps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.get_n_steps" title="Permalink to this definition"></a></dt>
+<dd><p>Returns number of segments necessary for width to be approx dx</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.get_segments">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.analyticraytracing.</span></span><span class="sig-name descname"><span class="pre">get_segments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#get_segments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.get_segments" title="Permalink to this definition"></a></dt>
+<dd><p>Returns equi.dist. segments (np.linspace). Choose number of segments such that
+width of segments is approx. dx</p>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.get_z_deep">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.analyticraytracing.</span></span><span class="sig-name descname"><span class="pre">get_z_deep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#get_z_deep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.get_z_deep" title="Permalink to this definition"></a></dt>
@@ -587,7 +607,7 @@ with negative depth.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.analyticraytracing.</span></span><span class="sig-name descname"><span class="pre">ray_tracing_2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SP1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frequencies_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_optimized_start_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.analyticraytracing.</span></span><span class="sig-name descname"><span class="pre">ray_tracing_2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SP1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frequencies_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_optimized_start_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_speedup</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing_2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base" title="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">ray_tracing_base</span></code></a></p>
 <p>initialize 2D analytic ray tracing class</p>
 <dl class="field-list simple">
@@ -603,6 +623,14 @@ with negative depth.</p>
 </dd>
 <dt><strong>use_optimized_start_value: bool</strong></dt><dd><p>if True, the initial C_0 paramter (launch angle) is set to the ray that skims the surface
 (default: False)</p>
+</dd>
+<dt><strong>overwrite_speedup: bool</strong></dt><dd><p>The signal attenuation is calculated using a numerical integration
+along the ray path. This calculation can be computational inefficient depending on the details of 
+the ice model. An optimization is implemented approximating the integral with a discrete sum with the loss
+of some accuracy, See PR #507. This optimization is used for all ice models listed in 
+speedup_attenuation_models (i.e., “GL3”). With this argument you can explicitly activate or deactivate
+(True or False) if you want to use the optimization. (Default: None, i.e., use optimization if ice model is
+listed in speedup_attenuation_models)</p>
 </dd>
 </dl>
 </dd>
@@ -1621,7 +1649,7 @@ form of key=argument and separated by a comma</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.analyticraytracing.</span></span><span class="sig-name descname"><span class="pre">ray_tracing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SP1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frequencies_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_reflections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.analyticraytracing.</span></span><span class="sig-name descname"><span class="pre">ray_tracing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SP1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frequencies_integration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_reflections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ray_tracing_2D_kwards</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioMC.SignalProp.propagation_base_class.html#NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base" title="NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">ray_tracing_base</span></code></a></p>
 <p>utility class (wrapper around the 2D analytic ray tracing code) to get
 ray tracing solutions in 3D for two arbitrary points x1 and x2</p>
@@ -1743,6 +1771,8 @@ which is needed to avoid any “key not available” errors. The default setting
 </div></blockquote>
 </dd>
 <dt><strong>detector: detector object</strong></dt><dd></dd>
+<dt><strong>ray_tracing_2D_kwards: dict</strong></dt><dd><p>Additional arguments which are passed to ray_tracing_2D</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -2093,6 +2123,25 @@ to this raytracer</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config">
+<span class="sig-name descname"><span class="pre">get_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config" title="Permalink to this definition"></a></dt>
+<dd><p>Function that returns the configuration currently used by the raytracer</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions">
+<span class="sig-name descname"><span class="pre">get_number_of_raytracing_solutions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions" title="Permalink to this definition"></a></dt>
+<dd><p>Function that returns the maximum number of raytracing solutions that can exist between each given
+pair of start and end points</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions">
+<span class="sig-name descname"><span class="pre">get_number_of_solutions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions" title="Permalink to this definition"></a></dt>
+<dd><p>returns the number of solutions</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output">
 <span class="sig-name descname"><span class="pre">get_raytracing_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i_solution</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_raytracing_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output" title="Permalink to this definition"></a></dt>
 <dd><p>Write parameters that are specific to this raytracer into the output data.</p>
@@ -2110,6 +2159,42 @@ to this raytracer</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_results">
+<span class="sig-name descname"><span class="pre">get_results</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_results" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution">
+<span class="sig-name descname"><span class="pre">has_solution</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="Permalink to this definition"></a></dt>
+<dd><p>checks if ray tracing solution exists</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function">
+<span class="sig-name descname"><span class="pre">use_optional_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function" title="Permalink to this definition"></a></dt>
+<dd><p>Use optional function which may be different for each ray tracer. 
+If the name of the function is not present for the ray tracer this function does nothing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>function_name: string</strong></dt><dd><p>name of the function to use</p>
+</dd>
+<dt><strong>*args: type of the argument required by function</strong></dt><dd><p>all the neseccary arguments for the function separated by a comma</p>
+</dd>
+<dt><strong>**kwargs: type of keyword argument of function</strong></dt><dd><p>all all the neseccary keyword arguments for the function in the
+form of key=argument and separated by a comma</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">use_optional_function</span><span class="p">(</span><span class="s1">&#39;set_shower_axis&#39;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]))</span>
+<span class="n">use_optional_function</span><span class="p">(</span><span class="s1">&#39;set_iterative_sphere_sizes&#39;</span><span class="p">,</span><span class="n">sphere_sizes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">aray</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">.5</span><span class="p">]))</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -2136,36 +2221,6 @@ Note that the 1/r weakening of the electric field is already accounted for in th
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config">
-<span class="sig-name descname"><span class="pre">get_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config" title="Permalink to this definition"></a></dt>
-<dd><p>Function that returns the configuration currently used by the raytracer</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions">
-<span class="sig-name descname"><span class="pre">get_number_of_raytracing_solutions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions" title="Permalink to this definition"></a></dt>
-<dd><p>Function that returns the maximum number of raytracing solutions that can exist between each given
-pair of start and end points</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions">
-<span class="sig-name descname"><span class="pre">get_number_of_solutions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions" title="Permalink to this definition"></a></dt>
-<dd><p>returns the number of solutions</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_results">
-<span class="sig-name descname"><span class="pre">get_results</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_results" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution">
-<span class="sig-name descname"><span class="pre">has_solution</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="Permalink to this definition"></a></dt>
-<dd><p>checks if ray tracing solution exists</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config">
 <span class="sig-name descname"><span class="pre">set_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.set_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config" title="Permalink to this definition"></a></dt>
 <dd><p>Change the configuration file used by the raytracer</p>
@@ -2178,31 +2233,6 @@ If None, the default config settings will be applied</p>
 </dl>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function">
-<span class="sig-name descname"><span class="pre">use_optional_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function" title="Permalink to this definition"></a></dt>
-<dd><p>Use optional function which may be different for each ray tracer. 
-If the name of the function is not present for the ray tracer this function does nothing.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>function_name: string</strong></dt><dd><p>name of the function to use</p>
-</dd>
-<dt><strong>*args: type of the argument required by function</strong></dt><dd><p>all the neseccary arguments for the function separated by a comma</p>
-</dd>
-<dt><strong>**kwargs: type of keyword argument of function</strong></dt><dd><p>all all the neseccary keyword arguments for the function in the
-form of key=argument and separated by a comma</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">use_optional_function</span><span class="p">(</span><span class="s1">&#39;set_shower_axis&#39;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]))</span>
-<span class="n">use_optional_function</span><span class="p">(</span><span class="s1">&#39;set_iterative_sphere_sizes&#39;</span><span class="p">,</span><span class="n">sphere_sizes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">aray</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">.5</span><span class="p">]))</span>
-</pre></div>
-</div>
 </dd></dl>
 
 </dd></dl>

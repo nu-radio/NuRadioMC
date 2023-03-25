@@ -585,7 +585,6 @@
 <span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">electricFieldParameters</span> <span class="k">as</span> <span class="n">efp</span>
 <span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp.propagation_base_class</span> <span class="kn">import</span> <span class="n">ray_tracing_base</span>
 <span class="kn">from</span> <span class="nn">NuRadioMC.SignalProp.propagation</span> <span class="kn">import</span> <span class="n">solution_types</span><span class="p">,</span> <span class="n">solution_types_revert</span>
-
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
 
@@ -616,6 +615,26 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="n">speed_of_light</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">s</span>
 
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Models in the following list will use the speed-optimized algorithm to calculate the attenuation along the path.</span>
+<span class="sd">Can be overwritten by init.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">speedup_attenuation_models</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;GL3&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="get_n_steps"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.get_n_steps">[docs]</a><span class="k">def</span> <span class="nf">get_n_steps</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">dx</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Returns number of segments necessary for width to be approx dx &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x2</span><span class="p">)</span> <span class="o">//</span> <span class="n">dx</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_segments"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.get_segments">[docs]</a><span class="k">def</span> <span class="nf">get_segments</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">dx</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Returns equi.dist. segments (np.linspace). Choose number of segments such that</span>
+<span class="sd">        width of segments is approx. dx</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">x1</span> <span class="o">==</span> <span class="n">x2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">x1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">get_n_steps</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">dx</span><span class="p">))</span></div>
+
 
 <div class="viewcode-block" id="get_z_deep"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.get_z_deep">[docs]</a><span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">get_z_deep</span><span class="p">(</span><span class="n">ice_params</span><span class="p">):</span>
@@ -642,7 +661,8 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation_model</span><span class="o">=</span><span class="s2">&quot;SP1&quot;</span><span class="p">,</span>
                  <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span>
                  <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
-                 <span class="n">use_optimized_start_values</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                 <span class="n">use_optimized_start_values</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">overwrite_speedup</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        initialize 2D analytic ray tracing class</span>
 
@@ -659,7 +679,15 @@
 <span class="sd">        use_optimized_start_value: bool</span>
 <span class="sd">            if True, the initial C_0 paramter (launch angle) is set to the ray that skims the surface</span>
 <span class="sd">            (default: False)</span>
-
+<span class="sd">        overwrite_speedup: bool</span>
+<span class="sd">            The signal attenuation is calculated using a numerical integration</span>
+<span class="sd">            along the ray path. This calculation can be computational inefficient depending on the details of </span>
+<span class="sd">            the ice model. An optimization is implemented approximating the integral with a discrete sum with the loss</span>
+<span class="sd">            of some accuracy, See PR #507. This optimization is used for all ice models listed in </span>
+<span class="sd">            speedup_attenuation_models (i.e., &quot;GL3&quot;). With this argument you can explicitly activate or deactivate</span>
+<span class="sd">            (True or False) if you want to use the optimization. (Default: None, i.e., use optimization if ice model is</span>
+<span class="sd">            listed in speedup_attenuation_models)</span>
+<span class="sd">            </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">medium</span> <span class="o">=</span> <span class="n">medium</span>
         <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="p">,</span> <span class="s2">&quot;reflection&quot;</span><span class="p">)):</span>
@@ -674,6 +702,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__n_frequencies_integration</span> <span class="o">=</span> <span class="n">n_frequencies_integration</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__use_optimized_start_values</span> <span class="o">=</span> <span class="n">use_optimized_start_values</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_use_optimized_calculation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attenuation_model</span> <span class="ow">in</span> <span class="n">speedup_attenuation_models</span>
+        <span class="k">if</span> <span class="n">overwrite_speedup</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_use_optimized_calculation</span> <span class="o">=</span> <span class="n">overwrite_speedup</span>
+                    
 
 <div class="viewcode-block" id="ray_tracing_2D.n"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing_2D.n">[docs]</a>    <span class="k">def</span> <span class="nf">n</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -784,6 +817,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        derivative dy(z)/dz</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_z_unmirrored</span><span class="p">(</span><span class="n">z_raw</span><span class="p">,</span> <span class="n">C_0</span><span class="p">)</span>
         <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">n_ice</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">C_0</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span>
         <span class="n">B</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.2e1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">__b</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">delta_n</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">z</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">z_0</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">delta_n</span> <span class="o">**</span>
@@ -1175,14 +1209,83 @@
                 <span class="n">mask</span> <span class="o">=</span> <span class="n">frequency</span> <span class="o">&gt;</span> <span class="mi">0</span>
                 <span class="n">freqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_frequencies_for_attenuation</span><span class="p">(</span><span class="n">frequency</span><span class="p">,</span> <span class="n">max_detector_freq</span><span class="p">)</span>
                 <span class="n">gamma_turn</span><span class="p">,</span> <span class="n">z_turn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_turning_point</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">n_ice</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">C_0</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span>
-                <span class="n">points</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="k">if</span> <span class="n">x1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">z_turn</span> <span class="ow">and</span> <span class="n">z_turn</span> <span class="o">&lt;</span> <span class="n">x2_mirrored</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-                    <span class="n">points</span> <span class="o">=</span> <span class="p">[</span><span class="n">z_turn</span><span class="p">]</span>
-                
-                <span class="n">attenuation_exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">integrate</span><span class="o">.</span><span class="n">quad</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">x1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x2_mirrored</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span>
-                    <span class="n">C_0</span><span class="p">,</span> <span class="n">f</span><span class="p">),</span> <span class="n">epsrel</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="n">points</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">freqs</span><span class="p">])</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;_use_optimized_calculation&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_optimized_calculation</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_optimized_calculation</span><span class="p">:</span>
+                    <span class="c1"># The integration of the attenuation factor along the path with scipy.quad is inefficient. The </span>
+                    <span class="c1"># reason for this is that attenuation profile is varying a lot with depth. Hence, to improve</span>
+                    <span class="c1"># performance we sum over discrete segments with loss of some accuracy. </span>
+                    <span class="c1"># However, when a path becomes to horizontal (i.e., at the turning point of an refracted ray)</span>
+                    <span class="c1"># the calculation via a discrete sum becomes to inaccurate. This is because we describe the</span>
+                    <span class="c1"># path as a function of dz (vertical distance) and have the sum over discrete bins in dz. To avoid that</span>
+                    <span class="c1"># we fall back to a numerical integration with scipy.quad only around the turning point. However, instead </span>
+                    <span class="c1"># of integrating over dt (the exponent of the attenuation factor), we integrate only over ds (the path length)</span>
+                    <span class="c1"># and evaluate the attenuation (as function of depth and frequency) for the central depth of this segment </span>
+                    <span class="c1"># (because this is what takes time)</span>
+                    <span class="c1"># For more details and comparisons see PR #507 : https://github.com/nu-radio/NuRadioMC/pull/507</span>
+
+                    <span class="c1"># define the width of the vertical (!) segments over which we sum. </span>
+                    <span class="c1"># Since we use linspace the actual width will differ slightly</span>
+                    <span class="n">dx</span> <span class="o">=</span> <span class="mi">10</span>
+                    <span class="c1"># define the vertical window around a turning point within we will fall back to a numerical integration</span>
+                    <span class="n">int_window_size</span> <span class="o">=</span> <span class="mi">20</span>
+                    
+                    <span class="c1"># Check if a turning point &quot;z_turn&quot; is within our ray path or close to it (i.e., right behind the antenna)</span>
+                    <span class="c1"># if so we need to fallback to numerical integration</span>
+                    <span class="n">fallback</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">if</span> <span class="n">x1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">int_window_size</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="n">z_turn</span> <span class="ow">and</span> <span class="n">z_turn</span> <span class="o">&lt;</span> <span class="n">x2_mirrored</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">int_window_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="n">fallback</span> <span class="o">=</span> <span class="kc">True</span>
+                        
+                    <span class="k">if</span> <span class="n">fallback</span><span class="p">:</span>
+                        <span class="c1"># If we need the fallback, make sure that the turning point is in the middle of a segment (unless it is at</span>
+                        <span class="c1"># the edge of a path). Otherwise the segment next to the turning point will be inaccurate</span>
+                        <span class="n">int_window</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">x1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">z_turn</span> <span class="o">-</span> <span class="n">int_window_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> 
+                                      <span class="nb">min</span><span class="p">(</span><span class="n">z_turn</span> <span class="o">+</span> <span class="n">int_window_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">x2_mirrored</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+
+                        <span class="c1"># Merge two arrays which start and stop at int_window (and thus include it). The width might be slightly different</span>
+                        <span class="n">segments</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_segments</span><span class="p">(</span><span class="n">x1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">int_window</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dx</span><span class="p">),</span> <span class="n">get_segments</span><span class="p">(</span><span class="n">int_window</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x2_mirrored</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dx</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">segments</span> <span class="o">=</span> <span class="n">get_segments</span><span class="p">(</span><span class="n">x1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x2_mirrored</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dx</span><span class="p">)</span>
+                    
+                    <span class="c1"># get the actual width of each segment and their center</span>
+                    <span class="n">dx_actuals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span>
+                    <span class="n">mid_points</span> <span class="o">=</span> <span class="n">segments</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">dx_actuals</span> <span class="o">/</span> <span class="mi">2</span>
+
+                    <span class="c1"># calculate attenuation for the different segments using the middle depth of the segment</span>
+                    <span class="n">attenuation_exp_tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                        <span class="p">[[</span><span class="n">dt</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">C_0</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx_actual</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">dx_actual</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">mid_points</span><span class="p">,</span> <span class="n">dx_actuals</span><span class="p">)]</span>
+                        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">freqs</span><span class="p">])</span>
+
+                    <span class="k">if</span> <span class="n">fallback</span><span class="p">:</span>
+                        <span class="c1"># for the segment around z_turn fall back to integration. We only integrate ds (and not dt) for performance reasons</span>
+
+                        <span class="c1"># find segment which contains z_turn</span>
+                        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">z_turn</span><span class="p">,</span> <span class="n">segments</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+                        
+                        <span class="c1"># if z_turn is outside of segments</span>
+                        <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                            <span class="n">idx</span> <span class="o">-=</span> <span class="mi">1</span>
+                        <span class="k">elif</span> <span class="n">idx</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                            <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+                        
+                        <span class="n">att_int</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                            <span class="p">[</span><span class="n">integrate</span><span class="o">.</span><span class="n">quad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="p">,</span> <span class="n">segments</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">segments</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">C_0</span><span class="p">),</span> <span class="n">epsrel</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="p">[</span><span class="n">z_turn</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span>
+                            <span class="n">attenuation_util</span><span class="o">.</span><span class="n">get_attenuation_length</span><span class="p">(</span><span class="n">z_turn</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attenuation_model</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">freqs</span><span class="p">])</span>
+                            
+                        <span class="n">attenuation_exp_tmp</span><span class="p">[:,</span> <span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">att_int</span>
+                    
+                    <span class="c1"># sum over all segments</span>
+                    <span class="n">attenuation_exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">attenuation_exp_tmp</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">points</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">if</span> <span class="n">x1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">z_turn</span> <span class="ow">and</span> <span class="n">z_turn</span> <span class="o">&lt;</span> <span class="n">x2_mirrored</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                        <span class="n">points</span> <span class="o">=</span> <span class="p">[</span><span class="n">z_turn</span><span class="p">]</span>
+                    
+                    <span class="n">attenuation_exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">integrate</span><span class="o">.</span><span class="n">quad</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">x1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x2_mirrored</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span>
+                        <span class="n">C_0</span><span class="p">,</span> <span class="n">f</span><span class="p">),</span> <span class="n">epsrel</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="n">points</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">freqs</span><span class="p">])</span>
+
                 <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">attenuation_exp</span><span class="p">)</span>
-                <span class="c1"># tmp = np.array([integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0, f), epsrel=0.05)[0] for f in frequency[mask]])</span>
                 
                 <span class="n">tmp_attenuation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">frequency</span><span class="p">)</span>
                 <span class="n">tmp_attenuation</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">frequency</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">tmp</span><span class="p">)</span>
@@ -2112,7 +2215,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation_model</span><span class="o">=</span><span class="s2">&quot;SP1&quot;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span>
                  <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n_reflections</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">detector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                 <span class="n">detector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ray_tracing_2D_kwards</span><span class="o">=</span><span class="p">{}):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        class initilization</span>
 
@@ -2120,10 +2223,13 @@
 <span class="sd">        ----------</span>
 <span class="sd">        medium: medium class</span>
 <span class="sd">            class describing the index-of-refraction profile</span>
+<span class="sd">        </span>
 <span class="sd">        attenuation_model: string</span>
 <span class="sd">            signal attenuation model</span>
+<span class="sd">        </span>
 <span class="sd">        log_name:  string</span>
 <span class="sd">            name under which things should be logged</span>
+<span class="sd">        </span>
 <span class="sd">        log_level: logging object</span>
 <span class="sd">            specify the log level of the ray tracing class</span>
 
@@ -2133,12 +2239,15 @@
 <span class="sd">            * logging.DEBUG</span>
 
 <span class="sd">            default is WARNING</span>
+<span class="sd">        </span>
 <span class="sd">        n_frequencies_integration: int</span>
 <span class="sd">            the number of frequencies for which the frequency dependent attenuation</span>
 <span class="sd">            length is being calculated. The attenuation length for all other frequencies</span>
 <span class="sd">            is obtained via linear interpolation.</span>
+<span class="sd">        </span>
 <span class="sd">        n_reflections: int (default 0)</span>
 <span class="sd">            in case of a medium with a reflective layer at the bottom, how many reflections should be considered</span>
+<span class="sd">        </span>
 <span class="sd">        config: dict</span>
 <span class="sd">            a dictionary with the optional config settings. If None, the config is intialized with default values,</span>
 <span class="sd">            which is needed to avoid any &quot;key not available&quot; errors. The default settings are</span>
@@ -2149,6 +2258,10 @@
 <span class="sd">                * self._config[&#39;propagation&#39;][&#39;focusing&#39;] = False</span>
 
 <span class="sd">        detector: detector object</span>
+<span class="sd">        </span>
+<span class="sd">        ray_tracing_2D_kwards: dict</span>
+<span class="sd">            Additional arguments which are passed to ray_tracing_2D</span>
+<span class="sd">            </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;ray_tracing_analytic&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
@@ -2166,8 +2279,10 @@
                          <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
                          <span class="n">detector</span><span class="o">=</span><span class="n">detector</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_config</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+        
         <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span> <span class="o">=</span> <span class="n">ray_tracing_2D</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attenuation_model</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">log_level</span><span class="p">,</span>
-                                    <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_frequencies_integration</span><span class="p">)</span>
+                                    <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_frequencies_integration</span><span class="p">,</span>
+                                    <span class="o">**</span><span class="n">ray_tracing_2D_kwards</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_swap</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dPhi</span> <span class="o">=</span> <span class="kc">None</span>
