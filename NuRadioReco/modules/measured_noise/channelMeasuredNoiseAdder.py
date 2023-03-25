@@ -1,10 +1,10 @@
-from NuRadioReco.modules.base.module import register_run
-import NuRadioReco.modules.io.NuRadioRecoio
 import numpy as np
-from NuRadioReco.utilities import units
-import numpy.random
 import logging
 import matplotlib.pyplot as plt
+
+from NuRadioReco.modules.base.module import register_run
+import NuRadioReco.modules.io.NuRadioRecoio
+from NuRadioReco.utilities import units
 
 
 class channelMeasuredNoiseAdder:
@@ -21,11 +21,12 @@ class channelMeasuredNoiseAdder:
         self.__io = None
         self.__random_state = None
         self.__max_iterations = None
-        self.__debug = None
         self.logger = logging.getLogger('NuRadioReco.channelMeasuredNoiseAdder')
         self.__noise_data = None
 
-    def begin(self, filenames, random_seed=None, max_iterations=100, debug=False, draw_noise_statistics=False):
+
+    def begin(self, filenames, random_seed=None, max_iterations=100, debug=False, 
+              draw_noise_statistics=False, channel_mapping=None, log_level=logging.WARNING, mean_opt=True):
         """
         Set up module parameters
 
@@ -33,26 +34,59 @@ class channelMeasuredNoiseAdder:
         ----------
         filenames: list of strings
             List of .nur files containing the measured noise
+        
         random_seed: int, default: None
             Seed for the random number generator. By default, no seed is set.
+        
         max_iterations: int, default: 100
             The module will pick a random event from the noise files, until a suitable event is found
             or until the number of iterations exceeds max_iterations. In that case, an error is thrown.
+        
         debug: bool, default: False
             Set True to get debug output
+        
         draw_noise_statistics: boolean, default: False
             If true, the values of all samples is stored and a histogram with noise statistics is drawn
             be the end() method
+        
+        channel_mapping: dict or None
+            option relevant for MC studies of new station designs where we do not
+            have forced triggers for. The channel_mapping dictionary maps the channel
+            ids of the MC station to the channel ids of the noise data
+            Default is None which is 1-to-1 mapping
+        
+        log_level: loggging log level
+            the log level, default logging.WARNING
+        
+        mean_opt: boolean
+            option to subtract mean from trace. Set mean_opt=False to remove mean subtraction from trace.
         """
         self.__filenames = filenames
         self.__io = NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio(self.__filenames)
-        self.__random_state = numpy.random.Generator(numpy.random.Philox(random_seed))
+        self.__random_state = np.random.Generator(np.random.Philox(random_seed))
         self.__max_iterations = max_iterations
+        
+        self.__channel_mapping = channel_mapping
+        self.__mean_opt = mean_opt
+        
+        self.__use_same_station = True
+        self.__allow_noise_resampling = False
+        self.logger.setLevel(log_level)
+
         if debug:
             self.logger.setLevel(logging.DEBUG)
             self.logger.debug('Reading noise from {} files containing {} events'.format(len(filenames), self.__io.get_n_events()))
+        
         if draw_noise_statistics:
             self.__noise_data = []
+            
+
+    def __get_noise_channel(self, channel_id):
+        if self.__channel_mapping is None:
+            return channel_id
+        else:
+            return self.__channel_mapping[channel_id]
+
 
     @register_run()
     def run(self, event, station, det):
@@ -66,24 +100,44 @@ class channelMeasuredNoiseAdder:
         det: detector description
         """
         noise_station = None
-        for i in range(self.__max_iterations):
+        
+        for _ in range(self.__max_iterations):
             noise_station = self.get_noise_station(station)
             # Get random station from noise file. If we got a suitable station, we continue,
             # otherwise we try again
             if noise_station is not None:
                 break
+        
         # To avoid infinite loops, if no suitable noise station was found after a number of iterations we raise an error
         if noise_station is None:
             raise ValueError('Could not find suitable noise event in noise files after {} iterations'.format(self.__max_iterations))
+        
         for channel in station.iter_channels():
-            noise_channel = noise_station.get_channel(channel.get_id())
+            noise_channel = noise_station.get_channel(self.__get_noise_channel(channel.get_id()))
             channel_trace = channel.get_trace()
+            
+            # if resampling is not desired no channel with wrong sampling rate is selected in get_noise_station()
             if noise_channel.get_sampling_rate() != channel.get_sampling_rate():
                 noise_channel.resample(channel.get_sampling_rate())
+            
             noise_trace = noise_channel.get_trace()
+            
+            if self.__mean_opt:
+                mean = noise_trace.mean()
+                std = noise_trace.std()
+                if mean > 0.05 * std:
+                    self.logger.warning((
+                        "the noise trace has an offset of {:.2}mV which is more than 5% of the STD of {:.2f}mV. "
+                        "The module corrects for the offset but it might points to an error in the FPN subtraction.").format(mean, std))
+                    
+                noise_trace -= mean
+
             channel_trace += noise_trace[:channel.get_number_of_samples()]
+
+            # if draw_noise_statistics == True
             if self.__noise_data is not None:
                 self.__noise_data.append(noise_trace)
+
 
     def get_noise_station(self, station):
         """
@@ -103,24 +157,45 @@ class channelMeasuredNoiseAdder:
         """
         event_i = self.__random_state.randint(self.__io.get_n_events())
         noise_event = self.__io.get_event_i(event_i)
-        if station.get_id() not in noise_event.get_station_ids():
-            self.logger.debug('No station with ID {} found in event'.format(station.get_id()))
+        
+        if self.__use_same_station and station.get_id() not in noise_event.get_station_ids():
+            self.logger.debug('Event {}: No station with ID {} found.'.format(event_i, station.get_id()))
             return None
-        noise_station = noise_event.get_station(station.get_id())
+        
+        if self.__use_same_station:
+            noise_station = noise_event.get_station(station.get_id())
+        else:
+            noise_station = noise_event.get_station()  # get first station stored in event
+
         for trigger_name in noise_station.get_triggers():
             trigger = noise_station.get_trigger(trigger_name)
             if trigger.has_triggered():
-                self.logger.debug('Noise station has triggered')
+                self.logger.debug('Noise station has triggered, reject noise event.')
                 return None
+        
         for channel_id in station.get_channel_ids():
-            if channel_id not in noise_station.get_channel_ids():
-                self.logger.debug('Channel {} found in station but not in noise file'.format(channel_id))
+            noise_channel_id = self.__get_noise_channel(channel_id)
+            if noise_channel_id not in noise_station.get_channel_ids():
+                if channel_id == noise_channel_id:
+                    self.logger.debug('Event {}: Requested channel {} not found'.format(event_i, noise_channel_id))
                 return None
-            noise_channel = noise_station.get_channel(channel_id)
+            
+            noise_channel = noise_station.get_channel(noise_channel_id)
             channel = station.get_channel(channel_id)
-            if noise_channel.get_number_of_samples() / noise_channel.get_sampling_rate() < channel.get_number_of_samples() / channel.get_sampling_rate():
+            
+            if noise_channel.get_number_of_samples() != noise_channel.get_sampling_rate() and not self.__allow_noise_resampling:
+                self.logger.debug('Event {}, Channel {}: Different sampling rates, reject noise event.'
+                                  .format(event_i, noise_channel_id))
+                return None   
+            
+            if (noise_channel.get_number_of_samples() / noise_channel.get_sampling_rate() < 
+                channel.get_number_of_samples() / channel.get_sampling_rate()):
+                self.logger.debug('Event {}, Channel {}: Different sampling rate / trace lenght ratios'
+                                  .format(event_i, noise_channel_id))
                 return None
+        
         return noise_station
+
 
     def end(self):
         """
