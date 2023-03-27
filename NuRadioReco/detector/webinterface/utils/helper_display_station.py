@@ -1,4 +1,4 @@
-from NuRadioReco.detector.db_mongo import Database
+from NuRadioReco.detector.db_mongo_write import Database
 from NuRadioReco.detector.webinterface import config
 from datetime import datetime
 
