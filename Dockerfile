@@ -3,6 +3,7 @@ LABEL maintainer="The NuRadioReco Authors <physics-astro-nuradiomcdev@lists.uu.s
 
 RUN apt-get update
 RUN apt-get upgrade -y
+RUN apt-get install -y git
 
 # copy NuRadioMC
 COPY . /usr/local/lib/NuRadioMC
