@@ -1,6 +1,5 @@
 import numpy as np
 import logging
-import matplotlib.pyplot as plt
 
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.modules.io.NuRadioRecoio
@@ -26,7 +25,8 @@ class channelMeasuredNoiseAdder:
 
 
     def begin(self, filenames, random_seed=None, max_iterations=100, debug=False, 
-              draw_noise_statistics=False, channel_mapping=None, log_level=logging.WARNING, mean_opt=True):
+              draw_noise_statistics=False, channel_mapping=None, log_level=logging.WARNING, 
+              restrict_station_id=True, station_id=None, allow_noise_resampling=False, baseline_substraction=True):
         """
         Set up module parameters
 
@@ -58,8 +58,18 @@ class channelMeasuredNoiseAdder:
         log_level: loggging log level
             the log level, default logging.WARNING
         
-        mean_opt: boolean
-            option to subtract mean from trace. Set mean_opt=False to remove mean subtraction from trace.
+        baseline_substraction: boolean
+            Option to subtract mean from trace. Set mean_opt=False to remove mean subtraction from trace.
+            
+        restrict_station_id: bool
+            Require the station in the noise event to be the same as in the simulated event. (Default: True)
+            
+        station_id: int
+            If restrict_station_id is False specify the station id to be used for the noise. If None take first station
+            in the noise event. (Default: None)
+            
+        allow_noise_resampling: bool
+            Allow resampling the noise trace to match the simulated trace. (Default: False)
         """
         self.__filenames = filenames
         self.__io = NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio(self.__filenames)
@@ -67,10 +77,11 @@ class channelMeasuredNoiseAdder:
         self.__max_iterations = max_iterations
         
         self.__channel_mapping = channel_mapping
-        self.__mean_opt = mean_opt
+        self.__baseline_substraction = baseline_substraction
         
-        self.__use_same_station = True
-        self.__allow_noise_resampling = False
+        self.__restrict_station_id = restrict_station_id
+        self.__noise_station_id = station_id
+        self.__allow_noise_resampling = allow_noise_resampling
         self.logger.setLevel(log_level)
 
         if debug:
@@ -117,22 +128,33 @@ class channelMeasuredNoiseAdder:
             channel_trace = channel.get_trace()
             
             # if resampling is not desired no channel with wrong sampling rate is selected in get_noise_station()
+            resampled = False
             if noise_channel.get_sampling_rate() != channel.get_sampling_rate():
                 noise_channel.resample(channel.get_sampling_rate())
+                resampled = True
             
             noise_trace = noise_channel.get_trace()
             
-            if self.__mean_opt:
+            if self.__baseline_substraction:
                 mean = noise_trace.mean()
                 std = noise_trace.std()
                 if mean > 0.05 * std:
                     self.logger.warning((
-                        "the noise trace has an offset of {:.2}mV which is more than 5% of the STD of {:.2f}mV. "
+                        "The noise trace has an offset/baseline of {:.2f}mV which is more than 5% of the STD of {:.2f}mV. "
                         "The module corrects for the offset but it might points to an error in the FPN subtraction.").format(mean, std))
                     
                 noise_trace -= mean
+                
+            if len(channel_trace) > len(noise_trace):
+                err = "{} is shorter than simulated trace. Stop".format("Resampled noise trace" if resampled else "Noise trace")
+                self.logger.error(err)
+                raise ValueError(err)
+            elif len(channel_trace) < len(noise_trace):
+                noise_trace = noise_trace[:channel.get_number_of_samples()]  # if to long, clip the end
+            else:
+                pass
 
-            channel_trace += noise_trace[:channel.get_number_of_samples()]
+            channel_trace += noise_trace
 
             # if draw_noise_statistics == True
             if self.__noise_data is not None:
@@ -158,14 +180,15 @@ class channelMeasuredNoiseAdder:
         event_i = self.__random_state.randint(self.__io.get_n_events())
         noise_event = self.__io.get_event_i(event_i)
         
-        if self.__use_same_station and station.get_id() not in noise_event.get_station_ids():
+        if self.__restrict_station_id and station.get_id() not in noise_event.get_station_ids():
             self.logger.debug('Event {}: No station with ID {} found.'.format(event_i, station.get_id()))
             return None
         
-        if self.__use_same_station:
+        if self.__restrict_station_id:
             noise_station = noise_event.get_station(station.get_id())
         else:
-            noise_station = noise_event.get_station()  # get first station stored in event
+            # If __noise_station_id == None get first station stored in event
+            noise_station = noise_event.get_station(self.__noise_station_id)
 
         for trigger_name in noise_station.get_triggers():
             trigger = noise_station.get_trigger(trigger_name)
@@ -190,9 +213,9 @@ class channelMeasuredNoiseAdder:
             
             if (noise_channel.get_number_of_samples() / noise_channel.get_sampling_rate() < 
                 channel.get_number_of_samples() / channel.get_sampling_rate()):
+                # Just add debug message...
                 self.logger.debug('Event {}, Channel {}: Different sampling rate / trace lenght ratios'
-                                  .format(event_i, noise_channel_id))
-                return None
+                                  .format(event_i, noise_channel_id))        
         
         return noise_station
 
@@ -203,16 +226,18 @@ class channelMeasuredNoiseAdder:
         Gaussian distribution to it.
         """
         if self.__noise_data is not None:
+            import matplotlib.pyplot as plt
+            plt.close('all')
+            
             noise_entries = np.array(self.__noise_data)
             noise_bins = np.arange(-150, 150, 5.) * units.mV
             noise_entries = noise_entries.flatten()
             mean = noise_entries.mean()
-            sigma = np.sqrt(np.mean((noise_entries - mean)**2))
-            plt.close('all')
-            fig1 = plt.figure()
-            ax1_1 = fig1.add_subplot(111)
+            sigma = noise_entries.std()
+        
+            fig1, ax1_1 = plt.subplots()
             n, bins, pathes = ax1_1.hist(noise_entries / units.mV, bins=noise_bins / units.mV)
-            ax1_1.plot(noise_bins / units.mV, np.max(n) * np.exp(-.5 * (noise_bins - mean)**2 / sigma**2))
+            ax1_1.plot(noise_bins / units.mV, np.max(n) * np.exp(-0.5 * (noise_bins - mean) ** 2 / sigma ** 2))
             ax1_1.grid()
             ax1_1.set_xlabel('sample value [mV]')
             ax1_1.set_ylabel('entries')
