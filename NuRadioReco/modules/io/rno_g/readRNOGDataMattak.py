@@ -34,13 +34,13 @@ def baseline_correction(wfs, n_bins=128):
    # np.split -> (16, n_events, n_channels, 128)
    # np.mean -> (16, n_events, n_channels)
    if n_bins is not None:
-      medians = np.media(np.split(wfs, 2048 // n_bins, axis=-1), axis=-1)
+      medians = np.median(np.split(wfs, 2048 // n_bins, axis=-1), axis=-1)
     
       # Get baseline traces
       # np.repeat -> (2048, n_events, n_channels)
       baseline_traces = np.repeat(medians, n_bins % 2048, axis=0)
    else:
-      medians = np.media(wfs, axis=-1)
+      medians = np.median(wfs, axis=-1)
     
       # Get baseline traces
       # np.repeat -> (2048, n_events, n_channels)
@@ -149,6 +149,7 @@ class readRNOGData:
       self.logger.info(f"Parse through {len(data_dirs)} directories.")
       
       self.__skipped_runs = 0
+      self.__n_runs = 0
       
       for data_dir in data_dirs:
          
@@ -162,6 +163,7 @@ class readRNOGData:
             self.__skipped_runs += 1
             continue
          
+         self.__n_runs += 1
          self._datasets.append(dataset)
          self.__n_events_per_dataset.append(dataset.N())
 
@@ -265,8 +267,9 @@ class readRNOGData:
 
 
    def end(self):
-      self.logger.info(f"Read {self.__counter} events (skipped {self.__skipped} events)"
-         f"\n\tTime to initialize data sets  : {self._time_begin:.2f}"
-         f"\n\tTime to initialize all events : {self._time_run:.2f}"
-         f"\n\tTime to per event             : {self._time_run / self.__counter:.2f}"
-         f"\n\tSkipped {self.__skipped_runs} runs.")
+      self.logger.info(
+         f"\n\tRead {self.__counter} events (skipped {self.__skipped} events)"
+         f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
+         f"\n\tTime to initialize all events : {self._time_run:.2f}s"
+         f"\n\tTime to per event             : {self._time_run / self.__counter:.2f}s"
+         f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs.")
