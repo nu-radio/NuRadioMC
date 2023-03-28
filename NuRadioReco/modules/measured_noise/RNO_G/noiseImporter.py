@@ -12,7 +12,7 @@ from NuRadioReco.modules import channelResampler
 import logging
 
 
-class noiseImporterRNOG:
+class noiseImporter:
     """
     Imports recorded traces from RNOG stations. 
     
