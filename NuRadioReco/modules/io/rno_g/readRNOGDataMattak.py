@@ -148,6 +148,8 @@ class readRNOGData:
       
       self.logger.info(f"Parse through {len(data_dirs)} directories.")
       
+      self.__skipped_runs = 0
+      
       for data_dir in data_dirs:
          
          if not os.path.exists(data_dir):
@@ -157,6 +159,7 @@ class readRNOGData:
          
          # filter runs/datasets based on 
          if not self.__select_run(dataset):
+            self.__skipped_runs += 1
             continue
          
          self._datasets.append(dataset)
@@ -265,4 +268,5 @@ class readRNOGData:
       self.logger.info(f"Read {self.__counter} events (skipped {self.__skipped} events)"
          f"\n\tTime to initialize data sets  : {self._time_begin:.2f}"
          f"\n\tTime to initialize all events : {self._time_run:.2f}"
-         f"\n\tTime to per event             : {self._time_run / self.__counter:.2f}")
+         f"\n\tTime to per event             : {self._time_run / self.__counter:.2f}"
+         f"\n\tSkipped {self.__skipped_runs} runs.")
