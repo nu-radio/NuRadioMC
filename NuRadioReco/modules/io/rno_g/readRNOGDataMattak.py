@@ -14,24 +14,42 @@ import NuRadioReco.framework.trigger
 
 from NuRadioReco.utilities import units
 
+try:
+   from rnog_data.runtable import RunTable
+   import pandas
+   imported_runtable = True
+except ImportError:
+   print("Import of run table failed. You will not be able to select runs! \n" 
+         "You can get the interface from GitHub: git@github.com:RNO-G/rnog-data-analysis-and-issues.git")
+   imported_runtable = False
+
+
+
 import mattak.Dataset
 
 
-def baseline_correction_128(wfs):
+def baseline_correction(wfs, n_bins=128):
     
-    # Get baseline in chunks of 128 bins
-    # np.split -> (16, n_events, n_channels, 128)
-    # np.mean -> (16, n_events, n_channels)
-    means = np.mean(np.split(wfs, 2048 // 128, axis=-1), axis=-1)
+   # Get baseline in chunks of 128 bins
+   # np.split -> (16, n_events, n_channels, 128)
+   # np.mean -> (16, n_events, n_channels)
+   if n_bins is not None:
+      medians = np.media(np.split(wfs, 2048 // n_bins, axis=-1), axis=-1)
     
-    # Get baseline traces
-    # np.repeat -> (2048, n_events, n_channels)
-    baseline_traces = np.repeat(means, 128 % 2048, axis=0)
+      # Get baseline traces
+      # np.repeat -> (2048, n_events, n_channels)
+      baseline_traces = np.repeat(medians, n_bins % 2048, axis=0)
+   else:
+      medians = np.media(wfs, axis=-1)
     
-    # np.moveaxis -> (n_events, n_channels, 2048)
-    baseline_traces = np.moveaxis(baseline_traces, 0, -1)
+      # Get baseline traces
+      # np.repeat -> (2048, n_events, n_channels)
+      baseline_traces = np.repeat(medians, 2048, axis=0)
+          
+   # np.moveaxis -> (n_events, n_channels, 2048)
+   baseline_traces = np.moveaxis(baseline_traces, 0, -1)
     
-    return wfs - baseline_traces
+   return wfs - baseline_traces
 
 
 class readRNOGData:
@@ -41,7 +59,9 @@ class readRNOGData:
              read_calibrated_data=False,
              apply_baseline_correction=True,
              convert_to_voltage=True,
-             select_triggers=None):
+             select_triggers=None,
+             run_types=["physics"],
+             max_trigger_rate=1 * units.Hz):
       
       """
       
@@ -70,7 +90,14 @@ class readRNOGData:
 
       convert_to_voltage: bool
          Only applies when non-calibrated data are read. If true, convert ADC to voltage.
-         (Default: True)   
+         (Default: True)
+         
+      run_types: list
+         Used to select/reject runs from information in the RNO-G RunTable. List of run_types to be used. (Default: ['physics'])
+         
+      max_trigger_rate: float
+         Used to select/reject runs from information in the RNO-G RunTable. Maximum allowed trigger rate (per run) in Hz.
+         If 0, no cut is applied. (Default: 1 Hz)
       """
       
       t0 = time.time()
@@ -86,6 +113,13 @@ class readRNOGData:
       # is read and convert_to_voltage is True.
       self._adc_ref_voltage_range = 2.5 * units.volt
       self._adc_n_bits = 12
+      
+      self.__max_trigger_rate = max_trigger_rate
+      self.__run_types = run_types
+      
+      if imported_runtable:
+         self.logger.debug("Access RunTable database ...")
+         self.__run_table = RunTable().get_table()
 
       if not isinstance(data_dirs, (list, np.ndarray)):
          data_dirs = [data_dirs]
@@ -120,6 +154,11 @@ class readRNOGData:
             self.logger.error(f"The directory {data_dir} does not exist")
       
          dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=data_dir)
+         
+         # filter runs/datasets based on 
+         if not self.__select_run(dataset):
+            continue
+         
          self._datasets.append(dataset)
          self.__n_events_per_dataset.append(dataset.N())
 
@@ -128,9 +167,33 @@ class readRNOGData:
       self._n_events_total = np.sum(self.__n_events_per_dataset)
       
       self._time_begin = time.time() - t0
+      
+      
+   def __select_run(self, dataset):
+      """ Filter/select runs/datasets. Return True to select an dataset, return False to skip it """
+      if not imported_runtable:
+         return True
+      
+      # get first eventInfo
+      dataset.setEntries(0)
+      event_info = dataset.eventInfo()
+      
+      run_id = event_info.run
+      station_id = event_info.station
+      
+      run_info = self.__run_table.query(f"station == {station_id:d} & run == {run_id:d}")
+      
+      if not run_info["run_type"].values[0] in self.__run_types:
+         return False
+      
+      if self.__max_trigger_rate and run_info["trigger_rate"].values[0] * units.Hz > self.__max_trigger_rate:
+         return False
+      
+      return True
 
 
-   def get_n_events_of_prev_datasets(self, dataset_idx):
+   def __get_n_events_of_prev_datasets(self, dataset_idx):
+      """ Get number of events from previous dataset to correctly set pointer """
       dataset_idx_prev = dataset_idx - 1
       return int(self._event_idxs_datasets[dataset_idx_prev]) if dataset_idx_prev >= 0 else 0
 
@@ -146,7 +209,7 @@ class readRNOGData:
          dataset_idx = np.digitize(event_idx, self._event_idxs_datasets)
          dataset = self._datasets[dataset_idx]
 
-         event_idx_in_dataset = event_idx - self.get_n_events_of_prev_datasets(dataset_idx)
+         event_idx_in_dataset = event_idx - self.__get_n_events_of_prev_datasets(dataset_idx)
          dataset.setEntries(event_idx_in_dataset)  # increment iterator -> point to new event
          
          event_info = dataset.eventInfo()
@@ -181,7 +244,7 @@ class readRNOGData:
                
                if self._apply_baseline_correction:
                   # correct baseline
-                  wf = baseline_correction_128(wf)
+                  wf = baseline_correction(wf)
                
                if self._convert_to_voltage:
                   # convert adc to voltage
