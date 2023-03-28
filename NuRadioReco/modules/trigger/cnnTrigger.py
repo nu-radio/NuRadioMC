@@ -165,11 +165,24 @@ class triggerSimulator:
                 )
                 self.logger.debug(f"[{trigger_name}] Will give bins {cut_low_bin} to {cut_high_bin} to the CNN")
 
-            prediction_traces[ipred] = channel.get_trace()[cut_low_bin:cut_high_bin] / vrms
+            if cut_high_bin > len(channel.get_trace()):
+                msg = f"[{trigger_name}] Need bins up to {cut_high_bin}, but waveform only has {len(channel.get_trace())} bins."
+                cut_high_bin = len(channel.get_trace()) - 1
+                cut_low_bin = cut_high_bin - self._wvf_length
+                msg += f" Instead using bins {cut_low_bin} to {cut_high_bin}!"
+                self.logger.warning(msg)
+
+            subset = channel.get_trace()[cut_low_bin:cut_high_bin]
+            if len(subset) != self._wvf_length:
+                msg = f"[{trigger_name}] selected bins from channel {channel_id} are only {len(subset)} long but should be {self._wvf_length}"
+                self.logger.error(msg)
+                raise Exception(msg)
+
+            prediction_traces[ipred] = subset / vrms
             ipred += 1
 
         if ipred != len(triggered_channels):
-            msg = f"[{trigger_name}] Was expecting to find data from {len(triggered_channels)} channels, but found {ipred}. Something has likely gone wrong!"
+            msg = f"[{trigger_name}] The specified channels to trigger on ({triggered_channels}) where not in this event, only found {ipred} of these. Something has likely gone wrong!"
             self.logger.warning(msg)
 
         if search_bin is None:
@@ -185,13 +198,15 @@ class triggerSimulator:
 
         with torch.no_grad():
             yhat = self._model(torch_tensor.to(self._device).float()).squeeze().cpu()
-            has_triggered = yhat > threshold
+            has_triggered = bool(yhat > threshold)
             self.logger.debug(f"[{trigger_name}] CNN score {yhat}, triggered: {has_triggered}")
 
         output_trigger.set_triggered(has_triggered)
 
         if has_triggered:
             output_trigger.set_trigger_time(search_time)
+            
+        station.set_trigger(output_trigger)
 
         self.__t += time.time() - t_profile
 
