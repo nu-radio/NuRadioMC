@@ -1,9 +1,11 @@
-import NuRadioReco.detector.detector_mongo
+import NuRadioReco.detector.detector_base
+
+import astropy
 import datetime
 
-class RNOG_detector(NuRadioReco.detector.detector_mongo.Detector):
+class RNOG_Detector(NuRadioReco.detector.detector_base.DetectorBase):
     def __init__(self, time=datetime.datetime.now()):
-        super(RNOG_detector, self).__init__("test")
+        super(RNOG_Detector, self).__init__(source="mongo")
         self.update(time)
 
-det = RNOG_detector()
+det = RNOG_Detector()

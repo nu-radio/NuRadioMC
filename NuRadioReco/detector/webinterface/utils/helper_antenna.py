@@ -1,25 +1,13 @@
-import streamlit as st
-from plotly import subplots
-import plotly.graph_objs as go
-import pandas as pd
-from NuRadioReco.detector.webinterface.utils.units_helper import str_to_unit
-from NuRadioReco.utilities import units
-import numpy as np
-# from NuRadioReco.detector.detector_mongo import det
-from NuRadioReco.detector.detector_mongo import Detector
+from NuRadioReco.detector.db_mongo_write import Database
 from NuRadioReco.detector.webinterface import config
-# from NuRadioReco.detector.detector_mongo import Detector
-from datetime import datetime
 
-# det = Detector(database_connection='env_pw_user')
-# det = Detector(database_connection='test')
-det = Detector(database_connection=config.DATABASE_TARGET)
-# det = Detector(config.DATABASE_TARGET)
+db = Database(database_connection=config.DATABASE_TARGET)
+
 
 def select_antenna_name(antenna_type, container, warning_container):
     selected_antenna_name = ''
     # update the dropdown menu
-    antenna_names = det.get_object_names(antenna_type)
+    antenna_names = db.get_object_names(antenna_type)
     antenna_names.insert(0, f'new {antenna_type}')
 
     col1, col2 = container.columns([1, 1])
@@ -71,6 +59,6 @@ def validate_global(page_name, container_bottom, antenna_name, new_antenna_name,
 
 def insert_to_db(page_name, s_name, antenna_name, data, working, primary, protocol, input_units):
     if not working:
-        det.set_not_working(page_name, antenna_name, primary)
+        db.set_not_working(page_name, antenna_name, primary)
     else:
-        det.antenna_add_Sparameter(page_name, antenna_name, [s_name], data, primary, protocol, input_units)
+        db.antenna_add_Sparameter(page_name, antenna_name, [s_name], data, primary, protocol, input_units)

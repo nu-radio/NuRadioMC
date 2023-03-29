@@ -1,28 +1,16 @@
-import streamlit as st
-from plotly import subplots
-import plotly.graph_objs as go
-import pandas as pd
-from NuRadioReco.detector.webinterface.utils.units_helper import str_to_unit
-from NuRadioReco.utilities import units
-import numpy as np
-# from NuRadioReco.detector.detector_mongo import det
-from NuRadioReco.detector.detector_mongo import Detector
+from NuRadioReco.detector.db_mongo_write import Database
 from NuRadioReco.detector.webinterface import config
-# from NuRadioReco.detector.detector_mongo import Detector
-from datetime import datetime
 
-# det = Detector(config.DATABASE_TARGET)
-# det = Detector(database_connection='env_pw_user')
-# det = Detector(database_connection='test')
-det = Detector(database_connection=config.DATABASE_TARGET)
+db = Database(database_connection=config.DATABASE_TARGET)
+
 
 def select_iglu(page_name, main_container, warning_container):
-    col1_I, col2_I, col3_I, col4_I, col5_I = main_container.columns([1,1,1,1,1])
+    col1_I, col2_I, col3_I, col4_I, col5_I = main_container.columns([1, 1, 1, 1, 1])
 
     selected_iglu_name = ''
-    iglu_names = det.get_object_names(page_name)
+    iglu_names = db.get_object_names(page_name)
     iglu_names.insert(0, f'new {page_name}')
-    drab_names = det.get_object_names('drab_board')
+    drab_names = db.get_object_names('drab_board')
 
     iglu_dropdown = col1_I.selectbox('Select existing board or enter unique name of new board:', iglu_names)
     if iglu_dropdown == f'new {page_name}':
@@ -35,7 +23,7 @@ def select_iglu(page_name, main_container, warning_container):
         warning_container.warning(f'You are about to override the {page_name} unit {iglu_dropdown}!')
 
         # load all the information for this board
-        selected_iglu_infos = det.load_board_information(page_name, selected_iglu_name, ['laser_id', 'DRAB_id', 'measurement_temp'])
+        selected_iglu_infos = db.load_board_information(page_name, selected_iglu_name, ['laser_id', 'DRAB_id', 'measurement_temp'])
 
     new_board_name = col2_I.text_input('', placeholder=f'new unique board name', disabled=disable_new_input)
     if iglu_dropdown == f'new {page_name}':
@@ -118,6 +106,6 @@ def validate_global_iglu(page_name, container_bottom, iglu_name, new_iglu_name, 
 
 def insert_iglu_to_db(page_name, s_names, iglu_name, data, input_units, working, primary, protocol, drab_id, laser_id, temp, measurement_time, time_delay):
     if not working:
-        det.set_not_working(page_name, iglu_name, primary)
+        db.set_not_working(page_name, iglu_name, primary)
     else:
-        det.iglu_add_Sparameters(page_name, s_names, iglu_name, drab_id, laser_id, temp, data, measurement_time, primary, time_delay, protocol, input_units)
+        db.iglu_add_Sparameters(page_name, s_names, iglu_name, drab_id, laser_id, temp, data, measurement_time, primary, time_delay, protocol, input_units)

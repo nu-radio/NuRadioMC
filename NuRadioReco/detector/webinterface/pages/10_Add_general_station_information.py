@@ -1,15 +1,8 @@
-import copy
-import time
 import streamlit as st
-import pandas as pd
-from plotly import subplots
-import plotly.graph_objs as go
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
 from NuRadioReco.detector.webinterface.utils.helper import build_success_page
-from NuRadioReco.detector.webinterface.utils.helper_station import input_station_information, input_channel_information, input_device_information, build_collection_input, validate_station_inputs, \
-    validate_channel_inputs, validate_device_inputs, insert_general_station_info_to_db, insert_general_channel_info_to_db, insert_general_device_info_to_db
-from NuRadioReco.utilities import units
-from datetime import datetime
+from NuRadioReco.detector.webinterface.utils.helper_station import input_station_information, input_channel_information, input_device_information, validate_station_inputs, validate_channel_inputs, \
+    validate_device_inputs, insert_general_station_info_to_db, insert_general_channel_info_to_db, insert_general_device_info_to_db
 
 page_name = 'station'
 collection_name = 'station_rnog'
@@ -44,7 +37,8 @@ def insert_station_info(cont_station_warning, cont_station_info, selected_statio
         st.session_state.station_success = False
 
 
-def insert_channel_info(collection_name, warning_cont, info_cont, selected_station_id, selected_channel, signal_chain, ant_type, ant_VEL, s11_measurement, channel_comment, commission_time, decommission_time, station_info):
+def insert_channel_info(collection_name, warning_cont, info_cont, selected_station_id, selected_channel, signal_chain, ant_type, ant_VEL, s11_measurement, channel_comment, commission_time, decommission_time,
+                        station_info):
     if st.session_state.insert_channel:
         if station_info != {}:
             channel_info = station_info[selected_station_id]['channels']
@@ -55,7 +49,8 @@ def insert_channel_info(collection_name, warning_cont, info_cont, selected_stati
                 yes_button = col_b1.button('YES')
                 no_button = col_b2.button('NO')
                 if yes_button:
-                    insert_general_channel_info_to_db(selected_station_id, collection_name, selected_channel, signal_chain, ant_type, ant_VEL, s11_measurement, channel_comment, commission_time, decommission_time)
+                    insert_general_channel_info_to_db(selected_station_id, collection_name, selected_channel, signal_chain, ant_type, ant_VEL, s11_measurement, channel_comment, commission_time,
+                                                      decommission_time)
                     st.session_state.insert_channel = False
                     st.session_state.channel_success = True
                     st.experimental_rerun()
@@ -73,8 +68,6 @@ def insert_channel_info(collection_name, warning_cont, info_cont, selected_stati
     if st.session_state.channel_success:
         info_cont.success('Channel successfully added to the database!')
         st.session_state.channel_success = False
-
-        # if there is no corresponding station in the database -> the insert button is disabled (see validate_channel_inputs())
 
 
 def insert_device_info(collection_name, warning_cont, info_cont, selected_station_id, selected_device_id, device_name, amp_name, device_comment, commission_time, decommission_time, station_info):
@@ -141,7 +134,10 @@ def build_main_page(main_cont):
     main_cont.subheader('Input channel information')
     cont_channel = main_cont.container()
 
-    selected_channel, selected_antenna_type, selected_antenna_VEL, selected_s11, comm_date_ant, decomm_date_ant, signal_chain_ant, cha_comment, function_channel = input_channel_information(cont_channel, selected_station_id, collection_name, station_info)
+    selected_channel, selected_antenna_type, selected_antenna_VEL, selected_s11, comm_date_ant, decomm_date_ant, signal_chain_ant, cha_comment, function_channel = input_channel_information(cont_channel,
+                                                                                                                                                                                             selected_station_id,
+                                                                                                                                                                                             collection_name,
+                                                                                                                                                                                             station_info)
 
     # container for warnings/infos at the botton
     cont_warning_bottom = main_cont.container()
@@ -154,7 +150,8 @@ def build_main_page(main_cont):
 
     if insert_channel:
         st.session_state.insert_channel = True
-    insert_channel_info(collection_name, cont_channel_warning, cont_warning_bottom, selected_station_id, selected_channel, signal_chain_ant, selected_antenna_type, selected_antenna_VEL, selected_s11, cha_comment, comm_date_ant, decomm_date_ant, station_info)
+    insert_channel_info(collection_name, cont_channel_warning, cont_warning_bottom, selected_station_id, selected_channel, signal_chain_ant, selected_antenna_type, selected_antenna_VEL, selected_s11,
+                        cha_comment, comm_date_ant, decomm_date_ant, station_info)
 
     main_cont.subheader('Input device information')
     cont_device = main_cont.container()

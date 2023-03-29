@@ -1,9 +1,4 @@
-import copy
-
 import streamlit as st
-import pandas as pd
-from plotly import subplots
-import plotly.graph_objs as go
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
 from NuRadioReco.detector.webinterface.utils.helper import build_success_page
 from NuRadioReco.detector.webinterface.utils.helper_protocol import insert_measurement_protocol_into_db, check_inserted_config_information
@@ -14,7 +9,8 @@ page_name = 'measurement protocol'
 def build_main_page(main_cont):
     main_cont.title('Add a measurement protocol')
     main_cont.markdown('On this page, you can insert a new measurement protocol.')
-    main_cont.markdown('The measurement protocols are used to keep track about how and by whom the measurement was conducted. This information will help if questions about or problems with these measurements arise.')
+    main_cont.markdown(
+        'The measurement protocols are used to keep track about how and by whom the measurement was conducted. This information will help if questions about or problems with these measurements arise.')
     link_protocols = 'https://radio.uchicago.edu/wiki/index.php/Measurement_protocols'
     main_cont.markdown(f'A complete list with all measurement protocols can be fund on the wiki: [measurement_protocols]({link_protocols})')
     main_cont.markdown('If you add a new measurement protocol to the database, please also add the protocol information to the wiki (link above).')

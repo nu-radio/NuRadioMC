@@ -1,12 +1,8 @@
 import streamlit as st
-import pandas as pd
-from plotly import subplots
-import plotly.graph_objs as go
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
 from NuRadioReco.detector.webinterface.utils.helper import build_success_page, create_single_plot, single_S_data_validation
 from NuRadioReco.detector.webinterface.utils.helper_antenna import select_antenna_name, validate_global, insert_to_db
 from NuRadioReco.detector.webinterface.utils.helper_protocol import load_measurement_protocols_from_db
-from NuRadioReco.utilities import units
 
 page_name = 'hpol'
 s_name = 'S11'
@@ -27,7 +23,7 @@ def build_main_page(main_cont):
     input_units = ['', '']
     col11, col22 = main_cont.columns([1, 1])
     input_units[0] = col11.selectbox('Units:', ['Hz', 'GHz', 'MHz'])
-    input_units[1] = col22.selectbox('', ['dB','V', 'mV'])
+    input_units[1] = col22.selectbox('', ['dB', 'V', 'mV'])
     protocols_db = load_measurement_protocols_from_db()
     protocol = main_cont.selectbox('Specify the measurement protocol: (description of the protocols can be found [here](https://radio.uchicago.edu/wiki/index.php/Measurement_protocols))', protocols_db,
                                    help='Your measurement protocol is not listed? Please add it to the database [here](Add_measurement_protocol)')

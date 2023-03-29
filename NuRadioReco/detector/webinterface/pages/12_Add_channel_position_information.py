@@ -1,14 +1,9 @@
-import copy
 import time
 import streamlit as st
-import pandas as pd
-from plotly import subplots
-import plotly.graph_objs as go
 import numpy as np
 from NuRadioReco.detector.webinterface.utils.page_config import page_configuration
 from NuRadioReco.detector.webinterface.utils.helper import build_success_page, read_position_data
-from NuRadioReco.detector.webinterface.utils.helper_station import insert_channel_position_to_db, load_measurement_names, load_general_station_infos, load_measurement_station_information, load_station_ids
-from NuRadioReco.utilities import units
+from NuRadioReco.detector.webinterface.utils.helper_station import insert_channel_position_to_db, load_measurement_names, load_measurement_station_information, load_station_ids
 from datetime import datetime
 from datetime import time
 
@@ -25,7 +20,7 @@ def validate_inputs(container_bottom, station_id, selected_measurement_name, cha
     disable_insert_button = True
 
     # validate that a valid channel is given
-    possible_channel_ids = np.arange(0,24,1)
+    possible_channel_ids = np.arange(0, 24, 1)
     if channel != '':
         if channel in possible_channel_ids:
             channel_correct = True
@@ -161,11 +156,6 @@ def build_main_page(input_cont, selected_input_option):
         default_rot = {'theta': 0, 'phi': 0}
         default_ori = {'theta': 0, 'phi': 0}
         default_measurement_time = datetime.utcnow()
-        # if current_channel_info_db != {}:
-        #     default_measurement_time = datetime.date(current_channel_info_db['measurement_time'])
-        #     default_position = current_channel_info_db['position']
-        #     default_rot = current_channel_info_db['orientation']
-        #     default_ori = current_channel_info_db['rotation']
 
         # measurement time
         measurement_time = cont.date_input('Enter the time of the measurement:', value=default_measurement_time, help='The date when the measurement was conducted.')
@@ -176,7 +166,7 @@ def build_main_page(input_cont, selected_input_option):
         x_pos_ant = col1_pos.text_input('x position', key='x_antenna', value=default_position[0])
         y_pos_ant = col2_pos.text_input('y position', key='y_antenna', value=default_position[1])
         z_pos_ant = col3_pos.text_input('z position', key='z_antenna', value=default_position[2])
-        position = [x_pos_ant, y_pos_ant, z_pos_ant]
+        position = [float(x_pos_ant), float(y_pos_ant), float(z_pos_ant)]
 
         # input the orientation, rotation of the antenna; if the channel already exist, insert the values from the database
         col1a, col2a, col3a, col4a = cont.columns([1, 1, 1, 1])
@@ -230,7 +220,8 @@ def build_main_page(input_cont, selected_input_option):
             button_cont.empty()
             with st.spinner('Data is being uploaded ...'):
                 for key in position_data.keys():
-                    insert_channel_position_to_db(selected_station_id, key, measurement_name, measurement_time, position_data[key]['position'], position_data[key]['orientation'], position_data[key]['rotation'], primary)
+                    insert_channel_position_to_db(selected_station_id, key, measurement_name, measurement_time, position_data[key]['position'], position_data[key]['orientation'], position_data[key]['rotation'],
+                                                  primary)
             cont.empty()
             st.session_state.key = '1'
             st.experimental_rerun()
@@ -264,8 +255,8 @@ if measurement_name == 'new measurement':
 
 # enter the information for the single stations
 cont_warning_top = main_container.container()
-station_list = ['Station 11 (Nanoq)', 'Station 12 (Terianniaq)', 'Station 13 (Ukaleq)', 'Station 14 (Tuttu)', 'Station 15 (Umimmak)', 'Station 21 (Amaroq)', 'Station 22 (Avinngaq)',
-                'Station 23 (Ukaliatsiaq)', 'Station 24 (Qappik)', 'Station 25 (Aataaq)']
+station_list = ['Station 11 (Nanoq)', 'Station 12 (Terianniaq)', 'Station 13 (Ukaleq)', 'Station 14 (Tuttu)', 'Station 15 (Umimmak)', 'Station 21 (Amaroq)', 'Station 22 (Avinngaq)', 'Station 23 (Ukaliatsiaq)',
+                'Station 24 (Qappik)', 'Station 25 (Aataaq)']
 selected_station = main_container.selectbox('Select a station', station_list)
 # get the name and id out of the string
 selected_station_name = selected_station[selected_station.find('(') + 1:-1]

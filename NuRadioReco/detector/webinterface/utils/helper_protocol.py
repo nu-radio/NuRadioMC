@@ -1,16 +1,7 @@
-import streamlit as st
-from plotly import subplots
-import plotly.graph_objs as go
-import pandas as pd
-from NuRadioReco.detector.webinterface.utils.units_helper import str_to_unit
-from NuRadioReco.utilities import units
-import numpy as np
-from NuRadioReco.detector.detector_mongo import Detector
+from NuRadioReco.detector.db_mongo_write import Database
 from NuRadioReco.detector.webinterface import config
-from datetime import datetime
-from datetime import time
 
-det = Detector(database_connection=config.DATABASE_TARGET)
+db = Database(database_connection=config.DATABASE_TARGET)
 
 
 def check_inserted_config_information(cont, protocol):
@@ -38,8 +29,8 @@ def check_inserted_config_information(cont, protocol):
 
 
 def load_measurement_protocols_from_db():
-    return det.get_quantity_names('measurement_protocol', 'protocol')
+    return db.get_quantity_names('measurement_protocol', 'protocol')
 
 
 def insert_measurement_protocol_into_db(protocol_name):
-    det.add_measurement_protocol(protocol_name)
+    db.add_measurement_protocol(protocol_name)
