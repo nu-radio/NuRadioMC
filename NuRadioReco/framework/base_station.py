@@ -72,7 +72,7 @@ class BaseStation():
             raise ValueError("parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters")
         self._parameters.pop(key, None)
 
-    def set_station_time(self, time, format=None):
+    def set_station_time(self, time):
         """ 
         Set the (absolute) time for the station (stored as astropy.time.Time).
         Not related to the event._event_time.
@@ -81,20 +81,16 @@ class BaseStation():
         ----------
         
         time: astropy.time.Time or datetime.datetime or float
-            If "time" is a float, you have to specify its format. 
-            
-        format: str
-            Only used when "time" is a float. Format to interpret "time". (Default: None) 
+            If time is a float it is interpreted as UTC unix timestamp.
         """
 
         if isinstance(time, datetime.datetime):
             self._station_time = astropy.time.Time(time)
-        elif isinstance(time, astropy.time.Time):
+        elif isinstance(time, astropy.time):
             self._station_time = time
-        elif time is None:
-            self._station_time = None
         else:
-            self._station_time = astropy.time.Time(time, format=format)
+            # time is interpreted as unix utc timestamp
+            self._station_time = astropy.time.Time(time, format='unix')
 
     def get_station_time(self, format='isot'):
         """ 
@@ -111,9 +107,6 @@ class BaseStation():
         
         _station_time: astropy.time.Time
         """
-        if self._station_time is None:
-            return None
-        
         self._station_time.format = format
         return self._station_time
     
