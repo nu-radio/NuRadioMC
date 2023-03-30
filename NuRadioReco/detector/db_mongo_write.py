@@ -12,7 +12,6 @@ from bson import json_util #bson dicts are used by pymongo
 import numpy as np
 from bson import ObjectId
 import pandas as pd
-from NuRadioReco.detector.webinterface import config
 logging.basicConfig()
 logger = logging.getLogger("database")
 logger.setLevel(logging.DEBUG)
