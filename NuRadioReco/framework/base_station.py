@@ -89,9 +89,9 @@ class BaseStation():
 
         if isinstance(time, datetime.datetime):
             self._station_time = astropy.time.Time(time)
-        elif isinstance(time, astropy.time):
+        elif isinstance(time, astropy.time.Time):
             self._station_time = time
-        elif time == None:
+        elif time is None:
             self._station_time = None
         else:
             # time is interpreted as unix utc timestamp
