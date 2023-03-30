@@ -150,6 +150,8 @@ def get_attenuation_length(z, frequency, model):
     elif model == 'GL3':
         slopes = gl3_slope_interpolation(-z)
         offsets = gl3_offset_interpolation(-z)
+        if frequency > .6:     # restric frequency to prevent negative attenuation lengths
+            frequency = .6
         att_length_f = slopes * frequency + offsets
 
     elif(model == "MB1"):

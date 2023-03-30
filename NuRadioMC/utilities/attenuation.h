@@ -142,7 +142,8 @@ double fit_GL3(double z, double frequency){
     double slope_interpolation = GL3_slopes[i_row] + slope_diff * (-z - i_row * z_step - z_start) / z_step;
     double offset_diff = GL3_offsets[i_row + 1] - GL3_offsets[i_row];
     double offset_interpolation = GL3_offsets[i_row] + offset_diff * (-z - i_row * z_step - z_start) / z_step;
-    return frequency * slope_interpolation + offset_interpolation;
+    // Restrict frequency to prevent negative attenuation lengths
+    return min(frequency, 0.6) * slope_interpolation + offset_interpolation;
 
 
 
