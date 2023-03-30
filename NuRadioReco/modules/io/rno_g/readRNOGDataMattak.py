@@ -13,6 +13,7 @@ import NuRadioReco.framework.channel
 import NuRadioReco.framework.trigger
 
 from NuRadioReco.utilities import units
+import mattak.Dataset
 
 try:
    from rnog_data.runtable import RunTable
@@ -22,10 +23,6 @@ except ImportError:
    print("Import of run table failed. You will not be able to select runs! \n" 
          "You can get the interface from GitHub: git@github.com:RNO-G/rnog-data-analysis-and-issues.git")
    imported_runtable = False
-
-
-
-import mattak.Dataset
 
 
 def baseline_correction(wfs, n_bins=128):
@@ -113,6 +110,9 @@ class readRNOGData:
       # is read and convert_to_voltage is True.
       self._adc_ref_voltage_range = 2.5 * units.volt
       self._adc_n_bits = 12
+      
+      self.logger.info("\n\tSelect runs with type: {}".format(", ".join(run_types)) +
+                       f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz")
       
       self.__max_trigger_rate = max_trigger_rate
       self.__run_types = run_types
