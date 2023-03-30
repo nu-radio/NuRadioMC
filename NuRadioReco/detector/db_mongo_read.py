@@ -5,7 +5,6 @@ import sys
 import urllib.parse
 import datetime
 import logging
-from NuRadioReco.utilities import units
 import NuRadioReco.utilities.metaclasses
 import json
 from bson import json_util #bson dicts are used by pymongo
