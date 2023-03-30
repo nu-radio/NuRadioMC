@@ -194,6 +194,9 @@ double ds (double t, void *p){
 }
 
 double get_path_length(double pos[2], double pos2[2], double C0, double n_ice, double delta_n, double z_0){
+
+
+
 	double x2_mirrored[2]={0.};
 	get_z_mirrored(pos,pos2,C0,x2_mirrored,n_ice, delta_n, z_0);
 
@@ -284,11 +287,97 @@ double dt_freq (double t, void *p){
 	return sqrt((pow(get_y_diff(t,C0,n_ice, delta_n, z_0),2.)+1)) / get_attenuation_length(z,freq, params->model);
 }
 
+void get_path(double n_ice, double delta_n, double z_0, double x1[2], double x2[2], double C0, vector<double> &res, vector<double> &zs, int n_points=100){
+
+	//will return the ray tracing path between x1 and x2
+	//this is only true if C0 is a solution to the ray tracing problem
+
+	//parameters
+	//x1: start position (y,z)
+	//x2: stop position (y,z)
+	//C0: first parameter
+	//n_points: number of points to calcuate
+
+	//returns two vectors by reference
+	//res are y coordinates
+	//zs are z coordinates
+
+
+	double c = pow(n_ice,2.) - pow(C0,-2.);
+	double C1 = x1[0] - get_y_with_z_mirror(n_ice, delta_n, z_0, x1[1],C0);
+	double gamma_turn, z_turn;
+	get_turning_point(c, gamma_turn, z_turn, n_ice, delta_n, z_0);
+	if(z_turn >=0.){
+		//signal reflects at surface
+		z_turn=0.;
+		gamma_turn = get_gamma(0, n_ice, delta_n, z_0);
+	}
+	double y_turn = get_y(gamma_turn, C0, C1, n_ice, delta_n, z_0);
+	double zstart = x1[1];
+	double result[2];
+	get_z_mirrored(x1,x2,C0,result, n_ice, delta_n, z_0);
+	double zstop = result[1];
+	double step_size = (zstop-zstart)/double(n_points-1); //do n-1 so that the bounds are actually the bounds
+	vector<double> z; //vector to hold z's
+	for(int i=0; i<n_points; i++){
+		z.push_back(zstart+i*step_size);
+	}
+
+	//c++ has no clever "masking" tools like python
+	//so we have to do this the old fashioned way
+
+	//some temporary stuff
+	for(int i=0; i<n_points; i++){
+		double gamma_temp;
+		if(z[i]<z_turn){
+			gamma_temp = get_gamma(z[i], n_ice, delta_n, z_0);
+			res.push_back(get_y(gamma_temp,C0,C1, n_ice, delta_n, z_0));
+			zs.push_back(z[i]);
+		}
+		else{
+			gamma_temp = get_gamma(2 * z_turn - z[i], n_ice, delta_n, z_0);
+			res.push_back(2*y_turn - get_y(gamma_temp,C0,C1, n_ice, delta_n, z_0));
+			zs.push_back(2*z_turn - z[i]);
+		}
+	}
+}
+
+
+double get_attenuation_integral_GL3(
+    double pos[2], double pos2[2], double C0,
+    double frequency, double n_ice, double delta_n, double z_0, int model
+) {
+    double step_size = 5;
+    double pos2_mirrored[2]={0.};
+	get_z_mirrored(pos,pos2,C0,pos2_mirrored, n_ice, delta_n, z_0);
+    int n_points = abs(pos[1] - pos2_mirrored[1]) / step_size + 1;
+    vector<double> xx, zz;
+    vector<double> xx_fine, zz_fine;
+    get_path(n_ice, delta_n, z_0, pos, pos2, C0, xx, zz, n_points);
+
+    double attenuation_integral = 0;
+    double delta_x, delta_z, segment_length;
+    for (int i=0;i < n_points - 1; i++) {
+        delta_x = xx[i] - xx[i + 1];
+        delta_z = zz[i] - zz[i + 1];
+        segment_length = sqrt(delta_x * delta_x + delta_z * delta_z);
+        attenuation_integral = attenuation_integral + segment_length / get_attenuation_length(zz[i], frequency, 5);
+    }
+    return attenuation_integral;
+}
+
+
+
 double get_attenuation_along_path(double pos[2], double pos2[2], double C0,
 		double frequency, double n_ice, double delta_n, double z_0, int model){
 	double x2_mirrored[2]={0.};
 	get_z_mirrored(pos,pos2,C0,x2_mirrored, n_ice, delta_n, z_0);
-
+    if(model == 5) {
+        double attenuation_integral = get_attenuation_integral_GL3(
+        pos, pos2, C0, frequency, n_ice, delta_n, z_0, 5
+        );
+        return exp(-1 * attenuation_integral);
+    }
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc(2000);
 	gsl_function F;
 	F.function = &dt_freq;
@@ -863,61 +952,6 @@ vector <vector <double> > find_solutions(double x1[2], double x2[2], double n_ic
  	// double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
 	// printf("%f (%d solutions)\n", 1000* elapsed_secs, nSolutions);
  }
-
-void get_path(double n_ice, double delta_n, double z_0, double x1[2], double x2[2], double C0, vector<double> &res, vector<double> &zs, int n_points=100){
-
-	//will return the ray tracing path between x1 and x2
-	//this is only true if C0 is a solution to the ray tracing problem
-
-	//parameters
-	//x1: start position (y,z)
-	//x2: stop position (y,z)
-	//C0: first parameter
-	//n_points: number of points to calcuate
-
-	//returns two vectors by reference
-	//res are y coordinates
-	//zs are z coordinates
-
-
-	double c = pow(n_ice,2.) - pow(C0,-.2);
-	double C1 = x1[0] - get_y_with_z_mirror(n_ice, delta_n, z_0, x1[1],C0);
-	double gamma_turn, z_turn;
-	get_turning_point(c, gamma_turn, z_turn, n_ice, delta_n, z_0);
-	if(z_turn >=0.){
-		//signal reflects at surface
-		z_turn=0.;
-		gamma_turn = get_gamma(0, n_ice, delta_n, z_0);
-	}
-	double y_turn = get_y(gamma_turn, C0, C1, n_ice, delta_n, z_0);
-	double zstart = x1[1];
-	double result[2];
-	get_z_mirrored(x1,x2,C0,result, n_ice, delta_n, z_0);
-	double zstop = result[1];
-	double step_size = (zstop-zstart)/double(n_points-1); //do n-1 so that the bounds are actually the bounds
-	vector<double> z; //vector to hold z's
-	for(int i=0; i<n_points; i++){
-		z.push_back(zstart+i*step_size);
-	}
-
-	//c++ has no clever "masking" tools like python
-	//so we have to do this the old fashioned way
-
-	//some temporary stuff
-	for(int i=0; i<n_points; i++){
-		double gamma_temp;
-		if(z[i]<z_turn){
-			gamma_temp = get_gamma(z[i], n_ice, delta_n, z_0);
-			res.push_back(get_y(gamma_temp,C0,C1, n_ice, delta_n, z_0));
-			zs.push_back(z[i]);
-		}
-		else{
-			gamma_temp = get_gamma(2 * z_turn - z[i], n_ice, delta_n, z_0);
-			res.push_back(2*y_turn - get_y(gamma_temp,C0,C1, n_ice, delta_n, z_0));
-			zs.push_back(2*z_turn - z[i]);
-		}
-	}
-}
 
 int main(int argc, char **argv){
 
