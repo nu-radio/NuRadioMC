@@ -76,20 +76,41 @@ class BaseStation():
         self._parameters.pop(key, None)
 
     def set_station_time(self, time):
-        if time is None:
-            self._station_time = None
-            return
-        if isinstance(time, datetime.datetime):
-            time_strings = str(time).split(' ')
-            self._station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
-        else:
-            if time.format == 'datetime':
-                time_strings = str(time).split(' ')
-                self._station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
-            else:
-                self._station_time = time
+        """ 
+        Set the (absolute) time for the station (stored as astropy.time.Time).
+        Not related to the event._event_time.
+        
+        Parameters
+        ----------
+        
+        time: astropy.time.Time or datetime.datetime or float
+            If time is a float it is interpreted as UTC unix timestamp.
+        """
 
-    def get_station_time(self):
+        if isinstance(time, datetime.datetime):
+            self._station_time = astropy.time.Time(time)
+        elif isinstance(time, astropy.time):
+            self._station_time = time
+        else:
+            # time is interpreted as unix utc timestamp
+            self._station_time = astropy.time.Time(time, format='unix')
+
+    def get_station_time(self, format='isot'):
+        """ 
+        Returns a astropy.time.Time object 
+        
+        Parameters
+        ----------
+        
+        format: str
+            Format in which the time object is displayed. (Default: isot)
+            
+        Returns
+        -------
+        
+        _station_time: astropy.time.Time
+        """
+        self._station_time.format = format
         return self._station_time
 
     def get_id(self):
