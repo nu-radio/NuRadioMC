@@ -1,13 +1,11 @@
 import numpy as np
 import glob
 import os
-import sys
+import random
 
 from NuRadioReco.modules.io.rno_g.readRNOGDataMattak import readRNOGData
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
-
-from NuRadioReco.modules import channelResampler
 
 import logging
 
@@ -19,49 +17,59 @@ class noiseImporter:
     """
 
 
-    def begin(self, noise_folder, station_ids=None,
-              channel_mapping=None, log_level=logging.INFO,
-              convert_noise_to_voltage=True, 
-              match_station_ids=False):
+    def begin(self, noise_folder, 
+              match_station_id=False, station_ids=None,
+              channel_mapping=None, scramble_noise_file_order=True,
+              log_level=logging.INFO):
         """
         
         Parameters
         ----------
         noise_folder: string
-            the folder containing the noise file or subfolders containing noise files
+            Folder containing noise file(s). Search in any subfolder as well.
+            
+        match_station_id: bool
+            If True, add only noise from stations with the same id. (Default: False)
         
         station_ids: list(int)
-            the station ids from which to add noise ()
+            Only add noise from those station ids. If None, use any station. (Default: None)
         
         channel_mapping: dict or None
             option relevant for MC studies of new station designs where we do not
             have forced triggers for. The channel_mapping dictionary maps the channel
             ids of the MC station to the channel ids of the noise data
             Default is None which is 1-to-1 mapping
+            
+        scramble_noise_file_order: bool
+            If True, randomize the order of noise files before reading them. (Default: True)
         
         log_level: loggging log level
             the log level, default logging.INFO
             
         """
         
-        self.__channel_mapping = channel_mapping
-        self.__station_ids = station_ids
-        self._convert_noise_to_voltage = convert_noise_to_voltage
-        self._match_station_ids = match_station_ids
-        
-        self._channel_respampler = channelResampler.channelResampler()
-
         self.logger = logging.getLogger('noiseImporter')
-
         self.logger.setLevel(log_level)
+        
+        self._match_station_id = match_station_id
+        self.__station_ids = station_ids
+        
         self.__channel_mapping = channel_mapping
+        
+        self.logger.info(f"\n\tMatch station id: {match_station_id}"
+                    f"\n\tUse noise from only those stations: {station_ids}"
+                    f"\n\tUse the following channel mapping: {channel_mapping}"
+                    f"\n\tRandomize sequence of noise files: {scramble_noise_file_order}")
         
         noise_files = glob.glob(f"{noise_folder}/**/*root", recursive=True)
-        self.__noise_folders = np.unique([os.path.dirname(e) for e in noise_files])
+        self.__noise_folders = np.unique([os.path.dirname(e) for e in noise_files])       
         
         self.logger.info(f"Found {len(self.__noise_folders)} folders in {noise_folder}")
         if not len(self.__noise_folders):
             raise ValueError
+                
+        if scramble_noise_file_order:
+            random.shuffle(self.__noise_folders)
         
         noise_reader = readRNOGData()
         selectors = [lambda einfo: einfo.triggerType == "FORCE"]
@@ -87,7 +95,7 @@ class noiseImporter:
     @register_run()
     def run(self, evt, station, det):
 
-        if self._match_station_ids:
+        if self._match_station_id:
             
             station_ids = self._buffer_station_id_list()
             mask = station_ids == station.get_id()
@@ -105,7 +113,7 @@ class noiseImporter:
         noise_station = noise_event.get_station(station_id)
         
         if self.__station_ids is not None and not station_id in self.__station_ids:
-            raise KeyError()
+            raise ValueError(f"Station id {station_id} not in list of allowed ids: {self.__station_ids}")
 
         self.logger.debug("Selected noise event {} ({}, run {}, event {})".format(
             i_noise, noise_station.get_station_time(), noise_event.get_run_number(),
@@ -117,7 +125,7 @@ class noiseImporter:
             trace = channel.get_trace()
             noise_channel = noise_station.get_channel(self.__get_noise_channel(channel_id))
             noise_trace = noise_channel.get_trace()
-            
+
             if len(trace) > 2048:
                 self.logger.warn("Simulated trace is longer than 2048 bins... trim with :2048")
                 trace = trace[:2048]
