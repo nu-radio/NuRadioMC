@@ -49,6 +49,42 @@ def baseline_correction(wfs, n_bins=128):
    return wfs - baseline_traces
 
 
+def get_time_offset(trigger_type):
+   """ 
+   Mapping the offset between trace start time and trigger time (~ signal time). 
+   Temporary use hard-coded values for each trigger type. In the future this
+   information might be time, station, and channel dependent and should come 
+   from a database (or is already calibrated in mattak)
+   
+   Parameters
+   ----------
+   
+   trigger_type: str
+      Trigger type encoded as string from Mattak
+      
+   Returns
+   -------
+   
+   time_offset: float
+      trace_start_time = trigger_time - time_offset 
+   
+   """
+   
+   time_offsets = {
+      "FORCE": 0,
+      "LT": 213 * units.ns,  # ~ 1 / 3 of trace @ 2048 sample with 3.2 GSa/s
+      "RADIANT": 320 * units.ns  # ~ 1 / 2 of trace @ 2048 sample with 3.2 GSa/s
+   }
+   
+   if trigger_type.startswith("RADIANT"):
+      trigger_type = "RADIANT"
+   
+   if trigger_type in time_offsets:
+      return time_offsets[trigger_type]
+   else:
+      raise KeyError(f"Unknown trigger type: {trigger_type}. Known are: FORCE, LT, RADIANT. Abort ....")
+
+
 class readRNOGData:
 
    def begin(self, 
@@ -57,6 +93,7 @@ class readRNOGData:
              apply_baseline_correction=True,
              convert_to_voltage=True,
              select_triggers=None,
+             select_runs=True,
              run_types=["physics"],
              max_trigger_rate=1 * units.Hz):
       
@@ -88,6 +125,9 @@ class readRNOGData:
       convert_to_voltage: bool
          Only applies when non-calibrated data are read. If true, convert ADC to voltage.
          (Default: True)
+         
+      select_runs: bool
+         Select runs
          
       run_types: list
          Used to select/reject runs from information in the RNO-G RunTable. List of run_types to be used. (Default: ['physics'])
@@ -159,7 +199,7 @@ class readRNOGData:
          dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=data_dir)
          
          # filter runs/datasets based on 
-         if not self.__select_run(dataset):
+         if select_runs and not self.__select_run(dataset):
             self.__skipped_runs += 1
             continue
          
@@ -231,11 +271,11 @@ class readRNOGData:
                      
          evt = NuRadioReco.framework.event.Event(event_info.run, event_info.eventNumber)
          station = NuRadioReco.framework.station.Station(event_info.station)
-         station.set_station_time(datetime.datetime.fromtimestamp(event_info.readoutTime))
 
          trigger = NuRadioReco.framework.trigger.Trigger(event_info.triggerType)
          trigger.set_triggered()
          trigger.set_trigger_time(event_info.triggerTime)
+         station.set_station_time(datetime.datetime.fromtimestamp(event_info.triggerTime))
          station.set_trigger(trigger)
 
          waveforms = dataset.wfs()
@@ -256,6 +296,9 @@ class readRNOGData:
                   wf *= (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
                 
                channel.set_trace(wf, event_info.sampleRate * units.GHz)
+            
+            time_offset = get_time_offset(event_info.triggerType)
+            channel.set_trace_start_time(-time_offset)  # relative to event/trigger time
                             
             station.add_channel(channel)
          
