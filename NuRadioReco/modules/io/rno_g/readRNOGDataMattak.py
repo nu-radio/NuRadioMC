@@ -3,7 +3,7 @@ import numpy as np
 import logging
 import os
 import time
-import datetime
+import astropy.time
 
 from NuRadioReco.modules.base.module import register_run
 
@@ -271,11 +271,11 @@ class readRNOGData:
                      
          evt = NuRadioReco.framework.event.Event(event_info.run, event_info.eventNumber)
          station = NuRadioReco.framework.station.Station(event_info.station)
+         station.set_station_time(astropy.time.Time(event_info.triggerTime, format='unix'))
 
          trigger = NuRadioReco.framework.trigger.Trigger(event_info.triggerType)
          trigger.set_triggered()
          trigger.set_trigger_time(event_info.triggerTime)
-         station.set_station_time(datetime.datetime.fromtimestamp(event_info.triggerTime))
          station.set_trigger(trigger)
 
          waveforms = dataset.wfs()
