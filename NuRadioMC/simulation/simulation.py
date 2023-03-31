@@ -44,6 +44,7 @@ import NuRadioMC.simulation.simulation_input_output
 import NuRadioMC.simulation.simulation_propagation
 import NuRadioMC.simulation.channel_efield_simulator
 import NuRadioMC.simulation.shower_simulator
+import NuRadioMC.simulation.station_simulator
 STATUS = 31
 
 # logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
@@ -114,6 +115,17 @@ class simulation(
             self.__channel_simulator,
             self._raytracer.get_number_of_raytracing_solutions()
         )
+        self.__station_simulator = NuRadioMC.simulation.station_simulator.stationSimulator(
+            self._det,
+            self._channel_ids,
+            self._cfg,
+            self._fin,
+            self._fin_attrs,
+            self._fin_stations,
+            self.__shower_simulator,
+            self._raytracer,
+            self._check_if_was_pre_simulated()
+        )
         for shower_index, shower_id in enumerate(self._shower_ids):
             self._shower_index_array[shower_id] = shower_index
 
@@ -179,7 +191,7 @@ class simulation(
                                          np.array(self._fin['zz'])[event_indices]]).T
             self._distance_cut_time += time.time() - t_tmp
 
-            self.__shower_simulator.set_event_group(
+            self.__station_simulator.set_event_group(
                 i_event_group_id,
                 event_group_id,
                 event_indices
@@ -205,12 +217,14 @@ class simulation(
                 self._dummy_event = NuRadioReco.framework.event.Event(0, 0) # a dummy event object, which does nothing but is needed because some modules require an event to be passed
                 sim_showers = {}
                 self._create_sim_station()
+
+                station_output = self.__station_simulator.simulate_station(self._station_id)
                 # loop over all showers in event group
                 # create output data structure for this channel
-                output_data = self._create_station_output_structure(len(event_indices), self._det.get_number_of_channels(self._station_id))
-                self.__shower_simulator.set_station(
-                    self._station_id
-                )
+
+                #output_data = self._create_station_output_structure(len(event_indices), self._det.get_number_of_channels(self._station_id))
+                """
+
                 for iSh, self._shower_index in enumerate(event_indices):
                     iCounter += 1
                     if (time.time() - t_last_update) > 60:
@@ -220,18 +234,6 @@ class simulation(
                             unique_event_group_ids
                         )
                         t_last_update = time.time()
-                    efield_objects, launch_vectors, receive_vectors, travel_times, path_lengths, polarization_directions, \
-                    efield_amplitudes, raytracing_output = self.__shower_simulator.simulate_shower(
-                        self._fin['shower_ids'][self._shower_index],
-                        self._shower_index,
-                        pre_simulated,
-                        ray_tracing_performed
-                    )
-                    output_data['launch_vectors'][iSh] = launch_vectors
-                    output_data['receive_vectors'][iSh] = receive_vectors
-                    output_data['travel_times'][iSh] = travel_times
-                    output_data['travel_distances'][iSh] = path_lengths
-                    output_data['polarization'][iSh] = polarization_directions
                     is_candidate_shower, sim_shower = self._simulate_event(
                         iSh,
                         iSt,
@@ -245,7 +247,7 @@ class simulation(
                         sim_showers[str(sim_shower.get_id())] = sim_shower
                     if is_candidate_shower:
                         candidate_station = True
-
+                    """
                 # now perform first part of detector simulation -> convert each efield to voltage
                 # (i.e. apply antenna response) and apply additional simulation of signal chain (such as cable delays,
                 # amp response etc.)
@@ -281,7 +283,7 @@ class simulation(
 
         t_total = time.time() - self._t_start
         self._outputTime = time.time() - t5
-
+        return
         output_NuRadioRecoTime = "Timing of NuRadioReco modules \n"
         ts = []
         for iM, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station.get_id())):

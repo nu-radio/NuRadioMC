@@ -138,10 +138,10 @@ class showerSimulator:
         if shower_energy_sum <= 0:
             distance_cut_value = 200. * units.m
         else:
-            distance_cut_value = np.max(
+            distance_cut_value = np.max([
                 100. * units.m,
                 10. ** self.__distance_cut_polynomial(np.log10(shower_energy_sum))
-            ) + 100. * units.m
+            ]) + 100. * units.m
         return distance_to_station <= distance_cut_value
 
     def __in_fiducial_volume(
