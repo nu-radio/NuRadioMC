@@ -73,9 +73,11 @@ class noiseImporter:
         
         noise_reader = readRNOGData()
         selectors = [lambda einfo: einfo.triggerType == "FORCE"]
-        noise_reader.begin(self.__noise_folders, selectors=selectors)
+        noise_reader.begin(self.__noise_folders, selectors=selectors, log_level=log_level)
         self._noise_events = [evt for evt in noise_reader.run()]
         noise_reader.end()
+        
+        self.__station_id_list = None
         
     
     def _buffer_station_id_list(self):
