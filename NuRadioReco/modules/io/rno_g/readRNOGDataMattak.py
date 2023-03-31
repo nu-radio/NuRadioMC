@@ -151,8 +151,9 @@ class readRNOGData:
       self._adc_ref_voltage_range = 2.5 * units.volt
       self._adc_n_bits = 12
       
-      self.logger.info("\n\tSelect runs with type: {}".format(", ".join(run_types)) +
-                       f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz")
+      if select_runs:
+         self.logger.info("\n\tSelect runs with type: {}".format(", ".join(run_types)) +
+                         f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz")
       
       self.__max_trigger_rate = max_trigger_rate
       self.__run_types = run_types
@@ -210,9 +211,13 @@ class readRNOGData:
       # keeps track which event index is in which dataset
       self._event_idxs_datasets = np.cumsum(self.__n_events_per_dataset)
       self._n_events_total = np.sum(self.__n_events_per_dataset)
-      
       self._time_begin = time.time() - t0
       
+      if not self._n_events_total:
+         err = "No runs have been selected. Abort ..."
+         self.logger.error(err)
+         raise ValueError(err)
+
       
    def __select_run(self, dataset):
       """ Filter/select runs/datasets. Return True to select an dataset, return False to skip it """
@@ -227,11 +232,15 @@ class readRNOGData:
       station_id = event_info.station
       
       run_info = self.__run_table.query(f"station == {station_id:d} & run == {run_id:d}")
+      run_type = run_info["run_type"].values[0]
       
-      if not run_info["run_type"].values[0] in self.__run_types:
+      if not run_type in self.__run_types:
+         self.logger.info(f"Reject station {station_id} run {run_id} because of run type {run_type}")
          return False
       
-      if self.__max_trigger_rate and run_info["trigger_rate"].values[0] * units.Hz > self.__max_trigger_rate:
+      trigger_rate = run_info["trigger_rate"].values[0] * units.Hz 
+      if self.__max_trigger_rate and trigger_rate > self.__max_trigger_rate:
+         self.logger.info(f"Reject station {station_id} run {run_id} because trigger rate is to high ({trigger_rate / units.Hz} Hz)")
          return False
       
       return True
