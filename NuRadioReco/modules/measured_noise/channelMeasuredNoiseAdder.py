@@ -1,5 +1,6 @@
 import numpy as np
 import logging
+import glob
 
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.modules.io.NuRadioRecoio
@@ -24,7 +25,8 @@ class channelMeasuredNoiseAdder:
         self.__noise_data = None
 
 
-    def begin(self, filenames, random_seed=None, max_iterations=100, debug=False, 
+    def begin(self, filenames=None, folder=None, file_pattern="*", 
+              random_seed=None, max_iterations=100, debug=False, 
               draw_noise_statistics=False, channel_mapping=None, log_level=logging.WARNING, 
               restrict_station_id=True, station_id=None, allow_noise_resampling=False, baseline_substraction=True):
         """
@@ -33,7 +35,15 @@ class channelMeasuredNoiseAdder:
         Parameters
         ----------
         filenames: list of strings
-            List of .nur files containing the measured noise
+            List of .nur files containing the measured noise. If None, look for .nur files in "folder".
+            (Default: None)
+            
+        folder: str
+            Only used when "filenames" is None. Directory to search for .nur files matching the "file_pattern"
+            including subdirectories. (Default: None)
+            
+        file_pattern: str
+            Use glob.glob(f"{folder}/**/{file_pattern}.nur", recursive=True) to search for files. (Default: "*")
         
         random_seed: int, default: None
             Seed for the random number generator. By default, no seed is set.
@@ -71,7 +81,20 @@ class channelMeasuredNoiseAdder:
         allow_noise_resampling: bool
             Allow resampling the noise trace to match the simulated trace. (Default: False)
         """
+        
+        self.logger.setLevel(log_level)
+        
         self.__filenames = filenames
+        if self.__filenames is None:
+            if folder is None:
+                err = "Both, \"filenames\" and \"folder\" are None, you have to specify at least one ..."
+                self.logger.error(err)
+                raise ValueError(err)
+                
+            self.__filenames = glob.glob(f"{folder}/**/{file_pattern}.nur", recursive=True)
+            
+        self.logger.info(f"Found {len(self.__filenames)} noise file(s) ...")
+        
         self.__io = NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio(self.__filenames)
         self.__random_state = np.random.Generator(np.random.Philox(random_seed))
         self.__max_iterations = max_iterations
@@ -82,7 +105,6 @@ class channelMeasuredNoiseAdder:
         self.__restrict_station_id = restrict_station_id
         self.__noise_station_id = station_id
         self.__allow_noise_resampling = allow_noise_resampling
-        self.logger.setLevel(log_level)
 
         if debug:
             self.logger.setLevel(logging.DEBUG)
