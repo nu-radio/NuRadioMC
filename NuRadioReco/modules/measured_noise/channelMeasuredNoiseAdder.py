@@ -172,6 +172,7 @@ class channelMeasuredNoiseAdder:
                 self.logger.error(err)
                 raise ValueError(err)
             elif len(channel_trace) < len(noise_trace):
+                self.logger.warn("Noise trace has more samples than the simulated one, clip noise trace at the end ...")
                 noise_trace = noise_trace[:channel.get_number_of_samples()]  # if to long, clip the end
             else:
                 pass
