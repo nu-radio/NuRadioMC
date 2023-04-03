@@ -45,6 +45,7 @@ import NuRadioMC.simulation.simulation_propagation
 import NuRadioMC.simulation.channel_efield_simulator
 import NuRadioMC.simulation.shower_simulator
 import NuRadioMC.simulation.station_simulator
+import NuRadioMC.simulation.hardware_response_simulator
 STATUS = 31
 
 # logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
@@ -126,6 +127,17 @@ class simulation(
             self._raytracer,
             self._check_if_was_pre_simulated()
         )
+        self.__hardware_response_simulator = NuRadioMC.simulation.hardware_response_simulator.hardwareResponseSimulator(
+            self._det,
+            self._cfg,
+            self._station_ids,
+            self._fin,
+            self._fin_attrs,
+            self._detector_simulation_trigger,
+            self._detector_simulation_filter_amp,
+            self._raytracer,
+            self._evt_time
+        )
         for shower_index, shower_id in enumerate(self._shower_ids):
             self._shower_index_array[shower_id] = shower_index
 
@@ -196,6 +208,9 @@ class simulation(
                 event_group_id,
                 event_indices
             )
+            self.__hardware_response_simulator.set_event_group(
+                event_group_id
+            )
             # loop over all stations (each station is treated independently)
             for iSt, self._station_id in enumerate(self._station_ids):
                 logger.debug(f"simulating station {self._station_id}")
@@ -218,7 +233,13 @@ class simulation(
                 sim_showers = {}
                 self._create_sim_station()
 
-                station_output = self.__station_simulator.simulate_station(self._station_id)
+                station_output, efield_array = self.__station_simulator.simulate_station(self._station_id)
+                event_objects, station_objects, station_has_triggered = self.__hardware_response_simulator.simulate_detector_response(
+                    self._station_id,
+                    efield_array,
+                    event_indices
+                )
+
                 # loop over all showers in event group
                 # create output data structure for this channel
 

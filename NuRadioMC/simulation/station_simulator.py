@@ -70,6 +70,7 @@ class stationSimulator:
                 ray_tracing_performed= False
         self.__shower_simulator.set_station(station_id)
         output_structure = self.__get_output_structure(station_id)
+        efield_array = []
         for i_shower, shower_index in enumerate(self.__shower_indices):
             efield_objects, launch_vectors, receive_vectors, travel_times, path_lengths, polarization_directions, \
                 efield_amplitudes, raytracing_output = self.__shower_simulator.simulate_shower(
@@ -78,13 +79,14 @@ class stationSimulator:
                 self.__was_pre_simulated,
                 ray_tracing_performed
             )
+            efield_array.append(efield_objects)
             output_structure['launch_vectors'][i_shower] = launch_vectors
             output_structure['receive_vectors'][i_shower] = receive_vectors
             output_structure['travel_times'][i_shower] = travel_times
             output_structure['travel_distances'][i_shower] = path_lengths
             output_structure['polarization'][i_shower] = polarization_directions
 
-        return output_structure
+        return output_structure, efield_array
     def __distance_cut(
             self,
             station_id
