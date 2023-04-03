@@ -16,7 +16,7 @@ def get_header(evt):
 
         if station.has_sim_station():
             header['stations'][station.get_id()]['sim_station'] = {}
-            header['stations'][station.get_id()]['sim_station'] = station.get_sim_station().get_parameters()
+            header['stations'][station.get_id()]['sim_station'] = station.get_sim_station().get_parameters().copy()
     
     header['event_id'] = (evt.get_run_number(), evt.get_id())
     return header
