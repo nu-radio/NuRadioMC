@@ -28,7 +28,8 @@ class channelMeasuredNoiseAdder:
     def begin(self, filenames=None, folder=None, file_pattern="*", 
               random_seed=None, max_iterations=100, debug=False, 
               draw_noise_statistics=False, channel_mapping=None, log_level=logging.WARNING, 
-              restrict_station_id=True, station_id=None, allow_noise_resampling=False, baseline_substraction=True):
+              restrict_station_id=True, station_id=None, allow_noise_resampling=False, 
+              baseline_substraction=True, allowed_triggers=["FORCE"]):
         """
         Set up module parameters
 
@@ -80,6 +81,9 @@ class channelMeasuredNoiseAdder:
             
         allow_noise_resampling: bool
             Allow resampling the noise trace to match the simulated trace. (Default: False)
+            
+        allowed_triggers: list(str)
+            List of trigger names which should be used, events with other triggers are not used. (Default: ["FORCE"])
         """
         
         self.logger.setLevel(log_level)
@@ -105,6 +109,8 @@ class channelMeasuredNoiseAdder:
         self.__restrict_station_id = restrict_station_id
         self.__noise_station_id = station_id
         self.__allow_noise_resampling = allow_noise_resampling
+        
+        self._allowed_triggers = allowed_triggers
 
         if debug:
             self.logger.setLevel(logging.DEBUG)
@@ -162,9 +168,9 @@ class channelMeasuredNoiseAdder:
                 std = noise_trace.std()
                 if mean > 0.05 * std:
                     self.logger.warning((
-                        "The noise trace has an offset/baseline of {:.2f}mV which is more than 5% of the STD of {:.2f}mV. "
-                        "The module corrects for the offset but it might points to an error in the FPN subtraction.").format(mean, std))
-                    
+                        "The noise trace has an offset/baseline of {:.3f}mV which is more than 5% of the STD of {:.3f}mV. "
+                        "The module corrects for the offset but it might points to an error in the FPN subtraction.").format(mean / units.mV, std / units.mV))
+                               
                 noise_trace -= mean
                 
             if len(channel_trace) > len(noise_trace):
@@ -200,7 +206,7 @@ class channelMeasuredNoiseAdder:
         station: Station class
             The station to which the noise shall be added
         """
-        event_i = self.__random_state.randint(self.__io.get_n_events())
+        event_i = self.__random_state.integers(0, self.__io.get_n_events())
         noise_event = self.__io.get_event_i(event_i)
         
         if self.__restrict_station_id and station.get_id() not in noise_event.get_station_ids():
@@ -214,9 +220,12 @@ class channelMeasuredNoiseAdder:
             noise_station = noise_event.get_station(self.__noise_station_id)
 
         for trigger_name in noise_station.get_triggers():
+            if trigger_name in self._allowed_triggers:
+                continue
+            
             trigger = noise_station.get_trigger(trigger_name)
             if trigger.has_triggered():
-                self.logger.debug('Noise station has triggered, reject noise event.')
+                self.logger.debug(f'Noise station has triggered ({trigger_name}), reject noise event.')
                 return None
         
         for channel_id in station.get_channel_ids():
@@ -229,7 +238,7 @@ class channelMeasuredNoiseAdder:
             noise_channel = noise_station.get_channel(noise_channel_id)
             channel = station.get_channel(channel_id)
             
-            if noise_channel.get_number_of_samples() != noise_channel.get_sampling_rate() and not self.__allow_noise_resampling:
+            if channel.get_sampling_rate() != noise_channel.get_sampling_rate() and not self.__allow_noise_resampling:
                 self.logger.debug('Event {}, Channel {}: Different sampling rates, reject noise event.'
                                   .format(event_i, noise_channel_id))
                 return None   
