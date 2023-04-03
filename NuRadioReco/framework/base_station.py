@@ -116,6 +116,13 @@ class BaseStation():
         """
         self._station_time.format = format
         return self._station_time
+    
+    def get_station_time_dict(self):
+        """ Return the station time as dict {value, format}. Used for reading and writing """
+        if self._station_time is None:
+            return None
+        else:
+            return {'value': self._station_time.value, 'format': self._station_time.format}
 
     def get_id(self):
         return self._station_id
@@ -260,16 +267,13 @@ class BaseStation():
         trigger_pkls = []
         for trigger in self._triggers.values():
             trigger_pkls.append(trigger.serialize())
+        
         efield_pkls = []
         for efield in self.get_electric_fields():
             efield_pkls.append(efield.serialize(save_trace=save_efield_traces))
-        if self._station_time is None:
-            station_time_dict = None
-        else:
-            station_time_dict = {
-                'value': self._station_time.value,
-                'format': self._station_time.format
-            }
+
+        station_time_dict = self.get_station_time_dict()
+            
         data = {'_parameters': NuRadioReco.framework.parameter_serialization.serialize(self._parameters),
                 '_parameter_covariances': NuRadioReco.framework.parameter_serialization.serialize_covariances(self._parameter_covariances),
                 '_ARIANNA_parameters': self._ARIANNA_parameters,
@@ -279,15 +283,16 @@ class BaseStation():
                 'triggers': trigger_pkls,
                 '_triggered': self._triggered,
                 'electric_fields': efield_pkls}
+        
         return pickle.dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
 
-        if ('triggers' in data):
+        if 'triggers' in data:
             self._triggers = NuRadioReco.framework.trigger.deserialize(data['triggers'])
 
-        if ('triggers' in data):
+        if 'triggers' in data:
             self._triggered = data['_triggered']
 
         for electric_field in data['electric_fields']:
@@ -298,8 +303,10 @@ class BaseStation():
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['_parameters'],
                                                                                      parameters.stationParameters)
 
-        self._parameter_covariances = NuRadioReco.framework.parameter_serialization.deserialize_covariances(data['_parameter_covariances'], parameters.stationParameters)
-        if ('_ARIANNA_parameters') in data:
+        self._parameter_covariances = NuRadioReco.framework.parameter_serialization.deserialize_covariances(
+            data['_parameter_covariances'], parameters.stationParameters)
+        
+        if '_ARIANNA_parameters' in data:
             self._ARIANNA_parameters = data['_ARIANNA_parameters']
 
         self._station_id = data['_station_id']
@@ -310,4 +317,5 @@ class BaseStation():
             # For backward compatibility, we also keep supporting station times stored as astropy.time objects
             else:
                 self.set_station_time(data['_station_time'])
+
         self._particle_type = data['_particle_type']
