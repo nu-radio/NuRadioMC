@@ -158,9 +158,15 @@ class readRNOGData:
       self.__max_trigger_rate = max_trigger_rate
       self.__run_types = run_types
       
+      global imported_runtable
       if imported_runtable:
          self.logger.debug("Access RunTable database ...")
-         self.__run_table = RunTable().get_table()
+         try:
+            self.__run_table = RunTable().get_table()
+         except:
+            self.logger.error("No connect to RunTable database could be established. "
+                             "Runs will not be filtered.")
+         imported_runtable = False
 
       if not isinstance(data_dirs, (list, np.ndarray)):
          data_dirs = [data_dirs]
@@ -200,7 +206,7 @@ class readRNOGData:
          dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=data_dir)
          
          # filter runs/datasets based on 
-         if select_runs and not self.__select_run(dataset):
+         if select_runs and imported_runtable and not self.__select_run(dataset):
             self.__skipped_runs += 1
             continue
          
@@ -221,9 +227,7 @@ class readRNOGData:
       
    def __select_run(self, dataset):
       """ Filter/select runs/datasets. Return True to select an dataset, return False to skip it """
-      if not imported_runtable:
-         return True
-      
+     
       # get first eventInfo
       dataset.setEntries(0)
       event_info = dataset.eventInfo()
@@ -287,6 +291,7 @@ class readRNOGData:
          trigger.set_trigger_time(event_info.triggerTime)
          station.set_trigger(trigger)
 
+         # access data
          waveforms = dataset.wfs()
          
          for channel_id, wf in enumerate(waveforms):
