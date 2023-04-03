@@ -4,6 +4,7 @@ import numpy as np
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.framework.parameters import channelParameters as chp
+from NuRadioReco.utilities import units
 import math
 from NuRadioMC.utilities import medium
 from NuRadioMC.SignalProp import propagation
@@ -11,8 +12,8 @@ import scipy
 import logging
 logging.basicConfig()
 
-logger = logging.getLogger('NuRadioReco.neutrinoDirectionReconstruction')
-
+logger = logging.getLogger('rayTypeSelecter')
+logger.setLevel(logging.INFO)
 class rayTypeSelecter:
 
 
@@ -65,7 +66,7 @@ class rayTypeSelecter:
 
         if sim:
             vertex = event.get_sim_shower(shower_id)[shp.vertex]
-            print("	simulated vertex:", vertex)
+            logger.debug(f"using simulated vertex: {vertex}")
         else:
             vertex = station[stnp.nu_vertex]
 
@@ -179,14 +180,16 @@ class rayTypeSelecter:
 
         ### store parameters
         reconstructed_raytype = np.argmax(max_totalcorr)
-        print("		reconstructed raytype:", reconstructed_raytype)
-        if not sim: station.set_parameter(stnp.raytype, reconstructed_raytype)
+        logger.info(f"reconstructed raytype: {reconstructed_raytype}")
+        if not sim: 
+            station.set_parameter(stnp.raytype, reconstructed_raytype)
         #print("CHECK")
-        if sim: station.set_parameter(stnp.raytype_sim, reconstructed_raytype)
-        print("		max_totalcorr", max_totalcorr)
-        print("		pos_mas", pos_max)
+        else: 
+            station.set_parameter(stnp.raytype_sim, reconstructed_raytype)
+        logger.debug(f"max_totalcorr {max_totalcorr}")
+        logger.debug("pos_max {pos_max}")
         position_pulse = pos_max[np.argmax(max_totalcorr)]
-        print("		position pulse", position_pulse)
+        logger.debug(f"position pulse {position_pulse}")
         #print("time position pulse", station.get_channel(use_channels[0]).get_times()[position_pulse])
         if not sim: station.set_parameter(stnp.pulse_position, position_pulse)
         if sim: station.set_parameter(stnp.pulse_position_sim, position_pulse)
@@ -233,12 +236,12 @@ class rayTypeSelecter:
                         if sim == True:
                             channel.set_parameter(chp.signal_receiving_zeniths, receive_zenith)
                             channel.set_parameter(chp.signal_receiving_azimuths, receive_azimuth)
-                            print("	receive zenith vertex, simulated vertex:", np.rad2deg(receive_zenith))
+                            logger.debug(f"receive zenith vertex, simulated vertex: {receive_zenith/units.deg:.2f} deg")
                         if not sim:
                             channel.set_parameter(chp.receive_zenith_vertex, receive_zenith)
-                            print("	receive zenith vertex, reconstructed vertex:", np.rad2deg(receive_zenith))
+                            logger.debug(f"receive zenith vertex, reconstructed vertex:  {receive_zenith/units.deg:.2f} deg")
                             channel.set_parameter(chp.receive_azimuth_vertex, receive_azimuth)
-                            print("	receive azimuth vertex, reconstructed vertex:", np.rad2deg(receive_azimuth))
+                            logger.debug(f"receive azimuth vertex, reconstructed vertex: {receive_azimuth/units.deg:.2f} deg")
                     #print("zenith", channel[chp.signal_receiving_zenith])#print("channel id", channel_id)
                 ### figuring out the time offset for specfic trace
                 k = int(position_pulse + delta_toffset )

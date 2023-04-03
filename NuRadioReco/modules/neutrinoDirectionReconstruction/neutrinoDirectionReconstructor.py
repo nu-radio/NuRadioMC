@@ -17,6 +17,7 @@ from NuRadioReco.utilities import units
 import datetime
 import logging
 import pickle
+
 logger = logging.getLogger("neutrinoDirectionReconstructor")
 logger.setLevel(logging.DEBUG)
 
@@ -197,11 +198,11 @@ class neutrinoDirectionReconstructor:
         if self._sim_vertex:
             shower_id = self._shower_ids
             reconstructed_vertex = event.get_sim_shower(shower_id)[shp.vertex]
-            print("simulated vertex direction reco", event.get_sim_shower(shower_id)[shp.vertex])
+            logger.debug(f"simulated vertex direction reco: {event.get_sim_shower(shower_id)[shp.vertex]}")
         else:
             reconstructed_vertex = station[stnp.nu_vertex]
 
-            print("reconstructed vertex direction reco", reconstructed_vertex)
+            logger.debug(f"reconstructed vertex direction reco {reconstructed_vertex}")
         self._vertex_azimuth = np.arctan2(reconstructed_vertex[1], reconstructed_vertex[0])
         if isinstance(self._ice_model, str):
             ice = medium.get_ice_model(self._ice_model)
@@ -209,7 +210,7 @@ class neutrinoDirectionReconstructor:
             ice = self._ice_model
         self._cherenkov_angle = np.arccos(1 / ice.get_index_of_refraction(reconstructed_vertex))
 
-        if self._station.has_sim_station():
+        if self._station.has_sim_station(): # obtain some simulated values for debug plots
             shower_id = shower_ids[0]
             sim_station = True
             simulated_zenith = event.get_sim_shower(shower_id)[shp.zenith]
@@ -219,8 +220,8 @@ class neutrinoDirectionReconstructor:
             for i, shower_id in enumerate(np.unique(shower_ids)):
                 if (event.get_sim_shower(shower_id)[shp.type] != "em"):
                     simulated_energy += event.get_sim_shower(shower_id)[shp.energy]
-                    print("simulated energy", simulated_energy)
-            self.__simulated_energy =simulated_energy
+                    logger.debug(f"simulated energy {simulated_energy/units.eV:.4g} eV")
+            self.__simulated_energy = simulated_energy
             simulated_vertex = event.get_sim_shower(shower_id)[shp.vertex]
             ### values for simulated vertex and simulated direction
             simulation = analytic_pulse.simulation(template, simulated_vertex)
@@ -236,26 +237,6 @@ class neutrinoDirectionReconstructor:
                 event.get_sim_shower(shower_id)[shp.vertex][2],
                 simulated_zenith, simulated_azimuth, simulated_energy,
                 use_channels, first_iteration = True)
-            # if pol_sim is None: # occasionally (if the vertex position is wrong), no solution may exist for the sim vertex and the given ray type.
-            #     if rt == 1:
-            #         sim_rt = 2
-            #     elif rt == 2:
-            #         sim_rt = 1
-            #     else: # this probably shouldn't ever happen?
-            #         logger.warning("Couldn't determine polarization / viewing angle for sim_station. Skipping...")
-            #         sim_rt = None
-            #     logger.warning(
-            #         "The reconstructed ray type is {}, but for the simulated vertex, no such ray solution exists. Using {} instead.".format(
-            #             rt, sim_rt
-            #         ))
-            #     simulation._raytypesolution = sim_rt
-            #     tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(
-            #         det, station, event.get_sim_shower(shower_id)[shp.vertex][0],
-            #         event.get_sim_shower(shower_id)[shp.vertex][1],
-            #         event.get_sim_shower(shower_id)[shp.vertex][2],
-            #         simulated_zenith, simulated_azimuth, simulated_energy,
-            #         use_channels, first_iter = True)
-            # simulation._raytypesolution = rt # revert to reconstructed ray type for reconstruction!
             if pol_sim is None: # for some reason, didn't manage to obtain simulated vw / polarization angle
                 pol_sim = np.nan * np.ones(3) # we still set them, so the debug plots don't fail
                 vw_sim = np.nan
@@ -267,7 +248,7 @@ class neutrinoDirectionReconstructor:
                 )
             )
 
-            ## check SNR of channels
+            ## check SNR of channels #TODO - unused?
             SNR = []
             for ich, channel in enumerate(station.get_sim_station().iter_channels()):
                 # logger.debug("channel {}, SNR {}".format(channel.get_id(),(abs(min(channel.get_trace())) + max(channel.get_trace())) / (2*self._Vrms) ))
@@ -300,8 +281,8 @@ class neutrinoDirectionReconstructor:
         fsim, fsimsim, all_fsim, all_fsimsim, sim_reduced_chi2_Vpol, sim_reduced_chi2_Hpol = 6*[np.nan,]
         if station.has_sim_station():
 
-            print("simulated vertex", simulated_vertex)
-            print('reconstructed', reconstructed_vertex)
+            logger.debug(f"simulated vertex    : {simulated_vertex}")
+            logger.debug(f"reconstructed vertex: {reconstructed_vertex}")
             #### values for reconstructed vertex and simulated direction
             if sim_station:
                 # traces_sim, timing_sim, self._launch_vector_sim, viewingangles_sim, rayptypes, a = simulation.simulation(
@@ -311,15 +292,30 @@ class neutrinoDirectionReconstructor:
                 #     simulated_zenith, simulated_azimuth, simulated_energy, use_channels, first_iter = True)
 
 
-                fsimsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  True, first_iter = True, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station, sim = True)
-                all_fsimsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, first_iter = True, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station, sim = True)[3]
+                fsimsim = self.minimizer(
+                    [simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], 
+                    *event.get_sim_shower(shower_id)[shp.vertex], 
+                    minimize =  True, first_iter = True, 
+                    ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
+                    full_station = self._full_station, sim = True)
+                all_fsimsim = self.minimizer(
+                    [simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], 
+                    *event.get_sim_shower(shower_id)[shp.vertex], 
+                    minimize =  False, first_iter = True, 
+                    ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
+                    full_station = self._full_station, sim = True)[3]
                 tracsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, first_iter = True, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station, sim = True)[0]
             #     #tracsim_recvertex = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, first_iter = True,ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station, sim = True)[0]
 
-                fsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  True, first_iter = True, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station, sim = True)
+                fsim = self.minimizer(
+                    [simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], 
+                    *event.get_sim_shower(shower_id)[shp.vertex],
+                    minimize =  True, first_iter = True, 
+                    ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
+                    full_station = self._full_station, sim = True)
 
                 all_fsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, first_iter = True, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station, sim = True)[3]
-                print("Chi2 values for simulated direction and with/out simulated vertex are {}/{}".format(fsimsim, fsim))
+                logger.debug("Chi2 values for simulated direction and with/out simulated vertex are {}/{}".format(fsimsim, fsim))
 
                 sim_reduced_chi2_Vpol = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station, sim = True)[4][0]
 
@@ -342,9 +338,7 @@ class neutrinoDirectionReconstructor:
         d_viewing_grid, d_theta_grid, d_log_energy = self.__minimization_grid_spacings
 
         cop = datetime.datetime.now()
-        if station.has_sim_station(): 
-            print("SIMULATED DIRECTION {} {}".format(np.rad2deg(simulated_zenith), np.rad2deg(simulated_azimuth)))
-        # if only_simulation: pass
+        logger.info("Starting direction reconstruction...")
         if self._brute_force and not self._restricted_input: # restricted_input:
             if starting_values:
                 results2 = opt.brute(self.minimizer, ranges=(slice(viewing_start, viewing_end, np.deg2rad(.5)), slice(theta_start, theta_end, np.deg2rad(1)), slice(np.log10(energy_start) - .15, np.log10(energy_start) + .15, .1)), full_output = True, finish = opt.fmin , args = (reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, self._full_station))
@@ -377,8 +371,7 @@ class neutrinoDirectionReconstructor:
             energy_end = np.log10(simulated_energy) + 1
             results = opt.brute(self.minimizer, ranges=(slice(zenith_start, zenith_end, np.deg2rad(.5)), slice(azimuth_start, azimuth_end, np.deg2rad(.5)), slice(energy_start, energy_end, .05)), finish = opt.fmin, full_output = True, args = (reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], True, False, False, False, False, self._reference_Vpol, self._reference_Hpol, self._full_station))
 
-        print('start datetime', cop)
-        print("end datetime", datetime.datetime.now() - cop)
+        logger.info(f"...finished direction reconstruction in {datetime.datetime.now() - cop}")
         # print("cache statistics for analytic_pulse ray tracer")
         # print(self._simulation._raytracer.cache_info())
         vw_grid = results[-2]
@@ -406,18 +399,20 @@ class neutrinoDirectionReconstructor:
 
         ###### PRINT RESULTS ###############
         if station.has_sim_station():
-            print("         simulated energy {}".format(simulated_energy))
-            print("         simulated zenith {}".format(np.rad2deg(simulated_zenith)))
-            print("         simulated azimuth {}".format(np.rad2deg(simulated_azimuth)))
+            logger.info(f"simulated energy {simulated_energy/units.eV:.4g} eV")
+            logger.info(f"simulated zenith {simulated_zenith/units.deg:.3f} deg")
+            logger.info(f"simulated azimuth {simulated_azimuth/units.deg:.3f} deg")
 
-
-        print("     reconstructed energy {}".format(rec_energy))
-        print("     reconstructed zenith = {}".format(np.rad2deg(rec_zenith)))
-        print("     reconstructed azimuth = {}".format(np.rad2deg(self.transform_azimuth(rec_azimuth))))
-
+        logger.info(f"reconstructed energy {rec_energy/units.eV:.4g} eV")
+        logger.info(f"reconstructed zenith {rec_zenith/units.deg:.3f} deg")
+        logger.info(f"reconstructed azimuth {rec_azimuth % (2*np.pi)/units.deg:.3f} deg")
 
         ## get the traces for the reconstructed energy and direction
-        reconstruction_output = self.minimizer([rec_zenith, rec_azimuth, np.log10(rec_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize = False, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station)
+        reconstruction_output = self.minimizer(
+            [rec_zenith, rec_azimuth, np.log10(rec_energy)], 
+            *reconstructed_vertex, minimize = False, 
+            ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol,
+            full_station = self._full_station)
         tracrec = reconstruction_output[0]
         fit_reduced_chi2_Vpol = reconstruction_output[4][0]
         fit_reduced_chi2_Hpol = reconstruction_output[4][1]
@@ -426,7 +421,12 @@ class neutrinoDirectionReconstructor:
         chi2_dict = reconstruction_output[3]
         included_channels = reconstruction_output[7]
 
-        fminfit = self.minimizer([rec_zenith, rec_azimuth, np.log10(rec_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  True, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station)
+        fminfit = self.minimizer(
+            [rec_zenith, rec_azimuth, np.log10(rec_energy)],
+            *reconstructed_vertex, 
+            minimize =  True, 
+            ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
+            full_station = self._full_station)
 
         all_fminfit = self.minimizer([rec_zenith, rec_azimuth, np.log10(rec_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station)[3]
         bounds = ((14, 20))
@@ -439,16 +439,17 @@ class neutrinoDirectionReconstructor:
         ### values for reconstructed vertex and reconstructed direction
         traces_rec, timing_rec, launch_vector_rec, viewingangle_rec, a, pol_rec =  simulation.simulation( detector, station, reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], rec_zenith, rec_azimuth, rec_energy, use_channels, first_iteration = True)
 
-        print("make debug plots....")
         if debug:
+            logger.warning("making debug plots....")
             linewidth = 2
             tracdata = reconstruction_output[1]
             timingdata = reconstruction_output[2]
             timingsim = self.minimizer(
                 [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)],
                 *event.get_sim_shower(shower_id)[shp.vertex],
-                first_iter = True, minimize = False, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol,
-                    full_station = self._full_station, sim=True)[2]
+                first_iter = True, minimize = False, 
+                ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol,
+                full_station = self._full_station, sim=True)[2]
 
             timingsim_recvertex = self.minimizer([simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], first_iter = True, minimize = False, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station)[2]
             fig, ax = plt.subplots(len(use_channels), 3, sharex=False, figsize=(16, 4*len(use_channels)))
@@ -632,24 +633,24 @@ class neutrinoDirectionReconstructor:
         station.set_parameter(stnp.launch_vector, [lv_sim, launch_vector_rec])
         station.set_parameter(stnp.polarization, [pol_sim, pol_rec])
         station.set_parameter(stnp.viewing_angle, [vw_sim, viewingangle_rec])
-        if station.has_sim_station(): print("chi2 for simulated rec vertex {}, simulated sim vertex {} and fit {}".format(fsim, fsimsim, fminfit))#reconstructed vertex
-        if station.has_sim_station():
-            print("chi2 for all channels simulated rec vertex {}, simulated sim vertex {} and fit {}".format(all_fsim, all_fsimsim, all_fminfit))#reconstructed vertex
+        if station.has_sim_station(): 
+            logger.debug("chi2 for simulated rec vertex {}, simulated sim vertex {} and fit {}".format(fsim, fsimsim, fminfit))#reconstructed vertex
+            logger.debug("chi2 for all channels simulated rec vertex {}, simulated sim vertex {} and fit {}".format(all_fsim, all_fsimsim, all_fminfit))#reconstructed vertex
             total_chi2 = np.sum([chi2s for chi2s in chi2_dict.values()])
             logger.warning(f"Fit chi squared: {total_chi2:.2f} / {self.__dof}")
-            print("launch vector for simulated {} and fit {}".format(lv_sim, launch_vector_rec))
+            logger.debug("launch vector for simulated {} and fit {}".format(lv_sim, launch_vector_rec))
             zen_sim = hp.cartesian_to_spherical(*lv_sim)[0]
             zen_rec = hp.cartesian_to_spherical(*launch_vector_rec)[0]
-            print("launch zenith for simulated {} and fit {}".format(np.rad2deg(zen_sim), np.rad2deg(zen_rec)))
-            print("polarization for simulated {} and fit {}".format(pol_sim, pol_rec))
-            print("polarization angle for simulated {} and fit{}".format(np.rad2deg(np.arctan2(pol_sim[2], pol_sim[1])), np.rad2deg(np.arctan2(pol_rec[2], pol_rec[1]))))
-            print("viewing angle for simulated {} and fit {}".format(np.rad2deg(vw_sim), np.rad2deg(viewingangle_rec)))
-            print("reduced chi2 Vpol for simulated {} and fit {}".format(sim_reduced_chi2_Vpol, fit_reduced_chi2_Vpol))
-            print("reduced chi2 Hpol for simulated {} and fit {}".format(sim_reduced_chi2_Hpol, fit_reduced_chi2_Hpol))
-            print("over reconstructed channels", channels_overreconstructed)
-            print("extra channels", extra_channel)
-            print("L for rec vertex sim direction rec energy:", fmin_simdir_recvertex)
-            print("L for reconstructed vertexy directin and energy:", fminfit)
+            logger.debug("launch zenith for simulated {} and fit {}".format(np.rad2deg(zen_sim), np.rad2deg(zen_rec)))
+            logger.debug("polarization for simulated {} and fit {}".format(pol_sim, pol_rec))
+            logger.debug("polarization angle for simulated {} and fit{}".format(np.rad2deg(np.arctan2(pol_sim[2], pol_sim[1])), np.rad2deg(np.arctan2(pol_rec[2], pol_rec[1]))))
+            logger.debug("viewing angle for simulated {} and fit {}".format(np.rad2deg(vw_sim), np.rad2deg(viewingangle_rec)))
+            logger.debug("reduced chi2 Vpol for simulated {} and fit {}".format(sim_reduced_chi2_Vpol, fit_reduced_chi2_Vpol))
+            logger.debug("reduced chi2 Hpol for simulated {} and fit {}".format(sim_reduced_chi2_Hpol, fit_reduced_chi2_Hpol))
+            logger.debug(f"over reconstructed channels {channels_overreconstructed}")
+            logger.debug(f"extra channels {extra_channel}")
+            logger.debug(f"L for rec vertex sim direction rec energy: {fmin_simdir_recvertex}")
+            logger.debug(f"L for reconstructed vertexy directin and energy: {fminfit}")
 
     def transform_azimuth(self, azimuth): ## from [-180, 180] to [0, 360]
         azimuth = np.rad2deg(azimuth)

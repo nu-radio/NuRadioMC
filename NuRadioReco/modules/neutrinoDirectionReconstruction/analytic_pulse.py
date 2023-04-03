@@ -17,7 +17,8 @@ import logging
 import copy
 
 logger = logging.getLogger("analytic_pulse")
-# logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
+
 from NuRadioReco.detector import antennapattern
 eventreader = NuRadioReco.modules.io.eventReader.eventReader()
 
@@ -293,7 +294,7 @@ class simulation():
 				# r.find_solutions()
 				r = self._raytracer(*vertex, *x2)
 				if(not r.has_solution()):
-					print("warning: no solutions", channel_id)
+					logger.warning(f"warning: no solutions for channel {channel_id}")
 					continue
 
 				# loop through all ray tracing solution
