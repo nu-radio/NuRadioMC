@@ -114,6 +114,9 @@ class BaseStation():
         
         _station_time: astropy.time.Time
         """
+        if self._station_time is None:
+            return None
+        
         self._station_time.format = format
         return self._station_time
     
