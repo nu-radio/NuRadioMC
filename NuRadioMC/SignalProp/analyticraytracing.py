@@ -25,7 +25,6 @@ try:
     from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
     cpp_available = True
 except:
-    print("trying to compile the CPP extension on-the-fly")
     try:
         import subprocess
         import os
@@ -33,7 +32,6 @@ except:
                                  "install.sh"))
         from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
         cpp_available = True
-        print("Compilation of C++ raytracer was successful")
     except:
         cpp_available = False
 
@@ -117,15 +115,16 @@ class ray_tracing_2D(ray_tracing_base):
             listed in speedup_attenuation_models)
             
         """
-
+        self.__logger = logging.getLogger('ray_tracing_2D')
+        self.__logger.setLevel(log_level)
         if cpp_available:
             if use_python_raytracer:
-                print('C++ raytracer is available, but Python raytracer was requested. Using Python raytracer')
+                self.__logger.info('C++ raytracer is available, but Python raytracer was requested. Using Python raytracer')
             else:
-                print('Using C++ raytracer')
+                self.__logger.info('Using C++ raytracer')
         else:
-            print('C++ raytracer is not available. Using Python raytracer.')
-            print("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
+            self.__logger.warning('C++ raytracer is not available. Using Python raytracer.')
+            self.__logger.warning("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
 
         self.medium = medium
         if(not hasattr(self.medium, "reflection")):
@@ -136,8 +135,6 @@ class ray_tracing_2D(ray_tracing_base):
             raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
         self.attenuation_model_int = attenuation_util.model_to_int[self.attenuation_model]
         self.__b = 2 * self.medium.n_ice
-        self.__logger = logging.getLogger('ray_tracing_2D')
-        self.__logger.setLevel(log_level)
         self.__n_frequencies_integration = n_frequencies_integration
         self.__use_optimized_start_values = use_optimized_start_values
         self.__use_python_raytracer = use_python_raytracer
