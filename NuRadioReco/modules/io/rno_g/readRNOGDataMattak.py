@@ -254,73 +254,118 @@ class readRNOGData:
       """ Get number of events from previous dataset to correctly set pointer """
       dataset_idx_prev = dataset_idx - 1
       return int(self._event_idxs_datasets[dataset_idx_prev]) if dataset_idx_prev >= 0 else 0
+      
+   
+   def __get_dataset_and_event_info(self, event_idx):
+      """ Set pointer to correct """
+      # find correct dataset
+      dataset_idx = np.digitize(event_idx, self._event_idxs_datasets)
+      dataset = self._datasets[dataset_idx]
+
+      event_idx_in_dataset = event_idx - self.__get_n_events_of_prev_datasets(dataset_idx)
+      dataset.setEntries(event_idx_in_dataset)  # increment iterator -> point to new event
+      
+      event_info = dataset.eventInfo()
+
+      if self._selectors is not None:
+         for selector in self._selectors:
+            if not selector(event_info):
+               return None, None
+      
+      return dataset, event_info
+   
+   
+   def get_event_information_dict(self, keys=["station", "run"]):
+      
+      data = {}
+      
+      for event_idx in range(self._n_events_total):
+         
+         _, event_info = self.__get_dataset_and_event_info(event_idx)
+         
+         if event_info is None:
+            continue
+         
+         data[event_idx] = {getattr(event_info, key) for key in keys}
+         
+      return data
+
+   
+   def __run(self, event_idx):
+      """ Returns a single event with certain index """
+   
+      self.logger.debug(f"Processing event number {event_idx} out of total {self._n_events_total}")
+      t0 = time.time()
+
+      dataset, event_info = self.__get_dataset_and_event_info(event_idx)
+      
+      if event_info is None:
+         self.__skipped += 1
+         return None
+                  
+      evt = NuRadioReco.framework.event.Event(event_info.run, event_info.eventNumber)
+      station = NuRadioReco.framework.station.Station(event_info.station)
+      station.set_station_time(astropy.time.Time(event_info.triggerTime, format='unix'))
+
+      trigger = NuRadioReco.framework.trigger.Trigger(event_info.triggerType)
+      trigger.set_triggered()
+      trigger.set_trigger_time(event_info.triggerTime)
+      station.set_trigger(trigger)
+
+      # access data
+      waveforms = dataset.wfs()
+      
+      for channel_id, wf in enumerate(waveforms):
+         channel = NuRadioReco.framework.channel.Channel(channel_id) 
+         if self._read_calibrated_data:   
+            channel.set_trace(wf * units.mV, event_info.sampleRate * units.GHz)
+         else:
+            # wf stores ADC counts
+            
+            if self._apply_baseline_correction:
+               # correct baseline
+               wf = baseline_correction(wf)
+            
+            if self._convert_to_voltage:
+               # convert adc to voltage
+               wf *= (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
+               
+            channel.set_trace(wf, event_info.sampleRate * units.GHz)
+         
+         time_offset = get_time_offset(event_info.triggerType)
+         channel.set_trace_start_time(-time_offset)  # relative to event/trigger time
+                           
+         station.add_channel(channel)
+      
+      evt.set_station(station)
+      
+      self._time_run += time.time() - t0
+      self.__counter += 1
+      yield evt
 
 
    @register_run()
-   def run(self):
-
-      for event_idx in range(self._n_events_total):
-         self.logger.debug(f"Processing event number {event_idx} out of total {self._n_events_total}")
-         t0 = time.time()
-
-         # find correct dataset
-         dataset_idx = np.digitize(event_idx, self._event_idxs_datasets)
-         dataset = self._datasets[dataset_idx]
-
-         event_idx_in_dataset = event_idx - self.__get_n_events_of_prev_datasets(dataset_idx)
-         dataset.setEntries(event_idx_in_dataset)  # increment iterator -> point to new event
-         
-         event_info = dataset.eventInfo()
-
-         skip = False
-         if self._selectors is not None:
-            for selector in self._selectors:
-               if not selector(event_info):
-                  skip = True
-         
-         if skip:
-            self.__skipped += 1
-            continue
-                     
-         evt = NuRadioReco.framework.event.Event(event_info.run, event_info.eventNumber)
-         station = NuRadioReco.framework.station.Station(event_info.station)
-         station.set_station_time(astropy.time.Time(event_info.triggerTime, format='unix'))
-
-         trigger = NuRadioReco.framework.trigger.Trigger(event_info.triggerType)
-         trigger.set_triggered()
-         trigger.set_trigger_time(event_info.triggerTime)
-         station.set_trigger(trigger)
-
-         # access data
-         waveforms = dataset.wfs()
-         
-         for channel_id, wf in enumerate(waveforms):
-            channel = NuRadioReco.framework.channel.Channel(channel_id) 
-            if self._read_calibrated_data:   
-               channel.set_trace(wf * units.mV, event_info.sampleRate * units.GHz)
-            else:
-               # wf stores ADC counts
-               
-               if self._apply_baseline_correction:
-                  # correct baseline
-                  wf = baseline_correction(wf)
-               
-               if self._convert_to_voltage:
-                  # convert adc to voltage
-                  wf *= (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
-                
-               channel.set_trace(wf, event_info.sampleRate * units.GHz)
-            
-            time_offset = get_time_offset(event_info.triggerType)
-            channel.set_trace_start_time(-time_offset)  # relative to event/trigger time
-                            
-            station.add_channel(channel)
-         
-         evt.set_station(station)
-         
-         self._time_run += time.time() - t0
-         self.__counter += 1
-         yield evt
+   def run(self, event_index=None):
+      """ 
+      Loop over all events or one specific event with event_index.
+      
+      Parameters
+      ----------
+      
+      event_index: int
+         Incremental index. If None, loop over all events. (Default: None) 
+      
+      Returns
+      -------
+      
+      evt: NuRadioReco.framework.event
+      """
+      
+      if event_index is None:
+         for event_idx in range(self._n_events_total):
+            yield from self.__run(event_idx)
+      else:
+         yield from self.__run(event_index)
 
 
    def end(self):
