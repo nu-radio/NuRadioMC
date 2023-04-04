@@ -24,7 +24,6 @@ cpp_available = False
 try:
     from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
     cpp_available = True
-    print("using CPP version of ray tracer")
 except:
     print("trying to compile the CPP extension on-the-fly")
     try:
@@ -34,10 +33,8 @@ except:
                                  "install.sh"))
         from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
         cpp_available = True
-        print("compilation was successful, using CPP version of ray tracer")
+        print("Compilation of C++ raytracer was successful")
     except:
-        print("compilation was not successful, using python version of ray tracer")
-        print("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
         cpp_available = False
 
 """
@@ -120,6 +117,16 @@ class ray_tracing_2D(ray_tracing_base):
             listed in speedup_attenuation_models)
             
         """
+
+        if cpp_available:
+            if use_python_raytracer:
+                print('C++ raytracer is available, but Python raytracer was requested. Using Python raytracer')
+            else:
+                print('Using C++ raytracer')
+        else:
+            print('C++ raytracer is not available. Using Python raytracer.')
+            print("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
+
         self.medium = medium
         if(not hasattr(self.medium, "reflection")):
             self.medium.reflection = None
