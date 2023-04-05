@@ -224,6 +224,9 @@ class readRNOGData:
       self._n_events_total = np.sum(self.__n_events_per_dataset)
       self._time_begin = time.time() - t0
       
+      # Variable not yet implemented in mattak
+      # self.logger.info(f"Using the {self._datasets[0].backend} Mattak backend.")
+      
       if not self._n_events_total:
          err = "No runs have been selected. Abort ..."
          self.logger.error(err)
@@ -261,7 +264,7 @@ class readRNOGData:
       return int(self._event_idxs_datasets[dataset_idx_prev]) if dataset_idx_prev >= 0 else 0
       
    
-   def __get_dataset_and_event_info(self, event_idx):
+   def __get_dataset_for_event(self, event_idx):
       """ Set pointer to correct """
       # find correct dataset
       dataset_idx = np.digitize(event_idx, self._event_idxs_datasets)
@@ -269,15 +272,8 @@ class readRNOGData:
 
       event_idx_in_dataset = event_idx - self.__get_n_events_of_prev_datasets(dataset_idx)
       dataset.setEntries(event_idx_in_dataset)  # increment iterator -> point to new event
-      
-      event_info = dataset.eventInfo()  # returns a single eventInfo
-
-      if self._selectors is not None:
-         for selector in self._selectors:
-            if not selector(event_info):
-               return None, None
-      
-      return dataset, event_info
+            
+      return dataset
    
    
    def get_event_information_dict(self, keys=["station", "run"]):
@@ -287,19 +283,27 @@ class readRNOGData:
       for dataset in self._datasets:
          dataset.setEntries((0, dataset.N()))
          
-         for idx, eventinfo in enumerate(dataset.eventInfo()):  # returns a list
+         for idx, evtinfo in enumerate(dataset.eventInfo()):  # returns a list
       
             event_idx = idx + n_prev  # event index accross all datasets combined 
          
+            skip = False
             if self._selectors is not None:
-                     for selector in self._selectors:
-                        if not selector(eventinfo):
-                           continue
+               for selector in self._selectors:
+                  if not selector(evtinfo):
+                     self.logger.debug(f"Event {event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
+                                       f"event number {evtinfo.eventNumber}) is skipped.")
+                     skip = True
+                     break
+                     
+            if skip:
+               self.__skipped += 1
+               continue
          
-            data[event_idx] = {getattr(eventinfo, key) for key in keys}
+            data[event_idx] = {key: getattr(evtinfo, key) for key in keys}
          
          n_prev += dataset.N()
-         
+
       return data
 
    
@@ -309,12 +313,17 @@ class readRNOGData:
       self.logger.debug(f"Processing event number {event_idx} out of total {self._n_events_total}")
       t0 = time.time()
 
-      dataset, event_info = self.__get_dataset_and_event_info(event_idx)
-      
-      if event_info is None:
-         self.__skipped += 1
-         return None
-                  
+      dataset = self.__get_dataset_for_event(event_idx)
+      event_info = dataset.eventInfo()  # returns a single eventInfo
+
+      if self._selectors is not None:
+         for selector in self._selectors:
+            if not selector(event_info):
+               self.logger.debug(f"Event {event_idx} (station {event_info.station}, run {event_info.run}, "
+                                 f"event number {event_info.eventNumber}) is skipped.")
+               self.__skipped += 1
+               return None 
+                        
       evt = NuRadioReco.framework.event.Event(event_info.run, event_info.eventNumber)
       station = NuRadioReco.framework.station.Station(event_info.station)
       station.set_station_time(astropy.time.Time(event_info.triggerTime, format='unix'))
@@ -353,31 +362,26 @@ class readRNOGData:
       
       self._time_run += time.time() - t0
       self.__counter += 1
-      yield evt
+      return evt
 
 
    @register_run()
-   def run(self, event_index=None):
+   def run(self):
       """ 
-      Loop over all events or one specific event with event_index.
-      
-      Parameters
-      ----------
-      
-      event_index: int
-         Incremental index. If None, loop over all events. (Default: None) 
+      Loop over all events.
       
       Returns
       -------
       
       evt: NuRadioReco.framework.event
       """
-      
-      if event_index is None:
-         for event_idx in range(self._n_events_total):
-            yield from self.__run(event_idx)
-      else:
-         yield from self.__run(event_index)
+
+      for event_idx in range(self._n_events_total):
+         yield self.__run(event_idx)
+
+
+   def read_event(self, event_index):
+      return self.__run(event_index)
 
 
    def end(self):
