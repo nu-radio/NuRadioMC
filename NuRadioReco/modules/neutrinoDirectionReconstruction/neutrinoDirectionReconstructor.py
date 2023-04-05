@@ -232,9 +232,7 @@ class neutrinoDirectionReconstructor:
                 ice_model=self._ice_model, att_model=self._att_model,
                 passband=self._passband, propagation_config=self._prop_config, systematics = systematics)
             tracsim, timsim, lv_sim, vw_sim, a, pol_sim = simulation.simulation(
-                detector, station, event.get_sim_shower(shower_id)[shp.vertex][0],
-                event.get_sim_shower(shower_id)[shp.vertex][1],
-                event.get_sim_shower(shower_id)[shp.vertex][2],
+                detector, station, *simulated_vertex,
                 simulated_zenith, simulated_azimuth, simulated_energy,
                 use_channels, first_iteration = True)
             if pol_sim is None: # for some reason, didn't manage to obtain simulated vw / polarization angle
@@ -293,37 +291,60 @@ class neutrinoDirectionReconstructor:
 
 
                 fsimsim = self.minimizer(
-                    [simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], 
-                    *event.get_sim_shower(shower_id)[shp.vertex], 
+                    [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], 
+                    *simulated_vertex, 
                     minimize =  True, first_iter = True, 
                     ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
                     full_station = self._full_station, sim = True)
                 all_fsimsim = self.minimizer(
-                    [simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], 
-                    *event.get_sim_shower(shower_id)[shp.vertex], 
+                    [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], 
+                    *simulated_vertex, 
                     minimize =  False, first_iter = True, 
                     ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
                     full_station = self._full_station, sim = True)[3]
-                tracsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, first_iter = True, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station, sim = True)[0]
-            #     #tracsim_recvertex = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, first_iter = True,ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station, sim = True)[0]
+                tracsim = self.minimizer(
+                    [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)],
+                    *simulated_vertex, 
+                    minimize =  False, first_iter = True,
+                    ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol,
+                    full_station = self._full_station, sim = True)[0]
 
                 fsim = self.minimizer(
-                    [simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], 
-                    *event.get_sim_shower(shower_id)[shp.vertex],
+                    [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], 
+                    *reconstructed_vertex,
                     minimize =  True, first_iter = True, 
                     ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
                     full_station = self._full_station, sim = True)
 
-                all_fsim = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, first_iter = True, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station, sim = True)[3]
-                logger.debug("Chi2 values for simulated direction and with/out simulated vertex are {}/{}".format(fsimsim, fsim))
+                all_fsim = self.minimizer(
+                    [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], 
+                    *reconstructed_vertex,
+                    minimize=False, first_iter=True, 
+                    ch_Vpol=self._reference_Vpol, ch_Hpol=self._reference_Hpol,
+                    full_station=self._full_station, sim=True)[3]
+                logger.debug(
+                    "Chi2 values for simulated direction and with/out simulated vertex are {}/{}".format(fsimsim, fsim))
 
-                sim_reduced_chi2_Vpol = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station, sim = True)[4][0]
+                sim_reduced_chi2_Vpol = self.minimizer(
+                    [simulated_zenith,simulated_azimuth, np.log10(simulated_energy)],
+                    *simulated_vertex,
+                    minimize =  False, 
+                    ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
+                    full_station = self._full_station, sim = True)[4][0]
 
+                sim_reduced_chi2_Hpol = self.minimizer(
+                    [simulated_zenith,simulated_azimuth, np.log10(simulated_energy)],
+                    *simulated_vertex, 
+                    minimize =  False, first_iter = True, 
+                    ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
+                    full_station = self._full_station, sim = True)[4][1]
 
-                sim_reduced_chi2_Hpol = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], event.get_sim_shower(shower_id)[shp.vertex][0], event.get_sim_shower(shower_id)[shp.vertex][1], event.get_sim_shower(shower_id)[shp.vertex][2], minimize =  False, first_iter = True, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station, sim = True)[4][1]
-            #     self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, first_iter = True, ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station)
-
-                tracsim_recvertex = self.minimizer([simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], minimize =  False, first_iter = True,ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, full_station = self._full_station)[0]                
+                tracsim_recvertex = self.minimizer(
+                    [simulated_zenith,simulated_azimuth, np.log10(simulated_energy)], 
+                    *reconstructed_vertex, 
+                    minimize =  False, first_iter = True,
+                    ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
+                    full_station = self._full_station)[0]                
 
         viewing_start = self._cherenkov_angle - np.deg2rad(10) # 15 degs
         viewing_end = self._cherenkov_angle + np.deg2rad(10)
@@ -446,7 +467,7 @@ class neutrinoDirectionReconstructor:
             timingdata = reconstruction_output[2]
             timingsim = self.minimizer(
                 [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)],
-                *event.get_sim_shower(shower_id)[shp.vertex],
+                *simulated_vertex,
                 first_iter = True, minimize = False, 
                 ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol,
                 full_station = self._full_station, sim=True)[2]
