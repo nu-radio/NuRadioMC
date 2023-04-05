@@ -296,18 +296,15 @@ class neutrinoDirectionReconstructor:
                     minimize =  True, first_iter = True, 
                     ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
                     full_station = self._full_station, sim = True)
-                all_fsimsim = self.minimizer(
+                sim_simvertex_output = self.minimizer(
                     [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], 
                     *simulated_vertex, 
                     minimize =  False, first_iter = True, 
                     ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
-                    full_station = self._full_station, sim = True)[3]
-                tracsim = self.minimizer(
-                    [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)],
-                    *simulated_vertex, 
-                    minimize =  False, first_iter = True,
-                    ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol,
-                    full_station = self._full_station, sim = True)[0]
+                    full_station = self._full_station, sim = True)
+                
+                tracsim = sim_simvertex_output[0]
+                all_fsimsim = sim_simvertex_output[3]
 
                 fsim = self.minimizer(
                     [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], 
@@ -315,13 +312,13 @@ class neutrinoDirectionReconstructor:
                     minimize =  True, first_iter = True, 
                     ch_Vpol = self._reference_Vpol, ch_Hpol = self._reference_Hpol, 
                     full_station = self._full_station, sim = True)
-
                 all_fsim = self.minimizer(
                     [simulated_zenith, simulated_azimuth, np.log10(simulated_energy)], 
                     *reconstructed_vertex,
                     minimize=False, first_iter=True, 
                     ch_Vpol=self._reference_Vpol, ch_Hpol=self._reference_Hpol,
                     full_station=self._full_station, sim=True)[3]
+                
                 logger.debug(
                     "Chi2 values for simulated direction and with/out simulated vertex are {}/{}".format(fsimsim, fsim))
 
@@ -796,8 +793,10 @@ class neutrinoDirectionReconstructor:
         T_ref = timing[ch_Vpol][solution_number]
         trace_start_time_ref = self._station.get_channel(ch_Vpol).get_trace_start_time()
 
-        if sim or self._sim_vertex: k_ref = self._station[stnp.pulse_position_sim]# get pulse position for triggered pulse
-        if not sim and not self._sim_vertex:  k_ref = self._station[stnp.pulse_position]
+        if sim or self._sim_vertex: 
+            k_ref = self._station[stnp.pulse_position_sim]# get pulse position for triggered pulse
+        if not sim and not self._sim_vertex:  
+            k_ref = self._station[stnp.pulse_position]
         ks = {}
 
         reduced_chi2_Vpol = 0
@@ -890,9 +889,8 @@ class neutrinoDirectionReconstructor:
 
         if fixed_timing:
             for i_ch in self._use_channels:
-                if 1:#i_ch not in self._PA_cluster_channels:
-                    dict_dt[i_ch][0] = dict_dt[ch_Vpol][trace_ref]
-                    dict_dt[i_ch][1] = dict_dt[ch_Vpol][trace_ref]
+                dict_dt[i_ch][0] = dict_dt[ch_Vpol][trace_ref]
+                dict_dt[i_ch][1] = dict_dt[ch_Vpol][trace_ref]
 
         ### 2. Perform fit #TODO - merge into above loop to reduce amount of code.
         dof = 0
@@ -1055,7 +1053,11 @@ class neutrinoDirectionReconstructor:
         if timing_k:
             return ks
         if not minimize:
-            return [rec_traces, data_traces, data_timing, all_chi2, [reduced_chi2_Vpol, reduced_chi2_Hpol], over_reconstructed, extra_channel, included_channels]
+            full_output = [
+                rec_traces, data_traces, data_timing, all_chi2, 
+                [reduced_chi2_Vpol, reduced_chi2_Hpol], 
+                over_reconstructed, extra_channel, included_channels]
+            return full_output
 
         return chi2
 
