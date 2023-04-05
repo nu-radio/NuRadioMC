@@ -349,7 +349,7 @@ class neutrinoDirectionReconstructor:
         viewing_start = self._cherenkov_angle - np.deg2rad(10) # 15 degs
         viewing_end = self._cherenkov_angle + np.deg2rad(10)
         # d_viewing_grid = .5 * units.deg # originally .5 deg
-        energy_start = 1e17 * units.eV
+        energy_start = 1e16 * units.eV
         energy_end = 1e19 * units.eV + 1e14 * units.eV
         # d_log_energy = .2
         theta_start = np.deg2rad(-180) #-180
