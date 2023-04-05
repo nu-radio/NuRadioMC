@@ -234,7 +234,16 @@ class readRNOGData:
 
       
    def __select_run(self, dataset):
-      """ Filter/select runs/datasets. Return True to select an dataset, return False to skip it """
+      """ Filter/select runs/datasets. 
+      
+      Parameters
+      ----------
+      
+      dataset: mattak.Dataset.Dataset
+      
+      select: bool
+         Return True to select an dataset, return False to reject/skip it.
+      """
      
       # get first eventInfo
       dataset.setEntries(0)
@@ -259,13 +268,25 @@ class readRNOGData:
 
 
    def __get_n_events_of_prev_datasets(self, dataset_idx):
-      """ Get number of events from previous dataset to correctly set pointer """
+      """ Get accumulated number of events from previous datasets """
       dataset_idx_prev = dataset_idx - 1
       return int(self._event_idxs_datasets[dataset_idx_prev]) if dataset_idx_prev >= 0 else 0
       
    
    def __get_dataset_for_event(self, event_idx):
-      """ Set pointer to correct """
+      """ Get correct dataset and set entry accordingly to event index
+      
+      Parameters
+      ----------
+      
+      event_index: int
+         Same as in read_event().
+      
+      Retruns
+      -------
+      
+      dataset: mattak.Dataset.Dataset
+      """
       # find correct dataset
       dataset_idx = np.digitize(event_idx, self._event_idxs_datasets)
       dataset = self._datasets[dataset_idx]
@@ -277,6 +298,23 @@ class readRNOGData:
    
    
    def filter_event(self, evtinfo, event_idx=None):
+      """ Filter an event base on its EventInfo and the configured selectors.
+
+      Parameters
+      ----------
+      
+      event_info: mattak.Dataset.EventInfo
+         The event info object for one event.
+      
+      event_index: int
+         Same as in read_event(). Only use for logger.info(). (Default: None)
+         
+      Returns
+      -------
+      
+      skip: bool
+         Returns True to skip/reject event, return False to keep/read event
+      """
       if self._selectors is not None:
          for selector in self._selectors:
             if not selector(evtinfo):
@@ -289,6 +327,26 @@ class readRNOGData:
    
    
    def get_event_information_dict(self, keys=["station", "run"]):
+      """ Return information of all events from the EventInfo
+      
+      This function is useful to make a pre-selection of events before actually reading them in combination with 
+      self.read_event().
+      
+      Parameters
+      ----------
+      
+      keys: list(str)
+         List of the information to receive from each event. Have to match the attributes (member variables)
+         of the mattak.Dataset.EventInfo class (examples are "station", "run", "triggerTime", "triggerType", "eventNumber", ...).
+         (Default: ["station", "run"])
+         
+      Returns
+      -------
+      
+      data: dict
+         Keys of the dict are the event indecies (as used in self.read_event(event_index)). The values are dictinaries 
+         them self containing the information specified with "keys" parameter.
+      """
       
       data = {}
       n_prev = 0
@@ -310,6 +368,22 @@ class readRNOGData:
    
    
    def get_event(self, event_info, waveforms):
+      """ Return a NuRadioReco event
+      
+      Parameters
+      ----------
+      
+      event_info: mattak.Dataset.EventInfo
+         The event info object for one event.
+         
+      waveforms: np.array(n_channel, n_samples)
+         Typically what dataset.wfs() returns (for one event!)
+
+      Returns
+      -------
+      
+      evt: NuRadioReco.framework.event
+      """
       
       evt = NuRadioReco.framework.event.Event(event_info.run, event_info.eventNumber)
       station = NuRadioReco.framework.station.Station(event_info.station)
@@ -355,7 +429,7 @@ class readRNOGData:
       Returns
       -------
       
-      evt: NuRadioReco.framework.event
+      evt: generator(NuRadioReco.framework.event)
       """
       event_idx = -1
       for dataset in self._datasets:
@@ -390,6 +464,20 @@ class readRNOGData:
 
 
    def read_event(self, event_index):
+      """ Allows to read a specific event identifed by its index 
+      
+      Parameters
+      ----------
+      
+      event_index: int
+         The index of a particluar event. The index is the chronological number from 0 to 
+         number of total events (across all datasets).
+         
+      Returns
+      -------
+      
+      evt: NuRadioReco.framework.event
+      """
       
       self.logger.debug(f"Processing event number {event_index} out of total {self._n_events_total}")
       t0 = time.time()
