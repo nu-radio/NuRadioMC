@@ -2,6 +2,7 @@ import numpy as np
 import glob
 import os
 import random
+import sys
 
 from NuRadioReco.modules.io.rno_g.readRNOGDataMattak import readRNOGData
 from NuRadioReco.modules.base.module import register_run
@@ -86,12 +87,14 @@ class noiseImporter:
         self._noise_reader = readRNOGData()
         selectors = [lambda einfo: einfo.triggerType == "FORCE"]
         self._noise_reader.begin(self.__noise_folders, selectors=selectors, log_level=log_level, mattak_backend=mattak_backend)
-        import time
 
-        t0 = time.time()
-        self._noise_events = [evt for evt in self._noise_reader.run()]
-        print(time.time() - t0)
-        
+
+        self.logger.info("Get event informations ...")
+        # instead of reading all noise events into memory we only get certain information here and read all data in run()
+        noise_information = self._noise_reader.get_event_information_dict(keys=["station"])
+        self.__event_index_list = np.array(list(noise_information.keys()))
+        self.__station_id_list = np.array([ele["station"] for ele in noise_information.values()])
+                
         
     def __get_noise_channel(self, channel_id):
         if self.__channel_mapping is None:
@@ -104,18 +107,17 @@ class noiseImporter:
     def run(self, evt, station, det):
 
         if self._match_station_id:
-            
-            station_ids = self._buffer_station_id_list()
-            mask = station_ids == station.get_id()
-            if not np.any(mask):
+            # select only noise events from simulated station id
+            station_mask = self.__station_id_list == station.get_id()
+            if not np.any(station_mask):
                 raise ValueError(f"No station with id {station.get_id()} in noise data.")
-            
-            i_noise = np.random.choice(np.arange(len(mask))[mask])
-                
+                            
         else:
-            i_noise = np.random.randint(0, len(self._noise_events))
-        
-        noise_event = self._noise_events[i_noise]
+            # select all noise events
+            station_mask = np.full_like(self.__event_index_list, True)
+
+        i_noise = np.random.choice(self.__event_index_list[station_mask])   
+        noise_event = self._noise_reader.read_event(i_noise)
         
         station_id = noise_event.get_station_ids()[0]
         noise_station = noise_event.get_station(station_id)
@@ -155,4 +157,5 @@ class noiseImporter:
             channel.set_trace(trace, channel.get_sampling_rate())
 
     def end(self):
+        self._noise_reader.end()
         pass
