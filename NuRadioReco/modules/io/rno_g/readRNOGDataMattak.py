@@ -183,7 +183,7 @@ class readRNOGData:
                selectors.append(lambda eventInfo: eventInfo.triggerType == select_trigger)
 
       self._selectors = selectors
-      self.logger.info(f"Found {len(self._selectors)} selectors")
+      self.logger.info(f"Found {len(self._selectors)} selector(s)")
       
       self._time_begin = 0
       self._time_run = 0
@@ -193,7 +193,7 @@ class readRNOGData:
       self._datasets = []
       self.__n_events_per_dataset = []
       
-      self.logger.info(f"Parse through {len(data_dirs)} directories.")
+      self.logger.info(f"Parse through {len(data_dirs)} directory/ies.")
       
       self.__skipped_runs = 0
       self.__n_runs = 0
@@ -265,7 +265,7 @@ class readRNOGData:
       event_idx_in_dataset = event_idx - self.__get_n_events_of_prev_datasets(dataset_idx)
       dataset.setEntries(event_idx_in_dataset)  # increment iterator -> point to new event
       
-      event_info = dataset.eventInfo()
+      event_info = dataset.eventInfo()  # returns a single eventInfo
 
       if self._selectors is not None:
          for selector in self._selectors:
@@ -278,15 +278,22 @@ class readRNOGData:
    def get_event_information_dict(self, keys=["station", "run"]):
       
       data = {}
+      n_prev = 0
+      for dataset in self._datasets:
+         dataset.setEntries(0, dataset.N())
+         
+         for idx, eventinfo in enumerate(dataset.eventInfo()):  # returns a list
       
-      for event_idx in range(self._n_events_total):
+            event_idx = idx + n_prev  # event index accross all datasets combined 
          
-         _, event_info = self.__get_dataset_and_event_info(event_idx)
+            if self._selectors is not None:
+                     for selector in self._selectors:
+                        if not selector(eventinfo):
+                           continue
          
-         if event_info is None:
-            continue
+            data[event_idx] = {getattr(eventinfo, key) for key in keys}
          
-         data[event_idx] = {getattr(event_info, key) for key in keys}
+         n_prev += dataset.N()
          
       return data
 
