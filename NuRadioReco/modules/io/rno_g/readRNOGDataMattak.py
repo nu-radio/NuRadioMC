@@ -95,7 +95,8 @@ class readRNOGData:
              select_triggers=None,
              select_runs=True,
              run_types=["physics"],
-             max_trigger_rate=1 * units.Hz):
+             max_trigger_rate=1 * units.Hz,
+             mattak_backend="auto"):
       
       """
       
@@ -135,6 +136,10 @@ class readRNOGData:
       max_trigger_rate: float
          Used to select/reject runs from information in the RNO-G RunTable. Maximum allowed trigger rate (per run) in Hz.
          If 0, no cut is applied. (Default: 1 Hz)
+         
+      mattak_backend: str
+         Select a mattak backend. Options are "auto", "pyroot", "uproot". If "auto" is selected, pyroot is used if available otherwise
+         a "fallback" to uproot is used. (Default: "auto") 
       """
       
       t0 = time.time()
@@ -203,7 +208,7 @@ class readRNOGData:
          if not os.path.exists(data_dir):
             self.logger.error(f"The directory {data_dir} does not exist")
       
-         dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=data_dir)
+         dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=data_dir, backend=mattak_backend)
          
          # filter runs/datasets based on 
          if select_runs and imported_runtable and not self.__select_run(dataset):
@@ -280,7 +285,7 @@ class readRNOGData:
       data = {}
       n_prev = 0
       for dataset in self._datasets:
-         dataset.setEntries(0, dataset.N())
+         dataset.setEntries((0, dataset.N()))
          
          for idx, eventinfo in enumerate(dataset.eventInfo()):  # returns a list
       

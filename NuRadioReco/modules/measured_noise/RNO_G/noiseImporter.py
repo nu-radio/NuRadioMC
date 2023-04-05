@@ -20,7 +20,7 @@ class noiseImporter:
     def begin(self, noise_folders, file_pattern="*",
               match_station_id=False, station_ids=None,
               channel_mapping=None, scramble_noise_file_order=True,
-              log_level=logging.INFO):
+              log_level=logging.INFO, mattak_backend="auto"):
         """
         
         Parameters
@@ -48,7 +48,10 @@ class noiseImporter:
         
         log_level: loggging log level
             the log level, default logging.INFO
-            
+
+        mattak_backend: str
+            Select a mattak backend. Options are "auto", "pyroot", "uproot". If "auto" is selected, pyroot is used if available otherwise
+            a "fallback" to uproot is used. (Default: "auto") 
         """
         
         self.logger = logging.getLogger('noiseImporter')
@@ -80,20 +83,14 @@ class noiseImporter:
         if scramble_noise_file_order:
             random.shuffle(self.__noise_folders)
         
-        noise_reader = readRNOGData()
+        self._noise_reader = readRNOGData()
         selectors = [lambda einfo: einfo.triggerType == "FORCE"]
-        noise_reader.begin(self.__noise_folders, selectors=selectors, log_level=log_level)
-        self._noise_events = [evt for evt in noise_reader.run()]
-        noise_reader.end()
-        
-        self.__station_id_list = None
-        
-    
-    def _buffer_station_id_list(self):
-        if self.__station_id_list is None:
-            self.__station_id_list = np.squeeze([evt.get_station_ids() for evt in self._noise_events])
-        
-        return self.__station_id_list
+        self._noise_reader.begin(self.__noise_folders, selectors=selectors, log_level=log_level, mattak_backend=mattak_backend)
+        import time
+
+        t0 = time.time()
+        self._noise_events = [evt for evt in self._noise_reader.run()]
+        print(time.time() - t0)
         
         
     def __get_noise_channel(self, channel_id):
