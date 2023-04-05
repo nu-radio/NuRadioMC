@@ -276,6 +276,18 @@ class readRNOGData:
       return dataset
    
    
+   def filter_event(self, evtinfo, event_idx=None):
+      if self._selectors is not None:
+         for selector in self._selectors:
+            if not selector(evtinfo):
+               self.logger.debug(f"Event {event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
+                                 f"event number {evtinfo.eventNumber}) is skipped.")
+               self.__skipped += 1
+               return True
+      
+      return False
+   
+   
    def get_event_information_dict(self, keys=["station", "run"]):
       
       data = {}
@@ -287,17 +299,7 @@ class readRNOGData:
       
             event_idx = idx + n_prev  # event index accross all datasets combined 
          
-            skip = False
-            if self._selectors is not None:
-               for selector in self._selectors:
-                  if not selector(evtinfo):
-                     self.logger.debug(f"Event {event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
-                                       f"event number {evtinfo.eventNumber}) is skipped.")
-                     skip = True
-                     break
-                     
-            if skip:
-               self.__skipped += 1
+            if self.filter_event(evtinfo, event_idx):
                continue
          
             data[event_idx] = {key: getattr(evtinfo, key) for key in keys}
@@ -305,25 +307,10 @@ class readRNOGData:
          n_prev += dataset.N()
 
       return data
-
    
-   def __run(self, event_idx):
-      """ Returns a single event with certain index """
    
-      self.logger.debug(f"Processing event number {event_idx} out of total {self._n_events_total}")
-      t0 = time.time()
-
-      dataset = self.__get_dataset_for_event(event_idx)
-      event_info = dataset.eventInfo()  # returns a single eventInfo
-
-      if self._selectors is not None:
-         for selector in self._selectors:
-            if not selector(event_info):
-               self.logger.debug(f"Event {event_idx} (station {event_info.station}, run {event_info.run}, "
-                                 f"event number {event_info.eventNumber}) is skipped.")
-               self.__skipped += 1
-               return None 
-                        
+   def get_event(self, event_info, waveforms):
+      
       evt = NuRadioReco.framework.event.Event(event_info.run, event_info.eventNumber)
       station = NuRadioReco.framework.station.Station(event_info.station)
       station.set_station_time(astropy.time.Time(event_info.triggerTime, format='unix'))
@@ -332,9 +319,6 @@ class readRNOGData:
       trigger.set_triggered()
       trigger.set_trigger_time(event_info.triggerTime)
       station.set_trigger(trigger)
-
-      # access data
-      waveforms = dataset.wfs()
       
       for channel_id, wf in enumerate(waveforms):
          channel = NuRadioReco.framework.channel.Channel(channel_id) 
@@ -360,9 +344,7 @@ class readRNOGData:
       
       evt.set_station(station)
       
-      self._time_run += time.time() - t0
-      self.__counter += 1
-      return evt
+      return evt     
 
 
    @register_run()
@@ -375,13 +357,58 @@ class readRNOGData:
       
       evt: NuRadioReco.framework.event
       """
+      event_idx = -1
+      for dataset in self._datasets:
+         dataset.setEntries((0, dataset.N()))
+                  
+         # read all event infos of the entier dataset (= run)
+         event_infos = dataset.eventInfo()
+         wfs = None
 
-      for event_idx in range(self._n_events_total):
-         yield self.__run(event_idx)
+         for idx, evtinfo in enumerate(event_infos):  # returns a list
+            event_idx += 1
+            
+            self.logger.debug(f"Processing event number {event_idx} out of total {self._n_events_total}")
+            t0 = time.time()
+                  
+            if self.filter_event(evtinfo, event_idx):
+               continue
+            
+            # Just read wfs if necessary
+            if wfs is None:
+               wfs = dataset.wfs()
+               
+            waveforms_of_event = wfs[idx]
+            
+            evt = self.get_event(evtinfo, waveforms_of_event)
+            
+            self._time_run += time.time() - t0
+            self.__counter += 1
+                           
+            yield evt
+
 
 
    def read_event(self, event_index):
-      return self.__run(event_index)
+      
+      self.logger.debug(f"Processing event number {event_index} out of total {self._n_events_total}")
+      t0 = time.time()
+
+      dataset = self.__get_dataset_for_event(event_index)
+      event_info = dataset.eventInfo()  # returns a single eventInfo
+
+      if self.filter_event(event_info, event_index):
+         return None
+            
+      # access data
+      waveforms = dataset.wfs()
+      
+      evt = self.get_event(event_info, waveforms)
+      
+      self._time_run += time.time() - t0
+      self.__counter += 1
+   
+      return evt
 
 
    def end(self):
