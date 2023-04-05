@@ -17,7 +17,7 @@ class noiseImporter:
     """
 
 
-    def begin(self, noise_folder, 
+    def begin(self, noise_folders, file_pattern="*",
               match_station_id=False, station_ids=None,
               channel_mapping=None, scramble_noise_file_order=True,
               log_level=logging.INFO):
@@ -25,8 +25,11 @@ class noiseImporter:
         
         Parameters
         ----------
-        noise_folder: string
-            Folder containing noise file(s). Search in any subfolder as well.
+        noise_folders: str or list(str)
+            Folder(s) containing noise file(s). Search in any subfolder as well.
+            
+        file_patters: str
+            File patters used to search for directories, (Default: "*", other examples might be "combined")
             
         match_station_id: bool
             If True, add only noise from stations with the same id. (Default: False)
@@ -61,10 +64,16 @@ class noiseImporter:
                     f"\n\tUse the following channel mapping: {channel_mapping}"
                     f"\n\tRandomize sequence of noise files: {scramble_noise_file_order}")
         
-        noise_files = glob.glob(f"{noise_folder}/**/*root", recursive=True)
+        if not isinstance(noise_folders, list):
+            noise_folders = [noise_folders]
+        
+        # find all subfolders
+        noise_files = []
+        for noise_folder in noise_folders:
+            noise_files += glob.glob(f"{noise_folder}/**/{file_pattern}root", recursive=True)
         self.__noise_folders = np.unique([os.path.dirname(e) for e in noise_files])       
         
-        self.logger.info(f"Found {len(self.__noise_folders)} folders in {noise_folder}")
+        self.logger.info(f"Found {len(self.__noise_folders)}")
         if not len(self.__noise_folders):
             raise ValueError
                 
