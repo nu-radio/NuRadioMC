@@ -2,7 +2,7 @@ import numpy as np
 import glob
 import os
 import random
-import sys
+import collections
 
 from NuRadioReco.modules.io.rno_g.readRNOGDataMattak import readRNOGData
 from NuRadioReco.modules.base.module import register_run
@@ -55,7 +55,7 @@ class noiseImporter:
             a "fallback" to uproot is used. (Default: "auto") 
         """
         
-        self.logger = logging.getLogger('noiseImporter')
+        self.logger = logging.getLogger('NuRadioReco.RNOG.noiseImporter')
         self.logger.setLevel(log_level)
         
         self._match_station_id = match_station_id
@@ -94,6 +94,8 @@ class noiseImporter:
         noise_information = self._noise_reader.get_event_information_dict(keys=["station"])
         self.__event_index_list = np.array(list(noise_information.keys()))
         self.__station_id_list = np.array([ele["station"] for ele in noise_information.values()])
+        
+        self._n_use_event = collections.defaultdict(int)
                 
         
     def __get_noise_channel(self, channel_id):
@@ -116,7 +118,8 @@ class noiseImporter:
             # select all noise events
             station_mask = np.full_like(self.__event_index_list, True)
 
-        i_noise = np.random.choice(self.__event_index_list[station_mask])   
+        i_noise = np.random.choice(self.__event_index_list[station_mask])
+        self._n_use_event[i_noise] += 1
         noise_event = self._noise_reader.read_event(i_noise)
         
         station_id = noise_event.get_station_ids()[0]
@@ -158,4 +161,8 @@ class noiseImporter:
 
     def end(self):
         self._noise_reader.end()
+        n_use = np.array(list(self._n_use_event.values()))
+        sort = np.flip(np.argsort(n_use))
+        self.logger.info("\n\tThe five most used noise events have been used: {}"
+                         .format(", ".join([str(ele) for ele in n_use[sort][:5]])))
         pass
