@@ -49,7 +49,7 @@ cpdef find_solutions(x1, x2, n_ice, delta_n, z_0, reflection, reflection_case, i
                           'reflection': reflection,
                           'reflection_case': reflection_case})
 
-    s = sorted(solutions, key=itemgetter('C0'))
+    s = sorted(solutions, key=itemgetter('reflection', 'C0'))
 #     print((time.time() - t) * 1000)
     return s
 
