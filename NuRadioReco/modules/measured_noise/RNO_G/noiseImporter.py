@@ -97,13 +97,14 @@ class noiseImporter:
 
         self.logger.info("Get event informations ...")
         # instead of reading all noise events into memory we only get certain information here and read all data in run()
+        
         noise_information = self._noise_reader.get_event_information_dict(keys=["station"])
         self.__event_index_list = np.array(list(noise_information.keys()))
         self.__station_id_list = np.array([ele["station"] for ele in noise_information.values()])
         
         self._n_use_event = collections.defaultdict(int)
-                
-        
+       
+
     def __get_noise_channel(self, channel_id):
         if self.__channel_mapping is None:
             return channel_id
@@ -124,7 +125,8 @@ class noiseImporter:
             # select all noise events
             station_mask = np.full_like(self.__event_index_list, True)
 
-        i_noise = np.random.choice(self.__event_index_list[station_mask])
+        # int(..) necessary because pyroot can not handle np.int64
+        i_noise = int(np.random.choice(self.__event_index_list[station_mask]))
         self._n_use_event[i_noise] += 1
         noise_event = self._noise_reader.read_event(i_noise)
         
