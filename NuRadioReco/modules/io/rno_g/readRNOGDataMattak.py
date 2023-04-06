@@ -94,7 +94,9 @@ class readRNOGData:
              convert_to_voltage=True,
              select_triggers=None,
              select_runs=True,
+             run_table_path=None,
              run_types=["physics"],
+             run_time_range=None,
              max_trigger_rate=1 * units.Hz,
              mattak_backend="auto"):
       
@@ -112,8 +114,7 @@ class readRNOGData:
       selectors: list of lambdas
          List of lambda(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
          Example:
-         
-         trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
+            trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
          
       read_calibrated_data: bool
          If True, read calibrated waveforms from Mattak.Dataset. If False, read "raw" ADC traces.
@@ -130,8 +131,17 @@ class readRNOGData:
       select_runs: bool
          Select runs
          
+      run_table_path: str
+         Path to a run_table.cvs file. If None, the run table is queried from the DB. (Default: None)
+         
       run_types: list
          Used to select/reject runs from information in the RNO-G RunTable. List of run_types to be used. (Default: ['physics'])
+         
+      run_time_range: tuple
+         Specify a time range to select runs (it is sufficient that runs cover the time range partially). 
+         Each value of the tuple has to be in a format which astropy.time.Time understands. A value can be None 
+         which means that the lower or upper bound is unconstrained. If run_time_range is None no time selection is
+         applied. (Default: None)
          
       max_trigger_rate: float
          Used to select/reject runs from information in the RNO-G RunTable. Maximum allowed trigger rate (per run) in Hz.
@@ -156,23 +166,37 @@ class readRNOGData:
       self._adc_ref_voltage_range = 2.5 * units.volt
       self._adc_n_bits = 12
       
-      if select_runs:
-         self.logger.info("\n\tSelect runs with type: {}".format(", ".join(run_types)) +
-                         f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz")
-      
       self.__max_trigger_rate = max_trigger_rate
       self.__run_types = run_types
       
-      global imported_runtable
-      if imported_runtable:
-         self.logger.debug("Access RunTable database ...")
-         try:
-            self.__run_table = RunTable().get_table()
-         except:
-            self.logger.error("No connect to RunTable database could be established. "
-                             "Runs will not be filtered.")
-         imported_runtable = False
-
+      if run_time_range is not None:
+         convert_time = lambda t: None if t is None else astropy.time.Time(t)
+         self._time_low = convert_time(run_time_range[0])
+         self._time_high = convert_time(run_time_range[1])
+      else:
+         self._time_low = None
+         self._time_high = None         
+      
+      if select_runs:
+         if run_table_path is None:
+            global imported_runtable
+            if imported_runtable:
+               self.logger.debug("Access RunTable database ...")
+               try:
+                  self.__run_table = RunTable().get_table()
+               except:
+                  self.logger.error("No connect to RunTable database could be established. "
+                                    "Runs will not be filtered.")
+                  imported_runtable = False
+         else:
+            self.__run_table = pandas.read_csv(run_table_path)
+            imported_runtable = True
+            
+      if select_runs:
+         self.logger.info("\n\tSelect runs with type: {}".format(", ".join(run_types)) +
+                         f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
+                         f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
+      
       if not isinstance(data_dirs, (list, np.ndarray)):
          data_dirs = [data_dirs]
 
@@ -209,7 +233,7 @@ class readRNOGData:
             self.logger.error(f"The directory {data_dir} does not exist")
       
          dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=data_dir, backend=mattak_backend)
-         
+
          # filter runs/datasets based on 
          if select_runs and imported_runtable and not self.__select_run(dataset):
             self.__skipped_runs += 1
@@ -223,6 +247,8 @@ class readRNOGData:
       self._event_idxs_datasets = np.cumsum(self.__n_events_per_dataset)
       self._n_events_total = np.sum(self.__n_events_per_dataset)
       self._time_begin = time.time() - t0
+      
+      self.logger.info(f"{self._n_events_total} events in {len(self._datasets)} runs/datasets have been found.")
       
       # Variable not yet implemented in mattak
       # self.logger.info(f"Using the {self._datasets[0].backend} Mattak backend.")
@@ -253,8 +279,23 @@ class readRNOGData:
       station_id = event_info.station
       
       run_info = self.__run_table.query(f"station == {station_id:d} & run == {run_id:d}")
-      run_type = run_info["run_type"].values[0]
       
+      # "time_start/end" is stored in the isot format. datetime is much faster than astropy (~85ns vs 55 mus).
+      # But using datetime would mean to stip decimals because datetime can only handle mu sec precision and can not cope 
+      # with the additional decimals for ns.
+      if self._time_low is not None:
+         time_end = astropy.time.Time(run_info["time_end"].values[0])
+         if time_end < self._time_low:
+            self.logger.info(f"Reject station {station_id} run {run_id} because run ended before {self._time_low}")
+            return False
+      
+      if self._time_high is not None:
+         time_start = astropy.time.Time(run_info["time_start"].values[0])
+         if time_start > self._time_high:
+            self.logger.info(f"Reject station {station_id} run {run_id} because run started time after {self._time_high}")
+            return False
+      
+      run_type = run_info["run_type"].values[0]
       if not run_type in self.__run_types:
          self.logger.info(f"Reject station {station_id} run {run_id} because of run type {run_type}")
          return False
