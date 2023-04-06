@@ -29,9 +29,16 @@ class triggerTimeAdjuster:
             If trigger_name is None, the trigger with the smalles trigger_time will be used.
             If a name is give, corresponding trigger module must be run beforehand.
             If the trigger does not exist or did not trigger, this module will do nothing
-        pre_trigger_time: float
-            Amount of time that should be stored in the channel trace before the trigger. If the channel trace is long
-            enough, it will be cut accordingly. Otherwise, it will be rolled.
+        pre_trigger_time: float or dict
+            Amount of time that should be stored in the channel trace before the trigger. 
+            If the channel trace is long enough, it will be cut accordingly. 
+            Otherwise, it will be rolled.
+
+            If given as a float, the same ``pre_trigger_time`` will be used for all channels.
+            If a dict, the keys should be ``channel_id``, and the values the ``pre_trigger_time`` 
+            to use for each channel. Alternatively, the keys should be the ``trigger_name``,
+            and the values either a float or a dictionary with (``channel_id``, ``pre_trigger_time``)
+            pairs.
         """
         self.__trigger_name = trigger_name
         self.__pre_trigger_time = pre_trigger_time
@@ -69,7 +76,22 @@ class triggerTimeAdjuster:
                     sampling_rate = channel.get_sampling_rate()
                     trigger_time_sample = int(np.round(trigger_time_channel * sampling_rate))
                     # logger.debug(f"channel {channel.get_id()}: trace_start_time = {channel.get_trace_start_time():.1f}ns, trigger time channel {trigger_time_channel/units.ns:.1f}ns,  trigger time sample = {trigger_time_sample}")
-                    samples_before_trigger = int(self.__pre_trigger_time * sampling_rate)
+                    pre_trigger_time = self.__pre_trigger_time
+                    channel_id = channel.get_id()
+                    trigger_name = trigger.get_name()
+                    while isinstance(pre_trigger_time, dict):
+                        if trigger_name in pre_trigger_time.keys(): # keys are different triggers
+                            pre_trigger_time = pre_trigger_time[trigger_name]
+                        elif channel_id in pre_trigger_time: # keys are channel_ids
+                            pre_trigger_time = pre_trigger_time[channel_id]
+                        else:
+                            logger.error(
+                                'pre_trigger_time was specified as a dictionary, '
+                                f'but the neither the trigger_name {trigger_name} '
+                                f'nor the channel id {channel_id} are present as keys'
+                                )
+                            raise KeyError
+                    samples_before_trigger = int(pre_trigger_time * sampling_rate)
                     rel_station_time_samples = 0
                     cut_samples_beginning = 0
                     if(samples_before_trigger < trigger_time_sample):
