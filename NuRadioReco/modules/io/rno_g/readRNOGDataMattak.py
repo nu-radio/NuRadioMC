@@ -1,5 +1,5 @@
 import numpy as np
-
+import pandas
 import logging
 import os
 import time
@@ -17,7 +17,6 @@ import mattak.Dataset
 
 try:
    from rnog_data.runtable import RunTable
-   import pandas
    imported_runtable = True
 except ImportError:
    print("Import of run table failed. You will not be able to select runs! \n" 
