@@ -21,7 +21,7 @@ class noiseImporter:
     def begin(self, noise_folders, file_pattern="*",
               match_station_id=False, station_ids=None,
               channel_mapping=None, scramble_noise_file_order=True,
-              log_level=logging.INFO, mattak_backend="auto"):
+              log_level=logging.INFO, reader_kwargs={}):
         """
         
         Parameters
@@ -50,9 +50,8 @@ class noiseImporter:
         log_level: loggging log level
             the log level, default logging.INFO
 
-        mattak_backend: str
-            Select a mattak backend. Options are "auto", "pyroot", "uproot". If "auto" is selected, pyroot is used if available otherwise
-            a "fallback" to uproot is used. (Default: "auto") 
+        reader_kwargs: dict
+            Optional arguements passed to readRNOGDataMattak
         """
         
         self.logger = logging.getLogger('NuRadioReco.RNOG.noiseImporter')
@@ -84,9 +83,16 @@ class noiseImporter:
         if scramble_noise_file_order:
             random.shuffle(self.__noise_folders)
         
-        self._noise_reader = readRNOGData()
+        if "log_level" in reader_kwargs:
+            log_level_reader = reader_kwargs.pop("log_level")
+        else:
+            log_level_reader = log_level
+
+        self._noise_reader = readRNOGData()                
         selectors = [lambda einfo: einfo.triggerType == "FORCE"]
-        self._noise_reader.begin(self.__noise_folders, selectors=selectors, log_level=log_level, mattak_backend=mattak_backend)
+        self._noise_reader.begin(self.__noise_folders, selectors=selectors, 
+                                 log_level=log_level_reader,
+                                 **reader_kwargs)
 
 
         self.logger.info("Get event informations ...")
