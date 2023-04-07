@@ -46,6 +46,7 @@ import NuRadioMC.simulation.channel_efield_simulator
 import NuRadioMC.simulation.shower_simulator
 import NuRadioMC.simulation.station_simulator
 import NuRadioMC.simulation.hardware_response_simulator
+import NuRadioMC.simulation.output_writer_hdf5
 STATUS = 31
 
 # logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
@@ -138,6 +139,8 @@ class simulation(
             self._raytracer,
             self._evt_time
         )
+
+
         for shower_index, shower_id in enumerate(self._shower_ids):
             self._shower_index_array[shower_id] = shower_index
 
@@ -161,7 +164,15 @@ class simulation(
 
         # calculate bary centers of station
         self._station_barycenter = self._calculate_station_barycenter()
-
+        self.__output_writer_hdf5 = NuRadioMC.simulation.output_writer_hdf5.outputWriterHDF5(
+            self._outputfilename,
+            self._cfg,
+            self._det,
+            self._station_ids,
+            self._raytracer,
+            self.__hardware_response_simulator,
+            self._inputfilename
+        )
         # loop over event groups
         for i_event_group_id, event_group_id in enumerate(unique_event_group_ids):
             if i_event_group_id > 10e99:
@@ -190,6 +201,8 @@ class simulation(
             if self._mout['weights'][self._primary_index] < self._cfg['speedup']['minimum_weight_cut']:
                 logger.debug("neutrino weight is smaller than {}, skipping event".format(self._cfg['speedup']['minimum_weight_cut']))
                 continue
+
+
 
             # these quantities get computed to apply the distance cut as a function of shower energies
             # the shower energies of closeby showers will be added as they can constructively interfere
@@ -234,12 +247,20 @@ class simulation(
                 self._create_sim_station()
 
                 station_output, efield_array = self.__station_simulator.simulate_station(self._station_id)
-                event_objects, station_objects, station_has_triggered = self.__hardware_response_simulator.simulate_detector_response(
+                event_objects, station_objects, sub_event_shower_ids, station_has_triggered = self.__hardware_response_simulator.simulate_detector_response(
                     self._station_id,
                     efield_array,
                     event_indices
                 )
-
+                if station_has_triggered:
+                    self.__output_writer_hdf5.add_station(
+                        self._station_id,
+                        event_objects,
+                        station_objects,
+                        station_output,
+                        event_group_id,
+                        sub_event_shower_ids
+                    )
                 # loop over all showers in event group
                 # create output data structure for this channel
 
@@ -272,6 +293,7 @@ class simulation(
                 # now perform first part of detector simulation -> convert each efield to voltage
                 # (i.e. apply antenna response) and apply additional simulation of signal chain (such as cable delays,
                 # amp response etc.)
+                continue
                 if not candidate_station:
                     logger.debug("electric field amplitude too small in all channels, skipping to next event")
                     continue
@@ -292,7 +314,8 @@ class simulation(
 
         # save simulation run in hdf5 format (only triggered events)
         t5 = time.time()
-        self._write_output_file()
+        # self._write_output_file()
+        self.__output_writer_hdf5.save_output()
         if self._outputfilenameNuRadioReco is not None:
             self._eventWriter.end()
             logger.debug("closing nur file")

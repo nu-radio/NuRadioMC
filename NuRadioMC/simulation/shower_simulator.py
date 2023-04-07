@@ -105,7 +105,7 @@ class showerSimulator:
         path_length_list = np.full((n_channels, self.__n_raytracing_solutions), np.nan)
         polarization_direction_list = np.full((n_channels, self.__n_raytracing_solutions, 3), np.nan)
         efield_amplitude_list = np.full((n_channels, self.__n_raytracing_solutions), np.nan)
-        raytracing_output_list = []
+        raytracing_output_list = {}
         for i_channel, channel_id in enumerate(self.__channel_ids):
             efield_objects, launch_vectors, receive_vectors, travel_times, path_lenghts, polarization_directions, \
                 efield_amplitudes, raytracing_output = self.__channel_efield_simulator.simulate_efield_at_channel(
@@ -119,7 +119,10 @@ class showerSimulator:
             path_length_list[i_channel, :n_efield_entries] = path_lenghts
             polarization_direction_list[i_channel, :n_efield_entries] = polarization_directions
             efield_amplitude_list[i_channel, :n_efield_entries] = efield_amplitudes
-            raytracing_output_list.append(raytracing_output)
+            for key in raytracing_output:
+                if key not in raytracing_output_list:
+                    raytracing_output_list[key] = np.full((n_channels, self.__n_raytracing_solutions), np.nan)
+                raytracing_output_list[key][i_channel] = raytracing_output[key]
         return efield_list, launch_vector_list, receive_vector_list, travel_time_list, path_length_list, \
                 polarization_direction_list, efield_amplitude_list, raytracing_output_list
 

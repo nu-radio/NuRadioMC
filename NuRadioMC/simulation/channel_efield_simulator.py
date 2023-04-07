@@ -149,9 +149,13 @@ class channelEfieldSimulator:
         channel_index = self.__get_channel_index(channel_id)
         channel_relative_position = self.__detector.get_relative_position(self.__station_id, channel_id)
         efield_objects = []
-        raytracing_output = []
+        raytracing_output = {}
         for i_solution, solution in enumerate(raytracing_solutions):
-            raytracing_output.append(self.__raytracer.get_raytracing_output(i_solution))
+            rt_output = self.__raytracer.get_raytracing_output(i_solution)
+            for key in rt_output:
+                if key not in raytracing_output:
+                    raytracing_output[key] = np.full(n_solutions, np.nan)
+                raytracing_output[key][i_solution] = rt_output[key]
 
             if np.abs(delta_Cs[i_solution]) >= self.__config['speedup']['delta_C_cut']:
                 continue

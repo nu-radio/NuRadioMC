@@ -59,7 +59,10 @@ class hardwareResponseSimulator:
         self.__noise_adder_normalization = {}
         self.__v_rms_per_channel = {}
         self.__noiseless_channels = {}
+        self.__noise_temperature = None
+        self.__noise_vrms = None
         self.__perform_dummy_detector_simulation()
+        self.__bandwidth = next(iter(next(iter(self.__bandwidth_per_channel.values())).values()))
         self.__calculate_noise_rms()
 
     def set_event_group(
@@ -117,6 +120,7 @@ class hardwareResponseSimulator:
         station_objects = {}
         event_objects = {}
         station_has_triggered = np.zeros(n_sub_events, dtype=bool)
+        sub_event_shower_ids = []
         for i_sub_event in range(n_sub_events):
             i_start = 0
             i_stop = len(channel_identifiers)
@@ -126,11 +130,12 @@ class hardwareResponseSimulator:
             if i_sub_event < n_sub_events - 1:
                 i_stop = split_indices[i_sub_event] + 1
             channel_indices = start_times_sort[i_start:i_stop]
-            new_sim_station = self.__split_sim_stations(
+            new_sim_station, sub_shower_ids = self.__split_sim_stations(
                 dummy_station,
                 channel_indices,
                 channel_identifiers
             )
+            sub_event_shower_ids.append(sub_shower_ids)
             new_station = NuRadioReco.framework.station.Station(station_id)
             new_station.set_sim_station(new_sim_station)
             new_event = NuRadioReco.framework.event.Event(self.__event_group_id, i_sub_event)
@@ -141,7 +146,7 @@ class hardwareResponseSimulator:
             station_has_triggered[i_sub_event] = new_station.has_triggered()
             station_objects[i_sub_event] = new_station
             event_objects[i_sub_event] = new_event
-        return event_objects, station_objects, station_has_triggered
+        return event_objects, station_objects, sub_event_shower_ids, station_has_triggered
     def __simulate_station_detector_response(
             self,
             event,
@@ -225,14 +230,17 @@ class hardwareResponseSimulator:
     ):
         new_sim_station = NuRadioReco.framework.sim_station.SimStation(dummy_station.get_id())
         new_sim_station.set_is_neutrino()
+        sub_event_shower_ids = []
         for channel_index in channel_indices:
             channel_identifier = channel_identifiers[channel_index]
+            if channel_identifier[1] not in sub_event_shower_ids:
+                sub_event_shower_ids.append(channel_identifier[1])
             new_sim_station.add_channel(copy.deepcopy(dummy_station.get_sim_station().get_channel(channel_identifier)))
             efield_identifier = ([channel_identifier[0]], channel_identifier[1], channel_identifier[2])
             for efield in dummy_station.get_sim_station().get_electric_fields():
                 if efield.get_unique_identifier() == efield_identifier:
                     new_sim_station.add_electric_field(copy.deepcopy(efield))
-        return new_sim_station
+        return new_sim_station, sub_event_shower_ids
 
     def __increase_signal(self, station, channel_id, factor):
         """
@@ -310,8 +318,6 @@ class hardwareResponseSimulator:
                 self.__bandwidth_per_channel[station_id][channel_id] = bandwidth
 
     def __calculate_noise_rms(self):
-        bandwidth = next(iter(next(iter(self.__bandwidth_per_channel.values())).values()))
-        amplification = next(iter(next(iter(self.__amplification_per_channel.values())).values()))
         noise_temp = self.__config['trigger']['noise_temperature']
         v_rms = self.__config['trigger']['Vrms']
         if noise_temp is not None and v_rms is not None:
@@ -336,16 +342,24 @@ class hardwareResponseSimulator:
 
                     self.__v_rms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * scipy.constants.k *
                            self.__bandwidth_per_channel[station_id][channel_id] / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
-            v_rms = next(iter(next(iter(self.__v_rms_per_channel.values())).values()))
+            self.__noise_vrms = next(iter(next(iter(self.__v_rms_per_channel.values())).values()))
         elif v_rms is not None:
-            v_rms = float(v_rms) * units.V
+            self.__noise_vrms = float(v_rms) * units.V
         else:
             raise AttributeError(f"noise temperature and Vrms are both set to None")
-
+        self.__noise_temperature = noise_temp
         self.__v_rms_efield_per_channel = {}
         for station_id in self.__bandwidth_per_channel:
             self.__v_rms_efield_per_channel[station_id] = {}
             for channel_id in self.__bandwidth_per_channel[station_id]:
                 self.__v_rms_efield_per_channel[station_id][channel_id] = self.__v_rms_per_channel[station_id][channel_id] / self.__amplification_per_channel[station_id][channel_id] / units.m
-        self._v_rms_efield = next(iter(next(iter(self.__v_rms_efield_per_channel.values())).values()))
+        self.__v_rms_efield = next(iter(next(iter(self.__v_rms_efield_per_channel.values())).values()))
 
+    def get_noise_temperature(self):
+        return self.__noise_temperature
+
+    def get_noise_vrms(self):
+        return self.__noise_vrms
+
+    def get_bandwidth(self):
+        return self.__bandwidth

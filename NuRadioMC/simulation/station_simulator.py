@@ -71,6 +71,10 @@ class stationSimulator:
         self.__shower_simulator.set_station(station_id)
         output_structure = self.__get_output_structure(station_id)
         efield_array = []
+        n_showers = len(self.__shower_indices)
+        n_antennas = len(self.__detector.get_channel_ids(station_id))
+        n_raytracing_solutions = self.__raytracer.get_number_of_raytracing_solutions()  # number of possible ray-tracing solutions
+
         for i_shower, shower_index in enumerate(self.__shower_indices):
             efield_objects, launch_vectors, receive_vectors, travel_times, path_lengths, polarization_directions, \
                 efield_amplitudes, raytracing_output = self.__shower_simulator.simulate_shower(
@@ -85,7 +89,10 @@ class stationSimulator:
             output_structure['travel_times'][i_shower] = travel_times
             output_structure['travel_distances'][i_shower] = path_lengths
             output_structure['polarization'][i_shower] = polarization_directions
-
+            for key in raytracing_output:
+                if key not in output_structure:
+                    output_structure[key] = np.full((n_showers, n_antennas, n_raytracing_solutions), np.nan)
+                output_structure[key][i_shower] = raytracing_output[key]
         return output_structure, efield_array
     def __distance_cut(
             self,
@@ -122,7 +129,6 @@ class stationSimulator:
         # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
         station_output_structure['shower_id'] = np.zeros(n_showers, dtype=int)
         station_output_structure['event_id_per_shower'] = np.zeros(n_showers, dtype=int)
-        station_output_structure['event_group_id_per_shower'] = np.zeros(n_showers, dtype=int)
         station_output_structure['launch_vectors'] = np.zeros((n_showers, n_antennas, n_raytracing_solutions, 3)) * np.nan
         station_output_structure['receive_vectors'] = np.zeros((n_showers, n_antennas, n_raytracing_solutions, 3)) * np.nan
         station_output_structure['polarization'] = np.zeros((n_showers, n_antennas, n_raytracing_solutions, 3)) * np.nan
