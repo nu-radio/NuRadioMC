@@ -94,7 +94,7 @@ class hardwareResponseSimulator:
             efield_objects
         )
         if dummy_station is None:
-            return None, None, None
+            return None, None, None, None, None
         if self.__config['speedup']['amp_per_ray_solution']:
             self.__channel_signal_reconstructor.run(self.__dummy_event, sim_station, self.__detector)
             for channel in sim_station.iter_channels():
@@ -102,10 +102,8 @@ class hardwareResponseSimulator:
                 raytracing_id = channel.get_ray_tracing_solution_id()
                 shower_index = self.__shower_index_array[channel.get_shower_id()]
                 tmp_index = np.argwhere(shower_indices == shower_index)[0]
-                output_data['max_amp_shower_and_ray'][tmp_index, channel_index, raytracing_id] = channel.get_parameter(
-                    chp.maximum_amplitude_envelope)
+                output_data['max_amp_shower_and_ray'][tmp_index, channel_index, raytracing_id] = channel.get_parameter(chp.maximum_amplitude_envelope)
                 output_data['time_shower_and_ray'][tmp_index, channel_index, raytracing_id] = channel.get_parameter(chp.signal_time)
-
         start_times = []
         channel_identifiers = []
         for channel in sim_station.iter_channels():
@@ -146,7 +144,7 @@ class hardwareResponseSimulator:
             station_has_triggered[i_sub_event] = new_station.has_triggered()
             station_objects[i_sub_event] = new_station
             event_objects[i_sub_event] = new_event
-        return event_objects, station_objects, sub_event_shower_ids, station_has_triggered
+        return event_objects, station_objects, sub_event_shower_ids, station_has_triggered, output_data
     def __simulate_station_detector_response(
             self,
             event,
@@ -166,7 +164,7 @@ class hardwareResponseSimulator:
             event,
             station,
             self.__detector,
-            sampling_rate_detector
+            self.__config['sampling_rate']
         )
         if self.__config['noise']:
             max_freq = 0.5 * sampling_rate_detector
@@ -188,7 +186,8 @@ class hardwareResponseSimulator:
         self.__detector_simulation_filter_amp(event, station, self.__detector)
 
         self.__detector_simulation_trigger(event, station, self.__detector)
-
+        if station.has_triggered:
+            self.__channel_signal_reconstructor.run(event, station, self.__detector)
     def __simulate_sim_station_detector_response(
             self,
             station,
@@ -216,7 +215,6 @@ class hardwareResponseSimulator:
         n_showers = len(shower_indices)
         n_antennas = len(self.__detector.get_channel_ids(station_id))
         n_raytracing_solutions = self.__raytracer.get_number_of_raytracing_solutions()  # number of possible ray-tracing solutions
-
         if self.__config['speedup']['amp_per_ray_solution']:
             station_output_structure['max_amp_shower_and_ray'] = np.zeros((n_showers, n_antennas, n_raytracing_solutions))
             station_output_structure['time_shower_and_ray'] = np.zeros((n_showers, n_antennas, n_raytracing_solutions))

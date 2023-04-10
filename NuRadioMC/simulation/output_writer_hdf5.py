@@ -3,7 +3,9 @@ import h5py
 import yaml
 import collections
 from six import iteritems, itervalues
+from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.utilities import units
+
 
 class outputWriterHDF5:
     def __init__(
@@ -51,6 +53,7 @@ class outputWriterHDF5:
             event_objects,
             station_objects,
             simulation_results,
+            hardware_response_sim_results,
             event_group_id,
             sub_event_shower_ids
     ):
@@ -61,7 +64,12 @@ class outputWriterHDF5:
             if key not in self.__output_station[station_id]:
                 self.__output_station[station_id][key] = list(simulation_results[key])
             else:
-                self.__output_station[station_id][key].extend(simulation_results[key])
+                self.__output_station[station_id][key].extend(list(simulation_results[key]))
+        for key in hardware_response_sim_results:
+            if key not in self.__output_station[station_id]:
+                self.__output_station[station_id][key] = list(hardware_response_sim_results[key])
+            else:
+                self.__output_station[station_id][key].extend(list(hardware_response_sim_results[key]))
         event_indices = np.atleast_1d(np.squeeze(np.argwhere(self.__input_data['event_group_ids'] == event_group_id)))
         for i_station,  station in iteritems(station_objects):
             for trigger_name in station.get_triggers():
@@ -74,6 +82,16 @@ class outputWriterHDF5:
                 event_indices,
                 simulation_results['launch_vectors'].shape[0]
             )
+            if station.has_triggered():
+                amplitudes = np.zeros(station.get_number_of_channels())
+                amplitudes_envelope = np.zeros(station.get_number_of_channels())
+                channel_ids = self.__detector.get_channel_ids(station_id)
+                for channel in station.iter_channels():
+                    channel_index = channel_ids.index(channel.get_id())
+                    amplitudes[channel_index] = channel.get_parameter(chp.maximum_amplitude)
+                    amplitudes_envelope[channel_index] = channel.get_parameter(chp.maximum_amplitude_envelope)
+                self.__output_maximum_amplitudes[station_id].append(amplitudes)
+                self.__output_maximum_amplitudes_envelope[station_id].append(amplitudes_envelope)
 
     def save_output(self):
         output_file = h5py.File(self.__filename, 'w')
@@ -92,6 +110,15 @@ class outputWriterHDF5:
                 output_group[key] = np.array(value)
         if 'trigger_names' in self.__meta_output_attributes:
             n_triggers = len(self.__meta_output_attributes['trigger_names'])
+            for station_id in self.__meta_output_groups:
+                n_events_for_station = len(self.__output_triggered_station[station_id])
+                if n_events_for_station > 0:
+                    station_data = output_file['station_{:d}'.format(station_id)]
+                    station_data['event_group_dis'] = np.array(self.__output_event_group_ids[station_id])
+                    station_data['event_ids'] = np.array(self.__output_sub_event_ids[station_id])
+                    station_data['maximum_amplitudes'] = np.array(self.__output_maximum_amplitudes[station_id])
+                    station_data['maximum_amplitudes_envelope'] = np.array(self.__output_maximum_amplitudes_envelope[station_id])
+                    station_data['triggered_per_event'] = np.array(self.__output_triggered_station[station_id])
         for (key, value) in iteritems(self.__meta_output):
             output_file.attrs[key] = value[saved_events_mask]
 
@@ -125,12 +152,6 @@ class outputWriterHDF5:
         for key, value in iteritems(self.__meta_output_attributes):
             output_file.attrs[key] = value
 
-        if 'trigger_names' in self.__meta_output_attributes:
-            n_triggers = len(self.__meta_output_attributes['trigger_names'])
-            for station_id in self.__station_ids:
-                n_events_for_station = len(self.__output_triggered_station[station_id])
-                if n_events_for_station > 0:
-                    continue
 
         output_file.close()
 
@@ -210,6 +231,7 @@ class outputWriterHDF5:
             'trigger_times': np.full((n_showers, len(self.__meta_output_attributes['trigger_names'])), np.nan),
             'triggered': np.zeros(n_showers, dtype=bool)
         }
+        self.__output_station[station_id]['trigger_times'] = np.full((n_showers, len(self.__meta_output_attributes['trigger_names'])), np.nan)
         self.__output_event_group_ids[station_id].append(event_object.get_run_number())
         self.__output_sub_event_ids[station_id].append(event_object.get_id())
         multiple_triggers = np.zeros(len(self.__meta_output_attributes['trigger_names']), dtype=np.bool)
@@ -221,7 +243,7 @@ class outputWriterHDF5:
                 for local_shower_index in local_shower_indices:  # now save trigger information per shower of the current station
                     trigger_data['multiple_triggers'][local_shower_index][i_trigger] = station.get_trigger(trigger_name).has_triggered()
                     trigger_data['trigger_times'][local_shower_index][i_trigger] = trigger_times[i_trigger]
-
+                    self.__output_station[station_id]['trigger_times'][local_shower_index][i_trigger] = trigger_times[i_trigger]
 
         for local_index, global_index in zip(local_shower_indices, global_shower_indices):  # now save trigger information per shower of the current station
             trigger_data['triggered'][local_index] = np.any(trigger_data['multiple_triggers'][local_index])
@@ -231,6 +253,7 @@ class outputWriterHDF5:
                 self.__meta_output['trigger_times'][global_index],
                 trigger_data['trigger_times'][local_index]
             )
+
         self.__output_multiple_triggers_station[station_id].append(multiple_triggers)
         self.__output_trigger_times_station[station_id].append(trigger_times)
         self.__output_triggered_station[station_id].append(np.any(multiple_triggers))

@@ -134,9 +134,6 @@ class stationSimulator:
         station_output_structure['polarization'] = np.zeros((n_showers, n_antennas, n_raytracing_solutions, 3)) * np.nan
         station_output_structure['travel_times'] = np.zeros((n_showers, n_antennas, n_raytracing_solutions)) * np.nan
         station_output_structure['travel_distances'] = np.zeros((n_showers, n_antennas, n_raytracing_solutions)) * np.nan
-        if self.__config['speedup']['amp_per_ray_solution']:
-            station_output_structure['max_amp_shower_and_ray'] = np.zeros((n_showers, n_antennas, n_raytracing_solutions))
-            station_output_structure['time_shower_and_ray'] = np.zeros((n_showers, n_antennas, n_raytracing_solutions))
         for parameter_entry in self.__raytracer.get_output_parameters():
             if parameter_entry['ndim'] == 1:
                 station_output_structure[parameter_entry['name']] = np.zeros((n_showers, n_antennas, n_raytracing_solutions)) * np.nan

@@ -247,7 +247,7 @@ class simulation(
                 self._create_sim_station()
 
                 station_output, efield_array = self.__station_simulator.simulate_station(self._station_id)
-                event_objects, station_objects, sub_event_shower_ids, station_has_triggered = self.__hardware_response_simulator.simulate_detector_response(
+                event_objects, station_objects, sub_event_shower_ids, station_has_triggered, harware_response_output = self.__hardware_response_simulator.simulate_detector_response(
                     self._station_id,
                     efield_array,
                     event_indices
@@ -258,6 +258,7 @@ class simulation(
                         event_objects,
                         station_objects,
                         station_output,
+                        harware_response_output,
                         event_group_id,
                         sub_event_shower_ids
                     )
