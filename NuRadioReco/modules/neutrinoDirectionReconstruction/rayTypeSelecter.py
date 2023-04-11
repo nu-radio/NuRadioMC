@@ -234,8 +234,8 @@ class rayTypeSelecter:
                         receive_vector = r.get_receive_vector(iS)
                         receive_zenith, receive_azimuth = hp.cartesian_to_spherical(*receive_vector)
                         if sim == True:
-                            channel.set_parameter(chp.signal_receiving_zeniths, receive_zenith)
-                            channel.set_parameter(chp.signal_receiving_azimuths, receive_azimuth)
+                            channel.set_parameter(chp.signal_receiving_zenith, receive_zenith)
+                            channel.set_parameter(chp.signal_receiving_azimuth, receive_azimuth)
                             logger.debug(f"receive zenith vertex, simulated vertex: {receive_zenith/units.deg:.2f} deg")
                         if not sim:
                             channel.set_parameter(chp.receive_zenith_vertex, receive_zenith)

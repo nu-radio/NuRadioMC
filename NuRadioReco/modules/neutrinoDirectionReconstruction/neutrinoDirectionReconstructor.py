@@ -188,6 +188,8 @@ class neutrinoDirectionReconstructor:
         template = self._template
         if self._single_pulse_fit:
             starting_values = True
+        else:
+            starting_values = False
 
 
         channl = station.get_channel(use_channels[0])
@@ -437,6 +439,7 @@ class neutrinoDirectionReconstructor:
         channels_overreconstructed = reconstruction_output[5]
         extra_channel = reconstruction_output[6]
         chi2_dict = reconstruction_output[3]
+        total_chi2 = np.sum([chi2s for chi2s in chi2_dict.values()])
         included_channels = reconstruction_output[7]
 
         fminfit = self.minimizer(
@@ -562,7 +565,7 @@ class neutrinoDirectionReconstructor:
 
 
             fig.tight_layout()
-            fig_path = "{}/{}_{}_fit".format(debug_path, self._evt.get_run_number(), self._evt.get_id())
+            fig_path = "{}/{}_{}_fit".format(debug_path, self._event.get_run_number(), self._event.get_id())
             logger.debug(f"output path for stored figure: {fig_path}")
             # print("output path for stored figure","{}/fit_{}.pdf".format(debugplots_path, filenumber))
             save_fig(fig, fig_path, self._debug_formats)
@@ -634,7 +637,7 @@ class neutrinoDirectionReconstructor:
             plt.tight_layout()
             save_fig(
                 fig, "{}/{}_{}_chi_squared".format(
-                debug_path, self._evt.get_run_number(), self._evt.get_id()), 
+                debug_path, self._event.get_run_number(), self._event.get_id()), 
                 self._debug_formats)
             plt.close()
             #exit()
@@ -654,7 +657,6 @@ class neutrinoDirectionReconstructor:
         if station.has_sim_station(): 
             logger.debug("chi2 for simulated rec vertex {}, simulated sim vertex {} and fit {}".format(fsim, fsimsim, fminfit))#reconstructed vertex
             logger.debug("chi2 for all channels simulated rec vertex {}, simulated sim vertex {} and fit {}".format(all_fsim, all_fsimsim, all_fminfit))#reconstructed vertex
-            total_chi2 = np.sum([chi2s for chi2s in chi2_dict.values()])
             logger.warning(f"Fit chi squared: {total_chi2:.2f} / {self.__dof}")
             logger.debug("launch vector for simulated {} and fit {}".format(lv_sim, launch_vector_rec))
             zen_sim = hp.cartesian_to_spherical(*lv_sim)[0]
