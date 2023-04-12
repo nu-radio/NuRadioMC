@@ -585,6 +585,12 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.get_ARIANNA_parameter" title="NuRadioReco.framework.station.Station.get_ARIANNA_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ARIANNA_parameter</span></code></a>(key)</p></td>
 <td><p></p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.get_station_time" title="NuRadioReco.framework.station.Station.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_time</span></code></a>([format])</p></td>
+<td><p>Returns a astropy.time.Time object</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.get_station_time_dict" title="NuRadioReco.framework.station.Station.get_station_time_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_time_dict</span></code></a>()</p></td>
+<td><p>Return the station time as dict {value, format}.</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.get_triggers" title="NuRadioReco.framework.station.Station.get_triggers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggers</span></code></a>()</p></td>
 <td><p>returns a dictionary of the triggers.</p></td>
 </tr>
@@ -600,7 +606,10 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_is_neutrino" title="NuRadioReco.framework.station.Station.set_is_neutrino"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_neutrino</span></code></a>()</p></td>
 <td><p>set station type to neutrino</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_triggered" title="NuRadioReco.framework.station.Station.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_station_time" title="NuRadioReco.framework.station.Station.set_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_station_time</span></code></a>(time[, format])</p></td>
+<td><p>Set the (absolute) time for the station (stored as astropy.time.Time).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.station.Station.set_triggered" title="NuRadioReco.framework.station.Station.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>convenience function to set a simple trigger.</p></td>
 </tr>
 </tbody>
@@ -658,58 +667,52 @@
 <tr class="row-odd"><td><p><strong>get_sim_station</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_station_time</strong></p></td>
+<tr class="row-even"><td><p><strong>get_trigger</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_trigger</strong></p></td>
+<tr class="row-odd"><td><p><strong>has_ARIANNA_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>has_ARIANNA_parameter</strong></p></td>
+<tr class="row-even"><td><p><strong>has_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>has_parameter</strong></p></td>
+<tr class="row-odd"><td><p><strong>has_sim_station</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>has_sim_station</strong></p></td>
+<tr class="row-even"><td><p><strong>is_cosmic_ray</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>is_cosmic_ray</strong></p></td>
+<tr class="row-odd"><td><p><strong>is_neutrino</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>is_neutrino</strong></p></td>
+<tr class="row-even"><td><p><strong>iter_channels</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>iter_channels</strong></p></td>
+<tr class="row-odd"><td><p><strong>remove_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>remove_parameter</strong></p></td>
+<tr class="row-even"><td><p><strong>remove_triggers</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>remove_triggers</strong></p></td>
+<tr class="row-odd"><td><p><strong>serialize</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>serialize</strong></p></td>
+<tr class="row-even"><td><p><strong>set_ARIANNA_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>set_ARIANNA_parameter</strong></p></td>
+<tr class="row-odd"><td><p><strong>set_electric_fields</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>set_electric_fields</strong></p></td>
+<tr class="row-even"><td><p><strong>set_parameter</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>set_parameter</strong></p></td>
+<tr class="row-odd"><td><p><strong>set_parameter_error</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>set_parameter_error</strong></p></td>
+<tr class="row-even"><td><p><strong>set_reference_reconstruction</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>set_reference_reconstruction</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>set_sim_station</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>set_station_time</strong></p></td>
+<tr class="row-odd"><td><p><strong>set_sim_station</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-even"><td><p><strong>set_trigger</strong></p></td>
@@ -834,8 +837,28 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.get_station_time">
-<span class="sig-name descname"><span class="pre">get_station_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.station.Station.get_station_time" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">get_station_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'isot'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.station.Station.get_station_time" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a astropy.time.Time object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>format: str</strong></dt><dd><p>Format in which the time object is displayed. (Default: isot)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>_station_time: astropy.time.Time</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.get_station_time_dict">
+<span class="sig-name descname"><span class="pre">get_station_time_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.station.Station.get_station_time_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Return the station time as dict {value, format}. Used for reading and writing</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.get_trigger">
@@ -948,8 +971,20 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.set_station_time">
-<span class="sig-name descname"><span class="pre">set_station_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.station.Station.set_station_time" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">set_station_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.station.Station.set_station_time" title="Permalink to this definition"></a></dt>
+<dd><p>Set the (absolute) time for the station (stored as astropy.time.Time).
+Not related to the event._event_time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>time: astropy.time.Time or datetime.datetime or float</strong></dt><dd><p>If “time” is a float, you have to specify its format.</p>
+</dd>
+<dt><strong>format: str</strong></dt><dd><p>Only used when “time” is a float. Format to interpret “time”. (Default: None)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.framework.station.Station.set_trigger">

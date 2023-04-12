@@ -645,22 +645,57 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;parameter key needs to be of type NuRadioReco.framework.parameters.stationParameters&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="BaseStation.set_station_time"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_station_time">[docs]</a>    <span class="k">def</span> <span class="nf">set_station_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">return</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">):</span>
-            <span class="n">time_strings</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">time</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">T</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time_strings</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">time_strings</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;isot&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">format</span> <span class="o">==</span> <span class="s1">&#39;datetime&#39;</span><span class="p">:</span>
-                <span class="n">time_strings</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">time</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">T</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time_strings</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">time_strings</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;isot&#39;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="o">=</span> <span class="n">time</span></div>
+<div class="viewcode-block" id="BaseStation.set_station_time"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_station_time">[docs]</a>    <span class="k">def</span> <span class="nf">set_station_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Set the (absolute) time for the station (stored as astropy.time.Time).</span>
+<span class="sd">        Not related to the event._event_time.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        </span>
+<span class="sd">        time: astropy.time.Time or datetime.datetime or float</span>
+<span class="sd">            If &quot;time&quot; is a float, you have to specify its format. </span>
+<span class="sd">            </span>
+<span class="sd">        format: str</span>
+<span class="sd">            Only used when &quot;time&quot; is a float. Format to interpret &quot;time&quot;. (Default: None) </span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="BaseStation.get_station_time"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_station_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_station_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="o">=</span> <span class="n">time</span>
+        <span class="k">elif</span> <span class="n">time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseStation.get_station_time"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_station_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_station_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;isot&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Returns a astropy.time.Time object </span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        </span>
+<span class="sd">        format: str</span>
+<span class="sd">            Format in which the time object is displayed. (Default: isot)</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        </span>
+<span class="sd">        _station_time: astropy.time.Time</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="nb">format</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span></div>
+    
+<div class="viewcode-block" id="BaseStation.get_station_time_dict"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_station_time_dict">[docs]</a>    <span class="k">def</span> <span class="nf">get_station_time_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return the station time as dict {value, format}. Used for reading and writing &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span><span class="o">.</span><span class="n">format</span><span class="p">}</span></div>
 
 <div class="viewcode-block" id="BaseStation.get_id"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span></div>
@@ -805,16 +840,13 @@
         <span class="n">trigger_pkls</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">trigger</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="n">trigger_pkls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trigger</span><span class="o">.</span><span class="n">serialize</span><span class="p">())</span>
+        
         <span class="n">efield_pkls</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">efield</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">():</span>
             <span class="n">efield_pkls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">efield</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">save_trace</span><span class="o">=</span><span class="n">save_efield_traces</span><span class="p">))</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">station_time_dict</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">station_time_dict</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
-                <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span><span class="o">.</span><span class="n">format</span>
-            <span class="p">}</span>
+
+        <span class="n">station_time_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_station_time_dict</span><span class="p">()</span>
+            
         <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_parameters&#39;</span><span class="p">:</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">),</span>
                 <span class="s1">&#39;_parameter_covariances&#39;</span><span class="p">:</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">serialize_covariances</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span><span class="p">),</span>
                 <span class="s1">&#39;_ARIANNA_parameters&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ARIANNA_parameters</span><span class="p">,</span>
@@ -824,15 +856,16 @@
                 <span class="s1">&#39;triggers&#39;</span><span class="p">:</span> <span class="n">trigger_pkls</span><span class="p">,</span>
                 <span class="s1">&#39;_triggered&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span><span class="p">,</span>
                 <span class="s1">&#39;electric_fields&#39;</span><span class="p">:</span> <span class="n">efield_pkls</span><span class="p">}</span>
+        
         <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BaseStation.deserialize"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.deserialize">[docs]</a>    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;triggers&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;triggers&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;triggers&#39;</span><span class="p">])</span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;triggers&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;triggers&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_triggered&#39;</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">electric_field</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;electric_fields&#39;</span><span class="p">]:</span>
@@ -843,8 +876,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;_parameters&#39;</span><span class="p">],</span>
                                                                                      <span class="n">parameters</span><span class="o">.</span><span class="n">stationParameters</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">deserialize_covariances</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;_parameter_covariances&#39;</span><span class="p">],</span> <span class="n">parameters</span><span class="o">.</span><span class="n">stationParameters</span><span class="p">)</span>
-        <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;_ARIANNA_parameters&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_covariances</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_serialization</span><span class="o">.</span><span class="n">deserialize_covariances</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_parameter_covariances&#39;</span><span class="p">],</span> <span class="n">parameters</span><span class="o">.</span><span class="n">stationParameters</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="s1">&#39;_ARIANNA_parameters&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ARIANNA_parameters</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_ARIANNA_parameters&#39;</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_station_id&#39;</span><span class="p">]</span>
@@ -855,6 +890,7 @@
             <span class="c1"># For backward compatibility, we also keep supporting station times stored as astropy.time objects</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">set_station_time</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;_station_time&#39;</span><span class="p">])</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_particle_type&#39;</span><span class="p">]</span></div></div>
 </pre></div>
 
