@@ -75,6 +75,8 @@ def get_time_offset(trigger_type):
    information might be time, station, and channel dependent and should come 
    from a database (or is already calibrated in mattak)
    
+   Current values motivated by figures posted in PR https://github.com/nu-radio/NuRadioMC/pull/519
+   
    Parameters
    ----------
    
@@ -91,8 +93,8 @@ def get_time_offset(trigger_type):
    
    time_offsets = {
       "FORCE": 0,
-      "LT": 213 * units.ns,  # ~ 1 / 3 of trace @ 2048 sample with 3.2 GSa/s
-      "RADIANT": 320 * units.ns  # ~ 1 / 2 of trace @ 2048 sample with 3.2 GSa/s
+      "LT": 250 * units.ns,  
+      "RADIANT": 475 * units.ns  
    }
    
    if trigger_type.startswith("RADIANT"):
