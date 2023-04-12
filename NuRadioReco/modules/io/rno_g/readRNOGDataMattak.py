@@ -24,23 +24,43 @@ except ImportError:
    imported_runtable = False
 
 
-def baseline_correction(wfs, n_bins=128):
+def baseline_correction(wfs, n_bins=128, func=np.median):
+   """
+   Simple baseline correction function. Determines baseline in discrete chuncks of "n_bins" with
+   the function specified (i.e., mean or median).
+   
+   Parameters
+   ----------
+   
+   wfs: np.array(n_events, n_channels, n_samples)
+      Waveforms of several events/channels.
+      
+   n_bins: int
+      Number of samples/bins in one "chunck". If None, calculate median/mean over entire trace. (Default: 128)
+      
+   func: np.mean or np.median
+      Function to calculate pedestal
+   
+   Returns
+   -------
+   
+   wfs_corrected: np.array(n_events, n_channels, n_samples)
+      Baseline/pedestal corrected waveforms
+   """
     
-   # Get baseline in chunks of 128 bins
-   # np.split -> (16, n_events, n_channels, 128)
-   # np.mean -> (16, n_events, n_channels)
+   # Example: Get baselines in chunks of 128 bins
+   # wfs in (n_events, n_channels, 2048)
+   # np.split -> (16, n_events, n_channels, 128) each waveform split in 16 chuncks
+   # func -> (16, n_events, n_channels) pedestal for each chunck
    if n_bins is not None:
-      medians = np.median(np.split(wfs, 2048 // n_bins, axis=-1), axis=-1)
-    
-      # Get baseline traces
-      # np.repeat -> (2048, n_events, n_channels)
-      baseline_traces = np.repeat(medians, n_bins % 2048, axis=0)
+      baseline_values = func(np.split(wfs, 2048 // n_bins, axis=-1), axis=-1)
+
+      # np.repeat -> (2048, n_events, n_channels) concatenate the 16 chuncks to one baseline
+      baseline_traces = np.repeat(baseline_values, n_bins % 2048, axis=0)
    else:
-      medians = np.median(wfs, axis=-1)
-    
-      # Get baseline traces
-      # np.repeat -> (2048, n_events, n_channels)
-      baseline_traces = np.repeat(medians, 2048, axis=0)
+      baseline_values = func(wfs, axis=-1)
+      # np.repeat -> (2048, n_events, n_channels) concatenate the 16 chuncks to one baseline
+      baseline_traces = np.repeat(baseline_values, 2048, axis=0)
           
    # np.moveaxis -> (n_events, n_channels, 2048)
    baseline_traces = np.moveaxis(baseline_traces, 0, -1)
