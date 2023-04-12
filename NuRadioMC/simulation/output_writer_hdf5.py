@@ -58,7 +58,9 @@ class outputWriterHDF5:
             sub_event_shower_ids
     ):
         if station_id not in self.__output_station.keys():
-            self.__output_station[station_id] = {}
+            self.__output_station[station_id] = {
+                'trigger_times': []
+            }
         event_group_ids = np.full(simulation_results['event_id_per_shower'].shape, event_group_id)
         for key in simulation_results:
             if key not in self.__output_station[station_id]:
@@ -107,7 +109,12 @@ class outputWriterHDF5:
         for station_key, val in iteritems(self.__output_station):
             output_group = output_file.create_group('station_{:d}'.format(station_key))
             for key, value in iteritems(val):
-                output_group[key] = np.array(value)
+                print('--------------------------')
+                print(key)
+                print('-')
+                print(value)
+                output_group[key] = np.array(value, dtype=float)
+
         if 'trigger_names' in self.__meta_output_attributes:
             n_triggers = len(self.__meta_output_attributes['trigger_names'])
             for station_id in self.__meta_output_groups:
@@ -231,11 +238,11 @@ class outputWriterHDF5:
             'trigger_times': np.full((n_showers, len(self.__meta_output_attributes['trigger_names'])), np.nan),
             'triggered': np.zeros(n_showers, dtype=bool)
         }
-        self.__output_station[station_id]['trigger_times'] = np.full((n_showers, len(self.__meta_output_attributes['trigger_names'])), np.nan)
         self.__output_event_group_ids[station_id].append(event_object.get_run_number())
         self.__output_sub_event_ids[station_id].append(event_object.get_id())
         multiple_triggers = np.zeros(len(self.__meta_output_attributes['trigger_names']), dtype=np.bool)
         trigger_times = np.nan * np.zeros_like(multiple_triggers)
+        station_trigger_times = np.full((len(local_shower_indices), trigger_times.shape[0]), np.nan)
         for i_trigger, trigger_name in enumerate(self.__meta_output_attributes['trigger_names']):
             if station.has_trigger(trigger_name):
                 multiple_triggers[i_trigger] = station.get_trigger(trigger_name).has_triggered()
@@ -243,7 +250,8 @@ class outputWriterHDF5:
                 for local_shower_index in local_shower_indices:  # now save trigger information per shower of the current station
                     trigger_data['multiple_triggers'][local_shower_index][i_trigger] = station.get_trigger(trigger_name).has_triggered()
                     trigger_data['trigger_times'][local_shower_index][i_trigger] = trigger_times[i_trigger]
-                    self.__output_station[station_id]['trigger_times'][local_shower_index][i_trigger] = trigger_times[i_trigger]
+                    station_trigger_times[local_shower_index][i_trigger] = trigger_times[i_trigger]
+        self.__output_station[station_id]['trigger_times'].append(station_trigger_times)
 
         for local_index, global_index in zip(local_shower_indices, global_shower_indices):  # now save trigger information per shower of the current station
             trigger_data['triggered'][local_index] = np.any(trigger_data['multiple_triggers'][local_index])
