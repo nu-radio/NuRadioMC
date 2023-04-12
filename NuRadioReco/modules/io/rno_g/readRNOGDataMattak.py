@@ -146,7 +146,8 @@ class readRNOGData:
          (Default: True)
          
       select_runs: bool
-         Select runs
+         If True, use information in run_table to select runs (based on run_type, run_time, trigger_rate, ...). If the run_table is 
+         not available no selection is performed (and the programm is not interrupted, only an error message is raised). (Default: True)
          
       run_table_path: str
          Path to a run_table.cvs file. If None, the run table is queried from the DB. (Default: None)
