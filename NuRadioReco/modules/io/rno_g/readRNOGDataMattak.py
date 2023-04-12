@@ -118,12 +118,11 @@ class readRNOGData:
              run_time_range=None,
              max_trigger_rate=1 * units.Hz,
              mattak_backend="auto"):
-      
       """
-      
+
       Parameters
       ----------
-      
+
       data_dirs: list of strings / string
          Path to run directories (i.e. ".../stationXX/runXXX/")
          
@@ -132,13 +131,12 @@ class readRNOGData:
          
       selectors: list of lambdas
          List of lambda(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
-         Example:
-            trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
+         Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
          
       read_calibrated_data: bool
          If True, read calibrated waveforms from Mattak.Dataset. If False, read "raw" ADC traces.
          (temp. Default: False)
-      
+
       apply_baseline_correction: bool
          Only applies when non-calibrated data are read. If true, correct for DC offset.
          (Default: True)
