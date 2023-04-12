@@ -41,6 +41,7 @@ toml = ">=0.10.2"
 uproot = "4.1.1"
 importlib-metadata = {version = ">=4.8.1", python = "<3.8"}
 numba = "*"
+pandas = "*"
 
 [tool.poetry.dev-dependencies]
 Sphinx = "*"
