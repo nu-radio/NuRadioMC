@@ -19,6 +19,7 @@ Subpackages
    NuRadioReco.modules.custom
    NuRadioReco.modules.iftElectricFieldReconstructor
    NuRadioReco.modules.io
+   NuRadioReco.modules.measured_noise
    NuRadioReco.modules.neutrinoDirectionReconstructor
    NuRadioReco.modules.neutrinoVertexReconstructor
    NuRadioReco.modules.phasedarray
@@ -38,7 +39,6 @@ Submodules
    NuRadioReco.modules.channelGalacticNoiseAdder
    NuRadioReco.modules.channelGenericNoiseAdder
    NuRadioReco.modules.channelLengthAdjuster
-   NuRadioReco.modules.channelMeasuredNoiseAdder
    NuRadioReco.modules.channelResampler
    NuRadioReco.modules.channelSignalReconstructor
    NuRadioReco.modules.channelStopFilter

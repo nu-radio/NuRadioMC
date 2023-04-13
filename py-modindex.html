@@ -271,6 +271,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.html">NuRadioReco.modules.measured_noise package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
@@ -286,7 +287,6 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelLengthAdjuster.html">NuRadioReco.modules.channelLengthAdjuster module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelMeasuredNoiseAdder.html">NuRadioReco.modules.channelMeasuredNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelResampler.html">NuRadioReco.modules.channelResampler module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelSignalReconstructor.html">NuRadioReco.modules.channelSignalReconstructor module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.modules.channelStopFilter.html">NuRadioReco.modules.channelStopFilter module</a></li>
@@ -1070,11 +1070,6 @@
      <tr class="cg-2">
        <td></td>
        <td>&#160;&#160;&#160;
-       <a href="NuRadioReco/apidoc/NuRadioReco.modules.channelMeasuredNoiseAdder.html#module-NuRadioReco.modules.channelMeasuredNoiseAdder"><code class="xref">NuRadioReco.modules.channelMeasuredNoiseAdder</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-2">
-       <td></td>
-       <td>&#160;&#160;&#160;
        <a href="NuRadioReco/apidoc/NuRadioReco.modules.channelResampler.html#module-NuRadioReco.modules.channelResampler"><code class="xref">NuRadioReco.modules.channelResampler</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-2">
@@ -1245,21 +1240,6 @@
      <tr class="cg-2">
        <td></td>
        <td>&#160;&#160;&#160;
-       <a href="NuRadioReco/apidoc/NuRadioReco.modules.io.noise.html#module-NuRadioReco.modules.io.noise"><code class="xref">NuRadioReco.modules.io.noise</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-2">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="NuRadioReco/apidoc/NuRadioReco.modules.io.noise.noiseImporter.html#module-NuRadioReco.modules.io.noise.noiseImporter"><code class="xref">NuRadioReco.modules.io.noise.noiseImporter</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-2">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="NuRadioReco/apidoc/NuRadioReco.modules.io.noise.noiseImporterROOT.html#module-NuRadioReco.modules.io.noise.noiseImporterROOT"><code class="xref">NuRadioReco.modules.io.noise.noiseImporterROOT</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-2">
-       <td></td>
-       <td>&#160;&#160;&#160;
        <a href="NuRadioReco/apidoc/NuRadioReco.modules.io.NuRadioRecoio.html#module-NuRadioReco.modules.io.NuRadioRecoio"><code class="xref">NuRadioReco.modules.io.NuRadioRecoio</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-2">
@@ -1291,6 +1271,26 @@
        <td></td>
        <td>&#160;&#160;&#160;
        <a href="NuRadioReco/apidoc/NuRadioReco.modules.io.snowshovel.readARIANNADataCalib.html#module-NuRadioReco.modules.io.snowshovel.readARIANNADataCalib"><code class="xref">NuRadioReco.modules.io.snowshovel.readARIANNADataCalib</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-2">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.html#module-NuRadioReco.modules.measured_noise"><code class="xref">NuRadioReco.modules.measured_noise</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-2">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.ARIANNA.html#module-NuRadioReco.modules.measured_noise.ARIANNA"><code class="xref">NuRadioReco.modules.measured_noise.ARIANNA</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-2">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.html#module-NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT"><code class="xref">NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-2">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.html#module-NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder"><code class="xref">NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-2">
        <td></td>

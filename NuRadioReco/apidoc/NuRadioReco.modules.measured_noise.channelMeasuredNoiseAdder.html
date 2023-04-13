@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.modules.channelMeasuredNoiseAdder module &mdash; NuRadio 2.2.0-dev documentation</title>
+  <title>NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
@@ -21,8 +21,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.modules.channelResampler module" href="NuRadioReco.modules.channelResampler.html" />
-    <link rel="prev" title="NuRadioReco.modules.channelLengthAdjuster module" href="NuRadioReco.modules.channelLengthAdjuster.html" /> 
+    <link rel="next" title="NuRadioReco.modules.neutrinoDirectionReconstructor package" href="NuRadioReco.modules.neutrinoDirectionReconstructor.html" />
+    <link rel="prev" title="NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT module" href="NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -263,7 +263,7 @@
 </ul>
 </li>
 <li class="toctree-l3 current"><a class="reference internal" href="NuRadioReco.modules.html">NuRadioReco.modules package</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l4 current"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
@@ -271,13 +271,14 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5 current"><a class="reference internal" href="NuRadioReco.modules.measured_noise.html">NuRadioReco.modules.measured_noise package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.trigger.html">NuRadioReco.modules.trigger package</a></li>
 </ul>
 </li>
-<li class="toctree-l4 current"><a class="reference internal" href="NuRadioReco.modules.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.analogToDigitalConverter.html">NuRadioReco.modules.analogToDigitalConverter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.beamFormingDirectionFitter.html">NuRadioReco.modules.beamFormingDirectionFitter module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelAddCableDelay.html">NuRadioReco.modules.channelAddCableDelay module</a></li>
@@ -286,7 +287,6 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelGalacticNoiseAdder.html">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelGenericNoiseAdder.html">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelLengthAdjuster.html">NuRadioReco.modules.channelLengthAdjuster module</a></li>
-<li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioReco.modules.channelMeasuredNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelResampler.html">NuRadioReco.modules.channelResampler module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelSignalReconstructor.html">NuRadioReco.modules.channelSignalReconstructor module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelStopFilter.html">NuRadioReco.modules.channelStopFilter module</a></li>
@@ -563,9 +563,10 @@
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.modules.html">NuRadioReco.modules package</a></li>
-      <li class="breadcrumb-item active">NuRadioReco.modules.channelMeasuredNoiseAdder module</li>
+          <li class="breadcrumb-item"><a href="NuRadioReco.modules.measured_noise.html">NuRadioReco.modules.measured_noise package</a></li>
+      <li class="breadcrumb-item active">NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.channelMeasuredNoiseAdder.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -573,11 +574,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioReco.modules.channelMeasuredNoiseAdder">
-<span id="nuradioreco-modules-channelmeasurednoiseadder-module"></span><h1>NuRadioReco.modules.channelMeasuredNoiseAdder module<a class="headerlink" href="#module-NuRadioReco.modules.channelMeasuredNoiseAdder" title="Permalink to this heading"></a></h1>
+  <section id="module-NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder">
+<span id="nuradioreco-modules-measured-noise-channelmeasurednoiseadder-module"></span><h1>NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder module<a class="headerlink" href="#module-NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder" title="Permalink to this heading"></a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.channelMeasuredNoiseAdder.</span></span><span class="sig-name descname"><span class="pre">channelMeasuredNoiseAdder</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelMeasuredNoiseAdder.html#channelMeasuredNoiseAdder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.</span></span><span class="sig-name descname"><span class="pre">channelMeasuredNoiseAdder</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/measured_noise/channelMeasuredNoiseAdder.html#channelMeasuredNoiseAdder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Module that adds measured noise to channel traces
 It does so by reading in a set of .nur files, randomly selecting a forced trigger event
@@ -588,28 +589,34 @@ first, for example using the channelLengthAdjuster.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.begin" title="NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>(filenames[, random_seed, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.begin" title="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([filenames, folder, file_pattern, ...])</p></td>
 <td><p>Set up module parameters</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.end" title="NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.end"><code class="xref py py-obj docutils literal notranslate"><span class="pre">end</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.end" title="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.end"><code class="xref py py-obj docutils literal notranslate"><span class="pre">end</span></code></a>()</p></td>
 <td><p>End method.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.get_noise_station" title="NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.get_noise_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_noise_station</span></code></a>(station)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.get_noise_station" title="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.get_noise_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_noise_station</span></code></a>(station)</p></td>
 <td><p>Returns a random station from the noise files that can be used as a noise sample.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.run" title="NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, station, det)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.run" title="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, station, det)</p></td>
 <td><p>Add measured noise to station channels</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">draw_noise_statistics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelMeasuredNoiseAdder.html#channelMeasuredNoiseAdder.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.begin" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.begin">
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">draw_noise_statistics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restrict_station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_noise_resampling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseline_substraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_triggers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['FORCE']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/measured_noise/channelMeasuredNoiseAdder.html#channelMeasuredNoiseAdder.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.begin" title="Permalink to this definition"></a></dt>
 <dd><p>Set up module parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>filenames: list of strings</strong></dt><dd><p>List of .nur files containing the measured noise</p>
+<dt><strong>filenames: list of strings</strong></dt><dd><p>List of .nur files containing the measured noise. If None, look for .nur files in “folder”.
+(Default: None)</p>
+</dd>
+<dt><strong>folder: str</strong></dt><dd><p>Only used when “filenames” is None. Directory to search for .nur files matching the “file_pattern”
+including subdirectories. (Default: None)</p>
+</dd>
+<dt><strong>file_pattern: str</strong></dt><dd><p>Use glob.glob(f”{folder}/<a href="#id1"><span class="problematic" id="id2">**</span></a>/{file_pattern}.nur”, recursive=True) to search for files. (Default: “*”)</p>
 </dd>
 <dt><strong>random_seed: int, default: None</strong></dt><dd><p>Seed for the random number generator. By default, no seed is set.</p>
 </dd>
@@ -621,14 +628,32 @@ or until the number of iterations exceeds max_iterations. In that case, an error
 <dt><strong>draw_noise_statistics: boolean, default: False</strong></dt><dd><p>If true, the values of all samples is stored and a histogram with noise statistics is drawn
 be the end() method</p>
 </dd>
+<dt><strong>channel_mapping: dict or None</strong></dt><dd><p>option relevant for MC studies of new station designs where we do not
+have forced triggers for. The channel_mapping dictionary maps the channel
+ids of the MC station to the channel ids of the noise data
+Default is None which is 1-to-1 mapping</p>
+</dd>
+<dt><strong>log_level: loggging log level</strong></dt><dd><p>the log level, default logging.WARNING</p>
+</dd>
+<dt><strong>baseline_substraction: boolean</strong></dt><dd><p>Option to subtract mean from trace. Set mean_opt=False to remove mean subtraction from trace.</p>
+</dd>
+<dt><strong>restrict_station_id: bool</strong></dt><dd><p>Require the station in the noise event to be the same as in the simulated event. (Default: True)</p>
+</dd>
+<dt><strong>station_id: int</strong></dt><dd><p>If restrict_station_id is False specify the station id to be used for the noise. If None take first station
+in the noise event. (Default: None)</p>
+</dd>
+<dt><strong>allow_noise_resampling: bool</strong></dt><dd><p>Allow resampling the noise trace to match the simulated trace. (Default: False)</p>
+</dd>
+<dt><strong>allowed_triggers: list(str)</strong></dt><dd><p>List of trigger names which should be used, events with other triggers are not used. (Default: [“FORCE”])</p>
+</dd>
 </dl>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelMeasuredNoiseAdder.html#channelMeasuredNoiseAdder.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.run" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/measured_noise/channelMeasuredNoiseAdder.html#channelMeasuredNoiseAdder.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.run" title="Permalink to this definition"></a></dt>
 <dd><p>Add measured noise to station channels</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -642,8 +667,8 @@ be the end() method</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.get_noise_station">
-<span class="sig-name descname"><span class="pre">get_noise_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelMeasuredNoiseAdder.html#channelMeasuredNoiseAdder.get_noise_station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.get_noise_station" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.get_noise_station">
+<span class="sig-name descname"><span class="pre">get_noise_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/measured_noise/channelMeasuredNoiseAdder.html#channelMeasuredNoiseAdder.get_noise_station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.get_noise_station" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a random station from the noise files that can be used as a noise sample.
 The function selects a random event from the noise files and checks if it is suitable.
 If it is, the station is returned, otherwise None is returned. The event is suitable if it
@@ -664,8 +689,8 @@ fulfills these criteria:</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.end">
-<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/channelMeasuredNoiseAdder.html#channelMeasuredNoiseAdder.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.end" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.end">
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/measured_noise/channelMeasuredNoiseAdder.html#channelMeasuredNoiseAdder.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.end" title="Permalink to this definition"></a></dt>
 <dd><p>End method. Draws a histogram of the noise statistics and fits a
 Gaussian distribution to it.</p>
 </dd></dl>
@@ -678,8 +703,8 @@ Gaussian distribution to it.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioReco.modules.channelLengthAdjuster.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.channelLengthAdjuster module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.modules.channelResampler.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.channelResampler module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioReco.modules.neutrinoDirectionReconstructor.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.neutrinoDirectionReconstructor package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

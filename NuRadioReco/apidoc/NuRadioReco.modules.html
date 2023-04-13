@@ -271,6 +271,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.measured_noise.html">NuRadioReco.modules.measured_noise package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
@@ -286,7 +287,6 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelGalacticNoiseAdder.html">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelGenericNoiseAdder.html">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelLengthAdjuster.html">NuRadioReco.modules.channelLengthAdjuster module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelMeasuredNoiseAdder.html">NuRadioReco.modules.channelMeasuredNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelResampler.html">NuRadioReco.modules.channelResampler module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelSignalReconstructor.html">NuRadioReco.modules.channelSignalReconstructor module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelStopFilter.html">NuRadioReco.modules.channelStopFilter module</a></li>
@@ -661,10 +661,6 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.coreas.html#submodules">Submodules</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.noise.html">NuRadioReco.modules.io.noise package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.noise.html#submodules">Submodules</a></li>
-</ul>
-</li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.rno_g.html">NuRadioReco.modules.io.rno_g package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.rno_g.html#submodules">Submodules</a></li>
 </ul>
@@ -692,6 +688,23 @@
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.event_parser_factory.html">NuRadioReco.modules.io.event_parser_factory module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.event_parser_factory.html#NuRadioReco.modules.io.event_parser_factory.scan_files_function"><code class="docutils literal notranslate"><span class="pre">scan_files_function()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.io.event_parser_factory.html#NuRadioReco.modules.io.event_parser_factory.iter_events_function"><code class="docutils literal notranslate"><span class="pre">iter_events_function()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.measured_noise.html">NuRadioReco.modules.measured_noise package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.measured_noise.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.measured_noise.ARIANNA.html">NuRadioReco.modules.measured_noise.ARIANNA package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.measured_noise.ARIANNA.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.measured_noise.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.html">NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.html#NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder"><code class="docutils literal notranslate"><span class="pre">channelMeasuredNoiseAdder</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -860,16 +873,6 @@
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.channelLengthAdjuster.html#NuRadioReco.modules.channelLengthAdjuster.channelLengthAdjuster.begin"><code class="docutils literal notranslate"><span class="pre">channelLengthAdjuster.begin()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.channelLengthAdjuster.html#NuRadioReco.modules.channelLengthAdjuster.channelLengthAdjuster.run"><code class="docutils literal notranslate"><span class="pre">channelLengthAdjuster.run()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.channelLengthAdjuster.html#NuRadioReco.modules.channelLengthAdjuster.channelLengthAdjuster.end"><code class="docutils literal notranslate"><span class="pre">channelLengthAdjuster.end()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.channelMeasuredNoiseAdder.html">NuRadioReco.modules.channelMeasuredNoiseAdder module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.channelMeasuredNoiseAdder.html#NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder"><code class="docutils literal notranslate"><span class="pre">channelMeasuredNoiseAdder</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.channelMeasuredNoiseAdder.html#NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.begin"><code class="docutils literal notranslate"><span class="pre">channelMeasuredNoiseAdder.begin()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.channelMeasuredNoiseAdder.html#NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.run"><code class="docutils literal notranslate"><span class="pre">channelMeasuredNoiseAdder.run()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.channelMeasuredNoiseAdder.html#NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.get_noise_station"><code class="docutils literal notranslate"><span class="pre">channelMeasuredNoiseAdder.get_noise_station()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.channelMeasuredNoiseAdder.html#NuRadioReco.modules.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.end"><code class="docutils literal notranslate"><span class="pre">channelMeasuredNoiseAdder.end()</span></code></a></li>
 </ul>
 </li>
 </ul>

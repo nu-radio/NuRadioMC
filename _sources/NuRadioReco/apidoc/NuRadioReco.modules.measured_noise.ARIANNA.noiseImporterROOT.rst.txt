@@ -1,0 +1,7 @@
+NuRadioReco.modules.measured\_noise.ARIANNA.noiseImporterROOT module
+====================================================================
+
+.. automodule:: NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT
+   :members:
+   :undoc-members:
+   :show-inheritance:

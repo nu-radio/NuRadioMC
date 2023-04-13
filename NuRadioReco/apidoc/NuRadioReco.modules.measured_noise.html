@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.modules.io.noise package &mdash; NuRadio 2.2.0-dev documentation</title>
+  <title>NuRadioReco.modules.measured_noise package &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
@@ -21,8 +21,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.modules.io.noise.noiseImporter module" href="NuRadioReco.modules.io.noise.noiseImporter.html" />
-    <link rel="prev" title="NuRadioReco.modules.io.coreas.simulationSelector module" href="NuRadioReco.modules.io.coreas.simulationSelector.html" /> 
+    <link rel="next" title="NuRadioReco.modules.measured_noise.ARIANNA package" href="NuRadioReco.modules.measured_noise.ARIANNA.html" />
+    <link rel="prev" title="NuRadioReco.modules.io.event_parser_factory module" href="NuRadioReco.modules.io.event_parser_factory.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -270,7 +270,8 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
-<li class="toctree-l5 current"><a class="reference internal" href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioReco.modules.measured_noise package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
@@ -286,7 +287,6 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelGalacticNoiseAdder.html">NuRadioReco.modules.channelGalacticNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelGenericNoiseAdder.html">NuRadioReco.modules.channelGenericNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelLengthAdjuster.html">NuRadioReco.modules.channelLengthAdjuster module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelMeasuredNoiseAdder.html">NuRadioReco.modules.channelMeasuredNoiseAdder module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelResampler.html">NuRadioReco.modules.channelResampler module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelSignalReconstructor.html">NuRadioReco.modules.channelSignalReconstructor module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.channelStopFilter.html">NuRadioReco.modules.channelStopFilter module</a></li>
@@ -563,10 +563,9 @@
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.modules.html">NuRadioReco.modules package</a></li>
-          <li class="breadcrumb-item"><a href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
-      <li class="breadcrumb-item active">NuRadioReco.modules.io.noise package</li>
+      <li class="breadcrumb-item active">NuRadioReco.modules.measured_noise package</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.io.noise.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -574,26 +573,35 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioReco.modules.io.noise">
-<span id="nuradioreco-modules-io-noise-package"></span><h1>NuRadioReco.modules.io.noise package<a class="headerlink" href="#module-NuRadioReco.modules.io.noise" title="Permalink to this heading"></a></h1>
+  <section id="module-NuRadioReco.modules.measured_noise">
+<span id="nuradioreco-modules-measured-noise-package"></span><h1>NuRadioReco.modules.measured_noise package<a class="headerlink" href="#module-NuRadioReco.modules.measured_noise" title="Permalink to this heading"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.measured_noise.ARIANNA.html">NuRadioReco.modules.measured_noise.ARIANNA package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.measured_noise.ARIANNA.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.html">NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.html#NuRadioReco.modules.measured_noise.ARIANNA.noiseImporterROOT.noiseImporter"><code class="docutils literal notranslate"><span class="pre">noiseImporter</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.noise.noiseImporter.html">NuRadioReco.modules.io.noise.noiseImporter module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.io.noise.noiseImporter.html#NuRadioReco.modules.io.noise.noiseImporter.noiseImporter"><code class="docutils literal notranslate"><span class="pre">noiseImporter</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.noise.noiseImporter.html#NuRadioReco.modules.io.noise.noiseImporter.noiseImporter.begin"><code class="docutils literal notranslate"><span class="pre">noiseImporter.begin()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.noise.noiseImporter.html#NuRadioReco.modules.io.noise.noiseImporter.noiseImporter.run"><code class="docutils literal notranslate"><span class="pre">noiseImporter.run()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.noise.noiseImporter.html#NuRadioReco.modules.io.noise.noiseImporter.noiseImporter.end"><code class="docutils literal notranslate"><span class="pre">noiseImporter.end()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.noise.noiseImporterROOT.html">NuRadioReco.modules.io.noise.noiseImporterROOT module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.io.noise.noiseImporterROOT.html#NuRadioReco.modules.io.noise.noiseImporterROOT.noiseImporter"><code class="docutils literal notranslate"><span class="pre">noiseImporter</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.noise.noiseImporterROOT.html#NuRadioReco.modules.io.noise.noiseImporterROOT.noiseImporter.begin"><code class="docutils literal notranslate"><span class="pre">noiseImporter.begin()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.noise.noiseImporterROOT.html#NuRadioReco.modules.io.noise.noiseImporterROOT.noiseImporter.run"><code class="docutils literal notranslate"><span class="pre">noiseImporter.run()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.io.noise.noiseImporterROOT.html#NuRadioReco.modules.io.noise.noiseImporterROOT.noiseImporter.end"><code class="docutils literal notranslate"><span class="pre">noiseImporter.end()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.html">NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.html#NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder"><code class="docutils literal notranslate"><span class="pre">channelMeasuredNoiseAdder</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.html#NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.begin"><code class="docutils literal notranslate"><span class="pre">channelMeasuredNoiseAdder.begin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.html#NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.run"><code class="docutils literal notranslate"><span class="pre">channelMeasuredNoiseAdder.run()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.html#NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.get_noise_station"><code class="docutils literal notranslate"><span class="pre">channelMeasuredNoiseAdder.get_noise_station()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.html#NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder.end"><code class="docutils literal notranslate"><span class="pre">channelMeasuredNoiseAdder.end()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -607,8 +615,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioReco.modules.io.coreas.simulationSelector.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.io.coreas.simulationSelector module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.modules.io.noise.noiseImporter.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.io.noise.noiseImporter module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.modules.io.event_parser_factory.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.io.event_parser_factory module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioReco.modules.measured_noise.ARIANNA.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.measured_noise.ARIANNA package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

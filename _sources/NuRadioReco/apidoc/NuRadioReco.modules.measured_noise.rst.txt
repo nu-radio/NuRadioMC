@@ -1,0 +1,23 @@
+NuRadioReco.modules.measured\_noise package
+===========================================
+
+.. automodule:: NuRadioReco.modules.measured_noise
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.measured_noise.ARIANNA
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder
