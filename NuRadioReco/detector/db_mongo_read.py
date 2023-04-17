@@ -78,44 +78,28 @@ class Database(object):
 
         logger.info("database connection to {} established".format(self.db.name))
 
-        self.__current_time = None
+        # Set timestamp of database. This is used to determine which primary measurement is used
+        self.__database_time = datetime.datetime.utcnow()
+        
+        # This is used to get commissioned stations/channels
+        self.__detector_time = None
+        
+        
+    def set_database_time(self, time):
+        ''' Set time(stamp) for database. This affects which primary measurement is used.
+        
+        Parameters
+        ----------
+        
+        time: datetime.datetime 
+            UTC time.
+        '''
+        self.__database_time = time
+     
+        
+    def get_database_time(self):
+        return self.__database_time
 
-        self.__modification_timestamps = self._query_modification_timestamps()
-        self.__buffered_period = None
-
-    def update(self, timestamp, collection_name):
-        logger.info("updating detector time to {}".format(timestamp))
-        self.__current_time = timestamp
-        self._update_buffer(collection_name)
-
-    def export_detector(self, filename="detector.json"):
-        """ export the detector to file """
-
-        if os.path.exists(filename):
-            logger.error("Output file already exists.")
-        else:
-            self.__db["detector_time"] = self.__current_time
-            with open(filename, 'w') as fp:
-                fp.write(json_util.dumps(self.__db, indent=4, sort_keys=True))
-                #Note: some output/timezone options can be set in bson.json_util.DEFAULT_JSON_OPTIONS
-            logger.info("Output written to {}.".format(filename))
-
-    def import_detector(self, filename):
-        """ import the detector from file """
-        if os.path.isfile(filename):
-            logger.info("Importing detector from file {}".format(filename))
-
-            self.__det = json.load(open(filename))
-            self._current_time = self.__det["detector_time"]
-        else:
-            logger.error("Cannot import detector. File {} does not exist.".format(filename))
-
-    # general
-
-    # TODO: need to be adapted to the new structure
-    def is_primary_working(self, type, name):
-        """
-        checks if the primary measurement is set not working.
 
         Parameters
         ---------
