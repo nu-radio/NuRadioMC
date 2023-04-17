@@ -1,21 +1,41 @@
-from pymongo import MongoClient
 import six
 import os
 import sys
 import urllib.parse
 import datetime
-import logging
-import NuRadioReco.utilities.metaclasses
 import json
-from bson import json_util #bson dicts are used by pymongo
 import numpy as np
-from bson import ObjectId
-import pandas as pd
+from functools import wraps
+import collections
+
+from pymongo import MongoClient
+from bson import json_util  # bson dicts are used by pymongo
+
+import NuRadioReco.utilities.metaclasses
+
+import logging
 logging.basicConfig()
 logger = logging.getLogger("database")
 logger.setLevel(logging.DEBUG)
 
 
+def check_database_time(method):
+    @wraps(method)
+    def _impl(self, *method_args, **method_kwargs):
+        time = self.get_database_time()
+        if time is None:
+            logger.error('Database time is None.')
+            raise ValueError('Database time is None.')
+        return method(self, *method_args, **method_kwargs)
+    return _impl
+
+
+def filtered_keys(dict, exclude_keys):
+    """ Creates a set (list) of dictionary keys with out 'exclude_keys' """
+    if not isinstance(exclude_keys, list):
+        exclude_keys = [exclude_keys]
+    
+    return set(list(dict.keys())) - set(exclude_keys)
 
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class Database(object):
@@ -24,26 +44,30 @@ class Database(object):
 
         if database_connection == "env_pw_user":
             # use db connection from environment, pw and user need to be percent escaped
-            mongo_password = urllib.parse.quote_plus(os.environ.get('mongo_password'))
-            mongo_user = urllib.parse.quote_plus(os.environ.get('mongo_user'))
             mongo_server = os.environ.get('mongo_server')
             if mongo_server is None:
                 logger.warning('variable "mongo_server" not set')
-            if None in [mongo_user, mongo_server]:
+
+            mongo_password = urllib.parse.quote_plus(os.environ.get('mongo_password'))
+            mongo_user = urllib.parse.quote_plus(os.environ.get('mongo_user'))
+            if None in [mongo_user, mongo_password]:
                 logger.warning('"mongo_user" or "mongo_password" not set')
+            
             # start client
             self.__mongo_client = MongoClient("mongodb://{}:{}@{}".format(mongo_user, mongo_password, mongo_server), tls=True)
             self.db = self.__mongo_client.RNOG_live
+        
         elif database_connection == "RNOG_public":
             # use read-only access to the RNO-G database
             self.__mongo_client = MongoClient("mongodb://read:EseNbGVaCV4pBBrt@radio.zeuthen.desy.de:27017/admin?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=true")
-            #self.__mongo_client = MongoClient("mongodb+srv://RNOG_read:7-fqTRedi$_f43Q@cluster0-fc0my.mongodb.net/test?retryWrites=true&w=majority")
             self.db = self.__mongo_client.RNOG_live
+        
         elif database_connection == "RNOG_test_public":
             # use readonly access to the RNO-G test database
             self.__mongo_client = MongoClient(
                 "mongodb://RNOG_test_public:jrE5xO38D7wQweVR5doa@radio-test.zeuthen.desy.de:27017/admin?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=true")
             self.db = self.__mongo_client.RNOG_live
+        
         elif database_connection == "connection_string":
             # use a connection string from the environment
             connection_string = os.environ.get('db_mongo_connection_string')
