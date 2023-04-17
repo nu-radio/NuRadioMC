@@ -212,7 +212,7 @@ class Database(object):
         collection_name: string
             Specify the collection, from which the information should be extracted (e.g. "station_rnog")
         
-        Retruns
+        Returns
         -------
         
         info: dict

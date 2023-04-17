@@ -28,7 +28,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         If the new name already exists, the operation fails.
 
         Parameters
-        ---------
+        ----------
         old_name: string
             old name of the collection
         new_name: string
@@ -42,7 +42,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         If the input unit dosn't exist yet, it will be created.
 
         Parameters
-        ---------
+        ----------
         type: string
             type of the input unit (HPol, VPol, surfCABLE, ...)
         name: string
@@ -93,7 +93,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         updates the status of primary_measurement, set the timestamp of the current primary measurement to end at datetime.utcnow()
 
         Parameters
-        ---------
+        ----------
         type: string
             type of the input unit (HPol, VPol, surfCABLE, ...)
         name: string
@@ -140,7 +140,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         helper function to change the current active primary measurement for a single antenna measurement
 
         Parameters
-        ---------
+        ----------
         object_type: string
             type of the input unit (HPol, VPol, surfCABLE, ...)
         object_name: string
@@ -207,7 +207,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         If the Antenna dosn't exist yet, it will be created.
 
         Parameters
-        ---------
+        ----------
         antenna_type: string
             specify if it is a VPol or HPol antenna
         antenna_name: string
@@ -254,7 +254,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         changes the current active primary measurement for a single antenna measurement
 
         Parameters
-        ---------
+        ----------
         antenna_type: string
             specify if it is a VPol or HPol antenna
         antenna_name: string
@@ -287,7 +287,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         If the cable dosn't exist yet, it will be created.
 
         Parameters
-        ---------
+        ----------
         cable_type: string
             type of the cable (surface or downhole)
         cable_name: string
@@ -337,7 +337,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         changes the current active primary measurement for a single cable measurement
 
         Parameters
-        ---------
+        ----------
         cable_type: string
             specify if it is a surface or downhole cable
         cable_name: string
@@ -372,7 +372,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         If the board dosn't exist yet, it will be created.
 
         Parameters
-        ---------
+        ----------
         board_name: string
             the unique identifier of the board
         drab_id: string
@@ -435,7 +435,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         changes the current active primary measurement for a single board measurement
 
         Parameters
-        ---------
+        ----------
         board_type: string
             specify the board type
         board_name: string
@@ -472,7 +472,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         If the board dosn't exist yet, it will be created.
 
         Parameters
-        ---------
+        ----------
         board_name: string
             the unique identifier of the board
         drab_id: string
@@ -535,7 +535,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         changes the current active primary measurement for a single board measurement
 
         Parameters
-        ---------
+        ----------
         board_type: string
             specify the board type
         board_name: string
@@ -573,7 +573,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         If the board dosn't exist yet, it will be created.
 
         Parameters
-        ---------
+        ----------
         board_name: string
             the unique identifier of the board
         drab_id: string
@@ -634,7 +634,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         changes the current active primary measurement for a single board measurement
 
         Parameters
-        ---------
+        ----------
         board_type: string
             specify the board type
         board_name: string
@@ -670,7 +670,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         If the board dosn't exist yet, it will be created.
 
         Parameters
-        ---------
+        ----------
         board_name: string
             the unique identifier of the board
         drab_id: string
@@ -734,7 +734,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         changes the current active primary measurement for a single board measurement
 
         Parameters
-        ---------
+        ----------
         board_type: string
             specify the board type
         board_name: string
@@ -772,7 +772,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         function to decommission an active station in the db
 
         Parameters
-        ---------
+        ----------
         collection: string
             name of the collection
         station_id: int
@@ -829,7 +829,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         function to decommission an active channel in the db
 
         Parameters
-        ---------
+        ----------
         collection: string
             name of the collection
         station_id: int
@@ -907,7 +907,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         function to decommission an active device in the db
 
         Parameters
-        ---------
+        ----------
         collection: string
             name of the collection
         station_id: int
@@ -986,7 +986,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         If the station dosn't exist yet, it will be created.
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the unique identifier of the station
         measurement_name: string
@@ -1031,7 +1031,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         If the station dosn't exist yet, it will be created.
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the unique identifier of the station the channel belongs to
         channel_number: int
@@ -1083,7 +1083,7 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
         If the station dosn't exist yet, it will be created.
 
         Parameters
-        ---------
+        ----------
         station_id: int
             the unique identifier of the station the channel belongs to
         channel_number: int
@@ -1127,28 +1127,28 @@ class Database(NuRadioReco.detector.db_mongo_read.Database):
 
     def add_device_position(self, station_id, device_id, measurement_name, measurement_time, position, orientation, rotation, primary):
         """
-                inserts a position measurement for a device into the database
-                If the station dosn't exist yet, it will be created.
+        inserts a position measurement for a device into the database
+        If the station dosn't exist yet, it will be created.
 
-                Parameters
-                ---------
-                station_id: int
-                    the unique identifier of the station the channel belongs to
-                device_id: int
-                    unique identifier of the device
-                measurement_name: string
-                    the unique name of the position measurement
-                measurement_time: string
-                    the time when the measurement was conducted
-                position: list of floats
-                    the measured position of the channel
-                orientation: dict
-                    orientation of the channel
-                rotation: dict
-                    rotation of the channel
-                primary: bool
-                    indicates if the measurement will be used as the primary measurement from now on
-                """
+        Parameters
+        ----------
+        station_id: int
+            the unique identifier of the station the channel belongs to
+        device_id: int
+            unique identifier of the device
+        measurement_name: string
+            the unique name of the position measurement
+        measurement_time: string
+            the time when the measurement was conducted
+        position: list of floats
+            the measured position of the channel
+        orientation: dict
+            orientation of the channel
+        rotation: dict
+            rotation of the channel
+        primary: bool
+            indicates if the measurement will be used as the primary measurement from now on
+        """
         collection_name = 'device_position'
         # close the time period of the old primary measurement
         if primary and station_id in self.db[collection_name].distinct('id'):
