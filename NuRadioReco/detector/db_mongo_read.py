@@ -251,98 +251,73 @@ class Database(object):
 
         return station_info
 
-    def get_collection_information(self, collection_name, station_id, primary_time=None, measurement_name=None, channel_id=None):
+
+    @check_database_time
+    def get_collection_information(self, collection_name, station_id, measurement_name=None, channel_id=None):
         """
-        get the information for a specified collection (will only work for 'station_position', 'channel_position' and 'signal_chain')
-        if the station does not exist, {} will be returned
-        default: primary_time = current time and no measurement_name
+        Get the information for a specified collection (will only work for 'station_position', 'channel_position' and 'signal_chain')
+        if the station does not exist, {} will be returned. Return primary measurement unless measurement_name is specified.
 
         Parameters
-        ---------
+        ----------
+        
         collection_name: string
-            specify the collection, from which the information should be extracted (will only work for 'station_position', 'channel_position' and 'signal_chain')
+            Specify the collection, from which the information should be extracted (will only work for 'station_position', 
+            'channel_position' and 'signal_chain')
+        
         station_id: int
-            the unique identifier of the station
-        primary_time: datetime.datetime
-            elements which are/were primary at this time are selected
+            The unique identifier of the station
+        
         measurement_name: string
-            the unique name of the measurement
+            The unique name of the measurement. (Default: None - return primary measurement)
+        
         channel_id: int
-            unique identifier of the channel
+            Unique identifier of the channel
 
         Returns
-        ---------
-        info
+        -------
+        
+        info: list(dict)
         """
+        
         # if the collection is empty, return an empty dict
         if self.db[collection_name].count_documents({'id': station_id}) == 0:
             return {}
-
+        
+        primary_time = self.__database_time
+        
         # define the search filter
-        if primary_time is not None:
-            if measurement_name is None:
-                if channel_id is None:
-                    search_filter = [{'$match': {'id': station_id}},
-                                     {'$unwind': '$measurements'},
-                                     {'$unwind': '$measurements.primary_measurement'},
-                                     {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
-                                                 'measurements.primary_measurement.end': {'$gte': primary_time}}}]
-                else:  # channel_id is not None
-                    search_filter = [{'$match': {'id': station_id}},
-                                     {'$unwind': '$measurements'},
-                                     {'$match': {'measurements.channel_id': channel_id}},
-                                     {'$unwind': '$measurements.primary_measurement'},
-                                     {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
-                                                 'measurements.primary_measurement.end': {'$gte': primary_time}}}]
-            else:  # measurement_name is not None
-                if channel_id is None:
-                    search_filter = [{'$match': {'id': station_id}},
-                                     {'$unwind': '$measurements'},
-                                     {'$match': {'measurements.measurement_name': measurement_name}},
-                                     {'$unwind': '$measurements.primary_measurement'},
-                                     {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
-                                                 'measurements.primary_measurement.end': {'$gte': primary_time}}}]
-                else:  # channel_id is not None
-                    search_filter = [{'$match': {'id': station_id}},
-                                     {'$unwind': '$measurements'},
-                                     {'$match': {'measurements.measurement_name': measurement_name,
-                                                 'measurements.channel_id': channel_id}},
-                                     {'$unwind': '$measurements.primary_measurement'},
-                                     {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
-                                                 'measurements.primary_measurement.end': {'$gte': primary_time}}}]
-        else:  # primary time is None
-            if measurement_name is not None:
-                if channel_id is not None:
-                    search_filter = [{'$match': {'id': station_id}},
-                                     {'$unwind': '$measurements'},
-                                     {'$match': {'measurements.measurement_name': measurement_name,
-                                                 'measurements.channel_id': channel_id}}]
-                else:  # channel_id is None
-                    search_filter = [{'$match': {'id': station_id}},
-                                     {'$unwind': '$measurements'},
-                                     {'$match': {'measurements.measurement_name': measurement_name}}]
-            else:  # measurement_name is None
-                # take the current time as primary time and do not specify measurement name
-                primary_time = datetime.datetime.utcnow()
-                if channel_id is not None:
-                    search_filter = [{'$match': {'id': station_id}},
-                                     {'$unwind': '$measurements'},
-                                     {'$match': {'measurements.channel_id': channel_id}},
-                                     {'$unwind': '$measurements.primary_measurement'},
-                                     {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
-                                                 'measurements.primary_measurement.end': {'$gte': primary_time}}}]
-                else:  # channel_id is None
-                    search_filter = [{'$match': {'id': station_id}},
-                                     {'$unwind': '$measurements'},
-                                     {'$unwind': '$measurements.primary_measurement'},
-                                     {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
-                                                 'measurements.primary_measurement.end': {'$gte': primary_time}}}]
+        search_filter = [{'$match': {'id': station_id}},
+                         {'$unwind': '$measurements'}]
+        
+        if channel_id is not None and measurement_name is None:
+            search_filter += [{'$match': {'measurements.channel_id': channel_id}}]  # append
+        
+        elif channel_id is None and measurement_name is not None:
+            search_filter += [{'$match': {'measurements.measurement_name': measurement_name}}]  # append
+
+        elif channel_id is not None and measurement_name is not None:
+            search_filter += [{'$match': {'measurements.measurement_name': measurement_name,
+                                          'measurements.channel_id': channel_id}}]  # append
+        else:
+            pass
+                    
+        if measurement_name is None:
+            search_filter += [
+                {'$unwind': '$measurements.primary_measurement'},
+                {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
+                            'measurements.primary_measurement.end': {'$gte': primary_time}}}]
+        else:
+            # measurement identified by "measurement_name"
+            pass    
 
         search_result = list(self.db[collection_name].aggregate(search_filter))
 
+        # FS: The following code block seems unnecessary
+        """
         if search_result == []:
             return search_result
-
+        
         # extract the measurement and object id
         object_id = []
         measurement_id = []
@@ -357,6 +332,10 @@ class Database(object):
         info = list(self.db[collection_name].aggregate(id_filter))
 
         return info
+        """
+        
+        return search_result
+
 
     def get_quantity_names(self, collection_name, wanted_quantity):
         """ returns a list with all measurement names, ids, ... or what is specified (example: wanted_quantity = measurements.measurement_name)"""
