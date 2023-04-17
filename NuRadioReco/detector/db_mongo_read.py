@@ -84,6 +84,8 @@ class Database(object):
         # This is used to get commissioned stations/channels
         self.__detector_time = None
         
+        self.__get_collection_names = None
+        
         
     def set_database_time(self, time):
         ''' Set time(stamp) for database. This affects which primary measurement is used.
@@ -186,7 +188,9 @@ class Database(object):
         return self.db[object_type].distinct('name')
 
     def get_collection_names(self):
-        return self.db.list_collection_names()
+        if self.____get_collection_names is None:
+            self.__get_collection_names =  self.db.list_collection_names()
+        return self.__get_collection_names
 
     def get_station_ids(self, collection):
         return self.db[collection].distinct('id')
@@ -403,17 +407,74 @@ class Database(object):
         return channel_pos_dic
     
     
+    def get_sig_chain_component_measurements(self, channel_signal_chain_dict):
+        
+        sig_chain = channel_signal_chain_dict['sig_chain']
+        primary_components = channel_signal_chain_dict['primary_components']
+        
+        measurement_components_dic = {}
+        
+        for sig_chain_component in sig_chain:
+            if sig_chain_component in self.get_collection_names():
+                
+                # Search for supplementary info (e.g., drab_board and drab_board_channel_id). If this is the case -> extract the information 
+                # (important to find the final measurement)
+                supp_info = []
+                for sck in sig_chain:
+                    if sig_chain_component in sck and sig_chain_component != sck:
+                        supp_info.append(sck)
+                                            
+                # get the primary time of the component measurement -> important to find the measurement which should be used
+                primary_component = primary_components[sig_chain_component]
+                
+                # define a search filter
+                search_filter_sig_chain = [{'$match': {'name': sig_chain[sig_chain_component]}}, {'$unwind': '$measurements'}]
+    
+                # if there is supp info -> add this to the search filter
+                help_dic = {}
+                if len(supp_info):
+                    for si in supp_info:
+                        help_dic[f'measurements.{si[len(sig_chain_component)+1:]}'] = sig_chain[si]
+                
+                if len(self.get_quantity_names(collection_name=sig_chain_component, wanted_quantity='measurements.S_parameter')) != 1:  
+                    # if more than one S parameter is saved in the database only chose S21
+                    help_dic['measurements.S_parameter'] = 'S21'
+
+                if len(help_dic):
+                    search_filter_sig_chain.append({'$match': help_dic})
+                
+                # add the primary time
+                search_filter_sig_chain.append({'$unwind': '$measurements.primary_measurement'})
+                search_filter_sig_chain.append({'$match': {'measurements.primary_measurement.start': {'$lte': primary_component},
+                                                            'measurements.primary_measurement.end': {'$gte': primary_component}}})
+                # print(sig_chain_component, search_filter_sig_chain)
+                # find the correct measurement in the database and extract the measurement and object id
+                search_result_sig_chain = list(self.db[sig_chain_component].aggregate(search_filter_sig_chain))
+                
+                if len(search_result_sig_chain) != 1:
+                    raise ValueError
+                
+                result_sig_chain = search_result_sig_chain[0]['measurements']
+                
+                freq = result_sig_chain['frequencies']  # 0: should only return a single valid entry
+                yunits = result_sig_chain['y-axis_units']
+                
+                ydata = []
+                if 'mag' in result_sig_chain:
+                    ydata.append(result_sig_chain['mag'])
+                if 'phase' in result_sig_chain:
+                    ydata.append(result_sig_chain['phase'])
+
+                measurement_components_dic[sig_chain_component] = {'y_units': yunits, 'freq': freq, 'ydata': ydata}
+        
+        return measurement_components_dic
+    
+    
     def get_channels_signal_chain(self, station_id, measurement_name=None, channel_id=None):
         signal_chain_information = self.get_collection_information('signal_chain', station_id, measurement_name=measurement_name, channel_id=channel_id)
         
         if channel_id is not None and len(signal_chain_information) > 1:
             raise ValueError
-
-        # get all collection names to identify the different components
-        # ['measurement_protocol', 'downhole_chain', 'iglu_board', 'drab_board', 'surface_board', 'run_quality_check', 
-        #  'station_position', 'device_position', 'runtable', 'channel_position', 'vpol', 'downhole_cable', 'hpol', 'surface_cable', 
-        #  'station_rnog', 'signal_chain']
-        collection_names = self.get_collection_names()
 
         # get the channel signal chain in the correct format
         channel_sig_chain_dic = {}
@@ -423,63 +484,9 @@ class Database(object):
                                                  for k in filtered_keys(cha_sig_dic['measurements'], ['channel_id'])}
 
         # got through the signal chain and collect the corresponding measurements
-        for cha_id in channel_sig_chain_dic:
-            sig_chain = channel_sig_chain_dic[cha_id]['sig_chain']
+        for cha_id, channel_signal_chain_dict in channel_sig_chain_dic.items():
 
-            measurement_components_dic = {}
-            for sig_chain_component in sig_chain:
-                if sig_chain_component in collection_names:
-                    
-                    # Search for supplementary info (e.g., drab_board and drab_board_channel_id). If this is the case -> extract the information 
-                    # (important to find the final measurement)
-                    supp_info = []
-                    for sck in sig_chain:
-                        if sig_chain_component in sck and sig_chain_component != sck:
-                            supp_info.append(sck)
-                                                
-                    # get the primary time of the component measurement -> important to find the measurement which should be used
-                    primary_component = channel_sig_chain_dic[cha_id]['primary_components'][sig_chain_component]
-                    
-                    # define a search filter
-                    search_filter_sig_chain = [{'$match': {'name': sig_chain[sig_chain_component]}}, {'$unwind': '$measurements'}]
-      
-
-                    # if there is supp info -> add this to the search filter
-                    help_dic = {}
-                    if len(supp_info):
-                        for si in supp_info:
-                            help_dic[f'measurements.{si[len(sig_chain_component)+1:]}'] = sig_chain[si]
-                    
-                    if len(self.get_quantity_names(collection_name=sig_chain_component, wanted_quantity='measurements.S_parameter')) != 1:  
-                        # if more than one S parameter is saved in the database only chose S21
-                        help_dic['measurements.S_parameter'] = 'S21'
-
-                    if len(help_dic):
-                        search_filter_sig_chain.append({'$match': help_dic})
-                    
-                    # add the primary time
-                    search_filter_sig_chain.append({'$unwind': '$measurements.primary_measurement'})
-                    search_filter_sig_chain.append({'$match': {'measurements.primary_measurement.start': {'$lte': primary_component},
-                                                               'measurements.primary_measurement.end': {'$gte': primary_component}}})
-
-                    # find the correct measurement in the database and extract the measurement and object id
-                    search_result_sig_chain = list(self.db[sig_chain_component].aggregate(search_filter_sig_chain))
-                    
-                    if len(search_result_sig_chain) != 1:
-                        raise ValueError
-                    
-                    result_sig_chain = search_result_sig_chain[0]['measurements']
-                    
-                    freq = result_sig_chain['frequencies']  # 0: should only return a single valid entry
-                    yunits = result_sig_chain['y-axis_units']
-                    
-                    ydata = []
-                    if 'mag' in result_sig_chain:
-                        ydata.append(result_sig_chain['mag'])
-                    if 'phase' in result_sig_chain:
-                        ydata.append(result_sig_chain['phase'])
-
-                    measurement_components_dic[sig_chain_component] = {'y_units': yunits, 'freq': freq, 'ydata': ydata}
+            measurement_components_dic = self.get_sig_chain_component_measurements(channel_signal_chain_dict)
 
             channel_sig_chain_dic[cha_id]['measurements_components'] = measurement_components_dic
 
@@ -488,7 +495,7 @@ class Database(object):
     
     def get_devices_position(self, station_id, measurement_name=None):
         device_position_information = self.get_collection_information('device_position', station_id, measurement_name=measurement_name)
-        print(device_position_information)
+
         device_pos_dic = {}
         for dev_pos_dic in device_position_information:
             device_id = dev_pos_dic['measurements']['device_id']
