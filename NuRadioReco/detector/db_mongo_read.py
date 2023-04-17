@@ -101,45 +101,29 @@ class Database(object):
         return self.__database_time
 
 
+    def find_primary_measurement(
+            self, type, name, primary_time, identification_label='name', _id=None, id_label='channel', 
+            breakout_id=None, breakout_channel_id=None):
+        """
+        Find the object_id of entry with name 'name' and gives the measurement_id of the primary measurement, 
+        return the id of the object and the measurement
+
         Parameters
-        ---------
+        ----------
         type: string
             type of the input unit (HPol, VPol, surfCABLE, ...)
+        
         name: string
             the unique identifier of the input unit
-        """
-
-        component_filter = [{'$match': {'name': name}},
-                            {'$unwind': '$measurements'},
-                            {'$match': {'measurements.function_test': True,
-                             'measurements.primary_measurement': True}}]
-
-        entries = list(self.db[type].aggregate(component_filter))
-        if len(entries) == 1:
-            if entries[0]['name'] == name:
-                return True
-        elif len(entries) > 1:
-            logger.error('More than one entry is found.')
-            return False
-        else:
-            return False
-
-    def find_primary_measurement(self, type, name, primary_time, identification_label='name', _id=None, id_label='channel', breakout_id=None, breakout_channel_id=None):
-        """
-                find the object_id of entry with name 'name' and gives the measurement_id of the primary measurement, return the id of the object and the measurement
-
-                Parameters
-                ---------
-                type: string
-                    type of the input unit (HPol, VPol, surfCABLE, ...)
-                name: string
-                    the unique identifier of the input unit
-                primary_time: datetime.datetime
-                    timestamp for the primary measurement
-                _id: int
-                    if there is a channel or device id for the object, the id is used in the search filter mask
-                id_label: string
-                    sets if a channel id ('channel') or device id ('device) is used
+        
+        primary_time: datetime.datetime
+            timestamp for the primary measurement
+        
+        _id: int
+            if there is a channel or device id for the object, the id is used in the search filter mask
+        
+        id_label: string
+            sets if a channel id ('channel') or device id ('device) is used
 
         """
 
@@ -207,14 +191,9 @@ class Database(object):
     def get_station_ids(self, collection):
         return self.db[collection].distinct('id')
 
-    # IGLU / DRAB
     def load_board_information(self, type, board_name, info_names):
+        """ For IGLU / DRAB """
         infos = []
-        # if self.db[type].find_one({'name': board_name})['function_test']:
-        #     for name in info_names:
-        #         infos.append(self.db[type].find_one({'name': board_name})['measurements'][0][name])
-
-        #
         for i in range(len(self.db[type].find_one({'name': board_name})['measurements'])):
             if self.db[type].find_one({'name': board_name})['measurements'][i]['function_test']:
                 for name in info_names:
@@ -223,38 +202,52 @@ class Database(object):
 
         return infos
 
-    def get_general_station_information(self, collection, station_id):
-        """ get information from one station """
+    @check_database_time
+    def get_general_station_information(self, collection, station_id, detector_time=None):
+        """ Get information from one station
+        
+        Parameters
+        ----------
+        
+        collection_name: string
+            Specify the collection, from which the information should be extracted (e.g. "station_rnog")
+        
+        Retruns
+        -------
+        
+        info: dict
+        """
 
         # if the collection is empty, return an empty dict
         if self.db[collection].count_documents({'id': station_id}) == 0:
             return {}
+        
+        if detector_time is None:
+            detector_time = self.__database_time
+            logger.info("Detector time is None, use database time.")
 
-        # filter to get all information from one station with station_id and with akitve commission time
-        time = self.__current_time
-        if time is None:
-            logger.error('For the detector is no time set!')
-
+        # filter to get all information from one station with station_id and with active commission time
         time_filter = [{"$match": {
-            'commission_time': {"$lte": time},
-            'decommission_time': {"$gte": time},
+            'commission_time': {"$lte": self.__database_time},
+            'decommission_time': {"$gte": self.__database_time},
             'id': station_id}}]
+
         # get all stations which fit the filter (should only be one)
         stations_for_buffer = list(self.db[collection].aggregate(time_filter))
-
+        
         # transform the output of db.aggregate to a dict
         # dictionarize the channel information
         station_info = dictionarize_nested_lists(stations_for_buffer, parent_key="id", nested_field="channels", nested_key="id")
+        
         # dictionarize the device information
         station_info_help = dictionarize_nested_lists(stations_for_buffer, parent_key="id", nested_field="devices", nested_key="id")
-        # print(station_info_help)
+
         station_info[station_id]['devices'] = station_info_help[station_id]['devices']
 
-        if 'channels' not in station_info[station_id].keys():
-            station_info[station_id]['channels'] = {}
-
-        if 'devices' not in station_info[station_id].keys():
-            station_info[station_id]['devices'] = {}
+        # Add empty dicts if necessary
+        for key in ['channels', 'devices']:
+            if key not in station_info[station_id].keys():
+                station_info[station_id][key] = {}
 
         return station_info
 
