@@ -409,6 +409,12 @@ class Database(object):
         if channel_id is not None and len(signal_chain_information) > 1:
             raise ValueError
 
+        # get all collection names to identify the different components
+        # ['measurement_protocol', 'downhole_chain', 'iglu_board', 'drab_board', 'surface_board', 'run_quality_check', 
+        #  'station_position', 'device_position', 'runtable', 'channel_position', 'vpol', 'downhole_cable', 'hpol', 'surface_cable', 
+        #  'station_rnog', 'signal_chain']
+        collection_names = self.get_collection_names()
+
         # get the channel signal chain in the correct format
         channel_sig_chain_dic = {}
         for cha_sig_dic in signal_chain_information:
@@ -419,53 +425,64 @@ class Database(object):
         # got through the signal chain and collect the corresponding measurements
         for cha_id in channel_sig_chain_dic:
             sig_chain = channel_sig_chain_dic[cha_id]['sig_chain']
-            # print(channel_sig_chain_dic[cha_id])
-            # get all collection names to identify the different components
-            collection_names = self.get_collection_names()
-            measurement_components_dic = {}
-            for sig_chain_key in sig_chain.keys():
-                if sig_chain_key in collection_names:
-                    # search if supplementary info (channel-id, etc.) are saved, if this is the case -> extract the information (important to find the final measurement)
-                    supp_info = []
-                    for sck in sig_chain.keys():
-                        if sig_chain_key in sck and sig_chain_key != sck:
-                            supp_info.append(sck)
-                    # get the primary time of the component measurement -> important to find the measurement which should be used
-                    primary_component = channel_sig_chain_dic[cha_id]['primary_components'][sig_chain_key]
-                    # define a search filter
-                    search_filter_sig_chain = []
-                    search_filter_sig_chain.append({'$match': {'name': sig_chain[sig_chain_key]}})
-                    search_filter_sig_chain.append({'$unwind': '$measurements'})
-                    # if there is supp info -> add this to the search filter
-                    help_dic1 = {}
-                    help_dic2 = {}
-                    if supp_info != []:
-                        for si in supp_info:
-                            help_dic2[f'measurements.{si[len(sig_chain_key) +1:]}'] = sig_chain[si]
 
-                    if len(self.get_quantity_names(collection_name=sig_chain_key, wanted_quantity='measurements.S_parameter')) != 1:  # more than one S parameter is saved in the database
-                        help_dic2['measurements.S_parameter'] = 'S21'
-                    if help_dic2 != {}:
-                        help_dic1['$match'] = help_dic2
-                        search_filter_sig_chain.append(help_dic1)
+            measurement_components_dic = {}
+            for sig_chain_component in sig_chain:
+                if sig_chain_component in collection_names:
+                    
+                    # Search for supplementary info (e.g., drab_board and drab_board_channel_id). If this is the case -> extract the information 
+                    # (important to find the final measurement)
+                    supp_info = []
+                    for sck in sig_chain:
+                        if sig_chain_component in sck and sig_chain_component != sck:
+                            supp_info.append(sck)
+                                                
+                    # get the primary time of the component measurement -> important to find the measurement which should be used
+                    primary_component = channel_sig_chain_dic[cha_id]['primary_components'][sig_chain_component]
+                    
+                    # define a search filter
+                    search_filter_sig_chain = [{'$match': {'name': sig_chain[sig_chain_component]}}, {'$unwind': '$measurements'}]
+      
+
+                    # if there is supp info -> add this to the search filter
+                    help_dic = {}
+                    if len(supp_info):
+                        for si in supp_info:
+                            help_dic[f'measurements.{si[len(sig_chain_component)+1:]}'] = sig_chain[si]
+                    
+                    if len(self.get_quantity_names(collection_name=sig_chain_component, wanted_quantity='measurements.S_parameter')) != 1:  
+                        # if more than one S parameter is saved in the database only chose S21
+                        help_dic['measurements.S_parameter'] = 'S21'
+
+                    if len(help_dic):
+                        search_filter_sig_chain.append({'$match': help_dic})
+                    
                     # add the primary time
                     search_filter_sig_chain.append({'$unwind': '$measurements.primary_measurement'})
                     search_filter_sig_chain.append({'$match': {'measurements.primary_measurement.start': {'$lte': primary_component},
                                                                'measurements.primary_measurement.end': {'$gte': primary_component}}})
 
                     # find the correct measurement in the database and extract the measurement and object id
-                    search_result_sig_chain = list(self.db[sig_chain_key].aggregate(search_filter_sig_chain))
-                    freq = search_result_sig_chain[0]['measurements']['frequencies']  # 0: should only return a single valid entry
-                    yunits = search_result_sig_chain[0]['measurements']['y-axis_units']
+                    search_result_sig_chain = list(self.db[sig_chain_component].aggregate(search_filter_sig_chain))
+                    
+                    if len(search_result_sig_chain) != 1:
+                        raise ValueError
+                    
+                    result_sig_chain = search_result_sig_chain[0]['measurements']
+                    
+                    freq = result_sig_chain['frequencies']  # 0: should only return a single valid entry
+                    yunits = result_sig_chain['y-axis_units']
+                    
                     ydata = []
-                    if 'mag' in search_result_sig_chain[0]['measurements'].keys():
-                        ydata.append(search_result_sig_chain[0]['measurements']['mag'])
-                    if 'phase' in search_result_sig_chain[0]['measurements'].keys():
-                        ydata.append(search_result_sig_chain[0]['measurements']['phase'])
+                    if 'mag' in result_sig_chain:
+                        ydata.append(result_sig_chain['mag'])
+                    if 'phase' in result_sig_chain:
+                        ydata.append(result_sig_chain['phase'])
 
-                    measurement_components_dic[sig_chain_key] = {'y_units': yunits, 'freq': freq, 'ydata': ydata}
+                    measurement_components_dic[sig_chain_component] = {'y_units': yunits, 'freq': freq, 'ydata': ydata}
+
             channel_sig_chain_dic[cha_id]['measurements_components'] = measurement_components_dic
-    
+
         return channel_sig_chain_dic
 
     
