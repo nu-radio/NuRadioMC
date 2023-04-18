@@ -145,6 +145,7 @@ class neutrinoDirectionReconstructor:
         self._restricted_input = restricted_input
         self._brute_force = brute_force
         self._debug_formats = debug_formats
+        logger.debug(f'self._brute_force={self._brute_force}')
         return self._launch_vector_sim, view
 
     def run(
@@ -360,6 +361,7 @@ class neutrinoDirectionReconstructor:
         cop = datetime.datetime.now()
         logger.info("Starting direction reconstruction...")
         if self._brute_force and not self._restricted_input: # restricted_input:
+            logger.warning("Using brute force optimization")
             if starting_values:
                 results2 = opt.brute(self.minimizer, ranges=(slice(viewing_start, viewing_end, np.deg2rad(.5)), slice(theta_start, theta_end, np.deg2rad(1)), slice(np.log10(energy_start) - .15, np.log10(energy_start) + .15, .1)), full_output = True, finish = opt.fmin , args = (reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, self._full_station))
                 results1 = opt.brute(self.minimizer, ranges=(slice(viewing_start, viewing_end, np.deg2rad(.5)), slice(theta_start, theta_end, np.deg2rad(1)), slice(np.log10(energy_start) - .15, np.log10(energy_start) + .15, .1)), full_output = True, finish = opt.fmin , args = (reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, self._full_station))
@@ -382,6 +384,7 @@ class neutrinoDirectionReconstructor:
                 )
 
         elif self._restricted_input:
+            logger.warning('Using restricted input!')
             d_angle = 1
             zenith_start =  simulated_zenith - np.deg2rad(d_angle)
             zenith_end =simulated_zenith +  np.deg2rad(d_angle)
@@ -390,6 +393,50 @@ class neutrinoDirectionReconstructor:
             energy_start = np.log10(simulated_energy) - 1
             energy_end = np.log10(simulated_energy) + 1
             results = opt.brute(self.minimizer, ranges=(slice(zenith_start, zenith_end, np.deg2rad(.5)), slice(azimuth_start, azimuth_end, np.deg2rad(.5)), slice(energy_start, energy_end, .05)), finish = opt.fmin, full_output = True, args = (reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], True, False, False, False, False, self._reference_Vpol, self._reference_Hpol, self._full_station))
+
+        else:
+            logger.warning('Using iterative fitter')
+            chisq = np.nan * np.zeros(4)
+            results = np.nan * np.zeros((4,3))
+            res = opt.minimize(
+                self.minimizer, x0=[self._cherenkov_angle, 0, 18.0], 
+                args = (
+                    reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], 
+                    True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, 
+                    self._full_station)
+                )
+            
+            viewing_sign = int(np.sign(res.x[0] - self._cherenkov_angle))
+            polarization_sign = int(np.sign(res.x[1]))
+            index = 1 + viewing_sign + (polarization_sign + 1) // 2 # ranges from 0-3
+            chisq[index] = res.fun
+            results[index] = res.x
+            
+            # to avoid local minima (wrong side of cherenkov cone, wrong polarization sign)
+            # we re-run the minimizer starting at the other minima
+            signs = [-1,1]
+            for index in np.arange(4)[np.isnan(chisq)]:
+                viewing_sign = signs[index // 2]
+                polarization_sign = signs[index % 2]
+                old_guess = results[np.nanargmin(chisq)]
+                viewing_guess = self._cherenkov_angle + viewing_sign * np.abs(old_guess[0] - self._cherenkov_angle)
+                polarization_guess = polarization_sign * np.abs(old_guess[1])
+                energy_guess = old_guess[2]
+                logger.info(f'Iteration {index} - x0={[viewing_guess, polarization_guess, energy_guess]}, chisq={np.nanmin(chisq)}')
+
+                res = opt.minimize(
+                    self.minimizer, x0=[viewing_guess, polarization_guess, energy_guess], 
+                    args = (
+                        reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], 
+                        True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, 
+                        self._full_station)
+                    )
+                chisq[index] = res.fun
+                results[index] = res.x
+            
+            results = results[np.nanargmin(chisq)]
+
+
 
         logger.info(f"...finished direction reconstruction in {datetime.datetime.now() - cop}")
         # print("cache statistics for analytic_pulse ray tracer")
@@ -407,15 +454,19 @@ class neutrinoDirectionReconstructor:
 
         if self._brute_force and not self._restricted_input:
             # rotation_matrix = hp.get_rotation(sig_dir, np.array([0, 0,1]))
-            cherenkov_angle = results[0][0]
-            angle = results[0][1]
-            rec_zenith, rec_azimuth = self._transform_angles(cherenkov_angle, angle)
+            viewing_angle = results[0][0]
+            polarization_angle = results[0][1]
+            rec_zenith, rec_azimuth = self._transform_angles(viewing_angle, polarization_angle)
             rec_energy = 10**results[0][2]
-
         elif self._restricted_input:
             rec_zenith = results[0][0]
             rec_azimuth = results[0][1]
             rec_energy = 10**results[0][2]
+        else:
+            viewing_angle = results[0]
+            polarization_angle = results[1]
+            rec_zenith, rec_azimuth = self._transform_angles(viewing_angle, polarization_angle)
+            rec_energy = 10**results[2]
 
         ###### PRINT RESULTS ###############
         if station.has_sim_station():
@@ -574,72 +625,73 @@ class neutrinoDirectionReconstructor:
             ### chi squared grid from opt.brute:
             # plt.rc('xtick',)
             # plt.rc('ytick', labelsize = 10)
-            min_energy_index = np.unravel_index(np.argmin(chi2_grid), vw_grid.shape)[-1]
-            extent = (
-                vw_grid[0,0,0,0] / units.deg,
-                vw_grid[0,-1,0,0] / units.deg,
-                vw_grid[1,0,0,0] / units.deg,
-                vw_grid[1,0,-1,0] / units.deg,
-            )
+            if self._brute_force:
+                min_energy_index = np.unravel_index(np.argmin(chi2_grid), vw_grid.shape)[-1]
+                extent = (
+                    vw_grid[0,0,0,0] / units.deg,
+                    vw_grid[0,-1,0,0] / units.deg,
+                    vw_grid[1,0,0,0] / units.deg,
+                    vw_grid[1,0,-1,0] / units.deg,
+                )
 
-            fig = plt.figure(figsize=(6,6))
-            chi2_grid = chi2_grid - total_chi2
-            chi2_grid_min_energy = chi2_grid[:,:,min_energy_index]
-            try:
-                vmax = np.percentile(chi2_grid_min_energy[np.where(chi2_grid_min_energy < np.inf)], 20)
-            except IndexError:
-                # we probably don't have any valid results... but let's not throw an error
-                # because of the debug plot
-                vmax = None
-            plt.imshow(
-                (np.nanmin(chi2_grid, axis=2).T),
-                extent=extent,
-                aspect='auto',
-                vmax=vmax,
-                origin='lower'
-            )
-            if self._restricted_input: # we did the minimization in azimuth/zenith, so should plot this
-                x_sim, y_sim = simulated_zenith / units.deg, simulated_azimuth / units.deg % 360
-                x_rec, y_rec = rec_zenith / units.deg, rec_azimuth / units.deg % 360
-                xlabel, ylabel = 'zenith [deg]', 'azimuth [deg]'
-            else: # minimization in viewing angle & polarization
-                x_sim, y_sim = vw_sim / units.deg, np.arctan2(pol_sim[2], pol_sim[1]) / units.deg
-                x_rec, y_rec = viewingangle_rec / units.deg, np.arctan2(pol_rec[2], pol_rec[1]) / units.deg
-                xlabel, ylabel = 'Viewing angle [deg]', 'Polarization angle [deg]'
+                fig = plt.figure(figsize=(6,6))
+                chi2_grid = chi2_grid - total_chi2
+                chi2_grid_min_energy = chi2_grid[:,:,min_energy_index]
+                try:
+                    vmax = np.percentile(chi2_grid_min_energy[np.where(chi2_grid_min_energy < np.inf)], 20)
+                except IndexError:
+                    # we probably don't have any valid results... but let's not throw an error
+                    # because of the debug plot
+                    vmax = None
+                plt.imshow(
+                    (np.nanmin(chi2_grid, axis=2).T),
+                    extent=extent,
+                    aspect='auto',
+                    vmax=vmax,
+                    origin='lower'
+                )
+                if self._restricted_input: # we did the minimization in azimuth/zenith, so should plot this
+                    x_sim, y_sim = simulated_zenith / units.deg, simulated_azimuth / units.deg % 360
+                    x_rec, y_rec = rec_zenith / units.deg, rec_azimuth / units.deg % 360
+                    xlabel, ylabel = 'zenith [deg]', 'azimuth [deg]'
+                else: # minimization in viewing angle & polarization
+                    x_sim, y_sim = vw_sim / units.deg, np.arctan2(pol_sim[2], pol_sim[1]) / units.deg
+                    x_rec, y_rec = viewingangle_rec / units.deg, np.arctan2(pol_rec[2], pol_rec[1]) / units.deg
+                    xlabel, ylabel = 'Viewing angle [deg]', 'Polarization angle [deg]'
 
-            plt.plot(
-                x_sim, y_sim,
-                marker='o', label='{:.1f}, {:.1f}, 1e{:.2f} (simulated)'.format(
-                    x_sim, y_sim, np.log10(simulated_energy)
-                ), color='red', ls='none'
-            )
-            plt.plot(
-                x_rec, y_rec,
-                marker='x', label='{:.1f}, {:.1f}, 1e{:.2f} (reconstructed)'.format(
-                    x_rec, y_rec, np.log10(rec_energy)
-                ), color='magenta', ms=8, mfc='magenta', ls='none'
-            )
-            plt.xlabel(xlabel)
-            plt.ylabel(ylabel)
-            plt.legend()
-            # plt.title("E=1e{:.2f} eV".format(vw_grid[2,0,0,min_energy_index]))
-            plt.title(f'\chi^2_\mathrm{{min}} = {total_chi2:.0f} / {self.__dof}')
-            cbar = plt.colorbar(label=r"$\chi^2-\chi^2_\mathrm{min}$")
-            # vmax = cbar.vmax
-            # vmin = cbar.vmin
-            # cbar_ticks = cbar.get_ticks()
-            # cbar_ticks = cbar_ticks[(cbar_ticks < vmax) & (cbar_ticks > vmin)]
-            # cbar_ticks[0] = vmin
-            # tick_precision = int(np.max([0, np.min([-(np.log10(vmax-vmin)-1) // 1, 2])]))
-            # cbar_ticklabels = [f'{tick:.{tick_precision}f}' for tick in cbar_ticks]
-            # cbar_ticklabels[0] = f'{vmin:.2f} / {self.__dof}'
-        #    cbar.set_ticks(cbar_ticks, labels=cbar_ticklabels)
-            plt.tight_layout()
-            save_fig(
-                fig, "{}/{}_{}_chi_squared".format(
-                debug_path, self._event.get_run_number(), self._event.get_id()), 
-                self._debug_formats)
-            plt.close()
+                plt.plot(
+                    x_sim, y_sim,
+                    marker='o', label='{:.1f}, {:.1f}, 1e{:.2f} (simulated)'.format(
+                        x_sim, y_sim, np.log10(simulated_energy)
+                    ), color='red', ls='none'
+                )
+                plt.plot(
+                    x_rec, y_rec,
+                    marker='x', label='{:.1f}, {:.1f}, 1e{:.2f} (reconstructed)'.format(
+                        x_rec, y_rec, np.log10(rec_energy)
+                    ), color='magenta', ms=8, mfc='magenta', ls='none'
+                )
+                plt.xlabel(xlabel)
+                plt.ylabel(ylabel)
+                plt.legend()
+                # plt.title("E=1e{:.2f} eV".format(vw_grid[2,0,0,min_energy_index]))
+                plt.title(f'$\chi^2_\mathrm{{min}} = {total_chi2:.0f} / {self.__dof}$')
+                cbar = plt.colorbar(label=r"$\chi^2-\chi^2_\mathrm{min}$")
+                # vmax = cbar.vmax
+                # vmin = cbar.vmin
+                # cbar_ticks = cbar.get_ticks()
+                # cbar_ticks = cbar_ticks[(cbar_ticks < vmax) & (cbar_ticks > vmin)]
+                # cbar_ticks[0] = vmin
+                # tick_precision = int(np.max([0, np.min([-(np.log10(vmax-vmin)-1) // 1, 2])]))
+                # cbar_ticklabels = [f'{tick:.{tick_precision}f}' for tick in cbar_ticks]
+                # cbar_ticklabels[0] = f'{vmin:.2f} / {self.__dof}'
+            #    cbar.set_ticks(cbar_ticks, labels=cbar_ticklabels)
+                plt.tight_layout()
+                save_fig(
+                    fig, "{}/{}_{}_chi_squared".format(
+                    debug_path, self._event.get_run_number(), self._event.get_id()), 
+                    self._debug_formats)
+                plt.close()
             #exit()
 
 
