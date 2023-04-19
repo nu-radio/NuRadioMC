@@ -232,8 +232,8 @@ class Database(object):
 
         # filter to get all information from one station with station_id and with active commission time
         time_filter = [{"$match": {
-            'commission_time': {"$lte": self.__database_time},
-            'decommission_time': {"$gte": self.__database_time},
+            'commission_time': {"$lte": detector_time},
+            'decommission_time': {"$gte": detector_time},
             'id': station_id}}]
 
         # get all stations which fit the filter (should only be one)
