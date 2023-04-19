@@ -9,10 +9,16 @@ from astropy.time import Time
 
 if __name__ == "__main__":
     pio.renderers.default = "browser"
-    det = detector.GenericDetector(json_filename=sys.argv[1], default_station=101)
+    det = detector.GenericDetector(json_filename=sys.argv[1])
     det.update(Time.now())
 
-    sid = 101
+    station_ids = det.get_station_ids()
+
+    if len(station_ids) > 1:
+        print("WARNING: Found several stations, only plot the first one!")
+
+    sid = station_ids[0]
+
     ll = 1 * units.m
 
     data = []

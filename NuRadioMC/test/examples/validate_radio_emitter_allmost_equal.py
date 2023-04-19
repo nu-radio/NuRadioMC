@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import absolute_import, division, print_function
 import sys
 import h5py
@@ -111,6 +111,7 @@ u'ray_tracing_solution_type'
 error = test_equal_station_keys(keys, fin1=fin1, fin2=fin2, error=error)
 
 keys = [
+ u'trigger_times',
  u'weights']
 
 error = test_almost_equal_keys(keys, fin1=fin1, fin2=fin2, error=error)
@@ -123,6 +124,7 @@ keys = [
  u'receive_vectors',
  u'travel_times',
  u'travel_distances',
+ u'trigger_times',
  u'ray_tracing_C1']
 
 

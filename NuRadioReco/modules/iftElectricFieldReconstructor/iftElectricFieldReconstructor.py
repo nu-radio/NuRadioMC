@@ -70,7 +70,7 @@ class IftElectricFieldReconstructor:
         Define settings for the reconstruction.
 
         Parameters
-        -------------
+        ----------
         electric_field_template: NuRadioReco.framework.base_trace.BaseTrace object
             BaseTrace (or child class) object containing an electric field template
             that is used to determine the position of the radio pulse in the channel
@@ -164,7 +164,7 @@ class IftElectricFieldReconstructor:
         Plots samples from the prior distribution of the electric field.
 
         Parameters
-        --------------
+        ----------
         event: NuRadioReco.framework.event.Event object
         station: NuRadioReco.framework.station.Station object
         detector: NuRadioReco.detector.detector.Detector object or child object
@@ -193,7 +193,7 @@ class IftElectricFieldReconstructor:
         Run the electric field reconstruction
 
         Parameters
-        ----------------
+        ----------
         event: NuRadioReco.framework.event.Event object
         station: NuRadioReco.framework.station.Station object
         detector: NuRadioReco.detector.detector.Detector object or child object
