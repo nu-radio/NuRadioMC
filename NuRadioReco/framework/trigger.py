@@ -4,6 +4,7 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
+import numpy as np
 
 
 def deserialize(triggers_pkl):
@@ -43,7 +44,7 @@ class Trigger:
         initialize trigger class
 
         Parameters
-        -----------
+        ----------
         name: string
             unique name of the trigger
         channels: array of ints
@@ -81,7 +82,7 @@ class Trigger:
 
     def get_trigger_time(self):
         """
-        get the trigger time (time with respect to beginning of trace)
+        get the trigger time (absolute time with respect to the beginning of the event)
         """
         return self._trigger_time
 
@@ -99,6 +100,8 @@ class Trigger:
         """
         get the trigger times (time with respect to beginning of trace)
         """
+        if self._trigger_times is None and not np.isnan(self._trigger_time):
+            return np.array(self._trigger_time)
         return self._trigger_times
 
     def get_name(self):

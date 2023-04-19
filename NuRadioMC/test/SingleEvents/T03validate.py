@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import absolute_import, division, print_function
 import sys
 import h5py
@@ -120,7 +120,8 @@ for key in keys2:
         error = -1
 
 keys2 = [
-    u'travel_times']
+    u'travel_times',
+    u'trigger_times']
 for key in keys2:
     try:
         testing.assert_allclose(np.array(fin1['station_101'][key]), np.array(fin2['station_101'][key]), rtol=1e-9, atol=10 * units.ps)

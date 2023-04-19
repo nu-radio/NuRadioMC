@@ -18,7 +18,7 @@ class channelStopFilter:
     @register_run()
     def run(self, evt, station, det, filter_size=0.1, prepend=128 * units.ns, append=128 * units.ns):
         """
-        parameters
+        Parameters
         ----------
         evt: Event
             The event to run the module on
