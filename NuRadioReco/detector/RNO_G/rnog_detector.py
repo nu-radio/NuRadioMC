@@ -65,7 +65,7 @@ class RNOG_Detector():
     def get_full_station_from_buffer(self, station_id):
         if station_id in self.__buffered_stations:
             info = self.__buffered_stations[station_id]
-            if info["commission_time"] < self.__detector_time and info["decommission_time"] > self.__detector_time:
+            if info["commission_time"] > self.__detector_time or info["decommission_time"] < self.__detector_time:
                 self.__buffered_stations[station_id] = self.__db.get_complete_station_information(station_id=station_id)
         else:
             self.__buffered_stations[station_id] = self.__db.get_complete_station_information(station_id=station_id)
@@ -213,8 +213,13 @@ class RNOG_Detector():
             * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
         """
         channel_info = self.get_channel_from_buffer(station_id, channel_id)
-        return channel_info["orientation"]["theta"], channel_info["orientation"]["phi"], \
-            channel_info["rotation"]["theta"], channel_info["rotation"]["phi"]
+        orientation = channel_info['channel_position']["orientation"]
+        rotation = channel_info['channel_position']["rotation"]
+
+        return orientation["theta"], orientation["phi"], rotation["theta"], rotation["phi"]
+    
+    def get_channel_signal_chain(self, station_id, channel_id):
+        pass
     
     
     def db(self):
