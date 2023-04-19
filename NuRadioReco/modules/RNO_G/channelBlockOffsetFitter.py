@@ -184,8 +184,8 @@ class channelBlockOffsets:
 
 def fit_block_offsets(
         trace, block_size=128, sampling_rate=3.2*units.GHz,
-        max_frequency=50*units.MHz, return_trace = False,
-        xtol=1e-6, maxiter=100000):
+        max_frequency=50*units.MHz, mode='fit', return_trace = False,
+        tol=1e-6,):
     """
     Fit 'block' offsets for a voltage trace
 
@@ -204,6 +204,10 @@ def fit_block_offsets(
         the fit to the block offsets is performed
         in the frequency domain, in the band up to
         max_frequency
+    mode: 'fit' | 'approximate'
+        Whether to fit the block offsets (default)
+        or just use the first guess from the out-of-band
+        component (faster)
     return_trace: bool (default: False)
         if True, return the tuple (offsets, output_trace)
         where the output_trace is the input trace with
@@ -219,11 +223,8 @@ def fit_block_offsets(
 
     Other Parameters
     ----------------
-    xtol: float (default: 1e-6)
-        tolerance parameter passed on to scipy.optimize.fmin
-    maxiter: int (default: 100000)
-        maximum number of iterations for scipy.optimize.fmin
-
+    tol: float (default: 1e-6)
+        tolerance parameter passed on to scipy.optimize.minimize
     """
     dt = 1. / sampling_rate
     spectrum = fft.time2freq(trace, sampling_rate)
@@ -245,49 +246,52 @@ def fit_block_offsets(
         np.mean(filtered_trace[i*block_size:(i+1)*block_size])
         for i in range(n_blocks)
     ])
-    # self._offset_guess[channel_id] = a_guess
-    # we can get rid of one parameter through a global shift
-    a_guess = a_guess[:-1] - a_guess[-1]
+    if mode == 'approximate':
+        block_offsets = a_guess
+    elif mode == 'fit':
+        # self._offset_guess[channel_id] = a_guess
+        # we can get rid of one parameter through a global shift
+        a_guess = a_guess[:-1] - a_guess[-1]
 
-    # we perform the fit out-of-band, in order to avoid
-    # distorting any actual signal
+        # we perform the fit out-of-band, in order to avoid
+        # distorting any actual signal
 
-    # most of the terms in the fit depend only on the frequencies,
-    # sampling rate and number of blocks. We therefore calculate these
-    # only once, outside the fit function.
-    pre_factor_exponent = np.array([
-        -2.j * np.pi * frequencies_oob * dt * ((j+.5) * block_size - .5)
-            for j in range(len(a_guess))
-    ])
-    const_fft_term = (
-            1 / sampling_rate * np.sqrt(2) # NuRadio FFT normalization
-        * np.exp(pre_factor_exponent)
-        * np.sin(np.pi*frequencies_oob*block_size*dt)[None]
-        / np.sin(np.pi*frequencies_oob*dt)[None]
-    )
+        # most of the terms in the fit depend only on the frequencies,
+        # sampling rate and number of blocks. We therefore calculate these
+        # only once, outside the fit function.
+        pre_factor_exponent = np.array([
+            -2.j * np.pi * frequencies_oob * dt * ((j+.5) * block_size - .5)
+                for j in range(len(a_guess))
+        ])
+        const_fft_term = (
+                1 / sampling_rate * np.sqrt(2) # NuRadio FFT normalization
+            * np.exp(pre_factor_exponent)
+            * np.sin(np.pi*frequencies_oob*block_size*dt)[None]
+            / np.sin(np.pi*frequencies_oob*dt)[None]
+        )
 
-    def pedestal_fit(a):
-        fit = np.sum(a[:, None] * const_fft_term, axis=0)
-        chi2 = np.sum(np.abs(fit-spectrum_oob)**2)
-        return chi2
+        def pedestal_fit(a):
+            fit = np.sum(a[:, None] * const_fft_term, axis=0)
+            chi2 = np.sum(np.abs(fit-spectrum_oob)**2)
+            return chi2
 
-    # self._spectrum = spectrum_oob
-    res = scipy.optimize.fmin(
-        pedestal_fit, a_guess, disp=0,
-        xtol=xtol, maxiter=maxiter)
-    ### maybe TODO - include option to use Minuit, which seems a lot quicker?
-    # m = Minuit(self._pedestal_fit_minuit, a_guess * nufft_conversion_factor)
-    # m.errordef = 1
-    # m.errors = 0.01 * np.ones_like(a_guess)
-    # m.migrad(ncall=20000)
-    # res = m.values
+        # self._spectrum = spectrum_oob
+        res = scipy.optimize.minimize(pedestal_fit, a_guess, tol=tol).x
+        ### maybe TODO - include option to use Minuit, which seems a lot quicker?
+        # m = Minuit(self._pedestal_fit_minuit, a_guess * nufft_conversion_factor)
+        # m.errordef = 1
+        # m.errors = 0.01 * np.ones_like(a_guess)
+        # m.migrad(ncall=20000)
+        # res = m.values
 
-    block_offsets = np.zeros(len(res) + 1)
-    block_offsets[:-1] = res
+        block_offsets = np.zeros(len(res) + 1)
+        block_offsets[:-1] = res
 
-    # the fit is not sensitive to an overall shift,
-    # so we include the zero-meaning here
-    block_offsets += np.mean(trace) - np.mean(block_offsets)
+        # the fit is not sensitive to an overall shift,
+        # so we include the zero-meaning here
+        block_offsets += np.mean(trace) - np.mean(block_offsets)
+    else:
+        raise ValueError(f'Invalid value for mode={mode}. Accepted values are {{"fit", "approximate"}}')
 
     if return_trace:
         output_trace = trace - np.repeat(block_offsets, block_size)
