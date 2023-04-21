@@ -109,17 +109,19 @@ def get_time_offset(trigger_type):
 class readRNOGData:
 
    def begin(self, 
-             data_dirs, log_level=logging.INFO, selectors=None, 
+             data_dirs,  
              read_calibrated_data=False,
-             apply_baseline_correction=True,
-             convert_to_voltage=True,
              select_triggers=None,
              select_runs=True,
+             apply_baseline_correction=True,
+             convert_to_voltage=True,
+             selectors=None,
              run_table_path=None,
              run_types=["physics"],
              run_time_range=None,
              max_trigger_rate=1 * units.Hz,
-             mattak_backend="auto"):
+             mattak_backend="auto",
+             log_level=logging.INFO):
       """
 
       Parameters
@@ -128,17 +130,22 @@ class readRNOGData:
       data_dirs: list of strings / string
          Path to run directories (i.e. ".../stationXX/runXXX/")
          
-      log_level: enum
-         Set verbosity level of logger
-         
-      selectors: list of lambdas
-         List of lambda(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
-         Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
-         
       read_calibrated_data: bool
          If True, read calibrated waveforms from Mattak.Dataset. If False, read "raw" ADC traces.
          (temp. Default: False)
-
+         
+      select_triggers: str or list(str)
+         Names of triggers which should be selected. Convinence interface instead of passing a selector
+         (see "selectors" below. (Default: None) 
+         
+      select_runs: bool
+         If True, use information in run_table to select runs (based on run_type, run_time, trigger_rate, ...).
+         If the run_table is not available no selection is performed (and the programm is not interrupted, 
+         only an error message is raised). See parameters to configure run selection. (Default: True)
+         
+      Other Parameters
+      ----------------
+      
       apply_baseline_correction: bool
          Only applies when non-calibrated data are read. If true, correct for DC offset.
          (Default: True)
@@ -146,10 +153,10 @@ class readRNOGData:
       convert_to_voltage: bool
          Only applies when non-calibrated data are read. If true, convert ADC to voltage.
          (Default: True)
-         
-      select_runs: bool
-         If True, use information in run_table to select runs (based on run_type, run_time, trigger_rate, ...). If the run_table is 
-         not available no selection is performed (and the programm is not interrupted, only an error message is raised). (Default: True)
+
+      selectors: list of lambdas
+         List of lambda(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
+         Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
          
       run_table_path: str
          Path to a run_table.cvs file. If None, the run table is queried from the DB. (Default: None)
@@ -170,6 +177,9 @@ class readRNOGData:
       mattak_backend: str
          Select a mattak backend. Options are "auto", "pyroot", "uproot". If "auto" is selected, pyroot is used if available otherwise
          a "fallback" to uproot is used. (Default: "auto") 
+
+      log_level: enum
+         Set verbosity level of logger
       """
       
       t0 = time.time()
