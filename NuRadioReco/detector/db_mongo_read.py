@@ -188,7 +188,7 @@ class Database(object):
         return self.db[object_type].distinct('name')
 
     def get_collection_names(self):
-        if self.____get_collection_names is None:
+        if self.__get_collection_names is None:
             self.__get_collection_names =  self.db.list_collection_names()
         return self.__get_collection_names
 
@@ -393,7 +393,7 @@ class Database(object):
     def get_channels_position(self, station_id, measurement_name=None, channel_id=None):
         channel_position_information = self.get_collection_information(
             'channel_position', station_id, measurement_name=measurement_name, channel_id=channel_id)
-
+        
         if channel_id is not None and len(channel_position_information) > 1:
             raise ValueError
 
@@ -459,11 +459,12 @@ class Database(object):
                 freq = result_sig_chain['frequencies']  # 0: should only return a single valid entry
                 yunits = result_sig_chain['y-axis_units']
                 
-                ydata = []
+                ydata = [None, None]
                 if 'mag' in result_sig_chain:
-                    ydata.append(result_sig_chain['mag'])
+                    ydata[0] = result_sig_chain['mag']
+                
                 if 'phase' in result_sig_chain:
-                    ydata.append(result_sig_chain['phase'])
+                    ydata[1] = result_sig_chain['phase']
 
                 measurement_components_dic[sig_chain_component] = {'y_units': yunits, 'freq': freq, 'ydata': ydata}
         
@@ -472,7 +473,7 @@ class Database(object):
     
     def get_channels_signal_chain(self, station_id, measurement_name=None, channel_id=None):
         signal_chain_information = self.get_collection_information('signal_chain', station_id, measurement_name=measurement_name, channel_id=channel_id)
-        
+
         if channel_id is not None and len(signal_chain_information) > 1:
             raise ValueError
 
@@ -483,11 +484,17 @@ class Database(object):
             channel_sig_chain_dic[channel_id] = {k: cha_sig_dic['measurements'][k] 
                                                  for k in filtered_keys(cha_sig_dic['measurements'], ['channel_id'])}
 
+        return channel_sig_chain_dic
+    
+
+    def get_channels_signal_chain_measurements(self, station_id, measurement_name=None, channel_id=None):
+        
+        # get the channel signal chain in the correct format
+        channel_sig_chain_dic = self.get_channels_signal_chain(station_id, measurement_name, channel_id)
+
         # got through the signal chain and collect the corresponding measurements
         for cha_id, channel_signal_chain_dict in channel_sig_chain_dic.items():
-
             measurement_components_dic = self.get_sig_chain_component_measurements(channel_signal_chain_dict)
-
             channel_sig_chain_dic[cha_id]['measurements_components'] = measurement_components_dic
 
         return channel_sig_chain_dic
@@ -555,7 +562,7 @@ class Database(object):
 
         # get the channel position / signal chain information in the correct format
         channel_pos_dic = self.get_channels_position(station_id, measurement_channel_position)
-        channel_sig_chain_dic = self.get_channels_signal_chain(station_id, measurement_name=measurement_signal_chain)
+        channel_sig_chain_dic = self.get_channels_signal_chain_measurements(station_id, measurement_name=measurement_signal_chain)
         
         for cha_id in general_channel_dic:
             general_channel_dic[cha_id]['channel_position'] = channel_pos_dic[cha_id]
@@ -635,7 +642,7 @@ class Database(object):
         channel_pos_dic = self.get_channels_position(station_id, measurement_name=measurement_channel_position, channel_id=channel_id)
         general_channel_dic[channel_id]['channel_position'] = channel_pos_dic[channel_id]
 
-        channel_sig_chain_dic = self.get_channels_signal_chain(station_id, measurement_name=measurement_signal_chain, channel_id=channel_id)
+        channel_sig_chain_dic = self.get_channels_signal_chain_measurements(station_id, measurement_name=measurement_signal_chain, channel_id=channel_id)
         general_channel_dic[channel_id]['channel_signal_chain'] = channel_sig_chain_dic[channel_id]
         complete_info['channels'] = general_channel_dic
 
