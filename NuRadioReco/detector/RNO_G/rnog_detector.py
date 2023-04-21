@@ -2,7 +2,11 @@ import astropy
 import datetime
 import numpy as np
 
+from radiotools import helper
+from scipy import interpolate
+
 from NuRadioReco.detector.db_mongo_read import Database
+import NuRadioReco.framework.base_trace
 from NuRadioReco.utilities import units
 import collections
 import logging
@@ -75,8 +79,9 @@ class RNOG_Detector():
     
     def get_channel_from_buffer(self, station_id, channel_id):
         """
-        Get channel information from buffer. If not in buffer query DB for all channels 
-        
+        Get most basic channel information from buffer. If not in buffer query DB for all channels. 
+        In particular this will query and buffer position information  
+                
         Parameters
         ----------
         
@@ -149,7 +154,7 @@ class RNOG_Detector():
             3-dim array of relative station position
         """
         channel_info = self.get_channel_from_buffer(station_id, channel_id)
-                            
+        print(channel_info)
         return channel_info["channel_position"]['position']
 
 
@@ -193,6 +198,14 @@ class RNOG_Detector():
     def get_channel_orientation(self, station_id, channel_id):
         """
         Returns the orientation of a specific channel/antenna
+        
+        Orientation:
+            - theta: For LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+            - phi: Counting from East counterclockwise; for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+ 
+        Rotation:
+            - theta: Is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the tines
+            - phi: Is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the tines
 
         Parameters
         ----------
@@ -206,24 +219,129 @@ class RNOG_Detector():
         Returns
         -------
         
-        tuple of floats
-            * orientation theta: orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
-            * orientation phi: orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
-            * rotation theta: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
-            * rotation phi: rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+        (orientation_theta, orientation_phi, rotation_theta, rotation_phi): tuble of floats
         """
+        
         channel_info = self.get_channel_from_buffer(station_id, channel_id)
         orientation = channel_info['channel_position']["orientation"]
         rotation = channel_info['channel_position']["rotation"]
 
         return orientation["theta"], orientation["phi"], rotation["theta"], rotation["phi"]
     
+    
     def get_channel_signal_chain(self, station_id, channel_id):
-        pass
+        
+        if keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, 'channel_signal_chain']):
+            signal_chain = self.__db.get_channels_signal_chain(station_id, channel_id=channel_id)
+            
+            if "channels" not in self.__buffered_stations:
+                self.__buffered_stations[station_id]["channels"] = collections.defaultdict(dict)
+            
+            self.__buffered_stations[station_id]["channels"][channel_id]["channel_signal_chain"] = signal_chain[channel_id]
+            
+        return self.__buffered_stations[station_id]["channels"][channel_id]["channel_signal_chain"]
     
     
+    def get_signal_chain_response(self, station_id, channel_id):
+        
+        signal_chain_dict = self.get_channel_signal_chain(station_id, channel_id)
+        
+        if keys_not_in_dict(self.__buffered_stations, 
+                [station_id, "channels", channel_id, 'channel_signal_chain', 'measurements_components']):
+            measurement_components_dic = self.__db.get_sig_chain_component_measurements(signal_chain_dict)
+            
+            self.__buffered_stations[station_id]["channels"][channel_id] \
+                ["channel_signal_chain"]['measurements_components'] = measurement_components_dic
+            
+        else:
+            measurement_components_dic = self.__buffered_stations[station_id]["channels"][channel_id] \
+                ["channel_signal_chain"]['measurements_components']
+        
+        response = None
+        for key, value in measurement_components_dic.items():
+            if response is None:
+                response = Response(value["freq"], value["ydata"], value["y_units"], name=key)
+            else:
+                response *= Response(value["freq"], value["ydata"], value["y_units"], name=key)
+
+        return response
+            
+            
     def db(self):
         return self.__db
+    
+    
+class Response:
+    
+    def __init__(self, frequency, y, y_unit, name="default"):
+        
+        self.__names = [name]
+        
+        self.__frequency = np.array(frequency) * units.GHz
+
+        if y[0] is None or y[1] is None:
+            raise ValueError
+        
+        y_ampl = np.array(y[0])
+        y_phase = np.array(y[1])
+        
+        if y_unit[0] == "dB":
+            gain = helper.dB_to_linear(y_ampl)
+        elif y_unit[0] == "mag" or y_unit[0] == "MAG":
+            gain = y_ampl
+        else:
+            raise KeyError
+        
+        if y_unit[1] == "deg":
+            y_phase = np.deg2rad(y_phase)
+        elif y_unit[1] == "rad":
+            y_phase = y_phase
+        else:
+            raise KeyError
+            
+        self.__gains = [interpolate.interp1d(
+            self.__frequency, gain, kind="linear", bounds_error=False, fill_value=0)]
+        
+        self.__phases = [interpolate.interp1d(
+            self.__frequency, y_phase, kind="linear", bounds_error=False, fill_value=0)]
+
+
+    def __call__(self, freq):
+        response = np.ones_like(freq, dtype=np.complex128)
+        for gain, phase in zip(self.__gains, self.__phases):
+            response *= gain(freq) * np.exp(1j * phase(freq))
+
+        return response
+    
+    
+    def get_names(self):
+        return self.__names
+
+
+    def __mul__(self, other):
+        
+        if isinstance(other, Response):
+            self.__names += other.__names
+            self.__gains += other.__gains
+            self.__phases += other.__phases
+            return self
+       
+        elif isinstance(other, NuRadioReco.framework.base_trace):
+            spec = other.get_frequency_spectrum()
+            freqs = other.get_frequencies()
+            spec *= self(freqs)
+            return other
+        
+        else:
+            raise TypeError
+        
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+
+    def __str__(self):
+        return "Response of " + ", ".join(self.get_names())
 
 
 if __name__ == "__main__":
@@ -233,9 +351,10 @@ if __name__ == "__main__":
     # print(det.get_relative_position_device(11, None))
     # print(det.get_relative_position(11, 1))
     # det.get_full_station_from_buffer(11)
-    det.get_absolute_position(11)
-    print(det.get_relative_position(11, 11))
-    print(det.get_channel_orientation(11, 11))
+    print(det.get_channel_signal_chain(11, 11))
+    print(det.get_signal_chain_response(11, 11))
+    # print(det.get_relative_position(11, 11))
+    # print(det.get_channel_orientation(11, 11))
     # det.db().get_complete_channel_information(11, 0)
     
     # det.db().get_general_station_information("station_rnog", 11)
