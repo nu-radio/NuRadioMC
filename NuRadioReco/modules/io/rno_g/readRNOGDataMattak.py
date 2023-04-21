@@ -240,6 +240,7 @@ class readRNOGData:
       self.__counter = 0
       self.__skipped = 0
       
+      self._event_informations = None
       self._datasets = []
       self.__n_events_per_dataset = []
       
@@ -344,7 +345,7 @@ class readRNOGData:
       event_index: int
          Same as in read_event().
       
-      Retruns
+      Returns
       -------
       
       dataset: mattak.Dataset.Dataset
@@ -388,7 +389,7 @@ class readRNOGData:
       return False
    
    
-   def get_event_information_dict(self, keys=["station", "run"]):
+   def get_event_informations(self, keys=["station", "run", "eventNumber"]):
       """ Return information of all events from the EventInfo
       
       This function is useful to make a pre-selection of events before actually reading them in combination with 
@@ -400,7 +401,7 @@ class readRNOGData:
       keys: list(str)
          List of the information to receive from each event. Have to match the attributes (member variables)
          of the mattak.Dataset.EventInfo class (examples are "station", "run", "triggerTime", "triggerType", "eventNumber", ...).
-         (Default: ["station", "run"])
+         (Default: ["station", "run", "eventNumber"])
          
       Returns
       -------
@@ -410,26 +411,39 @@ class readRNOGData:
          them self containing the information specified with "keys" parameter.
       """
       
-      data = {}
-      n_prev = 0
-      for dataset in self._datasets:
-         dataset.setEntries((0, dataset.N()))
-         
-         for idx, evtinfo in enumerate(dataset.eventInfo()):  # returns a list
+      # Read if dict is None ...
+      do_read = self._event_informations is None
       
-            event_idx = idx + n_prev  # event index accross all datasets combined 
+      if not do_read:
+         # ... or when it does not have the desired information
+         first_event_info = next(iter(self._event_informations))
+         print(first_event_info)
+         for key in keys:
+            if key not in list(first_event_info.keys()):
+               do_read = True
+      
+      if do_read:
+      
+         self._event_informations = {}
+         n_prev = 0
+         for dataset in self._datasets:
+            dataset.setEntries((0, dataset.N()))
+            
+            for idx, evtinfo in enumerate(dataset.eventInfo()):  # returns a list
          
-            if self.filter_event(evtinfo, event_idx):
-               continue
-         
-            data[event_idx] = {key: getattr(evtinfo, key) for key in keys}
-         
-         n_prev += dataset.N()
+               event_idx = idx + n_prev  # event index accross all datasets combined 
+            
+               if self.filter_event(evtinfo, event_idx):
+                  continue
+            
+               self._event_informations[event_idx] = {key: getattr(evtinfo, key) for key in keys}
+            
+            n_prev += dataset.N()
 
-      return data
+      return self._event_informations
    
    
-   def get_event(self, event_info, waveforms):
+   def _get_event(self, event_info, waveforms):
       """ Return a NuRadioReco event
       
       Parameters
@@ -516,7 +530,7 @@ class readRNOGData:
                
             waveforms_of_event = wfs[idx]
             
-            evt = self.get_event(evtinfo, waveforms_of_event)
+            evt = self._get_event(evtinfo, waveforms_of_event)
             
             self._time_run += time.time() - t0
             self.__counter += 1
@@ -553,11 +567,61 @@ class readRNOGData:
       # access data
       waveforms = dataset.wfs()
       
-      evt = self.get_event(event_info, waveforms)
+      evt = self._get_event(event_info, waveforms)
       
       self._time_run += time.time() - t0
       self.__counter += 1
    
+      return evt
+   
+      
+   def get_event(self, event_id):
+      """ Allows to read a specific event identifed by its id
+
+      Parameters
+      ----------
+
+      event_id: int
+         Event Id
+         
+      Returns
+      -------
+
+      evt: NuRadioReco.framework.event
+      """
+
+      self.logger.debug(f"Processing event {event_id}")
+      t0 = time.time()
+
+      event_infos = self.get_event_informations(keys=["eventNumber"])
+      event_idx_ids = np.array([[index, ele["eventNumber"]] for index, ele in event_infos.items()])
+      mask = event_idx_ids[:, 1] == event_id
+
+      if not np.any(mask):
+         self.logger.info(f"Could not find event with id: {event_id}.")
+         return None
+      elif np.sum(mask) > 1:
+         self.logger.error(f"Found several events with the same id: {event_id}.")
+         raise ValueError(f"Found several events with the same id: {event_id}.")
+      else:
+         pass
+
+      event_index = event_idx_ids[mask, 0][0]
+
+      dataset = self.__get_dataset_for_event(event_index)
+      event_info = dataset.eventInfo()  # returns a single eventInfo
+
+      if self.filter_event(event_info, event_index):
+         return None
+            
+      # access data
+      waveforms = dataset.wfs()
+
+      evt = self._get_event(event_info, waveforms)
+
+      self._time_run += time.time() - t0
+      self.__counter += 1
+
       return evt
 
 
