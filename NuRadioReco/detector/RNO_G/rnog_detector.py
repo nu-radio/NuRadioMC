@@ -265,7 +265,34 @@ class RNOG_Detector():
                 response *= Response(value["freq"], value["ydata"], value["y_units"], name=key)
 
         return response
+
+
+    def get_station_id(self):
+        pass      
             
+    def get_number_of_channels(self, station_id):
+        pass
+    
+    def get_channel_ids(self, station_id):
+        pass
+    
+    def get_number_of_samples(self, station_id, channel_id):
+        pass
+    
+    def get_sampling_frequency(self, station_id, channel_id):
+        pass
+    
+    def get_noise_temperature(self, station_id, channel_id):
+        pass
+    
+    def is_channel_noiseless(self, station_id, channel_id):
+        pass
+            
+    def get_cable_delay(self, station_id, channel_id):
+        pass
+    
+    def get_site(self, station_id):
+        pass
             
     def db(self):
         return self.__db
