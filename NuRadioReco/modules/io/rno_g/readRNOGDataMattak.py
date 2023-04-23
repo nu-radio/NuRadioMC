@@ -250,7 +250,7 @@ class readRNOGData:
       self.__counter = 0
       self.__skipped = 0
       
-      self._event_informations = None
+      self._events_information = None
       self._datasets = []
       self.__n_events_per_dataset = []
       
@@ -399,7 +399,7 @@ class readRNOGData:
       return False
    
    
-   def get_event_informations(self, keys=["station", "run", "eventNumber"]):
+   def get_events_information(self, keys=["station", "run", "eventNumber"]):
       """ Return information of all events from the EventInfo
       
       This function is useful to make a pre-selection of events before actually reading them in combination with 
@@ -422,11 +422,11 @@ class readRNOGData:
       """
       
       # Read if dict is None ...
-      do_read = self._event_informations is None
+      do_read = self._events_information is None
       
       if not do_read:
          # ... or when it does not have the desired information
-         first_event_info = next(iter(self._event_informations))
+         first_event_info = next(iter(self._events_information))
          print(first_event_info)
          for key in keys:
             if key not in list(first_event_info.keys()):
@@ -434,7 +434,7 @@ class readRNOGData:
       
       if do_read:
       
-         self._event_informations = {}
+         self._events_information = {}
          n_prev = 0
          for dataset in self._datasets:
             dataset.setEntries((0, dataset.N()))
@@ -446,11 +446,11 @@ class readRNOGData:
                if self.filter_event(evtinfo, event_idx):
                   continue
             
-               self._event_informations[event_idx] = {key: getattr(evtinfo, key) for key in keys}
+               self._events_information[event_idx] = {key: getattr(evtinfo, key) for key in keys}
             
             n_prev += dataset.N()
 
-      return self._event_informations
+      return self._events_information
    
    
    def _get_event(self, event_info, waveforms):
@@ -603,7 +603,7 @@ class readRNOGData:
       self.logger.debug(f"Processing event {event_id}")
       t0 = time.time()
 
-      event_infos = self.get_event_informations(keys=["eventNumber"])
+      event_infos = self.get_events_information(keys=["eventNumber"])
       event_idx_ids = np.array([[index, ele["eventNumber"]] for index, ele in event_infos.items()])
       mask = event_idx_ids[:, 1] == event_id
 
