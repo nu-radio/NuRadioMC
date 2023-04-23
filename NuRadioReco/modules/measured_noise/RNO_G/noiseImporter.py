@@ -4,7 +4,7 @@ import os
 import random
 import collections
 
-from NuRadioReco.modules.io.rno_g.readRNOGDataMattak import readRNOGData
+from NuRadioReco.modules.io.RNO_G.readRNOGDataMattak import readRNOGData
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 
