@@ -370,7 +370,7 @@ class readRNOGData:
       return dataset
    
    
-   def filter_event(self, evtinfo, event_idx=None):
+   def _filter_event(self, evtinfo, event_idx=None):
       """ Filter an event base on its EventInfo and the configured selectors.
 
       Parameters
@@ -443,7 +443,7 @@ class readRNOGData:
          
                event_idx = idx + n_prev  # event index accross all datasets combined 
             
-               if self.filter_event(evtinfo, event_idx):
+               if self._filter_event(evtinfo, event_idx):
                   continue
             
                self._events_information[event_idx] = {key: getattr(evtinfo, key) for key in keys}
@@ -531,7 +531,7 @@ class readRNOGData:
             self.logger.debug(f"Processing event number {event_idx} out of total {self._n_events_total}")
             t0 = time.time()
                   
-            if self.filter_event(evtinfo, event_idx):
+            if self._filter_event(evtinfo, event_idx):
                continue
             
             # Just read wfs if necessary
@@ -571,7 +571,7 @@ class readRNOGData:
       dataset = self.__get_dataset_for_event(event_index)
       event_info = dataset.eventInfo()  # returns a single eventInfo
 
-      if self.filter_event(event_info, event_index):
+      if self._filter_event(event_info, event_index):
          return None
             
       # access data
@@ -621,7 +621,7 @@ class readRNOGData:
       dataset = self.__get_dataset_for_event(event_index)
       event_info = dataset.eventInfo()  # returns a single eventInfo
 
-      if self.filter_event(event_info, event_index):
+      if self._filter_event(event_info, event_index):
          return None
             
       # access data
