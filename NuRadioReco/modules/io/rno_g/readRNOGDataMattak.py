@@ -549,7 +549,7 @@ class readRNOGData:
 
 
 
-   def read_event(self, event_index):
+   def get_event_by_index(self, event_index):
       """ Allows to read a specific event identifed by its index 
       
       Parameters
