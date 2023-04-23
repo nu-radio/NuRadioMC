@@ -98,7 +98,7 @@ class noiseImporter:
         self.logger.info("Get event informations ...")
         # instead of reading all noise events into memory we only get certain information here and read all data in run()
         
-        noise_information = self._noise_reader.get_event_informations(keys=["station"])
+        noise_information = self._noise_reader.get_events_information(keys=["station"])
         self.__event_index_list = np.array(list(noise_information.keys()))
         self.__station_id_list = np.array([ele["station"] for ele in noise_information.values()])
         
