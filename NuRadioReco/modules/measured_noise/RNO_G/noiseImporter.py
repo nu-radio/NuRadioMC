@@ -128,7 +128,7 @@ class noiseImporter:
         # int(..) necessary because pyroot can not handle np.int64
         i_noise = int(np.random.choice(self.__event_index_list[station_mask]))
         self._n_use_event[i_noise] += 1
-        noise_event = self._noise_reader.read_event(i_noise)
+        noise_event = self._noise_reader.get_event_by_index(i_noise)
         
         station_id = noise_event.get_station_ids()[0]
         noise_station = noise_event.get_station(station_id)
