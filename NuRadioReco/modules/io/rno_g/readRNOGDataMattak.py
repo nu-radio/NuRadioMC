@@ -119,7 +119,7 @@ class readRNOGData:
              run_table_path=None,
              run_types=["physics"],
              run_time_range=None,
-             max_trigger_rate=1 * units.Hz,
+             max_trigger_rate=0 * units.Hz,
              mattak_backend="auto",
              log_level=logging.INFO):
       """
