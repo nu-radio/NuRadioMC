@@ -1,6 +1,6 @@
 # Keep that the first import
 import logging
-logging.basicConfig(format="%(asctime)s - %(levelname)s:%(name)s:%(funcName)s - %(message)s", datefmt="%H:%M:%S")
+logging.basicConfig(format="%(asctime)s - %(levelname)s:%(name)s:%(funcName)s : %(message)s", datefmt="%H:%M:%S")
 
 import astropy
 import datetime
@@ -31,7 +31,7 @@ def keys_not_in_dict(d, keys):
 
 
 class RNOG_Detector():
-    def __init__(self, database_connection='RNOG_test_public', log_level=logging.DEBUG):
+    def __init__(self, database_connection='RNOG_test_public', log_level=logging.DEBUG, over_write_handset_values={}):
         
         self.logger = logging.getLogger("rno-g-detector")
         self.logger.setLevel(log_level)
@@ -41,6 +41,22 @@ class RNOG_Detector():
         self.__detector_time = None
         
         self.__buffered_stations = collections.defaultdict(dict)
+        
+        # Define default values for parameter not (yet) implemented in DB. Those values are taken for all channels.
+        self.__default_values = {
+            "noise_temperature": 300 * units.kelvin,
+            "sampling_frequency": 3.2 * units.GHz,
+            "number_of_samples": 2048,
+            "is_noiseless": False
+        }
+        
+        self.__default_values.update(over_write_handset_values)
+        
+        info = "\nUsing the following hand-set values:"
+        for key, value in self.__default_values.items():
+            info += f"\n\t{key:<20}: {value}"
+        
+        self.logger.info(info)
         
         
     def update(self, time):
@@ -394,24 +410,28 @@ class RNOG_Detector():
     
     def get_number_of_samples(self, station_id, channel_id):
         """ Get number of samples per station / channel """
-        self.logger.warn("Return a hard-coded value of 2048 samples. This information is not (yet) implemented in the DB.")
-        return 2048
+        number_of_samples = self.__default_values["number_of_samples"]
+        self.logger.warn(f"Return a hard-coded value of {number_of_samples} samples. This information is not (yet) implemented in the DB.")
+        return number_of_samples
     
     def get_sampling_frequency(self, station_id, channel_id):
         """ Get sampling frequency per station / channel """
-        self.logger.warn("Return a hard-coded value of 3.2 GHz. This information is not (yet) implemented in the DB.")
-        return 3.2 * units.GHz
-        
+        sampling_frequency = self.__default_values["sampling_frequency"]
+        self.logger.warn(f"Return a hard-coded value of {sampling_frequency / units.GHz} GHz. This information is not (yet) implemented in the DB.")
+        return  sampling_frequency
+    
     
     def get_noise_temperature(self, station_id, channel_id):
         """ Get noise temperture per station / channel """
-        self.logger.warn("Return a hard-coded value of 300 K. This information is not (yet) implemented in the DB.")
-        return 300 * units.kelvin
+        noise_temperature = self.__default_values["noise_temperature"]
+        self.logger.warn(f"Return a hard-coded value of {noise_temperature / units.kelvin} K. This information is not (yet) implemented in the DB.")
+        return noise_temperature
     
     
     def is_channel_noiseless(self, station_id, channel_id):
-        self.logger.warn("Return a hard-coded value of False. This information is not (yet) implemented in the DB.")
-        return False
+        is_noiseless = self.__default_values["is_noiseless"]
+        self.logger.warn(f"Return a hard-coded value of {is_noiseless}. This information is not (yet) implemented in the DB.")
+        return is_noiseless
     
 
     def get_cable_delay(self, station_id, channel_id):
@@ -562,7 +582,7 @@ class Response:
 
 
 if __name__ == "__main__":
-    det = RNOG_Detector(log_level=logging.DEBUG)
+    det = RNOG_Detector(log_level=logging.DEBUG, over_write_handset_values={"sampling_frequency": 2.4 * units.GHz})
     det.update(datetime.datetime(2022, 8, 2, 0, 0))  # datetime.datetime.utcnow())
     # det.db().get_collection_information("station_position", 11, "tape_measurement")
     # ids = det.get_number_of_channels(11)
@@ -571,6 +591,7 @@ if __name__ == "__main__":
     
     det.get_full_station_from_buffer(11)
     print(det.has_station(11))
+    print(det.get_sampling_frequency(11, 11))
     # print(det.get_relative_position_device(11, None))
     # print(det.get_relative_position(11, 1))
     # det.get_full_station_from_buffer(11)
