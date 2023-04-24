@@ -10,7 +10,6 @@ import NuRadioReco.framework.base_trace
 from NuRadioReco.utilities import units
 import collections
 import logging
-logging.basicConfig()
 
 
 def keys_not_in_dict(d, keys):
@@ -31,9 +30,9 @@ def keys_not_in_dict(d, keys):
 class RNOG_Detector():
     def __init__(self, database_connection='RNOG_test_public', log_level=logging.DEBUG):
         
-        self.logger = logging.getLogger("RNO-G detector")
+        self.logger = logging.getLogger("rno-g-detector")
         self.logger.setLevel(log_level)
-        
+
         self.__db = Database(database_connection=database_connection)
         
         self.__detector_time = None
@@ -320,13 +319,16 @@ class RNOG_Detector():
             Returns True if the station could be found. A found station will be in the buffer.
         """
         # Check if station is in buffer ...
+        self.logger.debug(f"Checking for station {station_id} ...")
         if station_id not in self.__buffered_stations:
-            
+            self.logger.debug("Query database.")
+
             # ... if not check DB (this will also store them in self.__buffered_stations)
             station_ids = self.get_station_ids()
 
             return station_id in station_ids
         else:
+            self.logger.debug(f"Found station {station_id} in buffer.")
             return True
 
 
@@ -425,6 +427,7 @@ class RNOG_Detector():
             
             
     def db(self):
+        """ Temp. interface for development """
         return self.__db
     
     
@@ -553,12 +556,15 @@ class Response:
 
 
 if __name__ == "__main__":
-    det = RNOG_Detector()
+    det = RNOG_Detector(log_level=logging.DEBUG)
     det.update(datetime.datetime(2022, 8, 2, 0, 0))  # datetime.datetime.utcnow())
     # det.db().get_collection_information("station_position", 11, "tape_measurement")
-    ids = det.get_number_of_channels(11)
-    print(ids)
-    print(det.get_channel_ids(11))
+    # ids = det.get_number_of_channels(11)
+    # print(ids)
+    # print(det.get_channel_ids(11))
+    
+    det.get_full_station_from_buffer(11)
+    print(det.has_station(11))
     # print(det.get_relative_position_device(11, None))
     # print(det.get_relative_position(11, 1))
     # det.get_full_station_from_buffer(11)
