@@ -321,27 +321,6 @@ class Database(object):
             pass    
 
         search_result = list(self.db[collection_name].aggregate(search_filter))
-
-        # FS: The following code block seems unnecessary
-        """
-        if search_result == []:
-            return search_result
-        
-        # extract the measurement and object id
-        object_id = []
-        measurement_id = []
-        for dic in search_result:
-            object_id.append(dic['_id'])
-            measurement_id.append(dic['measurements']['id_measurement'])
-
-        # extract the information using the object and measurements id
-        id_filter = [{'$match': {'_id': {'$in': object_id}}},
-                     {'$unwind': '$measurements'},
-                     {'$match': {'measurements.id_measurement': {'$in': measurement_id}}}]
-        info = list(self.db[collection_name].aggregate(id_filter))
-
-        return info
-        """
         
         return search_result
 
