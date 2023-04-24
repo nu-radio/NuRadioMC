@@ -239,6 +239,11 @@ class Database(object):
         # get all stations which fit the filter (should only be one)
         stations_for_buffer = list(self.db[collection].aggregate(time_filter))
         
+        if len(stations_for_buffer) != 1:
+            err = f"Found to many stations (f{len(stations_for_buffer)}) for: station_id = {station_id}, and time = {detector_time}"
+            logger.error(err)
+            raise ValueError(err)
+        
         # transform the output of db.aggregate to a dict
         # dictionarize the channel information
         station_info = dictionarize_nested_lists(stations_for_buffer, parent_key="id", nested_field="channels", nested_key="id")
