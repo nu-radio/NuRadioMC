@@ -112,7 +112,7 @@ class readRNOGData:
              data_dirs,  
              read_calibrated_data=False,
              select_triggers=None,
-             select_runs=True,
+             select_runs=False,
              apply_baseline_correction=True,
              convert_to_voltage=True,
              selectors=None,
@@ -132,7 +132,7 @@ class readRNOGData:
          
       read_calibrated_data: bool
          If True, read calibrated waveforms from Mattak.Dataset. If False, read "raw" ADC traces.
-         (temp. Default: False)
+         (temp. Default: False, this can/should be switched once the calibration in incorp. into Mattak)
          
       select_triggers: str or list(str)
          Names of triggers which should be selected. Convinence interface instead of passing a selector
@@ -141,7 +141,7 @@ class readRNOGData:
       select_runs: bool
          If True, use information in run_table to select runs (based on run_type, run_time, trigger_rate, ...).
          If the run_table is not available no selection is performed (and the programm is not interrupted, 
-         only an error message is raised). See parameters to configure run selection. (Default: True)
+         only an error message is raised). See parameters to configure run selection. (Default: False)
          
       Other Parameters
       ----------------
