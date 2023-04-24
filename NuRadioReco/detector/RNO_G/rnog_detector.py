@@ -1,3 +1,7 @@
+# Keep that the first import
+import logging
+logging.basicConfig(format="%(asctime)s - %(levelname)s:%(name)s:%(funcName)s - %(message)s", datefmt="%H:%M:%S")
+
 import astropy
 import datetime
 import numpy as np
@@ -9,7 +13,6 @@ from NuRadioReco.detector.db_mongo_read import Database, filtered_keys
 import NuRadioReco.framework.base_trace
 from NuRadioReco.utilities import units
 import collections
-import logging
 
 
 def keys_not_in_dict(d, keys):
@@ -401,13 +404,16 @@ class RNOG_Detector():
         
     
     def get_noise_temperature(self, station_id, channel_id):
-        pass
+        """ Get noise temperture per station / channel """
+        self.logger.warn("Return a hard-coded value of 300 K. This information is not (yet) implemented in the DB.")
+        return 300 * units.kelvin
     
     
     def is_channel_noiseless(self, station_id, channel_id):
-        pass
+        self.logger.warn("Return a hard-coded value of False. This information is not (yet) implemented in the DB.")
+        return False
+    
 
-            
     def get_cable_delay(self, station_id, channel_id):
         self.logger.error("The cable delay is not yet implemented in the DB.")
         raise NotImplementedError("The cable delay is not yet implemented in the DB.")
