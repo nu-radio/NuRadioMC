@@ -1,7 +1,6 @@
 import numpy as np
 import glob
 import os
-import random
 import collections
 
 from NuRadioReco.modules.io.RNO_G.readRNOGDataMattak import readRNOGData
@@ -21,7 +20,7 @@ class noiseImporter:
     def begin(self, noise_folders, file_pattern="*",
               match_station_id=False, station_ids=None,
               channel_mapping=None, scramble_noise_file_order=True,
-              log_level=logging.INFO, reader_kwargs={}):
+              log_level=logging.INFO, random_seed=None, reader_kwargs={}):
         """
         
         Parameters
@@ -29,8 +28,8 @@ class noiseImporter:
         noise_folders: str or list(str)
             Folder(s) containing noise file(s). Search in any subfolder as well.
             
-        file_patters: str
-            File patters used to search for directories, (Default: "*", other examples might be "combined")
+        file_pattern: str
+            File pattern used to search for directories, (Default: "*", other examples might be "combined")
             
         match_station_id: bool
             If True, add only noise from stations with the same id. (Default: False)
@@ -48,7 +47,10 @@ class noiseImporter:
             If True, randomize the order of noise files before reading them. (Default: True)
         
         log_level: loggging log level
-            the log level, default logging.INFO
+            The log level to controll verbosity. (Default: logging.INFO)
+            
+        random_seed: int
+            Seed for the random number generator. (Default: None, no fixed seed).
 
         reader_kwargs: dict
             Optional arguements passed to readRNOGDataMattak
@@ -56,6 +58,7 @@ class noiseImporter:
         
         self.logger = logging.getLogger('NuRadioReco.RNOG.noiseImporter')
         self.logger.setLevel(log_level)
+        self.__random_gen = np.random.Generator(np.random.Philox(random_seed))
         
         self._match_station_id = match_station_id
         self.__station_ids = station_ids
@@ -81,7 +84,7 @@ class noiseImporter:
             raise ValueError
                 
         if scramble_noise_file_order:
-            random.shuffle(self.__noise_folders)
+            self.__random_gen.shuffle(self.__noise_folders)
         
         if "log_level" in reader_kwargs:
             log_level_reader = reader_kwargs.pop("log_level")
@@ -126,7 +129,7 @@ class noiseImporter:
             station_mask = np.full_like(self.__event_index_list, True)
 
         # int(..) necessary because pyroot can not handle np.int64
-        i_noise = int(np.random.choice(self.__event_index_list[station_mask]))
+        i_noise = int(self.__random_gen.choice(self.__event_index_list[station_mask]))
         self._n_use_event[i_noise] += 1
         noise_event = self._noise_reader.get_event_by_index(i_noise)
         
