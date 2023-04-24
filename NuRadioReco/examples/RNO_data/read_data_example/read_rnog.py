@@ -1,4 +1,4 @@
-from NuRadioReco.modules.io.rno_g import readRNOGDataMattak
+from NuRadioReco.modules.io.RNO_G import readRNOGDataMattak
 from NuRadioReco.modules.io import eventWriter
 from NuRadioReco.utilities import units
 
