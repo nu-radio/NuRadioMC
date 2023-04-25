@@ -379,8 +379,7 @@ The module ``NuRadioProposal.py`` in EvtGen can also be used standalone to study
         tau_codes = [15] * N_taus
 
         secondaries_array = proposal_functions.get_secondaries_array(energy_leptons,
-                                                 lepton_codes,
-                                                 config_file='InfIce',
+                                                 tau_codes,
                                                  low_nu=0.1*units.PeV,
                                                  propagate_decay_muons=True)
 
