@@ -9,7 +9,7 @@ import numpy as np
 from radiotools import helper
 from scipy import interpolate
 
-from NuRadioReco.detector.db_mongo_read import Database, filtered_keys
+from NuRadioReco.detector.RNO_G.db_mongo_read import Database, filtered_keys
 import NuRadioReco.framework.base_trace
 from NuRadioReco.utilities import units
 import collections
@@ -95,7 +95,7 @@ class RNOG_Detector():
         return self.__buffered_stations[station_id]
     
     
-    def get_channel_from_buffer(self, station_id, channel_id):
+    def get_channel_from_buffer(self, station_id, channel_id, with_position=False, with_signal_chain=False):
         """
         Get most basic channel information from buffer. If not in buffer query DB for all channels. 
         In particular this will query and buffer position information  
@@ -116,10 +116,22 @@ class RNOG_Detector():
             Position and orientation information.
         
         """
-        if keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id]):
+        if not self._has_valid_parameter_in_buffer([station_id, "channels", channel_id]):
 
             if "channels" not in self.__buffered_stations:
                 self.__buffered_stations[station_id]["channels"] = collections.defaultdict(dict)
+                
+            time_filter = [
+                {"$match": {
+                    'id': station_id,
+                    'channel_id': channel_id,
+                    'commission_time': {"$lte": self.__detector_time},
+                    'decommission_time': {"$gte": self.__detector_time}}}]
+
+            # get all stations which fit the filter
+            channel_information = list(self.__db.db["station_rnog"].aggregate(time_filter))
+            print(channel_information, channel_information[0].keys())
+            sys.exit()
 
             channel_position_dict = self.__db.get_channels_position(station_id)
             for cha_id in channel_position_dict:
@@ -172,7 +184,6 @@ class RNOG_Detector():
             3-dim array of relative station position
         """
         channel_info = self.get_channel_from_buffer(station_id, channel_id)
-        print(channel_info)
         return channel_info["channel_position"]['position']
 
 
@@ -249,7 +260,8 @@ class RNOG_Detector():
     
     def get_channel_signal_chain(self, station_id, channel_id):
         
-        if keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, 'channel_signal_chain']):
+        # if keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, 'channel_signal_chain']):
+        if not self._has_valid_parameter_in_buffer([station_id, "channels", channel_id, 'channel_signal_chain']):
             signal_chain = self.__db.get_channels_signal_chain(station_id, channel_id=channel_id)
             
             if "channels" not in self.__buffered_stations:
@@ -318,6 +330,47 @@ class RNOG_Detector():
                     self.__buffered_stations[station_id][key] = station_info[key]
         
         return list(self.__buffered_stations.keys())
+    
+    
+    def _has_valid_parameter_in_buffer(self, key_list):
+        """
+        This function first checks if a parameter which is specified with a key_list (e.g. [station_id, "channels", channel_id, "channel_position"])
+        exists in the buffer and second if it is still valid base on detector time (i.e., if corresponding station and channel are still commission).
+        Remove station or channel from buffer if not commission.
+        
+        Parameters
+        ----------
+        
+        key_list: list
+            Specifies a parameter (see example above)
+        
+        Returns
+        -------
+        
+        has_parameter:  bool
+            True if key_list exists and is valid
+        """
+        
+        if keys_not_in_dict(self.__buffered_stations, key_list):
+            self.logger.debug("Parameter not in buffer: " + " / ".join([str(x) for x in key_list]))
+            return False
+        
+        station_info = self.__buffered_stations[key_list[0]]
+        
+        if station_info["commission_time"] > self.__detector_time or station_info["decommission_time"] < self.__detector_time:
+            self.logger.debug(f"Station {key_list[0]} not commission anymore at {self.__detector_time}. Remove from buffer ...")
+            self.__buffered_stations[key_list[0]] = {}  # clean buffer
+            return False
+        
+        if key_list[1] == "channels" and len(key_list) >= 3:
+            channel_info = station_info["channels"][key_list[2]]
+            if station_info["commission_time"] > self.__detector_time or station_info["decommission_time"] < self.__detector_time:
+                self.logger.debug(f"Channel {key_list[2]} (of Station {key_list[0]}) not commission anymore at {self.__detector_time}. Remove from buffer ...")
+                self.__buffered_stations[key_list[0]]["channels"][key_list[2]] = {}  # clean buffer
+                return False
+
+        self.logger.debug("Parameter in buffer and valid: " + " / ".join([str(x) for x in key_list]))
+        return True
     
     
     def has_station(self, station_id):
@@ -405,14 +458,16 @@ class RNOG_Detector():
             
         # now station is in buffer (or an error was raised)
         channels = self.__buffered_stations[station_id]["channels"]
-        
+
         return [ele["id"] for ele in channels]
+    
     
     def get_number_of_samples(self, station_id, channel_id):
         """ Get number of samples per station / channel """
         number_of_samples = self.__default_values["number_of_samples"]
         self.logger.warn(f"Return a hard-coded value of {number_of_samples} samples. This information is not (yet) implemented in the DB.")
         return number_of_samples
+    
     
     def get_sampling_frequency(self, station_id, channel_id):
         """ Get sampling frequency per station / channel """
@@ -583,22 +638,21 @@ class Response:
 
 if __name__ == "__main__":
     det = RNOG_Detector(log_level=logging.DEBUG, over_write_handset_values={"sampling_frequency": 2.4 * units.GHz})
-    det.update(datetime.datetime(2022, 8, 2, 0, 0))  # datetime.datetime.utcnow())
-    # det.db().get_collection_information("station_position", 11, "tape_measurement")
-    # ids = det.get_number_of_channels(11)
-    # print(ids)
-    # print(det.get_channel_ids(11))
+    # det.update(datetime.datetime(2022, 8, 2, 0, 0))
     
-    det.get_full_station_from_buffer(11)
-    print(det.has_station(11))
-    print(det.get_sampling_frequency(11, 11))
-    # print(det.get_relative_position_device(11, None))
-    # print(det.get_relative_position(11, 1))
     # det.get_full_station_from_buffer(11)
-    # print(det.get_channel_signal_chain(11, 11))
-    # print(det.get_signal_chain_response(11, 11))
-    # print(det.get_relative_position(11, 11))
-    # print(det.get_channel_orientation(11, 11))
-    # det.db().get_complete_channel_information(11, 0)
+    # det.update(datetime.datetime(2022, 8, 2, 0, 0))
+
+    # s = det.get_channel_signal_chain(11, 11)
+    # print(s.keys())
     
-    # det.db().get_general_station_information("station_rnog", 11)
+    time_filter = [
+    {"$match": {
+        'id': 11,
+        'channels.id': 11,
+        'commission_time': {"$lte": datetime.datetime(2022, 8, 2, 0, 0)},
+        'decommission_time': {"$gte": datetime.datetime(2022, 8, 2, 0, 0)}}}]
+
+    # get all stations which fit the filter
+    channel_information = list(det.db().db["station_rnog"].aggregate(time_filter))
+    print(len(channel_information[0]["channels"]))
