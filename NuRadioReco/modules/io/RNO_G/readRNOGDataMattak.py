@@ -280,11 +280,9 @@ class readRNOGData:
       self._n_events_total = np.sum(self.__n_events_per_dataset)
       self._time_begin = time.time() - t0
       
+      self.logger.info(f"Using the {self._datasets[0].backend} Mattak backend.")
       self.logger.info(f"{self._n_events_total} events in {len(self._datasets)} runs/datasets have been found.")
-      
-      # Variable not yet implemented in mattak
-      # self.logger.info(f"Using the {self._datasets[0].backend} Mattak backend.")
-      
+            
       if not self._n_events_total:
          err = "No runs have been selected. Abort ..."
          self.logger.error(err)
