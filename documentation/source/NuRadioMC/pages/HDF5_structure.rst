@@ -103,6 +103,7 @@ is the number of showers (which may be larger than the number of events), and ``
             ``interaction_type`` | (``n_showers``) | Interaction type producing the shower (for the first interaction that can be "nc" or "cc")
             ``multiple_triggers`` | (``n_showers``, ``n_triggers``) | Information which exact trigger fired each shower. The different triggers are specified in the attributes (``f.attrs["triggers"]``). The order of ``f.attrs["triggers"]`` matches that in ``multiple_triggers``
             ``triggered`` | (``n_showers``) | A boolean; ``True`` if any trigger fired for this shower, ``False`` otherwise
+            ``trigger_times`` | (``n_showers``, ``n_triggers``) | The trigger times (relative to the first interaction) at which each shower triggered. If there are multiple stations, this will be the earliest trigger time.
             ``n_interaction`` | (``n_showers``) | Hierarchical counter for the number of showers per event (also accounts for showers which did not trigger and might not be saved)
             ``shower_ids`` | (``n_showers``) | Hierarchical counter for the number of triggered showers
             ``shower_realization_ARZ`` | (``n_showers``) | Which realization from the ARZ shower library was used for each shower (only if ARZ was used for signal generation).
@@ -150,3 +151,4 @@ station triggered, with which amplitude, etc. The same approach works for ``show
             ``travel_times`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The time travelled by each ray tracing solution to a specific channel
             ``triggered`` | (``m_showers``) | Whether each shower contributed to an event that satisfied any trigger condition
             ``triggered_per_event`` | (``m_events``) | Whether each event fulfilled any trigger condition.
+            ``trigger_times`` | (``m_showers``, ``n_triggers``) | The trigger times for each shower and trigger.
