@@ -130,27 +130,20 @@ class Database(object):
         """
 
         # define search filter for the collection
+        filter_primary = [{'$match': {identification_label: name}},
+                            {'$unwind': '$measurements'},
+                            {'$unwind': '$measurements.primary_measurement'}]
+        
+        add_filter = {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
+                                 'measurements.primary_measurement.end': {'$gte': primary_time}}}
         if breakout_channel_id is not None and breakout_id is not None:
-            filter_primary = [{'$match': {identification_label: name}},
-                              {'$unwind': '$measurements'},
-                              {'$unwind': '$measurements.primary_measurement'},
-                              {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
-                                          'measurements.primary_measurement.end': {'$gte': primary_time},
-                                          'measurements.breakout': breakout_id,
-                                          'measurements.breakout_channel': breakout_channel_id}}]
+            add_filter['$match'].update({'measurements.breakout': breakout_id,
+                                         'measurements.breakout_channel': breakout_channel_id})
+
         elif _id is not None:
-            filter_primary = [{'$match': {identification_label: name}},
-                              {'$unwind': '$measurements'},
-                              {'$unwind': '$measurements.primary_measurement'},
-                              {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
-                                          'measurements.primary_measurement.end': {'$gte': primary_time},
-                                          f'measurements.{id_label}_id': _id}}]
-        else:
-            filter_primary = [{'$match': {identification_label: name}},
-                              {'$unwind': '$measurements'},
-                              {'$unwind': '$measurements.primary_measurement'},
-                              {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
-                                          'measurements.primary_measurement.end': {'$gte': primary_time}}}]
+            add_filter['$match'].update({f'measurements.{id_label}_id': _id})
+        
+        filter_primary.append(add_filter)
 
         # get all entries matching the search filter
         matching_entries = list(self.db[type].aggregate(filter_primary))
