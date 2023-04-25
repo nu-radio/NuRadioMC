@@ -85,22 +85,20 @@ class noiseImporter:
                 
         if scramble_noise_file_order:
             self.__random_gen.shuffle(self.__noise_folders)
+
+        self._noise_reader = readRNOGData()
         
-        if "log_level" in reader_kwargs:
-            log_level_reader = reader_kwargs.pop("log_level")
-        else:
-            log_level_reader = log_level
+        default_reader_kwargs = {
+            "selectors": [lambda einfo: einfo.triggerType == "FORCE"],
+            "log_level": log_level, "select_runs": True, "max_trigger_rate": 2 * units.Hz,
+            "run_types": ["physics"]
+        }
+        default_reader_kwargs.update(reader_kwargs)
+           
+        self._noise_reader.begin(self.__noise_folders, **default_reader_kwargs)
 
-        self._noise_reader = readRNOGData()                
-        selectors = [lambda einfo: einfo.triggerType == "FORCE"]
-        self._noise_reader.begin(self.__noise_folders, selectors=selectors, 
-                                 log_level=log_level_reader,
-                                 **reader_kwargs)
-
-
-        self.logger.info("Get event informations ...")
         # instead of reading all noise events into memory we only get certain information here and read all data in run()
-        
+        self.logger.info("Get event informations ...")       
         noise_information = self._noise_reader.get_events_information(keys=["station"])
         self.__event_index_list = np.array(list(noise_information.keys()))
         self.__station_id_list = np.array([ele["station"] for ele in noise_information.values()])
