@@ -102,7 +102,7 @@ class noiseImporter:
         self.logger.info("Get event informations ...")
         t0 = time.time()
         noise_information = self._noise_reader.get_events_information(keys=["station"])
-        self.logger.info(f"... in {t0 - time.time():.2f}s")
+        self.logger.info(f"... in {time.time() - t0:.2f}s")
         
         self.__event_index_list = np.array(list(noise_information.keys()))
         self.__station_id_list = np.array([ele["station"] for ele in noise_information.values()])
@@ -116,6 +116,44 @@ class noiseImporter:
         else:
             return self.__channel_mapping[channel_id]
         
+        
+    def __draw_noise_event(self, mask):
+        """
+        reader.get_event_by_index can return None when, e.g., the trigger time is inf or the sampling rate 0.
+        Hence, try again if that happens (should only occur rearly).
+        
+        Parameters
+        ----------
+        
+        mask: np.array(bool)
+            Mask of which noise events are allowed (e.g. because of matching station ids, ...)
+            
+        Returns
+        -------
+        
+        noise_event: NuRadioReco.framework.event
+            A event containing noise traces
+            
+        i_noise: int
+            The index of the drawn event
+        """
+        tries = 0
+        while tries < 100:
+            # int(..) necessary because pyroot can not handle np.int64
+            i_noise = int(self.__random_gen.choice(self.__event_index_list[mask]))
+            noise_event = self._noise_reader.get_event_by_index(i_noise)
+            tries += 1
+            if noise_event is not None:
+                break
+            
+        if noise_event is None:
+            err = "Could not draw a random station which is not None after 100 tries. Stop."
+            self.logger.error(err)
+            raise ValueError(err)
+            
+        self._n_use_event[i_noise] += 1
+        return noise_event, i_noise
+
 
     @register_run()
     def run(self, evt, station, det):
@@ -130,10 +168,7 @@ class noiseImporter:
             # select all noise events
             station_mask = np.full_like(self.__event_index_list, True)
 
-        # int(..) necessary because pyroot can not handle np.int64
-        i_noise = int(self.__random_gen.choice(self.__event_index_list[station_mask]))
-        self._n_use_event[i_noise] += 1
-        noise_event = self._noise_reader.get_event_by_index(i_noise)
+        noise_event, i_noise = self.__draw_noise_event(station_mask)
         
         station_id = noise_event.get_station_ids()[0]
         noise_station = noise_event.get_station(station_id)
