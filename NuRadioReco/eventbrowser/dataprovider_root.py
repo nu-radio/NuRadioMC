@@ -1,4 +1,4 @@
-import NuRadioReco.modules.io.rno_g.rnogDataReader
+from NuRadioReco.modules.io.RNO_G.readRNOGDataMattak import readRNOGData
 
 
 class DataProviderRoot(object):
@@ -16,11 +16,11 @@ class DataProviderRoot(object):
         if filename is None:
             return
         if user_id not in self.__user_instances:
-            self.__user_instances[user_id] = NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader([filename])
+            self.__user_instances[user_id] = readRNOGData.begin([filename])
 
         if filename != self.__user_instances[user_id].get_filenames()[0]:
             # user is requesting new file -> close current file and open new one
-            self.__user_instances[user_id] = NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader([filename])
+            self.__user_instances[user_id] = readRNOGData.begin([filename])
             #TODO begin method does not exist in RNOGDataReader
             #self.__user_instances[user_id].begin(filename)
         return self.__user_instances[user_id]
