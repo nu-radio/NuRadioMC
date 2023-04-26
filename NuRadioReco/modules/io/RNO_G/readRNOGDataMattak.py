@@ -512,7 +512,7 @@ class readRNOGData:
       trigger_time = event_info.triggerTime
       if math.isinf(trigger_time):
          self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
-                           "has inf trigger time. Skip event...")
+                            "has inf trigger time. Skip event...")
          return None
 
       evt = NuRadioReco.framework.event.Event(event_info.run, event_info.eventNumber)
