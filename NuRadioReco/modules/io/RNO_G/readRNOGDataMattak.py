@@ -235,8 +235,6 @@ class readRNOGData:
             selectors = [selectors]
          
          self.logger.info(f"Found {len(selectors)} selector(s)")
-
-      self._selectors = selectors
             
       if select_triggers is not None:
          if isinstance(select_triggers, str):
@@ -244,6 +242,8 @@ class readRNOGData:
          else:
             for select_trigger in select_triggers:
                selectors.append(lambda eventInfo: eventInfo.triggerType == select_trigger)
+
+      self._selectors = selectors
       
       self._time_begin = 0
       self._time_run = 0
