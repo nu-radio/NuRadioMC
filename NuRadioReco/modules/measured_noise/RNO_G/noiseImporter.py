@@ -82,7 +82,8 @@ class noiseImporter:
         
         self.logger.info(f"Found {len(self.__noise_folders)}")
         if not len(self.__noise_folders):
-            raise ValueError
+            self.logger.error("No folders found")
+            raise FileNotFoundError("No folders found")
                 
         if scramble_noise_file_order:
             self.__random_gen.shuffle(self.__noise_folders)
