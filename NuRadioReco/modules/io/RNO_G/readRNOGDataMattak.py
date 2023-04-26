@@ -583,11 +583,14 @@ class readRNOGData:
       return evt
    
       
-   def get_event(self, event_id):
+   def get_event(self, run_nr, event_id):
       """ Allows to read a specific event identifed by its id
 
       Parameters
       ----------
+      
+      run_nr: int
+         Run number
 
       event_id: int
          Event Id
@@ -601,9 +604,9 @@ class readRNOGData:
       self.logger.debug(f"Processing event {event_id}")
       t0 = time.time()
 
-      event_infos = self.get_events_information(keys=["eventNumber"])
-      event_idx_ids = np.array([[index, ele["eventNumber"]] for index, ele in event_infos.items()])
-      mask = event_idx_ids[:, 1] == event_id
+      event_infos = self.get_events_information(keys=["eventNumber", "run"])
+      event_idx_ids = np.array([[index, ele["eventNumber"], ele["run"]] for index, ele in event_infos.items()])
+      mask = np.all([event_idx_ids[:, 1] == event_id, event_idx_ids[:, 2] == run_nr], axis=0)
 
       if not np.any(mask):
          self.logger.info(f"Could not find event with id: {event_id}.")
