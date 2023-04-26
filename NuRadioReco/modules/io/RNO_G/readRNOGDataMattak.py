@@ -515,6 +515,12 @@ class readRNOGData:
                                      "has inf trigger time. Skip event...")
             return None
 
+        sampling_rate = event_info.sampleRate
+        if sampling_rate == 0:
+            self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
+                              f"has a sampling rate of {sampling_rate} GHz. Skip event...")
+            return None
+
         evt = NuRadioReco.framework.event.Event(event_info.run, event_info.eventNumber)
         station = NuRadioReco.framework.station.Station(event_info.station)
         station.set_station_time(astropy.time.Time(trigger_time, format='unix'))
@@ -527,7 +533,7 @@ class readRNOGData:
         for channel_id, wf in enumerate(waveforms):
             channel = NuRadioReco.framework.channel.Channel(channel_id) 
             if self._read_calibrated_data:    
-                channel.set_trace(wf * units.mV, event_info.sampleRate * units.GHz)
+                channel.set_trace(wf * units.mV, sampling_rate * units.GHz)
             else:
                 # wf stores ADC counts
                 
@@ -539,7 +545,7 @@ class readRNOGData:
                     # convert adc to voltage
                     wf *= (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
                     
-                channel.set_trace(wf, event_info.sampleRate * units.GHz)
+                channel.set_trace(wf, sampling_rate * units.GHz)
             
             time_offset = get_time_offset(event_info.triggerType)
             channel.set_trace_start_time(-time_offset)  # relative to event/trigger time
