@@ -1,9 +1,9 @@
 import numpy as np
-import pandas
 import logging
 import os
 import time
 import astropy.time
+import math
 
 from NuRadioReco.modules.base.module import register_run
 
@@ -14,14 +14,6 @@ import NuRadioReco.framework.trigger
 
 from NuRadioReco.utilities import units
 import mattak.Dataset
-
-try:
-   from rnog_data.runtable import RunTable
-   imported_runtable = True
-except ImportError:
-   print("Import of run table failed. You will not be able to select runs! \n" 
-         "You can get the interface from GitHub: git@github.com:RNO-G/rnog-data-analysis-and-issues.git")
-   imported_runtable = False
 
 
 def baseline_correction(wfs, n_bins=128, func=np.median):
@@ -104,6 +96,38 @@ def get_time_offset(trigger_type):
       return time_offsets[trigger_type]
    else:
       raise KeyError(f"Unknown trigger type: {trigger_type}. Known are: FORCE, LT, RADIANT. Abort ....")
+   
+   
+def all_files_in_directory(mattak_dir):
+   """
+   Checks if all Mattak root files are in a directory.
+   Ignoring runinfo.root because (asaik) not all runs have those and information is currently not read by Mattak.
+   There are mattak directories which produce a ReferenceError when reading. They have a "combined.root" which is
+   apparently empty but are missing the daqstatus, pedestal, and header file.
+   
+   Parameters
+   ----------
+   
+   mattak_dir: str
+      Path to a mattak directory
+      
+   Returns
+   -------
+   
+   all_there: bool
+      True, if all "req_files" are there and waveforms.root or combined.root. Otherwise returns False.
+   """
+   # one or the other has to be present
+   if not os.path.exists(os.path.join(mattak_dir, "waveforms.root")) and \
+         not os.path.exists(os.path.join(mattak_dir, "combined.root")):
+      return False
+   
+   req_files = ["daqstatus.root", "headers.root", "pedestal.root"]
+   for file in req_files:
+      if not os.path.exists(os.path.join(mattak_dir, file)):
+         return False
+
+   return True
 
 
 class readRNOGData:
@@ -207,22 +231,25 @@ class readRNOGData:
          self._time_low = None
          self._time_high = None         
       
+      self.__run_table = None
       if select_runs:
          if run_table_path is None:
-            global imported_runtable
-            if imported_runtable:
+            try:
+               from rnog_data.runtable import RunTable
                self.logger.debug("Access RunTable database ...")
                try:
                   self.__run_table = RunTable().get_table()
                except:
                   self.logger.error("No connect to RunTable database could be established. "
                                     "Runs will not be filtered.")
-                  imported_runtable = False
+            except ImportError:
+               self.logger.error("Import of run table failed. You will not be able to select runs! \n" 
+                     "You can get the interface from GitHub: git@github.com:RNO-G/rnog-data-analysis-and-issues.git")
          else:
+            import pandas
             self.__run_table = pandas.read_csv(run_table_path)
-            imported_runtable = True
             
-      if select_runs:
+      if select_runs and self.__run_table is not None:
          self.logger.info("\n\tSelect runs with type: {}".format(", ".join(run_types)) +
                          f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
                          f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
@@ -263,17 +290,27 @@ class readRNOGData:
          
          if not os.path.exists(data_dir):
             self.logger.error(f"The directory {data_dir} does not exist")
+            continue
+         
+         if not all_files_in_directory(data_dir):
+            self.logger.error(f"Incomplete directory: {data_dir}. Skip ...")
+            continue     
       
          dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=data_dir, backend=mattak_backend)
 
          # filter runs/datasets based on 
-         if select_runs and imported_runtable and not self.__select_run(dataset):
+         if select_runs and self.__run_table is not None and not self.__select_run(dataset):
             self.__skipped_runs += 1
             continue
          
          self.__n_runs += 1
          self._datasets.append(dataset)
          self.__n_events_per_dataset.append(dataset.N())
+         
+      if not len(self._datasets):
+         err = "Found no valid datasets. Stop!"
+         self.logger.error(err)
+         raise FileNotFoundError(err)
 
       # keeps track which event index is in which dataset
       self._event_idxs_datasets = np.cumsum(self.__n_events_per_dataset)
@@ -309,6 +346,10 @@ class readRNOGData:
       station_id = event_info.station
       
       run_info = self.__run_table.query(f"station == {station_id:d} & run == {run_id:d}")
+      
+      if not len(run_info):
+         self.logger.error(f"Run {run_id:d} (station {station_id:d}) not in run table. Reject...")
+         return False
       
       # "time_start/end" is stored in the isot format. datetime is much faster than astropy (~85ns vs 55 mus).
       # But using datetime would mean to stip decimals because datetime can only handle mu sec precision and can not cope 
@@ -425,7 +466,6 @@ class readRNOGData:
       if not do_read:
          # ... or when it does not have the desired information
          first_event_info = next(iter(self._events_information))
-         print(first_event_info)
          for key in keys:
             if key not in list(first_event_info.keys()):
                do_read = True
@@ -468,14 +508,20 @@ class readRNOGData:
       
       evt: NuRadioReco.framework.event
       """
-      
+
+      trigger_time = event_info.triggerTime
+      if math.isinf(trigger_time):
+         self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
+                           "has inf trigger time. Skip event...")
+         return None
+
       evt = NuRadioReco.framework.event.Event(event_info.run, event_info.eventNumber)
       station = NuRadioReco.framework.station.Station(event_info.station)
-      station.set_station_time(astropy.time.Time(event_info.triggerTime, format='unix'))
+      station.set_station_time(astropy.time.Time(trigger_time, format='unix'))
 
       trigger = NuRadioReco.framework.trigger.Trigger(event_info.triggerType)
       trigger.set_triggered()
-      trigger.set_trigger_time(event_info.triggerTime)
+      trigger.set_trigger_time(trigger_time)
       station.set_trigger(trigger)
       
       for channel_id, wf in enumerate(waveforms):
@@ -539,6 +585,8 @@ class readRNOGData:
             waveforms_of_event = wfs[idx]
             
             evt = self._get_event(evtinfo, waveforms_of_event)
+            if evt is None:
+               continue
             
             self._time_run += time.time() - t0
             self.__counter += 1
