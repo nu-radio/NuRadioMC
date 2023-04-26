@@ -2,6 +2,7 @@ import numpy as np
 import glob
 import os
 import collections
+import time
 
 from NuRadioReco.modules.io.RNO_G.readRNOGDataMattak import readRNOGData
 from NuRadioReco.modules.base.module import register_run
@@ -98,8 +99,11 @@ class noiseImporter:
         self._noise_reader.begin(self.__noise_folders, **default_reader_kwargs)
 
         # instead of reading all noise events into memory we only get certain information here and read all data in run()
-        self.logger.info("Get event informations ...")       
+        self.logger.info("Get event informations ...")
+        t0 = time.time()
         noise_information = self._noise_reader.get_events_information(keys=["station"])
+        self.logger.info(f"... in {t0 - time.time():.2f}s")
+        
         self.__event_index_list = np.array(list(noise_information.keys()))
         self.__station_id_list = np.array([ele["station"] for ele in noise_information.values()])
         
