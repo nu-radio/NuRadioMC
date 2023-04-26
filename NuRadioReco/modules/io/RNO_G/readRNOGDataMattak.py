@@ -139,7 +139,7 @@ class readRNOGData:
                  select_runs=False,
                  apply_baseline_correction=True,
                  convert_to_voltage=True,
-                 selectors=None,
+                 selectors=[],
                  run_table_path=None,
                  run_types=["physics"],
                  run_time_range=None,
@@ -219,18 +219,8 @@ class readRNOGData:
         # is read and convert_to_voltage is True.
         self._adc_ref_voltage_range = 2.5 * units.volt
         self._adc_n_bits = 12
-        
-        self.__max_trigger_rate = max_trigger_rate
-        self.__run_types = run_types
-        
-        if run_time_range is not None:
-            convert_time = lambda t: None if t is None else astropy.time.Time(t)
-            self._time_low = convert_time(run_time_range[0])
-            self._time_high = convert_time(run_time_range[1])
-        else:
-            self._time_low = None
-            self._time_high = None            
-        
+            
+        # Initialize run table for run selection
         self.__run_table = None
         if select_runs:
             if run_table_path is None:
@@ -248,22 +238,29 @@ class readRNOGData:
             else:
                 import pandas
                 self.__run_table = pandas.read_csv(run_table_path)
-                
+            
+        # Set parameter for run selection    
+        self.__max_trigger_rate = max_trigger_rate
+        self.__run_types = run_types
+        
+        if run_time_range is not None:
+            convert_time = lambda t: None if t is None else astropy.time.Time(t)
+            self._time_low = convert_time(run_time_range[0])
+            self._time_high = convert_time(run_time_range[1])
+        else:
+            self._time_low = None
+            self._time_high = None
+             
         if select_runs and self.__run_table is not None:
             self.logger.info("\n\tSelect runs with type: {}".format(", ".join(run_types)) +
                                  f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
                                  f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
         
-        if not isinstance(data_dirs, (list, np.ndarray)):
-            data_dirs = [data_dirs]
-
-        if selectors is not None:
-            if not isinstance(selectors, (list, np.ndarray)):
-                selectors = [selectors]
-            
-            self.logger.info(f"Found {len(selectors)} selector(s)")
-
-        self._selectors = selectors
+        # Initialize selectors for event filtering
+        if not isinstance(selectors, (list, np.ndarray)):
+            selectors = [selectors]
+        
+        self.logger.info(f"Found {len(selectors)} selector(s)")
                 
         if select_triggers is not None:
             if isinstance(select_triggers, str):
@@ -271,7 +268,10 @@ class readRNOGData:
             else:
                 for select_trigger in select_triggers:
                     selectors.append(lambda eventInfo: eventInfo.triggerType == select_trigger)
+
+        self._selectors = selectors
         
+        # Read data
         self._time_begin = 0
         self._time_run = 0
         self.__counter = 0
@@ -286,6 +286,9 @@ class readRNOGData:
         self.__skipped_runs = 0
         self.__n_runs = 0
         
+        if not isinstance(data_dirs, (list, np.ndarray)):
+            data_dirs = [data_dirs]
+
         verbose = log_level == logging.DEBUG
         for data_dir in data_dirs:
             
