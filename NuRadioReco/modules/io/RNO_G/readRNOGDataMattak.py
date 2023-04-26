@@ -286,6 +286,7 @@ class readRNOGData:
         self.__skipped_runs = 0
         self.__n_runs = 0
         
+        verbose = log_level == logging.DEBUG
         for data_dir in data_dirs:
             
             if not os.path.exists(data_dir):
@@ -296,7 +297,7 @@ class readRNOGData:
                 self.logger.error(f"Incomplete directory: {data_dir}. Skip ...")
                 continue      
         
-            dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=data_dir, backend=mattak_backend)
+            dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=data_dir, backend=mattak_backend, verbose=verbose)
 
             # filter runs/datasets based on 
             if select_runs and self.__run_table is not None and not self.__select_run(dataset):
