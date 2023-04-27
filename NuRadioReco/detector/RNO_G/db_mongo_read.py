@@ -255,7 +255,7 @@ class Database(object):
 
 
     @check_database_time
-    def get_collection_information(self, collection_name, station_id, measurement_name=None, channel_id=None):
+    def get_collection_information(self, collection_name, station_id, measurement_name=None, channel_id=None, use_primary_time_with_measurement=False):
         """
         Get the information for a specified collection (will only work for 'station_position', 'channel_position' and 'signal_chain')
         if the station does not exist, {} will be returned. Return primary measurement unless measurement_name is specified.
@@ -271,10 +271,16 @@ class Database(object):
             The unique identifier of the station
         
         measurement_name: string
-            The unique name of the measurement. (Default: None - return primary measurement)
+            Use the measurement name to select the requested data (not database time / primary time).
+            If "use_primary_time_with_measurement" is True, use measurement_name and primary time to 
+            find matching objects. (Default: None -> return measurement based on primary time)
         
         channel_id: int
             Unique identifier of the channel
+            
+        use_primary_time_with_measurement: bool
+            If True (and measurement_name is not None), use measurement name and primary time to select objects.
+            (Default: False)
 
         Returns
         -------
@@ -292,25 +298,26 @@ class Database(object):
         search_filter = [{'$match': {'id': station_id}},
                          {'$unwind': '$measurements'}]
         
-        if channel_id is not None and measurement_name is None:
-            search_filter += [{'$match': {'measurements.channel_id': channel_id}}]  # append
+        if measurement_name is not None or channel_id is not None:
+            search_filter.append({'$match': {}})
         
-        elif channel_id is None and measurement_name is not None:
-            search_filter += [{'$match': {'measurements.measurement_name': measurement_name}}]  # append
+            if measurement_name is not None:
+                # add {'measurements.measurement_name': measurement_name} to dict in '$match'
+                search_filter[-1]['$match'].update(
+                    {'measurements.measurement_name': measurement_name})
 
-        elif channel_id is not None and measurement_name is not None:
-            search_filter += [{'$match': {'measurements.measurement_name': measurement_name,
-                                          'measurements.channel_id': channel_id}}]  # append
-        else:
-            pass
+            if channel_id is not None :
+                # add {'measurements.channel_id': channel_id} to dict in '$match'
+                search_filter[-1]['$match'].update({'measurements.channel_id': channel_id})
+        
                     
-        if measurement_name is None:
+        if measurement_name is None or use_primary_time_with_measurement:
             search_filter += [
                 {'$unwind': '$measurements.primary_measurement'},
                 {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
                             'measurements.primary_measurement.end': {'$gte': primary_time}}}]
         else:
-            # measurement identified by "measurement_name"
+            # measurement/object identified by soley by "measurement_name"
             pass    
 
         search_result = list(self.db[collection_name].aggregate(search_filter))
