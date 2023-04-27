@@ -382,7 +382,7 @@ class Database(object):
             raise ValueError
 
         # get the channel position information in the correct format
-        channel_pos_dic = {}
+        channel_pos_dic = collections.defaultdict(dict)  # this will return an empty dict when ask for a channel those information are not in the database 
         for cha_pos_dic in channel_position_information:
             channel_id = cha_pos_dic['measurements']['channel_id']
             channel_pos_dic[channel_id] = {k: cha_pos_dic['measurements'][k] for k in 
@@ -462,7 +462,7 @@ class Database(object):
             raise ValueError
 
         # get the channel signal chain in the correct format
-        channel_sig_chain_dic = {}
+        channel_sig_chain_dic = collections.defaultdict(dict)  # this will return an empty dict when ask for a channel those information are not in the database 
         for cha_sig_dic in signal_chain_information:
             channel_id = cha_sig_dic['measurements']['channel_id']
             channel_sig_chain_dic[channel_id] = {k: cha_sig_dic['measurements'][k] 
@@ -487,7 +487,7 @@ class Database(object):
     def get_devices_position(self, station_id, measurement_name=None):
         device_position_information = self.get_collection_information('device_position', station_id, measurement_name=measurement_name)
 
-        device_pos_dic = {}
+        device_pos_dic = collections.defaultdict(dict)  # this will return an empty dict when ask for a channel those information are not in the database 
         for dev_pos_dic in device_position_information:
             device_id = dev_pos_dic['measurements']['device_id']
             device_pos_dic[device_id] = {dk: dev_pos_dic['measurements'][dk] for dk in filtered_keys(dev_pos_dic['measurements'], ['device_id'])}
