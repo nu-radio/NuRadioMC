@@ -30,17 +30,52 @@ def keys_not_in_dict(d, keys):
 
 
 
-class RNOG_Detector():
-    def __init__(self, database_connection='RNOG_test_public', log_level=logging.DEBUG, over_write_handset_values={}):
+class Detector():
+    def __init__(self, database_connection='RNOG_test_public', log_level=logging.DEBUG, over_write_handset_values={}, database_time=None,
+                 always_query_entire_description=True):
+        """
+        
+        Parameters
+        ----------
+        
+        database_connection: str
+            Allows to specify database connection. Passed to mongo-db interface. (Default: 'RNOG_test_public')
+            
+        log_level: enum
+            Defines verbosity level of logger. (Default: logging.DEBUG)
+            
+        over_write_handset_values: dict
+            Overwrite the default values for the manually set parameter which are not (yet) implemented in the database.
+            (Default: {}, the acutally default values for the parameters in question are defined below)
+            
+        database_time: datetime.datetime
+            Set database time which is used to select the primary measurement. By default (= None) the database time
+            is set to now (time the code is running) to select the measurement which is now primary.
+            
+        always_query_entire_description: bool
+            If True, query the entire detector describtion all at once when calling Detector.update(...) (if necessary).
+            (Default: True)
+        """
         
         self.logger = logging.getLogger("rno-g-detector")
         self.logger.setLevel(log_level)
 
         self.__db = Database(database_connection=database_connection)
+        if database_time is not None:
+            self.__db.set_database_time(database_time)
+            
+        self.logger.info("Collect time periods of station commission/decommission ...")
+        self._time_periods_per_station = self.__db.query_modification_timestamps_per_station()
+        self._time_period_of_station = collections.defaultdict(int)
         
+        # This should be set with Detector.update(..) and corresponds to the time of a measurement. It will be use to 
+        # decide which components are commissioned at the time of the measurement 
         self.__detector_time = None
         
+        # Initialise the primary buffer
         self.__buffered_stations = collections.defaultdict(dict)
+        
+        self._query_all = always_query_entire_description
         
         # Define default values for parameter not (yet) implemented in DB. Those values are taken for all channels.
         self.__default_values = {
@@ -52,45 +87,98 @@ class RNOG_Detector():
         
         self.__default_values.update(over_write_handset_values)
         
-        info = "\nUsing the following hand-set values:"
+        info = f"Query entire detector description at once: {always_query_entire_description}"
+        
+        info += "\nUsing the following hand-set values:"
         for key, value in self.__default_values.items():
             info += f"\n\t{key:<20}: {value}"
         
         self.logger.info(info)
         
+
+    def _check_if_update_is_needed(self):
+        """
+        Checks whether the correct detector description per station in in the current period.
+        
+        Returns
+        -------
+        
+        need_any_update: bool
+            True if any station needs an update
+            
+        need_update: dict(bool)
+            Flag for each station if an update is needed
+        """
+        
+        if len(self.__buffered_stations) == 0:
+            return True  # buffer is empty
+        
+        need_update = collections.defaultdict(int)  # use integer as bool here!
+        for station_id in self.__buffered_stations:
+            if self._time_period_of_station[station_id] == 0:  # 0 means no period for this station has been set so far 
+                need_update[station_id] = True
+            else:
+                period = np.digitize(self.__detector_time, self._time_periods_per_station[station_id])
+                if period != self._time_period_of_station[station_id]:
+                    need_update[station_id] = True
+                    
+        return np.any([v for v in need_update.values()]), need_update
+                
         
     def update(self, time):
-        """ Update detector
+        """ 
+        Updates the detector. If configure in constructor this function with trigger the 
+        database query.    
         
         Parameters
         ----------
 
-        time: float 
-            Unix timestamp in UTC.        
+        time: datetime.datetime 
+            Unix time of measurement.        
         """
         
         self.__detector_time = time
         
+        need_any_update, need_update = self._check_if_update_is_needed()
+        
+        # clean entire buffer - this is quite brute force ...
+        if need_any_update:
+            for key in self.__buffered_stations:
+                if need_update[station_id]:
+                    self.__buffered_stations[station_id] = {}  # remove everything
 
-    def set_database_time(self, time):
-        ''' Set time(stamp) for database. This affects which primary measurement is used.
+        if self._query_all and need_any_update:            
+            station_ids = self.get_station_ids()
+            for station_id in station_ids:
+                if need_update[station_id]:
+                    # sets self.__buffered_stations[station_id]
+                    self.get_full_station_information(station_id)
+
+        
+    def get_full_station_information(self, station_id):
+        """
         
         Parameters
         ----------
         
-        time: float 
-            Unix timestamp in UTC.
-        '''
-        self.__db.set_database_time(time)
+        station_id: int
+            Station id
+            
+        Returns:
         
-        
-    def get_full_station_from_buffer(self, station_id):
-        if station_id in self.__buffered_stations:
+        full_info: dict
+            Get dictionary of _all_ information of a commissioned station including all channel and device infomration such as the S-parameter of the 
+            amplifier
+        """
+        if station_id not in self.__buffered_stations or self.__buffered_stations[station_id] == {}:
+            # query all information
+            self.__buffered_stations[station_id] = self.__db.get_complete_station_information(station_id=station_id)
+        else:
             info = self.__buffered_stations[station_id]
+            # This should ne be necessary because we clean the buffer in Detector.update(...).
+            # However, I keep it here because "twice holds longer" and in future we might implement a more smart way of updateing  
             if info["commission_time"] > self.__detector_time or info["decommission_time"] < self.__detector_time:
                 self.__buffered_stations[station_id] = self.__db.get_complete_station_information(station_id=station_id)
-        else:
-            self.__buffered_stations[station_id] = self.__db.get_complete_station_information(station_id=station_id)
         
         return self.__buffered_stations[station_id]
     
@@ -637,7 +725,8 @@ class Response:
 
 
 if __name__ == "__main__":
-    det = RNOG_Detector(log_level=logging.DEBUG, over_write_handset_values={"sampling_frequency": 2.4 * units.GHz})
+    det = Detector(log_level=logging.DEBUG, over_write_handset_values={"sampling_frequency": 2.4 * units.GHz})
+    
     # det.update(datetime.datetime(2022, 8, 2, 0, 0))
     
     # det.get_full_station_from_buffer(11)
@@ -646,13 +735,15 @@ if __name__ == "__main__":
     # s = det.get_channel_signal_chain(11, 11)
     # print(s.keys())
     
-    time_filter = [
-    {"$match": {
-        'id': 11,
-        'channels.id': 11,
-        'commission_time': {"$lte": datetime.datetime(2022, 8, 2, 0, 0)},
-        'decommission_time': {"$gte": datetime.datetime(2022, 8, 2, 0, 0)}}}]
+    # time_filter = [
+    # {"$match": {
+    #     'id': 11,
+    #     'channels.id': 11,
+    #     'commission_time': {"$lte": datetime.datetime(2022, 8, 2, 0, 0)},
+    #     'decommission_time': {"$gte": datetime.datetime(2022, 8, 2, 0, 0)}}}]
 
-    # get all stations which fit the filter
-    channel_information = list(det.db().db["station_rnog"].aggregate(time_filter))
-    print(len(channel_information[0]["channels"]))
+    # # get all stations which fit the filter
+    # channel_information = list(det.db().db["station_rnog"].aggregate(time_filter))
+    # print(len(channel_information[0]["channels"]))
+    
+    det.db().get_collection_information('station_position', 11)

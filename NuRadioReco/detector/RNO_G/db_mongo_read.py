@@ -703,6 +703,41 @@ class Database(object):
         complete_info['devices'] = general_device_dic
 
         return complete_info
+    
+    
+    def query_modification_timestamps_per_station(self):
+        """
+        Collects all the timestamps from the database for which some modifications happened:
+        (de)commissioning of a station (channel in station).
+
+        Return
+        ------
+        
+        modifications: dict(list)
+            Returns for each station (key = station.od) a list of timestamps reflecting a modification
+        """
+        # get distinct set of stations:
+        station_ids = self.db.station_rnog.distinct("id")
+        modification_timestamp_dict = {}
+        
+        for station_id in station_ids:
+            # get set of (de)commission times for stations
+            station_times_comm = self.db.station_rnog.distinct("commission_time", {"id": station_id})
+            station_times_decomm = self.db.station_rnog.distinct("decommission_time", {"id": station_id})
+
+            # get set of (de)commission times for channels
+            channel_times_comm = self.db.station_rnog.distinct("channels.commission_time", {"id": station_id})
+            channel_times_decomm = self.db.station_rnog.distinct("channels.decommission_time", {"id": station_id})
+
+            mod_set = np.unique([*station_times_comm,
+                                 *station_times_decomm,
+                                 *channel_times_comm,
+                                 *channel_times_decomm])
+            mod_set.sort()
+            # store timestamps, which can be used with np.digitize
+            modification_timestamp_dict[station_id] = [mod_t.timestamp() for mod_t in mod_set]
+        
+        return modification_timestamp_dict
 
 
 def dictionarize_nested_lists(nested_lists, parent_key="id", nested_field="channels", nested_key="id"):
