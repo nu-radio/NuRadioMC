@@ -707,5 +707,5 @@ class readRNOGData:
             f"\n\tRead {self.__counter} events (skipped {self.__skipped} events)"
             f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
             f"\n\tTime to initialize all events : {self._time_run:.2f}s"
-            f"\n\tTime to per event                 : {self._time_run / self.__counter:.2f}s"
+            f"\n\tTime to per event             : {self._time_run / self.__counter:.2f}s"
             f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs.")
