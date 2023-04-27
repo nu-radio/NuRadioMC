@@ -133,19 +133,19 @@ def all_files_in_directory(mattak_dir):
 class readRNOGData:
 
     def begin(self, 
-                 data_dirs,  
-                 read_calibrated_data=False,
-                 select_triggers=None,
-                 select_runs=False,
-                 apply_baseline_correction=True,
-                 convert_to_voltage=True,
-                 selectors=[],
-                 run_table_path=None,
-                 run_types=["physics"],
-                 run_time_range=None,
-                 max_trigger_rate=0 * units.Hz,
-                 mattak_backend="auto",
-                 log_level=logging.INFO):
+            data_dirs,  
+            read_calibrated_data=False,
+            select_triggers=None,
+            select_runs=False,
+            apply_baseline_correction=True,
+            convert_to_voltage=True,
+            selectors=[],
+            run_table_path=None,
+            run_types=["physics"],
+            run_time_range=None,
+            max_trigger_rate=0 * units.Hz,
+            mattak_kwargs={},
+            log_level=logging.INFO):
         """
 
         Parameters
@@ -198,12 +198,14 @@ class readRNOGData:
             Used to select/reject runs from information in the RNO-G RunTable. Maximum allowed trigger rate (per run) in Hz.
             If 0, no cut is applied. (Default: 1 Hz)
             
-        mattak_backend: str
-            Select a mattak backend. Options are "auto", "pyroot", "uproot". If "auto" is selected, pyroot is used if available otherwise
-            a "fallback" to uproot is used. (Default: "auto") 
+        mattak_kwargs: dict
+            Dictionary of arguments for mattak.Dataset.Dataset. (Default: {})
+            Example: Select a mattak "backend". Options are "auto", "pyroot", "uproot". If "auto" is selected, 
+            pyroot is used if available otherwise a "fallback" to uproot is used. (Default: "auto") 
 
         log_level: enum
-            Set verbosity level of logger
+            Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).
+            (Default: logging.INFO) 
         """
         
         t0 = time.time()
@@ -289,7 +291,12 @@ class readRNOGData:
         if not isinstance(data_dirs, (list, np.ndarray)):
             data_dirs = [data_dirs]
 
-        verbose = log_level == logging.DEBUG
+        # Set verbose for mattak
+        if "verbose" in mattak_kwargs:
+            vabose = mattak_kwargs.pop("verbose")
+        else:
+            verbose = log_level == logging.DEBUG
+
         for data_dir in data_dirs:
             
             if not os.path.exists(data_dir):
@@ -300,7 +307,7 @@ class readRNOGData:
                 self.logger.error(f"Incomplete directory: {data_dir}. Skip ...")
                 continue      
         
-            dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=data_dir, backend=mattak_backend, verbose=verbose)
+            dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=data_dir, verbose=verbose, **mattak_kwargs)
 
             # filter runs/datasets based on 
             if select_runs and self.__run_table is not None and not self.__select_run(dataset):
@@ -321,8 +328,8 @@ class readRNOGData:
         self._n_events_total = np.sum(self.__n_events_per_dataset)
         self._time_begin = time.time() - t0
         
-        self.logger.info(f"Using the {self._datasets[0].backend} Mattak backend.")
-        self.logger.info(f"{self._n_events_total} events in {len(self._datasets)} runs/datasets have been found.")
+        self.logger.info(f"{self._n_events_total} events in {len(self._datasets)} runs/datasets "
+                         f"have been found using the {self._datasets[0].backend} Mattak backend.")
                 
         if not self._n_events_total:
             err = "No runs have been selected. Abort ..."
