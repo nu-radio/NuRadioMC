@@ -1,15 +1,13 @@
 import six
 import os
-import sys
 import urllib.parse
 import datetime
-import json
 import numpy as np
 from functools import wraps
 import collections
 
 from pymongo import MongoClient
-from bson import json_util  # bson dicts are used by pymongo
+# from bson import json_util  # bson dicts are used by pymongo
 
 import NuRadioReco.utilities.metaclasses
 
@@ -729,13 +727,11 @@ class Database(object):
             channel_times_comm = self.db.station_rnog.distinct("channels.commission_time", {"id": station_id})
             channel_times_decomm = self.db.station_rnog.distinct("channels.decommission_time", {"id": station_id})
 
-            mod_set = np.unique([*station_times_comm,
-                                 *station_times_decomm,
-                                 *channel_times_comm,
-                                 *channel_times_decomm])
+            mod_set = np.unique(station_times_comm + station_times_decomm + channel_times_comm + channel_times_decomm)
             mod_set.sort()
+            
             # store timestamps, which can be used with np.digitize
-            modification_timestamp_dict[station_id] = [mod_t.timestamp() for mod_t in mod_set]
+            modification_timestamp_dict[station_id] = mod_set
         
         return modification_timestamp_dict
 

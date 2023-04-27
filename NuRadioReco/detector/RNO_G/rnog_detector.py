@@ -2,9 +2,9 @@
 import logging
 logging.basicConfig(format="%(asctime)s - %(levelname)s:%(name)s:%(funcName)s : %(message)s", datefmt="%H:%M:%S")
 
-import astropy
 import datetime
 import numpy as np
+import collections
 
 from radiotools import helper
 from scipy import interpolate
@@ -12,7 +12,6 @@ from scipy import interpolate
 from NuRadioReco.detector.RNO_G.db_mongo_read import Database, filtered_keys
 import NuRadioReco.framework.base_trace
 from NuRadioReco.utilities import units
-import collections
 
 
 def keys_not_in_dict(d, keys):
@@ -29,10 +28,9 @@ def keys_not_in_dict(d, keys):
     return False
 
 
-
 class Detector():
-    def __init__(self, database_connection='RNOG_test_public', log_level=logging.DEBUG, over_write_handset_values={}, database_time=None,
-                 always_query_entire_description=True):
+    def __init__(self, database_connection='RNOG_test_public', log_level=logging.DEBUG, over_write_handset_values={}, 
+                 database_time=None, always_query_entire_description=True):
         """
         
         Parameters
@@ -67,7 +65,7 @@ class Detector():
         self.logger.info("Collect time periods of station commission/decommission ...")
         self._time_periods_per_station = self.__db.query_modification_timestamps_per_station()
         self._time_period_of_station = collections.defaultdict(int)
-        
+                
         # This should be set with Detector.update(..) and corresponds to the time of a measurement. It will be use to 
         # decide which components are commissioned at the time of the measurement 
         self.__detector_time = None
@@ -109,9 +107,9 @@ class Detector():
         need_update: dict(bool)
             Flag for each station if an update is needed
         """
-        
+
         if len(self.__buffered_stations) == 0:
-            return True  # buffer is empty
+            return True, {key: 1 for key in self._time_periods_per_station}  # buffer is empty
         
         need_update = collections.defaultdict(int)  # use integer as bool here!
         for station_id in self.__buffered_stations:
@@ -140,22 +138,26 @@ class Detector():
         self.__detector_time = time
         
         need_any_update, need_update = self._check_if_update_is_needed()
-        
+
         # clean entire buffer - this is quite brute force ...
         if need_any_update:
             for key in self.__buffered_stations:
                 if need_update[station_id]:
                     self.__buffered_stations[station_id] = {}  # remove everything
 
-        if self._query_all and need_any_update:            
-            station_ids = self.get_station_ids()
-            for station_id in station_ids:
+        if self._query_all and need_any_update:
+            stations = self.get_station_ids()
+
+            if not len(stations):
+                self.logger.error(f"No stations commissioned at {self.__detector_time}")
+            
+            for station_id in stations:  # query commissioned stations + channels
                 if need_update[station_id]:
                     # sets self.__buffered_stations[station_id]
-                    self.get_full_station_information(station_id)
+                    self.get_full_station_information(station_id, update=True)
 
         
-    def get_full_station_information(self, station_id):
+    def get_full_station_information(self, station_id, update=False):
         """
         
         Parameters
@@ -164,14 +166,19 @@ class Detector():
         station_id: int
             Station id
             
+        update: bool
+            Force to query full station information. (Default: False)
+            
         Returns:
         
         full_info: dict
-            Get dictionary of _all_ information of a commissioned station including all channel and device infomration such as the S-parameter of the 
-            amplifier
+            Get dictionary of _all_ information of a commissioned station including all channel and device infomration 
+            such as the S-parameter of the amplifier
         """
-        if station_id not in self.__buffered_stations or self.__buffered_stations[station_id] == {}:
+        
+        if station_id not in self.__buffered_stations or self.__buffered_stations[station_id] == {} or update:
             # query all information
+            self.logger.debug(f"Query full information of station {station_id} at {self.__detector_time}")
             self.__buffered_stations[station_id] = self.__db.get_complete_station_information(station_id=station_id)
         else:
             info = self.__buffered_stations[station_id]
@@ -196,34 +203,45 @@ class Detector():
         
         channel_id: int
             The channel id
+            
+        with_position: bool
+            If True, check if channel position is available and if not query. (Default: False)
+
+        with_signal_chain: bool
+            If True, check if channel signal chain is available and if not query. (Default: False)
 
         Returns
         -------
         
         channel_info: dict
-            Position and orientation information.
-        
+            Dict of channel information
         """
         if not self._has_valid_parameter_in_buffer([station_id, "channels", channel_id]):
 
-            if "channels" not in self.__buffered_stations:
-                self.__buffered_stations[station_id]["channels"] = collections.defaultdict(dict)
-                
             time_filter = [
                 {"$match": {
                     'id': station_id,
-                    'channel_id': channel_id,
                     'commission_time': {"$lte": self.__detector_time},
                     'decommission_time': {"$gte": self.__detector_time}}}]
 
             # get all stations which fit the filter
-            channel_information = list(self.__db.db["station_rnog"].aggregate(time_filter))
-            print(channel_information, channel_information[0].keys())
-            sys.exit()
-
+            station_information = list(self.__db.db["station_rnog"].aggregate(time_filter))
+            
+            if len(station_information) != 1:
+                raise ValueError
+            
+            channels_information = station_information[0]["channels"]
+            
+            self.__buffered_stations[station_id]["channels"] = channels_information
+        
+        if with_position and keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "channel_position"]):
             channel_position_dict = self.__db.get_channels_position(station_id)
             for cha_id in channel_position_dict:
                 self.__buffered_stations[station_id]["channels"][cha_id]['channel_position'] = channel_position_dict[cha_id]
+        
+        if with_signal_chain and keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "channel_signal_chain"]):
+            signal_chain = self.__db.get_channels_signal_chain(station_id, channel_id=channel_id)
+            self.__buffered_stations[station_id]["channels"][channel_id]["channel_signal_chain"] = signal_chain[channel_id]
         
         return self.__buffered_stations[station_id]["channels"][channel_id]
 
@@ -271,7 +289,7 @@ class Detector():
         pos: np.array(3,)
             3-dim array of relative station position
         """
-        channel_info = self.get_channel_from_buffer(station_id, channel_id)
+        channel_info = self.get_channel_from_buffer(station_id, channel_id, with_position=True)
         return channel_info["channel_position"]['position']
 
 
@@ -347,21 +365,46 @@ class Detector():
     
     
     def get_channel_signal_chain(self, station_id, channel_id):
+        """
         
-        # if keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, 'channel_signal_chain']):
-        if not self._has_valid_parameter_in_buffer([station_id, "channels", channel_id, 'channel_signal_chain']):
-            signal_chain = self.__db.get_channels_signal_chain(station_id, channel_id=channel_id)
-            
-            if "channels" not in self.__buffered_stations:
-                self.__buffered_stations[station_id]["channels"] = collections.defaultdict(dict)
-            
-            self.__buffered_stations[station_id]["channels"][channel_id]["channel_signal_chain"] = signal_chain[channel_id]
-            
+        Parameters
+        ----------
+                
+        station_id: int
+            The station id
+        
+        channel_id: int
+            The channel id
+        
+        Returns
+        -------
+        
+        channel_signal_chain: dict
+            Returns dictionary which contains a list ("signal_chain") which contains (the names of) components/response which are used to
+            describe the signal chain of the channel
+        """
+        channel_info = self.get_channel_from_buffer(station_id, channel_id, with_signal_chain==True)
         return self.__buffered_stations[station_id]["channels"][channel_id]["channel_signal_chain"]
     
     
     def get_signal_chain_response(self, station_id, channel_id):
+        """
         
+        Parameters
+        ----------
+                
+        station_id: int
+            The station id
+        
+        channel_id: int
+            The channel id
+        
+        Returns
+        -------
+        
+        response: rnog_detector.Response
+            Returns combined response of the channel
+        """
         signal_chain_dict = self.get_channel_signal_chain(station_id, channel_id)
         
         if keys_not_in_dict(self.__buffered_stations, 
@@ -725,9 +768,10 @@ class Response:
 
 
 if __name__ == "__main__":
-    det = Detector(log_level=logging.DEBUG, over_write_handset_values={"sampling_frequency": 2.4 * units.GHz})
+    det = Detector(log_level=logging.DEBUG, over_write_handset_values={"sampling_frequency": 2.4 * units.GHz}, always_query_entire_description=False)
     
-    # det.update(datetime.datetime(2022, 8, 2, 0, 0))
+    det.update(datetime.datetime(2022, 8, 2, 0, 0))
+    det.get_channel_from_buffer(11, 11)
     
     # det.get_full_station_from_buffer(11)
     # det.update(datetime.datetime(2022, 8, 2, 0, 0))
@@ -746,4 +790,3 @@ if __name__ == "__main__":
     # channel_information = list(det.db().db["station_rnog"].aggregate(time_filter))
     # print(len(channel_information[0]["channels"]))
     
-    det.db().get_collection_information('station_position', 11)
