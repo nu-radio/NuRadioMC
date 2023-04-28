@@ -1,0 +1,7 @@
+NuRadioReco.modules.io.RNO\_G.readRNOGDataMattak module
+=======================================================
+
+.. automodule:: NuRadioReco.modules.io.RNO_G.readRNOGDataMattak
+   :members:
+   :undoc-members:
+   :show-inheritance:

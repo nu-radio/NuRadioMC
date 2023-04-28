@@ -1,7 +1,0 @@
-NuRadioReco.modules.io.rno\_g.rnogDataReader module
-===================================================
-
-.. automodule:: NuRadioReco.modules.io.rno_g.rnogDataReader
-   :members:
-   :undoc-members:
-   :show-inheritance:

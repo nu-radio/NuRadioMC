@@ -1,0 +1,7 @@
+NuRadioReco.modules.measured\_noise.RNO\_G.noiseImporter module
+===============================================================
+
+.. automodule:: NuRadioReco.modules.measured_noise.RNO_G.noiseImporter
+   :members:
+   :undoc-members:
+   :show-inheritance:

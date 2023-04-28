@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.modules.io.rno_g.rnogDataReader module &mdash; NuRadio 2.2.0-dev documentation</title>
+  <title>NuRadioReco.modules.measured_noise.RNO_G.noiseImporter module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
@@ -21,8 +21,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.modules.io.snowshovel package" href="NuRadioReco.modules.io.snowshovel.html" />
-    <link rel="prev" title="NuRadioReco.modules.io.rno_g.readRNOGData module" href="NuRadioReco.modules.io.rno_g.readRNOGData.html" /> 
+    <link rel="next" title="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder module" href="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.html" />
+    <link rel="prev" title="NuRadioReco.modules.measured_noise.RNO_G package" href="NuRadioReco.modules.measured_noise.RNO_G.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -270,8 +270,8 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
-<li class="toctree-l5 current"><a class="reference internal" href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.measured_noise.html">NuRadioReco.modules.measured_noise package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
+<li class="toctree-l5 current"><a class="reference internal" href="NuRadioReco.modules.measured_noise.html">NuRadioReco.modules.measured_noise package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoDirectionReconstructor.html">NuRadioReco.modules.neutrinoDirectionReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.neutrinoVertexReconstructor.html">NuRadioReco.modules.neutrinoVertexReconstructor package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.phasedarray.html">NuRadioReco.modules.phasedarray package</a></li>
@@ -563,11 +563,11 @@
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.modules.html">NuRadioReco.modules package</a></li>
-          <li class="breadcrumb-item"><a href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
-          <li class="breadcrumb-item"><a href="NuRadioReco.modules.io.rno_g.html">NuRadioReco.modules.io.rno_g package</a></li>
-      <li class="breadcrumb-item active">NuRadioReco.modules.io.rno_g.rnogDataReader module</li>
+          <li class="breadcrumb-item"><a href="NuRadioReco.modules.measured_noise.html">NuRadioReco.modules.measured_noise package</a></li>
+          <li class="breadcrumb-item"><a href="NuRadioReco.modules.measured_noise.RNO_G.html">NuRadioReco.modules.measured_noise.RNO_G package</a></li>
+      <li class="breadcrumb-item active">NuRadioReco.modules.measured_noise.RNO_G.noiseImporter module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.io.rno_g.rnogDataReader.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.RNO_G.noiseImporter.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -575,95 +575,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioReco.modules.io.rno_g.rnogDataReader">
-<span id="nuradioreco-modules-io-rno-g-rnogdatareader-module"></span><h1>NuRadioReco.modules.io.rno_g.rnogDataReader module<a class="headerlink" href="#module-NuRadioReco.modules.io.rno_g.rnogDataReader" title="Permalink to this heading"></a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.rno_g.rnogDataReader.</span></span><span class="sig-name descname"><span class="pre">RNOGDataReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/rno_g/rnogDataReader.html#RNOGDataReader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p class="rubric">Methods</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_event_i" title="NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_event_i"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_event_i</span></code></a>(i_event)</p></td>
-<td><p></p></td>
-</tr>
-</tbody>
-</table>
-<table class="docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><strong>get_detector</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>get_event</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>get_event_ids</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>get_events</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>get_filenames</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>get_header</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>get_n_events</strong></p></td>
-<td></td>
-</tr>
-</tbody>
-</table>
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_filenames">
-<span class="sig-name descname"><span class="pre">get_filenames</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/rno_g/rnogDataReader.html#RNOGDataReader.get_filenames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_filenames" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_event_ids">
-<span class="sig-name descname"><span class="pre">get_event_ids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/rno_g/rnogDataReader.html#RNOGDataReader.get_event_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_event_ids" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_n_events">
-<span class="sig-name descname"><span class="pre">get_n_events</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/rno_g/rnogDataReader.html#RNOGDataReader.get_n_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_n_events" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_event_i">
-<span class="sig-name descname"><span class="pre">get_event_i</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i_event</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/rno_g/rnogDataReader.html#RNOGDataReader.get_event_i"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_event_i" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_event">
-<span class="sig-name descname"><span class="pre">get_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/rno_g/rnogDataReader.html#RNOGDataReader.get_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_event" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_events">
-<span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/rno_g/rnogDataReader.html#RNOGDataReader.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_events" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_detector">
-<span class="sig-name descname"><span class="pre">get_detector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/rno_g/rnogDataReader.html#RNOGDataReader.get_detector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_detector" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_header">
-<span class="sig-name descname"><span class="pre">get_header</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/rno_g/rnogDataReader.html#RNOGDataReader.get_header"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.rno_g.rnogDataReader.RNOGDataReader.get_header" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+  <section id="nuradioreco-modules-measured-noise-rno-g-noiseimporter-module">
+<h1>NuRadioReco.modules.measured_noise.RNO_G.noiseImporter module<a class="headerlink" href="#nuradioreco-modules-measured-noise-rno-g-noiseimporter-module" title="Permalink to this heading"></a></h1>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioReco.modules.io.rno_g.readRNOGData.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.io.rno_g.readRNOGData module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.modules.io.snowshovel.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.io.snowshovel package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.modules.measured_noise.RNO_G.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.measured_noise.RNO_G package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

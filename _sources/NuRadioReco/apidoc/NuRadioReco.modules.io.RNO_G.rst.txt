@@ -1,0 +1,15 @@
+NuRadioReco.modules.io.RNO\_G package
+=====================================
+
+.. automodule:: NuRadioReco.modules.io.RNO_G
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   NuRadioReco.modules.io.RNO_G.readRNOGDataMattak

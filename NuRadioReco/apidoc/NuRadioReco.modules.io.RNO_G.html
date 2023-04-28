@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.modules.io.rno_g.readRNOGData module &mdash; NuRadio 2.2.0-dev documentation</title>
+  <title>NuRadioReco.modules.io.RNO_G package &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
@@ -21,8 +21,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.modules.io.rno_g.rnogDataReader module" href="NuRadioReco.modules.io.rno_g.rnogDataReader.html" />
-    <link rel="prev" title="NuRadioReco.modules.io.rno_g package" href="NuRadioReco.modules.io.rno_g.html" /> 
+    <link rel="next" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak module" href="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html" />
+    <link rel="prev" title="NuRadioReco.modules.io package" href="NuRadioReco.modules.io.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -564,10 +564,9 @@
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.modules.html">NuRadioReco.modules package</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.modules.io.html">NuRadioReco.modules.io package</a></li>
-          <li class="breadcrumb-item"><a href="NuRadioReco.modules.io.rno_g.html">NuRadioReco.modules.io.rno_g package</a></li>
-      <li class="breadcrumb-item active">NuRadioReco.modules.io.rno_g.readRNOGData module</li>
+      <li class="breadcrumb-item active">NuRadioReco.modules.io.RNO_G package</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.io.rno_g.readRNOGData.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -575,107 +574,24 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioReco.modules.io.rno_g.readRNOGData">
-<span id="nuradioreco-modules-io-rno-g-readrnogdata-module"></span><h1>NuRadioReco.modules.io.rno_g.readRNOGData module<a class="headerlink" href="#module-NuRadioReco.modules.io.rno_g.readRNOGData" title="Permalink to this heading"></a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.rno_g.readRNOGData.</span></span><span class="sig-name descname"><span class="pre">readRNOGData</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/rno_g/readRNOGData.html#readRNOGData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>This is the data reader for RNO-G. Reads RNO-G data from ROOT format using uproot</p>
-<p class="rubric">Methods</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData.begin" title="NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>(input_files[, input_files_header])</p></td>
-<td><p>Begin function of the RNO-G reader</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData.run" title="NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>([channels, event_numbers, run_numbers, ...])</p></td>
-<td><p>Run function of the RNOG reader</p></td>
-</tr>
-</tbody>
-</table>
-<table class="docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><strong>end</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>get_events</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>get_filenames</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>get_n_events</strong></p></td>
-<td></td>
-</tr>
-</tbody>
-</table>
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_files_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/rno_g/readRNOGData.html#readRNOGData.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData.begin" title="Permalink to this definition"></a></dt>
-<dd><p>Begin function of the RNO-G reader</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>input_files: list of paths to files containing waveforms</strong></dt><dd></dd>
-<dt><strong>input_files_header: list of paths to files containing header,</strong></dt><dd><p>if None, headers are expected to be stored in the input_files also</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([0,</span> <span class="pre">1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">4,</span> <span class="pre">5,</span> <span class="pre">6,</span> <span class="pre">7,</span> <span class="pre">8,</span> <span class="pre">9,</span> <span class="pre">10,</span> <span class="pre">11,</span> <span class="pre">12,</span> <span class="pre">13,</span> <span class="pre">14,</span> <span class="pre">15,</span> <span class="pre">16,</span> <span class="pre">17,</span> <span class="pre">18,</span> <span class="pre">19,</span> <span class="pre">20,</span> <span class="pre">21,</span> <span class="pre">22,</span> <span class="pre">23])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_numbers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_numbers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cut_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/rno_g/readRNOGData.html#readRNOGData.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData.run" title="Permalink to this definition"></a></dt>
-<dd><p>Run function of the RNOG reader</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>n_channels: int</strong></dt><dd><p>number of RNOG channels to loop over, default 24</p>
-</dd>
-<dt><strong>event_numbers: None or dict</strong></dt><dd><p>if dict, use a dict with run number as key and list of event numbers as items</p>
-</dd>
-<dt><strong>run_numbers: None or list</strong></dt><dd><p>list of run numbers to select
-Caveat: use only if event_numbers are not set</p>
-</dd>
-<dt><strong>cut_string: string</strong></dt><dd><p>selection string for event pre-selection
-Cavieat: use only if event_numbers and run_numbers are not set</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData.get_events">
-<span class="sig-name descname"><span class="pre">get_events</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/rno_g/readRNOGData.html#readRNOGData.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData.get_events" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData.get_n_events">
-<span class="sig-name descname"><span class="pre">get_n_events</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/rno_g/readRNOGData.html#readRNOGData.get_n_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData.get_n_events" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData.get_filenames">
-<span class="sig-name descname"><span class="pre">get_filenames</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/rno_g/readRNOGData.html#readRNOGData.get_filenames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData.get_filenames" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData.end">
-<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/rno_g/readRNOGData.html#readRNOGData.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.rno_g.readRNOGData.readRNOGData.end" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+  <section id="module-NuRadioReco.modules.io.RNO_G">
+<span id="nuradioreco-modules-io-rno-g-package"></span><h1>NuRadioReco.modules.io.RNO_G package<a class="headerlink" href="#module-NuRadioReco.modules.io.RNO_G" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak module</a></li>
+</ul>
+</div>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioReco.modules.io.rno_g.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.io.rno_g package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.modules.io.rno_g.rnogDataReader.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.io.rno_g.rnogDataReader module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.modules.io.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.io package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
