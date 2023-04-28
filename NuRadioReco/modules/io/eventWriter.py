@@ -72,12 +72,14 @@ class eventWriter:
             both set, the file will be split whenever any of the two conditions is fullfilled.
         """
         logger.setLevel(log_level)
-        if filename[-4:] == '.nur':
+        if filename.endswith(".nur"):
             self.__filename = filename[:-4]
         else:
             self.__filename = filename
-        if filename[-4:] == '.ari':
+        
+        if filename.endswith('.ari'):
             logger.warning('The file ending .ari for NuRadioReco files is deprecated. Please use .nur instead.')
+        
         self.__check_for_duplicates = check_for_duplicates
         self.__number_of_events = 0
         self.__current_file_size = 0
