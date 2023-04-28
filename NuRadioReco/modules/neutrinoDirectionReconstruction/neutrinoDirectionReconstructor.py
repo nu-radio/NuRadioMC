@@ -215,7 +215,7 @@ class neutrinoDirectionReconstructor:
 
         if self._station.has_sim_station(): # obtain some simulated values for debug plots
             shower_id = shower_ids[0]
-            sim_station = True
+            has_sim_station = True
             simulated_zenith = event.get_sim_shower(shower_id)[shp.zenith]
             simulated_azimuth = event.get_sim_shower(shower_id)[shp.azimuth]
             self._simulated_azimuth = simulated_azimuth
@@ -241,7 +241,7 @@ class neutrinoDirectionReconstructor:
             if pol_sim is None: # for some reason, didn't manage to obtain simulated vw / polarization angle
                 pol_sim = np.nan * np.ones(3) # we still set them, so the debug plots don't fail
                 vw_sim = np.nan
-                sim_station = False # skip anything involving the sim station to avoid errors
+                has_sim_station = False # skip anything involving the sim station to avoid errors
             self._launch_vector_sim = lv_sim # not used?
             logger.debug(
                 "Simulated viewing angle: {:.1f} deg / Polarization angle: {:.1f} deg".format(
@@ -285,7 +285,7 @@ class neutrinoDirectionReconstructor:
             logger.debug(f"simulated vertex    : {simulated_vertex}")
             logger.debug(f"reconstructed vertex: {reconstructed_vertex}")
             #### values for reconstructed vertex and simulated direction
-            if sim_station:
+            if has_sim_station:
                 # traces_sim, timing_sim, self._launch_vector_sim, viewingangles_sim, rayptypes, a = simulation.simulation(
                 #     det, station, event.get_sim_shower(shower_id)[shp.vertex][0],
                 #     event.get_sim_shower(shower_id)[shp.vertex][1],
@@ -398,44 +398,106 @@ class neutrinoDirectionReconstructor:
             logger.warning('Using iterative fitter')
             chisq = np.nan * np.zeros(4)
             results = np.nan * np.zeros((4,3))
+            is_valid = np.nan * np.zeros(4)
+            
+            # def constr(x):
+            #     """
+            #     implement a constraint
+                
+            #     Set some constraints on viewing angle, zenith, and energy.
+
+            #     Returns
+            #     -------
+            #     bound : float
+            #         constraint is satisfied if bound > 0.
+                
+            #     """
+            #     zenith, azimuth = self._transform_angles(*x[:2])
+            #     d_vw = (x[0] - self._cherenkov_angle)
+            #     bound = np.max([
+            #         (d_vw/(15*units.deg))**2, # viewing angle within 15 deg of cherenkov angle
+            #         (1.5 * x[1] / np.pi)**2,  # polarization < 135 deg
+            #         (zenith-100*units.deg)/(20*units.deg), # zenith < 120 deg
+            #         (15 - x[-1]), # energy > 1e14 eV
+            #         (x[-1]-20)  # energy < 1e21 eV
+            #     ])
+
+            #     return (1-bound)
+
+            # constraint = opt.NonlinearConstraint(constr, 0, np.inf)
+
+            # res = opt.shgo(
+            #     self.minimizer, #x0=[self._cherenkov_angle, 0, 18.0], 
+            #     bounds = [(self._cherenkov_angle - 15*units.deg, self._cherenkov_angle + 15*units.deg), (-3*np.pi/2, 3*np.pi/2), (15,20.5)],
+            #     args = (
+            #         reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], 
+            #         True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, 
+            #         self._full_station), 
+            #     constraints = [dict(type='ineq', fun=constr)]
+            # )
+            # print(res)
+            # chisq = res.fun
+            # results = res.x
+            
             res = opt.minimize(
                 self.minimizer, x0=[self._cherenkov_angle, 0, 18.0], 
                 args = (
                     reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], 
                     True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, 
-                    self._full_station)
-                )
-            
+                    self._full_station), 
+                #method='Nelder-Mead', options=dict(xatol=1e-4,fatol=1e-2)
+                # method = 'trust-constr', constraints = constraint
+                # constraints = [dict(type='ineq', fun=constr)]
+                tol=1e-6
+            )
             viewing_sign = int(np.sign(res.x[0] - self._cherenkov_angle))
             polarization_sign = int(np.sign(res.x[1]))
             index = 1 + viewing_sign + (polarization_sign + 1) // 2 # ranges from 0-3
             chisq[index] = res.fun
             results[index] = res.x
-            
+            is_valid[index] = res.success
+            logger.debug(f'First iteration: index {index}, chisq {res.fun:.2f}, result {res.x}, message: {res.message}')
+            if not res.success:
+                logger.warning(f'Fit {index} failed with message {res.message}')
             # to avoid local minima (wrong side of cherenkov cone, wrong polarization sign)
             # we re-run the minimizer starting at the other minima
             signs = [-1,1]
             for index in np.arange(4)[np.isnan(chisq)]:
                 viewing_sign = signs[index // 2]
                 polarization_sign = signs[index % 2]
-                old_guess = results[np.nanargmin(chisq)]
-                viewing_guess = self._cherenkov_angle + viewing_sign * np.abs(old_guess[0] - self._cherenkov_angle)
-                polarization_guess = polarization_sign * np.abs(old_guess[1])
-                energy_guess = old_guess[2]
-                logger.info(f'Iteration {index} - x0={[viewing_guess, polarization_guess, energy_guess]}, chisq={np.nanmin(chisq)}')
+                old_guess = results[np.nanargmin(chisq)] 
+                # we use min/median as 'sanity checks' to avoid starting the fit at an unlikely point
+                viewing_guess = self._cherenkov_angle + viewing_sign * np.min([7*units.deg, np.abs(old_guess[0] - self._cherenkov_angle)])
+                polarization_guess = polarization_sign * np.min([np.pi/3,np.abs(old_guess[1])])
+                energy_guess = np.median([16, old_guess[2],19])
+                # logger.info(f'Iteration {index} - x0={[viewing_guess, polarization_guess, energy_guess]}, chisq={np.nanmin(chisq)}')
 
                 res = opt.minimize(
                     self.minimizer, x0=[viewing_guess, polarization_guess, energy_guess], 
                     args = (
                         reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], 
                         True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, 
-                        self._full_station)
-                    )
+                        self._full_station), 
+                    #method='Nelder-Mead', options=dict(xatol=1e-4,fatol=1e-2),
+                    # method = 'trust-constr', constraints = constraint
+                    # constraints = [dict(type='ineq', fun=constr)]
+                    tol=1e-6,
+                )
                 chisq[index] = res.fun
                 results[index] = res.x
-            
-            results = results[np.nanargmin(chisq)]
+                is_valid[index] = res.success
+                if not res.success:
+                    logger.warning(f'Fit {index} failed with message: {res.message}')
 
+            logger.debug(
+                'Fitter output:\n'
+                '{:8s} | {:8s} {:8s} {:8s} {:8s}\n'.format('Chisq', 'vw.ang', 'pol.ang', 'log10(E)', 'valid') +
+                '\n'.join([
+                    '{:8.1f} | {:8.2f} {:8.2f} {:8.2f} {:8.0f}'.format(chisq[i], *(results[i,:2]/units.deg), results[i, -1], is_valid[i])
+                    for i in range(4)]
+                )
+            )
+            results = results[np.nanargmin(chisq)]
 
 
         logger.info(f"...finished direction reconstruction in {datetime.datetime.now() - cop}")
@@ -443,8 +505,8 @@ class neutrinoDirectionReconstructor:
         # print(self._simulation._raytracer.cache_info())
         vw_grid = results[-2]
         chi2_grid = results[-1]
-        # np.save("{}/grid_{}".format(debugplots_path, filenumber), vw_grid)
-        # np.save("{}/chi2_{}".format(debugplots_path, filenumber), chi2_grid)
+        # np.save("{}/grid_{}".format(debug_path, self._event.get_run_number()), vw_grid)
+        # np.save("{}/chi2_{}".format(debug_path, self._event.get_run_number()), chi2_grid)
         ###### GET PARAMETERS #########
 
         # if only_simulation:
@@ -799,8 +861,9 @@ class neutrinoDirectionReconstructor:
 
             zenith, azimuth = self._transform_angles(cherenkov_angle, angle)
 
-            if np.rad2deg(zenith) > 120:
-                return np.inf ## not in field of view
+            if self._brute_force: # minimizers don't like this kind of behaviour, so we only use it for the brute force method
+                if np.rad2deg(zenith) > 120:
+                    return np.inf ## not in field of view
 
 
         else:
@@ -902,6 +965,7 @@ class neutrinoDirectionReconstructor:
                     data_trace_timing_1[mask] = data_trace_timing[first_sample:include_samples[-1] + 1]
                 data_timing_timing = data_timing_timing_1
                 corr = signal.correlate(rec_trace, data_trace_timing_1)
+                lags = signal.correlation_lags(len(rec_trace), len(data_trace_timing_1))
 
                 corr_window_start = 0#int(len(corr)/2 - 30 * self._sampling_rate)
                 corr_window_end = len(corr)#int(len(corr)/2 + 30 * self._sampling_rate)
@@ -909,30 +973,30 @@ class neutrinoDirectionReconstructor:
                 # pulse position of the reference Vpol
                 if channel_id in self._PA_cluster_channels and not channel_id == ch_Vpol:
                     if i_trace == trace_ref:
-                        corr_window_start = np.max([0, len(corr) + dict_dt[ch_Vpol][trace_ref] - 5])
-                        corr_window_end = np.min([len(corr), len(corr) + dict_dt[ch_Vpol][trace_ref] + 5])
+                        corr_window_start = np.max([0, dict_dt[ch_Vpol][trace_ref]-np.min(lags) - 5])
+                        corr_window_end = np.min([len(corr), dict_dt[ch_Vpol][trace_ref]-np.min(lags) + 5])
 
                 max_cor = np.arange(corr_window_start,corr_window_end, 1)[np.argmax(corr[corr_window_start:corr_window_end])]
-                dt = max_cor - len(corr)
-                rec_trace_1 = np.roll(rec_trace, math.ceil(-dt))[:len(data_trace_timing_1)]
-                chi2_dt1 = np.sum((rec_trace_1  - data_trace_timing_1)**2 )/ ((self._Vrms)**2)/len(rec_trace)
-                rec_trace_2 = np.roll(rec_trace, math.ceil(-dt - 1))[:len(data_trace_timing_1)]
-                chi2_dt2 = np.sum((rec_trace_2 - data_trace_timing_1)**2) / ((self._Vrms)**2)/len(rec_trace)
-                if chi2_dt2 < chi2_dt1:
-                    dt = dt + 1
-                else:
-                    dt = dt
+                dt = lags[max_cor] #max_cor - len(corr)
+                # rec_trace_1 = np.roll(rec_trace, math.ceil(-dt))[:len(data_trace_timing_1)]
+                # chi2_dt1 = np.sum((rec_trace_1  - data_trace_timing_1)**2 )/ ((self._Vrms)**2)/len(rec_trace)
+                # rec_trace_2 = np.roll(rec_trace, math.ceil(-dt - 1))[:len(data_trace_timing_1)]
+                # chi2_dt2 = np.sum((rec_trace_2 - data_trace_timing_1)**2) / ((self._Vrms)**2)/len(rec_trace)
+                # if chi2_dt2 < chi2_dt1:
+                #     dt = dt + 1
+                # else:
+                #     dt = dt
 
                 dict_dt[channel_id][i_trace] = dt
 
                 #TODO - REMOVE (used for debugging)
-                # if self._ultradebug:
+                # if 1:
                 #     fig, axs = plt.subplots(2,1,)
                 #     fig.subplots_adjust(hspace=0)
                 #     axs[0].plot(np.roll(rec_trace, math.ceil(-dt)), color='g')
                 #     axs[0].plot(data_trace_timing_1, color='k')
-                #     axs[1].plot(corr)
-                #     axs[0].set_title(f'{channel_id} / {i_trace} / {dt:.1f} / {chi2_dt1:.2f}')
+                #     axs[1].plot(lags, corr)
+                #     axs[0].set_title(f'{channel_id} / {i_trace} / {dt:.1f} / ') #{chi2_dt1:.2f}
                 #     plt.show()
 
         # TODO - REMOVE!
