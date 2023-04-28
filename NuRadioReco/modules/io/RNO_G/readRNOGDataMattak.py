@@ -649,7 +649,6 @@ class readRNOGData:
     
     
     def get_event(self, run_nr, event_id):
- 
         """ Allows to read a specific event identifed by run number and event id
 
         Parameters
