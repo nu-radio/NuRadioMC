@@ -261,9 +261,7 @@ class readRNOGData:
         # Initialize selectors for event filtering
         if not isinstance(selectors, (list, np.ndarray)):
             selectors = [selectors]
-        
-        self.logger.info(f"Found {len(selectors)} selector(s)")
-                
+                        
         if select_triggers is not None:
             if isinstance(select_triggers, str):
                 selectors.append(lambda eventInfo: eventInfo.triggerType == select_triggers)
@@ -272,12 +270,14 @@ class readRNOGData:
                     selectors.append(lambda eventInfo: eventInfo.triggerType == select_trigger)
 
         self._selectors = selectors
-        
+        self.logger.info(f"Found {len(self._selectors)} selector(s)")
+
         # Read data
         self._time_begin = 0
         self._time_run = 0
         self.__counter = 0
         self.__skipped = 0
+        self.__invalid = 0
         
         self._events_information = None
         self._datasets = []
@@ -527,12 +527,14 @@ class readRNOGData:
         if math.isinf(event_info.triggerTime):
             self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
                                      "has inf trigger time. Skip event...")
+            self.__invalid += 1
             return False
 
 
         if event_info.sampleRate == 0 or event_info.sampleRate is None:
             self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
                               f"has a sampling rate of {event_info.sampleRate} GHz. Skip event...")
+            self.__invalid += 1
             return False
         
         return True
@@ -739,8 +741,8 @@ class readRNOGData:
 
     def end(self):
         self.logger.info(
-            f"\n\tRead {self.__counter} events (skipped {self.__skipped} events)"
+            f"\n\tRead {self.__counter} events (skipped {self.__skipped} events, {self.__invalid} invalid events)"
             f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
-            f"\n\tTime to initialize all events : {self._time_run:.2f}s"
+            f"\n\tTime to read all events       : {self._time_run:.2f}s"
             f"\n\tTime to per event             : {self._time_run / self.__counter:.2f}s"
             f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs.")
