@@ -133,7 +133,7 @@ def all_files_in_directory(mattak_dir):
 class readRNOGData:
 
     def begin(self, 
-            data_dirs,  
+            dirs_files,  
             read_calibrated_data=False,
             select_triggers=None,
             select_runs=False,
@@ -151,8 +151,8 @@ class readRNOGData:
         Parameters
         ----------
 
-        data_dirs: list of strings / string
-            Path to run directories (i.e. ".../stationXX/runXXX/")
+        dirs_files: str, list(str)
+            Path to run directories (i.e. ".../stationXX/runXXX/") or path to root files (have to be "combined" mattak files). 
             
         read_calibrated_data: bool
             If True, read calibrated waveforms from Mattak.Dataset. If False, read "raw" ADC traces.
@@ -283,13 +283,13 @@ class readRNOGData:
         self._datasets = []
         self.__n_events_per_dataset = []
         
-        self.logger.info(f"Parse through {len(data_dirs)} directory/ies.")
+        self.logger.info(f"Parse through / read-in {len(dirs_files)} directory(ies) / file(s).")
         
         self.__skipped_runs = 0
         self.__n_runs = 0
         
-        if not isinstance(data_dirs, (list, np.ndarray)):
-            data_dirs = [data_dirs]
+        if not isinstance(dirs_files, (list, np.ndarray)):
+            dirs_files = [dirs_files]
 
         # Set verbose for mattak
         if "verbose" in mattak_kwargs:
@@ -297,17 +297,22 @@ class readRNOGData:
         else:
             verbose = log_level == logging.DEBUG
 
-        for data_dir in data_dirs:
+        for dir_file in dirs_files:
             
-            if not os.path.exists(data_dir):
-                self.logger.error(f"The directory {data_dir} does not exist")
+            if not os.path.exists(dir_file):
+                self.logger.error(f"The directory/file {dir_file} does not exist")
                 continue
             
-            if not all_files_in_directory(data_dir):
-                self.logger.error(f"Incomplete directory: {data_dir}. Skip ...")
-                continue      
-        
-            dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=data_dir, verbose=verbose, **mattak_kwargs)
+            if os.path.isdir(dir_file):
+            
+                if not all_files_in_directory(dir_file):
+                    self.logger.error(f"Incomplete directory: {dir_file}. Skip ...")
+                    continue      
+            
+                dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=dir_file, verbose=verbose, **mattak_kwargs)
+            else:
+                raise NotImplementedError("The option to read in files is not implemented yet")
+
 
             # filter runs/datasets based on 
             if select_runs and self.__run_table is not None and not self.__select_run(dataset):
