@@ -507,6 +507,37 @@ class readRNOGData:
         return self._events_information
     
     
+    def _check_for_valid_information_in_event_info(self, event_info):
+        """
+        Checks if certain information (sampling rate, trigger time) in mattak.Dataset.EventInfo are valid
+        
+        Parameters
+        ----------
+        
+        event_info: mattak.Dataset.EventInfo
+        
+        Returns
+        -------
+        
+        is_valid: bool
+            Returns True if all information valid, false otherwise
+        """
+
+
+        if math.isinf(event_info.triggerTime):
+            self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
+                                     "has inf trigger time. Skip event...")
+            return False
+
+
+        if event_info.sampleRate == 0 or event_info.sampleRate is None:
+            self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
+                              f"has a sampling rate of {event_info.sampleRate} GHz. Skip event...")
+            return False
+        
+        return True
+    
+    
     def _get_event(self, event_info, waveforms):
         """ Return a NuRadioReco event
         
@@ -526,16 +557,7 @@ class readRNOGData:
         """
 
         trigger_time = event_info.triggerTime
-        if math.isinf(trigger_time):
-            self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
-                                     "has inf trigger time. Skip event...")
-            return None
-
         sampling_rate = event_info.sampleRate
-        if sampling_rate == 0:
-            self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
-                              f"has a sampling rate of {sampling_rate} GHz. Skip event...")
-            return None
 
         evt = NuRadioReco.framework.event.Event(event_info.run, event_info.eventNumber)
         station = NuRadioReco.framework.station.Station(event_info.station)
@@ -600,6 +622,9 @@ class readRNOGData:
                 if self._filter_event(evtinfo, event_idx):
                     continue
                 
+                if not self._check_for_valid_information_in_event_info(evtinfo):
+                    continue
+                
                 # Just read wfs if necessary
                 if wfs is None:
                     wfs = dataset.wfs()
@@ -607,8 +632,6 @@ class readRNOGData:
                 waveforms_of_event = wfs[idx]
                 
                 evt = self._get_event(evtinfo, waveforms_of_event)
-                if evt is None:
-                    continue
                 
                 self._time_run += time.time() - t0
                 self.__counter += 1
@@ -640,6 +663,10 @@ class readRNOGData:
         event_info = dataset.eventInfo()  # returns a single eventInfo
 
         if self._filter_event(event_info, event_index):
+            return None
+        
+        # check this before reading the wfs
+        if not self._check_for_valid_information_in_event_info(event_info):
             return None
                 
         # access data
@@ -693,6 +720,10 @@ class readRNOGData:
         event_info = dataset.eventInfo()  # returns a single eventInfo
 
         if self._filter_event(event_info, event_index):
+            return None
+        
+        # check this before reading the wfs
+        if not self._check_for_valid_information_in_event_info(event_info):
             return None
             
         # access data
