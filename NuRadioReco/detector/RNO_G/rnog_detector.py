@@ -30,7 +30,8 @@ def keys_not_in_dict(d, keys):
 
 class Detector():
     def __init__(self, database_connection='RNOG_test_public', log_level=logging.DEBUG, over_write_handset_values={}, 
-                 database_time=None, always_query_entire_description=True):
+                 database_time=None, always_query_entire_description=True,
+                 pickle_file=None):
         """
         
         Parameters
@@ -57,23 +58,39 @@ class Detector():
         
         self.logger = logging.getLogger("rno-g-detector")
         self.logger.setLevel(log_level)
+        
+        if pickle_file is None:
 
-        self.__db = Database(database_connection=database_connection)
-        if database_time is not None:
-            self.__db.set_database_time(database_time)
-            
-        self.logger.info("Collect time periods of station commission/decommission ...")
-        self._time_periods_per_station = self.__db.query_modification_timestamps_per_station()
-        self._time_period_of_station = collections.defaultdict(int)
+            self.__db = Database(database_connection=database_connection)
+            if database_time is not None:
+                self.__db.set_database_time(database_time)
                 
-        # This should be set with Detector.update(..) and corresponds to the time of a measurement. It will be use to 
-        # decide which components are commissioned at the time of the measurement 
-        self.__detector_time = None
-        
-        # Initialise the primary buffer
-        self.__buffered_stations = collections.defaultdict(dict)
-        
-        self._query_all = always_query_entire_description
+            self.logger.info("Collect time periods of station commission/decommission ...")
+            self._time_periods_per_station = self.__db.query_modification_timestamps_per_station()
+            self._time_period_index_per_station = collections.defaultdict(int)
+                    
+            # This should be set with Detector.update(..) and corresponds to the time of a measurement. It will be use to 
+            # decide which components are commissioned at the time of the measurement 
+            self.__detector_time = None
+            
+            # Initialise the primary buffer
+            self.__buffered_stations = collections.defaultdict(dict)
+            
+            self._query_all = always_query_entire_description
+        else:
+            self._query_all = False
+            
+            import pickle
+            
+            import_dir = pickle.load(open(pickle_file, "rb"))
+            
+            if "version" in import_dir and import_dir["version"] == 1:
+                self.__buffered_stations = import_dir["data"]
+                self._time_periods_per_station = import_dir["periods"]
+                self._time_period_index_per_station = {st_id: 1 for st_id in self.__buffered_stations}
+            else:
+                self.logger.error(f"{pickle_file} with unknown version.")
+                raise ReferenceError(f"{pickle_file} with unknown version.")
         
         # Define default values for parameter not (yet) implemented in DB. Those values are taken for all channels.
         self.__default_values = {
@@ -85,13 +102,43 @@ class Detector():
         
         self.__default_values.update(over_write_handset_values)
         
-        info = f"Query entire detector description at once: {always_query_entire_description}"
+        info = f"Query entire detector description at once: {self.__query_all}"
         
         info += "\nUsing the following hand-set values:"
         for key, value in self.__default_values.items():
             info += f"\n\t{key:<20}: {value}"
         
         self.logger.info(info)
+        
+        
+    def export(self, filename):
+        """
+        Export the buffered detector description.
+        
+        
+        Parameters
+        ----------
+        
+        filename: str
+            Filename of the exported detector description
+        
+        """
+        
+        periods = {}
+        for station_id in self.__buffered_stations:
+            idx = self._time_period_index_per_station[station_id]
+            if idx == 0 or idx == len(self._time_periods_per_station[station_id]):
+                self.logger.error("You try to export a decomissioned station")
+            periods[station_id] = [self._time_periods_per_station[station_id][idx], self._time_periods_per_station[station_id][idx+1]]
+        
+        export_dir = {
+            "version": 1,
+            "data": self.__buffered_stations,
+            "periods": periods
+        }
+        
+        import pickle
+        pickle.dump(export_dir, open(filename, "wb"))
         
 
     def _check_if_update_is_needed(self):
@@ -113,11 +160,11 @@ class Detector():
         
         need_update = collections.defaultdict(int)  # use integer as bool here!
         for station_id in self.__buffered_stations:
-            if self._time_period_of_station[station_id] == 0:  # 0 means no period for this station has been set so far 
+            if self._time_period_index_per_station[station_id] == 0:  # 0 means no period for this station has been set so far 
                 need_update[station_id] = True
             else:
-                period = np.digitize(self.__detector_time, self._time_periods_per_station[station_id])
-                if period != self._time_period_of_station[station_id]:
+                period = np.digitize(self.__detector_time, self._time_periods_per_station[station_id])                
+                if period != self._time_period_index_per_station[station_id]:
                     need_update[station_id] = True
                     
         return np.any([v for v in need_update.values()]), need_update
@@ -155,7 +202,7 @@ class Detector():
         
         need_any_update, need_update = self._check_if_update_is_needed()
 
-        # clean entire buffer - this is quite brute force ...
+        # clean entire buffer per station - this is quite brute force ...
         if need_any_update:
             for key in self.__buffered_stations:
                 if need_update[station_id]:
@@ -784,10 +831,10 @@ class Response:
 
 
 if __name__ == "__main__":
-    det = Detector(log_level=logging.DEBUG, over_write_handset_values={"sampling_frequency": 2.4 * units.GHz}, always_query_entire_description=False)
+    det = Detector(log_level=logging.DEBUG, over_write_handset_values={"sampling_frequency": 2.4 * units.GHz}, always_query_entire_description=True)
     
     det.update(datetime.datetime(2022, 8, 2, 0, 0))
-    det.get_channel_from_buffer(11, 11)
+    # det.export("test_det.pickle")
     
     # det.get_full_station_from_buffer(11)
     # det.update(datetime.datetime(2022, 8, 2, 0, 0))
