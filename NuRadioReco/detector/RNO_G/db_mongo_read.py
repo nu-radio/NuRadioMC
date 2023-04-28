@@ -217,7 +217,7 @@ class Database(object):
 
     @check_database_time
     def get_general_station_information(self, collection, station_id):
-        """ Get information from one station
+        """ Get information from one station. Access information in the main collection.
         
         Parameters
         ----------
