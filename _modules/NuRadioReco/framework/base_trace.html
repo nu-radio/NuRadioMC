@@ -606,7 +606,7 @@
 <span class="sd">        trace: np.array of floats</span>
 <span class="sd">            the time trace</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="o">=</span> <span class="kc">None</span>
@@ -632,10 +632,10 @@
         <span class="k">return</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="BaseTrace.get_frequency_spectrum"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_frequency_spectrum">[docs]</a>    <span class="k">def</span> <span class="nf">get_frequency_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="c1">#             logger.debug(&quot;frequency spectrum has shape {}&quot;.format(self._frequency_spectrum.shape))</span>
+            <span class="c1"># logger.debug(&quot;frequency spectrum has shape {}&quot;.format(self._frequency_spectrum.shape))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span><span class="p">)</span></div>
 
@@ -652,7 +652,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">trace</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Attempted to set trace with an uneven number (</span><span class="si">{}</span><span class="s1">) of samples. Only traces with an even number of samples are allowed.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">trace</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]))</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">((</span><span class="s1">&#39;Attempted to set trace with an uneven number (</span><span class="si">{}</span><span class="s1">) of samples. &#39;</span>
+                                 <span class="s1">&#39;Only traces with an even number of samples are allowed.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">trace</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="o">=</span> <span class="n">sampling_rate</span>
@@ -679,9 +680,10 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span>
             <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">length</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="o">-</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trace_start_time</span>
-            <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">!=</span> <span class="n">length</span><span class="p">):</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;time array does not have the same length as the trace. n_samples = </span><span class="si">{:d}</span><span class="s2">, sampling rate = </span><span class="si">{:.5g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">))</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;time array does not have the same length as the trace&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">!=</span> <span class="n">length</span><span class="p">:</span>
+                <span class="n">err</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;time array does not have the same length as the trace. n_samples = </span><span class="si">{</span><span class="n">length</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">, sampling rate = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="si">:</span><span class="s2">.5g</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
         <span class="k">return</span> <span class="n">times</span></div>
@@ -718,7 +720,7 @@
 <span class="sd">        n_samples: int</span>
 <span class="sd">            number of samples in time domain</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span><span class="p">:</span>
             <span class="n">length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># returns the correct length independent of the dimension of the array (channels are 1dim, efields are 3dim)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">length</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>
@@ -754,12 +756,14 @@
         <span class="k">if</span> <span class="n">resampling_factor</span><span class="o">.</span><span class="n">numerator</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field</span>
             <span class="n">resampled_trace</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">resampled_trace</span><span class="p">,</span> <span class="n">resampling_factor</span><span class="o">.</span><span class="n">numerator</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">(),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        
         <span class="k">if</span> <span class="n">resampling_factor</span><span class="o">.</span><span class="n">denominator</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field</span>
             <span class="n">resampled_trace</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">resampled_trace</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">resampled_trace</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="n">resampling_factor</span><span class="o">.</span><span class="n">denominator</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">resampled_trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">resampled_trace</span> <span class="o">=</span> <span class="n">resampled_trace</span><span class="o">.</span><span class="n">T</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+        
         <span class="bp">self</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">resampled_trace</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BaseTrace.serialize"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -771,7 +775,7 @@
 <div class="viewcode-block" id="BaseTrace.deserialize"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.deserialize">[docs]</a>    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;time_trace&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sampling_rate&#39;</span><span class="p">])</span>
-        <span class="k">if</span><span class="p">(</span><span class="s1">&#39;trace_start_time&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="s1">&#39;trace_start_time&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;trace_start_time&#39;</span><span class="p">])</span></div>
 
     <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
@@ -784,10 +788,13 @@
         <span class="c1"># Some sanity checks</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">BaseTrace</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;+ operator is only defined for 2 BaseTrace objects&#39;</span><span class="p">)</span>
+        
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">x</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;One of the trace objects has no trace set&#39;</span><span class="p">)</span>
+        
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span><span class="o">.</span><span class="n">ndim</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Traces have different dimensions&#39;</span><span class="p">)</span>
+        
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">!=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">():</span>
             <span class="c1"># Upsample trace with lower sampling rate</span>
             <span class="c1"># Create new baseTrace object for the resampling so we don&#39;t change the originals</span>
@@ -819,10 +826,12 @@
             <span class="n">first_trace</span> <span class="o">=</span> <span class="n">trace_2</span>
             <span class="n">second_trace</span> <span class="o">=</span> <span class="n">trace_1</span>
             <span class="n">trace_start</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span>
+        
         <span class="c1"># Calculate the difference in the trace start time between the traces and the number of</span>
         <span class="c1"># samples that time difference corresponds to</span>
         <span class="n">time_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">())</span>
         <span class="n">i_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">time_offset</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">))</span>
+        
         <span class="c1"># We have to distinguish 2 cases: Trace is 1D (channel) or 2D(E-field)</span>
         <span class="c1"># and treat them differently</span>
         <span class="k">if</span> <span class="n">trace_1</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -843,11 +852,13 @@
             <span class="n">early_trace</span><span class="p">[:,</span> <span class="p">:</span><span class="n">first_trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">first_trace</span>
             <span class="n">late_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">second_trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">trace_length</span><span class="p">))</span>
             <span class="n">late_trace</span><span class="p">[:,</span> <span class="p">:</span><span class="n">second_trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">second_trace</span>
+        
         <span class="c1"># Correct for different trace start times by using fourier shift theorem to</span>
         <span class="c1"># shift the later trace backwards.</span>
         <span class="n">late_trace_object</span> <span class="o">=</span> <span class="n">BaseTrace</span><span class="p">()</span>
         <span class="n">late_trace_object</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">late_trace</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
         <span class="n">late_trace_object</span><span class="o">.</span><span class="n">apply_time_shift</span><span class="p">(</span><span class="n">time_offset</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        
         <span class="c1"># Create new BaseTrace object holding the summed traces</span>
         <span class="n">new_trace</span> <span class="o">=</span> <span class="n">BaseTrace</span><span class="p">()</span>
         <span class="n">new_trace</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">early_trace</span> <span class="o">+</span> <span class="n">late_trace_object</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span> <span class="n">sampling_rate</span><span class="p">)</span>
