@@ -121,7 +121,22 @@ class Detector():
                     need_update[station_id] = True
                     
         return np.any([v for v in need_update.values()]), need_update
-                
+
+
+    def __set_detector_time(self, time):
+        ''' Set time of detector. This controls which stations/channels are commissioned.
+        
+        Parameters
+        ----------
+        
+        time: datetime.datetime 
+            UTC time.
+        '''
+        if not isinstance(time, datetime.datetime):
+            self.logger.error("Set invalid time for detector. Time has to be of type datetime.datetime")
+            raise TypeError("Set invalid time for detector. Time has to be of type datetime.datetime")
+        self.__detector_time = time
+               
         
     def update(self, time):
         """ 
@@ -135,7 +150,8 @@ class Detector():
             Unix time of measurement.        
         """
         
-        self.__detector_time = time
+        self.__set_detector_time(time)
+        self.__db.set_detector_time(time)
         
         need_any_update, need_update = self._check_if_update_is_needed()
 
@@ -179,7 +195,7 @@ class Detector():
         if station_id not in self.__buffered_stations or self.__buffered_stations[station_id] == {} or update:
             # query all information
             self.logger.debug(f"Query full information of station {station_id} at {self.__detector_time}")
-            self.__buffered_stations[station_id] = self.__db.get_complete_station_information(station_id=station_id)
+            self.__buffered_stations[station_id] = self.__db.get_complete_station_information(station_id=station_id, )
         else:
             info = self.__buffered_stations[station_id]
             # This should ne be necessary because we clean the buffer in Detector.update(...).

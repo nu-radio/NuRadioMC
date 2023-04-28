@@ -86,7 +86,7 @@ class Database(object):
         
         
     def set_database_time(self, time):
-        ''' Set time(stamp) for database. This affects which primary measurement is used.
+        ''' Set time for database. This affects which primary measurement is used.
         
         Parameters
         ----------
@@ -94,7 +94,25 @@ class Database(object):
         time: datetime.datetime 
             UTC time.
         '''
+        if not isinstance(time, datetime.datetime):
+            logger.error("Set invalid time for database. Time has to be of type datetime.datetime")
+            raise TypeError("Set invalid time for database. Time has to be of type datetime.datetime")
         self.__database_time = time
+        
+        
+    def set_detector_time(self, time):
+        ''' Set time of detector. This controls which stations/channels are commissioned.
+        
+        Parameters
+        ----------
+        
+        time: datetime.datetime 
+            UTC time.
+        '''
+        if not isinstance(time, datetime.datetime):
+            logger.error("Set invalid time for detector. Time has to be of type datetime.datetime")
+            raise TypeError("Set invalid time for detector. Time has to be of type datetime.datetime")
+        self.__detector_time = time
      
         
     def get_database_time(self):
@@ -198,7 +216,7 @@ class Database(object):
         return infos
 
     @check_database_time
-    def get_general_station_information(self, collection, station_id, detector_time=None):
+    def get_general_station_information(self, collection, station_id):
         """ Get information from one station
         
         Parameters
@@ -217,9 +235,11 @@ class Database(object):
         if self.db[collection].count_documents({'id': station_id}) == 0:
             return {}
         
-        if detector_time is None:
+        if self.__detector_time is None:
             detector_time = self.__database_time
-            logger.info("Detector time is None, use database time.")
+            logger.error("Detector time is None, use database time.")
+        else:
+            detector_time = self.__detector_time
 
         # filter to get all information from one station with station_id and with active commission time
         time_filter = [{"$match": {
@@ -773,4 +793,5 @@ def dictionarize_nested_lists_as_tuples(nested_lists, parent_key="name", nested_
                 #    logger.warning(f"trying to access unavailable nested key {nested_key} in field {nested_field}. Nothing to be done.")
             # replace list with dict
             res[parent[parent_key]][nested_field] = daughter_dict
+    
     return res
