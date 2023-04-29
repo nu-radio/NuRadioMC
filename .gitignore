@@ -123,3 +123,8 @@ venv.bak/
 # ignore .nur files in NuRadioReco/examples/
 # this should not apply for NuRadioReco/examples/example_data/
 NuRadioReco/examples/*.nur
+
+# I added
+*.hdf5
+*.ipynb
+NuRadioReco/examples/RNO_energy_reconstruction/plots/

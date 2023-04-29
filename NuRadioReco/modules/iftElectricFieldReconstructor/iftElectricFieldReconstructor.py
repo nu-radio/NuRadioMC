@@ -30,6 +30,7 @@ class IftElectricFieldReconstructor:
         self.__amp_dct = None
         self.__phase_dct = None
         self.__used_channel_ids = None
+		self.__used_channel_group_ids = None
         self.__trace_samples = None
         self.__fft_operator = None
         self.__n_shifts = None
@@ -468,29 +469,30 @@ class IftElectricFieldReconstructor:
             if self.__debug:
                 ax1_1.plot(toffset, correlation)
 
-        for i_channel, channel_id in enumerate(self.__used_channel_ids):
-            channel = station.get_channel(channel_id)
-            channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
-            toffset = -(np.arange(0, correlation_sum.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()
-            if self.__debug:
-                ax2_1 = fig2.add_subplot(len(self.__used_channel_ids), 2, 2 * i_channel + 1)
-                ax2_1.grid()
-                ax2_1.plot(channel.get_times(), channel_trace / units.mV, c='C0', alpha=1.)
-                ax2_1.set_title('Channel {}'.format(channel_id))
-                ax2_1.plot(self.__electric_field_template.get_times() + channel.get_trace_start_time() + toffset[np.argmax(correlation_sum)], channel_trace_templates[i_channel] / np.max(channel_trace_templates[i_channel]) * np.max(channel_trace) / units.mV, c='C1')
-                sim_channel_sum = None
-                if station.get_sim_station() is not None:
-                    for sim_channel in station.get_sim_station().iter_channels():
-                        if sim_channel.get_id() == channel_id:
-                            if sim_channel_sum is None:
-                                sim_channel_sum = sim_channel
-                            else:
-                                sim_channel_sum += sim_channel
-                if sim_channel_sum is not None:
-                    sim_channel_sum.apply_time_shift(-self.__time_offsets[i_channel], True)
-                    ax2_1.plot(sim_channel_sum.get_times(), sim_channel_sum.get_filtered_trace(passband, filter_type='butterabs') / units.mV, c='k', alpha=.5)
-                    ax2_1.set_xlim([sim_channel_sum.get_trace_start_time() - 50, sim_channel_sum.get_times()[-1] + 50])
-                    sim_channel_sum.apply_time_shift(self.__time_offsets[i_channel], True)
+		for i_channel_group, channel_group_id in enumerate(self.__used_channel_group_ids):
+	        for i_channel, channel_id in enumerate(self.__used_channel_ids):
+	            channel = station.get_channel(channel_id)
+	            channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
+	            toffset = -(np.arange(0, correlation_sum.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()
+	            if self.__debug:
+	                ax2_1 = fig2.add_subplot(len(self.__used_channel_ids), 2, 2 * i_channel + 1)
+	                ax2_1.grid()
+	                ax2_1.plot(channel.get_times(), channel_trace / units.mV, c='C0', alpha=1.)
+	                ax2_1.set_title('Channel {}'.format(channel_id))
+	                ax2_1.plot(self.__electric_field_template.get_times() + channel.get_trace_start_time() + toffset[np.argmax(correlation_sum)], channel_trace_templates[i_channel] / np.max(channel_trace_templates[i_channel]) * np.max(channel_trace) / units.mV, c='C1')
+	                sim_channel_sum = None
+	                if station.get_sim_station() is not None:
+	                    for sim_channel in station.get_sim_station().iter_channels():
+	                        if sim_channel.get_id() == channel_id:
+	                            if sim_channel_sum is None:
+	                                sim_channel_sum = sim_channel
+	                            else:
+	                                sim_channel_sum += sim_channel
+	                if sim_channel_sum is not None:
+	                    sim_channel_sum.apply_time_shift(-self.__time_offsets[i_channel], True)
+	                    ax2_1.plot(sim_channel_sum.get_times(), sim_channel_sum.get_filtered_trace(passband, filter_type='butterabs') / units.mV, c='k', alpha=.5)
+	                    ax2_1.set_xlim([sim_channel_sum.get_trace_start_time() - 50, sim_channel_sum.get_times()[-1] + 50])
+	                    sim_channel_sum.apply_time_shift(self.__time_offsets[i_channel], True)
 
             channel.apply_time_shift(-toffset[np.argmax(correlation_sum)])
             self.__data_traces[i_channel] = channel.get_trace()[:self.__trace_samples]
@@ -602,7 +604,11 @@ class IftElectricFieldReconstructor:
         polarization_inserter = NuRadioReco.modules.iftElectricFieldReconstructor.operators.Inserter(mag_S_h.target)
         polarization_field = realizer2 @ polarization_inserter @ (2. * ift.FieldAdapter(polarization_domain, 'pol'))
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
-            phi_S_h = NuRadioReco.modules.iftElectricFieldReconstructor.operators.SlopeSpectrumOperator(frequency_domain.get_default_codomain(), self.__phase_dct['sm'], self.__phase_dct['im'], self.__phase_dct['sv'], self.__phase_dct['iv'])
+            phi_S_h = NuRadioReco.modules.iftElectricFieldReconstructor.operators.SlopeSpectrumOperator(frequency_domain.get_default_codomain(),
+			 																							self.__phase_dct['sm'],
+																										self.__phase_dct['im'],
+																										self.__phase_dct['sv'],
+																										self.__phase_dct['iv'])
             phi_S_h = realizer2.adjoint @ phi_S_h
             scaling_field = (inserter @ add_one @ (.1 * ift.FieldAdapter(scaling_domain, 'scale{}'.format(i_channel))))
             if self.__polarization == 'theta':
@@ -657,7 +663,7 @@ class IftElectricFieldReconstructor:
         KL
     ):
         """
-        Ads electric fields containing the reconstruction results to the station
+        Adds electric fields containing the reconstruction results to the station
         """
         if self.__efield_scaling:
             for i_channel, channel_id in enumerate(self.__used_channel_ids):
