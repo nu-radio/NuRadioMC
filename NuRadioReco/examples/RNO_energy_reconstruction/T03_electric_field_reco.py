@@ -67,9 +67,13 @@ efield_template = NuRadioReco.framework.base_trace.BaseTrace()
 efield_template.set_frequency_spectrum(spec, sampling_rate)
 efield_template.apply_time_shift(20. * units.ns, True)
 
-if not os.path.isdir('plots/efield_reco'):
-    os.makedirs('plots/efield_reco')
-ift_efield_reconstructor = NuRadioReco.modules.iftElectricFieldReconstructor.iftElectricFieldReconstructor.IftElectricFieldReconstructor()
+if not os.path.isdir('plots/efield_reco/pull'):
+    os.makedirs('plots/efield_reco/pull')
+ift_efield_reconstructor = (NuRadioReco.modules
+                                       .iftElectricFieldReconstructor
+                                       .iftElectricFieldReconstructor
+                                       .IftElectricFieldReconstructor())
+                                       
 ift_efield_reconstructor.begin(
     electric_field_template=efield_template,
 
@@ -88,7 +92,7 @@ ift_efield_reconstructor.begin(
         [[.13, .3], [.3, .5]],
     ],
     debug=True,
-    plot_folder='plots/efield_reco'
+    plot_folder='plots/efield_reco/pull'
 )
 time_offset_calculator = NuRadioReco.modules.channelTimeOffsetCalculator.channelTimeOffsetCalculator()
 time_offset_calculator.begin(
@@ -97,7 +101,7 @@ time_offset_calculator.begin(
 )
 channel_props_from_neighbor = NuRadioReco.modules.channelSignalPropertiesFromNeighbors.channelSignalPropertiesFromNeighbors()
 for i_event, event in enumerate(event_reader.get_events()):
-    print('Event {}, Run={}, ID={}'.format(i_event, event.get_run_number(), event.get_id()))
+    print(f"Event {i_event}, Run={event.get_run_number()}, ID={event.get_id()}")
     station = event.get_station(11)
     sim_station = station.get_sim_station()
     channel_resampler.run(event, station, det, sampling_rate=sampling_rate)
@@ -114,7 +118,11 @@ for i_event, event in enumerate(event_reader.get_events()):
             event,
             station,
             det,
-            channel_ids=[0, 1, 2, 3, 4, 5],
+            grouped_channel_ids=[[0, 1, 2, 3, 4, 5],
+                         [6,7],
+                         [9,10,11],
+                         [21,22,23]],
+            #channel_ids=[0, 1, 2, 3, 4, 5],
             efield_scaling=True,
             ray_type=ray_type + 1,
             plot_title='',
