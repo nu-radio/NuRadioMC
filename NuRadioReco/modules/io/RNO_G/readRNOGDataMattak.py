@@ -145,6 +145,7 @@ class readRNOGData:
             run_time_range=None,
             max_trigger_rate=0 * units.Hz,
             mattak_kwargs={},
+            overwrite_sampling_rate=None,
             log_level=logging.INFO):
         """
 
@@ -201,7 +202,12 @@ class readRNOGData:
         mattak_kwargs: dict
             Dictionary of arguments for mattak.Dataset.Dataset. (Default: {})
             Example: Select a mattak "backend". Options are "auto", "pyroot", "uproot". If "auto" is selected, 
-            pyroot is used if available otherwise a "fallback" to uproot is used. (Default: "auto") 
+            pyroot is used if available otherwise a "fallback" to uproot is used. (Default: "auto")
+            
+        overwrite_sampling_rate: float
+            Set sampling rate of the imported waveforms. This overwrites what is read out from runinfo (i.e., stored in the mattak files).
+            If None, nothing is overwritten and the sampling rate from the mattak file is used. (Default: None)
+            NOTE: This option might be necessary when old mattak files are read which have this not set. 
 
         log_level: enum
             Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).
@@ -221,6 +227,8 @@ class readRNOGData:
         # is read and convert_to_voltage is True.
         self._adc_ref_voltage_range = 2.5 * units.volt
         self._adc_n_bits = 12
+        
+        self._overwrite_sampling_rate = overwrite_sampling_rate
             
         # Initialize run table for run selection
         self.__run_table = None
@@ -389,7 +397,7 @@ class readRNOGData:
         
         trigger_rate = run_info["trigger_rate"].values[0] * units.Hz 
         if self.__max_trigger_rate and trigger_rate > self.__max_trigger_rate:
-            self.logger.info(f"Reject station {station_id} run {run_id} because trigger rate is to high ({trigger_rate / units.Hz} Hz)")
+            self.logger.info(f"Reject station {station_id} run {run_id} because trigger rate is to high ({trigger_rate / units.Hz:.2f} Hz)")
             return False
         
         return True
@@ -531,9 +539,9 @@ class readRNOGData:
             return False
 
 
-        if event_info.sampleRate == 0 or event_info.sampleRate is None:
+        if (event_info.sampleRate == 0 or event_info.sampleRate is None) and self._overwrite_sampling_rate is None:
             self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
-                              f"has a sampling rate of {event_info.sampleRate} GHz. Skip event...")
+                              f"has a sampling rate of {event_info.sampleRate:.2f} GHz. Skip event...")
             self.__invalid += 1
             return False
         
@@ -559,7 +567,10 @@ class readRNOGData:
         """
 
         trigger_time = event_info.triggerTime
-        sampling_rate = event_info.sampleRate
+        if self._overwrite_sampling_rate is not None:
+            sampling_rate = self._overwrite_sampling_rate
+        else:
+            sampling_rate = event_info.sampleRate
 
         evt = NuRadioReco.framework.event.Event(event_info.run, event_info.eventNumber)
         station = NuRadioReco.framework.station.Station(event_info.station)
