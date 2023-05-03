@@ -727,7 +727,8 @@ class readRNOGData:
         else:
             pass
 
-        event_index = event_idx_ids[mask, 0][0]
+        # int(...) necessary to pass it to mattak
+        event_index = int(event_idx_ids[mask, 0][0])
 
         dataset = self.__get_dataset_for_event(event_index)
         event_info = dataset.eventInfo()  # returns a single eventInfo
