@@ -541,7 +541,8 @@ class readRNOGData:
 
         if (event_info.sampleRate == 0 or event_info.sampleRate is None) and self._overwrite_sampling_rate is None:
             self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
-                              f"has a sampling rate of {event_info.sampleRate:.2f} GHz. Skip event...")
+                              f"has a sampling rate of {event_info.sampleRate:.2f} GHz. Event is skipped ... "
+                              f"You can avoid this by setting 'overwrite_sampling_rate' in the begin() method.")
             self.__invalid += 1
             return False
         
