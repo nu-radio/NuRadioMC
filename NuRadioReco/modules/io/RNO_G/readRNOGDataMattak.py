@@ -1,9 +1,9 @@
 import numpy as np
-import pandas
 import logging
 import os
 import time
 import astropy.time
+import math
 
 from NuRadioReco.modules.base.module import register_run
 
@@ -14,14 +14,6 @@ import NuRadioReco.framework.trigger
 
 from NuRadioReco.utilities import units
 import mattak.Dataset
-
-try:
-   from rnog_data.runtable import RunTable
-   imported_runtable = True
-except ImportError:
-   print("Import of run table failed. You will not be able to select runs! \n" 
-         "You can get the interface from GitHub: git@github.com:RNO-G/rnog-data-analysis-and-issues.git")
-   imported_runtable = False
 
 
 def baseline_correction(wfs, n_bins=128, func=np.median):
@@ -47,7 +39,7 @@ def baseline_correction(wfs, n_bins=128, func=np.median):
    wfs_corrected: np.array(n_events, n_channels, n_samples)
       Baseline/pedestal corrected waveforms
    """
-    
+   
    # Example: Get baselines in chunks of 128 bins
    # wfs in (n_events, n_channels, 2048)
    # np.split -> (16, n_events, n_channels, 128) each waveform split in 16 chuncks
@@ -61,10 +53,10 @@ def baseline_correction(wfs, n_bins=128, func=np.median):
       baseline_values = func(wfs, axis=-1)
       # np.repeat -> (2048, n_events, n_channels) concatenate the 16 chuncks to one baseline
       baseline_traces = np.repeat(baseline_values, 2048, axis=0)
-          
+            
    # np.moveaxis -> (n_events, n_channels, 2048)
    baseline_traces = np.moveaxis(baseline_traces, 0, -1)
-    
+   
    return wfs - baseline_traces
 
 
@@ -104,31 +96,62 @@ def get_time_offset(trigger_type):
       return time_offsets[trigger_type]
    else:
       raise KeyError(f"Unknown trigger type: {trigger_type}. Known are: FORCE, LT, RADIANT. Abort ....")
+   
+   
+def all_files_in_directory(mattak_dir):
+   """
+   Checks if all Mattak root files are in a directory.
+   Ignoring runinfo.root because (asaik) not all runs have those and information is currently not read by Mattak.
+   There are mattak directories which produce a ReferenceError when reading. They have a "combined.root" which is
+   apparently empty but are missing the daqstatus, pedestal, and header file.
+   
+   Parameters
+   ----------
+   
+   mattak_dir: str
+      Path to a mattak directory
+      
+   Returns
+   -------
+   
+   all_there: bool
+      True, if all "req_files" are there and waveforms.root or combined.root. Otherwise returns False.
+   """
+   # one or the other has to be present
+   if not os.path.exists(os.path.join(mattak_dir, "waveforms.root")) and \
+         not os.path.exists(os.path.join(mattak_dir, "combined.root")):
+      return False
+   
+   req_files = ["daqstatus.root", "headers.root", "pedestal.root"]
+   for file in req_files:
+      if not os.path.exists(os.path.join(mattak_dir, file)):
+         return False
+
+   return True
 
 
 class readRNOGData:
 
    def begin(self, 
-             data_dirs,  
-             read_calibrated_data=False,
-             select_triggers=None,
-             select_runs=False,
-             apply_baseline_correction=True,
-             convert_to_voltage=True,
-             selectors=None,
-             run_table_path=None,
-             run_types=["physics"],
-             run_time_range=None,
-             max_trigger_rate=0 * units.Hz,
-             mattak_backend="auto",
-             log_level=logging.INFO):
+         dirs_files,  
+         read_calibrated_data=False,
+         select_triggers=None,
+         select_runs=False,
+         apply_baseline_correction=True,
+         convert_to_voltage=True,
+         selectors=[],
+         run_table_path=None,
+         run_types=["physics"],
+         run_time_range=None,
+         max_trigger_rate=0 * units.Hz,
+         mattak_kwargs={},
+         overwrite_sampling_rate=None,
+         log_level=logging.INFO):
       """
-
       Parameters
       ----------
-
-      data_dirs: list of strings / string
-         Path to run directories (i.e. ".../stationXX/runXXX/")
+      dirs_files: str, list(str)
+         Path to run directories (i.e. ".../stationXX/runXXX/") or path to root files (have to be "combined" mattak files). 
          
       read_calibrated_data: bool
          If True, read calibrated waveforms from Mattak.Dataset. If False, read "raw" ADC traces.
@@ -149,11 +172,9 @@ class readRNOGData:
       apply_baseline_correction: bool
          Only applies when non-calibrated data are read. If true, correct for DC offset.
          (Default: True)
-
       convert_to_voltage: bool
          Only applies when non-calibrated data are read. If true, convert ADC to voltage.
          (Default: True)
-
       selectors: list of lambdas
          List of lambda(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
          Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
@@ -174,12 +195,18 @@ class readRNOGData:
          Used to select/reject runs from information in the RNO-G RunTable. Maximum allowed trigger rate (per run) in Hz.
          If 0, no cut is applied. (Default: 1 Hz)
          
-      mattak_backend: str
-         Select a mattak backend. Options are "auto", "pyroot", "uproot". If "auto" is selected, pyroot is used if available otherwise
-         a "fallback" to uproot is used. (Default: "auto") 
-
+      mattak_kwargs: dict
+         Dictionary of arguments for mattak.Dataset.Dataset. (Default: {})
+         Example: Select a mattak "backend". Options are "auto", "pyroot", "uproot". If "auto" is selected, 
+         pyroot is used if available otherwise a "fallback" to uproot is used. (Default: "auto")
+         
+      overwrite_sampling_rate: float
+         Set sampling rate of the imported waveforms. This overwrites what is read out from runinfo (i.e., stored in the mattak files).
+         If None, nothing is overwritten and the sampling rate from the mattak file is used. (Default: None)
+         NOTE: This option might be necessary when old mattak files are read which have this not set. 
       log_level: enum
-         Set verbosity level of logger
+         Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).
+         (Default: logging.INFO) 
       """
       
       t0 = time.time()
@@ -196,6 +223,28 @@ class readRNOGData:
       self._adc_ref_voltage_range = 2.5 * units.volt
       self._adc_n_bits = 12
       
+      self._overwrite_sampling_rate = overwrite_sampling_rate
+         
+      # Initialize run table for run selection
+      self.__run_table = None
+      if select_runs:
+         if run_table_path is None:
+               try:
+                  from rnog_data.runtable import RunTable
+                  self.logger.debug("Access RunTable database ...")
+                  try:
+                     self.__run_table = RunTable().get_table()
+                  except:
+                     self.logger.error("No connect to RunTable database could be established. "
+                                             "Runs will not be filtered.")
+               except ImportError:
+                  self.logger.error("Import of run table failed. You will not be able to select runs! \n" 
+                           "You can get the interface from GitHub: git@github.com:RNO-G/rnog-data-analysis-and-issues.git")
+         else:
+               import pandas
+               self.__run_table = pandas.read_csv(run_table_path)
+         
+      # Set parameter for run selection    
       self.__max_trigger_rate = max_trigger_rate
       self.__run_types = run_types
       
@@ -205,84 +254,91 @@ class readRNOGData:
          self._time_high = convert_time(run_time_range[1])
       else:
          self._time_low = None
-         self._time_high = None         
-      
-      if select_runs:
-         if run_table_path is None:
-            global imported_runtable
-            if imported_runtable:
-               self.logger.debug("Access RunTable database ...")
-               try:
-                  self.__run_table = RunTable().get_table()
-               except:
-                  self.logger.error("No connect to RunTable database could be established. "
-                                    "Runs will not be filtered.")
-                  imported_runtable = False
-         else:
-            self.__run_table = pandas.read_csv(run_table_path)
-            imported_runtable = True
+         self._time_high = None
             
-      if select_runs:
+      if select_runs and self.__run_table is not None:
          self.logger.info("\n\tSelect runs with type: {}".format(", ".join(run_types)) +
-                         f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
-                         f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
+                              f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
+                              f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
       
-      if not isinstance(data_dirs, (list, np.ndarray)):
-         data_dirs = [data_dirs]
-
-      if selectors is not None:
-         if not isinstance(selectors, (list, np.ndarray)):
-            selectors = [selectors]
-         
-         self.logger.info(f"Found {len(selectors)} selector(s)")
-            
+      # Initialize selectors for event filtering
+      if not isinstance(selectors, (list, np.ndarray)):
+         selectors = [selectors]
+                     
       if select_triggers is not None:
          if isinstance(select_triggers, str):
-            selectors.append(lambda eventInfo: eventInfo.triggerType == select_triggers)
+               selectors.append(lambda eventInfo: eventInfo.triggerType == select_triggers)
          else:
-            for select_trigger in select_triggers:
-               selectors.append(lambda eventInfo: eventInfo.triggerType == select_trigger)
+               for select_trigger in select_triggers:
+                  selectors.append(lambda eventInfo: eventInfo.triggerType == select_trigger)
 
       self._selectors = selectors
-      
+      self.logger.info(f"Found {len(self._selectors)} selector(s)")
+
+      # Read data
       self._time_begin = 0
       self._time_run = 0
       self.__counter = 0
       self.__skipped = 0
+      self.__invalid = 0
       
       self._events_information = None
       self._datasets = []
       self.__n_events_per_dataset = []
       
-      self.logger.info(f"Parse through {len(data_dirs)} directory/ies.")
+      self.logger.info(f"Parse through / read-in {len(dirs_files)} directory(ies) / file(s).")
       
       self.__skipped_runs = 0
       self.__n_runs = 0
       
-      for data_dir in data_dirs:
+      if not isinstance(dirs_files, (list, np.ndarray)):
+         dirs_files = [dirs_files]
+
+      # Set verbose for mattak
+      if "verbose" in mattak_kwargs:
+         vabose = mattak_kwargs.pop("verbose")
+      else:
+         verbose = log_level == logging.DEBUG
+
+      for dir_file in dirs_files:
          
-         if not os.path.exists(data_dir):
-            self.logger.error(f"The directory {data_dir} does not exist")
-      
-         dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=data_dir, backend=mattak_backend)
+         if not os.path.exists(dir_file):
+               self.logger.error(f"The directory/file {dir_file} does not exist")
+               continue
+         
+         if os.path.isdir(dir_file):
+         
+               if not all_files_in_directory(dir_file):
+                  self.logger.error(f"Incomplete directory: {dir_file}. Skip ...")
+                  continue      
+         
+               dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=dir_file, verbose=verbose, **mattak_kwargs)
+         else:
+               raise NotImplementedError("The option to read in files is not implemented yet")
+
 
          # filter runs/datasets based on 
-         if select_runs and imported_runtable and not self.__select_run(dataset):
-            self.__skipped_runs += 1
-            continue
+         if select_runs and self.__run_table is not None and not self.__select_run(dataset):
+               self.__skipped_runs += 1
+               continue
          
          self.__n_runs += 1
          self._datasets.append(dataset)
          self.__n_events_per_dataset.append(dataset.N())
+         
+      if not len(self._datasets):
+         err = "Found no valid datasets. Stop!"
+         self.logger.error(err)
+         raise FileNotFoundError(err)
 
       # keeps track which event index is in which dataset
       self._event_idxs_datasets = np.cumsum(self.__n_events_per_dataset)
       self._n_events_total = np.sum(self.__n_events_per_dataset)
       self._time_begin = time.time() - t0
       
-      self.logger.info(f"Using the {self._datasets[0].backend} Mattak backend.")
-      self.logger.info(f"{self._n_events_total} events in {len(self._datasets)} runs/datasets have been found.")
-            
+      self.logger.info(f"{self._n_events_total} events in {len(self._datasets)} runs/datasets "
+                        f"have been found using the {self._datasets[0].backend} Mattak backend.")
+               
       if not self._n_events_total:
          err = "No runs have been selected. Abort ..."
          self.logger.error(err)
@@ -300,7 +356,7 @@ class readRNOGData:
       select: bool
          Return True to select an dataset, return False to reject/skip it.
       """
-     
+   
       # get first eventInfo
       dataset.setEntries(0)
       event_info = dataset.eventInfo()
@@ -310,20 +366,24 @@ class readRNOGData:
       
       run_info = self.__run_table.query(f"station == {station_id:d} & run == {run_id:d}")
       
+      if not len(run_info):
+         self.logger.error(f"Run {run_id:d} (station {station_id:d}) not in run table. Reject...")
+         return False
+      
       # "time_start/end" is stored in the isot format. datetime is much faster than astropy (~85ns vs 55 mus).
       # But using datetime would mean to stip decimals because datetime can only handle mu sec precision and can not cope 
       # with the additional decimals for ns.
       if self._time_low is not None:
          time_end = astropy.time.Time(run_info["time_end"].values[0])
          if time_end < self._time_low:
-            self.logger.info(f"Reject station {station_id} run {run_id} because run ended before {self._time_low}")
-            return False
+               self.logger.info(f"Reject station {station_id} run {run_id} because run ended before {self._time_low}")
+               return False
       
       if self._time_high is not None:
          time_start = astropy.time.Time(run_info["time_start"].values[0])
          if time_start > self._time_high:
-            self.logger.info(f"Reject station {station_id} run {run_id} because run started time after {self._time_high}")
-            return False
+               self.logger.info(f"Reject station {station_id} run {run_id} because run started time after {self._time_high}")
+               return False
       
       run_type = run_info["run_type"].values[0]
       if not run_type in self.__run_types:
@@ -332,7 +392,7 @@ class readRNOGData:
       
       trigger_rate = run_info["trigger_rate"].values[0] * units.Hz 
       if self.__max_trigger_rate and trigger_rate > self.__max_trigger_rate:
-         self.logger.info(f"Reject station {station_id} run {run_id} because trigger rate is to high ({trigger_rate / units.Hz} Hz)")
+         self.logger.info(f"Reject station {station_id} run {run_id} because trigger rate is to high ({trigger_rate / units.Hz:.2f} Hz)")
          return False
       
       return True
@@ -364,13 +424,12 @@ class readRNOGData:
 
       event_idx_in_dataset = event_idx - self.__get_n_events_of_prev_datasets(dataset_idx)
       dataset.setEntries(event_idx_in_dataset)  # increment iterator -> point to new event
-            
+               
       return dataset
    
    
    def _filter_event(self, evtinfo, event_idx=None):
       """ Filter an event base on its EventInfo and the configured selectors.
-
       Parameters
       ----------
       
@@ -388,11 +447,11 @@ class readRNOGData:
       """
       if self._selectors is not None:
          for selector in self._selectors:
-            if not selector(evtinfo):
-               self.logger.debug(f"Event {event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
-                                 f"event number {evtinfo.eventNumber}) is skipped.")
-               self.__skipped += 1
-               return True
+               if not selector(evtinfo):
+                  self.logger.debug(f"Event {event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
+                                          f"event number {evtinfo.eventNumber}) is skipped.")
+                  self.__skipped += 1
+                  return True
       
       return False
    
@@ -425,30 +484,63 @@ class readRNOGData:
       if not do_read:
          # ... or when it does not have the desired information
          first_event_info = next(iter(self._events_information))
-         print(first_event_info)
          for key in keys:
-            if key not in list(first_event_info.keys()):
-               do_read = True
+               if key not in list(first_event_info.keys()):
+                  do_read = True
       
       if do_read:
       
          self._events_information = {}
          n_prev = 0
          for dataset in self._datasets:
-            dataset.setEntries((0, dataset.N()))
-            
-            for idx, evtinfo in enumerate(dataset.eventInfo()):  # returns a list
+               dataset.setEntries((0, dataset.N()))
+               
+               for idx, evtinfo in enumerate(dataset.eventInfo()):  # returns a list
          
-               event_idx = idx + n_prev  # event index accross all datasets combined 
-            
-               if self._filter_event(evtinfo, event_idx):
-                  continue
-            
-               self._events_information[event_idx] = {key: getattr(evtinfo, key) for key in keys}
-            
-            n_prev += dataset.N()
+                  event_idx = idx + n_prev  # event index accross all datasets combined 
+               
+                  if self._filter_event(evtinfo, event_idx):
+                     continue
+               
+                  self._events_information[event_idx] = {key: getattr(evtinfo, key) for key in keys}
+               
+               n_prev += dataset.N()
 
       return self._events_information
+   
+   
+   def _check_for_valid_information_in_event_info(self, event_info):
+      """
+      Checks if certain information (sampling rate, trigger time) in mattak.Dataset.EventInfo are valid
+      
+      Parameters
+      ----------
+      
+      event_info: mattak.Dataset.EventInfo
+      
+      Returns
+      -------
+      
+      is_valid: bool
+         Returns True if all information valid, false otherwise
+      """
+
+
+      if math.isinf(event_info.triggerTime):
+         self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
+                                    "has inf trigger time. Skip event...")
+         self.__invalid += 1
+         return False
+
+
+      if (event_info.sampleRate == 0 or event_info.sampleRate is None) and self._overwrite_sampling_rate is None:
+         self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
+                           f"has a sampling rate of {event_info.sampleRate:.2f} GHz. Event is skipped ... "
+                           f"You can avoid this by setting 'overwrite_sampling_rate' in the begin() method.")
+         self.__invalid += 1
+         return False
+      
+      return True
    
    
    def _get_event(self, event_info, waveforms):
@@ -462,47 +554,52 @@ class readRNOGData:
          
       waveforms: np.array(n_channel, n_samples)
          Typically what dataset.wfs() returns (for one event!)
-
       Returns
       -------
       
       evt: NuRadioReco.framework.event
       """
-      
+
+      trigger_time = event_info.triggerTime
+      if self._overwrite_sampling_rate is not None:
+         sampling_rate = self._overwrite_sampling_rate
+      else:
+         sampling_rate = event_info.sampleRate
+
       evt = NuRadioReco.framework.event.Event(event_info.run, event_info.eventNumber)
       station = NuRadioReco.framework.station.Station(event_info.station)
-      station.set_station_time(astropy.time.Time(event_info.triggerTime, format='unix'))
+      station.set_station_time(astropy.time.Time(trigger_time, format='unix'))
 
       trigger = NuRadioReco.framework.trigger.Trigger(event_info.triggerType)
       trigger.set_triggered()
-      trigger.set_trigger_time(event_info.triggerTime)
+      trigger.set_trigger_time(trigger_time)
       station.set_trigger(trigger)
       
       for channel_id, wf in enumerate(waveforms):
          channel = NuRadioReco.framework.channel.Channel(channel_id) 
-         if self._read_calibrated_data:   
-            channel.set_trace(wf * units.mV, event_info.sampleRate * units.GHz)
+         if self._read_calibrated_data:    
+               channel.set_trace(wf * units.mV, sampling_rate * units.GHz)
          else:
-            # wf stores ADC counts
-            
-            if self._apply_baseline_correction:
-               # correct baseline
-               wf = baseline_correction(wf)
-            
-            if self._convert_to_voltage:
-               # convert adc to voltage
-               wf *= (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
+               # wf stores ADC counts
                
-            channel.set_trace(wf, event_info.sampleRate * units.GHz)
+               if self._apply_baseline_correction:
+                  # correct baseline
+                  wf = baseline_correction(wf)
+               
+               if self._convert_to_voltage:
+                  # convert adc to voltage
+                  wf *= (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
+                  
+               channel.set_trace(wf, sampling_rate * units.GHz)
          
          time_offset = get_time_offset(event_info.triggerType)
          channel.set_trace_start_time(-time_offset)  # relative to event/trigger time
-                           
+                                 
          station.add_channel(channel)
       
       evt.set_station(station)
       
-      return evt     
+      return evt      
 
 
    @register_run()
@@ -518,32 +615,35 @@ class readRNOGData:
       event_idx = -1
       for dataset in self._datasets:
          dataset.setEntries((0, dataset.N()))
-                  
+                     
          # read all event infos of the entier dataset (= run)
          event_infos = dataset.eventInfo()
          wfs = None
 
          for idx, evtinfo in enumerate(event_infos):  # returns a list
-            event_idx += 1
-            
-            self.logger.debug(f"Processing event number {event_idx} out of total {self._n_events_total}")
-            t0 = time.time()
-                  
-            if self._filter_event(evtinfo, event_idx):
-               continue
-            
-            # Just read wfs if necessary
-            if wfs is None:
-               wfs = dataset.wfs()
+               event_idx += 1
                
-            waveforms_of_event = wfs[idx]
-            
-            evt = self._get_event(evtinfo, waveforms_of_event)
-            
-            self._time_run += time.time() - t0
-            self.__counter += 1
-                           
-            yield evt
+               self.logger.debug(f"Processing event number {event_idx} out of total {self._n_events_total}")
+               t0 = time.time()
+                     
+               if self._filter_event(evtinfo, event_idx):
+                  continue
+               
+               if not self._check_for_valid_information_in_event_info(evtinfo):
+                  continue
+               
+               # Just read wfs if necessary
+               if wfs is None:
+                  wfs = dataset.wfs()
+                  
+               waveforms_of_event = wfs[idx]
+               
+               evt = self._get_event(evtinfo, waveforms_of_event)
+               
+               self._time_run += time.time() - t0
+               self.__counter += 1
+                                 
+               yield evt
 
 
 
@@ -571,7 +671,11 @@ class readRNOGData:
 
       if self._filter_event(event_info, event_index):
          return None
-            
+      
+      # check this before reading the wfs
+      if not self._check_for_valid_information_in_event_info(event_info):
+         return None
+               
       # access data
       waveforms = dataset.wfs()
       
@@ -585,19 +689,16 @@ class readRNOGData:
       
    def get_event(self, run_nr, event_id):
       """ Allows to read a specific event identifed by its id
-
       Parameters
       ----------
       
       run_nr: int
          Run number
-
       event_id: int
          Event Id
          
       Returns
       -------
-
       evt: NuRadioReco.framework.event
       """
 
@@ -617,14 +718,19 @@ class readRNOGData:
       else:
          pass
 
-      event_index = event_idx_ids[mask, 0][0]
+      # int(...) necessary to pass it to mattak
+      event_index = int(event_idx_ids[mask, 0][0])
 
       dataset = self.__get_dataset_for_event(event_index)
       event_info = dataset.eventInfo()  # returns a single eventInfo
 
       if self._filter_event(event_info, event_index):
          return None
-            
+      
+      # check this before reading the wfs
+      if not self._check_for_valid_information_in_event_info(event_info):
+         return None
+         
       # access data
       waveforms = dataset.wfs()
 
@@ -638,8 +744,8 @@ class readRNOGData:
 
    def end(self):
       self.logger.info(
-         f"\n\tRead {self.__counter} events (skipped {self.__skipped} events)"
+         f"\n\tRead {self.__counter} events (skipped {self.__skipped} events, {self.__invalid} invalid events)"
          f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
-         f"\n\tTime to initialize all events : {self._time_run:.2f}s"
+         f"\n\tTime to read all events       : {self._time_run:.2f}s"
          f"\n\tTime to per event             : {self._time_run / self.__counter:.2f}s"
          f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs.")
