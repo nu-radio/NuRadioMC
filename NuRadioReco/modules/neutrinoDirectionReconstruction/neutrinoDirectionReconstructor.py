@@ -80,6 +80,9 @@ class neutrinoDirectionReconstructor:
             if True, first the channels of the phased array are used to get starting values for the viewing angle and the energy.
         grid_spacing: [float, float, float]
             resolution of the minimization grid in (viewing angle, polarization angle, log10(energy))
+        use_fallback_timing: bool, default: False
+            if True, include all Hpol channels (including those with low SNR)
+            by using the timing of adjacent Vpol channels.
 
         Other Parameters
         ----------------
@@ -105,7 +108,7 @@ class neutrinoDirectionReconstructor:
 
         # We sort the channels. This is used in the minimizer,
         # where if the timing for a vpol/hpol channel cannot be determined,
-        # it uses the timing of the reference vpol/nearest vpol, respectively, as a fallback. 
+        # the timing of the reference vpol/nearest vpol is used, respectively, as a fallback. 
         vpol_channels = np.array([channel_id for channel_id in use_channels if channel_id not in Hpol_channels])
         hpol_channels = np.array([channel_id for channel_id in use_channels if channel_id in Hpol_channels])
         use_channels_sorted = np.concatenate([[reference_Vpol], vpol_channels, hpol_channels])
@@ -126,7 +129,6 @@ class neutrinoDirectionReconstructor:
             # idx = np.argsort(d_pos)
             fallback_channels[hpol_id] = vpol_channels[np.argmin(d_pos)]
         self._fallback_channels = fallback_channels
-
 
         for channel in station.iter_channels():
             self._sampling_rate = channel.get_sampling_rate()
@@ -679,8 +681,8 @@ class neutrinoDirectionReconstructor:
                         ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel_id][1], sampling_rate)), color = 'green', lw = linewidth, label = 'channel id {}'.format(channel_id))
                         ax[ich][2].legend()
                     for ii in range(2):
-                        chi2 = chi2_dict[channel_id][ii]
-                        if chi2 > 0:
+                        if ii in chi2_dict[channel_id].keys():
+                            chi2 = chi2_dict[channel_id][ii]
                             ax[ich][ii].set_title(f'$\chi^2={chi2:.2f}$')
                         else:
                             ax[ich][ii].set_fc('grey')
