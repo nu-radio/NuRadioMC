@@ -131,7 +131,36 @@ def all_files_in_directory(mattak_dir):
 
 
 class readRNOGData:
+    
+    def __init__(self, run_table_path=None):
+        """
+        Parameters
+        ----------
+        
+        run_table_path: str
+            Path to a run_table.cvs file. If None, the run table is queried from the DB. (Default: None)
+        """
+     
+        # Initialize run table for run selection
+        self.__run_table = None
 
+        if run_table_path is None:
+            try:
+                from rnog_data.runtable import RunTable
+                self.logger.debug("Access RunTable database ...")
+                try:
+                    self.__run_table = RunTable().get_table()
+                except:
+                    self.logger.warn("No connect to RunTable database could be established. "
+                                      "Runs can not be filtered.")
+            except ImportError:
+                self.logger.warn("Import of run table failed. Runs can not be filtered.! \n" 
+                        "You can get the interface from GitHub: git@github.com:RNO-G/rnog-data-analysis-and-issues.git")
+        else:
+            import pandas
+            self.__run_table = pandas.read_csv(run_table_path)
+    
+        
     def begin(self, 
             dirs_files,  
             read_calibrated_data=False,
@@ -140,7 +169,6 @@ class readRNOGData:
             apply_baseline_correction=True,
             convert_to_voltage=True,
             selectors=[],
-            run_table_path=None,
             run_types=["physics"],
             run_time_range=None,
             max_trigger_rate=0 * units.Hz,
@@ -148,7 +176,6 @@ class readRNOGData:
             overwrite_sampling_rate=None,
             log_level=logging.INFO):
         """
-
         Parameters
         ----------
 
@@ -161,7 +188,7 @@ class readRNOGData:
             
         select_triggers: str or list(str)
             Names of triggers which should be selected. Convinence interface instead of passing a selector
-            (see "selectors" below. (Default: None) 
+            (see "selectors" below). (Default: None) 
             
         select_runs: bool
             If True, use information in run_table to select runs (based on run_type, run_time, trigger_rate, ...).
@@ -182,10 +209,7 @@ class readRNOGData:
         selectors: list of lambdas
             List of lambda(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
             Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
-            
-        run_table_path: str
-            Path to a run_table.cvs file. If None, the run table is queried from the DB. (Default: None)
-            
+
         run_types: list
             Used to select/reject runs from information in the RNO-G RunTable. List of run_types to be used. (Default: ['physics'])
             
@@ -230,25 +254,6 @@ class readRNOGData:
         
         self._overwrite_sampling_rate = overwrite_sampling_rate
             
-        # Initialize run table for run selection
-        self.__run_table = None
-        if select_runs:
-            if run_table_path is None:
-                try:
-                    from rnog_data.runtable import RunTable
-                    self.logger.debug("Access RunTable database ...")
-                    try:
-                        self.__run_table = RunTable().get_table()
-                    except:
-                        self.logger.error("No connect to RunTable database could be established. "
-                                                "Runs will not be filtered.")
-                except ImportError:
-                    self.logger.error("Import of run table failed. You will not be able to select runs! \n" 
-                            "You can get the interface from GitHub: git@github.com:RNO-G/rnog-data-analysis-and-issues.git")
-            else:
-                import pandas
-                self.__run_table = pandas.read_csv(run_table_path)
-            
         # Set parameter for run selection    
         self.__max_trigger_rate = max_trigger_rate
         self.__run_types = run_types
@@ -266,19 +271,7 @@ class readRNOGData:
                                  f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
                                  f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
         
-        # Initialize selectors for event filtering
-        if not isinstance(selectors, (list, np.ndarray)):
-            selectors = [selectors]
-                        
-        if select_triggers is not None:
-            if isinstance(select_triggers, str):
-                selectors.append(lambda eventInfo: eventInfo.triggerType == select_triggers)
-            else:
-                for select_trigger in select_triggers:
-                    selectors.append(lambda eventInfo: eventInfo.triggerType == select_trigger)
-
-        self._selectors = selectors
-        self.logger.info(f"Found {len(self._selectors)} selector(s)")
+        self.set_selectors(selectors, select_triggers)
 
         # Read data
         self._time_begin = 0
@@ -348,6 +341,34 @@ class readRNOGData:
             err = "No runs have been selected. Abort ..."
             self.logger.error(err)
             raise ValueError(err)
+        
+    
+    def set_selectors(self, selectors, select_triggers=None):
+        """
+        Parameters
+        ----------
+        
+        selectors: list of lambdas
+            List of lambda(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
+            Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
+        
+        select_triggers: str or list(str)
+            Names of triggers which should be selected. Convinence interface instead of passing a selector. (Default: None) 
+        """
+        
+        # Initialize selectors for event filtering
+        if not isinstance(selectors, (list, np.ndarray)):
+            selectors = [selectors]
+                        
+        if select_triggers is not None:
+            if isinstance(select_triggers, str):
+                selectors.append(lambda eventInfo: eventInfo.triggerType == select_triggers)
+            else:
+                for select_trigger in select_triggers:
+                    selectors.append(lambda eventInfo: eventInfo.triggerType == select_trigger)
+
+        self._selectors = selectors
+        self.logger.info(f"Set {len(self._selectors)} selector(s)")
 
         
     def __select_run(self, dataset):
