@@ -37,7 +37,7 @@ class neutrinoDirectionReconstructor:
             sim = False, template = False,
             single_pulse_fit=False, restricted_input=False,
             grid_spacing = [.5*units.deg, 5*units.deg, .2],
-            brute_force=True,
+            brute_force=True, use_fallback_timing=False,
             debug_formats=['.pdf']):
         """
         Initialize and set parameters for the reconstruction
@@ -101,16 +101,31 @@ class neutrinoDirectionReconstructor:
         self._passband = passband
         self._full_station = full_station
         self.__minimization_grid_spacings = grid_spacing
+        self._use_fallback_timing = use_fallback_timing
 
         # We sort the channels. This is used in the minimizer,
         # where if the timing for a vpol/hpol channel cannot be determined,
         # it uses the timing of the reference vpol/nearest vpol, respectively, as a fallback. 
-        vpol_channels = [channel_id for channel_id in use_channels if channel_id not in Hpol_channels]
-        hpol_channels = [channel_id for channel_id in use_channels if channel_id in Hpol_channels]
+        vpol_channels = np.array([channel_id for channel_id in use_channels if channel_id not in Hpol_channels])
+        hpol_channels = np.array([channel_id for channel_id in use_channels if channel_id in Hpol_channels])
         use_channels_sorted = np.concatenate([[reference_Vpol], vpol_channels, hpol_channels])
         _, idx = np.unique(use_channels_sorted, return_index=True)
         use_channels = use_channels_sorted[np.sort(idx)] 
         self._use_channels = use_channels
+
+        # get the nearest channel as a fallback option for each hpol channel
+        fallback_channels = dict()
+        station_id = station.get_id()
+        for i, hpol_id in enumerate(hpol_channels): # do we need fallback channels for vpol channels too?
+            pos = detector.get_relative_position(station_id, hpol_id)
+            fallback_channels[hpol_id] = []
+            d_pos = np.zeros_like(vpol_channels, dtype=float)
+            for ii, vpol_id in enumerate(vpol_channels):
+                d_pos[ii] = (np.linalg.norm(detector.get_relative_position(station_id, vpol_id) - pos))
+            # d_pos = d_pos
+            # idx = np.argsort(d_pos)
+            fallback_channels[hpol_id] = vpol_channels[np.argmin(d_pos)]
+        self._fallback_channels = fallback_channels
 
 
         for channel in station.iter_channels():
@@ -883,7 +898,7 @@ class neutrinoDirectionReconstructor:
         chi2 = 0
         all_chi2 = dict()
         over_reconstructed = [] ## list for channel ids where reconstruction is larger than data
-        extra_channel = 0 ## count number of pulses besides triggering pulse in Vpol + Hpol
+        # extra_channel = 0 ## count number of pulses besides triggering pulse in Vpol + Hpol
 
 
         rec_traces = {} ## to store reconstructed traces
@@ -914,6 +929,7 @@ class neutrinoDirectionReconstructor:
         reduced_chi2_Vpol = 0
         reduced_chi2_Hpol = 0
         dict_dt = {}
+        dict_snr = {}
         chi2 = 0
 
         ### Loop over all channels. For each pulse, we first determine the arrival time,
@@ -927,6 +943,7 @@ class neutrinoDirectionReconstructor:
             data_traces[channel_id] = {}
             data_timing[channel_id] = {}
             dict_dt[channel_id] = {}
+            dict_snr[channel_id] = {}
             all_chi2[channel_id] = {}
             
             keys = sorted(traces[channel_id].keys(), key=lambda iS: iS!=solution_number) # start with the reference trace
@@ -961,12 +978,15 @@ class neutrinoDirectionReconstructor:
                 data_trace = data_trace_full[data_samples]
                 data_times = data_samples / self._sampling_rate + channel.get_trace_start_time()
                 snr = (np.max(data_trace) - np.min(data_trace)) / (2 * Vrms)
+                dict_snr[channel_id][key] = snr
 
                 # decide whether to use the timing from the reference channel, or use correlation
                 if fixed_timing and not (channel_id == ch_Vpol & key == solution_number):
                     dt = dict_dt[ch_Vpol][solution_number]
                 elif snr < 3.5 and channel_id in self._PA_cluster_channels and key == solution_number and channel_id != ch_Vpol:
                     dt = dict_dt[ch_Vpol][solution_number]
+                elif snr < 3.5 and channel_id in self._fallback_channels.keys() and key == solution_number and self._use_fallback_timing:
+                    dt = dict_dt[self._fallback_channels[channel_id]][solution_number]
                 else:
                     corr = signal.correlate(data_trace, rec_trace)
                     lags = signal.correlation_lags(len(data_times), len(rec_trace)) + start_index # adding start_index ensures the same lags for different data windows
@@ -1013,6 +1033,9 @@ class neutrinoDirectionReconstructor:
                         all_chi2[channel_id][key] = chi2_for_channel_and_trace
                 elif (snr > 3.5) or (channel_id in self._PA_cluster_channels and key == solution_number):
                     all_chi2[channel_id][key] = chi2_for_channel_and_trace
+                elif channel_id in self._fallback_channels.keys() and key == solution_number:
+                    if dict_snr[self._fallback_channels[channel_id]][key] > 3.5 and self._use_fallback_timing:
+                        all_chi2[channel_id][key] = chi2_for_channel_and_trace
                 elif penalty:
                     snr_rec_trace = (np.max(rec_trace) - np.min(rec_trace)) / (2 * Vrms)
                     if snr_rec_trace > 4.0:
@@ -1026,7 +1049,7 @@ class neutrinoDirectionReconstructor:
             full_output = [
                 rec_traces, data_traces, data_timing, all_chi2, 
                 [reduced_chi2_Vpol, reduced_chi2_Hpol], 
-                over_reconstructed, extra_channel, all_chi2] #all_chi2 used to be included_channels
+                over_reconstructed, dof, all_chi2] #all_chi2 used to be included_channels
             return full_output
 
         return chi2
