@@ -93,7 +93,6 @@ class neutrinoDirectionReconstructor:
         self._event = event
         self._station = station
         self._detector = detector
-        self._use_channels = use_channels
         self._reference_Vpol = reference_Vpol
         self._reference_Hpol = reference_Hpol
         self._ice_model = icemodel
@@ -102,6 +101,18 @@ class neutrinoDirectionReconstructor:
         self._passband = passband
         self._full_station = full_station
         self.__minimization_grid_spacings = grid_spacing
+
+        # We sort the channels. This is used in the minimizer,
+        # where if the timing for a vpol/hpol channel cannot be determined,
+        # it uses the timing of the reference vpol/nearest vpol, respectively, as a fallback. 
+        vpol_channels = [channel_id for channel_id in use_channels if channel_id not in Hpol_channels]
+        hpol_channels = [channel_id for channel_id in use_channels if channel_id in Hpol_channels]
+        use_channels_sorted = np.concatenate([[reference_Vpol], vpol_channels, hpol_channels])
+        _, idx = np.unique(use_channels_sorted, return_index=True)
+        use_channels = use_channels_sorted[np.sort(idx)] 
+        self._use_channels = use_channels
+
+
         for channel in station.iter_channels():
             self._sampling_rate = channel.get_sampling_rate()
             break
@@ -168,25 +179,11 @@ class neutrinoDirectionReconstructor:
             Path to store the debug plots. Default is './'.
 
         """
-
-        # We sort the channels such that the reference Vpol (ch_Vpol)
-        # is the first entry. This is used in the minimizer, which
-        # constrains some pulse positions based on the reference Vpol
-        use_channels_sorted = np.concatenate([[self._reference_Vpol], self._use_channels])
-        _, idx = np.unique(use_channels_sorted, return_index=True)
-        use_channels = use_channels_sorted[np.sort(idx)]
-        self._use_channels = use_channels
-
-        # self._det = det
-        # self._PA_cluster_channels = PA_cluster_channels
-        # self._Hpol_channels = Hpol_channels
-        # self._single_pulse_fit = single_pulse_fit
-        # self._PA_channels = PA_channels
-        # self._sim_vertex = sim_vertex
         event = self._event
         station = self._station
         shower_ids = self._shower_ids
         template = self._template
+        use_channels = self._use_channels
         if self._single_pulse_fit:
             starting_values = True
         else:
