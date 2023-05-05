@@ -301,7 +301,7 @@ class readRNOGData:
 
         # Set verbose for mattak
         if "verbose" in mattak_kwargs:
-            vabose = mattak_kwargs.pop("verbose")
+            verbose = mattak_kwargs.pop("verbose")
         else:
             verbose = log_level == logging.DEBUG
 
