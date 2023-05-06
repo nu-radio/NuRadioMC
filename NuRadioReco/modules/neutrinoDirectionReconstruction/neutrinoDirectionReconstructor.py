@@ -479,7 +479,10 @@ class neutrinoDirectionReconstructor:
             for index in np.arange(4)[np.isnan(chisq)]:
                 viewing_sign = signs[index // 2]
                 polarization_sign = signs[index % 2]
-                old_guess = results[np.nanargmin(chisq)] 
+                try:
+                    old_guess = results[np.nanargmin(chisq)] 
+                except ValueError: # sometimes, the fit gets stuck on an invalid point and only returns nans
+                    old_guess = self._cherenkov_angle + 2 * units.deg, 20*units.deg, 18 # initialize to something sensible
                 # we use min/median as 'sanity checks' to avoid starting the fit at an unlikely point
                 viewing_guess = self._cherenkov_angle + viewing_sign * np.min([7*units.deg, np.abs(old_guess[0] - self._cherenkov_angle)])
                 polarization_guess = polarization_sign * np.min([np.pi/3,np.abs(old_guess[1])])
@@ -615,71 +618,77 @@ class neutrinoDirectionReconstructor:
                         else:
                             sim_trace += sim_channel
 
-
-                    if len(tracdata[channel_id]) > 0:
+                    handles_labels = None
+                    for key in tracdata[channel_id].keys():
                         # logger.debug("Plotting channel {}....".format(channel_id))
                         # logger.debug("Data trace: {:.0f} - {:.0f} ns".format(channel.get_times()[0], channel.get_times()[-1]))
                         # logger.debug("Sim trace: {:.0f} - {:.0f} ns".format(timingsim[channel_id][0][0], timingsim[channel_id][0][-1]))
-                        ax[ich][0].grid()
-                        ax[ich][2].grid()
-                        ax[ich][0].set_xlabel("timing [ns]", )
-                        ax[ich][0].plot(channel.get_times(), channel.get_trace(), lw = linewidth, label = 'data', color = 'black')
+                        ax[ich][key].set_xlabel("timing [ns]", )
+                        ax[ich][key].plot(channel.get_times(), channel.get_trace(), lw = linewidth, label = 'data', color = 'black')
 
                         #ax[ich][0].fill_between(timingdata[channel_id][0], tracrec[channel_id][0] - tracrec[channel_id][0], tracrec[channel_id][0] +  tracrec[channel_id][0], color = 'green', alpha = 0.2)
-                        ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel_id][0]), 1/sampling_rate), abs(fft.time2freq( tracdata[channel_id][0], sampling_rate)), color = 'black', lw = linewidth)
-                        ax[ich][0].plot(timingsim[channel_id][0], tracsim[channel_id][0], label = 'simulation', color = 'orange', lw = linewidth)
-                        if sim_trace != None: ax[ich][0].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
+                        ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel_id][key]), 1/sampling_rate), abs(fft.time2freq( tracdata[channel_id][key], sampling_rate)), color = 'black', lw = linewidth)
+                        ax[ich][key].plot(timingsim[channel_id][key], tracsim[channel_id][key], label = 'simulation', color = 'orange', lw = linewidth)
+                        if sim_trace != None: 
+                            ax[ich][key].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
 
-                        ax[ich][0].plot(timingsim_recvertex[channel_id][0], tracsim_recvertex[channel_id][0], label = 'simulation rec vertex', color = 'lightblue' , lw = linewidth, ls = '--')
-
-                        # show data / simulation time windows
-                        window_sim = timingsim[channel_id][0][0], timingsim[channel_id][0][-1]
-                        window_rec = timingdata[channel_id][0][0], timingdata[channel_id][0][-1]
-                        for t in window_sim:
-                            ax[ich][0].axvline(t, color='orange', ls=':')
-                        for t in window_rec:
-                            ax[ich][0].axvline(t, color='green', ls=':')
-                        ax[ich][0].set_xlim(np.min(window_sim+window_rec)-5, np.max(window_sim+window_rec)+5)
-
-                        ax[ich][0].plot(timingdata[channel_id][0], tracrec[channel_id][0], label = 'reconstruction', lw = linewidth, color = 'green')
-
-                        if sim_trace != None: ax[ich][2].plot( np.fft.rfftfreq(len(sim_trace.get_trace()), 1/sampling_rate), abs(fft.time2freq(sim_trace.get_trace(), sampling_rate)), lw = linewidth, color = 'red')
-                        ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel_id][0]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][0], sampling_rate)), lw = linewidth, color = 'orange')
-
-                        ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel_id][0]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel_id][0], sampling_rate)), color = 'green', lw = linewidth)
-                        ax[ich][2].set_xlim((0, 1))
-                        ax[ich][2].set_xlabel("frequency [GHz]", )
-
-                        ax[ich][0].legend()
-
-                    if len(tracdata[channel_id]) > 1:
-                        ax[ich][1].grid()
-                        ax[ich][1].set_xlabel("timing [ns]", )
-                        ax[ich][1].plot(channel.get_times(), channel.get_trace(), label = 'data', lw = linewidth, color = 'black')
-                        ax[ich][2].plot(np.fft.rfftfreq(len(timingsim[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][1], sampling_rate)), lw = linewidth, color = 'red')
-                        ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracdata[channel_id][1], sampling_rate)), color = 'black', lw = linewidth)
-                        ax[ich][1].plot(timingsim[channel_id][1], tracsim[channel_id][1], label = 'simulation', color = 'orange', lw = linewidth)
-                        if sim_trace != None: ax[ich][1].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
-                        if 1:#channel_id in [6]:#,7,8,9]:
-                            ax[ich][1].plot(timingdata[channel_id][1], tracrec[channel_id][1], label = 'reconstruction', color = 'green', lw = linewidth)
-                            #ax[ich][1].fill_between(timingdata[channel_id][1], tracrec[channel_id][1] - tracrec[channel_id][1], tracrec[channel_id][1] +  tracrec[channel_id][1], color = 'green', alpha = 0.2)
-
-                        ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][1], sampling_rate)), lw = linewidth, color = 'orange')
-                        ax[ich][1].plot(timingsim_recvertex[channel_id][1], tracsim_recvertex[channel_id][1], label = 'simulation rec vertex', color = 'lightblue', lw = linewidth, ls = '--')
+                        ax[ich][key].plot(timingsim_recvertex[channel_id][key], tracsim_recvertex[channel_id][key], label = 'simulation rec vertex', color = 'lightblue' , lw = linewidth, ls = '--')
 
                         # show data / simulation time windows
-                        window_sim = timingsim[channel_id][1][0], timingsim[channel_id][1][-1]
-                        window_rec = timingdata[channel_id][1][0], timingdata[channel_id][1][-1]
+                        window_sim = timingsim[channel_id][key][0], timingsim[channel_id][key][-1]
+                        window_rec = timingdata[channel_id][key][0], timingdata[channel_id][key][-1]
                         for t in window_sim:
-                            ax[ich][1].axvline(t, color='orange', ls=':')
+                            ax[ich][key].axvline(t, color='orange', ls=':')
                         for t in window_rec:
-                            ax[ich][1].axvline(t, color='green', ls=':')
-                        ax[ich][1].set_xlim(np.min(window_sim+window_rec)-5, np.max(window_sim+window_rec)+5)
+                            ax[ich][key].axvline(t, color='green', ls=':')
+                        ax[ich][key].set_xlim(np.min(window_sim+window_rec)-5, np.max(window_sim+window_rec)+5)
+
+                        ax[ich][key].plot(timingdata[channel_id][key], tracrec[channel_id][key], label = 'reconstruction', lw = linewidth, color = 'green')
+
+                        if sim_trace != None: 
+                            ax[ich][2].plot( np.fft.rfftfreq(len(sim_trace.get_trace()), 1/sampling_rate), abs(fft.time2freq(sim_trace.get_trace(), sampling_rate)), lw = linewidth, color = 'red')
+                        ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel_id][key]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][key], sampling_rate)), lw = linewidth, color = 'orange')
+
+                        ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel_id][key]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel_id][key], sampling_rate)), color = 'green', lw = linewidth)
+                        if handles_labels is None:
+                            handles_labels = ax[ich][key].get_legend_handles_labels()
+                    ax[ich][2].set_xlim((0, 1))
+                    ax[ich][2].set_xlabel("frequency [GHz]", )
+                    if not handles_labels is None:
+                        ax[ich][0].legend(*handles_labels)
+                    ax[ich][0].grid()
+                    ax[ich][1].grid()
+                    ax[ich][2].grid()
+                    ax[ich][0].set_ylabel(f'Ch. {channel_id}')
+
+                    # if len(tracdata[channel_id]) > 1:
+                    #     ax[ich][1].grid()
+                    #     ax[ich][1].set_xlabel("timing [ns]", )
+                    #     ax[ich][1].plot(channel.get_times(), channel.get_trace(), label = 'data', lw = linewidth, color = 'black')
+                    #     ax[ich][2].plot(np.fft.rfftfreq(len(timingsim[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][1], sampling_rate)), lw = linewidth, color = 'red')
+                    #     ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracdata[channel_id][1], sampling_rate)), color = 'black', lw = linewidth)
+                    #     ax[ich][1].plot(timingsim[channel_id][1], tracsim[channel_id][1], label = 'simulation', color = 'orange', lw = linewidth)
+                    #     if sim_trace != None: ax[ich][1].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
+                    #     if 1:#channel_id in [6]:#,7,8,9]:
+                    #         ax[ich][1].plot(timingdata[channel_id][1], tracrec[channel_id][1], label = 'reconstruction', color = 'green', lw = linewidth)
+                    #         #ax[ich][1].fill_between(timingdata[channel_id][1], tracrec[channel_id][1] - tracrec[channel_id][1], tracrec[channel_id][1] +  tracrec[channel_id][1], color = 'green', alpha = 0.2)
+
+                    #     ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][1], sampling_rate)), lw = linewidth, color = 'orange')
+                    #     ax[ich][1].plot(timingsim_recvertex[channel_id][1], tracsim_recvertex[channel_id][1], label = 'simulation rec vertex', color = 'lightblue', lw = linewidth, ls = '--')
+
+                    #     # show data / simulation time windows
+                    #     window_sim = timingsim[channel_id][1][0], timingsim[channel_id][1][-1]
+                    #     window_rec = timingdata[channel_id][1][0], timingdata[channel_id][1][-1]
+                    #     for t in window_sim:
+                    #         ax[ich][1].axvline(t, color='orange', ls=':')
+                    #     for t in window_rec:
+                    #         ax[ich][1].axvline(t, color='green', ls=':')
+                    #     ax[ich][1].set_xlim(np.min(window_sim+window_rec)-5, np.max(window_sim+window_rec)+5)
 
 
 
-                        ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel_id][1], sampling_rate)), color = 'green', lw = linewidth, label = 'channel id {}'.format(channel_id))
-                        ax[ich][2].legend()
+                    #     ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel_id][1]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel_id][1], sampling_rate)), color = 'green', lw = linewidth, label = 'channel id {}'.format(channel_id))
+                    #     ax[ich][2].legend()
                     for ii in range(2):
                         if ii in chi2_dict[channel_id].keys():
                             chi2 = chi2_dict[channel_id][ii]
@@ -993,7 +1002,7 @@ class neutrinoDirectionReconstructor:
                     corr = signal.correlate(data_trace, rec_trace)
                     lags = signal.correlation_lags(len(data_times), len(rec_trace)) + start_index # adding start_index ensures the same lags for different data windows
 
-                    corr_window_start = 0#int(len(corr)/2 - 30 * self._sampling_rate)
+                    corr_window_start = int(len(rec_trace)/2) # we limit the shift to half the reconstructed trace length #int(len(corr)/2 - 30 * self._sampling_rate)
                     corr_window_end = len(corr)#int(len(corr)/2 + 30 * self._sampling_rate)
                     
                     # for the PA cluster, we constrain the pulse position to be close to the
@@ -1002,7 +1011,8 @@ class neutrinoDirectionReconstructor:
                         if key == solution_number:
                             corr_window_start = np.max([0, dict_dt[ch_Vpol][solution_number] - np.min(lags) - 5])
                             corr_window_end = np.min([len(corr), dict_dt[ch_Vpol][solution_number] - np.min(lags) + 5])
-
+                    # if corr_window_end - corr_window_start < 1:
+                    #     print(channel_id, key, dict_dt[ch_Vpol][solution_number], np.min(lags), corr_window_start, corr_window_end)
                     max_cor = np.arange(corr_window_start,corr_window_end, 1)[np.argmax(corr[corr_window_start:corr_window_end])]
                     dt = lags[max_cor] #max_cor - len(corr)
                     # rec_trace_1 = np.roll(rec_trace, math.ceil(-dt))[:len(data_trace_timing_1)]
@@ -1015,12 +1025,33 @@ class neutrinoDirectionReconstructor:
                     #     dt = dt
 
                     dict_dt[channel_id][key] = dt
+                    # logger.debug(f'{channel_id} / {key} / {dict_dt[channel_id][key]}')
+
 
                 
                 rec_trace = np.roll(rec_trace, dt - start_index)[:len(data_trace)]
                 rec_traces[channel_id][key] = rec_trace
                 data_traces[channel_id][key] = data_trace
                 data_timing[channel_id][key] = data_times
+
+ # TODO - REMOVE (used for debugging)
+                # if dt < -1000:
+                #     print(rec_trace)
+                #     print(corr)
+                #     fig, axs = plt.subplots(2,1,)
+                #     # fig.subplots_adjust(hspace=0)
+                #     axs[0].plot(data_times, np.roll(rec_trace, 0*math.ceil(dt-start_index)), color='g')
+                #     axs[0].plot(data_times, data_trace, color='k')
+                #     axs[1].plot(lags, corr)
+                #     axs[0].set_title(f'{channel_id} / {key} / {dt:.1f} / ') #{chi2_dt1:.2f}
+                #     plt.show()
+
+            # # TODO - REMOVE!
+            # logger.debug("time shifts (channel / trace / shift):")
+            # for ch in dict_dt.keys():
+            #     for i_trace in dict_dt[ch].keys():
+            #         logger.debug(f'{ch} / {i_trace} / {dict_dt[ch][key]}')
+
 
                 # Now we compute chi squared:
                 chi2_for_channel_and_trace = np.sum((rec_trace - data_trace)**2 / ((Vrms)**2))
