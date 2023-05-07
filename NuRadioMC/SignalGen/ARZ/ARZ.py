@@ -239,7 +239,7 @@ def get_vector_potential(
         v[0] = vperp_x
         v[1] = vperp_y
         v[2] = vperp_z
-#         v = np.array([vperp_x, vperp_y, vperp_z], dtype=np.float64)
+#         v = np.array([vperp_x, vperp_y, vperp_z], dtype=float)
         """
         Function F_p Eq.(15) PRD paper.
         """
