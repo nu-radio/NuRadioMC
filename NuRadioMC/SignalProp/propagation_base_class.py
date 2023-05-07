@@ -90,8 +90,8 @@ class ray_tracing_base:
             stop point of the ray
         """
         self.reset_solutions()
-        self._X1 = np.array(x1, dtype =np.float)
-        self._X2 = np.array(x2, dtype = np.float)
+        self._X1 = np.array(x1, dtype =float)
+        self._X2 = np.array(x2, dtype = float)
         if (self._n_reflections):
             if (self._X1[2] < self._medium.reflection or self._X2[2] < self._medium.reflection):
                 self.__logger.error("start or stop point is below the reflective bottom layer at {:.1f}m".format(

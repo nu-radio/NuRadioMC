@@ -222,7 +222,7 @@ class triggerSimulator:
         num_frames = int(np.floor((len(coh_sum) - window) / step))
 
         if(adc_output == 'voltage'):
-            coh_sum_squared = (coh_sum * coh_sum).astype(np.float)
+            coh_sum_squared = (coh_sum * coh_sum).astype(float)
         elif(adc_output == 'counts'):
             coh_sum_squared = (coh_sum * coh_sum).astype(int)
 
@@ -230,7 +230,7 @@ class triggerSimulator:
                                                            (coh_sum_squared.strides[0] * step, coh_sum_squared.strides[0]))
         power = np.sum(coh_sum_windowed, axis=1)
 
-        return power.astype(np.float) / window, num_frames
+        return power.astype(float) / window, num_frames
 
     def phase_signals(self, traces, beam_rolls):
         """

@@ -1428,10 +1428,10 @@ class simulation:
                 fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
                 fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._bandwidth_per_channel[station_id].values())
 
-            fout.attrs.create("Tnoise", self._noise_temp, dtype=np.float)
-            fout.attrs.create("Vrms", self._Vrms, dtype=np.float)
-            fout.attrs.create("dt", self._dt, dtype=np.float)
-            fout.attrs.create("bandwidth", self._bandwidth, dtype=np.float)
+            fout.attrs.create("Tnoise", self._noise_temp, dtype=float)
+            fout.attrs.create("Vrms", self._Vrms, dtype=float)
+            fout.attrs.create("dt", self._dt, dtype=float)
+            fout.attrs.create("bandwidth", self._bandwidth, dtype=float)
             fout.attrs['n_samples'] = self._n_samples
         fout.attrs['config'] = yaml.dump(self._cfg)
 
