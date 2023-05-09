@@ -122,7 +122,7 @@ class showerSimulator:
             for key in raytracing_output:
                 if key not in raytracing_output_list:
                     raytracing_output_list[key] = np.full((n_channels, self.__n_raytracing_solutions), np.nan)
-                raytracing_output_list[key][i_channel] = raytracing_output[key]
+                raytracing_output_list[key][i_channel, :n_efield_entries] = raytracing_output[key]
         return efield_list, launch_vector_list, receive_vector_list, travel_time_list, path_length_list, \
                 polarization_direction_list, efield_amplitude_list, raytracing_output_list
 

@@ -252,7 +252,7 @@ class simulation(
                     efield_array,
                     event_indices
                 )
-                if station_has_triggered:
+                if np.any(station_has_triggered):
                     self.__output_writer_hdf5.add_station(
                         self._station_id,
                         event_objects,
@@ -260,7 +260,8 @@ class simulation(
                         station_output,
                         harware_response_output,
                         event_group_id,
-                        sub_event_shower_ids
+                        sub_event_shower_ids,
+                        station_has_triggered
                     )
                 # loop over all showers in event group
                 # create output data structure for this channel
