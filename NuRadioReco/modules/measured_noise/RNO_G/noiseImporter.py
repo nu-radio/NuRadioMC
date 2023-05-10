@@ -82,7 +82,8 @@ class noiseImporter:
         
         self.logger.info(f"Found {len(self.__noise_folders)}")
         if not len(self.__noise_folders):
-            raise ValueError
+            self.logger.error("No folders found")
+            raise FileNotFoundError("No folders found")
                 
         if scramble_noise_file_order:
             self.__random_gen.shuffle(self.__noise_folders)
@@ -102,7 +103,7 @@ class noiseImporter:
         self.logger.info("Get event informations ...")
         t0 = time.time()
         noise_information = self._noise_reader.get_events_information(keys=["station"])
-        self.logger.info(f"... in {time.time() - t0:.2f}s")
+        self.logger.info(f"... of {len(noise_information)} (selected) events in {time.time() - t0:.2f}s")
         
         self.__event_index_list = np.array(list(noise_information.keys()))
         self.__station_id_list = np.array([ele["station"] for ele in noise_information.values()])
