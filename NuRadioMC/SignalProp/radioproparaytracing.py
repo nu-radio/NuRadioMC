@@ -14,7 +14,6 @@ import radiopropa
 import scipy.constants 
 import copy
 import logging
-import time
 from matplotlib import pyplot as plt
 logging.basicConfig()
 
@@ -484,7 +483,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 launch_upper.append(np.pi)
         #we first do the same as in the iterative solver 
         for s,sphere_size in enumerate(self._sphere_sizes):
-
             sphere_size = sphere_size * (radiopropa.meter/units.meter)
             detected_rays = []
             results = []
@@ -719,10 +717,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 except RuntimeError:
                     pass
 
-        t1 = time.time()
         #we minimize the cotangens of the zenith to reflect the same resolution in z to the different angles (vertical vs horizontal) 
         root1 = optimize.minimize(delta_z_squared,x0=cot(theta_direct),method='Nelder-Mead',options={'xatol':self.__xtol**2,'fatol':self.__ztol**2})
-        t2 = time.time()
         if root1.success:# and np.sqrt(root1.fun) < 1e-2*units.meter:
             #if root1.fun > self.__ztol**2: print(root1,'\n',20*'#')
             theta1 = arccot(root1.x)
