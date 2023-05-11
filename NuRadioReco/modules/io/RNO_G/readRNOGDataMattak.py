@@ -86,16 +86,19 @@ def get_time_offset(trigger_type):
     time_offsets = {
         "FORCE": 0,
         "LT": 250 * units.ns,  
-        "RADIANT": 475 * units.ns  
+        "RADIANT": 475 * units.ns,
+        "UNKNOWN": 0  # Due to a firmware issue at the beginning of data taking the trigger types were not properly set.
     }
     
+    # Should have the same time offset ?!
     if trigger_type.startswith("RADIANT"):
         trigger_type = "RADIANT"
     
     if trigger_type in time_offsets:
         return time_offsets[trigger_type]
     else:
-        raise KeyError(f"Unknown trigger type: {trigger_type}. Known are: FORCE, LT, RADIANT. Abort ....")
+        known_trigger_types = ", ".join(time_offsets.keys())
+        raise KeyError(f"Unknown trigger type: {trigger_type}. Known are: {known_trigger_types}. Abort ....")
     
     
 def all_files_in_directory(mattak_dir):
