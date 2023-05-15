@@ -128,3 +128,5 @@ NuRadioReco/examples/*.nur
 *.hdf5
 *.ipynb
 NuRadioReco/examples/RNO_energy_reconstruction/plots/
+NuRadioReco/modules/my_iftElectricFieldReconstructor
+

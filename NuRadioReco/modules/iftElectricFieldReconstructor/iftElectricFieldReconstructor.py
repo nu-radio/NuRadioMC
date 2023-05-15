@@ -205,8 +205,9 @@ class IftElectricFieldReconstructor:
         event: NuRadioReco.framework.event.Event object
         station: NuRadioReco.framework.station.Station object
         detector: NuRadioReco.detector.detector.Detector object or child object
-        channel_ids: list of integers
-            IDs of the channels to be used for the electric field reconstruction
+        grouped_channel_ids: list of list of integers
+            IDs of the channels to be used for the electric field reconstruction,
+            where each sub-array is one channel group.
         efield_scaling: boolean
             If true, a small variation in the amplitude between channels is included
             in the IFT model.
@@ -234,9 +235,14 @@ class IftElectricFieldReconstructor:
                         print(channel_id)
                         self.__used_channel_ids.append(channel_id)
                         break
+            else:
+                print(f"no signal ray type for {channel_id}")
         if len(self.__used_channel_ids) == 0:
             return
         self.__used_channel_ids = np.array(self.__used_channel_ids)
+
+        print("after loop in run", self.__used_channel_ids)
+
         self.__use_sim = use_sim
         self.__prepare_traces(event, station, detector, ray_type)
         ref_channel = station.get_channel(self.__used_channel_ids[0])
@@ -304,6 +310,7 @@ class IftElectricFieldReconstructor:
                         )
             positive_reco_KL = best_reco_KL
             final_KL = best_reco_KL
+
         # Run Negative Phase Slope ###
         if self.__phase_slope == 'both' or self.__phase_slope == 'negative':
             phase_slope = 2. * np.pi * (self.__pulse_time_prior * self.__electric_field_template.get_sampling_rate() - self.__trace_samples) / self.__trace_samples
@@ -595,7 +602,11 @@ class IftElectricFieldReconstructor:
         large_sp = correlated_field.target
         small_sp = ift.RGSpace(large_sp.shape[0] // 2, large_sp[0].distances)
         zero_padder = ift.FieldZeroPadder(small_sp, large_sp.shape, central=False)
-        domain_flipper = NuRadioReco.modules.iftElectricFieldReconstructor.operators.DomainFlipper(zero_padder.domain, target=ift.RGSpace(small_sp.shape, harmonic=True))
+        domain_flipper = (NuRadioReco.modules
+                                    .iftElectricFieldReconstructor
+                                    .operators
+                                    .DomainFlipper(zero_padder.domain,
+                                                   target=ift.RGSpace(small_sp.shape, harmonic=True)))
         mag_S_h = (domain_flipper @ zero_padder.adjoint @ correlated_field)
         mag_S_h = NuRadioReco.modules.iftElectricFieldReconstructor.operators.SymmetrizingOperator(mag_S_h.target) @ mag_S_h
         subtract_one = ift.Adder(ift.Field(mag_S_h.target, -6))
@@ -625,7 +636,7 @@ class IftElectricFieldReconstructor:
                                                         self.__phase_dct['sv'],
                                                         self.__phase_dct['iv']))
             phi_S_h = realizer2.adjoint @ phi_S_h
-            scaling_field = (inserter @ add_one @ (.1 * ift.FieldAdapter(scaling_domain, 'scale{}'.format(i_channel))))
+            scaling_field = (inserter @ add_one @ (.1 * ift.FieldAdapter(scaling_domain, f'scale{i_channel}')))
             if self.__polarization == 'theta':
                 efield_spec_operator_theta = ((filter_operator @ (mag_S_h * (1.j * phi_S_h).exp())))
                 efield_spec_operator_phi = None
@@ -639,7 +650,7 @@ class IftElectricFieldReconstructor:
                 efield_spec_operator_phi = ((filter_operator @ ((mag_S_h * polarization_field.sin()) * (1.j * phi_S_h).exp())))
                 channel_spec_operator = (hardware_operators[i_channel][0] @ efield_spec_operator_theta) + (hardware_operators[i_channel][1] @ efield_spec_operator_phi)
             else:
-                raise ValueError('Unrecognized polarization setting {}. Possible values are theta, phi and pol'.format(self.__polarization))
+                raise ValueError(f'Unrecognized polarization setting {self.__polarization}. Possible values are theta, phi and pol')
             efield_spec_operators = [
                 efield_spec_operator_theta,
                 efield_spec_operator_phi
