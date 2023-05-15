@@ -38,6 +38,7 @@ class neutrinoDirectionReconstructor:
             single_pulse_fit=False, restricted_input=False,
             grid_spacing = [.5*units.deg, 5*units.deg, .2],
             brute_force=True, use_fallback_timing=False,
+            fit_shower_type=False,
             debug_formats=['.pdf']):
         """
         Initialize and set parameters for the reconstruction
@@ -105,6 +106,7 @@ class neutrinoDirectionReconstructor:
         self._full_station = full_station
         self.__minimization_grid_spacings = grid_spacing
         self._use_fallback_timing = use_fallback_timing
+        self._fit_shower_type = fit_shower_type
 
         # We sort the channels. This is used in the minimizer,
         # where if the timing for a vpol/hpol channel cannot be determined,
@@ -295,7 +297,6 @@ class neutrinoDirectionReconstructor:
         # initialize simulated ref values to avoid UnboundLocalError if no sim_station is present
         fsim, fsimsim, all_fsim, all_fsimsim, sim_reduced_chi2_Vpol, sim_reduced_chi2_Hpol = 6*[np.nan,]
         if station.has_sim_station():
-
             logger.debug(f"simulated vertex    : {simulated_vertex}")
             logger.debug(f"reconstructed vertex: {reconstructed_vertex}")
             #### values for reconstructed vertex and simulated direction
@@ -371,6 +372,7 @@ class neutrinoDirectionReconstructor:
         # d_theta_grid = 5 * units.deg # originally 1 degree
 
         d_viewing_grid, d_theta_grid, d_log_energy = self.__minimization_grid_spacings
+        shower_type = "HAD" # by default, we assume a hadronic shower
 
         cop = datetime.datetime.now()
         logger.info("Starting direction reconstruction...")
@@ -410,9 +412,9 @@ class neutrinoDirectionReconstructor:
 
         else:
             logger.warning('Using iterative fitter')
-            chisq = np.nan * np.zeros(4)
-            results = np.nan * np.zeros((4,3))
-            is_valid = np.nan * np.zeros(4)
+            chisq = np.nan * np.zeros(8)
+            results = np.nan * np.zeros((8,3))
+            is_valid = np.nan * np.zeros(8)
             
             # def constr(x):
             #     """
@@ -476,7 +478,7 @@ class neutrinoDirectionReconstructor:
             # to avoid local minima (wrong side of cherenkov cone, wrong polarization sign)
             # we re-run the minimizer starting at the other minima
             signs = [-1,1]
-            for index in np.arange(4)[np.isnan(chisq)]:
+            for index in np.arange(4)[np.isnan(chisq[:4])]:
                 viewing_sign = signs[index // 2]
                 polarization_sign = signs[index % 2]
                 try:
@@ -498,23 +500,57 @@ class neutrinoDirectionReconstructor:
                     #method='Nelder-Mead', options=dict(xatol=1e-4,fatol=1e-2),
                     # method = 'trust-constr', constraints = constraint
                     # constraints = [dict(type='ineq', fun=constr)]
-                    tol=1e-6,
+                    tol=1e-4,
                 )
                 chisq[index] = res.fun
                 results[index] = res.x
                 is_valid[index] = res.success
                 if not res.success:
                     logger.warning(f'Fit {index} failed with message: {res.message}')
+            # --- experimental - try to fit shower type also
+            if self._fit_shower_type:
+                for index in np.arange(4):
+                    viewing_sign = signs[index // 2]
+                    polarization_sign = signs[index % 2]
+                    try:
+                        old_guess = results[np.nanargmin(chisq)] 
+                    except ValueError: # sometimes, the fit gets stuck on an invalid point and only returns nans
+                        old_guess = self._cherenkov_angle + 2 * units.deg, 20*units.deg, 18 # initialize to something sensible
+                    # we use min/median as 'sanity checks' to avoid starting the fit at an unlikely point
+                    viewing_guess = self._cherenkov_angle + viewing_sign * np.min([7*units.deg, np.abs(old_guess[0] - self._cherenkov_angle)])
+                    polarization_guess = polarization_sign * np.min([np.pi/3,np.abs(old_guess[1])])
+                    energy_guess = np.median([16, old_guess[2],19])
+                    # logger.info(f'Iteration {index} - x0={[viewing_guess, polarization_guess, energy_guess]}, chisq={np.nanmin(chisq)}')
+
+                    res = opt.minimize(
+                        self.minimizer, x0=[viewing_guess, polarization_guess, energy_guess], 
+                        args = (
+                            reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], 
+                            True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, 
+                            self._full_station, False,False,False,False,False,'EM'), 
+                        #method='Nelder-Mead', options=dict(xatol=1e-4,fatol=1e-2),
+                        # method = 'trust-constr', constraints = constraint
+                        # constraints = [dict(type='ineq', fun=constr)]
+                        tol=1e-4,
+                    )
+                    chisq[index+4] = res.fun
+                    results[index+4] = res.x
+                    is_valid[index+4] = res.success
+                    if not res.success:
+                        logger.warning(f'Fit {index} failed with message: {res.message}')
+            # ---
 
             logger.debug(
                 'Fitter output:\n'
                 '{:8s} | {:8s} {:8s} {:8s} {:8s}\n'.format('Chisq', 'vw.ang', 'pol.ang', 'log10(E)', 'valid') +
                 '\n'.join([
                     '{:8.1f} | {:8.2f} {:8.2f} {:8.2f} {:8.0f}'.format(chisq[i], *(results[i,:2]/units.deg), results[i, -1], is_valid[i])
-                    for i in range(4)]
+                    for i in range(len(chisq))]
                 )
             )
             results = results[np.nanargmin(chisq)]
+            if np.nanargmin(chisq) > 3: # best fit is an EM shower
+                shower_type = "EM"
 
 
         logger.info(f"...finished direction reconstruction in {datetime.datetime.now() - cop}")
@@ -791,6 +827,7 @@ class neutrinoDirectionReconstructor:
         station.set_parameter(stnp.launch_vector, [lv_sim, launch_vector_rec])
         station.set_parameter(stnp.polarization, [pol_sim, pol_rec])
         station.set_parameter(stnp.viewing_angle, [vw_sim, viewingangle_rec])
+        station.set_parameter(stnp.ccnc, shower_type) # we may be abusing the wrong parameter...
         if station.has_sim_station(): 
             logger.debug("chi2 for simulated rec vertex {}, simulated sim vertex {} and fit {}".format(fsim, fsimsim, fminfit))#reconstructed vertex
             logger.debug("chi2 for all channels simulated rec vertex {}, simulated sim vertex {} and fit {}".format(all_fsim, all_fsimsim, all_fminfit))#reconstructed vertex
@@ -830,7 +867,7 @@ class neutrinoDirectionReconstructor:
             self, params, vertex_x, vertex_y, vertex_z, minimize = True, timing_k = False,
             first_iter = False, banana = False,  direction = [0, 0], ch_Vpol = 6, ch_Hpol = False,
             full_station = False, single_pulse =False, fixed_timing = False,
-            starting_values = False, penalty = False, sim = False
+            starting_values = False, penalty = False, sim = False, shower_type='HAD'
         ):
         """
 
@@ -905,7 +942,7 @@ class neutrinoDirectionReconstructor:
         #     pol_angle = self._pol_angle
         traces, timing, launch_vector, viewingangles, raytypes, pol = self._simulation.simulation(
             self._detector, self._station, vertex_x, vertex_y, vertex_z, zenith, azimuth, energy,
-            self._use_channels, first_iteration = first_iter, starting_values = starting_values,) ## get traces due to neutrino direction and vertex position
+            self._use_channels, first_iteration = first_iter, starting_values = starting_values, shower_type=shower_type) ## get traces due to neutrino direction and vertex position
         chi2 = 0
         all_chi2 = dict()
         over_reconstructed = [] ## list for channel ids where reconstruction is larger than data

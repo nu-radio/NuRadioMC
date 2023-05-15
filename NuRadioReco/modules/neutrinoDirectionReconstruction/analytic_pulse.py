@@ -225,7 +225,9 @@ class simulation():
 			self, det, station, vertex_x, vertex_y, vertex_z, nu_zenith,
 			nu_azimuth, energy, use_channels,
 			first_iteration = False,
-			starting_values = False):
+			starting_values = False,
+			shower_type='HAD'
+			):
 		"""
 		Generate simulated pulses
 
@@ -378,8 +380,8 @@ class simulation():
 						theta_prime = viewing_angle
 					spectrum = signalgen.get_frequency_spectrum(
 						energy , theta_prime, self._n_samples,
-						self._dt, "HAD", n_index,
-						raytracing[channel_id][iS]["trajectory length"],self._askaryan_model)
+						self._dt, shower_type, n_index,
+						raytracing[channel_id][iS]["trajectory length"], self._askaryan_model, average_shower=True) #TODO - average_shower works only for Alvarez2009
 
 				viewingangles[ich,i_s] = viewing_angle
 
