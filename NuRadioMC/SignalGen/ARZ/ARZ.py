@@ -63,7 +63,7 @@ def get_vector_potential(
     profile_ce: array of floats
         charge-excess values of the charge excess profile
     shower_type: string (default "HAD")
-        type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+        type of shower, either "HAD" (hadronic) or "EM" (electromagnetic)
     n_index: float (default 1.78)
         index of refraction where the shower development takes place
     distance: float (default 1km)
@@ -477,7 +477,7 @@ class ARZ(object):
         shower_energy: float
             the energy of the shower
         shower_type: string (default "HAD")
-            type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+            type of shower, either "HAD" (hadronic) or "EM" (electromagnetic)
         iN: int
             specify shower number
 
@@ -515,7 +515,7 @@ class ARZ(object):
         dt: float
             size of one time bin in units of time
         shower_type: string (default "HAD")
-            type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+            type of shower, either "HAD" (hadronic) or "EM" (electromagnetic)
         n_index: float (default 1.78)
             index of refraction where the shower development takes place
         R: float (default 1km)
@@ -625,7 +625,7 @@ class ARZ(object):
             logger.error("Tau showers are not yet implemented")
             raise NotImplementedError("Tau showers are not yet implemented")
         else:
-            msg = "showers of type {} are not implemented. Use 'HAD', 'EM' or 'TAU'".format(shower_type)
+            msg = "showers of type {} are not implemented. Use 'HAD', 'EM'".format(shower_type)
             logger.error(msg)
             raise NotImplementedError(msg)
         if self._use_numba:
@@ -697,7 +697,7 @@ class ARZ(object):
         profile_ce: array of floats
             charge-excess values of the charge excess profile
         shower_type: string (default "HAD")
-            type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+            type of shower, either "HAD" (hadronic) or "EM" (electromagnetic)
         n_index: float (default 1.78)
             index of refraction where the shower development takes place
         distance: float (default 1km)
@@ -1164,7 +1164,7 @@ class ARZ_tabulated(object):
         dt: float
             size of one time bin in units of time
         shower_type: string (default "HAD")
-            type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+            type of shower, either "HAD" (hadronic) or "EM" (electromagnetic)
         n_index: float (default 1.78)
             index of refraction where the shower development takes place
         R: float (default 1km)
