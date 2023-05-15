@@ -483,7 +483,7 @@ class ARZ(object):
 
         Returns
         -------
-        efield_trace: two arrays of floats
+        depth, excess: two arrays of floats
             slant depths and charge profile amplitudes
         """
 
@@ -493,7 +493,6 @@ class ARZ(object):
         rescaling_factor = shower_energy / energies[iE]
 
         profiles = self._library[shower_type][energies[iE]]
-        N_profiles = len(profiles['charge_excess'])
         profile_depth = profiles['depth']
         profile_ce = profiles['charge_excess'][iN] * rescaling_factor
 
