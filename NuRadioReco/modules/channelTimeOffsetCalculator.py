@@ -21,17 +21,17 @@ class channelTimeOffsetCalculator:
     The module uses either the vertex position stored in one of the sim showers or it assumes that
     some vertex reconstruction module was already run and stored the vertex position either in the
     vertex_2D_fit (for the neutrino2DVertexReconstructor module) of the nu_vertex station parameter.
-    
+
     The module then calculates the expected difference in travel times between channels for this
     vertex position, shifts the channel voltages by that time difference and calculates the correlation
     with a template. By adding up the correlations for all channels, we can determine the correct
     raytracing solution: If the solution is correctd, the correlations will have their maxima at the same
     position, resulting in a larger maximum of their sum. Thus, we can determine the correct raytracing
     solutions and store the corresponding properties in the channel parameters.
-    
+
     This module assumes that the ray path type for all channels is the same, e.g. each channel sees a direct
     ray. Therefore it should only be used for channels that are relatively close to each other.
-    
+
     """
     def __init__(self):
         self.__use_sim = False
@@ -106,6 +106,7 @@ class channelTimeOffsetCalculator:
         channel_time_ranges = np.zeros((len(channel_ids), 2))
         raytracer = NuRadioMC.SignalProp.analyticraytracing.ray_tracing(self.__medium)
         for i_channel, channel_id in enumerate(channel_ids):
+            print("channeltimeoffsetcalculator ", i_channel)
             channel = station.get_channel(channel_id)
             channel_time_ranges[i_channel, 0] = channel.get_trace_start_time()
             channel_time_ranges[i_channel, 1] = channel.get_times()[-1]
@@ -196,4 +197,3 @@ class channelTimeOffsetCalculator:
                     channel.set_parameter(chp.signal_ray_types, [])
                     channel.set_parameter(chp.signal_receiving_zeniths, [])
                     channel.set_parameter(chp.signal_receiving_azimuths, [])
-

@@ -49,7 +49,6 @@ class channelSignalPropertiesFromNeighbors:
                 if channel.has_parameter(chp.signal_regions):
                     ch_sig_regs = channel.get_parameter(chp.signal_regions)
                     if len(ch_sig_regs) > 0:
-                        print("signal ray types", chp.signal_ray_types)
                         ch_ray_types = channel.get_parameter(chp.signal_ray_types).astype(int)
                         for i_region, signal_region in enumerate(ch_sig_regs):
                             channel_signal_time_offsets[i_channel, ch_ray_types[i_region] - 1] = channel.get_parameter(chp.signal_time_offsets)[i_region]

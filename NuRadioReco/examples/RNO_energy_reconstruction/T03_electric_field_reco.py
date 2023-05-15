@@ -17,16 +17,15 @@ import argparse
 import os
 
 
-channels_old = [0, 1, 2, 3, 4, 5, 6,7, 9,10,11, 21,22,23]
-channels_I_used = [[0, 1, 2, 3, 4, 5],
+channels_to_be_used = [[0, 1, 2, 3, 4, 5],
                  [6,7],
                  [9,10,11],
                  [21,22,23]]
 
-channels_I_used_flat = sum(channels_I_used, [])
+channels_to_be_used_flat = sum(channels_to_be_used, [])
 
 channels_I_used_flat = [0, 1, 2, 3, 4, 5, 6,7, 9,10,11, 21,22,23]
-channels_I_used_flat = [0, 1, 2, 3, 4, 5]
+#channels_I_used_flat = [0, 1, 2, 3, 4, 5]
 
 
 
@@ -124,7 +123,9 @@ for i_event, event in enumerate(event_reader.get_events()):
     channel_bandpass_filter.run(event, station, det, passband=efield_reco_passband, filter_type='butter', order=10)
     channel_bandpass_filter.run(event, sim_station, det, passband=efield_reco_passband, filter_type='butter', order=10)
     efield_bandpass_filter.run(event, sim_station, det, passband=efield_reco_passband, filter_type='butter', order=10)
-    time_offset_calculator.run(event, station, det, range(6), passband=vertex_reco_passband)
+    #time_offset_calculator.run(event, station, det, range(6), passband=vertex_reco_passband)
+    time_offset_calculator.run(event, station, det, channels_I_used_flat, passband=vertex_reco_passband)
+
     station.get_channel_ids()
     #channel_props_from_neighbor.run(event, station, det, channel_groups=[[0,1,2,3,4,5]])
     channel_props_from_neighbor.run(event, station, det, channel_groups=[channels_I_used_flat])

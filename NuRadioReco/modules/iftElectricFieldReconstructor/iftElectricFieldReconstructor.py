@@ -223,7 +223,7 @@ class IftElectricFieldReconstructor:
 
         # flattened channel_id list for more comfortable iterating
         channel_ids = sum(grouped_channel_ids,[])
-        print(channel_ids)
+        print("before loop: ", channel_ids)
 
         if polarization is not None:
             self.__polarization = polarization
