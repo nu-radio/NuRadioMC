@@ -2,8 +2,8 @@ import logging
 import json
 from tinydb import Query
 from tinydb_serialization import SerializationMiddleware
-import NuRadioReco.detector.detector
-from NuRadioReco.detector.detector import DateTimeSerializer
+import NuRadioReco.detector.detector_base
+from NuRadioReco.detector.detector_base import DateTimeSerializer
 import copy
 
 logger = logging.getLogger('NuRadioReco.genericDetector')
@@ -12,7 +12,7 @@ serialization = SerializationMiddleware()
 serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
 
 
-class GenericDetector(NuRadioReco.detector.detector.Detector):
+class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
     """
     Used the same way as the main detector class, but works with incomplete
     detector descriptions.
@@ -30,7 +30,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
     """
 
     def __init__(self, json_filename, default_station=None, default_channel=None, default_device=None, source='json',
-                 dictionary=None,
+                 dictionary=None, log_level=logging.WARNING,
                  assume_inf=True, antenna_by_depth=False):
         """
         Initialize the stations detector properties.
@@ -80,6 +80,8 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
             This is done by appending e.g. '_InfFirn' to the antenna model name.
             if False, the antenna model as specified in the database is used.
         """
+        self.__logger = logging.getLogger('NuRadioReco.genericDetector')
+        self.__logger.setLevel(log_level)
 
         if (default_station is None) and (default_channel is None) and (default_device is None):
             # load detector
@@ -304,7 +306,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         If a station with the same ID already exists, this function does nothing.
 
         Parameters
-        --------------
+        ----------
         station_dict: dictionary
             dictionary containing the station properties. Needs to at least include
             a station_id, any other missing parameters will be taken from the
@@ -352,7 +354,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         description.
 
         Parameters
-        ------------------
+        ----------
         properties: dictionary
             Dictionary of the properties that should be changed, with keys being
             any of the property names in the detector description and values the
@@ -377,7 +379,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         detector description for a given station and event
 
         Parameters
-        ----------------------
+        ----------
         run_number: integer
             Run number of the event for which the changes should be returned
         event_id: integer
@@ -402,7 +404,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         will be ignored
 
         Parameters
-        ------------------
+        ----------
         run_number: integer
             Run number of the event the detector should be set to
         event_id: integer
@@ -477,7 +479,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         from the default station. Event-specific changes are also ignored.
 
         Parameters
-        --------------------------
+        ----------
         station_id: integer
             ID of the requested station
         """
@@ -498,7 +500,7 @@ class GenericDetector(NuRadioReco.detector.detector.Detector):
         from the default channel.
 
         Parameters
-        --------------------------
+        ----------
         station_id: integer
             ID of the requested channel's station
         channel_id: integer

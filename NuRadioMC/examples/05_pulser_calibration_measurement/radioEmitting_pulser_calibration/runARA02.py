@@ -9,6 +9,7 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution
+import NuRadioReco.modules.ARA.hardwareResponseIncorporator
 from NuRadioReco.utilities import units
 from NuRadioMC.simulation import simulation as simulation
 import logging
@@ -24,20 +25,18 @@ channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPas
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
 calculateAmplitudePerRaySolution = NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution.calculateAmplitudePerRaySolution()
+hardwareResponseIncorporator = NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 triggerTimeAdjuster = NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster()
 triggerSimulator.begin(log_level=logging.WARNING)
 
 
 class mySimulation(simulation.simulation):
-
     def _detector_simulation_filter_amp(self, evt, station, det):
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
-        channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 1000 * units.GHz],
-                                  filter_type='butter', order=2)
-        channelBandPassFilter.run(evt, station, det, passband=[0, 500 * units.MHz],
-                                  filter_type='butter', order=10)
-
+        channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 1000 * units.GHz],filter_type='butter', order=2)
+        channelBandPassFilter.run(evt, station, det, passband=[0, 500 * units.MHz],filter_type='butter', order=10)
+        hardwareResponseIncorporator.run(evt, station, det, sim_to_data=True)
     def _detector_simulation_trigger(self, evt, station, det):
         # save the amplitudes to output hdf5 file
         # save amplitudes per ray tracing solution to hdf5 data output
