@@ -468,6 +468,38 @@ class ARZ(object):
         """
         self._interp_factor2 = interp_factor
 
+    def get_shower_profile(self, shower_energy, shower_type, iN):
+        """
+        Gets a charge-excess profile
+
+        Parameters
+        ----------
+        shower_energy: float
+            the energy of the shower
+        shower_type: string (default "HAD")
+            type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+        iN: int
+            specify shower number
+
+        Returns
+        -------
+        efield_trace: two arrays of floats
+            slant depths and charge profile amplitudes
+        """
+
+        energies = np.array([*self._library[shower_type]])
+        iE = np.argmin(np.abs(energies - shower_energy))
+
+        rescaling_factor = shower_energy / energies[iE]
+
+        profiles = self._library[shower_type][energies[iE]]
+        N_profiles = len(profiles['charge_excess'])
+        profile_depth = profiles['depth']
+        profile_ce = profiles['charge_excess'][iN] * rescaling_factor
+
+        return profile_depth, profile_ce
+
+
     def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False,
                        same_shower=False, iN=None, output_mode='trace', maximum_angle=20 * units.deg):
         """
@@ -483,10 +515,6 @@ class ARZ(object):
             number of samples in the time domain
         dt: float
             size of one time bin in units of time
-        profile_depth: array of floats
-            shower depth values of the charge excess profile
-        profile_ce: array of floats
-            charge-excess values of the charge excess profile
         shower_type: string (default "HAD")
             type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
         n_index: float (default 1.78)
@@ -537,6 +565,7 @@ class ARZ(object):
         rescaling_factor = shower_energy / energies[iE]
         logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The amplitude of the charge-excess profile will be rescaled accordingly by a factor of {:.2f}".format(shower_energy / units.eV, energies[iE] / units.eV, rescaling_factor))
         profiles = self._library[shower_type][energies[iE]]
+
         N_profiles = len(profiles['charge_excess'])
 
         if(iN is None or np.isnan(iN)):
