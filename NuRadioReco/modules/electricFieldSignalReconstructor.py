@@ -98,9 +98,9 @@ class electricFieldSignalReconstructor:
 
             times = electric_field.get_times()
             mask_signal_window = (times > (signal_time - self.__signal_window_pre)) & (times < (signal_time + self.__signal_window_post))
-            mask_noise_window = np.zeros_like(mask_signal_window, dtype=np.bool)
+            mask_noise_window = np.zeros_like(mask_signal_window, dtype=bool)
             if(self.__noise_window > 0):
-                mask_noise_window[int(np.round((-self.__noise_window - 141.) * electric_field.get_sampling_rate())):int(np.round(-141. * electric_field.get_sampling_rate()))] = np.ones(int(np.round(self.__noise_window * electric_field.get_sampling_rate())), dtype=np.bool)  # the last n bins
+                mask_noise_window[int(np.round((-self.__noise_window - 141.) * electric_field.get_sampling_rate())):int(np.round(-141. * electric_field.get_sampling_rate()))] = np.ones(int(np.round(self.__noise_window * electric_field.get_sampling_rate())), dtype=bool)  # the last n bins
 
             signal_energy_fluence = trace_utilities.get_electric_field_energy_fluence(trace, times, mask_signal_window, mask_noise_window)
             dt = times[1] - times[0]
