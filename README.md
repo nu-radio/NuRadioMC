@@ -32,14 +32,16 @@ NuRadioMC is continuously improved and new features are being added. The followi
 If you would like to contribute, please contact @cg-laser or @anelles for permissions to work on NuRadioMC. We work with pull requests only that can be merged after review.
 Also please visit https://nu-radio.github.io/NuRadioMC/Introduction/pages/contributing.html for details on our workflow and coding conventions.
 
+
+## Publications builing up on NuRadioMC/Reco
 NuRadioMC is used in an increasing number of studies. To get an overview for what NuRadioMC can be used for, please have a look at the following publications or see [here](https://inspirehep.net/literature?sort=mostrecent&size=25&page=1&q=refersto%3Arecid%3A1738571%20or%20refersto%3Arecid%3A1725583):
 
 
-* V. B. Valera, M. Bustamante and C. Glaser, “Near-future discovery of the diffuse flux of ultra-high-energy cosmic neutrinos”, [arXiv:2210.03756](https://arxiv.org/abs/2210.03756)
-* Alfonso Garcia Soto, Diksha Garg, Mary Hall Reno, Carlos A. Argüelles, "Probing Quantum Gravity with Elastic Interactions of Ultra-High-Energy Neutrinos", [arXiv:2209.06282](https://arxiv.org/abs/2209.06282)
-* Damiano F. G. Fiorillo, Mauricio Bustamante, Victor B. Valera, "Near-future discovery of point sources of ultra-high-energy neutrinos", [arXiv:2205.15985](https://arxiv.org/abs/2205.15985)
+* V. B. Valera, M. Bustamante and C. Glaser, “Near-future discovery of the diffuse flux of ultra-high-energy cosmic neutrinos”, Phys. Rev. D 107, 043019 [arXiv:2210.03756](https://arxiv.org/abs/2210.03756)
+* Alfonso Garcia Soto, Diksha Garg, Mary Hall Reno, Carlos A. Argüelles, "Probing Quantum Gravity with Elastic Interactions of Ultra-High-Energy Neutrinos", Phys. Rev. D 107, 033009 (2023) [arXiv:2209.06282](https://arxiv.org/abs/2209.06282)
+* Damiano F. G. Fiorillo, Mauricio Bustamante, Victor B. Valera, "Near-future discovery of point sources of ultra-high-energy neutrinos", JCAP 03 (2023) 026 [arXiv:2205.15985](https://arxiv.org/abs/2205.15985)
 * C. Glaser, S. McAleer, S. Stjärnholm, P. Baldi, S. W. Barwick, “Deep learning reconstruction of the neutrino direction and energy from in-ice radio detector data”, Astroparticle Physics 145, (2023) 102781, [doi:10.1016/j.astropartphys.2022.102781](https://doi.org/10.1016/j.astropartphys.2022.102781), [arXiv:2205.15872](https://arxiv.org/abs/2205.15872)
-* J. Beise and C. Glaser, “In-situ calibration system for the measurement of the snow accumulation and the index-of-refraction profile for radio neutrino detectors”, [arXiv:2205.00726](https://arxiv.org/abs/2205.00726)
+* J. Beise and C. Glaser, “In-situ calibration system for the measurement of the snow accumulation and the index-of-refraction profile for radio neutrino detectors”, Journal of Instrumentation 18 P01036 (2023), [arXiv:2205.00726](https://arxiv.org/abs/2205.00726)
 * V. B. Valera, M. Bustamante and C. Glaser, “The ultra-high-energy neutrino-nucleon cross section: measurement forecasts for an era of cosmic EeV-neutrino discovery”, Journal of High Energy Physics 06 (2022) 105, [doi:10.1007/JHEP06(2022)105](https://doi.org/10.1007/JHEP06(2022%29105), [arXiv:2204.04237](https://arxiv.org/abs/2204.04237)
 * ARIANNA collaboration (A. Anker et al.), “Measuring the Polarization Reconstruction Resolution of the ARIANNA Neutrino Detector with Cosmic Rays”, Journal of Cosmology and Astroparticle Physics 04(2022)022, [doi:10.1088/1475-7516/2022/04/022](https://doi.org/10.1088/1475-7516/2022/04/022), [arXiv:2112.01501](https://arxiv.org/abs/2112.01501)
 * ARIANNA collaboration (A. Anker et al.), “Improving sensitivity of the ARIANNA detector by rejecting thermal noise with deep learning”, Journal of Instrumentation 17 P03007 (2022), [doi:10.1088/1748-0221/17/03/P03007](https://doi.org/10.1088/1748-0221/17/03/P03007), [arXiv:2112.01031](https://arxiv.org/abs/2112.01031)
