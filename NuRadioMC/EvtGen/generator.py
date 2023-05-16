@@ -928,7 +928,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         if('fiducial_rmax' in attributes):
             mask_phi = mask_arrival_azimuth(data_sets, attributes['fiducial_rmax'])  # this currently only works for cylindrical volumes
         else:
-            mask_phi = np.ones(len(data_sets["event_group_ids"]), dtype=np.bool)
+            mask_phi = np.ones(len(data_sets["event_group_ids"]), dtype=bool)
         # TODO: combine with `get_intersection_volume_neutrino` function
         for iE, event_id in enumerate(data_sets["event_group_ids"]):
             if not mask_phi[iE]:
