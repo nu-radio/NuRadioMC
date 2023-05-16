@@ -1019,6 +1019,7 @@ class neutrinoDirectionReconstructor:
                 data_samples = np.arange(int(window[0] * self._sampling_rate), int(window[1]*self._sampling_rate)) + dk
                 mask = (data_samples > 0) & (data_samples < len(data_timing_timing))
                 if not np.any(mask):
+                    dict_snr[channel_id][key] = 0
                     continue # pulse not inside recorded trace, skipping...
                 
                 data_samples = data_samples[mask]
@@ -1029,13 +1030,18 @@ class neutrinoDirectionReconstructor:
                 dict_snr[channel_id][key] = snr
 
                 # decide whether to use the timing from the reference channel, or use correlation
+                dt = None
                 if fixed_timing and not (channel_id == ch_Vpol & key == solution_number):
                     dt = dict_dt[ch_Vpol][solution_number]
-                elif snr < 3.5 and channel_id in self._PA_cluster_channels and key == solution_number and channel_id != ch_Vpol:
-                    dt = dict_dt[ch_Vpol][solution_number]
-                elif snr < 3.5 and channel_id in self._fallback_channels.keys() and key == solution_number and self._use_fallback_timing:
-                    dt = dict_dt[self._fallback_channels[channel_id]][solution_number]
-                else:
+                elif snr < 3.5:
+                    if channel_id in self._PA_cluster_channels and key == solution_number and channel_id != ch_Vpol:
+                        dt = dict_dt[ch_Vpol][solution_number]
+                    elif self._use_fallback_timing and channel_id in self._fallback_channels.keys() and key == solution_number:
+                        try:
+                            dt = dict_dt[self._fallback_channels[channel_id]][solution_number]
+                        except KeyError: # fallback channel does not contain the relevant dt
+                            continue
+                if dt is None:
                     corr = signal.correlate(data_trace, rec_trace)
                     lags = signal.correlation_lags(len(data_times), len(rec_trace)) + start_index # adding start_index ensures the same lags for different data windows
 
