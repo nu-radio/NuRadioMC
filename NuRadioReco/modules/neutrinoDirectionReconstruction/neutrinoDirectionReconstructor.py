@@ -664,14 +664,20 @@ class neutrinoDirectionReconstructor:
 
                         #ax[ich][0].fill_between(timingdata[channel_id][0], tracrec[channel_id][0] - tracrec[channel_id][0], tracrec[channel_id][0] +  tracrec[channel_id][0], color = 'green', alpha = 0.2)
                         ax[ich][2].plot( np.fft.rfftfreq(len(tracdata[channel_id][key]), 1/sampling_rate), abs(fft.time2freq( tracdata[channel_id][key], sampling_rate)), color = 'black', lw = linewidth)
-                        ax[ich][key].plot(timingsim[channel_id][key], tracsim[channel_id][key], label = 'simulation', color = 'orange', lw = linewidth)
+                        if key in tracsim[channel_id].keys():
+                            ax[ich][key].plot(timingsim[channel_id][key], tracsim[channel_id][key], label = 'simulation', color = 'orange', lw = linewidth)
+                            ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel_id][key]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][key], sampling_rate)), lw = linewidth, color = 'orange')
                         if sim_trace != None: 
                             ax[ich][key].plot(sim_trace.get_times(), sim_trace.get_trace(), label = 'sim channel', color = 'red', lw = linewidth)
 
-                        ax[ich][key].plot(timingsim_recvertex[channel_id][key], tracsim_recvertex[channel_id][key], label = 'simulation rec vertex', color = 'lightblue' , lw = linewidth, ls = '--')
+                        if key in tracsim_recvertex[channel_id].keys():
+                            ax[ich][key].plot(timingsim_recvertex[channel_id][key], tracsim_recvertex[channel_id][key], label = 'simulation rec vertex', color = 'lightblue' , lw = linewidth, ls = '--')
 
                         # show data / simulation time windows
-                        window_sim = timingsim[channel_id][key][0], timingsim[channel_id][key][-1]
+                        if key in timingsim[channel_id].keys():
+                            window_sim = timingsim[channel_id][key][0], timingsim[channel_id][key][-1]
+                        else:
+                            window_sim = ()
                         window_rec = timingdata[channel_id][key][0], timingdata[channel_id][key][-1]
                         for t in window_sim:
                             ax[ich][key].axvline(t, color='orange', ls=':')
@@ -683,7 +689,6 @@ class neutrinoDirectionReconstructor:
 
                         if sim_trace != None: 
                             ax[ich][2].plot( np.fft.rfftfreq(len(sim_trace.get_trace()), 1/sampling_rate), abs(fft.time2freq(sim_trace.get_trace(), sampling_rate)), lw = linewidth, color = 'red')
-                        ax[ich][2].plot( np.fft.rfftfreq(len(tracsim[channel_id][key]), 1/sampling_rate), abs(fft.time2freq(tracsim[channel_id][key], sampling_rate)), lw = linewidth, color = 'orange')
 
                         ax[ich][2].plot( np.fft.rfftfreq(len(tracrec[channel_id][key]), 1/sampling_rate), abs(fft.time2freq(tracrec[channel_id][key], sampling_rate)), color = 'green', lw = linewidth)
                         if handles_labels is None:
