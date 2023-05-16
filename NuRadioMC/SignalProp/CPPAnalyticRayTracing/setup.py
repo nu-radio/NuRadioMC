@@ -16,7 +16,7 @@ if __name__ == "__main__":
         Extension('wrapper', ['wrapper.pyx'],
                 include_dirs=[numpy.get_include(), '../../utilities/', str(os.environ['GSLDIR']) + '/include/'],
                 library_dirs=[str(os.environ['GSLDIR']) + '/lib/'],
-                extra_compile_args=['-O3',"-mfpmath=sse"],
+                extra_compile_args=['-O3'],
                 libraries=['gsl', 'gslcblas'],
                 language='c++'
                 ),
