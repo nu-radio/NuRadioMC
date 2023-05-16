@@ -891,7 +891,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
 
         data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch, dtype=int) + start_event_id
         data_sets["n_interaction"] = np.ones(n_events_batch, dtype=int)
-        data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=np.float)
+        data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=float)
 
         # generate neutrino flavors randomly
 
@@ -1230,7 +1230,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch) + start_event_id
         logger.debug("generating number of interactions")
         data_sets["n_interaction"] = np.ones(n_events_batch, dtype=int)
-        data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=np.float)
+        data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=float)
 
         # generate neutrino flavors randomly
         logger.debug("generating flavors")
