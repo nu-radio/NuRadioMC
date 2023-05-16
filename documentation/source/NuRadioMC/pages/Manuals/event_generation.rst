@@ -208,7 +208,7 @@ NuRadioMC feeds PROPOSAL the lepton properties and PROPOSAL propagates them, sto
         """
         proposal_config: string or path
             The user can specify the path to their own config file or choose among
-            the three available options:
+            the available options:
             -'SouthPole', a config file for the South Pole (spherical Earth). It
             consists of a 2.7 km deep layer of ice, bedrock below and air above.
             -'MooresBay', a config file for Moore's Bay (spherical Earth). It
@@ -217,15 +217,9 @@ NuRadioMC feeds PROPOSAL the lepton properties and PROPOSAL propagates them, sto
             -'InfIce', a config file with a medium of infinite ice
             -'Greenland', a config file for Summit Station, Greenland (spherical Earth),
             same as SouthPole but with a 3 km deep ice layer.
-            IMPORTANT: If these options are used, the code is more efficient if the
-            user requests their own "path_to_tables" and "path_to_tables_readonly",
-            pointing them to a writable directory
-            If one of these three options is chosen, the user is supposed to edit
-            the corresponding config_PROPOSAL_xxx.json.sample file to include valid
-            table paths and then copy this file to config_PROPOSAL_xxx.json.
         """
 
-PROPOSAL needs a configuration file specifying the geometry to be run. The user can choose among the media listed above or they can specify the path to an own file. Important: the listed media need some input from the user. The files that end with ``.sample`` need to have two writable directories on the user's system to save some tables (which makes PROPOSAL faster), and they need to be renamed by removing the suffix ``.sample``.
+PROPOSAL needs a configuration file specifying the geometry to be run. The user can choose among the media listed above or they can specify the path to an own file.
 
     .. code-block:: Python
 
@@ -385,8 +379,7 @@ The module ``NuRadioProposal.py`` in EvtGen can also be used standalone to study
         tau_codes = [15] * N_taus
 
         secondaries_array = proposal_functions.get_secondaries_array(energy_leptons,
-                                                 lepton_codes,
-                                                 config_file='InfIce',
+                                                 tau_codes,
                                                  low_nu=0.1*units.PeV,
                                                  propagate_decay_muons=True)
 

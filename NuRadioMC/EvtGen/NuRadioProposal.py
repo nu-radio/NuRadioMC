@@ -1,10 +1,12 @@
 import proposal as pp
 import numpy as np
 from NuRadioReco.utilities import units, particle_names
+import NuRadioReco.utilities.metaclasses
 import os
 import six
 import json
 import logging
+from glob import glob
 
 """
 This module takes care of the PROPOSAL implementation. Some important things
@@ -24,9 +26,6 @@ us are the following:
 - MuPair: a muon/antimuon pair
 - WeakInt: a weak interaction
 - Compton: Compton effect
-The last secondaries obtained via the propagation belong to the Particle DynamicData
-type, and represent the products of the decay. They are standard particles with
-a PDG code.
 """
 
 # Units definition in PROPOSAL
@@ -43,25 +42,17 @@ pp_m = 1.e2
 pp_km = 1.e5
 
 
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if Singleton._instances.get(cls, None) is None:
-            Singleton._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return Singleton._instances[cls]
-
-
 class SecondaryProperties:
     """
     This class stores the properties from secondary particles that are
     relevant for NuRadioMC, namely:
-    - distance, the distance to the first interaction vertex
-    - energy, the particle energy
-    - shower_type, whether the shower they induce is hadronic or electromagnetic
-    - name, its name according to the particle_name dictionary on this module
+    - distance      : Distance to the first interaction vertex
+    - energy        : Particle energy
+    - shower_type   : Whether the shower they induce is hadronic or electromagnetic
+    - name          : Name according to NuRadioReco.utilities.particle_names
+    - parent_energy : Energy of the parent particle
 
-    Distance and energy are expected to be in NuRadioMC units
+    Distance and energy are in NuRadioMC units
     """
 
     def __init__(self,
@@ -69,18 +60,21 @@ class SecondaryProperties:
                  energy,
                  shower_type,
                  code,
-                 name):
+                 name,
+                 parent_energy):
         self.distance = distance
         self.energy = energy
         self.shower_type = shower_type
         self.code = code
         self.name = name
+        self.parent_energy = parent_energy
 
     def __str__(self):
-        s = "Particle and code: {:} ({:})\n".format(self.name, self.code)
-        s += "Energy in PeV: {:}\n".format(self.energy / units.PeV)
-        s += "Distance from vertex in km: {:}\n".format(self.distance / units.km)
-        s += "Shower type: {:}\n".format(self.shower_type)
+        s =  "Particle and code    : {:} ({:})\n".format(self.name, self.code)
+        s += "Energy               : {:} PeV\n".format(self.energy / units.PeV)
+        s += "Distance from vertex : {:} km\n".format(self.distance / units.km)
+        s += "Shower type          : {:}\n".format(self.shower_type)
+        s += "Parent energy        : {:} PeV".format(self.parent_energy / units.PeV)
         return s
 
 """
@@ -88,69 +82,79 @@ Codes for the InteractionType class from PROPOSAL. These represent interactions
 calculated by PROPOSAL, and although most of them correspond to actual particles -
 Brems is a bremsstrahlung photon, DeltaE is an ionised electron, and EPair is an
 electron-positron pair, it is useful to treat them as separate entities so that
-we know they come from an interaction. PROPOSAL returns particles as decay products
-only, in our case.
+we know they come from an interaction.
 
 We have followed the PDG recommendation and used numbers between 80 and 89 for
 our own-defined particles, although we have needed also 90 and 91 (they are
 very rarely used).
 """
 
-proposal_interaction_names = { 1000000001: 'particle',
-                               1000000002: 'brems',
-                               1000000003: 'ionized_e',
-                               1000000004: 'e_pair',
-                               1000000005: 'nucl_int',
-                               1000000006: 'mu_pair',
-                               1000000007: 'hadrons',
-                               1000000008: 'cont_loss',
-                               1000000009: 'weak_int',
-                               1000000010: 'compton',
-                               1000000011: 'decay' }
+# For dicussion why we cast to int instead of using
+# e.g. pp.particle.Interaction_Type.particle.value, see https://github.com/nu-radio/NuRadioMC/pull/458
+proposal_interaction_names = { int(pp.particle.Interaction_Type.particle): 'particle',
+                               int(pp.particle.Interaction_Type.brems): 'brems',
+                               int(pp.particle.Interaction_Type.ioniz): 'ionized_e',
+                               int(pp.particle.Interaction_Type.epair): 'e_pair',
+                               int(pp.particle.Interaction_Type.photonuclear): 'nucl_int',
+                               int(pp.particle.Interaction_Type.mupair): 'mu_pair',
+                               int(pp.particle.Interaction_Type.hadrons): 'hadrons',
+                               int(pp.particle.Interaction_Type.continuousenergyloss): 'cont_loss',
+                               int(pp.particle.Interaction_Type.weakint): 'weak_int',
+                               int(pp.particle.Interaction_Type.compton): 'compton',
+                               int(pp.particle.Interaction_Type.decay): 'decay' }
 
-proposal_interaction_codes = { 1000000001: 80,
-                               1000000002: 81,
-                               1000000003: 82,
-                               1000000004: 83,
-                               1000000005: 85,
-                               1000000006: 87,
-                               1000000007: 84,
-                               1000000008: 88,
-                               1000000009: 89,
-                               1000000010: 90,
-                               1000000011: 91 }
+proposal_interaction_codes = { int(pp.particle.Interaction_Type.particle): 80,
+                               int(pp.particle.Interaction_Type.brems): 81,
+                               int(pp.particle.Interaction_Type.ioniz): 82,
+                               int(pp.particle.Interaction_Type.epair): 83,
+                               int(pp.particle.Interaction_Type.photonuclear): 85,
+                               int(pp.particle.Interaction_Type.mupair): 87,
+                               int(pp.particle.Interaction_Type.hadrons): 84,
+                               int(pp.particle.Interaction_Type.continuousenergyloss): 88,
+                               int(pp.particle.Interaction_Type.weakint): 89,
+                               int(pp.particle.Interaction_Type.compton): 90,
+                               int(pp.particle.Interaction_Type.decay): 91 }
 
 
-def particle_code(particle):
+def particle_code(pp_type):
     """
-    If a particle object from PROPOSAL is passed as input, it returns the
-    corresponding PDG particle code. DynamicData objects are not considered
-    particles internally in PROPOSAL, so they are handled differently.
+    For an integer, corresponding to a proposal.particle.Interaction_Type or 
+    proposal.particle.Particle_Type, it returns the corresponding PDG 
+    particle code.
 
     Parameters
     ----------
-    particle: particle object from PROPOSAL
+    pp_type: int, corresponding to a proposal.particle.Interaction_Type or 
+             proposal.particle.Particle_Type
 
     Returns
     -------
     integer with the PDG particle code. None if the argument is not a particle
     """
-    particle_type = particle.type
-    if particle_type in proposal_interaction_codes:
-        return proposal_interaction_codes[particle_type]
-    elif particle_type in particle_names.particle_names:
-        return particle_type
+    if pp_type in proposal_interaction_codes:
+        return proposal_interaction_codes[pp_type]
+    elif pp_type in particle_names.particle_names:
+        return pp_type
     else:
-        print(particle_type)
+        print(pp_type)
         return None
 
 
-def is_em_primary (particle):
+def is_em_primary (pp_type):
     """
-    Given a PROPOSAL particle object as an input, returns True if the particle
-    can be an electromagnetic shower primary and False otherwise
+    For an integer corresponding to a particle type or interaction type of 
+    proposal, returns True if the object can be an electromagnetic shower primary 
+    and False otherwise
+
+    Parameters
+    ----------
+    pp_type: int, corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type
+
+    Returns
+    -------
+    bool, True if the particle can be an electromagnetic shower primary and False otherwise
     """
-    code = particle_code(particle)
+    code = particle_code(pp_type)
     name = particle_names.particle_name(code)
     
     if name in particle_names.em_primary_names:
@@ -159,12 +163,21 @@ def is_em_primary (particle):
         return False
 
 
-def is_had_primary(particle):
+def is_had_primary(pp_type):
     """
-    Given a PROPOSAL particle object as an input, returns True if the particle
-    can be a hadronic shower primary and False otherwise
+    Given an integer corresponding to a particle type or interaction type of 
+    proposal, returns True if the object can be a hadronic shower primary 
+    and False otherwise
+
+    Parameters
+    ----------
+    pp_type: int, corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type
+
+    Returns
+    -------
+    bool, True if the particle can be a hadronic shower primary and False otherwise
     """
-    code = particle_code(particle)
+    code = particle_code(pp_type)
     name = particle_names.particle_name(code)
 
     if name in particle_names.had_primary_names:
@@ -173,12 +186,20 @@ def is_had_primary(particle):
         return False
 
 
-def is_shower_primary(particle):
+def is_shower_primary(pp_type):
     """
-    Given a PROPOSAL particle object, returns True if the particle can be
-    a shower primary and False otherwise
+    Given an integer corresponding to a particle type or interaction type of 
+    proposal, returns True if the object can be a shower primary and False otherwise
+
+    Parameters
+    ----------
+    pp_type: int, corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type
+
+    Returns
+    -------
+    bool, True if the particle can be a shower primary and False otherwise
     """
-    code = particle_code(particle)
+    code = particle_code(pp_type)
     name = particle_names.particle_name(code)
     
     if name in particle_names.primary_names:
@@ -187,35 +208,7 @@ def is_shower_primary(particle):
         return False
 
 
-def check_path_to_tables(config_file_path):
-    """
-    Checks if the paths for the PROPOSAL tables in the input config file are
-    existing directories.
-    """
-
-    with open(config_file_path, 'r') as f:
-
-        config_file = json.load(f)
-
-    path_to_tables = config_file['global']['interpolation']['path_to_tables']
-    path_to_tables_readonly = config_file['global']['interpolation']['path_to_tables_readonly']
-
-    if not os.path.isdir(path_to_tables):
-
-        error_msg = "'path_to_tables' in {} points to {}, which is a non-existing directory. ".format(config_file_path,
-                                                                                                     path_to_tables)
-        error_msg += "Please choose a valid path for the PROPOSAL config file in {}.".format(config_file_path)
-        raise ValueError(error_msg)
-
-    if not os.path.isdir(path_to_tables_readonly):
-
-        error_msg = "'path_to_tables_readonly' in {} points to {}, which is a non-existing directory. ".format(config_file_path,
-                                                                                                              path_to_tables_readonly)
-        error_msg += "Please choose a valid path for the PROPOSAL config file in {}.".format(config_file_path)
-        raise ValueError(error_msg)
-
-
-@six.add_metaclass(Singleton)
+@six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class ProposalFunctions(object):
     """
     This class serves as a container for PROPOSAL functions. The functions that
@@ -223,40 +216,13 @@ class ProposalFunctions(object):
     not be used from the outside to avoid mismatching units.
     """
 
-    def __init__(self, config_file='SouthPole', log_level=logging.INFO):
+    def __init__(self, config_file='SouthPole', log_level=logging.INFO, tables_path=None, seed=12, upper_energy_limit=1e14*units.MeV):
         """
         Parameters
         ----------
         config_file: string or path
             The user can specify the path to their own config file or choose among
-            the three available options:
-            -'SouthPole', a config file for the South Pole (spherical Earth)
-            -'MooresBay', a config file for Moore's Bay (spherical Earth)
-            -'InfIce', a config file with a medium of infinite ice
-            -'Greenland', a config file for Summit Station, Greenland (spherical Earth)
-            IMPORTANT: If these options are used, the code is more efficient if the
-            user requests their own "path_to_tables" and "path_to_tables_readonly",
-            pointing them to a writable directory
-        """
-        self.__logger = logging.getLogger("proposal")
-        self.__logger.setLevel(log_level)
-        self.__logger.info("initializing proposal interface class")
-
-        self.__propagators = {}
-        self.__config_file = config_file
-
-    def __get_propagator(self,
-                            particle_code=13):
-        """
-        Returns a PROPOSAL propagator for muons or taus. If it does not exist yet it is being generated.
-
-        Parameters
-        ----------
-        particle_code: integer
-            Particle code for the muon- (13), muon+ (-13), tau- (15), or tau+ (-15)
-        config_file: string or path
-            The user can specify the path to their own config file or choose among
-            the three available options:
+            the available options:
             -'SouthPole', a config file for the South Pole (spherical Earth). It
             consists of a 2.7 km deep layer of ice, bedrock below and air above.
             -'MooresBay', a config file for Moore's Bay (spherical Earth). It
@@ -265,61 +231,139 @@ class ProposalFunctions(object):
             -'InfIce', a config file with a medium of infinite ice
             -'Greenland', a config file for Summit Station, Greenland (spherical Earth),
             same as SouthPole but with a 3 km deep ice layer.
-            IMPORTANT: If these options are used, the code is more efficient if the
-            user requests their own "path_to_tables" and "path_to_tables_readonly",
-            pointing them to a writable directory
+        log_level: logging level
+        tables_path: path
+            Path to PROPOSAL tables. Should be set to a path where PROPOSAL tables exist, or
+            where PROPOSAL tables can be saved. This avoids that PROPOSAL has to regenerate
+            tables (which can take several minutes) every time the script is executed.
+            Default: None -> create directory "proposal_tables" at the location of this file.
+        seed: int
+            Seed to be used by PROPOSAL
+        upper_energy_limit: float
+            upper_energy_limit of tables that will be created by PROPOSAL, in NuRadioMC units (eV).
+            There will be an error if primaries with energies above this energy will be injected.
+            Note that PROPOSAL will have to regenerate tables for a new values of upper_energy_limit
+        create_new: bool (default:False)
+            Can be used to force the creation of a new ProposalFunctions object.
+            By default, the __init__ will only create a new object if none already exists.
+            For more details, check the documentation for the
+            :class:`Singleton metaclass <NuRadioReco.utilities.metaclasses.Singleton>`.
+        """
+        self.__logger = logging.getLogger("proposal")
+        self.__logger.setLevel(log_level)
+        self.__logger.info("initializing proposal interface class")
+
+        pp.RandomGenerator.get().set_seed(seed) # set global seed for PROPOSAL
+
+        default_configs = {
+            'SouthPole':  'config_PROPOSAL.json', 'MooresBay': 'config_PROPOSAL_mooresbay.json',
+            'InfIce': 'config_PROPOSAL_infice.json', 'Greenland': 'config_PROPOSAL_greenland.json'}
+
+        if tables_path is None:
+            tables_path = os.path.join(os.path.dirname(__file__), "proposal_tables")
+        
+        if config_file in default_configs:
+            # default configurations should append their identifier to the tables path
+            if not config_file == os.path.dirname(tables_path).split("/")[-1]:
+                    tables_path = os.path.join(tables_path, config_file)
+
+        if not os.path.exists(tables_path):
+            self.__logger.info(f"Create directory {tables_path} to store proposal tables")
+            os.makedirs(tables_path)
+
+        if config_file in default_configs:
+            config_file_full_path = os.path.join(os.path.dirname(__file__), default_configs[config_file])
+
+        elif os.path.exists(config_file):
+            config_file_full_path = config_file
+        else:
+            raise ValueError("Proposal config file is not valid. Please provide a valid option.")
+
+        if not os.path.exists(config_file_full_path):
+            raise ValueError("Unable to find proposal config file.\n"
+                "Make sure that json configuration file under "
+                "path {} exists.".format(config_file_full_path))
+
+
+        self.__propagators = {}
+        self.__config_file = config_file
+        self.__config_file_full_path = config_file_full_path
+        self.__tables_path = tables_path
+        self.__upper_energy_limit = upper_energy_limit * pp_eV # convert to PROPOSAL units
+
+        self.__download_tables = False
+        if self.__config_file in default_configs:
+            if len(glob(self.__tables_path + "/*.dat")) == 0:
+                self.__download_tables = True
+
+    @staticmethod
+    def __calculate_distance(pp_position, pos_arr):
+        """ 
+        Calculates distance between secondary and lepton position (both in proposal units).
+        
+        Paramters
+        ---------
+        
+        pp_position: ParticleState.position
+            Position of a secondary particle (in proposal units)
+            
+        pos_arr: np.array(3,)
+            Init. position of the lepton (in proposal units)
+        
+        Returns
+        -------
+        
+        Distance between both coordinates in NuRadioMC units
+        """
+        return np.linalg.norm(pp_position.cartesian_coordinates - pos_arr) * units.cm
+
+
+    def __get_propagator(self, particle_code=13):
+        """
+        Returns a PROPOSAL propagator for muons or taus. If it does not exist yet it is being generated.
+
+        Parameters
+        ----------
+        particle_code: integer
+            Particle code for the muon- (13), muon+ (-13), tau- (15), or tau+ (-15)
 
         Returns
         -------
         propagator: PROPOSAL propagator
             Propagator that can be used to calculate the interactions of a muon or tau
         """
-        if(particle_code not in self.__propagators):
+        if particle_code not in self.__propagators:
             self.__logger.info(f"initializing propagator for particle code {particle_code}")
-            mu_def_builder = pp.particle.ParticleDefBuilder()
-            if (particle_code == 13):
-                mu_def_builder.SetParticleDef(pp.particle.MuMinusDef())
-            elif (particle_code == -13):
-                mu_def_builder.SetParticleDef(pp.particle.MuPlusDef())
-            elif (particle_code == 15):
-                mu_def_builder.SetParticleDef(pp.particle.TauMinusDef())
-            elif (particle_code == -15):
-                mu_def_builder.SetParticleDef(pp.particle.TauPlusDef())
-            else:
-                error_str = "The propagation of this particle via PROPOSAL is not currently supported.\n"
-                error_str += "Please choose between -/+muon (13/-13) and -/+tau (15/-15)"
+
+            pp.InterpolationSettings.tables_path = self.__tables_path
+            # download pre-calculated tables for default configs, but not more than once
+            if self.__download_tables:
+                from NuRadioMC.EvtGen.proposal_table_manager import download_proposal_tables
+
+                try:
+                    download_proposal_tables(self.__config_file, tables_path=self.__tables_path)
+                except:
+                    self.__logger.warning("requested pre-calculated proposal tables could not be downloaded, calculating manually")
+                    pass
+                self.__download_tables = False
+
+            # upper energy lim for proposal tables, in PROPOSAL units (MeV)
+            pp.InterpolationSettings.upper_energy_lim = self.__upper_energy_limit
+
+            try:
+                p_def = pp.particle.get_ParticleDef_for_type(particle_code)
+            except:
+                error_str = "The propagation of this particle via PROPOSAL is not currently supported.\n" + \
+                    "Please choose between -/+muon (13/-13) and -/+tau (15/-15)"
                 raise NotImplementedError(error_str)
 
-            mu_def = mu_def_builder.build()
-
-            if (self.__config_file == 'SouthPole'):
-                config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL.json')
-            elif (self.__config_file == 'MooresBay'):
-                config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_mooresbay.json')
-            elif (self.__config_file == 'InfIce'):
-                config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_infice.json')
-            elif (self.__config_file == 'Greenland'):
-                config_file_full_path = os.path.join(os.path.dirname(__file__), 'config_PROPOSAL_greenland.json')
-            elif (os.path.exists(self.__config_file)):
-                config_file_full_path = self.__config_file
-            else:
-                raise ValueError("Proposal config file is not valid. Please provide a valid option.")
-
-            if not os.path.exists(config_file_full_path):
-                error_message = "Proposal config file does not exist.\n"
-                error_message += "Please provide valid paths for the interpolation tables "
-                error_message += "in file {}.sample ".format(config_file_full_path)
-                error_message += "and copy the file to {}.".format(os.path.basename(config_file_full_path))
-                raise ValueError(error_message)
-
-            check_path_to_tables(config_file_full_path)
-
-            self.__propagators[particle_code] = pp.Propagator(particle_def=mu_def, config_file=config_file_full_path)
+            self.__propagators[particle_code] = pp.Propagator(particle_def=p_def, path_to_config_file=self.__config_file_full_path)
 
         return self.__propagators[particle_code]
 
     def __produces_shower(self,
-                          particle,
+                          pp_type,
+                          energy,
                           min_energy_loss=1 * pp_PeV):
         """
         Returns True if the input particle or interaction can be a shower primary
@@ -327,8 +371,10 @@ class ProposalFunctions(object):
 
         Parameters
         ----------
-        particle: PROPOSAL particle or DynamicData (interaction)
-            Input particle
+        pp_type: int
+            int corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type
+        energy: float
+            Energy of particle or interaction, in PROPOSAL units (MeV)
         min_energy_loss: float
             Threshold above which a particle shower is considered detectable
             or relevant, in PROPOSAL units (MeV)
@@ -338,46 +384,20 @@ class ProposalFunctions(object):
         bool
             True if particle produces shower, False otherwise
         """
-        energy_threshold = self.__secondary_energy(particle) > min_energy_loss
-        if not energy_threshold:
+        if (energy < min_energy_loss):
             return False
 
-        shower_inducing = is_shower_primary(particle)
+        return is_shower_primary(pp_type)
 
-        return shower_inducing
 
-    def __secondary_energy(self, sec):
-        """
-        Retrieves the energy of the secondary particle
-
-        Parameters
-        ----------
-        sec: Particle
-            Secondary particle issued by Proposal
-
-        Returns
-        -------
-        energy: float
-            Energy in MeV
-        """
-
-        # Checking if the secondary type is greater than 1000000000, which means
-        # that the secondary is an interaction particle.
-        if (sec.type > 1000000000):
-            energy = (sec.parent_particle_energy - sec.energy) * pp_MeV
-        # Else, the secondary is a particle issued upon decay.
-        else:
-            energy = sec.energy * pp_MeV
-
-        return energy
-
-    def __shower_properties(self, particle):
+    def __shower_properties(self, pp_type):
         """
         Calculates shower properties for the shower created by the input particle
 
         Parameters
         ----------
-        particle: PROPOSAL particle or DynamicData
+        pp_type: int
+            int corresponding to a pp.proposal.Interaction_Type or pp.proposal.Particle_Type
 
         Returns
         -------
@@ -388,15 +408,15 @@ class ProposalFunctions(object):
         name: string
             Name of the shower primary
         """
-        if not is_shower_primary(particle):
+        if not is_shower_primary(pp_type):
             return None, None, None
 
-        code = particle_code(particle)
+        code = particle_code(pp_type)
 
-        if is_em_primary(particle):
+        if is_em_primary(pp_type):
             shower_type = 'em'
 
-        if is_had_primary(particle):
+        if is_had_primary(pp_type):
             shower_type = 'had'
 
         name = particle_names.particle_name(code)
@@ -431,30 +451,29 @@ class ProposalFunctions(object):
 
         Returns
         -------
-        secondaries: array of PROPOSAL particles
-            Secondaries created by the propagation
+        secondaries: proposal.particle.Secondaries
+            object containing all information about secondary particles produced 
+            during propagation
         """
         x, y, z = lepton_position
         px, py, pz = lepton_direction
 
-        if (lepton_code == 13):
-            particle_def = pp.particle.MuMinusDef()
-        elif (lepton_code == -13):
-            particle_def = pp.particle.MuPlusDef()
-        elif (lepton_code == 15):
-            particle_def = pp.particle.TauMinusDef()
-        elif (lepton_code == -15):
-            particle_def = pp.particle.TauPlusDef()
+        if (energy_lepton > self.__upper_energy_limit):
+            raise ValueError("Initial lepton energy higher than upper_energy_limit of PROPOSAL. Adjust upper_energy_limit when"
+                             " initialzing EvtGen.NuRadioProposal.ProposalFunctions.")
 
-        initial_condition = pp.particle.DynamicData(particle_def.particle_type)
-        initial_condition.position = pp.Vector3D(x, y, z)
-        initial_condition.direction = pp.Vector3D(px, py, pz)
+        initial_condition = pp.particle.ParticleState()
+        initial_condition.type = lepton_code
+        initial_condition.position = pp.Cartesian3D(x, y, z)
+        initial_condition.direction = pp.Cartesian3D(px, py, pz)
         initial_condition.energy = energy_lepton
         initial_condition.propagated_distance = 0
 
+        initial_condition.direction.normalize() # ensure that direction is normalized
+
         secondaries = self.__get_propagator(lepton_code).propagate(initial_condition,
-                                                                  propagation_length,
-                                                                  minimal_energy=low).particles
+                                                                  max_distance = propagation_length,
+                                                                  min_energy=low)
         return secondaries
 
     def __filter_secondaries(self,
@@ -467,8 +486,8 @@ class ProposalFunctions(object):
 
         Parameters
         ----------
-        secondaries: array of PROPOSAL particles
-            Array with secondary particles
+        secondaries: array of proposal.particle.StochasticLoss objects
+            Array of all stochastic losses produced by PROPOSAL 
         min_energy_loss: float
             Threshold for shower production, in PROPOSAL units (MeV)
         lepton_position: tuple (float, float, float)
@@ -485,22 +504,66 @@ class ProposalFunctions(object):
 
         for sec in secondaries:
 
-            # Decays contain only one shower-inducing particle
-            # Muons and neutrinos resulting from decays are ignored
-            if self.__produces_shower(sec, min_energy_loss):
+            if self.__produces_shower(sec.type, sec.energy, min_energy_loss):
 
-                distance = ((sec.position.x - lepton_position[0]) * units.cm) ** 2
-                distance += ((sec.position.y - lepton_position[1]) * units.cm) ** 2
-                distance += ((sec.position.z - lepton_position[2]) * units.cm) ** 2
-                distance = np.sqrt(distance)
+                distance = ProposalFunctions.__calculate_distance(sec.position, lepton_position)
 
-                energy = self.__secondary_energy(sec) * units.MeV
+                energy = sec.energy / pp_MeV * units.MeV
 
-                shower_type, code, name = self.__shower_properties(sec)
-
-                shower_inducing_prods.append(SecondaryProperties(distance, energy, shower_type, code, name))
+                shower_type, code, name = self.__shower_properties(sec.type)
+                
+                shower_inducing_prods.append(
+                    SecondaryProperties(distance, energy, shower_type, code, name, 
+                                        sec.parent_particle_energy / pp_MeV * units.MeV))
 
         return shower_inducing_prods
+
+    def __group_decay_products(self,
+                               decay_products,
+                               min_energy_loss,
+                               lepton_position,
+                               decay_energy):
+        """
+        group remaining shower-inducing decay products so that they create a single shower
+        
+        Parameters
+        ----------
+        decay_products: list of proposal.particle.ParticleState
+            List of decay particles that we want to group
+        min_energy_loss: float
+            Threshold for shower production, in PROPOSAL units (MeV)
+        lepton_position: (float, float, float) tuple
+            Original lepton positions in proposal units (cm)
+        decay_energy: float
+            Energy of the lepton before decaying (in NuRadioMC units)
+
+        Returns
+        -------
+        None or SecondaryProperties
+            If energy of grouped decay particles is above min_energy_loss, SecondaryProperties object,
+            containing information about the grouped decay particles is returned.
+            Otherwise, None is returned.
+        """
+
+        # TODO: At the moment, all decay_products in primary_names are grouped and identified
+        #       as a 'Hadronic Decay bundle', even electromagnetic decay products such as
+        #       electrons. Is that ok? Should they be negleceted? Or grouped separately?
+
+        sum_decay_particle_energy = 0
+
+        for decay_particle in decay_products:
+            if is_shower_primary(decay_particle.type):
+                sum_decay_particle_energy += decay_particle.energy
+        
+        if sum_decay_particle_energy > min_energy_loss:
+            # all decay_particles have the same position, so we can just look at the first in list
+            distance = ProposalFunctions.__calculate_distance(decay_products[0].position, lepton_position)
+
+            return SecondaryProperties(distance, sum_decay_particle_energy / pp_MeV * units.MeV,
+                                       'had', 86, particle_names.particle_name(86), 
+                                       decay_energy)
+        return None
+
 
     def get_secondaries_array(self,
                               energy_leptons_nu,
@@ -540,11 +603,10 @@ class ProposalFunctions(object):
         Returns
         -------
         secondaries_array: 2D-list containing SecondaryProperties objects
-            List containing the information on the shower-inducing secondaries. The
-            first dimension indicates the primary lepton and the second dimension
-            navigates through the secondaries produced by that primary.
-
-            The SecondaryProperties objects are expressed in NuRadioMC units.
+            For each primary a list containing the information on the shower-inducing secondaries is
+            returned. The first dimension indicates the (index of the) primary lepton and the second dimension
+            navigates through the secondaries produced by that primary (time-ordered). The SecondaryProperties
+            properties are in NuRadioMC units.
         """
 
         # Converting to PROPOSAL units
@@ -556,14 +618,11 @@ class ProposalFunctions(object):
         if lepton_positions_nu is None:
             lepton_positions = [(0, 0, 0)] * len(energy_leptons)
         else:
-            lepton_positions = [ np.array(lepton_position_nu) * pp_m for lepton_position_nu in lepton_positions_nu ]
-
+            lepton_positions = [np.array(lepton_position_nu) * pp_m
+                                    for lepton_position_nu in lepton_positions_nu]
+            
         if lepton_directions is None:
             lepton_directions = [(0, 0, -1)] * len(energy_leptons)
-
-        if propagate_decay_muons:
-
-            decay_muons_array = []
 
         secondaries_array = []
 
@@ -574,58 +633,42 @@ class ProposalFunctions(object):
                                                     lepton_position, lepton_direction,
                                                     propagation_length, low=low)
 
-            shower_inducing_prods = self.__filter_secondaries(secondaries, min_energy_loss, lepton_position)
+            shower_inducing_prods = self.__filter_secondaries(secondaries.stochastic_losses(), 
+                                                              min_energy_loss, lepton_position)
 
-            # Checking if there is a muon in the products
+            decay_products = secondaries.decay_products() # array of decay particles
+            # Checking if there is a muon in the decay products
             if propagate_decay_muons:
-                decay_muons_array.append([None, None, None, None])
 
-                for sec in secondaries:
-                    if (sec.type == 13) or (sec.type == -13):
-                        if sec.type == 13:
-                            mu_code = 13
-                        elif sec.type == -13:
-                            mu_code = -13
+                for decay_particle in list(decay_products):
 
-                        mu_energy = sec.energy
-                        if (mu_energy <= low):
+                    if abs(decay_particle.type) == 13:
+                        mu_energy = decay_particle.energy
+                        if mu_energy <= low:
                             continue
-                        mu_position = (sec.position.x, sec.position.y, sec.position.z)
-                        mu_direction = lepton_direction  # We reuse the primary lepton direction
-                                                        # At these energies the muon direction is the same
-                        decay_muons_array[-1] = [mu_energy, mu_code, mu_position, mu_direction]
-                        # I store the properties of each muon in an array because they cannot be
-                        # propagated while we are looping the secondaries array. Doing that can
-                        # create a segmentation fault because the results of the new propagation
-                        # are written into the secondaries array (!)
+                        
+                        mu_position = (decay_particle.position.x, decay_particle.position.y, decay_particle.position.z)
+                        mu_direction = (decay_particle.direction.x, decay_particle.direction.y, decay_particle.direction.z)
 
-            # group shower-inducing decay products so that they create a single shower
-            min_distance = 0.1 * units.m
-            while(len(shower_inducing_prods) > 1 and
-                   np.abs(shower_inducing_prods[-1].distance - shower_inducing_prods[-2].distance) < min_distance):
+                        muon_secondaries = self.__propagate_particle(mu_energy, decay_particle.type,
+                                                                     mu_position, mu_direction,
+                                                                     propagation_length, low=low)
 
-                last_decay_prod = shower_inducing_prods.pop(-1)
-                shower_inducing_prods[-1].energy += last_decay_prod.energy
-                shower_inducing_prods[-1].code = 86
-                shower_inducing_prods[-1].name = particle_names.particle_name(86)
+                        shower_inducing_muon_secondaries = self.__filter_secondaries(muon_secondaries.stochastic_losses(),
+                                                                                     min_energy_loss, lepton_position)
+
+                        shower_inducing_prods.extend(shower_inducing_muon_secondaries)
+
+                        # We have already handled the muon, remove it to avoid double counting.
+                        decay_products.remove(decay_particle)
+
+            decay_energy = secondaries.final_state().energy / pp_MeV * units.MeV  # energy of the lepton before decay
+            grouped_decay_products = self.__group_decay_products(decay_products, min_energy_loss, lepton_position, decay_energy)
+
+            if grouped_decay_products is not None:
+                shower_inducing_prods.append(grouped_decay_products)
 
             secondaries_array.append(shower_inducing_prods)
-
-        # Propagating the decay muons
-        if propagate_decay_muons:
-
-            for shower_inducing_prods, decay_muon, lepton_position in zip(secondaries_array,
-                decay_muons_array, lepton_positions):
-
-                if decay_muon[0] is None:
-                    continue
-                mu_energy, mu_code, mu_position, mu_direction = decay_muon
-                mu_secondaries = self.__propagate_particle(mu_energy, mu_code, mu_position, mu_direction,
-                                                           propagation_length, low=low)
-
-                mu_shower_inducing_prods = self.__filter_secondaries(mu_secondaries, min_energy_loss, lepton_position)
-
-                shower_inducing_prods += mu_shower_inducing_prods
 
         return secondaries_array
 
@@ -670,7 +713,8 @@ class ProposalFunctions(object):
         if lepton_positions_nu is None:
             lepton_positions = [(0, 0, 0)] * len(energy_leptons)
         else:
-            lepton_positions = [ np.array(lepton_position_nu) * pp_m for lepton_position_nu in lepton_positions_nu ]
+            lepton_positions = [np.array(lepton_position_nu) * pp_m
+                                    for lepton_position_nu in lepton_positions_nu]
 
         if lepton_directions is None:
             lepton_directions = [(0, 0, 1)] * len(energy_leptons)
@@ -687,21 +731,21 @@ class ProposalFunctions(object):
                 secondaries = self.__propagate_particle(energy_lepton, lepton_code, lepton_position, lepton_direction,
                                                         propagation_length, low=low)
 
-                decay_particles = np.array([p for p in secondaries if p.type not in proposal_interaction_codes])
+
+                decay_particles = secondaries.decay_products()
                 decay_energies = np.array([p.energy for p in decay_particles])
-                decay_energy = np.sum(decay_energies) * units.MeV
+                decay_energy = np.sum(decay_energies) / pp_MeV * units.MeV
 
-                try:
-                    # If Proposal fails and there is no decay (sometimes it happens),
-                    # the particle is propagated again
-                    decay_distance = ((decay_particles[0].position.x - lepton_position[0]) * units.cm) ** 2
-                    decay_distance += ((decay_particles[0].position.y - lepton_position[1]) * units.cm) ** 2
-                    decay_distance += ((decay_particles[0].position.z - lepton_position[2]) * units.cm) ** 2
-                    decay_distance = np.sqrt(decay_distance)
-
-                    decay_prop = (decay_distance, decay_energy)
-                    decays_array.append(decay_prop)
-                except:
+                # TODO: Is it physical to repeat the propagation until a decay (before the energy of low) happened?
+                if (len(decay_particles) == 0):
                     decay_prop = (None, None)
+                    continue
+
+                # all decay particles have the same position, so we can just use the position of the first one
+                decay_distance = ProposalFunctions.__calculate_distance(decay_particles[0].position, lepton_position)
+
+                # TODO: Note that this includes ALL decay particles, including invisible ones like neutrinos
+                decay_prop = (decay_distance, decay_energy)
+                decays_array.append(decay_prop)
 
         return np.array(decays_array)

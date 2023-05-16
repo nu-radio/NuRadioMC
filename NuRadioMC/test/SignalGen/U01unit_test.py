@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from NuRadioMC.SignalGen.askaryan import get_time_trace, get_frequency_spectrum
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities import io_utilities

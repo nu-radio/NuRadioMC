@@ -1,3 +1,15 @@
+#############################################################
+# Keep in might that sub-directories might contain additional
+# .gitignore files to exclude specific files.
+#############################################################
+
+# Ignore all nur and hdf5 files. This will also make sure that you do not accidentally add large files to your commit. Execeptions, such as (!*reference*.hdf5) have to be added explicitly.
+*.nur
+*.hdf5
+# Exclude reference files from being ignored here
+!*reference*.nur
+!*reference*.hdf5
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -86,7 +98,6 @@ celerybeat-schedule
 # Environments
 .env
 .venv
-env/
 venv/
 ENV/
 env.bak/
@@ -108,6 +119,9 @@ venv.bak/
 # dolphin
 .directory
 
+# VSCode
+.vscode/
+
 # eclipse
 .project
 .pydevproject
@@ -123,3 +137,6 @@ venv.bak/
 # ignore .nur files in NuRadioReco/examples/
 # this should not apply for NuRadioReco/examples/example_data/
 NuRadioReco/examples/*.nur
+
+# Default location for proposal tables with proposal7
+NuRadioMC/EvtGen/proposal_tables/
