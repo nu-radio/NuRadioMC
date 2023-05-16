@@ -623,13 +623,13 @@ def parse_AERA_XML_file(path):
 
     # get frequencies and angles
     frequencies_node = root.find("./frequency")
-    frequencies = np.array(frequencies_node.text.strip().split(), dtype=np.float) * units.MHz
+    frequencies = np.array(frequencies_node.text.strip().split(), dtype=float) * units.MHz
 
     theta_node = root.find("./theta")
-    thetas = np.array(theta_node.text.strip().split(), dtype=np.float) * units.deg
+    thetas = np.array(theta_node.text.strip().split(), dtype=float) * units.deg
 
     phi_node = root.find("./phi")
-    phis = np.array(phi_node.text.strip().split(), dtype=np.float) * units.deg
+    phis = np.array(phi_node.text.strip().split(), dtype=float) * units.deg
 
     n_freqs = len(frequencies)
     n_angles = len(phis)
@@ -650,16 +650,16 @@ def parse_AERA_XML_file(path):
             freq_string = "%.1f" % freq
 
         theta_amp_node = root.find("./EAHTheta_amp[@idfreq='%s']" % freq_string)
-        theta_amps[iFreq] = np.array(theta_amp_node.text.strip().split(), dtype=np.float) * units.m
+        theta_amps[iFreq] = np.array(theta_amp_node.text.strip().split(), dtype=float) * units.m
 
         theta_phase_node = root.find("./EAHTheta_phase[@idfreq='%s']" % freq_string)
-        theta_phases[iFreq] = np.deg2rad(np.array(theta_phase_node.text.strip().split(" "), dtype=np.float))
+        theta_phases[iFreq] = np.deg2rad(np.array(theta_phase_node.text.strip().split(" "), dtype=float))
 
         phi_amp_node = root.find("./EAHPhi_amp[@idfreq='%s']" % freq_string)
-        phi_amps[iFreq] = np.array(phi_amp_node.text.strip().split(), dtype=np.float) * units.m
+        phi_amps[iFreq] = np.array(phi_amp_node.text.strip().split(), dtype=float) * units.m
 
         phi_phase_node = root.find("./EAHPhi_phase[@idfreq='%s']" % freq_string)
-        phi_phases[iFreq] = np.deg2rad(np.array(phi_phase_node.text.strip().split(), dtype=np.float))
+        phi_phases[iFreq] = np.deg2rad(np.array(phi_phase_node.text.strip().split(), dtype=float))
 
     return frequencies, phis, thetas, phi_amps, phi_phases, theta_amps, theta_phases
 
