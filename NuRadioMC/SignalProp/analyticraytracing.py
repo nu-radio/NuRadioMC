@@ -1622,8 +1622,8 @@ class ray_tracing(ray_tracing_base):
         if(self._X2[2] < self._X1[2]):
             self._swap = True
             self.__logger.debug('swap = True')
-            self._X2 = np.array(x1, dtype =np.float)
-            self._X1 = np.array(x2, dtype =np.float)
+            self._X2 = np.array(x1, dtype =float)
+            self._X1 = np.array(x2, dtype =float)
 
         dX = self._X2 - self._X1
         self._dPhi = -np.arctan2(dX[1], dX[0])

@@ -306,7 +306,7 @@ class simulation:
             self._amplification_per_channel[self._station_id] = {}
             for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                 ff = np.linspace(0, 0.5 / self._dt, 10000)
-                filt = np.ones_like(ff, dtype=np.complex)
+                filt = np.ones_like(ff, dtype=complex)
                 for i, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station_id)):
                     if hasattr(instance, "get_filter"):
                         filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
@@ -1428,10 +1428,10 @@ class simulation:
                 fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
                 fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._bandwidth_per_channel[station_id].values())
 
-            fout.attrs.create("Tnoise", self._noise_temp, dtype=np.float)
-            fout.attrs.create("Vrms", self._Vrms, dtype=np.float)
-            fout.attrs.create("dt", self._dt, dtype=np.float)
-            fout.attrs.create("bandwidth", self._bandwidth, dtype=np.float)
+            fout.attrs.create("Tnoise", self._noise_temp, dtype=float)
+            fout.attrs.create("Vrms", self._Vrms, dtype=float)
+            fout.attrs.create("dt", self._dt, dtype=float)
+            fout.attrs.create("bandwidth", self._bandwidth, dtype=float)
             fout.attrs['n_samples'] = self._n_samples
         fout.attrs['config'] = yaml.dump(self._cfg)
 
