@@ -376,6 +376,10 @@ class neutrinoDirectionReconstructor:
 
         cop = datetime.datetime.now()
         logger.info("Starting direction reconstruction...")
+        minimizer_args = (
+            reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], 
+            True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, 
+            self._full_station)
         if self._brute_force and not self._restricted_input: # restricted_input:
             logger.warning("Using brute force optimization")
             if starting_values:
@@ -393,10 +397,7 @@ class neutrinoDirectionReconstructor:
                         slice(theta_start, theta_end, d_theta_grid),
                         slice(np.log10(energy_start), np.log10(energy_end), d_log_energy)
                     ), full_output = True, finish = opt.fmin,
-                    args = (
-                        reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2],
-                        True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, self._full_station
-                    )
+                    args = minimizer_args
                 )
 
         elif self._restricted_input:
@@ -408,7 +409,16 @@ class neutrinoDirectionReconstructor:
             azimuth_end = simulated_azimuth + np.deg2rad(d_angle)
             energy_start = np.log10(simulated_energy) - 1
             energy_end = np.log10(simulated_energy) + 1
-            results = opt.brute(self.minimizer, ranges=(slice(zenith_start, zenith_end, np.deg2rad(.5)), slice(azimuth_start, azimuth_end, np.deg2rad(.5)), slice(energy_start, energy_end, .05)), finish = opt.fmin, full_output = True, args = (reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], True, False, False, False, False, self._reference_Vpol, self._reference_Hpol, self._full_station))
+            results = opt.brute(
+                self.minimizer, ranges=(
+                    slice(zenith_start, zenith_end, np.deg2rad(.5)), 
+                    slice(azimuth_start, azimuth_end, np.deg2rad(.5)), 
+                    slice(energy_start, energy_end, .05)), 
+                finish = opt.fmin, full_output = True, args = ( ### not the same as minimizer_args!
+                    reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2],
+                    True, False, False, False, False, 
+                    self._reference_Vpol, self._reference_Hpol, self._full_station)
+            )
 
         else:
             logger.warning('Using iterative fitter')
@@ -445,11 +455,8 @@ class neutrinoDirectionReconstructor:
             # res = opt.shgo(
             #     self.minimizer, #x0=[self._cherenkov_angle, 0, 18.0], 
             #     bounds = [(self._cherenkov_angle - 15*units.deg, self._cherenkov_angle + 15*units.deg), (-3*np.pi/2, 3*np.pi/2), (15,20.5)],
-            #     args = (
-            #         reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], 
-            #         True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, 
-            #         self._full_station), 
-            #     constraints = [dict(type='ineq', fun=constr)]
+            #     args = minimizer_args, iters=3, options=dict(minimize_every_iter=True)
+            #     # constraints = [dict(type='ineq', fun=constr)]
             # )
             # print(res)
             # chisq = res.fun
@@ -457,10 +464,7 @@ class neutrinoDirectionReconstructor:
             
             res = opt.minimize(
                 self.minimizer, x0=[self._cherenkov_angle, 0, 18.0], 
-                args = (
-                    reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], 
-                    True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, 
-                    self._full_station), 
+                args = minimizer_args, 
                 #method='Nelder-Mead', options=dict(xatol=1e-4,fatol=1e-2)
                 # method = 'trust-constr', constraints = constraint
                 # constraints = [dict(type='ineq', fun=constr)]
@@ -478,35 +482,41 @@ class neutrinoDirectionReconstructor:
             # to avoid local minima (wrong side of cherenkov cone, wrong polarization sign)
             # we re-run the minimizer starting at the other minima
             signs = [-1,1]
-            for index in np.arange(4)[np.isnan(chisq[:4])]:
-                viewing_sign = signs[index // 2]
-                polarization_sign = signs[index % 2]
-                try:
-                    old_guess = results[np.nanargmin(chisq)] 
-                except ValueError: # sometimes, the fit gets stuck on an invalid point and only returns nans
-                    old_guess = self._cherenkov_angle + 2 * units.deg, 20*units.deg, 18 # initialize to something sensible
-                # we use min/median as 'sanity checks' to avoid starting the fit at an unlikely point
-                viewing_guess = self._cherenkov_angle + viewing_sign * np.min([7*units.deg, np.abs(old_guess[0] - self._cherenkov_angle)])
-                polarization_guess = polarization_sign * np.min([np.pi/3,np.abs(old_guess[1])])
-                energy_guess = np.median([16, old_guess[2],19])
-                # logger.info(f'Iteration {index} - x0={[viewing_guess, polarization_guess, energy_guess]}, chisq={np.nanmin(chisq)}')
+            for iteration in range(2): # we do 2 iterations
+                index_list = [np.arange(4)[np.isnan(chisq[:4])], np.arange(4)][iteration]
+                for index in index_list:
+                    viewing_sign = signs[index // 2]
+                    polarization_sign = signs[index % 2]
+                    try:
+                        old_guess = results[np.nanargmin(chisq)] 
+                    except ValueError: # sometimes, the fit gets stuck on an invalid point and only returns nans
+                        old_guess = self._cherenkov_angle + 2 * units.deg, 20*units.deg, 18 # initialize to something sensible
+                    # we use min/median as 'sanity checks' to avoid starting the fit at an unlikely point
+                    viewing_guess = self._cherenkov_angle + viewing_sign * np.min([7*units.deg, np.abs(old_guess[0] - self._cherenkov_angle)])
+                    polarization_guess = polarization_sign * np.min([np.pi/3,np.abs(old_guess[1])])
+                    energy_guess = np.median([16, old_guess[2],19])
+                    # logger.info(f'Iteration {index} - x0={[viewing_guess, polarization_guess, energy_guess]}, chisq={np.nanmin(chisq)}')
+                    
+                    res = opt.minimize(
+                        self.minimizer, x0=[viewing_guess, polarization_guess, energy_guess], 
+                        args = minimizer_args, 
+                        #method='Nelder-Mead', options=dict(xatol=1e-4,fatol=1e-2),
+                        # method = 'trust-constr', constraints = constraint
+                        # constraints = [dict(type='ineq', fun=constr)]
+                        tol=1e-4,
+                    )
+                    if res.fun < chisq[index] or np.isnan(chisq[index]): # only update if chi squared improved
+                        chisq[index] = res.fun
+                        results[index] = res.x
+                        is_valid[index] = res.success
+                    if not res.success:
+                        logger.warning(f'Fit {index} failed with message: {res.message}')
+                if np.all(np.abs(chisq[:4] - np.amin(chisq[:4])) < 1e-3):
+                    # in this case, all 4 minimizations converged to the same point, 
+                    # so there is no point in doing a second iteration
+                    logger.debug("All fits converged to the same point - skipping second iteration...")
+                    break
 
-                res = opt.minimize(
-                    self.minimizer, x0=[viewing_guess, polarization_guess, energy_guess], 
-                    args = (
-                        reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], 
-                        True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, 
-                        self._full_station), 
-                    #method='Nelder-Mead', options=dict(xatol=1e-4,fatol=1e-2),
-                    # method = 'trust-constr', constraints = constraint
-                    # constraints = [dict(type='ineq', fun=constr)]
-                    tol=1e-4,
-                )
-                chisq[index] = res.fun
-                results[index] = res.x
-                is_valid[index] = res.success
-                if not res.success:
-                    logger.warning(f'Fit {index} failed with message: {res.message}')
             # --- experimental - try to fit shower type also
             if self._fit_shower_type:
                 for index in np.arange(4):
@@ -524,10 +534,7 @@ class neutrinoDirectionReconstructor:
 
                     res = opt.minimize(
                         self.minimizer, x0=[viewing_guess, polarization_guess, energy_guess], 
-                        args = (
-                            reconstructed_vertex[0], reconstructed_vertex[1], reconstructed_vertex[2], 
-                            True, False, False, True, False, self._reference_Vpol, self._reference_Hpol, 
-                            self._full_station, False,False,False,False,False,'EM'), 
+                        args = minimizer_args + (False,False,False,False,False,'EM'), 
                         #method='Nelder-Mead', options=dict(xatol=1e-4,fatol=1e-2),
                         # method = 'trust-constr', constraints = constraint
                         # constraints = [dict(type='ineq', fun=constr)]
