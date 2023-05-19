@@ -155,7 +155,7 @@ class readRNOGData:
                                       "Runs can not be filtered.")
             except ImportError:
                 self.logger.warn("Import of run table failed. Runs can not be filtered.! \n" 
-                        "You can get the interface from GitHub: git@github.com:RNO-G/rnog-data-analysis-and-issues.git")
+                        "You can get the interface from GitHub: git@github.com:RNO-G/rnog-runtable.git")
         else:
             import pandas
             self.__run_table = pandas.read_csv(run_table_path)
