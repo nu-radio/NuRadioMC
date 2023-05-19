@@ -132,14 +132,20 @@ def all_files_in_directory(mattak_dir):
 
 class readRNOGData:
     
-    def __init__(self, run_table_path=None):
+    def __init__(self, run_table_path=None, log_level=logging.INFO):
         """
         Parameters
         ----------
         
         run_table_path: str
             Path to a run_table.cvs file. If None, the run table is queried from the DB. (Default: None)
+            
+        log_level: enum
+            Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).
+            (Default: logging.INFO) 
         """
+        self.logger = logging.getLogger('NuRadioReco.readRNOGData')
+        self.logger.setLevel(log_level)
      
         # Initialize run table for run selection
         self.__run_table = None
@@ -173,8 +179,7 @@ class readRNOGData:
             run_time_range=None,
             max_trigger_rate=0 * units.Hz,
             mattak_kwargs={},
-            overwrite_sampling_rate=None,
-            log_level=logging.INFO):
+            overwrite_sampling_rate=None):
         """
         Parameters
         ----------
@@ -232,16 +237,9 @@ class readRNOGData:
             Set sampling rate of the imported waveforms. This overwrites what is read out from runinfo (i.e., stored in the mattak files).
             If None, nothing is overwritten and the sampling rate from the mattak file is used. (Default: None)
             NOTE: This option might be necessary when old mattak files are read which have this not set. 
-
-        log_level: enum
-            Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).
-            (Default: logging.INFO) 
         """
         
         t0 = time.time()
-        
-        self.logger = logging.getLogger('NuRadioReco.readRNOGData')
-        self.logger.setLevel(log_level)
         
         self._read_calibrated_data = read_calibrated_data
         self._apply_baseline_correction = apply_baseline_correction
