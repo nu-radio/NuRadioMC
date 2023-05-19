@@ -337,13 +337,14 @@ class simulation():
 						viewing_angles.append(viewing_angle)
 
 			self._raytracing = raytracing
+			self._first_iteration = False
 
 		raytype = {}
 		traces = {}
 		timing = {}
-		viewingangles = np.zeros((len(use_channels), 2))
-		polarizations = []
-		polarizations_antenna = []
+		# viewingangles = np.zeros((len(use_channels), 2))
+		# polarizations = []
+		# polarizations_antenna = []
 
 		for ich, channel_id in enumerate(use_channels):
 			raytype[channel_id] = {}
@@ -355,6 +356,13 @@ class simulation():
 				timing[channel_id][iS] = raytracing[channel_id][iS]["travel time"]
 				raytype[channel_id][iS] = raytracing[channel_id][iS]["raytype"]
 				viewing_angle = hp.get_angle(self._shower_axis,raytracing[channel_id][iS]["launch vector"])
+				polarization_direction_onsky = self._calculate_polarization_vector(channel_id, iS)
+				# viewingangles[ich,i_s] = viewing_angle
+				
+				if channel_id == self._ch_Vpol and iS == self._raytypesolution: # store viewing angle, polarization and launch vector for reference channel and solution
+					self._pol = polarization_direction_onsky
+					self._viewingangle = viewing_angle
+					self._launch_vector = raytracing[channel_id][iS]["launch vector"]
 				
 				if np.abs(viewing_angle - cherenkov_angle) > delta_C_cut:
 					traces[channel_id][iS] = np.zeros(self._n_samples)
@@ -386,21 +394,21 @@ class simulation():
 						self._dt, shower_type, n_index,
 						raytracing[channel_id][iS]["trajectory length"], self._askaryan_model, average_shower=True) #TODO - average_shower works only for Alvarez2009
 
-				viewingangles[ich,i_s] = viewing_angle
 
-				polarization_direction_onsky = self._calculate_polarization_vector(channel_id, iS)
-				cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["receive vector"]))
-				polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
-				#print("polarization direction at antenna", hp.cartesian_to_spherical(*polarization_direction_at_antenna))
-				logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
-					raytracing[channel_id][iS]["zenith"] / units.deg, raytracing[channel_id][iS]["azimuth"] / units.deg, polarization_direction_onsky[0],
-					polarization_direction_onsky[1], polarization_direction_onsky[2],
-					*polarization_direction_at_antenna))
 				spectrum_3d = np.outer(polarization_direction_onsky, spectrum)
+				
+				if logger.getEffectiveLevel() <= logging.DEBUG:
+					cs_at_antenna = cstrans.cstrafo(*hp.cartesian_to_spherical(*raytracing[channel_id][iS]["receive vector"]))
+					polarization_direction_at_antenna = cs_at_antenna.transform_from_onsky_to_ground(polarization_direction_onsky)
+					logger.debug('receive zenith {:.0f} azimuth {:.0f} polarization on sky {:.2f} {:.2f} {:.2f}, on ground @ antenna {:.2f} {:.2f} {:.2f}'.format(
+						raytracing[channel_id][iS]["zenith"] / units.deg, raytracing[channel_id][iS]["azimuth"] / units.deg, polarization_direction_onsky[0],
+						polarization_direction_onsky[1], polarization_direction_onsky[2],
+						*polarization_direction_at_antenna))
+					#print("polarization direction at antenna", hp.cartesian_to_spherical(*polarization_direction_at_antenna))
 
-				if channel_id == self._ch_Vpol:
-					polarizations.append( self._calculate_polarization_vector(self._ch_Vpol, iS))
-					polarizations_antenna.append(polarization_direction_at_antenna)
+				# if channel_id == self._ch_Vpol:
+				# 	polarizations.append( self._calculate_polarization_vector(self._ch_Vpol, iS))
+					# polarizations_antenna.append(polarization_direction_at_antenna)
 
 				## apply ray tracing corrections:
 				spectrum_3d *= raytracing[channel_id][iS]['propagation_effects']
@@ -448,13 +456,13 @@ class simulation():
 
 		# logger.debug("Found solutions for channels {}".format(raytracing.keys()))
 
-		if (self._first_iteration or first_iteration):
-			for i, iS in enumerate(raytracing[self._ch_Vpol]):
-				if iS == self._raytypesolution:
-					self._launch_vector = launch_vectors[i]
-					self._viewingangle = viewing_angles[i]
-					self._pol = polarizations[i]
-			self._first_iteration = False
+		# if (self._first_iteration or first_iteration):
+		# 	for i, iS in enumerate(raytracing[self._ch_Vpol]):
+		# 		if iS == self._raytypesolution:
+		# 			self._launch_vector = launch_vectors[i]
+		# 			self._viewingangle = viewing_angles[i]
+		# 			self._pol = polarizations[i]
+		# 	self._first_iteration = False
 		
 		if self._pol is None:
 			logger.warning((
