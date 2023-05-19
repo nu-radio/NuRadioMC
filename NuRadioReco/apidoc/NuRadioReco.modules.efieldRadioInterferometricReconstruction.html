@@ -573,8 +573,579 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="nuradioreco-modules-efieldradiointerferometricreconstruction-module">
-<h1>NuRadioReco.modules.efieldRadioInterferometricReconstruction module<a class="headerlink" href="#nuradioreco-modules-efieldradiointerferometricreconstruction-module" title="Permalink to this heading"></a></h1>
+  <section id="module-NuRadioReco.modules.efieldRadioInterferometricReconstruction">
+<span id="nuradioreco-modules-efieldradiointerferometricreconstruction-module"></span><h1>NuRadioReco.modules.efieldRadioInterferometricReconstruction module<a class="headerlink" href="#module-NuRadioReco.modules.efieldRadioInterferometricReconstruction" title="Permalink to this heading"></a></h1>
+<dl class="py data">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.logger">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.efieldRadioInterferometricReconstruction.</span></span><span class="sig-name descname"><span class="pre">logger</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;NuRadioMCLogger</span> <span class="pre">efieldRadioInterferometricReconstruction</span> <span class="pre">(WARNING)&gt;</span></em><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.logger" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>This module hosts to classes</dt><dd><ul class="simple">
+<li><p>efieldInterferometricDepthReco</p></li>
+<li><p>efieldInterferometricAxisReco (TODO: Not yet implemented)</p></li>
+</ul>
+</dd>
+</dl>
+<p>The radio-interferometric reconstruction (RIT) was proposed in [1]. 
+The implementation here is based on work published in [2].</p>
+<p>[1]: H. Schoorlemmer, W. R. Carvalho Jr., arXiv:2006.10348
+[2]: F. Schlueter, T. Huege, doi:10.1088/1748-0221/16/07/P07048</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.efieldRadioInterferometricReconstruction.</span></span><span class="sig-name descname"><span class="pre">efieldInterferometricDepthReco</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldRadioInterferometricReconstruction.html#efieldInterferometricDepthReco"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>This class reconstructs the depth of the maximum of the longitudinal profile of the 
+beam-formed radio emission: X_RIT along a given axis. X_RIT is found to correlate with X_max. 
+This correlation may depend on the zenith angle, the frequency band, and detector layout
+(if the detector is very irregular).</p>
+<p>For the reconstruction, a shower axis is needed. The radio emission in the vxB polarisation is used 
+(and thus the arrival direction is needed).</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.begin" title="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([interpolation, signal_kind, debug])</p></td>
+<td><p>Set module config.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.end" title="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.end"><code class="xref py py-obj docutils literal notranslate"><span class="pre">end</span></code></a>()</p></td>
+<td><p>Plot reconstructed depth vs true depth of shower maximum (Xmax).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.reconstruct_interferometric_depth" title="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.reconstruct_interferometric_depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reconstruct_interferometric_depth</span></code></a>(traces, ...)</p></td>
+<td><p>Returns Gauss-parameters fitted to the &quot;peak&quot; of the interferometic  longitudinal profile along the shower axis.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.run" title="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, det[, use_MC_geometry, use_MC_pulses])</p></td>
+<td><p>Run interferometric reconstruction of depth of coherent signal.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.sample_longitudinal_profile" title="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.sample_longitudinal_profile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample_longitudinal_profile</span></code></a>(traces, times, ...)</p></td>
+<td><p>Returns the longitudinal profile of the interferometic signal sampled along the shower axis.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.update_atmospheric_model_and_refractivity_table" title="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.update_atmospheric_model_and_refractivity_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_atmospheric_model_and_refractivity_table</span></code></a>(shower)</p></td>
+<td><p>Updates model of the atmosphere and tabulated, integrated refractive index according to shower properties.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.begin">
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'power'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldRadioInterferometricReconstruction.html#efieldInterferometricDepthReco.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.begin" title="Permalink to this definition"></a></dt>
+<dd><p>Set module config.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>interpolation</strong><span class="classifier">bool</span></dt><dd><p>If true, use a linear interpolation to match sampling of the beamformed signal trace and the individual time-shifted antenna traces.
+Default is True, False is not yet implemented</p>
+</dd>
+<dt><strong>signal_kind</strong><span class="classifier">str</span></dt><dd><p>Define which signal “metric” is used on the beamformed traces. Default “power” : sum over the squared amplitudes in a 100 ns window around the peak.
+Other options are “amplitude” or “hilbert_sum”</p>
+</dd>
+<dt><strong>debug</strong><span class="classifier">bool</span></dt><dd><p>If true, show some debug plots (Default: False).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.sample_longitudinal_profile">
+<span class="sig-name descname"><span class="pre">sample_longitudinal_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distances</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldRadioInterferometricReconstruction.html#efieldInterferometricDepthReco.sample_longitudinal_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.sample_longitudinal_profile" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the longitudinal profile of the interferometic signal sampled along the shower axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>traces</strong><span class="classifier">array(number_of_antennas, samples)</span></dt><dd><p>Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.</p>
+</dd>
+<dt><strong>times</strong><span class="classifier">array(number_of_antennas, samples)</span></dt><dd><p>Time vectors corresponding to the electric field traces.</p>
+</dd>
+<dt><strong>station_positions</strong><span class="classifier">array(number_of_antennas, 3)</span></dt><dd><p>Position of each antenna.</p>
+</dd>
+<dt><strong>shower_axis</strong><span class="classifier">array(3,)</span></dt><dd><p>Axis/direction along which the interferometric signal is sampled. Anchor is “core”.</p>
+</dd>
+<dt><strong>core</strong><span class="classifier">array(3,)</span></dt><dd><p>Shower core. Keep in mind that the altitudes (z-coordinate) matters.</p>
+</dd>
+<dt><strong>depths</strong><span class="classifier">array (optinal)</span></dt><dd><p>Define the positions (slant depth along the axis) at which the interferometric signal is sampled. 
+Instead of “depths” you can provide “distances”.</p>
+</dd>
+<dt><strong>distances</strong><span class="classifier">array (optinal)</span></dt><dd><p>Define the positions (geometrical distance from core along the axis) at which the interferometric signal is sampled.
+Instead of “distances” you can provide “depths”.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>signals</strong><span class="classifier">array</span></dt><dd><p>Interferometric singals sampled along the given axis</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.reconstruct_interferometric_depth">
+<span class="sig-name descname"><span class="pre">reconstruct_interferometric_depth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">400</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">800</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldRadioInterferometricReconstruction.html#efieldInterferometricDepthReco.reconstruct_interferometric_depth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.reconstruct_interferometric_depth" title="Permalink to this definition"></a></dt>
+<dd><p>Returns Gauss-parameters fitted to the “peak” of the interferometic 
+longitudinal profile along the shower axis.</p>
+<p>A initial samping range and size in defined by “lower_depth”, “upper_depth”, “bin_size”.
+However if the “peak”, i.e., maximum signal is found at an edge the sampling range in
+continually increased (with a min/max depth of 0/2000 g/cm^2). The Gauss is fitted around the
+found peak with a refined sampling (use 20 samples in this narrow range).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>traces</strong><span class="classifier">array(number_of_antennas, samples)</span></dt><dd><p>Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.</p>
+</dd>
+<dt><strong>times</strong><span class="classifier">array(number_of_antennas, samples)</span></dt><dd><p>Time vectors corresponding to the electric field traces.</p>
+</dd>
+<dt><strong>station_positions</strong><span class="classifier">array(number_of_antennas, 3)</span></dt><dd><p>Position of each antenna.</p>
+</dd>
+<dt><strong>shower_axis</strong><span class="classifier">array(3,)</span></dt><dd><p>Axis/direction along which the interferometric signal is sampled. Anchor is “core”.</p>
+</dd>
+<dt><strong>core</strong><span class="classifier">array(3,)</span></dt><dd><p>Shower core. Keep in mind that the altitudes (z-coordinate) matters.</p>
+</dd>
+<dt><strong>lower_depth</strong><span class="classifier">float</span></dt><dd><p>Define the lower edge for the inital sampling (default: 400 g/cm2).</p>
+</dd>
+<dt><strong>upper_depth</strong><span class="classifier">float</span></dt><dd><p>Define the upper edge for the inital sampling (default: 800 g/cm2).</p>
+</dd>
+<dt><strong>bin_size</strong><span class="classifier">float</span></dt><dd><p>Define the step size pf the inital sampling (default: 100 g/cm2).
+The refined sampling around the peak region is / 10 this value.</p>
+</dd>
+<dt><strong>return_profile</strong><span class="classifier">bool</span></dt><dd><p>If true return the sampled profile in addition to the Gauss parameter (default: False).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>If return_profile is True</dt><dd><dl class="simple">
+<dt>depths_corse<span class="classifier">np.array</span></dt><dd><p>Depths along shower axis coarsely sampled</p>
+</dd>
+<dt>depths_fine<span class="classifier">np.array</span></dt><dd><p>Depths along shower axis finely sampled (used in fitting)</p>
+</dd>
+<dt>signals_corese<span class="classifier">np.array</span></dt><dd><p>Beamformed signals along shower axis coarsely sampled</p>
+</dd>
+<dt>signals_fine<span class="classifier">np.array</span></dt><dd><p>Beamformed signals along shower axis finely sampled (used in fitting)</p>
+</dd>
+<dt>popt<span class="classifier">list</span></dt><dd><p>List of fitted Gauss parameters (amplitude, position, width)</p>
+</dd>
+</dl>
+</dd>
+<dt>If return_profile is False:</dt><dd><dl class="simple">
+<dt>popt<span class="classifier">list</span></dt><dd><p>List of fitted Gauss parameters (amplitude, position, width)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.update_atmospheric_model_and_refractivity_table">
+<span class="sig-name descname"><span class="pre">update_atmospheric_model_and_refractivity_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shower</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldRadioInterferometricReconstruction.html#efieldInterferometricDepthReco.update_atmospheric_model_and_refractivity_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.update_atmospheric_model_and_refractivity_table" title="Permalink to this definition"></a></dt>
+<dd><p>Updates model of the atmosphere and tabulated, integrated refractive index according to shower properties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shower</strong><span class="classifier">BaseShower</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_MC_geometry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_MC_pulses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldRadioInterferometricReconstruction.html#efieldInterferometricDepthReco.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.run" title="Permalink to this definition"></a></dt>
+<dd><p>Run interferometric reconstruction of depth of coherent signal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>evt</strong><span class="classifier">Event</span></dt><dd><p>Event to run the module on.</p>
+</dd>
+<dt><strong>det</strong><span class="classifier">Detector</span></dt><dd><p>Detector description</p>
+</dd>
+<dt><strong>use_MC_geometry</strong><span class="classifier">bool</span></dt><dd><p>if true, take geometry from sim_shower. Results will than also be stored in sim_shower</p>
+</dd>
+<dt><strong>use_MC_pulses</strong><span class="classifier">bool</span></dt><dd><p>if true, take electric field trace from sim_station</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.end">
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldRadioInterferometricReconstruction.html#efieldInterferometricDepthReco.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.end" title="Permalink to this definition"></a></dt>
+<dd><p>Plot reconstructed depth vs true depth of shower maximum (Xmax).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.efieldRadioInterferometricReconstruction.</span></span><span class="sig-name descname"><span class="pre">efieldInterferometricAxisReco</span></span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldRadioInterferometricReconstruction.html#efieldInterferometricAxisReco"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco" title="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco"><code class="xref py py-class docutils literal notranslate"><span class="pre">efieldInterferometricDepthReco</span></code></a></p>
+<p>Class to reconstruct the shower axis with beamforming.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.begin" title="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>([interpolation, signal_kind, debug])</p></td>
+<td><p>Set module config.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.end" title="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.end"><code class="xref py py-obj docutils literal notranslate"><span class="pre">end</span></code></a>()</p></td>
+<td><p>Plot reconstructed depth vs true depth of shower maximum (Xmax).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.find_maximum_in_plane" title="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.find_maximum_in_plane"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_maximum_in_plane</span></code></a>(xs, ys, p_axis, ...)</p></td>
+<td><p>Sample interferometric signals in 2-d plane (vxB-vxvxB) perpendicular to a given axis on a rectangular/quadratic grid.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.reconstruct_interferometric_depth" title="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.reconstruct_interferometric_depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reconstruct_interferometric_depth</span></code></a>(traces, ...)</p></td>
+<td><p>Returns Gauss-parameters fitted to the &quot;peak&quot; of the interferometic  longitudinal profile along the shower axis.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.reconstruct_shower_axis" title="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.reconstruct_shower_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reconstruct_shower_axis</span></code></a>(traces, times, ...)</p></td>
+<td><p>Run interferometric reconstruction of the shower axis.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.run" title="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt, det[, use_MC_geometry, use_MC_pulses])</p></td>
+<td><p>Run interferometric reconstruction of depth of coherent signal.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.sample_lateral_cross_section" title="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.sample_lateral_cross_section"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample_lateral_cross_section</span></code></a>(traces, times, ...)</p></td>
+<td><p>Sampling the &quot;cross section&quot;, i.e., 2d-lateral distribution of the beam formed signal for a slice in the atmosphere.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.sample_longitudinal_profile" title="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.sample_longitudinal_profile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample_longitudinal_profile</span></code></a>(traces, times, ...)</p></td>
+<td><p>Returns the longitudinal profile of the interferometic signal sampled along the shower axis.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.update_atmospheric_model_and_refractivity_table" title="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.update_atmospheric_model_and_refractivity_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_atmospheric_model_and_refractivity_table</span></code></a>(shower)</p></td>
+<td><p>Updates model of the atmosphere and tabulated, integrated refractive index according to shower properties.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.find_maximum_in_plane">
+<span class="sig-name descname"><span class="pre">find_maximum_in_plane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldRadioInterferometricReconstruction.html#efieldInterferometricAxisReco.find_maximum_in_plane"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.find_maximum_in_plane" title="Permalink to this definition"></a></dt>
+<dd><p>Sample interferometric signals in 2-d plane (vxB-vxvxB) perpendicular to a given axis on a rectangular/quadratic grid.
+The orientation of the plane is defined by the radiotools.coordinatesytem.cstrafo argument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>xs</strong><span class="classifier">array</span></dt><dd><p>x-coordinates defining the sampling positions.</p>
+</dd>
+<dt><strong>ys</strong><span class="classifier">array</span></dt><dd><p>y-coordinates defining the sampling positions.</p>
+</dd>
+<dt><strong>p_axis</strong><span class="classifier">array(3,)</span></dt><dd><p>Origin of the 2-d plane along the axis.</p>
+</dd>
+<dt><strong>station_positions</strong><span class="classifier">array(number_of_antennas, 3)</span></dt><dd><p>Position of each antenna.</p>
+</dd>
+<dt><strong>traces</strong><span class="classifier">array(number_of_antennas, samples)</span></dt><dd><p>Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.</p>
+</dd>
+<dt><strong>times</strong><span class="classifier">array(number_of_antennas, samples)</span></dt><dd><p>Time vectors corresponding to the electric field traces.</p>
+</dd>
+<dt><strong>cs</strong><span class="classifier">radiotools.coordinatesytem.cstrafo</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>idx</strong><span class="classifier">int</span></dt><dd><p>Index of the entry with the largest signal (np.argmax(signals))</p>
+</dd>
+<dt><strong>signals</strong><span class="classifier">array(len(xs), len(ys))</span></dt><dd><p>Interferometric signal</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.sample_lateral_cross_section">
+<span class="sig-name descname"><span class="pre">sample_lateral_cross_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_axis_inital</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_axis_mc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_mc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_grid_spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centered_around_truth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deg_resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8.726646259971648e-05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldRadioInterferometricReconstruction.html#efieldInterferometricAxisReco.sample_lateral_cross_section"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.sample_lateral_cross_section" title="Permalink to this definition"></a></dt>
+<dd><p>Sampling the “cross section”, i.e., 2d-lateral distribution of the beam formed signal for a slice in the atmosphere. 
+It is looking for the maximum in the lateral distribution with an (stupid) iterative grid search.</p>
+<p>Returns the position and the strenght of the maximum signal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>traces</strong><span class="classifier">array(number_of_antennas, samples)</span></dt><dd><p>Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.</p>
+</dd>
+<dt><strong>times</strong><span class="classifier">array(number_of_antennas, samples)</span></dt><dd><p>Time vectors corresponding to the electric field traces.</p>
+</dd>
+<dt><strong>station_positions</strong><span class="classifier">array(number_of_antennas, 3)</span></dt><dd><p>Position of each antenna.</p>
+</dd>
+<dt><strong>shower_axis_inital</strong><span class="classifier">array(3,)</span></dt><dd><p>Axis/direction which is used as initial guess for the true shower axis.
+Around this axis the interferometric signals are sample on 2-d planes.</p>
+</dd>
+<dt><strong>core</strong><span class="classifier">array(3,)</span></dt><dd><p>Shower core which is used as initial guess. Keep in mind that the altitudes (z-coordinate) matters.</p>
+</dd>
+<dt><strong>depth</strong><span class="classifier">np.array</span></dt><dd></dd>
+<dt><strong>cs</strong><span class="classifier">radiotools.coordinatesytem.cstrafo</span></dt><dd></dd>
+<dt><strong>shower_axis_mc</strong><span class="classifier">np.array(3,)</span></dt><dd></dd>
+<dt><strong>core_mc</strong><span class="classifier">np.array(3,)</span></dt><dd></dd>
+<dt><strong>relative</strong><span class="classifier">bool</span></dt><dd><p>False</p>
+</dd>
+<dt><strong>initial_grid_spacing</strong><span class="classifier">int</span></dt><dd><p>100</p>
+</dd>
+<dt><strong>centered_around_truth</strong><span class="classifier">bool</span></dt><dd><p>True</p>
+</dd>
+<dt><strong>cross_section_size</strong><span class="classifier">int</span></dt><dd><p>1000</p>
+</dd>
+<dt><strong>deg_resolution</strong><span class="classifier">float</span></dt><dd><p>np.deg2rad(0.005))</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>point_found</strong><span class="classifier">np.array(3,)</span></dt><dd><p>Position of the found maximum</p>
+</dd>
+<dt><strong>weight</strong><span class="classifier">float</span></dt><dd><p>Amplitude/Strengt of the maximum</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.reconstruct_shower_axis">
+<span class="sig-name descname"><span class="pre">reconstruct_shower_axis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magnetic_field_vector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_mc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_grid_spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_section_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldRadioInterferometricReconstruction.html#efieldInterferometricAxisReco.reconstruct_shower_axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.reconstruct_shower_axis" title="Permalink to this definition"></a></dt>
+<dd><p>Run interferometric reconstruction of the shower axis. Find the maxima of the interferometric signals 
+within 2-d plane (slices) along a given axis (initial guess). Through those maxima (their position in the
+atmosphere) a straight line is fitted to reconstruct the shower axis.</p>
+<dl class="simple">
+<dt>traces<span class="classifier">array(number_of_antennas, samples)</span></dt><dd><p>Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.</p>
+</dd>
+<dt>times<span class="classifier">array(number_of_antennas, samples)</span></dt><dd><p>Time vectors corresponding to the electric field traces.</p>
+</dd>
+<dt>station_positions<span class="classifier">array(number_of_antennas, 3)</span></dt><dd><p>Position of each antenna.</p>
+</dd>
+<dt>shower_axis_inital<span class="classifier">array(3,)</span></dt><dd><p>Axis/direction which is used as initial guess for the true shower axis.
+Around this axis the interferometric signals are sample on 2-d planes.</p>
+</dd>
+<dt>core<span class="classifier">array(3,)</span></dt><dd><p>Shower core which is used as initial guess. Keep in mind that the altitudes (z-coordinate) matters.</p>
+</dd>
+<dt>magnetic_field_vector<span class="classifier">array(3,)</span></dt><dd><p>Magnetic field vector of the site you are using.</p>
+</dd>
+<dt>is_mc<span class="classifier">bool</span></dt><dd><p>If true, interprete the provided shower axis as truth and add some gaussian smearing to optain an
+inperfect initial guess for the shower axis (Default: True).</p>
+</dd>
+<dt>initial_grid_spacing<span class="classifier">double</span></dt><dd><p>Spacing of your grid points in meters (Default: 60m)</p>
+</dd>
+<dt>cross_section_size<span class="classifier">double</span></dt><dd><p>Side length on the 2-d planes (slice) along which the maximum around the initial axis is sampled in meters
+(Default: 1000m).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_MC_geometry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_MC_pulses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldRadioInterferometricReconstruction.html#efieldInterferometricAxisReco.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.run" title="Permalink to this definition"></a></dt>
+<dd><p>Run interferometric reconstruction of depth of coherent signal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>evt</strong><span class="classifier">Event</span></dt><dd><p>Event to run the module on.</p>
+</dd>
+<dt><strong>det</strong><span class="classifier">Detector</span></dt><dd><p>Detector description</p>
+</dd>
+<dt><strong>use_MC_geometry</strong><span class="classifier">bool</span></dt><dd><p>if true, take geometry from sim_shower. Results will than also be stored in sim_shower</p>
+</dd>
+<dt><strong>use_MC_pulses</strong><span class="classifier">bool</span></dt><dd><p>if true, take electric field trace from sim_station</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.end">
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldRadioInterferometricReconstruction.html#efieldInterferometricAxisReco.end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.end" title="Permalink to this definition"></a></dt>
+<dd><p>Plot reconstructed depth vs true depth of shower maximum (Xmax).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.begin">
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'power'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.begin" title="Permalink to this definition"></a></dt>
+<dd><p>Set module config.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>interpolation</strong><span class="classifier">bool</span></dt><dd><p>If true, use a linear interpolation to match sampling of the beamformed signal trace and the individual time-shifted antenna traces.
+Default is True, False is not yet implemented</p>
+</dd>
+<dt><strong>signal_kind</strong><span class="classifier">str</span></dt><dd><p>Define which signal “metric” is used on the beamformed traces. Default “power” : sum over the squared amplitudes in a 100 ns window around the peak.
+Other options are “amplitude” or “hilbert_sum”</p>
+</dd>
+<dt><strong>debug</strong><span class="classifier">bool</span></dt><dd><p>If true, show some debug plots (Default: False).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.reconstruct_interferometric_depth">
+<span class="sig-name descname"><span class="pre">reconstruct_interferometric_depth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">400</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">800</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.reconstruct_interferometric_depth" title="Permalink to this definition"></a></dt>
+<dd><p>Returns Gauss-parameters fitted to the “peak” of the interferometic 
+longitudinal profile along the shower axis.</p>
+<p>A initial samping range and size in defined by “lower_depth”, “upper_depth”, “bin_size”.
+However if the “peak”, i.e., maximum signal is found at an edge the sampling range in
+continually increased (with a min/max depth of 0/2000 g/cm^2). The Gauss is fitted around the
+found peak with a refined sampling (use 20 samples in this narrow range).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>traces</strong><span class="classifier">array(number_of_antennas, samples)</span></dt><dd><p>Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.</p>
+</dd>
+<dt><strong>times</strong><span class="classifier">array(number_of_antennas, samples)</span></dt><dd><p>Time vectors corresponding to the electric field traces.</p>
+</dd>
+<dt><strong>station_positions</strong><span class="classifier">array(number_of_antennas, 3)</span></dt><dd><p>Position of each antenna.</p>
+</dd>
+<dt><strong>shower_axis</strong><span class="classifier">array(3,)</span></dt><dd><p>Axis/direction along which the interferometric signal is sampled. Anchor is “core”.</p>
+</dd>
+<dt><strong>core</strong><span class="classifier">array(3,)</span></dt><dd><p>Shower core. Keep in mind that the altitudes (z-coordinate) matters.</p>
+</dd>
+<dt><strong>lower_depth</strong><span class="classifier">float</span></dt><dd><p>Define the lower edge for the inital sampling (default: 400 g/cm2).</p>
+</dd>
+<dt><strong>upper_depth</strong><span class="classifier">float</span></dt><dd><p>Define the upper edge for the inital sampling (default: 800 g/cm2).</p>
+</dd>
+<dt><strong>bin_size</strong><span class="classifier">float</span></dt><dd><p>Define the step size pf the inital sampling (default: 100 g/cm2).
+The refined sampling around the peak region is / 10 this value.</p>
+</dd>
+<dt><strong>return_profile</strong><span class="classifier">bool</span></dt><dd><p>If true return the sampled profile in addition to the Gauss parameter (default: False).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>If return_profile is True</dt><dd><dl class="simple">
+<dt>depths_corse<span class="classifier">np.array</span></dt><dd><p>Depths along shower axis coarsely sampled</p>
+</dd>
+<dt>depths_fine<span class="classifier">np.array</span></dt><dd><p>Depths along shower axis finely sampled (used in fitting)</p>
+</dd>
+<dt>signals_corese<span class="classifier">np.array</span></dt><dd><p>Beamformed signals along shower axis coarsely sampled</p>
+</dd>
+<dt>signals_fine<span class="classifier">np.array</span></dt><dd><p>Beamformed signals along shower axis finely sampled (used in fitting)</p>
+</dd>
+<dt>popt<span class="classifier">list</span></dt><dd><p>List of fitted Gauss parameters (amplitude, position, width)</p>
+</dd>
+</dl>
+</dd>
+<dt>If return_profile is False:</dt><dd><dl class="simple">
+<dt>popt<span class="classifier">list</span></dt><dd><p>List of fitted Gauss parameters (amplitude, position, width)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.sample_longitudinal_profile">
+<span class="sig-name descname"><span class="pre">sample_longitudinal_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distances</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.sample_longitudinal_profile" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the longitudinal profile of the interferometic signal sampled along the shower axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>traces</strong><span class="classifier">array(number_of_antennas, samples)</span></dt><dd><p>Electric field traces (one polarisation of it, usually vxB) for all antennas/stations.</p>
+</dd>
+<dt><strong>times</strong><span class="classifier">array(number_of_antennas, samples)</span></dt><dd><p>Time vectors corresponding to the electric field traces.</p>
+</dd>
+<dt><strong>station_positions</strong><span class="classifier">array(number_of_antennas, 3)</span></dt><dd><p>Position of each antenna.</p>
+</dd>
+<dt><strong>shower_axis</strong><span class="classifier">array(3,)</span></dt><dd><p>Axis/direction along which the interferometric signal is sampled. Anchor is “core”.</p>
+</dd>
+<dt><strong>core</strong><span class="classifier">array(3,)</span></dt><dd><p>Shower core. Keep in mind that the altitudes (z-coordinate) matters.</p>
+</dd>
+<dt><strong>depths</strong><span class="classifier">array (optinal)</span></dt><dd><p>Define the positions (slant depth along the axis) at which the interferometric signal is sampled. 
+Instead of “depths” you can provide “distances”.</p>
+</dd>
+<dt><strong>distances</strong><span class="classifier">array (optinal)</span></dt><dd><p>Define the positions (geometrical distance from core along the axis) at which the interferometric signal is sampled.
+Instead of “distances” you can provide “depths”.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>signals</strong><span class="classifier">array</span></dt><dd><p>Interferometric singals sampled along the given axis</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.update_atmospheric_model_and_refractivity_table">
+<span class="sig-name descname"><span class="pre">update_atmospheric_model_and_refractivity_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shower</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.update_atmospheric_model_and_refractivity_table" title="Permalink to this definition"></a></dt>
+<dd><p>Updates model of the atmosphere and tabulated, integrated refractive index according to shower properties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shower</strong><span class="classifier">BaseShower</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.get_geometry_and_transformation">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.efieldRadioInterferometricReconstruction.</span></span><span class="sig-name descname"><span class="pre">get_geometry_and_transformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shower</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldRadioInterferometricReconstruction.html#get_geometry_and_transformation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.get_geometry_and_transformation" title="Permalink to this definition"></a></dt>
+<dd><p>Returns core (def. as intersection between shower axis and observation plane,
+shower axis, and radiotools.coordinatesytem for given shower.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shower</strong><span class="classifier">BaseShower</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.get_station_data">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.efieldRadioInterferometricReconstruction.</span></span><span class="sig-name descname"><span class="pre">get_station_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_MC_pulses</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_sampling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldRadioInterferometricReconstruction.html#get_station_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.get_station_data" title="Permalink to this definition"></a></dt>
+<dd><p>Returns station data in a proper format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>evt</strong><span class="classifier">Event</span></dt><dd></dd>
+<dt><strong>det</strong><span class="classifier">Detector</span></dt><dd></dd>
+<dt><strong>cs</strong><span class="classifier">radiotools.coordinatesystems.cstrafo</span></dt><dd></dd>
+<dt><strong>use_MC_pulses</strong><span class="classifier">bool</span></dt><dd><p>if true take electric field trace from sim_station</p>
+</dd>
+<dt><strong>n_sampling</strong><span class="classifier">int</span></dt><dd><p>if not None clip trace with n_sampling // 2 around np.argmax(np.abs(trace))</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>traces_vxB</strong><span class="classifier">np.array</span></dt><dd><p>The electric field traces in the vxB polarisation (takes first electric field stored in a station) for all stations/observers.</p>
+</dd>
+<dt><strong>times</strong><span class="classifier">mp.array</span></dt><dd><p>The electric field traces time series for all stations/observers.</p>
+</dd>
+<dt><strong>pos</strong><span class="classifier">np.array</span></dt><dd><p>Positions for all stations/observers.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.efieldRadioInterferometricReconstruction.plot_lateral_cross_section">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.efieldRadioInterferometricReconstruction.</span></span><span class="sig-name descname"><span class="pre">plot_lateral_cross_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mc_pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/efieldRadioInterferometricReconstruction.html#plot_lateral_cross_section"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.efieldRadioInterferometricReconstruction.plot_lateral_cross_section" title="Permalink to this definition"></a></dt>
+<dd><p>Plot the lateral distribution of the beamformed singal (in the vxB, vxvxB directions).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>xs</strong><span class="classifier">np.array</span></dt><dd><p>Positions on x-axis (vxB) at which the signal is sampled (on a 2d grid)</p>
+</dd>
+<dt><strong>ys</strong><span class="classifier">np.array</span></dt><dd><p>Positions on y-axis (vxvxB) at which the signal is sampled (on a 2d grid)</p>
+</dd>
+<dt><strong>signals</strong><span class="classifier">np.array</span></dt><dd><p>Signals sampled on the 2d grid defined by xs and ys.</p>
+</dd>
+<dt><strong>mc_pos</strong><span class="classifier">np.array(2,)</span></dt><dd><p>Intersection of the (MC-)axis with the “slice” of the lateral distribution plotted.</p>
+</dd>
+<dt><strong>fname</strong><span class="classifier">str</span></dt><dd><p>Name of the figure. If given the figure is saved, if fname is None the fiture is shown.</p>
+</dd>
+<dt><strong>title</strong><span class="classifier">str</span></dt><dd><p>Title of the figure (Default: None)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
