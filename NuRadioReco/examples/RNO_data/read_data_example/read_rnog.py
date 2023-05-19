@@ -9,7 +9,7 @@ import logging
 list_of_root_files = sys.argv[1:-1]
 output_filename = sys.argv[-1]
 
-rnog_reader = readRNOGDataMattak.readRNOGData()
+rnog_reader = readRNOGDataMattak.readRNOGData(log_level=logging.DEBUG)
 writer = eventWriter.eventWriter()
 
 """
@@ -53,11 +53,9 @@ rnog_reader.begin(
 
 writer.begin(filename=output_filename)
 
-for i_event, event in enumerate(rnog_reader.run()):
-    
+for i_event, event in enumerate(rnog_reader.run()):   
     writer.run(event)
 
-print(i_event)
 rnog_reader.end()
 writer.end()
 
