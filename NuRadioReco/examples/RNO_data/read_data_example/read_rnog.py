@@ -36,7 +36,6 @@ selectors = [lambda einfo: einfo.triggerType == "FORCE"]
 rnog_reader.begin(
     list_of_root_files, 
     selectors=selectors, 
-    log_level=logging.INFO, 
     # Currently false because Mattak does not contain calibrated data yet
 	read_calibrated_data=False,
  	# Only used when read_calibrated_data==False, performs a simple baseline subtraction each 128 bins
