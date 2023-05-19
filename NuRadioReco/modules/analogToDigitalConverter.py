@@ -50,7 +50,7 @@ def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output=
     digital_trace = round_to_int(digital_trace)
 
     if (output == 'voltage'):
-        digital_trace = lsb_voltage * digital_trace.astype(np.float)
+        digital_trace = lsb_voltage * digital_trace.astype(float)
     elif (output == 'counts'):
         pass
     else:

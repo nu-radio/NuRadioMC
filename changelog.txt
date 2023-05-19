@@ -14,6 +14,10 @@ bugfixes:
 - fixed/improved C++ raytracer not finding solutions for some near-horizontal or near-shadowzone vertices
 - fixed wrong number in Feldman-Cousins upper limit
 
+version 2.1.8
+bugfixes:
+- replace deprecated np.float with float
+
 version 2.1.7
 new features:
 - add attenuation model from the 2021 measurements taken at Summit Station
