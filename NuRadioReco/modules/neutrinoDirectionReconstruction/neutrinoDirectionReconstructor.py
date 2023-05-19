@@ -483,8 +483,8 @@ class neutrinoDirectionReconstructor:
             # we re-run the minimizer starting at the other minima
             signs = [-1,1]
             for iteration in range(2): # we do 2 iterations
-                index_list = [np.arange(4)[np.isnan(chisq[:4])], np.arange(4)][iteration]
-                for index in index_list:
+                # index_list = [np.arange(4)[np.isnan(chisq[:4])], np.arange(4)][iteration]
+                for index in np.arange(4)[np.isnan(chisq[:4])]:
                     viewing_sign = signs[index // 2]
                     polarization_sign = signs[index % 2]
                     try:
@@ -511,11 +511,11 @@ class neutrinoDirectionReconstructor:
                         is_valid[index] = res.success
                     if not res.success:
                         logger.warning(f'Fit {index} failed with message: {res.message}')
-                if np.all(np.abs(chisq[:4] - np.amin(chisq[:4])) < 1e-3):
-                    # in this case, all 4 minimizations converged to the same point, 
-                    # so there is no point in doing a second iteration
-                    logger.debug("All fits converged to the same point - skipping second iteration...")
-                    break
+                # if np.all(np.abs(chisq[:4] - np.amin(chisq[:4])) < 1e-3):
+                #     # in this case, all 4 minimizations converged to the same point, 
+                #     # so there is no point in doing a second iteration
+                #     logger.debug("All fits converged to the same point - skipping second iteration...")
+                #     break
 
             # --- experimental - try to fit shower type also
             if self._fit_shower_type:

@@ -226,7 +226,7 @@ class simulation():
 			nu_azimuth, energy, use_channels,
 			first_iteration = False,
 			starting_values = False,
-			shower_type='HAD'
+			shower_type='HAD', delta_C_cut=40*units.deg
 			):
 		"""
 		Generate simulated pulses
@@ -250,6 +250,7 @@ class simulation():
 		----------------
 		first_iteration
 		starting_values
+		delta_C_cut
 
 		Returns
 		-------
@@ -266,6 +267,7 @@ class simulation():
 		vertex = np.array([vertex_x, vertex_y, vertex_z])
 		self._shower_axis = -1 * hp.spherical_to_cartesian(nu_zenith, nu_azimuth)
 		n_index = ice.get_index_of_refraction(vertex)
+		cherenkov_angle = np.arccos(1/n_index)
 
 		raytracing = self._raytracing # dictionary to store ray tracing properties
 		if (self._first_iteration or first_iteration): # we run the ray tracer only on the first iteration
@@ -350,14 +352,15 @@ class simulation():
 
 			for i_s, iS in enumerate(raytracing[channel_id]):
 
-				raytype[channel_id][iS] = {}
-				traces[channel_id][iS] = {}
-				timing[channel_id][iS] = {}
+				timing[channel_id][iS] = raytracing[channel_id][iS]["travel time"]
+				raytype[channel_id][iS] = raytracing[channel_id][iS]["raytype"]
 				viewing_angle = hp.get_angle(self._shower_axis,raytracing[channel_id][iS]["launch vector"])
+				
+				if np.abs(viewing_angle - cherenkov_angle) > delta_C_cut:
+					traces[channel_id][iS] = np.zeros(self._n_samples)
+					continue
+
 				if self._template:
-
-
-
 					template_viewingangle = self._templates_viewingangles[np.abs(np.array(self._templates_viewingangles) - np.rad2deg(viewing_angle)).argmin()] ### viewing angle template which is closest to wanted viewing angle
 					self._templates[template_viewingangle]
 					template_energy = self._templates_energies[np.abs(np.array(self._templates_energies) - energy).argmin()]
@@ -443,8 +446,6 @@ class simulation():
 
 				traces[channel_id][iS] = np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), -int(self._n_samples /4))#-int(np.argmax(abs(fft.freq2time(analytic_trace_fft, self._sampling_rate)))-0.5*len(fft.freq2time(analytic_trace_fft, self._sampling_rate))))# np.roll(fft.freq2time(analytic_trace_fft, self._sampling_rate), int(self._n_samples / 4))
 
-				timing[channel_id][iS] =raytracing[channel_id][iS]["travel time"]
-				raytype[channel_id][iS] = raytracing[channel_id][iS]["raytype"]
 		# logger.debug("Found solutions for channels {}".format(raytracing.keys()))
 
 		if (self._first_iteration or first_iteration):
