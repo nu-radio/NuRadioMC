@@ -1043,7 +1043,7 @@ class neutrinoDirectionReconstructor:
 
                 # decide whether to use the timing from the reference channel, or use correlation
                 dt = None
-                if fixed_timing and not (channel_id == ch_Vpol & key == solution_number):
+                if fixed_timing and not (channel_id == ch_Vpol and key == solution_number):
                     dt = dict_dt[ch_Vpol][solution_number]
                 elif snr < 3.5:
                     if channel_id in self._PA_cluster_channels and key == solution_number and channel_id != ch_Vpol:
