@@ -309,9 +309,13 @@ class readRNOGData:
             
                 if not all_files_in_directory(dir_file):
                     self.logger.error(f"Incomplete directory: {dir_file}. Skip ...")
-                    continue      
-            
-                dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=dir_file, verbose=verbose, **mattak_kwargs)
+                    continue
+                
+                try:
+                    dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=dir_file, verbose=verbose, **mattak_kwargs)
+                except Exception as e:
+                    self.logger.error(f"The following Exeption was raised reading in the run: f{dir_file}. Skip that run ...: {e}")
+                    continue
             else:
                 raise NotImplementedError("The option to read in files is not implemented yet")
 
@@ -477,7 +481,7 @@ class readRNOGData:
             for selector in self._selectors:
                 if not selector(evtinfo):
                     self.logger.debug(f"Event {event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
-                                            f"event number {evtinfo.eventNumber}) is skipped.")
+                                      f"event number {evtinfo.eventNumber}) is skipped.")
                     self.__skipped += 1
                     return True
         
@@ -775,9 +779,13 @@ class readRNOGData:
 
 
     def end(self):
-        self.logger.info(
-            f"\n\tRead {self.__counter} events (skipped {self.__skipped} events, {self.__invalid} invalid events)"
-            f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
-            f"\n\tTime to read all events       : {self._time_run:.2f}s"
-            f"\n\tTime to per event             : {self._time_run / self.__counter:.2f}s"
-            f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs.")
+        if self.__counter:
+            self.logger.info(
+                f"\n\tRead {self.__counter} events (skipped {self.__skipped} events, {self.__invalid} invalid events)"
+                f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
+                f"\n\tTime to read all events       : {self._time_run:.2f}s"
+                f"\n\tTime to per event             : {self._time_run / self.__counter:.2f}s"
+                f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs.")
+        else:
+            self.logger.info(
+                f"\n\tRead {self.__counter} events (skipped {self.__skipped} events, {self.__invalid} invalid events)")
