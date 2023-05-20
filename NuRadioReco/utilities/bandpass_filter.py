@@ -48,7 +48,7 @@ def get_filter_response(frequencies, passband, filter_type, order, rp=None):
         f[np.where(frequencies > passband[1])] = 0.
         return f
     elif (filter_type == 'butter'):
-        f = np.zeros_like(frequencies, dtype=np.complex)
+        f = np.zeros_like(frequencies, dtype=complex)
         mask = frequencies > 0
         b, a = scipy.signal.butter(order, *scipy_args, analog=True)
         w, h = scipy.signal.freqs(b, a, frequencies[mask])
