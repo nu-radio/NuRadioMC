@@ -274,8 +274,8 @@ class thermalNoiseGeneratorPhasedArray():
         self.pre_trigger_bins = int(pre_trigger_time * self.sampling_rate)
         self.n_samples_trigger = int(trace_length * self.sampling_rate)
         det_channel = self.det.get_channel(station_id, triggered_channels[0])
-        self.adc_n_bits = det_channel["adc_nbits"]
-        self.adc_noise_n_bits = det_channel["adc_noise_nbits"]
+        self.adc_n_bits = det_channel["trigger_adc_nbits"]
+        self.adc_noise_n_bits = det_channel["trigger_adc_noise_nbits"]
 
         self.n_channels = len(triggered_channels)
         self.triggered_channels = triggered_channels
@@ -317,7 +317,7 @@ class thermalNoiseGeneratorPhasedArray():
         self.filt = channelBandPassFilter.get_filter(self.ff, station_id, channel_id, self.det,
                           passband=[96 * units.MHz, 100 * units.GHz], filter_type='cheby1', order=4, rp=0.1)
         self.filt *= channelBandPassFilter.get_filter(self.ff, station_id, channel_id, self.det,
-                          passband=[0 * units.MHz, 220 * units.MHz], filter_type='cheby1', order=7, rp=0.1)
+                          passband=[1 * units.MHz, 220 * units.MHz], filter_type='cheby1', order=7, rp=0.1)
         self.norm = np.trapz(np.abs(self.filt) ** 2, self.ff)
         self.amplitude = (self.max_freq - self.min_freq) ** 0.5 / self.norm ** 0.5 * self.Vrms
         print(f"Vrms = {self.Vrms:.3g}V, noise amplitude = {self.amplitude:.3g}V, bandwidth = {self.norm/units.MHz:.0f}MHz")
