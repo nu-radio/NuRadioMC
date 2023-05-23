@@ -14,7 +14,6 @@ import NuRadioReco.framework.trigger
 
 from NuRadioReco.utilities import units
 import mattak.Dataset
-import uproot  # only needed to catch an exception
 
 
 def baseline_correction(wfs, n_bins=128, func=np.median):
@@ -314,7 +313,7 @@ class readRNOGData:
                 
                 try:
                     dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=dir_file, verbose=verbose, **mattak_kwargs)
-                except (ReferenceError, uproot.exceptions.KeyInFileError) as e:
+                except (ReferenceError, KeyError) as e:
                     self.logger.error(f"The following exeption was raised reading in the run: {dir_file}. Skip that run ...:\n")
                     import traceback
                     traceback.print_exc()
