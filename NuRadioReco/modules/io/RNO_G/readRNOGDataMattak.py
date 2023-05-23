@@ -314,10 +314,7 @@ class readRNOGData:
                 try:
                     dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=dir_file, verbose=verbose, **mattak_kwargs)
                 except (ReferenceError, KeyError) as e:
-                    self.logger.error(f"The following exeption was raised reading in the run: {dir_file}. Skip that run ...:\n")
-                    import traceback
-                    traceback.print_exc()
-                    print("")
+                    self.logger.error(f"The following exeption was raised reading in the run: {dir_file}. Skip that run ...:\n", exc_info=e)
                     continue
             else:
                 raise NotImplementedError("The option to read in files is not implemented yet")
