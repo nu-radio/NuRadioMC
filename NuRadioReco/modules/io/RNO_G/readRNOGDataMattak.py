@@ -14,6 +14,7 @@ import NuRadioReco.framework.trigger
 
 from NuRadioReco.utilities import units
 import mattak.Dataset
+import uproot  # only needed to catch an exception
 
 
 def baseline_correction(wfs, n_bins=128, func=np.median):
@@ -300,7 +301,7 @@ class readRNOGData:
             verbose =  self.logger.level == logging.DEBUG
 
         for dir_file in dirs_files:
-            
+
             if not os.path.exists(dir_file):
                 self.logger.error(f"The directory/file {dir_file} does not exist")
                 continue
@@ -313,8 +314,11 @@ class readRNOGData:
                 
                 try:
                     dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=dir_file, verbose=verbose, **mattak_kwargs)
-                except Exception as e:
-                    self.logger.error(f"The following Exeption was raised reading in the run: f{dir_file}. Skip that run ...: {e}")
+                except (ReferenceError, uproot.exceptions.KeyInFileError) as e:
+                    self.logger.error(f"The following exeption was raised reading in the run: {dir_file}. Skip that run ...:\n")
+                    import traceback
+                    traceback.print_exc()
+                    print("")
                     continue
             else:
                 raise NotImplementedError("The option to read in files is not implemented yet")
