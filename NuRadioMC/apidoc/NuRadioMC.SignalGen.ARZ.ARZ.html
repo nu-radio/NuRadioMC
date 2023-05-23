@@ -598,7 +598,7 @@ Askaryan pulse from a charge-excess profile</p>
 </dd>
 <dt><strong>profile_ce: array of floats</strong></dt><dd><p>charge-excess values of the charge excess profile</p>
 </dd>
-<dt><strong>shower_type: string (default “HAD”)</strong></dt><dd><p>type of shower, either “HAD” (hadronic), “EM” (electromagnetic) or “TAU” (tau lepton induced)</p>
+<dt><strong>shower_type: string (default “HAD”)</strong></dt><dd><p>type of shower, either “HAD” (hadronic) or “EM” (electromagnetic)</p>
 </dd>
 <dt><strong>n_index: float (default 1.78)</strong></dt><dd><p>index of refraction where the shower development takes place</p>
 </dd>
@@ -657,7 +657,7 @@ Askaryan pulse from a charge-excess profile</p>
 </dd>
 <dt><strong>profile_ce: array of floats</strong></dt><dd><p>charge-excess values of the charge excess profile</p>
 </dd>
-<dt><strong>shower_type: string (default “HAD”)</strong></dt><dd><p>type of shower, either “HAD” (hadronic), “EM” (electromagnetic) or “TAU” (tau lepton induced)</p>
+<dt><strong>shower_type: string (default “HAD”)</strong></dt><dd><p>type of shower, either “HAD” (hadronic) or “EM” (electromagnetic)</p>
 </dd>
 <dt><strong>n_index: float (default 1.78)</strong></dt><dd><p>index of refraction where the shower development takes place</p>
 </dd>
@@ -743,22 +743,25 @@ as the position of the maximum of the charge excess profile</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_last_shower_profile_id" title="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_last_shower_profile_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_last_shower_profile_id</span></code></a>()</p></td>
 <td><p>returns dict</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_time_trace" title="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_time_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_trace</span></code></a>(shower_energy, theta, N, dt, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_shower_profile" title="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_shower_profile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_shower_profile</span></code></a>(shower_energy, ...)</p></td>
+<td><p>Gets a charge-excess profile</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_time_trace" title="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_time_trace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_trace</span></code></a>(shower_energy, theta, N, dt, ...)</p></td>
 <td><p>calculates the electric-field Askaryan pulse from a charge-excess profile</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_vector_potential" title="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_vector_potential"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_vector_potential</span></code></a>(energy, theta, N, dt[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_vector_potential" title="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_vector_potential"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_vector_potential</span></code></a>(energy, theta, N, dt[, ...])</p></td>
 <td><p>python transcription of original FORTRAN code (slow, DO NOT USE)</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_vector_potential_fast" title="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_vector_potential_fast"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_vector_potential_fast</span></code></a>(shower_energy, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_vector_potential_fast" title="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_vector_potential_fast"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_vector_potential_fast</span></code></a>(shower_energy, ...)</p></td>
 <td><p>--- This function is deprecated and has been replaced by the module level ARZ.get_vector_potential() ---</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.set_interpolation_factor" title="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.set_interpolation_factor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_interpolation_factor</span></code></a>(interp_factor)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.set_interpolation_factor" title="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.set_interpolation_factor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_interpolation_factor</span></code></a>(interp_factor)</p></td>
 <td><p>set interpolation factor of charge-excess profiles</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.set_interpolation_factor2" title="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.set_interpolation_factor2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_interpolation_factor2</span></code></a>(interp_factor)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.set_interpolation_factor2" title="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.set_interpolation_factor2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_interpolation_factor2</span></code></a>(interp_factor)</p></td>
 <td><p>set interpolation factor around peak of form factor</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.set_seed" title="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.set_seed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_seed</span></code></a>(seed)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.set_seed" title="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.set_seed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_seed</span></code></a>(seed)</p></td>
 <td><p>allow to set a new random seed</p></td>
 </tr>
 </tbody>
@@ -789,6 +792,30 @@ a hadronic shower</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_shower_profile">
+<span class="sig-name descname"><span class="pre">get_shower_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shower_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iN</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/ARZ/ARZ.html#ARZ.get_shower_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_shower_profile" title="Permalink to this definition"></a></dt>
+<dd><p>Gets a charge-excess profile</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shower_energy: float</strong></dt><dd><p>the energy of the shower</p>
+</dd>
+<dt><strong>shower_type: string (default “HAD”)</strong></dt><dd><p>type of shower, either “HAD” (hadronic) or “EM” (electromagnetic)</p>
+</dd>
+<dt><strong>iN: int</strong></dt><dd><p>specify shower number</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>depth, excess: two arrays of floats</dt><dd><p>slant depths and charge profile amplitudes</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_time_trace">
 <span class="sig-name descname"><span class="pre">get_time_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shower_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shower_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_for_xmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">same_shower</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iN</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'trace'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum_angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3490658503988659</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalGen/ARZ/ARZ.html#ARZ.get_time_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_time_trace" title="Permalink to this definition"></a></dt>
 <dd><p>calculates the electric-field Askaryan pulse from a charge-excess profile</p>
@@ -803,11 +830,7 @@ a hadronic shower</p>
 </dd>
 <dt><strong>dt: float</strong></dt><dd><p>size of one time bin in units of time</p>
 </dd>
-<dt><strong>profile_depth: array of floats</strong></dt><dd><p>shower depth values of the charge excess profile</p>
-</dd>
-<dt><strong>profile_ce: array of floats</strong></dt><dd><p>charge-excess values of the charge excess profile</p>
-</dd>
-<dt><strong>shower_type: string (default “HAD”)</strong></dt><dd><p>type of shower, either “HAD” (hadronic), “EM” (electromagnetic) or “TAU” (tau lepton induced)</p>
+<dt><strong>shower_type: string (default “HAD”)</strong></dt><dd><p>type of shower, either “HAD” (hadronic) or “EM” (electromagnetic)</p>
 </dd>
 <dt><strong>n_index: float (default 1.78)</strong></dt><dd><p>index of refraction where the shower development takes place</p>
 </dd>
@@ -880,7 +903,7 @@ Askaryan pulse from a charge-excess profile</p>
 </dd>
 <dt><strong>profile_ce: array of floats</strong></dt><dd><p>charge-excess values of the charge excess profile</p>
 </dd>
-<dt><strong>shower_type: string (default “HAD”)</strong></dt><dd><p>type of shower, either “HAD” (hadronic), “EM” (electromagnetic) or “TAU” (tau lepton induced)</p>
+<dt><strong>shower_type: string (default “HAD”)</strong></dt><dd><p>type of shower, either “HAD” (hadronic) or “EM” (electromagnetic)</p>
 </dd>
 <dt><strong>n_index: float (default 1.78)</strong></dt><dd><p>index of refraction where the shower development takes place</p>
 </dd>
@@ -945,7 +968,7 @@ as the position of the maximum of the charge excess profile</p>
 </dd>
 <dt><strong>dt: float</strong></dt><dd><p>size of one time bin in units of time</p>
 </dd>
-<dt><strong>shower_type: string (default “HAD”)</strong></dt><dd><p>type of shower, either “HAD” (hadronic), “EM” (electromagnetic) or “TAU” (tau lepton induced)</p>
+<dt><strong>shower_type: string (default “HAD”)</strong></dt><dd><p>type of shower, either “HAD” (hadronic) or “EM” (electromagnetic)</p>
 </dd>
 <dt><strong>n_index: float (default 1.78)</strong></dt><dd><p>index of refraction where the shower development takes place</p>
 </dd>

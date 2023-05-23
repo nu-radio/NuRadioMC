@@ -633,7 +633,7 @@
 <span class="sd">    profile_ce: array of floats</span>
 <span class="sd">        charge-excess values of the charge excess profile</span>
 <span class="sd">    shower_type: string (default &quot;HAD&quot;)</span>
-<span class="sd">        type of shower, either &quot;HAD&quot; (hadronic), &quot;EM&quot; (electromagnetic) or &quot;TAU&quot; (tau lepton induced)</span>
+<span class="sd">        type of shower, either &quot;HAD&quot; (hadronic) or &quot;EM&quot; (electromagnetic)</span>
 <span class="sd">    n_index: float (default 1.78)</span>
 <span class="sd">        index of refraction where the shower development takes place</span>
 <span class="sd">    distance: float (default 1km)</span>
@@ -1038,6 +1038,37 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_interp_factor2</span> <span class="o">=</span> <span class="n">interp_factor</span></div>
 
+<div class="viewcode-block" id="ARZ.get_shower_profile"><a class="viewcode-back" href="../../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.ARZ.ARZ.html#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_shower_profile">[docs]</a>    <span class="k">def</span> <span class="nf">get_shower_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shower_energy</span><span class="p">,</span> <span class="n">shower_type</span><span class="p">,</span> <span class="n">iN</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets a charge-excess profile</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        shower_energy: float</span>
+<span class="sd">            the energy of the shower</span>
+<span class="sd">        shower_type: string (default &quot;HAD&quot;)</span>
+<span class="sd">            type of shower, either &quot;HAD&quot; (hadronic) or &quot;EM&quot; (electromagnetic)</span>
+<span class="sd">        iN: int</span>
+<span class="sd">            specify shower number</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        depth, excess: two arrays of floats</span>
+<span class="sd">            slant depths and charge profile amplitudes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_library</span><span class="p">[</span><span class="n">shower_type</span><span class="p">]])</span>
+        <span class="n">iE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">energies</span> <span class="o">-</span> <span class="n">shower_energy</span><span class="p">))</span>
+
+        <span class="n">rescaling_factor</span> <span class="o">=</span> <span class="n">shower_energy</span> <span class="o">/</span> <span class="n">energies</span><span class="p">[</span><span class="n">iE</span><span class="p">]</span>
+
+        <span class="n">profiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_library</span><span class="p">[</span><span class="n">shower_type</span><span class="p">][</span><span class="n">energies</span><span class="p">[</span><span class="n">iE</span><span class="p">]]</span>
+        <span class="n">profile_depth</span> <span class="o">=</span> <span class="n">profiles</span><span class="p">[</span><span class="s1">&#39;depth&#39;</span><span class="p">]</span>
+        <span class="n">profile_ce</span> <span class="o">=</span> <span class="n">profiles</span><span class="p">[</span><span class="s1">&#39;charge_excess&#39;</span><span class="p">][</span><span class="n">iN</span><span class="p">]</span> <span class="o">*</span> <span class="n">rescaling_factor</span>
+
+        <span class="k">return</span> <span class="n">profile_depth</span><span class="p">,</span> <span class="n">profile_ce</span></div>
+
+
 <div class="viewcode-block" id="ARZ.get_time_trace"><a class="viewcode-back" href="../../../../NuRadioMC/apidoc/NuRadioMC.SignalGen.ARZ.ARZ.html#NuRadioMC.SignalGen.ARZ.ARZ.ARZ.get_time_trace">[docs]</a>    <span class="k">def</span> <span class="nf">get_time_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shower_energy</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">shower_type</span><span class="p">,</span> <span class="n">n_index</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">shift_for_xmax</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                        <span class="n">same_shower</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">iN</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_mode</span><span class="o">=</span><span class="s1">&#39;trace&#39;</span><span class="p">,</span> <span class="n">maximum_angle</span><span class="o">=</span><span class="mi">20</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1053,12 +1084,8 @@
 <span class="sd">            number of samples in the time domain</span>
 <span class="sd">        dt: float</span>
 <span class="sd">            size of one time bin in units of time</span>
-<span class="sd">        profile_depth: array of floats</span>
-<span class="sd">            shower depth values of the charge excess profile</span>
-<span class="sd">        profile_ce: array of floats</span>
-<span class="sd">            charge-excess values of the charge excess profile</span>
 <span class="sd">        shower_type: string (default &quot;HAD&quot;)</span>
-<span class="sd">            type of shower, either &quot;HAD&quot; (hadronic), &quot;EM&quot; (electromagnetic) or &quot;TAU&quot; (tau lepton induced)</span>
+<span class="sd">            type of shower, either &quot;HAD&quot; (hadronic) or &quot;EM&quot; (electromagnetic)</span>
 <span class="sd">        n_index: float (default 1.78)</span>
 <span class="sd">            index of refraction where the shower development takes place</span>
 <span class="sd">        R: float (default 1km)</span>
@@ -1107,6 +1134,7 @@
         <span class="n">rescaling_factor</span> <span class="o">=</span> <span class="n">shower_energy</span> <span class="o">/</span> <span class="n">energies</span><span class="p">[</span><span class="n">iE</span><span class="p">]</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;shower energy of </span><span class="si">{:.3g}</span><span class="s2">eV requested, closest available energy is </span><span class="si">{:.3g}</span><span class="s2">eV. The amplitude of the charge-excess profile will be rescaled accordingly by a factor of </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shower_energy</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span><span class="p">,</span> <span class="n">energies</span><span class="p">[</span><span class="n">iE</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span><span class="p">,</span> <span class="n">rescaling_factor</span><span class="p">))</span>
         <span class="n">profiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_library</span><span class="p">[</span><span class="n">shower_type</span><span class="p">][</span><span class="n">energies</span><span class="p">[</span><span class="n">iE</span><span class="p">]]</span>
+
         <span class="n">N_profiles</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">profiles</span><span class="p">[</span><span class="s1">&#39;charge_excess&#39;</span><span class="p">])</span>
 
         <span class="k">if</span><span class="p">(</span><span class="n">iN</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">iN</span><span class="p">)):</span>
@@ -1167,7 +1195,7 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Tau showers are not yet implemented&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Tau showers are not yet implemented&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;showers of type </span><span class="si">{}</span><span class="s2"> are not implemented. Use &#39;HAD&#39;, &#39;EM&#39; or &#39;TAU&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shower_type</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;showers of type </span><span class="si">{}</span><span class="s2"> are not implemented. Use &#39;HAD&#39;, &#39;EM&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shower_type</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_numba</span><span class="p">:</span>
@@ -1239,7 +1267,7 @@
 <span class="sd">        profile_ce: array of floats</span>
 <span class="sd">            charge-excess values of the charge excess profile</span>
 <span class="sd">        shower_type: string (default &quot;HAD&quot;)</span>
-<span class="sd">            type of shower, either &quot;HAD&quot; (hadronic), &quot;EM&quot; (electromagnetic) or &quot;TAU&quot; (tau lepton induced)</span>
+<span class="sd">            type of shower, either &quot;HAD&quot; (hadronic) or &quot;EM&quot; (electromagnetic)</span>
 <span class="sd">        n_index: float (default 1.78)</span>
 <span class="sd">            index of refraction where the shower development takes place</span>
 <span class="sd">        distance: float (default 1km)</span>
@@ -1706,7 +1734,7 @@
 <span class="sd">        dt: float</span>
 <span class="sd">            size of one time bin in units of time</span>
 <span class="sd">        shower_type: string (default &quot;HAD&quot;)</span>
-<span class="sd">            type of shower, either &quot;HAD&quot; (hadronic), &quot;EM&quot; (electromagnetic) or &quot;TAU&quot; (tau lepton induced)</span>
+<span class="sd">            type of shower, either &quot;HAD&quot; (hadronic) or &quot;EM&quot; (electromagnetic)</span>
 <span class="sd">        n_index: float (default 1.78)</span>
 <span class="sd">            index of refraction where the shower development takes place</span>
 <span class="sd">        R: float (default 1km)</span>
