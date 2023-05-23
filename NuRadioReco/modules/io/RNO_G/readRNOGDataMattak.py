@@ -298,7 +298,7 @@ class readRNOGData:
         if "verbose" in mattak_kwargs:
             verbose = mattak_kwargs.pop("verbose")
         else:
-            verbose =  self.logger.level == logging.DEBUG
+            verbose = self.logger.level >= logging.DEBUG
 
         for dir_file in dirs_files:
 
