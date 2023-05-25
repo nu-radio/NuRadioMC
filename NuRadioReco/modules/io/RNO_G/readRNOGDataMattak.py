@@ -135,14 +135,20 @@ def all_files_in_directory(mattak_dir):
 
 class readRNOGData:
     
-    def __init__(self, run_table_path=None):
+    def __init__(self, run_table_path=None, log_level=logging.INFO):
         """
         Parameters
         ----------
         
         run_table_path: str
             Path to a run_table.cvs file. If None, the run table is queried from the DB. (Default: None)
+            
+        log_level: enum
+            Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).
+            (Default: logging.INFO) 
         """
+        self.logger = logging.getLogger('NuRadioReco.readRNOGData')
+        self.logger.setLevel(log_level)
      
         # Initialize run table for run selection
         self.__run_table = None
@@ -158,7 +164,7 @@ class readRNOGData:
                                       "Runs can not be filtered.")
             except ImportError:
                 self.logger.warn("Import of run table failed. Runs can not be filtered.! \n" 
-                        "You can get the interface from GitHub: git@github.com:RNO-G/rnog-data-analysis-and-issues.git")
+                        "You can get the interface from GitHub: git@github.com:RNO-G/rnog-runtable.git")
         else:
             import pandas
             self.__run_table = pandas.read_csv(run_table_path)
@@ -176,8 +182,7 @@ class readRNOGData:
             run_time_range=None,
             max_trigger_rate=0 * units.Hz,
             mattak_kwargs={},
-            overwrite_sampling_rate=None,
-            log_level=logging.INFO):
+            overwrite_sampling_rate=None):
         """
         Parameters
         ----------
@@ -235,16 +240,9 @@ class readRNOGData:
             Set sampling rate of the imported waveforms. This overwrites what is read out from runinfo (i.e., stored in the mattak files).
             If None, nothing is overwritten and the sampling rate from the mattak file is used. (Default: None)
             NOTE: This option might be necessary when old mattak files are read which have this not set. 
-
-        log_level: enum
-            Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).
-            (Default: logging.INFO) 
         """
         
         t0 = time.time()
-        
-        self.logger = logging.getLogger('NuRadioReco.readRNOGData')
-        self.logger.setLevel(log_level)
         
         self._read_calibrated_data = read_calibrated_data
         self._apply_baseline_correction = apply_baseline_correction
@@ -299,10 +297,10 @@ class readRNOGData:
         if "verbose" in mattak_kwargs:
             verbose = mattak_kwargs.pop("verbose")
         else:
-            verbose = log_level == logging.DEBUG
+            verbose = self.logger.level >= logging.DEBUG
 
         for dir_file in dirs_files:
-            
+
             if not os.path.exists(dir_file):
                 self.logger.error(f"The directory/file {dir_file} does not exist")
                 continue
@@ -311,9 +309,13 @@ class readRNOGData:
             
                 if not all_files_in_directory(dir_file):
                     self.logger.error(f"Incomplete directory: {dir_file}. Skip ...")
-                    continue      
-            
-                dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=dir_file, verbose=verbose, **mattak_kwargs)
+                    continue
+                
+                try:
+                    dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=dir_file, verbose=verbose, **mattak_kwargs)
+                except (ReferenceError, KeyError) as e:
+                    self.logger.error(f"The following exeption was raised reading in the run: {dir_file}. Skip that run ...:\n", exc_info=e)
+                    continue
             else:
                 raise NotImplementedError("The option to read in files is not implemented yet")
 
@@ -479,7 +481,7 @@ class readRNOGData:
             for selector in self._selectors:
                 if not selector(evtinfo):
                     self.logger.debug(f"Event {event_idx} (station {evtinfo.station}, run {evtinfo.run}, "
-                                            f"event number {evtinfo.eventNumber}) is skipped.")
+                                      f"event number {evtinfo.eventNumber}) is skipped.")
                     self.__skipped += 1
                     return True
         
@@ -777,9 +779,13 @@ class readRNOGData:
 
 
     def end(self):
-        self.logger.info(
-            f"\n\tRead {self.__counter} events (skipped {self.__skipped} events, {self.__invalid} invalid events)"
-            f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
-            f"\n\tTime to read all events       : {self._time_run:.2f}s"
-            f"\n\tTime to per event             : {self._time_run / self.__counter:.2f}s"
-            f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs.")
+        if self.__counter:
+            self.logger.info(
+                f"\n\tRead {self.__counter} events (skipped {self.__skipped} events, {self.__invalid} invalid events)"
+                f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
+                f"\n\tTime to read all events       : {self._time_run:.2f}s"
+                f"\n\tTime to per event             : {self._time_run / self.__counter:.2f}s"
+                f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs.")
+        else:
+            self.logger.info(
+                f"\n\tRead {self.__counter} events (skipped {self.__skipped} events, {self.__invalid} invalid events)")
