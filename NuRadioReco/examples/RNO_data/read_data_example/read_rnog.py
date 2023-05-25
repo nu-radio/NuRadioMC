@@ -9,7 +9,7 @@ import logging
 list_of_root_files = sys.argv[1:-1]
 output_filename = sys.argv[-1]
 
-rnog_reader = readRNOGDataMattak.readRNOGData()
+rnog_reader = readRNOGDataMattak.readRNOGData(log_level=logging.DEBUG)
 writer = eventWriter.eventWriter()
 
 """
@@ -36,7 +36,6 @@ selectors = [lambda einfo: einfo.triggerType == "FORCE"]
 rnog_reader.begin(
     list_of_root_files, 
     selectors=selectors, 
-    log_level=logging.INFO, 
     # Currently false because Mattak does not contain calibrated data yet
 	read_calibrated_data=False,
  	# Only used when read_calibrated_data==False, performs a simple baseline subtraction each 128 bins
@@ -54,11 +53,9 @@ rnog_reader.begin(
 
 writer.begin(filename=output_filename)
 
-for i_event, event in enumerate(rnog_reader.run()):
-    
+for i_event, event in enumerate(rnog_reader.run()):   
     writer.run(event)
 
-print(i_event)
 rnog_reader.end()
 writer.end()
 
