@@ -11,6 +11,9 @@ new features:
 - add positions array functionality to simple ice model in average and gradient functions
 - analytic ray tracing solutions are now sorted consistently from lowest to highest ray
 - added ability to generate high-low-triggered noise on a narrow band but return full-band waveforms
+- phased array noise generation utility class: calculate trigger time and cut trace accordingly
+- use Philox noise generator in noise adder module (this changes the default random sequence)
+
 bugfixes:
 - fixed/improved C++ raytracer not finding solutions for some near-horizontal or near-shadowzone vertices
 - fixed wrong number in Feldman-Cousins upper limit
