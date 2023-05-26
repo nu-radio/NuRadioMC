@@ -187,14 +187,14 @@ class voltageToAnalyticEfieldConverterNeutrinos:
                     order = 5
                     b, a = signal.butter(order, passband_high[use_channels[iA]], 'bandpass', analog=True)
                     w, h = signal.freqs(b, a, ff[mask])
-                    f = np.zeros_like(ff, dtype=np.complex)
+                    f = np.zeros_like(ff, dtype=complex)
                     f[mask] = h
                     trace_spectrum *= f
 
                     order = 10
                     b, a = signal.butter(order, passband_low[use_channels[iA]], 'bandpass', analog=True)
                     w, h = signal.freqs(b, a, ff[mask])
-                    f = np.zeros_like(ff, dtype=np.complex)
+                    f = np.zeros_like(ff, dtype=complex)
                     f[mask] = h
                     trace_spectrum *= f
 
@@ -352,8 +352,8 @@ class voltageToAnalyticEfieldConverterNeutrinos:
         travel_distance = np.zeros((n_antennas, maxNumRayTracingSolPerChan))
         attenuation = np.zeros((n_antennas, maxNumRayTracingSolPerChan, len(ff)))
         focusing = np.zeros((n_antennas, maxNumRayTracingSolPerChan, 1))
-        reflection_coefficients_theta = np.ones((n_antennas, maxNumRayTracingSolPerChan), dtype=np.complex)
-        reflection_coefficients_phi = np.ones((n_antennas, maxNumRayTracingSolPerChan), dtype=np.complex)
+        reflection_coefficients_theta = np.ones((n_antennas, maxNumRayTracingSolPerChan), dtype=complex)
+        reflection_coefficients_phi = np.ones((n_antennas, maxNumRayTracingSolPerChan), dtype=complex)
         travel_time_min = float('inf')
         for iA, position in enumerate(antenna_positions):
             r = ray.ray_tracing(icemodel, attenuation_model=attenuation_model, n_frequencies_integration=25, n_reflections=n_reflections)

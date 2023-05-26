@@ -2,9 +2,11 @@ import numpy as np
 from NuRadioReco.modules import channelGenericNoiseAdder
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.modules.trigger.highLowThreshold import get_high_low_triggers
-from NuRadioReco.detector import detector
+from NuRadioReco.detector import generic_detector as detector
 from scipy import constants
 import datetime
+import scipy
+import scipy.signal
 import copy
 import time
 
@@ -31,9 +33,10 @@ def rolled_sum_roll(traces, rolling):
 
     # assume first trace always has no rolling
     sumtr = traces[0].copy()
-    for i in range(1,len(traces)):
+    for i in range(1, len(traces)):
         sumtr += np.roll(traces[i], rolling[i])
     return sumtr
+
 
 def rolling_indices(traces, rolling):
     """
@@ -52,6 +55,7 @@ def rolling_indices(traces, rolling):
     for roll in rolling:
         rolling_indices.append(np.roll(idx, roll))
     return np.array(rolling_indices).astype(int)
+
 
 def rolled_sum_take(traces, rolling_indices):
     """
@@ -72,9 +76,10 @@ def rolled_sum_take(traces, rolling_indices):
 
     # assume first trace always has no rolling
     sumtr = traces[0].copy()
-    for i in range(1,len(traces)):
+    for i in range(1, len(traces)):
         sumtr += np.take(traces[i], rolling_indices[i])
     return sumtr
+
 
 def rolled_sum_slicing(traces, rolling):
     """
@@ -95,7 +100,7 @@ def rolled_sum_slicing(traces, rolling):
 
     # assume first trace always has no rolling
     sumtr = traces[0].copy()
-    for i in range(1,len(traces)):
+    for i in range(1, len(traces)):
         r = rolling[i]
         if r > 0:
             sumtr[:-r] += traces[i][r:]
@@ -106,8 +111,6 @@ def rolled_sum_slicing(traces, rolling):
         else:
             sumtr += traces[i]
     return sumtr
-
-
 
 
 class thermalNoiseGenerator():
@@ -228,7 +231,8 @@ class thermalNoiseGeneratorPhasedArray():
 
     def __init__(self, detector_filename, station_id, triggered_channels,
                  Vrms, threshold, ref_index,
-                 noise_type="rayleigh"):
+                 noise_type="rayleigh", log_level=logging.WARNING,
+                 pre_trigger_time=100 * units.ns, trace_length=512 * units.ns):
         """
         Efficient algorithms to generate thermal noise fluctuations that fulfill a phased array trigger
 
@@ -252,19 +256,26 @@ class thermalNoiseGeneratorPhasedArray():
             the type of the noise, can be
             * "rayleigh" (default)
             * "noise"
+        pre_trigger_time: float
+            the time in the trace before the trigger happens
+        trace_length: float
+            the total trace length
         """
+        logger.setLevel(log_level)
         self.debug = False
         self.max_amp = 0
 
         self.upsampling = 2
-        self.det = detector.Detector(json_filename=detector_filename)
+        self.det = detector.GenericDetector(json_filename=detector_filename)
         self.det.update(datetime.datetime(2018, 10, 1))
         self.n_samples = self.det.get_number_of_samples(station_id, triggered_channels[0])  # assuming same settings for all channels
         self.sampling_rate = self.det.get_sampling_frequency(station_id, triggered_channels[0])
 
+        self.pre_trigger_bins = int(pre_trigger_time * self.sampling_rate)
+        self.n_samples_trigger = int(trace_length * self.sampling_rate)
         det_channel = self.det.get_channel(station_id, triggered_channels[0])
-        self.adc_n_bits = det_channel["adc_nbits"]
-        self.adc_noise_n_bits = det_channel["adc_noise_nbits"]
+        self.adc_n_bits = det_channel["trigger_adc_nbits"]
+        self.adc_noise_n_bits = det_channel["trigger_adc_noise_nbits"]
 
         self.n_channels = len(triggered_channels)
         self.triggered_channels = triggered_channels
@@ -293,7 +304,6 @@ class thermalNoiseGeneratorPhasedArray():
             roll = np.array(np.round(np.array(delays) * self.sampling_rate * self.upsampling)).astype(int)
             self.beam_time_delays[iBeam] = roll
 
-        print(self.beam_time_delays)
         self.Vrms = Vrms
         self.threshold = threshold
         self.noise_type = noise_type
@@ -307,10 +317,10 @@ class thermalNoiseGeneratorPhasedArray():
         self.filt = channelBandPassFilter.get_filter(self.ff, station_id, channel_id, self.det,
                           passband=[96 * units.MHz, 100 * units.GHz], filter_type='cheby1', order=4, rp=0.1)
         self.filt *= channelBandPassFilter.get_filter(self.ff, station_id, channel_id, self.det,
-                          passband=[0 * units.MHz, 220 * units.MHz], filter_type='cheby1', order=7, rp=0.1)
+                          passband=[1 * units.MHz, 220 * units.MHz], filter_type='cheby1', order=7, rp=0.1)
         self.norm = np.trapz(np.abs(self.filt) ** 2, self.ff)
         self.amplitude = (self.max_freq - self.min_freq) ** 0.5 / self.norm ** 0.5 * self.Vrms
-        print(f"Vrms = {self.Vrms:.2f}, noise amplitude = {self.amplitude:.2f}, bandwidth = {self.norm/units.MHz:.0f}MHz")
+        print(f"Vrms = {self.Vrms:.3g}V, noise amplitude = {self.amplitude:.3g}V, bandwidth = {self.norm/units.MHz:.0f}MHz")
         print(f"frequency range {self.min_freq/units.MHz}MHz - {self.max_freq/units.MHz}MHz")
 
         self.adc_ref_voltage = self.Vrms * (2 ** (self.adc_n_bits - 1) - 1) / (2 ** (self.adc_noise_n_bits - 1) - 1)
@@ -325,22 +335,20 @@ class thermalNoiseGeneratorPhasedArray():
                                                   self.sampling_rate * self.upsampling,
                                                   self.amplitude, self.noise_type)
 
-
     def __generation(self):
         """ separated trace generation part for PA noise trigger """
 
         for iCh in range(self.n_channels):
-            #spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples * self.upsampling,
+            # spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples * self.upsampling,
             #                                    self.sampling_rate * self.upsampling,
             #                                    self.amplitude, self.noise_type, time_domain=False)
-            
+
             # function that does not re-calculate parameters in each simulated trace
             spec = self.noise.bandlimited_noise_from_precalculated_parameters(self.noise_type, time_domain=False)
             spec *= self.filt
             trace = fft.freq2time(spec, self.sampling_rate * self.upsampling)
 
             self._traces[iCh] = perfect_floor_comparator(trace, self.adc_n_bits, self.adc_ref_voltage)
-
 
     def __phasing(self):
         """ separated phasing part for PA noise trigger """
@@ -362,33 +370,37 @@ class thermalNoiseGeneratorPhasedArray():
 
         self.max_amp = 0
         # take square over entire array
-        coh_sum_squared = self._phased_traces**2
+        coh_sum_squared = self._phased_traces ** 2
         # bin the data into windows of length self.step and normalise to step length
-        reduced_array = np.add.reduceat(coh_sum_squared.T,np.arange(0,np.shape(coh_sum_squared)[1],self.step)).T / self.step
+        reduced_array = np.add.reduceat(coh_sum_squared.T, np.arange(0, np.shape(coh_sum_squared)[1], self.step)).T / self.step
 
         sliding_windows = []
         # self.window can extend over multiple steps,
         # assuming self.window being an integer multiple of self.step the reduction sums over subsequent steps
-        steps_per_window = self.window//self.step
+        steps_per_window = self.window // self.step
         # better extend the array in order to also trigger on sum of last/first (matching a previous implementation)
-        extended_reduced_array = np.column_stack([reduced_array, reduced_array[:,0:steps_per_window]])
+        extended_reduced_array = np.column_stack([reduced_array, reduced_array[:, 0:steps_per_window]])
         for offset in range(steps_per_window):
             # sum over steps_per_window adjacent steps
             window_sum = np.add.reduceat(extended_reduced_array.T, np.arange(offset, np.shape(extended_reduced_array)[1], steps_per_window)).T / steps_per_window
             sliding_windows.append(window_sum)
-        #self.max_amp = max(np.array(sliding_windows).max(), self.max_amp)
+        # self.max_amp = max(np.array(sliding_windows).max(), self.max_amp)
         self.max_amp = np.array(sliding_windows).max()
 
         # check if trigger condition is fulfilled anywhere
         if self.max_amp > self.threshold:
-            # check in which beam the trigger condition was fulfilled
-            sliding_windows = np.concatenate(sliding_windows, axis=1)
-            triggered_beams = np.amax(sliding_windows, axis=1) > self.threshold
-            for iBeam, is_triggered in enumerate(triggered_beams):
-                # print out each beam that has triggered
-                if is_triggered:
-                    logger.info(f"triggered at beam {iBeam}")
+            sliding_windows = np.array(sliding_windows)
+            tmp = np.argwhere(sliding_windows > self.threshold)
+            triggered_step = tmp[0][0]
+            triggered_bin = tmp[0][2] * (self.window + triggered_step * steps_per_window)
             if(self.debug):
+                # check in which beam the trigger condition was fulfilled
+                sliding_windows = np.concatenate(sliding_windows, axis=1)
+                triggered_beams = np.amax(sliding_windows, axis=1) > self.threshold
+                for iBeam, is_triggered in enumerate(triggered_beams):
+                    # print out each beam that has triggered
+                    if is_triggered:
+                        logger.info(f"triggered at beam {iBeam}")
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots(5, 1, sharex=True)
                 for iCh in range(self.n_channels):
@@ -397,8 +409,8 @@ class thermalNoiseGeneratorPhasedArray():
                 ax[4].plot(self._phased_traces[iBeam])
                 fig.tight_layout()
                 plt.show()
-            return True
-        return False
+            return True, triggered_bin
+        return False, None
 
     def __triggering_strided(self):
         """ separated trigger part for PA noise trigger using np.lib.stride_tricks.as_strided """
@@ -411,7 +423,7 @@ class thermalNoiseGeneratorPhasedArray():
             coh_sum_windowed = np.lib.stride_tricks.as_strided(coh_sum_squared, (num_frames, self.window),
                                                        (coh_sum_squared.strides[0] * self.step, coh_sum_squared.strides[0]))
             squared_mean = np.sum(coh_sum_windowed, axis=1) / self.window
-            #self.max_amp = max(squared_mean.max(), self.max_amp)
+            # self.max_amp = max(squared_mean.max(), self.max_amp)
             self.max_amp = max(squared_mean.max(), self.max_amp)
             if True in (squared_mean > self.threshold):
                 logger.info(f"triggered at beam {iBeam}")
@@ -426,7 +438,6 @@ class thermalNoiseGeneratorPhasedArray():
                     plt.show()
                 return True
         return False
-
 
     def generate_noise(self, phasing_mode="slice", trigger_mode="binned_sum", debug=False):
         """
@@ -460,7 +471,7 @@ class thermalNoiseGeneratorPhasedArray():
         while True:
             counter += 1
             if(counter % 1000 == 0):
-                logger.info(f"{counter:d}, {self.max_amp:.2f}, threshold = {self.threshold:.2f}")
+                logger.info(f"{counter:d}, {self.max_amp:.2g}, threshold = {self.threshold:.2g}")
                 # some printout for profiling
                 logger.info(f"Time consumption: GENERATION: {dt_generation:.4f}, PHASING: {dt_phasing:.4f}, TRIGGER: {dt_triggering:.4f}")
             tstart = time.process_time()
@@ -480,12 +491,12 @@ class thermalNoiseGeneratorPhasedArray():
                 logger.error(f"Requested phasing_mode {phasing_mode}. Only 'slice' and 'roll' are allowed")
                 raise NotImplementedError(f"Requested phasing_mode {phasing_mode}. Only 'slice' and 'roll' are allowed")
 
-            # time profiling phasing            
+            # time profiling phasing
             dt_phasing += time.process_time() - tstart
             tstart = time.process_time()
 
             if trigger_mode == "binned_sum":
-                is_triggered = self.__triggering()
+                is_triggered, triggered_bin = self.__triggering()
             elif trigger_mode == "stride":
                 # more time consuming attempt to do triggering compared to taking binned sums
                 is_triggered = self.__triggering_strided()
@@ -497,7 +508,14 @@ class thermalNoiseGeneratorPhasedArray():
             dt_triggering += time.process_time() - tstart
 
             if is_triggered:
-                return self._traces, self._phased_traces
+                triggered_bin = triggered_bin // 2  # the trace is cut in the downsampled version. Therefore, triggered bin is factor of two smaller. 
+                i_low = triggered_bin - self.pre_trigger_bins
+                i_high = i_low + self.n_samples_trigger
+                if (i_low >= 0) and (i_high < self.n_samples):
+                    # traces need to be downsampled
+                    # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
+                    self._traces = scipy.signal.resample(self._traces, np.shape(self._traces)[-1] // self.upsampling, axis=-1)
+                    return self._traces[:, i_low:i_high], self._phased_traces
 
     def generate_noise2(self, debug=False):
         """
@@ -512,7 +530,7 @@ class thermalNoiseGeneratorPhasedArray():
         while True:
             counter += 1
             if(counter % 1000 == 0):
-                print(f"{counter:d}, {max_amp:.2f}, threshold = {self.threshold:.2f}")
+                print(f"{counter:d}, {max_amp:.3g}, threshold = {self.threshold:.3g}")
             for iCh in range(self.n_channels):
                 spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples * self.upsampling,
                                                     self.sampling_rate * self.upsampling,

@@ -32,7 +32,7 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
     antenna_pattern_provider: AntennaPatternProvider
     """
     n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
-    efield_antenna_factor = np.zeros((len(channels), 2, len(frequencies)), dtype=np.complex)  # from antenna model in e_theta, e_phi
+    efield_antenna_factor = np.zeros((len(channels), 2, len(frequencies)), dtype=complex)  # from antenna model in e_theta, e_phi
     for iCh, channel_id in enumerate(channels):
         zenith_antenna = zenith
         t_theta = 1.
@@ -88,12 +88,12 @@ def get_channel_voltage_from_efield(station, electric_field, channels, detector,
     spectrum = electric_field.get_frequency_spectrum()
     efield_antenna_factor = get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider)
     if return_spectrum:
-        voltage_spectrum = np.zeros((len(channels), len(frequencies)), dtype=np.complex)
+        voltage_spectrum = np.zeros((len(channels), len(frequencies)), dtype=complex)
         for i_ch, ch in enumerate(channels):
             voltage_spectrum[i_ch] = np.sum(efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]), axis=0)
         return voltage_spectrum
     else:
-        voltage_trace = np.zeros((len(channels), 2 * (len(frequencies) - 1)), dtype=np.complex)
+        voltage_trace = np.zeros((len(channels), 2 * (len(frequencies) - 1)), dtype=complex)
         for i_ch, ch in enumerate(channels):
             voltage_trace[i_ch] = fft.freq2time(np.sum(efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]), axis=0), electric_field.get_sampling_rate())
         return np.real(voltage_trace)
@@ -218,7 +218,7 @@ def apply_butterworth(spectrum, frequencies, passband, order=8):
         The filtered spectrum
     """
 
-    f = np.zeros_like(frequencies, dtype=np.complex)
+    f = np.zeros_like(frequencies, dtype=complex)
     mask = frequencies > 0
     b, a = scipy.signal.butter(order, passband, 'bandpass', analog=True)
     w, h = scipy.signal.freqs(b, a, frequencies[mask])
