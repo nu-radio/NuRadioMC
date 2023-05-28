@@ -58,7 +58,7 @@ class IftElectricFieldReconstructor:
         amp_dct=None,
         pulse_time_prior=20. * units.ns,
         pulse_time_uncertainty=5. * units.ns,
-        n_iterations=5,
+        n_iterations=1,
         n_samples=20,
         polarization='pol',
         relative_tolerance=1.e-7,
@@ -216,32 +216,52 @@ class IftElectricFieldReconstructor:
 
         """
         self.__used_channel_ids = []    # only use channels with associated E-field and zenith
+        self.__used_grouped_channel_ids = []
+
         self.__efield_scaling = efield_scaling
         self.__ray_type = ray_type
         self.__plot_title = plot_title
-        self.__used_grouped_channel_ids = grouped_channel_ids
 
-        # flattened channel_id list for more comfortable iterating
-        channel_ids = sum(grouped_channel_ids,[])
-        print("before loop: ", channel_ids)
+        channel_ids = []
+        for group in grouped_channel_ids:
+            for i in group:
+                channel_ids.append(i)
+
+        print("Using channels: ", channel_ids)
+
+
 
         if polarization is not None:
             self.__polarization = polarization
-        for channel_id in channel_ids:
-            channel = station.get_channel(channel_id)
-            if channel.has_parameter(chp.signal_ray_types):
-                for signal_ray_type in channel.get_parameter(chp.signal_ray_types):
-                    if signal_ray_type == ray_type:
-                        print(channel_id)
-                        self.__used_channel_ids.append(channel_id)
-                        break
-            else:
-                print(f"no signal ray type for {channel_id}")
+
+        for channel_id_group in grouped_channel_ids:
+            succesful_channels_in_this_group = []
+            for channel_id in channel_id_group:
+                channel = station.get_channel(channel_id)
+                if channel.has_parameter(chp.signal_ray_types):
+                    for signal_ray_type in channel.get_parameter(chp.signal_ray_types):
+                        if signal_ray_type == ray_type:
+                            print(f"found ray type for {channel_id}")
+                            succesful_channels_in_this_group.append(channel_id)
+                            #self.__used_channel_ids.append(channel_id)
+                            break
+                    else:
+                        print(f"no signal ray type that matched for {channel_id}")
+                else:
+                    print(f"no signal ray type parameters avaialble for {channel_id}")
+            if len(succesful_channels_in_this_group) != 0:
+                self.__used_grouped_channel_ids.append(succesful_channels_in_this_group)
+
+        for group in self.__used_grouped_channel_ids:
+            for i in group:
+                self.__used_channel_ids.append(i)
+
+        print("after loop in run", self.__used_grouped_channel_ids)
+
         if len(self.__used_channel_ids) == 0:
             return
-        self.__used_channel_ids = np.array(self.__used_channel_ids)
 
-        print("after loop in run", self.__used_channel_ids)
+        self.__used_channel_ids = np.array(self.__used_channel_ids)
 
         self.__use_sim = use_sim
         self.__prepare_traces(event, station, detector, ray_type)
@@ -486,7 +506,6 @@ class IftElectricFieldReconstructor:
 
         #for channel_group in channel_group_list:
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
-            print(self.__used_channel_ids)
             print(i_channel, channel_id)
             channel = station.get_channel(channel_id)
             channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
@@ -625,61 +644,67 @@ class IftElectricFieldReconstructor:
         polarization_inserter = NuRadioReco.modules.iftElectricFieldReconstructor.operators.Inserter(mag_S_h.target)
         polarization_field = realizer2 @ polarization_inserter @ (2. * ift.FieldAdapter(polarization_domain, 'pol'))
 
+        #print("used grouped", self.__used_grouped_channel_ids)
+        for channel_group in self.__used_grouped_channel_ids:
+            #print("get likelihood ch", channel_group)
+            #TODO delta mag_S_h
+            for i_channel, channel_id in enumerate(channel_group):
+                print(i_channel)
+                phi_S_h = (NuRadioReco.modules
+                                      .iftElectricFieldReconstructor
+                                      .operators
+                                      .SlopeSpectrumOperator(frequency_domain.get_default_codomain(),
+                                                            self.__phase_dct['sm'],
+                                                            self.__phase_dct['im'],
+                                                            self.__phase_dct['sv'],
+                                                            self.__phase_dct['iv']))
+                phi_S_h = realizer2.adjoint @ phi_S_h
+                scaling_field = (inserter @ add_one @ (.1 * ift.FieldAdapter(scaling_domain, f'scale{i_channel}')))
+                if self.__polarization == 'theta':
+                    efield_spec_operator_theta = ((filter_operator @ (mag_S_h * (1.j * phi_S_h).exp())))
+                    efield_spec_operator_phi = None
+                    channel_spec_operator = (hardware_operators[i_channel][0] @ efield_spec_operator_theta)
+                elif self.__polarization == 'phi':
+                    efield_spec_operator_theta = None
+                    efield_spec_operator_phi = ((filter_operator @ (mag_S_h * (1.j * phi_S_h).exp())))
+                    channel_spec_operator = (hardware_operators[i_channel][1] @ efield_spec_operator_phi)
+                elif self.__polarization == 'pol':
+                    efield_spec_operator_theta = ((filter_operator @ ((mag_S_h * polarization_field.cos()) * (1.j * phi_S_h).exp())))
+                    efield_spec_operator_phi = ((filter_operator @ ((mag_S_h * polarization_field.sin()) * (1.j * phi_S_h).exp())))
+                    channel_spec_operator = (hardware_operators[i_channel][0] @ efield_spec_operator_theta) + (hardware_operators[i_channel][1] @ efield_spec_operator_phi)
+                else:
+                    raise ValueError(f'Unrecognized polarization setting {self.__polarization}. Possible values are theta, phi and pol')
+                efield_spec_operators = [
+                    efield_spec_operator_theta,
+                    efield_spec_operator_phi
+                ]
+                efield_trace_operator = []
+                if self.__efield_scaling:
+                    for efield_spec_operator in efield_spec_operators:
+                        if efield_spec_operator is not None:
+                            efield_trace_operator.append(((realizer @ fft_operator.inverse @ efield_spec_operator)) * scaling_field)
+                        else:
+                            efield_trace_operator.append(None)
+                    channel_trace_operator = ((realizer @ fft_operator.inverse @ (channel_spec_operator))) * scaling_field
+                else:
+                    for efield_spec_operator in efield_spec_operators:
+                        if efield_spec_operator is not None:
+                            efield_trace_operator.append(((realizer @ fft_operator.inverse @ efield_spec_operator)))
+                        else:
+                            efield_trace_operator.append(None)
+                    channel_trace_operator = ((realizer @ fft_operator.inverse @ (channel_spec_operator)))
+                noise_operator = ift.ScalingOperator(self.__noise_levels[i_channel]**2, frequency_domain.get_default_codomain())
+                data_field = ift.Field(ift.DomainTuple.make(frequency_domain.get_default_codomain()), self.__data_traces[i_channel])
+                self.__efield_spec_operators.append(efield_spec_operators)
+                self.__efield_trace_operators.append(efield_trace_operator)
+                self.__channel_spec_operators.append(channel_spec_operator)
+                self.__channel_trace_operators.append(channel_trace_operator)
+                if likelihood is None:
+                    likelihood = ift.GaussianEnergy(mean=data_field, inverse_covariance=noise_operator.inverse)(self.__channel_trace_operators[i_channel])
+                else:
+                    likelihood += ift.GaussianEnergy(mean=data_field, inverse_covariance=noise_operator.inverse)(self.__channel_trace_operators[i_channel])
 
-        for i_channel, channel_id in enumerate(self.__used_channel_ids):
-            phi_S_h = (NuRadioReco.modules
-                                  .iftElectricFieldReconstructor
-                                  .operators
-                                  .SlopeSpectrumOperator(frequency_domain.get_default_codomain(),
-                                                        self.__phase_dct['sm'],
-                                                        self.__phase_dct['im'],
-                                                        self.__phase_dct['sv'],
-                                                        self.__phase_dct['iv']))
-            phi_S_h = realizer2.adjoint @ phi_S_h
-            scaling_field = (inserter @ add_one @ (.1 * ift.FieldAdapter(scaling_domain, f'scale{i_channel}')))
-            if self.__polarization == 'theta':
-                efield_spec_operator_theta = ((filter_operator @ (mag_S_h * (1.j * phi_S_h).exp())))
-                efield_spec_operator_phi = None
-                channel_spec_operator = (hardware_operators[i_channel][0] @ efield_spec_operator_theta)
-            elif self.__polarization == 'phi':
-                efield_spec_operator_theta = None
-                efield_spec_operator_phi = ((filter_operator @ (mag_S_h * (1.j * phi_S_h).exp())))
-                channel_spec_operator = (hardware_operators[i_channel][1] @ efield_spec_operator_phi)
-            elif self.__polarization == 'pol':
-                efield_spec_operator_theta = ((filter_operator @ ((mag_S_h * polarization_field.cos()) * (1.j * phi_S_h).exp())))
-                efield_spec_operator_phi = ((filter_operator @ ((mag_S_h * polarization_field.sin()) * (1.j * phi_S_h).exp())))
-                channel_spec_operator = (hardware_operators[i_channel][0] @ efield_spec_operator_theta) + (hardware_operators[i_channel][1] @ efield_spec_operator_phi)
-            else:
-                raise ValueError(f'Unrecognized polarization setting {self.__polarization}. Possible values are theta, phi and pol')
-            efield_spec_operators = [
-                efield_spec_operator_theta,
-                efield_spec_operator_phi
-            ]
-            efield_trace_operator = []
-            if self.__efield_scaling:
-                for efield_spec_operator in efield_spec_operators:
-                    if efield_spec_operator is not None:
-                        efield_trace_operator.append(((realizer @ fft_operator.inverse @ efield_spec_operator)) * scaling_field)
-                    else:
-                        efield_trace_operator.append(None)
-                channel_trace_operator = ((realizer @ fft_operator.inverse @ (channel_spec_operator))) * scaling_field
-            else:
-                for efield_spec_operator in efield_spec_operators:
-                    if efield_spec_operator is not None:
-                        efield_trace_operator.append(((realizer @ fft_operator.inverse @ efield_spec_operator)))
-                    else:
-                        efield_trace_operator.append(None)
-                channel_trace_operator = ((realizer @ fft_operator.inverse @ (channel_spec_operator)))
-            noise_operator = ift.ScalingOperator(self.__noise_levels[i_channel]**2, frequency_domain.get_default_codomain())
-            data_field = ift.Field(ift.DomainTuple.make(frequency_domain.get_default_codomain()), self.__data_traces[i_channel])
-            self.__efield_spec_operators.append(efield_spec_operators)
-            self.__efield_trace_operators.append(efield_trace_operator)
-            self.__channel_spec_operators.append(channel_spec_operator)
-            self.__channel_trace_operators.append(channel_trace_operator)
-            if likelihood is None:
-                likelihood = ift.GaussianEnergy(mean=data_field, inverse_covariance=noise_operator.inverse)(self.__channel_trace_operators[i_channel])
-            else:
-                likelihood += ift.GaussianEnergy(mean=data_field, inverse_covariance=noise_operator.inverse)(self.__channel_trace_operators[i_channel])
+
         return likelihood
 
     def __store_reconstructed_efields(
@@ -869,6 +894,9 @@ class IftElectricFieldReconstructor:
         Draw plots showing the results of the reconstruction.
         """
         plt.close('all')
+        print("draw reconstruction")
+        print("channel trace operator len ", len(self.__channel_trace_operators))
+
         fontsize = 16
         n_channels = len(self.__used_channel_ids)
         median = KL.position
@@ -879,6 +907,7 @@ class IftElectricFieldReconstructor:
         classic_mean_efield_spec = np.zeros_like(freqs)
         classic_mean_efield_spec /= len(self.__used_channel_ids)
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
+            print("channel", i_channel)
             times = np.arange(self.__data_traces.shape[1]) / sampling_rate + self.__trace_start_times[i_channel]
             trace_stat_calculator = ift.StatCalculator()
             amp_trace_stat_calculator = ift.StatCalculator()
@@ -894,8 +923,11 @@ class IftElectricFieldReconstructor:
                 ax1_1 = fig1.add_subplot(n_channels, 2, 2 * i_channel + 1)
                 ax1_2 = fig1.add_subplot(n_channels, 2, 2 * i_channel + 2)
             ax2_1 = fig2.add_subplot(n_channels, 1, i_channel + 1)
+
+            print("length", len(self.__channel_trace_operators))
             for sample in KL.samples:
                 for i_pol, efield_stat_calculator in enumerate(efield_stat_calculators):
+
                     channel_sample_trace = self.__channel_trace_operators[i_channel].force(median + sample).val
                     trace_stat_calculator.add(channel_sample_trace)
                     amp_trace = np.abs(fft.time2freq(channel_sample_trace, sampling_rate))

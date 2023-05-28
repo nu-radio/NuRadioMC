@@ -106,7 +106,6 @@ class channelTimeOffsetCalculator:
         channel_time_ranges = np.zeros((len(channel_ids), 2))
         raytracer = NuRadioMC.SignalProp.analyticraytracing.ray_tracing(self.__medium)
         for i_channel, channel_id in enumerate(channel_ids):
-            print("channeltimeoffsetcalculator ", i_channel)
             channel = station.get_channel(channel_id)
             channel_time_ranges[i_channel, 0] = channel.get_trace_start_time()
             channel_time_ranges[i_channel, 1] = channel.get_times()[-1]

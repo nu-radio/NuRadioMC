@@ -18,15 +18,16 @@ import os
 
 
 channels_to_be_used = [[0, 1, 2, 3, 4, 5],
-                 [6,7],
-                 [9,10,11],
-                 [21,22,23]]
+                       [6,7],
+                       [9,10,11],
+                       [21,22,23]]
 
-channels_to_be_used_flat = sum(channels_to_be_used, [])
+channels_to_be_used_flat = []
+for group in channels_to_be_used:
+    for i in group:
+        channels_to_be_used_flat.append(i)
 
-channels_I_used_flat = [0, 1, 2, 3, 4, 5, 6,7, 9,10,11, 21,22,23]
-#channels_I_used_flat = [0, 1, 2, 3, 4, 5]
-
+print("Using channels: ", channels_to_be_used_flat)
 
 
 
@@ -114,7 +115,11 @@ time_offset_calculator.begin(
     medium=ice
 )
 channel_props_from_neighbor = NuRadioReco.modules.channelSignalPropertiesFromNeighbors.channelSignalPropertiesFromNeighbors()
+
 for i_event, event in enumerate(event_reader.get_events()):
+    if event.get_run_number() != 3176:
+        continue
+
     print(f"Event {i_event}, Run={event.get_run_number()}, ID={event.get_id()}")
     station = event.get_station(11)
     sim_station = station.get_sim_station()
@@ -123,16 +128,14 @@ for i_event, event in enumerate(event_reader.get_events()):
     channel_bandpass_filter.run(event, station, det, passband=efield_reco_passband, filter_type='butter', order=10)
     channel_bandpass_filter.run(event, sim_station, det, passband=efield_reco_passband, filter_type='butter', order=10)
     efield_bandpass_filter.run(event, sim_station, det, passband=efield_reco_passband, filter_type='butter', order=10)
-    #time_offset_calculator.run(event, station, det, range(6), passband=vertex_reco_passband)
-    time_offset_calculator.run(event, station, det, channels_I_used_flat, passband=vertex_reco_passband)
 
+    time_offset_calculator.run(event, station, det, channels_to_be_used_flat, passband=vertex_reco_passband)
     station.get_channel_ids()
     #channel_props_from_neighbor.run(event, station, det, channel_groups=[[0,1,2,3,4,5]])
-    channel_props_from_neighbor.run(event, station, det, channel_groups=[channels_I_used_flat])
+    channel_props_from_neighbor.run(event, station, det, channel_groups=channels_to_be_used)
 
-    #channel_props_from_neighbor.run(event, station, det, channel_groups=[[9, 10, 11]])
-    # channel_props_from_neighbor.run(event, station, det, channel_groups=[[21, 22, 23]])
     for ray_type in range(3):
+        print("Using ray type:", ray_type)
         ift_efield_reconstructor.run(
             event,
             station,
