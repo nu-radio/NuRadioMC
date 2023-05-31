@@ -218,7 +218,7 @@ class IftElectricFieldReconstructor:
         self.__used_channel_ids = []    # only use channels with associated E-field and zenith
         self.__used_grouped_channel_ids = []
 
-        self.__efield_scaling = False
+        self.__efield_scaling = efield_scaling
         self.__ray_type = ray_type
         self.__plot_title = plot_title
 
@@ -308,8 +308,7 @@ class IftElectricFieldReconstructor:
             median = ift.MultiField.full(H.domain, 0.)
             min_energy = None
             best_reco_KL = None
-            #for k in range(self.__n_iterations):
-            for k in range(1):
+            for k in range(self.__n_iterations):
                 print('----------->>>   {}   <<<-----------'.format(k))
                 KL = ift.MetricGaussianKL(median, H, self.__n_samples, mirror_samples=True)
                 KL, convergence = minimizer(KL)
@@ -633,7 +632,6 @@ class IftElectricFieldReconstructor:
         mag_S_h = realizer2.adjoint @ (subtract_one @ mag_S_h).exp()
         fft_operator = ift.FFTOperator(frequency_domain.get_default_codomain())
 
-
         scaling_domain = ift.UnstructuredDomain(1)
         add_one = ift.Adder(ift.Field(inserter.domain, 1))
 
@@ -646,50 +644,10 @@ class IftElectricFieldReconstructor:
         polarization_inserter = NuRadioReco.modules.iftElectricFieldReconstructor.operators.Inserter(mag_S_h.target)
         polarization_field = realizer2 @ polarization_inserter @ (2. * ift.FieldAdapter(polarization_domain, 'pol'))
 
-
-
-
-        delta_params_dct = {
-            'n_pix': 64,  # spectral bins
-            # Spectral smoothness (affects Gaussian process part)
-            'a': .01,
-            'k0': 2.,
-            # Power-law part of spectrum:
-            'sm': -3.25,
-            'sv': .5,
-            'im': 0.,
-            'iv': .5,
-            'target': power_space
-
-        }
-
-        #channel_group_deltas = []
-        self.__efield_spec_group_delta_operators = []
-
         #print("used grouped", self.__used_grouped_channel_ids)
-        for i_channel_group, channel_group in enumerate(self.__used_grouped_channel_ids):
+        for channel_group in self.__used_grouped_channel_ids:
             #print("get likelihood ch", channel_group)
             #TODO delta mag_S_h
-
-            current_mag_S_h = mag_S_h
-
-            if i_channel_group != 0:
-                B = ift.SLAmplitude(**delta_params_dct)
-                correlated_field_for_delta = ift.CorrelatedField(large_frequency_domain.get_default_codomain(), B)
-
-                self.__efield_spec_group_delta_operators.append(0)
-
-                self.__efield_spec_group_delta_operators[i_channel_group-1] = (domain_flipper @ zero_padder.adjoint @ correlated_field_for_delta)
-                self.__efield_spec_group_delta_operators[i_channel_group-1] = (NuRadioReco.modules
-                                                                      .iftElectricFieldReconstructor
-                                                                      .operators
-                                                                      .SymmetrizingOperator(self.__efield_spec_group_delta_operators[i_channel_group-1].target)
-                                                                      @ self.__efield_spec_group_delta_operators[i_channel_group-1])
-                subtract_one = ift.Adder(ift.Field(self.__efield_spec_group_delta_operators[i_channel_group-1].target, -6))
-                self.__efield_spec_group_delta_operators[i_channel_group-1] = realizer2.adjoint @ (subtract_one @ self.__efield_spec_group_delta_operators[i_channel_group-1])
-
-                current_mag_S_h = mag_S_h + self.__efield_spec_group_delta_operators[i_channel_group-1]
-
             for i_channel, channel_id in enumerate(channel_group):
                 print(i_channel)
                 phi_S_h = (NuRadioReco.modules
@@ -703,16 +661,16 @@ class IftElectricFieldReconstructor:
                 phi_S_h = realizer2.adjoint @ phi_S_h
                 scaling_field = (inserter @ add_one @ (.1 * ift.FieldAdapter(scaling_domain, f'scale{i_channel}')))
                 if self.__polarization == 'theta':
-                    efield_spec_operator_theta = ((filter_operator @ (current_mag_S_h * (1.j * phi_S_h).exp())))
+                    efield_spec_operator_theta = ((filter_operator @ (mag_S_h * (1.j * phi_S_h).exp())))
                     efield_spec_operator_phi = None
                     channel_spec_operator = (hardware_operators[i_channel][0] @ efield_spec_operator_theta)
                 elif self.__polarization == 'phi':
                     efield_spec_operator_theta = None
-                    efield_spec_operator_phi = ((filter_operator @ (current_mag_S_h * (1.j * phi_S_h).exp())))
+                    efield_spec_operator_phi = ((filter_operator @ (mag_S_h * (1.j * phi_S_h).exp())))
                     channel_spec_operator = (hardware_operators[i_channel][1] @ efield_spec_operator_phi)
                 elif self.__polarization == 'pol':
-                    efield_spec_operator_theta = ((filter_operator @ ((current_mag_S_h * polarization_field.cos()) * (1.j * phi_S_h).exp())))
-                    efield_spec_operator_phi = ((filter_operator @ ((current_mag_S_h * polarization_field.sin()) * (1.j * phi_S_h).exp())))
+                    efield_spec_operator_theta = ((filter_operator @ ((mag_S_h * polarization_field.cos()) * (1.j * phi_S_h).exp())))
+                    efield_spec_operator_phi = ((filter_operator @ ((mag_S_h * polarization_field.sin()) * (1.j * phi_S_h).exp())))
                     channel_spec_operator = (hardware_operators[i_channel][0] @ efield_spec_operator_theta) + (hardware_operators[i_channel][1] @ efield_spec_operator_phi)
                 else:
                     raise ValueError(f'Unrecognized polarization setting {self.__polarization}. Possible values are theta, phi and pol')
@@ -949,6 +907,7 @@ class IftElectricFieldReconstructor:
         classic_mean_efield_spec = np.zeros_like(freqs)
         classic_mean_efield_spec /= len(self.__used_channel_ids)
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
+            print("channel", i_channel)
             times = np.arange(self.__data_traces.shape[1]) / sampling_rate + self.__trace_start_times[i_channel]
             trace_stat_calculator = ift.StatCalculator()
             amp_trace_stat_calculator = ift.StatCalculator()
@@ -965,6 +924,7 @@ class IftElectricFieldReconstructor:
                 ax1_2 = fig1.add_subplot(n_channels, 2, 2 * i_channel + 2)
             ax2_1 = fig2.add_subplot(n_channels, 1, i_channel + 1)
 
+            print("length", len(self.__channel_trace_operators))
             for sample in KL.samples:
                 for i_pol, efield_stat_calculator in enumerate(efield_stat_calculators):
 
@@ -1113,24 +1073,3 @@ class IftElectricFieldReconstructor:
         fig1.savefig('{}/{}_{}_spec_reco_{}_{}_{}.png'.format(self.__plot_folder, event.get_run_number(), event.get_id(), suffix, self.__ray_type, self.__plot_title))
         fig2.tight_layout()
         fig2.savefig('{}/{}_{}_trace_reco_{}_{}_{}.png'.format(self.__plot_folder, event.get_run_number(), event.get_id(), suffix, self.__ray_type, self.__plot_title))
-
-
-        plt.close()
-        n_groups = len(self.__used_grouped_channel_ids)
-        fig3 = plt.figure(figsize=(16, 4 * n_groups))
-        ax = []
-        #print(n_groups)
-        #print(len(self.__efield_spec_group_delta_operators))
-        for i_group in range(n_groups-1):
-            ax.append(0)
-            ax[i_group] = fig3.add_subplot(n_groups, 1, i_group+1)
-
-            x = ift.from_random('normal', self.__efield_spec_group_delta_operators[i_group].domain)
-            efield_spec_sample = self.__efield_spec_group_delta_operators[i_group].force(x)
-
-            x_axis = np.arange(1280)
-            ax[i_group].plot(x_axis, efield_spec_sample.val, c='C{}'.format(i_group))
-
-
-        fig3.tight_layout()
-        fig3.savefig(f'{self.__plot_folder}/{event.get_run_number()}_{event.get_id()}_trace_reco_{suffix}_{self.__ray_type}_{self.__plot_title}_group_delta.png')
