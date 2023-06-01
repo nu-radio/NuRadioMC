@@ -236,7 +236,7 @@ class thermalNoiseGeneratorPhasedArray():
                  window_length=16 * units.ns, step_size=8 * units.ns,
                  main_angle_low=np.deg2rad(-59.54968597864437), 
                  main_high_angle=np.deg2rad(59.54968597864437),
-                 n_beams=11):
+                 n_beams=11, quantize=True):
         """
         Efficient algorithms to generate thermal noise fluctuations that fulfill a phased array trigger
 
@@ -276,6 +276,8 @@ class thermalNoiseGeneratorPhasedArray():
             angle (radians) of the highest beam
         n_beams: int
             number of beams to calculate
+        quantize: bool
+            If set to true, the conversion to and from ADC will be performed to mimic digitizations
         """
         logger.setLevel(log_level)
         self.debug = False
@@ -289,9 +291,17 @@ class thermalNoiseGeneratorPhasedArray():
 
         self.pre_trigger_bins = int(pre_trigger_time * self.sampling_rate)
         self.n_samples_trigger = int(trace_length * self.sampling_rate)
-        det_channel = self.det.get_channel(station_id, triggered_channels[0])
-        self.adc_n_bits = det_channel["trigger_adc_nbits"]
-        self.adc_noise_n_bits = det_channel["trigger_adc_noise_nbits"]
+
+        if self.n_samples_trigger > self.n_samples:
+            logger.error(f"Requested `trace_length` of {trace_length/units.ns:.1f}ns ({self.n_samples_trigger} bins)" +
+                         f" is longer than the number of samples specified in the detector file ({self.n_samples} bins)")
+            exit()
+
+        self.quantize = quantize
+        if self.quantize:
+            det_channel = self.det.get_channel(station_id, triggered_channels[0])
+            self.adc_n_bits = det_channel["trigger_adc_nbits"]
+            self.adc_noise_n_bits = det_channel["trigger_adc_noise_nbits"]
 
         self.n_channels = len(triggered_channels)
         self.triggered_channels = triggered_channels
@@ -347,7 +357,8 @@ class thermalNoiseGeneratorPhasedArray():
         logger.info(f"Vrms = {self.Vrms:.3g}V, noise amplitude = {self.amplitude:.3g}V, bandwidth = {self.norm / units.MHz:.0f}MHz")
         logger.info(f"frequency range {self.min_freq / units.MHz}MHz - {self.max_freq / units.MHz}MHz")
 
-        self.adc_ref_voltage = self.Vrms * (2 ** (self.adc_n_bits - 1) - 1) / (2 ** (self.adc_noise_n_bits - 1) - 1)
+        if self.quantize:
+            self.adc_ref_voltage = self.Vrms * (2 ** (self.adc_n_bits - 1) - 1) / (2 ** (self.adc_noise_n_bits - 1) - 1)
 
         self.window = int(window_length * self.sampling_rate * self.upsampling)
         self.step = int(step_size * self.sampling_rate * self.upsampling)
@@ -377,7 +388,10 @@ class thermalNoiseGeneratorPhasedArray():
             spec *= self.filt
             trace = fft.freq2time(spec, self.sampling_rate * self.upsampling)
 
-            self._traces[iCh] = perfect_floor_comparator(trace, self.adc_n_bits, self.adc_ref_voltage)
+            if self.quantize:
+                self._traces[iCh] = perfect_floor_comparator(trace, self.adc_n_bits, self.adc_ref_voltage)
+            else:
+                self._traces[iCh] = trace
 
     def __phasing(self):
         """ separated phasing part for PA noise trigger """
@@ -574,7 +588,10 @@ class thermalNoiseGeneratorPhasedArray():
                 spec *= self.filt
                 trace = fft.freq2time(spec, self.sampling_rate * self.upsampling)
 
-                traces[iCh] = perfect_floor_comparator(trace, self.adc_n_bits, self.adc_ref_voltage)
+                if self.quantize:
+                    self._traces[iCh] = perfect_floor_comparator(trace, self.adc_n_bits, self.adc_ref_voltage)
+                else:
+                    self._traces[iCh] = trace
 
             shifts = np.zeros(self.n_channels, dtype=np.int)
             shifted_traces = copy.copy(traces)
