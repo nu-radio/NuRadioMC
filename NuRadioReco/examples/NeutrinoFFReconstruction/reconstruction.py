@@ -68,7 +68,8 @@ if __name__ == "__main__":
     argparser.add_argument("output_path", type=str, help="Path to output folder.")
     argparser.add_argument("--vertex", "-v", action='store_true', help="Reconstruct vertex position.")
     argparser.add_argument("--direction", "-d", action='store_true', help="Reconstruct neutrino direction.")
-    argparser.add_argument("--run", "-r", type=int, nargs="+", help="Run numbers to reconstruct")
+    argparser.add_argument(
+        "--run", "-r", type=int, nargs="+", help="Run numbers to reconstruct. If not specified, reconstruction is performed for all runs in the input .nur file")
     argparser.add_argument("--overwrite", "-o", action='store_true', help="Rerun existing files if direction reco is missing")
     argparser.add_argument("--hard-overwrite", "-O", action='store_true', help="Overwrite existing results files")
     args = argparser.parse_args()
@@ -168,7 +169,7 @@ if __name__ == "__main__":
                 'zenith_sim', 'azimuth_sim', 'x_sim', 'y_sim', 'z_sim',
                 'zenith', 'azimuth', 'x', 'y', 'z', 'E', 'vw_sim','pol_sim', 'vw', 'pol',
                 "corr_fit", "corr_sim", "corr_max", "corr_dnr_max", "ray_type","ray_type_sim", 
-                "chi2_sim", "chi2_fit", "dof", "fit_channels", 'ch_Vpol', 'ch_Vpol_sim'], dtype=object)
+                "chi2_sim", "chi2_fit", "dof", "fit_channels", 'ch_Vpol', 'ch_Vpol_sim', 'shower_type'], dtype=object)
         event_id = evt.get_id()
         weight = particle.get_parameter(pap.weight)
         zenith_sim = particle.get_parameter(pap.zenith)
@@ -390,7 +391,7 @@ if __name__ == "__main__":
                 **cfg['direction'], debug_formats=['.pdf']
             )
             try:
-                neutrinodirectionreconstructor.run(debug_path = output_csv_dir)
+                neutrinodirectionreconstructor.run(debug_path = output_csv_dir, debug=debug_direction)
             except ValueError as e:
                 logger.warning("Direction reconstruction failed. Error message:")
                 logger.exception(e)
@@ -409,6 +410,7 @@ if __name__ == "__main__":
                 df.loc[0, 'chi2_fit'] = chi2_fit
                 df.loc[0, 'dof'] = station[stnp.extra_channels]
                 df.loc[0, 'fit_channels'] = str(station.get_parameter(stnp.direction_fit_pulses)) # need to convert back to dict!
+                df.loc[0, 'shower_type'] = station.get_parameter(stnp.ccnc)
             except KeyError as e:
                 logger.exception(e)
 
