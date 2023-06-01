@@ -328,6 +328,11 @@ class thermalNoiseGeneratorPhasedArray():
         self.window = int(16 * units.ns * self.sampling_rate * 2.0)
         self.step = int(8 * units.ns * self.sampling_rate * 2.0)
 
+        if self.window >= self.pre_trigger_bins:
+            logger.warning(f"Pre-trigger time ({pre_trigger_time / units.ns:0.2} ns, {self.pre_trigger_bins} bins)" +
+                           f" is within one window ({self.window} bins) of the beginning of the waveform" +
+                           " it is recommended to choose a larger value to avoid clipping effects")
+
         self.noise = channelGenericNoiseAdder.channelGenericNoiseAdder()
 
         # pre-calculate all parameters which will be used to simulate each triggered noise event to avoid re-calculation
@@ -508,14 +513,21 @@ class thermalNoiseGeneratorPhasedArray():
             dt_triggering += time.process_time() - tstart
 
             if is_triggered:
-                triggered_bin = triggered_bin // 2  # the trace is cut in the downsampled version. Therefore, triggered bin is factor of two smaller. 
+                triggered_bin = triggered_bin // self.upsampling  # the trace is cut in the downsampled version. Therefore, triggered bin is factor of two smaller. 
                 i_low = triggered_bin - self.pre_trigger_bins
                 i_high = i_low + self.n_samples_trigger
-                if (i_low >= 0) and (i_high < self.n_samples):
-                    # traces need to be downsampled
-                    # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
-                    self._traces = scipy.signal.resample(self._traces, np.shape(self._traces)[-1] // self.upsampling, axis=-1)
+
+                # traces need to be downsampled
+                # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
+                self._traces = scipy.signal.resample(self._traces, np.shape(self._traces)[-1] // self.upsampling, axis=-1)
+
+                if (i_low >= 0) and (i_high < self.n_samples): # If range is directly a subset of the waveform
                     return self._traces[:, i_low:i_high], self._phased_traces
+
+                # Otherwise, roll the waveforms. Safe as long as noise is generated in the freq domain
+                self._phased_traces = np.roll(self._phased_traces, -i_low, axis=-1)
+                self._traces = np.roll(self._traces, -i_low, axis=-1)
+                return self._traces[:, :self.n_samples_trigger], self._phased_traces
 
     def generate_noise2(self, debug=False):
         """
