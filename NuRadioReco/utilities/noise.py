@@ -232,7 +232,11 @@ class thermalNoiseGeneratorPhasedArray():
     def __init__(self, detector_filename, station_id, triggered_channels,
                  Vrms, threshold, ref_index,
                  noise_type="rayleigh", log_level=logging.WARNING,
-                 pre_trigger_time=100 * units.ns, trace_length=512 * units.ns, filt=None):
+                 pre_trigger_time=100 * units.ns, trace_length=512 * units.ns, filt=None,
+                 window_length=16 * units.ns, step_size=8 * units.ns,
+                 main_angle_low=np.deg2rad(-59.54968597864437), 
+                 main_high_angle=np.deg2rad(59.54968597864437),
+                 n_beams=11):
         """
         Efficient algorithms to generate thermal noise fluctuations that fulfill a phased array trigger
 
@@ -262,6 +266,16 @@ class thermalNoiseGeneratorPhasedArray():
             the total trace length
         filt: array of complex values
             the filter that should be applied after noise generation (needs to match frequency binning in upsampled domain)
+        window_length: float
+            time interval of the integration window
+        step_size: float
+            duration of a stride between window calcuations
+        main_angle_low: float
+            angle (radians) of the lowest beam
+        main_angle_high: float
+            angle (radians) of the highest beam
+        n_beams: int
+            number of beams to calculate
         """
         logger.setLevel(log_level)
         self.debug = False
@@ -290,12 +304,10 @@ class thermalNoiseGeneratorPhasedArray():
         for channel_id in triggered_channels:
             cable_delays[channel_id] = self.det.get_cable_delay(station_id, channel_id)
 
-        main_low_angle = np.deg2rad(-59.54968597864437)
-        main_high_angle = np.deg2rad(59.54968597864437)
-        phasing_angles_4ant = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
+        phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), n_beams))
         cspeed = constants.c * units.m / units.s
-        self.beam_time_delays = np.zeros((len(phasing_angles_4ant), self.n_channels), dtype=np.int)
-        for iBeam, angle in enumerate(phasing_angles_4ant):
+        self.beam_time_delays = np.zeros((len(phasing_angles), self.n_channels), dtype=np.int)
+        for iBeam, angle in enumerate(phasing_angles):
 
             delays = []
             for key in self.ant_z:
@@ -337,8 +349,8 @@ class thermalNoiseGeneratorPhasedArray():
 
         self.adc_ref_voltage = self.Vrms * (2 ** (self.adc_n_bits - 1) - 1) / (2 ** (self.adc_noise_n_bits - 1) - 1)
 
-        self.window = int(16 * units.ns * self.sampling_rate * 2.0)
-        self.step = int(8 * units.ns * self.sampling_rate * 2.0)
+        self.window = int(window_length * self.sampling_rate * self.upsampling)
+        self.step = int(step_size * self.sampling_rate * self.upsampling)
 
         if self.window >= self.pre_trigger_bins:
             logger.warning(f"Pre-trigger time ({pre_trigger_time / units.ns:0.2} ns, {self.pre_trigger_bins} bins)" +
@@ -419,11 +431,11 @@ class thermalNoiseGeneratorPhasedArray():
                     if is_triggered:
                         logger.info(f"triggered at beam {iBeam}")
                 import matplotlib.pyplot as plt
-                fig, ax = plt.subplots(5, 1, sharex=True)
+                fig, ax = plt.subplots(self.n_channels + 1, 1, sharex=True)
                 for iCh in range(self.n_channels):
                     ax[iCh].plot(self._traces[iCh])
                     logger.info(f"{self._traces[iCh].std():.2f}")
-                ax[4].plot(self._phased_traces[iBeam])
+                ax[self.n_channels].plot(self._phased_traces[iBeam])
                 fig.tight_layout()
                 plt.show()
             return True, triggered_bin
@@ -446,11 +458,11 @@ class thermalNoiseGeneratorPhasedArray():
                 logger.info(f"triggered at beam {iBeam}")
                 if(self.debug):
                     import matplotlib.pyplot as plt
-                    fig, ax = plt.subplots(5, 1, sharex=True)
+                    fig, ax = plt.subplots(self.n_channels+1, 1, sharex=True)
                     for iCh in range(self.n_channels):
                         ax[iCh].plot(self._traces[iCh])
                         logger.info(f"{self._traces[iCh].std():.2f}")
-                    ax[4].plot(self._phased_traces[iBeam])
+                    ax[self.n_channels].plot(self._phased_traces[iBeam])
                     fig.tight_layout()
                     plt.show()
                 return True
