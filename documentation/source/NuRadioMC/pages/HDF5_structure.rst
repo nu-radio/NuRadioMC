@@ -119,7 +119,7 @@ some parameters are per shower. See https://doi.org/10.22323/1.395.1231 for a de
 ``m_events`` and ``m_showers`` refer to the number of events and showers that triggered the station. NOTE: The simple table
 structure of hdf5 files can not capture the complex relation between events and showers in all cases. Some fields can be ambiguous
 (e.g. `trigger_times` that only lists the last trigger that a shower generated).
-For more advanced analyses, please use the *.nur files. 
+For more advanced analyses, please use the ``*.nur`` files. 
 The ``event_group_id`` is the same as in the global dictionary. Therefore you can check for one event with
 an ``event_group_id`` which stations contain the same ``event_group_id`` and retrieve the information, which
 station triggered, with which amplitude, etc. The same approach works for ``shower_id``.

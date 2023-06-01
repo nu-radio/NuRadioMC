@@ -239,7 +239,7 @@ autodoc_member_order = 'bysource' # list methods/variables etc. by the order the
 autodoc_mock_imports = [
     'ROOT', 'mysql-python', 'pygdsm', 'MySQLdb', 'healpy', 'scripts',
     'uproot', 'radiopropa', 'plotly', 'past',
-    'nifty5'
+    'nifty5', 'mattak'
     ]
 # Raise warnings if any cross-references are broken
 nitpicky = True
