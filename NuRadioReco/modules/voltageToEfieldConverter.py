@@ -77,7 +77,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
         for iCh, trace in enumerate(traces):
             V_timedomain[iCh] = trace.get_trace()
     frequencies = traces[0].get_frequencies()  # assumes that all channels have the same sampling rate
-    V = np.zeros((len(use_channels), len(frequencies)), dtype=np.complex)
+    V = np.zeros((len(use_channels), len(frequencies)), dtype=complex)
     for iCh, trace in enumerate(traces):
         V[iCh] = trace.get_frequency_spectrum()
 
@@ -170,7 +170,7 @@ class voltageToEfieldConverter:
         E1[mask] = (V[0] * efield_antenna_factor[-1][1] - V[-1] * efield_antenna_factor[0][1])[mask] / denom[mask]
         E2[mask] = (V[-1] - efield_antenna_factor[-1][0] * E1)[mask] / efield_antenna_factor[-1][1][mask]
         # solve it in a vectorized way
-        efield3_f = np.zeros((2, n_frequencies), dtype=np.complex)
+        efield3_f = np.zeros((2, n_frequencies), dtype=complex)
         if force_Polarization == 'eTheta':
             efield3_f[:1, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, 0, mask], 1, 0)[:, :, np.newaxis], np.moveaxis(V[:, mask], 1, 0)), 0, 1)
         elif force_Polarization == 'ePhi':
@@ -178,7 +178,7 @@ class voltageToEfieldConverter:
         else:
             efield3_f[:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, :, mask], 2, 0), np.moveaxis(V[:, mask], 1, 0)), 0, 1)
         # add eR direction
-        efield3_f = np.array([np.zeros_like(efield3_f[0], dtype=np.complex),
+        efield3_f = np.array([np.zeros_like(efield3_f[0], dtype=complex),
                              efield3_f[0],
                              efield3_f[1]])
 
