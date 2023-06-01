@@ -232,7 +232,7 @@ class thermalNoiseGeneratorPhasedArray():
     def __init__(self, detector_filename, station_id, triggered_channels,
                  Vrms, threshold, ref_index,
                  noise_type="rayleigh", log_level=logging.WARNING,
-                 pre_trigger_time=100 * units.ns, trace_length=512 * units.ns):
+                 pre_trigger_time=100 * units.ns, trace_length=512 * units.ns, filt=None):
         """
         Efficient algorithms to generate thermal noise fluctuations that fulfill a phased array trigger
 
@@ -248,18 +248,20 @@ class thermalNoiseGeneratorPhasedArray():
             the RMS noise
         threshold: float
             the trigger threshold (assuming a symmetric high and low threshold)
-        trigger_time: float
-            the trigger time (time when the trigger completes)
-        filt: array of floats
-            the filter that should be applied after noise generation (needs to match frequency binning)
+        ref_index: float
+            reference refractive index for calculating time delays of the beams
         noise_type: string
             the type of the noise, can be
             * "rayleigh" (default)
             * "noise"
+        log_level: logging enum
+            the print level for this module
         pre_trigger_time: float
             the time in the trace before the trigger happens
         trace_length: float
             the total trace length
+        filt: array of complex values
+            the filter that should be applied after noise generation (needs to match frequency binning in upsampled domain)
         """
         logger.setLevel(log_level)
         self.debug = False
@@ -312,16 +314,26 @@ class thermalNoiseGeneratorPhasedArray():
         self.max_freq = 0.5 * self.sampling_rate * self.upsampling
         self.dt = 1. / self.sampling_rate
         self.ff = np.fft.rfftfreq(self.n_samples * self.upsampling, 1. / (self.sampling_rate * self.upsampling))
-        import NuRadioReco.modules.channelBandPassFilter
-        channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
-        self.filt = channelBandPassFilter.get_filter(self.ff, station_id, channel_id, self.det,
-                          passband=[96 * units.MHz, 100 * units.GHz], filter_type='cheby1', order=4, rp=0.1)
-        self.filt *= channelBandPassFilter.get_filter(self.ff, station_id, channel_id, self.det,
-                          passband=[1 * units.MHz, 220 * units.MHz], filter_type='cheby1', order=7, rp=0.1)
+
+        # Construct a default filter if one is not supplied
+        if filt is None:
+            import NuRadioReco.modules.channelBandPassFilter
+            channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
+            self.filt = channelBandPassFilter.get_filter(self.ff, station_id, channel_id, self.det,
+                              passband=[96 * units.MHz, 100 * units.GHz], filter_type='cheby1', order=4, rp=0.1)
+            self.filt *= channelBandPassFilter.get_filter(self.ff, station_id, channel_id, self.det,
+                              passband=[1 * units.MHz, 220 * units.MHz], filter_type='cheby1', order=7, rp=0.1)
+        else:
+            if len(filt) != len(self.ff):
+                logger.error(f"Frequency filter supplied has {len(filt)} bins. It should match the upsampled" +
+                             f" frequency binning of {len(ff)} bins from {ff[0] / units.MHz:.0f} to {ff[-1] / units.MHz:.0f} MHz")
+                exit()
+            self.filt = np.array(filt)
+
         self.norm = np.trapz(np.abs(self.filt) ** 2, self.ff)
         self.amplitude = (self.max_freq - self.min_freq) ** 0.5 / self.norm ** 0.5 * self.Vrms
-        print(f"Vrms = {self.Vrms:.3g}V, noise amplitude = {self.amplitude:.3g}V, bandwidth = {self.norm/units.MHz:.0f}MHz")
-        print(f"frequency range {self.min_freq/units.MHz}MHz - {self.max_freq/units.MHz}MHz")
+        logger.info(f"Vrms = {self.Vrms:.3g}V, noise amplitude = {self.amplitude:.3g}V, bandwidth = {self.norm / units.MHz:.0f}MHz")
+        logger.info(f"frequency range {self.min_freq / units.MHz}MHz - {self.max_freq / units.MHz}MHz")
 
         self.adc_ref_voltage = self.Vrms * (2 ** (self.adc_n_bits - 1) - 1) / (2 ** (self.adc_noise_n_bits - 1) - 1)
 
