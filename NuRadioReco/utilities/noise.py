@@ -233,7 +233,7 @@ class thermalNoiseGeneratorPhasedArray():
                  Vrms, threshold, ref_index,
                  noise_type="rayleigh", log_level=logging.WARNING,
                  pre_trigger_time=100 * units.ns, trace_length=512 * units.ns, filt=None,
-                 window_length=16 * units.ns, step_size=8 * units.ns,
+                 upsampling=2, window_length=16 * units.ns, step_size=8 * units.ns,
                  main_low_angle=np.deg2rad(-59.54968597864437), 
                  main_high_angle=np.deg2rad(59.54968597864437),
                  n_beams=11, quantize=True):
@@ -283,7 +283,7 @@ class thermalNoiseGeneratorPhasedArray():
         self.debug = False
         self.max_amp = 0
 
-        self.upsampling = 2
+        self.upsampling = upsampling
         self.det = detector.GenericDetector(json_filename=detector_filename)
         self.det.update(datetime.datetime(2018, 10, 1))
         self.n_samples = self.det.get_number_of_samples(station_id, triggered_channels[0])  # assuming same settings for all channels
