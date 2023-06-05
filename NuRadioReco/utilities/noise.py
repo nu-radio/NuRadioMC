@@ -234,7 +234,7 @@ class thermalNoiseGeneratorPhasedArray():
                  noise_type="rayleigh", log_level=logging.WARNING,
                  pre_trigger_time=100 * units.ns, trace_length=512 * units.ns, filt=None,
                  window_length=16 * units.ns, step_size=8 * units.ns,
-                 main_angle_low=np.deg2rad(-59.54968597864437), 
+                 main_low_angle=np.deg2rad(-59.54968597864437), 
                  main_high_angle=np.deg2rad(59.54968597864437),
                  n_beams=11, quantize=True):
         """
@@ -270,9 +270,9 @@ class thermalNoiseGeneratorPhasedArray():
             time interval of the integration window
         step_size: float
             duration of a stride between window calcuations
-        main_angle_low: float
+        main_low_angle: float
             angle (radians) of the lowest beam
-        main_angle_high: float
+        main_high_angle: float
             angle (radians) of the highest beam
         n_beams: int
             number of beams to calculate
@@ -434,8 +434,8 @@ class thermalNoiseGeneratorPhasedArray():
         if self.max_amp > self.threshold:
             sliding_windows = np.array(sliding_windows)
             tmp = np.argwhere(sliding_windows > self.threshold)
-            triggered_step = tmp[0][0]
-            triggered_bin = tmp[0][2] * (self.window + triggered_step * steps_per_window)
+            triggered_step, triggered_beam, triggered_bin = tmp[0]
+            triggered_bin *= (self.window + triggered_step * steps_per_window)
             if(self.debug):
                 # check in which beam the trigger condition was fulfilled
                 sliding_windows = np.concatenate(sliding_windows, axis=1)
@@ -452,8 +452,8 @@ class thermalNoiseGeneratorPhasedArray():
                 ax[self.n_channels].plot(self._phased_traces[iBeam])
                 fig.tight_layout()
                 plt.show()
-            return True, triggered_bin
-        return False, None
+            return True, triggered_bin, triggered_beam
+        return False, None, None
 
     def __triggering_strided(self):
         """ separated trigger part for PA noise trigger using np.lib.stride_tricks.as_strided """
@@ -539,7 +539,7 @@ class thermalNoiseGeneratorPhasedArray():
             tstart = time.process_time()
 
             if trigger_mode == "binned_sum":
-                is_triggered, triggered_bin = self.__triggering()
+                is_triggered, triggered_bin, triggered_beam = self.__triggering()
             elif trigger_mode == "stride":
                 # more time consuming attempt to do triggering compared to taking binned sums
                 is_triggered = self.__triggering_strided()
@@ -563,9 +563,9 @@ class thermalNoiseGeneratorPhasedArray():
                     return self._traces[:, i_low:i_high], self._phased_traces
 
                 # Otherwise, roll the waveforms. Safe as long as noise is generated in the freq domain
-                self._phased_traces = np.roll(self._phased_traces, -i_low, axis=-1)
+                self._phased_traces = np.roll(self._phased_traces, -i_low * self.upsampling, axis=-1)
                 self._traces = np.roll(self._traces, -i_low, axis=-1)
-                return self._traces[:, :self.n_samples_trigger], self._phased_traces
+                return self._traces[:, :self.n_samples_trigger], self._phased_traces, triggered_beam
 
     def generate_noise2(self, debug=False):
         """
