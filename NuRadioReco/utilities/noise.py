@@ -266,6 +266,8 @@ class thermalNoiseGeneratorPhasedArray():
             the total trace length
         filt: array of complex values
             the filter that should be applied after noise generation (needs to match frequency binning in upsampled domain)
+        upsampling: int
+            factor by which the waveforms will be upsampled before calculating time delays and beamforming
         window_length: float
             time interval of the integration window
         step_size: float
@@ -348,7 +350,7 @@ class thermalNoiseGeneratorPhasedArray():
         else:
             if len(filt) != len(self.ff):
                 logger.error(f"Frequency filter supplied has {len(filt)} bins. It should match the upsampled" +
-                             f" frequency binning of {len(ff)} bins from {ff[0] / units.MHz:.0f} to {ff[-1] / units.MHz:.0f} MHz")
+                             f" frequency binning of {len(self.ff)} bins from {self.ff[0] / units.MHz:.0f} to {self.ff[-1] / units.MHz:.0f} MHz")
                 exit()
             self.filt = np.array(filt)
 
