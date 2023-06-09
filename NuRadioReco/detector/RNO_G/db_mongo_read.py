@@ -117,7 +117,9 @@ class Database(object):
         
     def get_database_time(self):
         return self.__database_time
-
+    
+    def get_detector_time(self):
+        return self.__detector_time
 
     def find_primary_measurement(
             self, type, name, primary_time, identification_label='name', _id=None, id_label='channel', 
