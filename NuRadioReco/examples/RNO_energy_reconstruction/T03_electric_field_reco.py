@@ -15,12 +15,22 @@ import NuRadioMC.utilities.medium
 import NuRadioReco.framework.base_trace
 import argparse
 import os
+from datetime import datetime
 
+
+current_date = datetime.now().strftime("%Y-%m-%d %H:%M")
+plot_folder = f'plots/efield_reco/{current_date}'
 
 channels_to_be_used = [[0, 1, 2, 3, 4, 5],
                        [6,7],
                        [9,10,11],
                        [21,22,23]]
+"""
+channels_to_be_used = [[2, 3, 4, 5],
+                       [6,7],
+                       [9,10,11],
+                       [21,22,23]]
+"""
 
 channels_to_be_used_flat = []
 for group in channels_to_be_used:
@@ -82,8 +92,8 @@ efield_template = NuRadioReco.framework.base_trace.BaseTrace()
 efield_template.set_frequency_spectrum(spec, sampling_rate)
 efield_template.apply_time_shift(20. * units.ns, True)
 
-if not os.path.isdir('plots/efield_reco/pull'):
-    os.makedirs('plots/efield_reco/pull')
+if not os.path.isdir(plot_folder):
+    os.makedirs(plot_folder)
 ift_efield_reconstructor = (NuRadioReco.modules
                                        .iftElectricFieldReconstructor
                                        .iftElectricFieldReconstructor
@@ -107,7 +117,7 @@ ift_efield_reconstructor.begin(
         [[.13, .3], [.3, .5]],
     ],
     debug=True,
-    plot_folder='plots/efield_reco/pull'
+    plot_folder=plot_folder
 )
 time_offset_calculator = NuRadioReco.modules.channelTimeOffsetCalculator.channelTimeOffsetCalculator()
 time_offset_calculator.begin(
@@ -140,10 +150,7 @@ for i_event, event in enumerate(event_reader.get_events()):
             event,
             station,
             det,
-            grouped_channel_ids=[[0, 1, 2, 3, 4, 5],
-                                 [6,7],
-                                 [9,10,11],
-                                 [21,22,23]],
+            grouped_channel_ids=channels_to_be_used,
             #channel_ids=[0, 1, 2, 3, 4, 5],
             efield_scaling=True,
             ray_type=ray_type + 1,
