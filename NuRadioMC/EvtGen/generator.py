@@ -1418,3 +1418,307 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
         logger.status(f"finished in {pretty_time_delta(time.time() - t_start)}")
         return data_sets_fiducial, attributes
+        
+def generate_monopoles(filename, n_events, Emin, Emax,
+                           volume,
+                           thetamin=0.*units.rad, thetamax=np.pi * units.rad,
+                           phimin=0.*units.rad, phimax=2 * np.pi * units.rad,
+                           start_event_id=1,
+                           n_events_per_file=None,
+                           spectrum='log_uniform',
+                           start_file_id=0,
+                           config_file='SouthPole',
+                           proposal_kwargs={},
+                           log_level=None,
+                           max_n_events_batch=1e5,
+                           seed=None):
+    """
+    Event generator for monopoles
+
+    Generates monopoles for the study of the flux of monopoles in the detector
+    All events are saved in an hdf5 file.
+
+    Parameters
+    ----------
+    filename: string
+        the output filename of the hdf5 file
+    n_events: int
+        number of events to generate
+    Emin: float
+        the minimum particle energy (energies are randomly chosen assuming a
+        uniform distribution in the logarithm of the energy)
+    Emax: float
+        the maximum particle energy (energies are randomly chosen assuming a
+        uniform distribution in the logarithm of the energy)
+    volume: dict
+        a dictionary specifying the simulation volume
+        can be either a cylinder spefified via the keys
+
+        * fiducial_rmin: float
+            lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_rmax: float
+            upper r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_zmin: float
+            lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_zmax: float
+            upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * full_rmin: float (optional)
+            lower r coordinate of simulated volume (if not set it is set to the fiducial volume)
+        * full_rmax: float (optional)
+            upper r coordinate of simulated volume (if not set it is set to the fiducial volume)
+        * full_zmin: float (optional)
+            lower z coordinate of simulated volume (if not set it is set to the fiducial volume)
+        * full_zmax: float (optional)
+            upper z coordinate of simulated volume (if not set it is set to the fiducial volume)
+
+        or a cube specified with
+
+        * fiducial_xmin: float
+            lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_xmax: float
+            upper x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_ymin: float
+            lower y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_ymax: float
+            upper y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_zmin: float
+            lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * fiducial_zmax: float
+            upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)
+        * full_xmin: float (optional)
+            lower x coordinate of simulated volume (if not set it is set to the fiducial volume)
+        * full_xmax: float (optional)
+            upper x coordinate of simulated volume (if not set it is set to the fiducial volume)
+        * full_ymin: float (optional)
+            lower y coordinate of simulated volume (if not set it is set to the fiducial volume)
+        * full_ymax: float (optional)
+            upper y coordinate of simulated volume (if not set it is set to the fiducial volume)
+        * full_zmin: float (optional)
+            lower z coordinate of simulated volume (if not set it is set to the fiducial volume)
+        * full_zmax: float (optional)
+            upper z coordinate of simulated volume (if not set it is set to the fiducial volume)
+
+    thetamin: float
+        lower zenith angle for neutrino arrival direction
+    thetamax: float
+        upper zenith angle for neutrino arrival direction
+    phimin: float
+        lower azimuth angle for neutrino arrival direction
+    phimax: float
+        upper azimuth angle for neutrino arrival direction
+    start_event: int
+        default: 1
+        event number of first event
+    n_events_per_file: int or None
+        the maximum number of events per output files. Default is None, which
+        means that all events are saved in one file. If 'n_events_per_file' is
+        smaller than 'n_events' the event list is split up into multiple files.
+        This is useful to split up the computing on multiple cores.
+    spectrum: string
+        defines the probability distribution for which the neutrino energies are generated
+
+        * 'log_uniform': uniformly distributed in the logarithm of energy
+        * 'E-?': E to the -? spectrum where ? can be any float
+        * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
+        * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 
+          for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)
+        * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
+
+    start_file_id: int (default 0)
+        in case the data set is distributed over several files, this number specifies the id of the first file
+        (useful if an existing data set is extended)
+        if True, generate deposited energies instead of primary neutrino energies
+    config_file: string
+        The user can specify the path to their own config file or choose among
+        the three available options:
+
+        * 'SouthPole', a config file for the South Pole (spherical Earth). It
+          consists of a 2.7 km deep layer of ice, bedrock below and air above.
+        * 'MooresBay', a config file for Moore's Bay (spherical Earth). It
+          consists of a 576 m deep ice layer with a 2234 m deep water layer below,
+          and bedrock below that.
+        * 'InfIce', a config file with a medium of infinite ice
+        * 'Greenland', a config file for Summit Station, Greenland (spherical Earth),
+          same as SouthPole but with a 3 km deep ice layer.
+
+        .. Important:: If these options are used, the code is more efficient if the
+            user requests their own "path_to_tables" and "path_to_tables_readonly",
+            pointing them to a writable directory
+            If one of these three options is chosen, the user is supposed to edit
+            the corresponding config_PROPOSAL_xxx.json.sample file to include valid
+            table paths and then copy this file to config_PROPOSAL_xxx.json.
+
+    proposal_kwargs: dict
+        additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
+    log_level: logging log level or None
+        sets the log level in the event generation. None means system default.
+    max_n_events_batch: int (default 1e6)
+        the maximum numbe of events that get generated per batch. Relevant if a fiducial volume cut is applied)
+    seed: None of int
+        seed of the random state
+    """
+    rnd = Generator(Philox(seed))
+    if(log_level is not None):
+        logger.setLevel(log_level)
+    t_start = time.time()
+    max_n_events_batch = int(max_n_events_batch)
+    from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
+    proposal_functions = ProposalFunctions(config_file=config_file)
+
+    attributes = {}
+    n_events = int(n_events)
+
+    # save current NuRadioMC version as attribute
+    # save NuRadioMC and NuRadioReco versions
+    attributes['NuRadioMC_EvtGen_version'] = NuRadioMC.__version__
+    attributes['NuRadioMC_EvtGen_version_hash'] = version.get_NuRadioMC_commit_hash()
+
+    attributes['n_events'] = n_events
+    attributes['start_event_id'] = start_event_id
+    
+    flavor = [41] #The monopoles particle code in proposal
+    
+    attributes['flavors'] = flavor
+    attributes['Emin'] = Emin
+    attributes['Emax'] = Emax
+    attributes['thetamin'] = thetamin
+    attributes['thetamax'] = thetamax
+    attributes['phimin'] = phimin
+    attributes['phimax'] = phimax
+    attributes['deposited'] = False
+
+    data_sets_fiducial = {}
+    proposal_time = 0
+
+    set_volume_attributes(volume, proposal=True, attributes=attributes)
+    n_events = attributes['n_events']  # important! the number of events might have been increased by the set_volume_attributes function
+    n_batches = int(np.ceil(n_events / max_n_events_batch))
+    for i_batch in range(n_batches):  # do generation of events in batches
+        data_sets = {}
+        n_events_batch = max_n_events_batch
+        if(i_batch + 1 == n_batches):  # last batch?
+            n_events_batch = n_events - (i_batch * max_n_events_batch)
+        data_sets["xx"], data_sets["yy"], data_sets["zz"] = generate_vertex_positions(attributes=attributes, n_events=n_events_batch, rnd=rnd)
+        data_sets["zz"] = np.zeros_like(data_sets["yy"])  # muons interact at the surface
+
+        # generate neutrino vertices randomly
+        data_sets["azimuths"] = rnd.uniform(phimin, phimax, n_events_batch)
+        # zenith directions are distruted as sin(theta) (to make the distribution istotropic) * cos(theta) (to account for the projection onto the surface)
+        data_sets["zeniths"] = np.arcsin(rnd.uniform(np.sin(thetamin) ** 2, np.sin(thetamax) ** 2, n_events_batch) ** 0.5)
+
+        data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch, dtype=int) + start_event_id
+        data_sets["n_interaction"] = np.ones(n_events_batch, dtype=int)
+        data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=np.float)
+
+        # generate neutrino flavors randomly
+
+        data_sets["flavors"] = np.array([flavor[i] for i in rnd.integers(0, high=len(flavor), size=n_events_batch)])
+
+        data_sets["energies"] = get_energies(n_events_batch, Emin, Emax, spectrum, rnd)
+
+        # generate charged/neutral current randomly
+        data_sets["interaction_type"] = [ '' ] * n_events_batch
+
+        # generate inelasticity
+        data_sets["inelasticity"] = np.zeros(n_events_batch)
+
+        data_sets["energies"] = np.array(data_sets["energies"])
+        data_sets["muon_energies"] = np.copy(data_sets["energies"])
+
+        # create dummy entries for shower energies and types
+        data_sets['shower_energies'] = np.zeros(n_events_batch)
+        data_sets['shower_type'] = ['had'] * n_events_batch
+
+        init_time = time.time()
+        # Initialising data_sets_fiducial with empty values
+        for key in data_sets:
+            if(key not in data_sets_fiducial):
+                data_sets_fiducial[key] = []
+        logger.info(f"processing batch {i_batch+1:.4g}/{n_batches:.4g} with {n_events_batch:.6g} events ({len(data_sets_fiducial['event_group_ids'])} showers in fiducial volume so far.)")
+
+        E_all_leptons = data_sets["energies"]
+        lepton_codes = data_sets["flavors"]
+        lepton_positions = [ (x, y, z) for x, y, z in zip(data_sets["xx"], data_sets["yy"], data_sets["zz"]) ]
+        lepton_directions = [ (-np.sin(theta) * np.cos(phi), -np.sin(theta) * np.sin(phi), -np.cos(theta))
+                            for theta, phi in zip(data_sets["zeniths"], data_sets["azimuths"])]
+
+        if('fiducial_rmax' in attributes):
+            mask_phi = mask_arrival_azimuth(data_sets, attributes['fiducial_rmax'])  # this currently only works for cylindrical volumes
+        else:
+            mask_phi = np.ones(len(data_sets["event_group_ids"]), dtype=np.bool)
+        # TODO: combine with `get_intersection_volume_neutrino` function
+        for iE, event_id in enumerate(data_sets["event_group_ids"]):
+            if not mask_phi[iE]:
+                continue
+
+            # calculate if the lepton/neutrino direction intersects the fiducial simulation volume
+            geometry_selection = get_intersection_volume_neutrino(attributes,
+                                                                  [data_sets['xx'][iE], data_sets['yy'][iE], data_sets['zz'][iE]],
+                                                                  lepton_directions[iE])
+    #         geometry_selection = True
+            if geometry_selection:
+
+                products_array = proposal_functions.get_secondaries_array(np.array([E_all_leptons[iE]]),
+                                                                           np.array([lepton_codes[iE]]),
+                                                                           np.array([lepton_positions[iE]]),
+                                                                           np.array([lepton_directions[iE]]),
+                                                                           **proposal_kwargs)
+                products = products_array[0]
+
+                n_interaction = 1
+
+                for product in products:
+                    x, y, z, vertex_time = get_product_position_time(data_sets, product, iE)
+                    if(is_in_fiducial_volume(attributes, np.array([x, y, z]))):
+                        # the energy loss or particle is in our fiducial volume
+                        # save parent muon if one of its induced showers interacts in the fiducial volume
+                        if(n_interaction == 1):
+                            for key in iterkeys(data_sets):
+                                data_sets_fiducial[key].append(data_sets[key][iE])
+                            n_interaction = 2
+
+                        for key in iterkeys(data_sets):
+                            data_sets_fiducial[key].append(data_sets[key][iE])
+
+                        data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
+                        n_interaction += 1
+                        data_sets_fiducial['shower_energies'][-1] = product.energy
+                        data_sets_fiducial['inelasticity'][-1] = 1
+                        # interaction_type is either 'had' or 'em' for proposal products
+                        data_sets_fiducial['interaction_type'][-1] = product.shower_type
+                        data_sets_fiducial['shower_type'][-1] = product.shower_type
+                        data_sets_fiducial['xx'][-1] = x
+                        data_sets_fiducial['yy'][-1] = y
+                        data_sets_fiducial['zz'][-1] = z
+
+                        # Calculating vertex interaction time with respect to the primary neutrino
+                        data_sets_fiducial['vertex_times'][-1] = vertex_time
+
+                        # Flavors are particle codes taken from NuRadioProposal.py
+                        data_sets_fiducial['flavors'][-1] = product.code
+        proposal_time += time.time() - init_time
+
+    time_per_evt = proposal_time / len(data_sets_fiducial['flavors'])
+    logger.info(f"Time per event: {time_per_evt*1e3:.01f}ms")
+    logger.info(f"Total time {pretty_time_delta(proposal_time)}")
+
+    logger.status(f"number of fiducial showers {len(data_sets_fiducial['flavors'])}")
+
+    # If there are no fiducial showers, passing an empty data_sets_fiducial to
+    # write_events_to_hdf5 will cause the program to crash. However, we need
+    # the output file to have empty data sets but also to have the total
+    # number of input muons even though none of them triggers, so as not to
+    # bias an effective volume calculation done with several files.
+    # As a solution, we take a muon neutrino event (not an atmospheric muon)
+    # at the top of the ice, and since its inelasticity is zero, it won't create
+    # an electric field or trigger.
+    if len(data_sets_fiducial["event_group_ids"]) == 0:
+        for key, value in data_sets.items():
+            data_sets_fiducial[key] = np.array([data_sets[key][0]])
+        data_sets_fiducial['flavors'] = np.array([41])
+        data_sets_fiducial['shower_energies'] = np.array([0])
+
+    data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=int)
+    write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
+    logger.status(f"finished in {pretty_time_delta(time.time() - t_start)}")
+    return None
