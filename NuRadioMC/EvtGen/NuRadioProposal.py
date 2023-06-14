@@ -115,12 +115,8 @@ proposal_interaction_codes = { int(pp.particle.Interaction_Type.particle): 80,
                                int(pp.particle.Interaction_Type.compton): 90,
                                int(pp.particle.Interaction_Type.decay): 91 }
 
-<<<<<<< HEAD
-def particle_code(particle):
-=======
 
 def particle_code(pp_type):
->>>>>>> develop
     """
     For an integer, corresponding to a proposal.particle.Interaction_Type or 
     proposal.particle.Particle_Type, it returns the corresponding PDG 
@@ -338,22 +334,6 @@ class ProposalFunctions(object):
         """
         if particle_code not in self.__propagators:
             self.__logger.info(f"initializing propagator for particle code {particle_code}")
-<<<<<<< HEAD
-            mu_def_builder = pp.particle.ParticleDefBuilder()
-            if (particle_code == 13):
-                mu_def_builder.SetParticleDef(pp.particle.MuMinusDef())
-            elif (particle_code == -13):
-                mu_def_builder.SetParticleDef(pp.particle.MuPlusDef())
-            elif (particle_code == 15):
-                mu_def_builder.SetParticleDef(pp.particle.TauMinusDef())
-            elif (particle_code == -15):
-                mu_def_builder.SetParticleDef(pp.particle.TauPlusDef())
-            elif (particle_code == 41):
-                mu_def_builder.SetParticleDef(pp.particle.MonopoleDef())
-            else:
-                error_str = "The propagation of this particle via PROPOSAL is not currently supported.\n"
-                error_str += "Please choose between -/+muon (13/-13) and -/+tau (15/-15)"
-=======
 
             pp.InterpolationSettings.tables_path = self.__tables_path
             # download pre-calculated tables for default configs, but not more than once
@@ -375,7 +355,6 @@ class ProposalFunctions(object):
             except:
                 error_str = "The propagation of this particle via PROPOSAL is not currently supported.\n" + \
                     "Please choose between -/+muon (13/-13) and -/+tau (15/-15)"
->>>>>>> develop
                 raise NotImplementedError(error_str)
 
             self.__propagators[particle_code] = pp.Propagator(particle_def=p_def, path_to_config_file=self.__config_file_full_path)
@@ -479,21 +458,6 @@ class ProposalFunctions(object):
         x, y, z = lepton_position
         px, py, pz = lepton_direction
 
-<<<<<<< HEAD
-        if (lepton_code == 13):
-            particle_def = pp.particle.MuMinusDef()
-        elif (lepton_code == -13):
-            particle_def = pp.particle.MuPlusDef()
-        elif (lepton_code == 15):
-            particle_def = pp.particle.TauMinusDef()
-        elif (lepton_code == -15):
-            particle_def = pp.particle.TauPlusDef()
-        elif (lepton_code == 41):
-            particle_def = pp.particle.MonopoleDef()
-        initial_condition = pp.particle.DynamicData(particle_def.particle_type)
-        initial_condition.position = pp.Vector3D(x, y, z)
-        initial_condition.direction = pp.Vector3D(px, py, pz)
-=======
         if (energy_lepton > self.__upper_energy_limit):
             raise ValueError("Initial lepton energy higher than upper_energy_limit of PROPOSAL. Adjust upper_energy_limit when"
                              " initialzing EvtGen.NuRadioProposal.ProposalFunctions.")
@@ -502,7 +466,6 @@ class ProposalFunctions(object):
         initial_condition.type = lepton_code
         initial_condition.position = pp.Cartesian3D(x, y, z)
         initial_condition.direction = pp.Cartesian3D(px, py, pz)
->>>>>>> develop
         initial_condition.energy = energy_lepton
         initial_condition.propagated_distance = 0
 
