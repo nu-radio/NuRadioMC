@@ -154,7 +154,7 @@ class simulation:
         log_level_propagation: logging.LEVEL
             the log level of the propagation module
         ice_model: medium object (default None)
-            allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom". 
+            allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom".
         """
         logger.setLevel(log_level)
         if 'write_mode' in kwargs.keys():
@@ -306,7 +306,7 @@ class simulation:
             self._amplification_per_channel[self._station_id] = {}
             for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                 ff = np.linspace(0, 0.5 / self._dt, 10000)
-                filt = np.ones_like(ff, dtype=np.complex)
+                filt = np.ones_like(ff, dtype=complex)
                 for i, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station_id)):
                     if hasattr(instance, "get_filter"):
                         filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
@@ -850,7 +850,8 @@ class simulation:
                 t1 = time.time()
                 self._station = NuRadioReco.framework.station.Station(self._station_id)
                 self._station.set_sim_station(self._sim_station)
-
+                self._station.get_sim_station().set_station_time(self._evt_time)
+                
                 # convert efields to voltages at digitizer
                 if hasattr(self, '_detector_simulation_part1'):
                     # we give the user the opportunity to define a custom detector simulation
@@ -1149,12 +1150,12 @@ class simulation:
     def _create_empty_multiple_triggers(self):
         if 'trigger_names' not in self._mout_attrs:
             self._mout_attrs['trigger_names'] = np.array([])
-            self._mout['multiple_triggers'] = np.zeros((self._n_showers, 1), dtype=np.bool)
+            self._mout['multiple_triggers'] = np.zeros((self._n_showers, 1), dtype=bool)
             for station_id in self._station_ids:
                 sg = self._mout_groups[station_id]
                 n_showers = sg['launch_vectors'].shape[0]
-                sg['multiple_triggers'] = np.zeros((n_showers, 1), dtype=np.bool)
-                sg['triggered'] = np.zeros(n_showers, dtype=np.bool)
+                sg['multiple_triggers'] = np.zeros((n_showers, 1), dtype=bool)
+                sg['triggered'] = np.zeros(n_showers, dtype=bool)
 
     def _create_trigger_structures(self):
 
@@ -1169,18 +1170,23 @@ class simulation:
         # simulated triggers is unknown at the beginning. So we check if the key already exists and if not,
         # we first create this data structure
         if 'multiple_triggers' not in self._mout:
-            self._mout['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            self._mout['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=bool)
+            self._mout['trigger_times'] = np.nan * np.zeros_like(self._mout['multiple_triggers'], dtype=float)
 #             for station_id in self._station_ids:
 #                 sg = self._mout_groups[station_id]
-#                 sg['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+#                 sg['multiple_triggers'] = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=bool)
         elif extend_array:
-            tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=bool)
             nx, ny = self._mout['multiple_triggers'].shape
             tmp[:, 0:ny] = self._mout['multiple_triggers']
             self._mout['multiple_triggers'] = tmp
+            # repeat for trigger times
+            tmp_t = np.nan * np.zeros_like(tmp, dtype=float)
+            tmp_t[:, 0:ny] = self._mout['trigger_times']
+            self._mout['trigger_times'] = tmp_t
 #             for station_id in self._station_ids:
 #                 sg = self._mout_groups[station_id]
-#                 tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+#                 tmp = np.zeros((self._n_showers, len(self._mout_attrs['trigger_names'])), dtype=bool)
 #                 nx, ny = sg['multiple_triggers'].shape
 #                 tmp[:, 0:ny] = sg['multiple_triggers']
 #                 sg['multiple_triggers'] = tmp
@@ -1193,28 +1199,39 @@ class simulation:
         # the information fo the current station and event group
         n_showers = sg['launch_vectors'].shape[0]
         if 'multiple_triggers' not in sg:
-            sg['multiple_triggers'] = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            sg['multiple_triggers'] = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=bool)
+            sg['trigger_times'] = np.nan * np.zeros_like(sg['multiple_triggers'], dtype=float)
         elif extend_array:
-            tmp = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=np.bool)
+            tmp = np.zeros((n_showers, len(self._mout_attrs['trigger_names'])), dtype=bool)
             nx, ny = sg['multiple_triggers'].shape
             tmp[:, 0:ny] = sg['multiple_triggers']
             sg['multiple_triggers'] = tmp
+            # repeat for trigger times
+            tmp_t = np.nan * np.zeros_like(tmp, dtype=float)
+            tmp_t[:, :ny] = sg['trigger_times']
+            sg['trigger_times'] = tmp_t
 
         self._output_event_group_ids[self._station_id].append(self._evt.get_run_number())
         self._output_sub_event_ids[self._station_id].append(self._evt.get_id())
-        multiple_triggers = np.zeros(len(self._mout_attrs['trigger_names']), dtype=np.bool)
+        multiple_triggers = np.zeros(len(self._mout_attrs['trigger_names']), dtype=bool)
+        trigger_times = np.nan*np.zeros_like(multiple_triggers)
         for iT, trigger_name in enumerate(self._mout_attrs['trigger_names']):
             if self._station.has_trigger(trigger_name):
                 multiple_triggers[iT] = self._station.get_trigger(trigger_name).has_triggered()
+                trigger_times[iT] = self._station.get_trigger(trigger_name).get_trigger_time()
                 for iSh in local_shower_index:  # now save trigger information per shower of the current station
                     sg['multiple_triggers'][iSh][iT] = self._station.get_trigger(trigger_name).has_triggered()
+                    sg['trigger_times'][iSh][iT] = trigger_times[iT]
         for iSh, iSh2 in zip(local_shower_index, global_shower_index):  # now save trigger information per shower of the current station
             sg['triggered'][iSh] = np.any(sg['multiple_triggers'][iSh])
             self._mout['triggered'][iSh2] |= sg['triggered'][iSh]
             self._mout['multiple_triggers'][iSh2] |= sg['multiple_triggers'][iSh]
+            self._mout['trigger_times'][iSh2] = np.fmin(
+                self._mout['trigger_times'][iSh2], sg['trigger_times'][iSh])
         sg['event_id_per_shower'][local_shower_index] = self._evt.get_id()
         sg['event_group_id_per_shower'][local_shower_index] = self._evt.get_run_number()
         self._output_multiple_triggers_station[self._station_id].append(multiple_triggers)
+        self._output_trigger_times_station[self._station_id].append(trigger_times)
         self._output_triggered_station[self._station_id].append(np.any(multiple_triggers))
 
     def get_Vrms(self):
@@ -1245,8 +1262,8 @@ class simulation:
         self._mout = {}
         self._mout_attributes = {}
         self._mout['weights'] = np.zeros(self._n_showers)
-        self._mout['triggered'] = np.zeros(self._n_showers, dtype=np.bool)
-#         self._mout['multiple_triggers'] = np.zeros((self._n_showers, self._number_of_triggers), dtype=np.bool)
+        self._mout['triggered'] = np.zeros(self._n_showers, dtype=bool)
+#         self._mout['multiple_triggers'] = np.zeros((self._n_showers, self._number_of_triggers), dtype=bool)
         self._mout_attributes['trigger_names'] = None
         self._amplitudes = {}
         self._amplitudes_envelope = {}
@@ -1254,6 +1271,7 @@ class simulation:
         self._output_event_group_ids = {}
         self._output_sub_event_ids = {}
         self._output_multiple_triggers_station = {}
+        self._output_trigger_times_station = {}
         self._output_maximum_amplitudes = {}
         self._output_maximum_amplitudes_envelope = {}
 
@@ -1264,13 +1282,14 @@ class simulation:
             self._output_sub_event_ids[station_id] = []
             self._output_triggered_station[station_id] = []
             self._output_multiple_triggers_station[station_id] = []
+            self._output_trigger_times_station[station_id] = []
             self._output_maximum_amplitudes[station_id] = []
             self._output_maximum_amplitudes_envelope[station_id] = []
 
     def _create_station_output_structure(self, n_showers, n_antennas):
         nS = self._raytracer.get_number_of_raytracing_solutions()  # number of possible ray-tracing solutions
         sg = {}
-        sg['triggered'] = np.zeros(n_showers, dtype=np.bool)
+        sg['triggered'] = np.zeros(n_showers, dtype=bool)
         # we need the reference to the shower id to be able to find the correct shower in the upper level hdf5 file
         sg['shower_id'] = np.zeros(n_showers, dtype=int) * -1
         sg['event_id_per_shower'] = np.zeros(n_showers, dtype=int) * -1
@@ -1370,7 +1389,7 @@ class simulation:
             # a reference! saved indicates the interactions to be saved, while
             # triggered should indicate if an interaction has produced a trigger
             saved = np.copy(self._mout['triggered'])
-            if 'n_interactions' in self._fin:  # if n_interactions is not specified, there are not parents
+            if 'n_interaction' in self._fin:  # if n_interactions is not specified, there are not parents
                 parent_mask = self._fin['n_interaction'] == 1
                 for event_id in np.unique(self._fin['event_group_ids']):
                     event_mask = self._fin['event_group_ids'] == event_id
@@ -1405,10 +1424,15 @@ class simulation:
                         # the multiple triggeres 2d array might have different number of entries per event
                         # because the number of different triggers can increase dynamically
                         # therefore we first create an array with the right size and then fill it
-                        tmp = np.zeros((n_events_for_station, n_triggers), dtype=np.bool)
+                        tmp = np.zeros((n_events_for_station, n_triggers), dtype=bool)
                         for iE, values in enumerate(self._output_multiple_triggers_station[station_id]):
                             tmp[iE] = values
                         sg['multiple_triggers_per_event'] = tmp
+                        tmp_t = np.nan * np.zeros_like(tmp, dtype=float)
+                        for iE, values in enumerate(self._output_trigger_times_station[station_id]):
+                            tmp_t[iE] = values
+                        sg['trigger_times_per_event'] = tmp_t
+
 
         # save meta arguments
         for (key, value) in iteritems(self._mout_attrs):
@@ -1428,10 +1452,10 @@ class simulation:
                 fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
                 fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._bandwidth_per_channel[station_id].values())
 
-            fout.attrs.create("Tnoise", self._noise_temp, dtype=np.float)
-            fout.attrs.create("Vrms", self._Vrms, dtype=np.float)
-            fout.attrs.create("dt", self._dt, dtype=np.float)
-            fout.attrs.create("bandwidth", self._bandwidth, dtype=np.float)
+            fout.attrs.create("Tnoise", self._noise_temp, dtype=float)
+            fout.attrs.create("Vrms", self._Vrms, dtype=float)
+            fout.attrs.create("dt", self._dt, dtype=float)
+            fout.attrs.create("bandwidth", self._bandwidth, dtype=float)
             fout.attrs['n_samples'] = self._n_samples
         fout.attrs['config'] = yaml.dump(self._cfg)
 

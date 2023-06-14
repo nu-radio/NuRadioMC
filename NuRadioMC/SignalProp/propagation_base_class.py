@@ -17,7 +17,7 @@ class ray_tracing_base:
 
     def __init__(self, medium, attenuation_model=None, log_level=logging.WARNING, 
                  n_frequencies_integration=None, n_reflections=None, config=None, 
-                 detector = None):
+                 detector=None, ray_tracing_2D_kwards={}):
         """
         class initilization
 
@@ -45,6 +45,8 @@ class ray_tracing_base:
         config: nested dictionary
             loaded yaml config file
         detector: detector object
+        ray_tracing_2D_kwards: dict
+            Additional arguments which are passed to ray_tracing_2D
         """
         self.__logger = logging.getLogger('ray_tracing_base')
         self.__logger.setLevel(log_level)
@@ -90,8 +92,8 @@ class ray_tracing_base:
             stop point of the ray
         """
         self.reset_solutions()
-        self._X1 = np.array(x1, dtype =np.float)
-        self._X2 = np.array(x2, dtype = np.float)
+        self._X1 = np.array(x1, dtype =float)
+        self._X2 = np.array(x2, dtype = float)
         if (self._n_reflections):
             if (self._X1[2] < self._medium.reflection or self._X2[2] < self._medium.reflection):
                 self.__logger.error("start or stop point is below the reflective bottom layer at {:.1f}m".format(
@@ -319,7 +321,7 @@ class ray_tracing_base:
             Index of the raytracing solution the propagation effects should be based on
 
         Returns
-        -------------
+        -------
         efield: ElectricField object
             The modified ElectricField object
         """

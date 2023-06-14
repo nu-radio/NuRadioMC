@@ -247,29 +247,41 @@ class greenland_firn(medium_base.IceModel):
         return self._scalarfield.getGradient(pos) * (1 / (units.meter/RP.meter))
 
     
-    def get_ice_model_radiopropa(self):
+    def _compute_default_ice_model_radiopropa(self):
         """
-        Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes 
-        that define the medium in radiopropa. It uses the parameters of the medium object to 
-        contruct some modules, like a discontinuity object for the air boundary. Additional modules
-        can be added in this function
+        Computes a default object holding the radiopropa scalarfield and necessary radiopropa 
+        moduldes that define the medium in radiopropa. It uses the parameters of the medium 
+        object to contruct the scalar field (using the firn ice model implementation 
+        in radiopropa) and some modules (like a discontinuity object for the air boundary). 
         
         Overwrites function of the mother class
 
         Returns
         -------
-        ice:    RadioPropaIceWrapper
-                object holding the radiopropa scalarfield and modules
+        ice_model_radiopropa:   RadioPropaIceWrapper
+                                object holding the radiopropa scalarfield and modules
         """
-        ice = medium_base.RadioPropaIceWrapper(self, self._scalarfield)
-        return ice
+        return medium_base.RadioPropaIceWrapper(self, self._scalarfield)
 
 class greenland_perturbation(greenland_firn):
     def __init__(self):
         greenland_firn.__init__(self)
         
-    def get_ice_model_radiopropa(self,discontinuity=False):
-        ice = greenland_firn.get_ice_model_radiopropa(self,discontinuity=discontinuity)
+    def _compute_default_ice_model_radiopropa(self,discontinuity=False):
+        """
+        Computes a default object holding the radiopropa scalarfield and necessary radiopropa 
+        moduldes that define the medium in radiopropa. It uses the parameters of the medium 
+        object to contruct some modules using the default computation of the firn model.
+        An additional module for the perturbation layer is then added to the object.
+        
+        Overwrites function of the mother class
+
+        Returns
+        -------
+        ice_model_radiopropa:   RadioPropaIceWrapper
+                                object holding the radiopropa scalarfield and modules
+        """
+        ice = greenland_firn._compute_default_ice_model_radiopropa(self)
         #fraction from ArXiv 1805.12576 table IV last row
         perturbation_horz = RP.PerturbationHorizontal(-100*RP.meter,2*RP.meter, fraction=1)
         ice.add_module('horizontal perturbation',perturbation_horz)

@@ -2,7 +2,7 @@ from __future__ import print_function
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from NuRadioReco.utilities import units, fft
-import numpy.random
+from numpy.random import Generator, Philox
 import logging
 
 
@@ -27,7 +27,7 @@ class channelGenericNoiseAdder:
         """
         amps = np.array(amps, dtype='complex')
         Np = (n_samples_time_domain - 1) // 2
-        phases = self.__random_generator.rand(Np) * 2 * np.pi
+        phases = self.__random_generator.random(Np) * 2 * np.pi
         phases = np.cos(phases) + 1j * np.sin(phases)
         amps[1:Np + 1] *= phases  # Note that the last entry of the index slice is f[Np] !
 
@@ -45,7 +45,7 @@ class channelGenericNoiseAdder:
         """
         f = np.array(f, dtype='complex')
         Np = (len(f) - 1) // 2
-        phases = self.__random_generator.rand(Np) * 2 * np.pi
+        phases = self.__random_generator.random(Np) * 2 * np.pi
         phases = np.cos(phases) + 1j * np.sin(phases)
         f[1:Np + 1] *= phases  # Note that the last entry of the index slice is f[Np] !
         f[-1:-1 - Np:-1] = np.conj(f[1:Np + 1])
@@ -308,7 +308,7 @@ class channelGenericNoiseAdder:
 
     def begin(self, debug=False, seed=None):
         self.__debug = debug
-        self.__random_generator = np.random.RandomState(seed)
+        self.__random_generator = Generator(Philox(seed))
         if debug:
             self.logger.setLevel(logging.DEBUG)
 

@@ -36,7 +36,7 @@ class BaseTrace:
         trace: np.array of floats
             the time trace
         """
-        if(not self.__time_domain_up_to_date):
+        if not self.__time_domain_up_to_date:
             self._time_trace = fft.freq2time(self._frequency_spectrum, self._sampling_rate)
             self.__time_domain_up_to_date = True
             self._frequency_spectrum = None
@@ -62,10 +62,10 @@ class BaseTrace:
         return fft.freq2time(spec, self.get_sampling_rate())
 
     def get_frequency_spectrum(self):
-        if(self.__time_domain_up_to_date):
+        if self.__time_domain_up_to_date:
             self._frequency_spectrum = fft.time2freq(self._time_trace, self._sampling_rate)
             self._time_trace = None
-#             logger.debug("frequency spectrum has shape {}".format(self._frequency_spectrum.shape))
+            # logger.debug("frequency spectrum has shape {}".format(self._frequency_spectrum.shape))
             self.__time_domain_up_to_date = False
         return np.copy(self._frequency_spectrum)
 
@@ -74,7 +74,7 @@ class BaseTrace:
         sets the time trace
 
         Parameters
-        -----------
+        ----------
         trace: np.array of floats
             the time series
         sampling_rate: float
@@ -82,7 +82,8 @@ class BaseTrace:
         """
         if trace is not None:
             if trace.shape[trace.ndim - 1] % 2 != 0:
-                raise ValueError('Attempted to set trace with an uneven number ({}) of samples. Only traces with an even number of samples are allowed.'.format(trace.shape[trace.ndim - 1]))
+                raise ValueError(('Attempted to set trace with an uneven number ({}) of samples. '
+                                 'Only traces with an even number of samples are allowed.').format(trace.shape[trace.ndim - 1]))
         self.__time_domain_up_to_date = True
         self._time_trace = np.copy(trace)
         self._sampling_rate = sampling_rate
@@ -109,9 +110,10 @@ class BaseTrace:
         try:
             length = self.get_number_of_samples()
             times = np.arange(0, length / self._sampling_rate - 0.1 / self._sampling_rate, 1. / self._sampling_rate) + self._trace_start_time
-            if(len(times) != length):
-                logger.error("time array does not have the same length as the trace. n_samples = {:d}, sampling rate = {:.5g}".format(length, self._sampling_rate))
-                raise ValueError("time array does not have the same length as the trace")
+            if len(times) != length:
+                err = f"time array does not have the same length as the trace. n_samples = {length:d}, sampling rate = {self._sampling_rate:.5g}"
+                logger.error(err)
+                raise ValueError(err)
         except:
             times = np.array([])
         return times
@@ -148,7 +150,7 @@ class BaseTrace:
         n_samples: int
             number of samples in time domain
         """
-        if(self.__time_domain_up_to_date):
+        if self.__time_domain_up_to_date:
             length = self._time_trace.shape[-1]  # returns the correct length independent of the dimension of the array (channels are 1dim, efields are 3dim)
         else:
             length = (self._frequency_spectrum.shape[-1] - 1) * 2
@@ -184,12 +186,14 @@ class BaseTrace:
         if resampling_factor.numerator != 1:
             # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
             resampled_trace = scipy.signal.resample(resampled_trace, resampling_factor.numerator * self.get_number_of_samples(), axis=-1)
+        
         if resampling_factor.denominator != 1:
             # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
             resampled_trace = scipy.signal.resample(resampled_trace, np.shape(resampled_trace)[-1] // resampling_factor.denominator, axis=-1)
 
         if resampled_trace.shape[-1] % 2 != 0:
             resampled_trace = resampled_trace.T[:-1].T
+        
         self.set_trace(resampled_trace, sampling_rate)
 
     def serialize(self):
@@ -201,7 +205,7 @@ class BaseTrace:
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
         self.set_trace(data['time_trace'], data['sampling_rate'])
-        if('trace_start_time' in data.keys()):
+        if 'trace_start_time' in data.keys():
             self.set_trace_start_time(data['trace_start_time'])
 
     def __add__(self, x):
@@ -214,10 +218,13 @@ class BaseTrace:
         # Some sanity checks
         if not isinstance(x, BaseTrace):
             raise TypeError('+ operator is only defined for 2 BaseTrace objects')
+        
         if self.get_trace() is None or x.get_trace() is None:
             raise ValueError('One of the trace objects has no trace set')
+        
         if self.get_trace().ndim != x.get_trace().ndim:
             raise ValueError('Traces have different dimensions')
+        
         if self.get_sampling_rate() != x.get_sampling_rate():
             # Upsample trace with lower sampling rate
             # Create new baseTrace object for the resampling so we don't change the originals
@@ -249,10 +256,12 @@ class BaseTrace:
             first_trace = trace_2
             second_trace = trace_1
             trace_start = x.get_trace_start_time()
+        
         # Calculate the difference in the trace start time between the traces and the number of
         # samples that time difference corresponds to
         time_offset = np.abs(x.get_trace_start_time() - self.get_trace_start_time())
         i_start = int(round(time_offset * sampling_rate))
+        
         # We have to distinguish 2 cases: Trace is 1D (channel) or 2D(E-field)
         # and treat them differently
         if trace_1.ndim == 1:
@@ -273,11 +282,13 @@ class BaseTrace:
             early_trace[:, :first_trace.shape[1]] = first_trace
             late_trace = np.zeros((second_trace.shape[0], trace_length))
             late_trace[:, :second_trace.shape[1]] = second_trace
+        
         # Correct for different trace start times by using fourier shift theorem to
         # shift the later trace backwards.
         late_trace_object = BaseTrace()
         late_trace_object.set_trace(late_trace, sampling_rate)
         late_trace_object.apply_time_shift(time_offset, True)
+        
         # Create new BaseTrace object holding the summed traces
         new_trace = BaseTrace()
         new_trace.set_trace(early_trace + late_trace_object.get_trace(), sampling_rate)

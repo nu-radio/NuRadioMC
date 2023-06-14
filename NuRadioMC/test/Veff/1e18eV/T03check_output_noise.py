@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import numpy as np
 import h5py
 from NuRadioReco.utilities import units
@@ -11,7 +11,7 @@ import os
 
 # the event generation has a fixed seed and I switched to Alvarez2000 (also no randomness)
 # thus, the Veff has no statistical scatter
-Veff_mean = 7.576678226341043
+Veff_mean = 7.86364
 Veff_sigma = 0.0001
 
 path = os.path.dirname(os.path.abspath(__file__))
