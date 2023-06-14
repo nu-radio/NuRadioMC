@@ -216,7 +216,7 @@ class ProposalFunctions(object):
     not be used from the outside to avoid mismatching units.
     """
 
-    def __init__(self, config_file='SouthPole', log_level=logging.INFO, tables_path=None, seed=12, upper_energy_limit=1e14*units.MeV):
+    def __init__(self, config_file='SouthPole', log_level=logging.INFO, tables_path=None, seed=12, upper_energy_limit=1e20*units.MeV):
         """
         Parameters
         ----------

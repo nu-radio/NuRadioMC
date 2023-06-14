@@ -1430,6 +1430,7 @@ def generate_monopoles(filename, n_events, Emin, Emax,
                            spectrum='log_uniform',
                            start_file_id=0,
                            config_file='SouthPole',
+                           tables_path=None,
                            proposal_kwargs={},
                            log_level=None,
                            max_n_events_batch=1e5,
@@ -1437,7 +1438,7 @@ def generate_monopoles(filename, n_events, Emin, Emax,
     """
     Event generator for monopoles
 
-    Generates monopoles for the study of the flux of monopoles in the detector
+    Generates muons at the surface for the monopoles studies.
     All events are saved in an hdf5 file.
 
     Parameters
@@ -1447,10 +1448,10 @@ def generate_monopoles(filename, n_events, Emin, Emax,
     n_events: int
         number of events to generate
     Emin: float
-        the minimum particle energy (energies are randomly chosen assuming a
+        the minimum neutrino energy (energies are randomly chosen assuming a
         uniform distribution in the logarithm of the energy)
     Emax: float
-        the maximum particle energy (energies are randomly chosen assuming a
+        the maximum neutrino energy (energies are randomly chosen assuming a
         uniform distribution in the logarithm of the energy)
     volume: dict
         a dictionary specifying the simulation volume
@@ -1511,6 +1512,10 @@ def generate_monopoles(filename, n_events, Emin, Emax,
     start_event: int
         default: 1
         event number of first event
+    plus_minus: string
+        if 'plus': generates only positive muons
+        if 'minus': generates only negative muons
+        else generates positive and negative muons randomly
     n_events_per_file: int or None
         the maximum number of events per output files. Default is None, which
         means that all events are saved in one file. If 'n_events_per_file' is
@@ -1532,7 +1537,7 @@ def generate_monopoles(filename, n_events, Emin, Emax,
         if True, generate deposited energies instead of primary neutrino energies
     config_file: string
         The user can specify the path to their own config file or choose among
-        the three available options:
+        the available options:
 
         * 'SouthPole', a config file for the South Pole (spherical Earth). It
           consists of a 2.7 km deep layer of ice, bedrock below and air above.
@@ -1542,14 +1547,8 @@ def generate_monopoles(filename, n_events, Emin, Emax,
         * 'InfIce', a config file with a medium of infinite ice
         * 'Greenland', a config file for Summit Station, Greenland (spherical Earth),
           same as SouthPole but with a 3 km deep ice layer.
-
-        .. Important:: If these options are used, the code is more efficient if the
-            user requests their own "path_to_tables" and "path_to_tables_readonly",
-            pointing them to a writable directory
-            If one of these three options is chosen, the user is supposed to edit
-            the corresponding config_PROPOSAL_xxx.json.sample file to include valid
-            table paths and then copy this file to config_PROPOSAL_xxx.json.
-
+    tables_path: path
+        path where the proposal cross section tables are stored or should be generated
     proposal_kwargs: dict
         additional kwargs that are passed to the get_secondaries_array function of the NuRadioProposal class
     log_level: logging log level or None
@@ -1565,7 +1564,7 @@ def generate_monopoles(filename, n_events, Emin, Emax,
     t_start = time.time()
     max_n_events_batch = int(max_n_events_batch)
     from NuRadioMC.EvtGen.NuRadioProposal import ProposalFunctions
-    proposal_functions = ProposalFunctions(config_file=config_file)
+    proposal_functions = ProposalFunctions(config_file=config_file, tables_path=tables_path)
 
     attributes = {}
     n_events = int(n_events)
@@ -1578,8 +1577,9 @@ def generate_monopoles(filename, n_events, Emin, Emax,
     attributes['n_events'] = n_events
     attributes['start_event_id'] = start_event_id
     
-    flavor = [41] #The monopoles particle code in proposal
-    
+    flavor = [41] #flavor of monopoles
+
+
     attributes['flavors'] = flavor
     attributes['Emin'] = Emin
     attributes['Emax'] = Emax
@@ -1592,7 +1592,7 @@ def generate_monopoles(filename, n_events, Emin, Emax,
     data_sets_fiducial = {}
     proposal_time = 0
 
-    set_volume_attributes(volume, proposal=True, attributes=attributes)
+    set_volume_attributes(volume, proposal=False, attributes=attributes)
     n_events = attributes['n_events']  # important! the number of events might have been increased by the set_volume_attributes function
     n_batches = int(np.ceil(n_events / max_n_events_batch))
     for i_batch in range(n_batches):  # do generation of events in batches
@@ -1610,7 +1610,7 @@ def generate_monopoles(filename, n_events, Emin, Emax,
 
         data_sets["event_group_ids"] = np.arange(i_batch * max_n_events_batch, i_batch * max_n_events_batch + n_events_batch, dtype=int) + start_event_id
         data_sets["n_interaction"] = np.ones(n_events_batch, dtype=int)
-        data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=np.float)
+        data_sets["vertex_times"] = np.zeros(n_events_batch, dtype=float)
 
         # generate neutrino flavors randomly
 
@@ -1625,7 +1625,7 @@ def generate_monopoles(filename, n_events, Emin, Emax,
         data_sets["inelasticity"] = np.zeros(n_events_batch)
 
         data_sets["energies"] = np.array(data_sets["energies"])
-        data_sets["muon_energies"] = np.copy(data_sets["energies"])
+        data_sets["monopole_energies"] = np.copy(data_sets["energies"])
 
         # create dummy entries for shower energies and types
         data_sets['shower_energies'] = np.zeros(n_events_batch)
@@ -1647,7 +1647,7 @@ def generate_monopoles(filename, n_events, Emin, Emax,
         if('fiducial_rmax' in attributes):
             mask_phi = mask_arrival_azimuth(data_sets, attributes['fiducial_rmax'])  # this currently only works for cylindrical volumes
         else:
-            mask_phi = np.ones(len(data_sets["event_group_ids"]), dtype=np.bool)
+            mask_phi = np.ones(len(data_sets["event_group_ids"]), dtype=bool)
         # TODO: combine with `get_intersection_volume_neutrino` function
         for iE, event_id in enumerate(data_sets["event_group_ids"]):
             if not mask_phi[iE]:
@@ -1665,7 +1665,7 @@ def generate_monopoles(filename, n_events, Emin, Emax,
                                                                            np.array([lepton_positions[iE]]),
                                                                            np.array([lepton_directions[iE]]),
                                                                            **proposal_kwargs)
-                products = products_array[0]
+                products = products_array[0]  # get secondaries from first (and only) lepton
 
                 n_interaction = 1
 
@@ -1717,7 +1717,7 @@ def generate_monopoles(filename, n_events, Emin, Emax,
     if len(data_sets_fiducial["event_group_ids"]) == 0:
         for key, value in data_sets.items():
             data_sets_fiducial[key] = np.array([data_sets[key][0]])
-        data_sets_fiducial['flavors'] = np.array([41])
+        data_sets_fiducial['flavors'] = np.array([14])
         data_sets_fiducial['shower_energies'] = np.array([0])
 
     data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=int)
