@@ -515,7 +515,8 @@ class readRNOGData:
         
         if not do_read:
             # ... or when it does not have the desired information
-            first_event_info = next(iter(self._events_information))
+            first_event_info = self._events_information[list(self._events_information.keys())[0]]
+
             for key in keys:
                 if key not in list(first_event_info.keys()):
                     do_read = True

@@ -73,10 +73,13 @@ class noiseImporter:
         
         if not isinstance(noise_folders, list):
             noise_folders = [noise_folders]
-        
+                    
         # find all subfolders
         noise_files = []
         for noise_folder in noise_folders:
+            if noise_folder == "":
+                continue
+
             noise_files += glob.glob(f"{noise_folder}/**/{file_pattern}root", recursive=True)
         self.__noise_folders = np.unique([os.path.dirname(e) for e in noise_files])       
         
