@@ -4,9 +4,9 @@ import plotly.subplots
 from NuRadioReco.utilities import units
 from NuRadioReco.eventbrowser.default_layout import default_layout
 import numpy as np
-from dash import dcc
+from dash import dcc, callback
 from dash.dependencies import State
-from NuRadioReco.eventbrowser.app import app
+# from NuRadioReco.eventbrowser.app import app
 import NuRadioReco.eventbrowser.dataprovider
 
 provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
@@ -16,7 +16,7 @@ layout = [
 ]
 
 
-@app.callback(
+@callback(
     dash.dependencies.Output('channel-spectrum', 'figure'),
     [dash.dependencies.Input('trigger-trace', 'children'),
      dash.dependencies.Input('event-counter-slider', 'value'),
@@ -33,18 +33,13 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
     station = evt.get_station(station_id)
     fig = plotly.subplots.make_subplots(rows=1, cols=1)
     for i, channel in enumerate(station.iter_channels()):
-        if channel.get_trace() is None:
+        spec = channel.get_frequency_spectrum()
+        if spec is None:
             continue
-        tt = channel.get_times()
-        dt = tt[1] - tt[0]
-        if channel.get_trace() is None:
-            continue
-        trace = channel.get_trace()
-        ff = np.fft.rfftfreq(len(tt), dt)
-        spec = np.abs(np.fft.rfft(trace, norm='ortho'))
+        freqs = channel.get_frequencies()
         fig.append_trace(plotly.graph_objs.Scatter(
-            x=ff / units.MHz,
-            y=spec / units.mV,
+            x=freqs / units.MHz,
+            y=np.abs(spec) / units.mV,
             opacity=0.7,
             marker={
                 'color': colors[i % len(colors)],
