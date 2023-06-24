@@ -12,10 +12,9 @@ from NuRadioReco.utilities import geometryUtilities
 from NuRadioReco.utilities import trace_utilities
 """
 import numpy as np
-from dash import html
-from dash import dcc
+from dash import dcc, html, callback
 from dash.dependencies import Input, Output, State
-from NuRadioReco.eventbrowser.app import app
+# from NuRadioReco.eventbrowser.app import app
 import os
 import NuRadioReco.detector.antennapattern
 import NuRadioReco.eventbrowser.dataprovider
@@ -72,7 +71,7 @@ layout = [
 ]
 
 
-@app.callback(
+@callback(
     dash.dependencies.Output('dropdown-traces', 'options'),
     [dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value'),
@@ -99,7 +98,7 @@ def get_dropdown_traces_options(evt_counter, filename, station_id, juser_id):
     return options
 
 
-@app.callback(
+@callback(
     Output('template-input-group', 'style'),
     [Input('dropdown-traces', 'value')]
 )
@@ -117,7 +116,7 @@ def get_L1(a):
     return l1
 
 
-@app.callback(
+@callback(
     dash.dependencies.Output('time-traces', 'figure'),
     [dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value'),
