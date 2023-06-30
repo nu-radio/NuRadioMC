@@ -672,6 +672,7 @@ class IftElectricFieldReconstructor:
             if i_channel_group != 0:
                 B = ift.SLAmplitude(**delta_params_dct)
                 correlated_fields_delta[i_channel_group-1] = ift.CorrelatedField(large_frequency_domain.get_default_codomain(), B)
+                print(correlated_fields_delta[i_channel_group-1])
 
                 self.__spec_difference.append(0)
 
@@ -680,10 +681,10 @@ class IftElectricFieldReconstructor:
                                                                       .iftElectricFieldReconstructor
                                                                       .operators
                                                                       .SymmetrizingOperator(self.__spec_difference[i_channel_group].target)
-                                                                      @ self.__spec_difference[i_channel_group-1])
+                                                                      @ self.__spec_difference[i_channel_group])
 
                 self.__spec_difference[i_channel_group] = realizer2.adjoint @ (self.__spec_difference[i_channel_group])
-                self.__spec_difference[i_channel_group] *= 0.01
+                self.__spec_difference[i_channel_group] *= 0.05
 
                 #current_mag_S_h = mag_S_h + self.__efield_spec_group_delta_operators[-1]
 

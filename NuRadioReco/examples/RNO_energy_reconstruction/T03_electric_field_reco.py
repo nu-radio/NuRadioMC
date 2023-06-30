@@ -104,7 +104,7 @@ ift_efield_reconstructor.begin(
 
     passband=efield_reco_passband,
     n_samples=10,
-    n_iterations=1,
+    n_iterations=5,
     phase_slope='negative',
     energy_fluence_passbands=[
         [.13, .2],
@@ -161,3 +161,20 @@ for i_event, event in enumerate(event_reader.get_events()):
     efield_resampler.run(event, station, det, sampling_rate=2.)
     efield_resampler.run(event, station.get_sim_station(), det, sampling_rate=2.)
     event_writer.run(event)
+
+
+duration = 0.25  # seconds
+C = 262  # Hz
+E = 327.5
+G = 393
+
+os.system(f'play -nq -t alsa synth {duration} sine {C}')
+os.system(f'play -nq -t alsa synth {duration} sine {E}')
+os.system(f'play -nq -t alsa synth {duration} sine {G}')
+
+import time
+time.sleep(1)
+
+os.system(f'play -nq -t alsa synth {duration} sine {C}')
+os.system(f'play -nq -t alsa synth {duration} sine {E}')
+os.system(f'play -nq -t alsa synth {duration} sine {G}')
