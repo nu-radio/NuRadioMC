@@ -249,7 +249,10 @@ class correlationDirectionFitter:
                     ops += "{:.1f}, ".format(x / units.deg)
                 ops += ")"
                 self.logger.debug(ops)
-                ops = "average incident azimuth {:.1f} +- {:.1f}".format(np.mean(sim_az) / units.deg, np.std(sim_az) / units.deg)
+                temp_complex_representation = np.exp(1j * sim_az)
+                mean_sim_az = np.angle(np.mean(temp_complex_representation.real)+ 1j * np.mean(temp_complex_representation.imag))
+                std_sim_az = np.angle(np.std(temp_complex_representation.real)+ 1j * np.std(temp_complex_representation.imag))
+                ops = "average incident azimuth {:.1f} +- {:.1f}".format(mean_sim_az / units.deg, std_sim_az / units.deg)
                 ops += " (individual: "
                 for x in sim_az:
                     ops += "{:.1f}, ".format(x / units.deg)
@@ -257,15 +260,15 @@ class correlationDirectionFitter:
 
                 self.logger.debug(ops)
                 sim_zen = np.mean(np.array(sim_zen))
-                sim_az = np.mean(np.array(sim_az))
+                sim_az = mean_sim_az
 
             if(sim_zen is not None):
                 dOmega = hp.get_angle(hp.spherical_to_cartesian(sim_zen, sim_az), hp.spherical_to_cartesian(station[stnp.zenith], station[stnp.azimuth]))
-                output_str += "  MC theta = {:.2f}, phi = {:.2f},  dOmega = {:.2f}, dZen = {:.1f}, dAz = {:.1f}".format(sim_zen / units.deg, hp.get_normalized_angle(sim_az) / units.deg, dOmega / units.deg, (station[stnp.zenith] - sim_zen) / units.deg, (station[stnp.azimuth] - hp.get_normalized_angle(sim_az)) / units.deg)
+                output_str += "  MC theta = {:.2f}, phi = {:.2f},  dOmega = {:.2f}, dZen = {:.1f}, dAz = {:.1f}".format(sim_zen / units.deg, hp.get_normalized_angle(sim_az) / units.deg, dOmega / units.deg, (station[stnp.zenith] - sim_zen) / units.deg, hp.get_normalized_angle(station[stnp.azimuth] - hp.get_normalized_angle(sim_az)) / units.deg)
                 self.__zenith.append(sim_zen)
                 self.__azimuth.append(sim_az)
                 self.__delta_zenith.append(station[stnp.zenith] - sim_zen)
-                self.__delta_azimuth.append(station[stnp.azimuth] - hp.get_normalized_angle(sim_az))
+                self.__delta_azimuth.append(hp.get_normalized_angle(station[stnp.azimuth] - hp.get_normalized_angle(sim_az)))
 
         self.logger.info(output_str)
         # Still have to add fit quality parameter to output
