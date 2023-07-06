@@ -396,6 +396,7 @@ class IftElectricFieldReconstructor:
                 final_KL,
                 ''
             )
+        print("1-2", np.sum(self.__spec_difference[1]-self.__spec_difference[2]))
         return True
 
     def __prepare_traces(
@@ -651,9 +652,9 @@ class IftElectricFieldReconstructor:
             'a': .01,
             'k0': 2.,
             # Power-law part of spectrum:
-            'sm': -4,
+            'sm': -3.5,
             'sv': .5,
-            'im': -10.,
+            'im': -4.,
             'iv': 0.5,
             'target': power_space
 
@@ -756,6 +757,7 @@ class IftElectricFieldReconstructor:
                     likelihood += ift.GaussianEnergy(mean=data_field, inverse_covariance=noise_operator.inverse)(self.__channel_trace_operators[i_channel])
 
 
+        print(len(self.__spec_difference))
         return likelihood
 
     def __store_reconstructed_efields(
