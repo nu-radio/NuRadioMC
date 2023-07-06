@@ -264,7 +264,9 @@ class correlationDirectionFitter:
 
             if(sim_zen is not None):
                 dOmega = hp.get_angle(hp.spherical_to_cartesian(sim_zen, sim_az), hp.spherical_to_cartesian(station[stnp.zenith], station[stnp.azimuth]))
-                output_str += "  MC theta = {:.2f}, phi = {:.2f},  dOmega = {:.2f}, dZen = {:.1f}, dAz = {:.1f}".format(sim_zen / units.deg, hp.get_normalized_angle(sim_az) / units.deg, dOmega / units.deg, (station[stnp.zenith] - sim_zen) / units.deg, hp.get_normalized_angle(station[stnp.azimuth] - hp.get_normalized_angle(sim_az)) / units.deg)
+                output_str += "  MC theta = {:.2f}, phi = {:.2f},  dOmega = {:.2f}, dZen = {:.1f}, dAz = {:.1f}".format(sim_zen / units.deg, hp.get_normalized_angle(sim_az) / units.deg, 
+                                                                                                                        dOmega / units.deg, (station[stnp.zenith] - sim_zen) / units.deg, 
+                                                                                                                        hp.get_normalized_angle(station[stnp.azimuth] - hp.get_normalized_angle(sim_az),interval=np.deg2rad([-180, 180])) / units.deg)
                 self.__zenith.append(sim_zen)
                 self.__azimuth.append(sim_az)
                 self.__delta_zenith.append(station[stnp.zenith] - sim_zen)
