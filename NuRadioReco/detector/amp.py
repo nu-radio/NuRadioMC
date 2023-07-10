@@ -25,7 +25,7 @@ def get_amp_response(frequencies, amp_name):
     get_phase = intp.interp1d(freqs2, np.unwrap(phase))
     get_linmag = intp.interp1d(freqs, linmag)
 
-    amp_response = np.zeros_like(frequencies, dtype=np.complex)
+    amp_response = np.zeros_like(frequencies, dtype=complex)
     mask = (frequencies > max(freqs.min(), freqs2.min())) & (frequencies < min(freqs.max(), freqs2.max()))
     amp_response[mask] = get_linmag(frequencies[mask]) * np.exp(1j * get_phase(frequencies[mask]))
     return amp_response

@@ -13,9 +13,9 @@ class NumpyEncoder(json.JSONEncoder):
     """ Special json encoder for numpy types """
 
     def default(self, obj):
-        if isinstance(obj, np.integer):
+        if isinstance(obj, int):
             return int(obj)
-        elif isinstance(obj, np.floating):
+        elif isinstance(obj, float):
             return float(obj)
         elif isinstance(obj, np.ndarray):
             return obj.tolist()
