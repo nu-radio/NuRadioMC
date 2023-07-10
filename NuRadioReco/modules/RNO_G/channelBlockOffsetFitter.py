@@ -1,5 +1,17 @@
+"""
+Module to remove 'block offsets' from RNO-G voltage traces.
+
+The function ``fit_block_offsets`` can be used standalone to perform an out-of-band 
+fit to the block offsets. Alternatively, the ``channelBlockOffsets`` class contains convenience 
+``add_offsets`` (to add block offsets in simulation) and ``remove_offsets`` methods that can be run 
+directly on a NuRadioMC/imported ``Event``. The added/removed block offsets are stored per channel
+in the `NuRadioReco.framework.parameters.channelParameters.block_offsets` parameter.
+
+"""
+
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.framework.base_trace import BaseTrace
+from NuRadioReco.framework.parameters import channelParameters
 # from iminuit import Minuit
 import numpy as np
 import scipy
@@ -31,6 +43,9 @@ class channelBlockOffsets:
     def add_offsets(self, event, station, offsets=1*units.mV, channel_ids=None):
         """
         Add (simulated or reconstructed) block offsets to an event.
+
+        Added block offsets for each channel are stored in the 
+        ``channelParameters.block_offsets`` parameter.
 
         Parameters
         ----------
@@ -68,119 +83,67 @@ class channelBlockOffsets:
                 )
             else:
                 add_offsets = offsets
-            if channel_id in self._offset_inject.keys():
-                self._offset_inject[channel_id] += add_offsets
+
+            # save the added offsets as a channelParameter
+            if channel.has_parameter(channelParameters.block_offsets):
+                block_offsets_old = channel.get_parameter(channelParameters.block_offsets)
+                channel.set_parameter(channelParameters.block_offsets, block_offsets_old + offsets)
             else:
-                self._offset_inject[channel_id] = add_offsets
+                channel.set_parameter(channelParameters.block_offsets, offsets)
 
             channel.set_trace(
                 channel.get_trace() + np.repeat(add_offsets, self.block_size),
                 channel.get_sampling_rate()
             )
 
-    def remove_offsets(self, event, station, offsets='fit', channel_ids=None):
+    def remove_offsets(self, event, station, mode='fit', channel_ids=None):
         """
         Remove block offsets from an event
 
-        Fits and removes the block offsets from an event.
+        Fits and removes the block offsets from an event. The removed
+        offsets are stored in the ``channelParameters.block_offsets``
+        parameter.
 
         Parameters
         ----------
         event: NuRadioReco.framework.event.Event | None
         station: NuRadioReco.framework.station.Station
             The station to remove the block offsets from
-        offsets: str
-            How to remove the offsets. Options are:
+        mode: 'fit' | 'approximate' | 'stored'
+            
+            - 'fit' (default): fit the block offsets with a minimizer
+            - 'approximate' : use the first guess from the out-of-band component,
+              without any fitting (slightly faster)
+            - 'stored': use the block offsets already stored in the 
+              ``channelParameters.block_offsets`` parameter. Will raise an error 
+              if this parameter is not present.
 
-            - 'fit': fit the offsets out of band
-            - 'injected': if offsets were injected using the ``add_offsets``
-              method, this removes those offsets. Otherwise, this does nothing.
-
-            Default: 'fit'
         channel_ids: list | None
             List of channel ids to remove offsets from. If None (default),
             remove offsets from all channels in ``station``
 
         """
-        if offsets=='fit':
-            if not len(self._offset_fit):
-                self.fit_offsets(event, station, channel_ids)
-            offsets = self._offset_fit
-        elif offsets=='injected':
-            if not len(self._offset_inject):
-                offsets = np.zeros(16) #TODO - ensure this works for different trace lengths
-            else:
-                offsets = self._offset_inject
-
-        if isinstance(offsets, dict):
-            remove_offsets = {key: -offsets[key] for key in offsets.keys()}
-        else:
-            remove_offsets = -offsets
-        self.add_offsets(event, station, remove_offsets, channel_ids)
-
-    def fit_offsets(self, event, station, channel_ids=None):
-        """
-        Fit the block offsets using an out-of-band fit
-
-        This function fits the block offsets present in a given
-        event / station using an out-of-band fit in frequency space.
-
-        Parameters
-        ----------
-        event: NuRadioReco.framework.event.Event | None
-        station: NuRadioReco.framework.station.Station
-            The station to fit the block offsets to
-        channel_ids: list | None
-            List of channel ids to fit block offsets for. If None (default),
-            fit offsets for all channels in ``station``
-
-        """
-        block_size = self.block_size
-        if channel_ids is None:
+        if channel_ids  is None:
             channel_ids = station.get_channel_ids()
-        for channel_id in channel_ids:
-            channel = station.get_channel(channel_id)
-            trace = channel.get_trace()
 
-            block_offsets = fit_block_offsets(
-                trace, block_size,
-                channel.get_sampling_rate(), self._max_frequency
-            )
-            self._offset_fit[channel_id] = block_offsets
+        offsets = {}
+        if mode == 'stored': # remove offsets stored in channelParameters.block_offsets
+            offsets = {
+                channel_id: -station.get_channel(channel_id).get_parameter(channelParameters.block_offsets)
+                for channel_id in channel_ids}
+        else: # fit & remove offsets
+            for channel_id in channel_ids:
+                channel = station.get_channel(channel_id)
+                trace = channel.get_trace()
 
-    def get_offsets(self, channel_id, offset_type='fit'):
-        """
-        Return the block offsets for a given channel.
+                block_offsets = fit_block_offsets(
+                    trace, self.block_size,
+                    channel.get_sampling_rate(), self._max_frequency
+                )
+                offsets[channel_id] = -block_offsets
+        
+        self.add_offsets(event, station, offsets, channel_ids)
 
-        Parameters
-        ----------
-        channel_id: int
-            channel id that specifies the channel to return block offsets for
-        offset_type: str
-            Options:
-
-            - 'fit': return the fitted block offsets
-            - 'injected': return the block offsets that were injected
-              using the ``add_offsets`` method.
-
-        Returns
-        -------
-        trace: BaseTrace
-            A :class:`NuRadioReco.framework.base_trace.BaseTrace` object with the same length as the channel trace,
-            containing only the block offsets.
-
-        """
-        trace = BaseTrace()
-        if offset_type == 'fit':
-            trace.set_trace(np.repeat(self._offset_fit[channel_id], self.block_size), self.sampling_rate)
-        elif offset_type == 'injected':
-            trace.set_trace(np.repeat(self._offset_inject[channel_id], self.block_size), self.sampling_rate)
-        return trace
-
-    def _pedestal_fit(self, a):
-        fit = np.sum(a[:, None] * self._const_fft_term, axis=0)
-        chi2 = np.sum(np.abs(fit-self._spectrum)**2)
-        return chi2
 
 def fit_block_offsets(
         trace, block_size=128, sampling_rate=3.2*units.GHz,
@@ -275,14 +238,7 @@ def fit_block_offsets(
             chi2 = np.sum(np.abs(fit-spectrum_oob)**2)
             return chi2
 
-        # self._spectrum = spectrum_oob
         res = scipy.optimize.minimize(pedestal_fit, a_guess, tol=tol).x
-        ### maybe TODO - include option to use Minuit, which seems a lot quicker?
-        # m = Minuit(self._pedestal_fit_minuit, a_guess * nufft_conversion_factor)
-        # m.errordef = 1
-        # m.errors = 0.01 * np.ones_like(a_guess)
-        # m.migrad(ncall=20000)
-        # res = m.values
 
         block_offsets = np.zeros(len(res) + 1)
         block_offsets[:-1] = res
