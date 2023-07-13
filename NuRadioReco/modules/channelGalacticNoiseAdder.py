@@ -1,13 +1,22 @@
 from NuRadioReco.utilities import units, fft, ice, geometryUtilities
 from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.channel
+import NuRadioReco.framework.sim_station
 import NuRadioReco.detector.antennapattern
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.constants
 import scipy.interpolate
-import pygdsm
+from radiocalibrationtoolkit import * #Documentation: https://github.com/F-Tomas/radiocalibrationtoolkit/tree/main contains SSM, GMOSS, ULSA
+from pygdsm import (
+    GlobalSkyModel2016,
+    GlobalSkyModel,
+    LowFrequencySkyModel,
+    HaslamSkyModel,
+)
+
+from pylfmap import LFmap #Documentation: https://github.com/F-Tomas/pylfmap needs cfitsio installation
 import healpy
 import astropy.coordinates
 import astropy.units
@@ -32,16 +41,17 @@ class channelGalacticNoiseAdder:
         self.__zenith_sample = None
         self.__azimuth_sample = None
         self.__n_side = None
-        self.__interpolaiton_frequencies = None
+        self.__interpolation_frequencies = None
         self.__gdsm = None
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
-        self.begin()
+        #self.begin(skymodel=None)
+
 
     def begin(
         self,
+        skymodel=None, #choose sky model. Available are lfmap, lfss, gsm2016, haslam, ssm, gmoss, ulsa_fdi, ulsa_dpi, ulsa_ci.
         debug=False,
-        n_side=4,
-        interpolation_frequencies=np.arange(10, 1100, 100) * units.MHz
+        n_side=4
     ):
         """
         Set up important parameters for the module
@@ -66,7 +76,56 @@ class channelGalacticNoiseAdder:
         """
         self.__debug = debug
         self.__n_side = n_side
-        self.__interpolaiton_frequencies = interpolation_frequencies
+
+        #define interpolation frequencies. Set in logarithmic range from 30 to 400MHz, rounded to 0 decimal places to avoid import errors from LFmap abd tabulated models.
+        self.__interpolation_frequencies = np.around(np.logspace(np.log(30)/np.log(10), np.log(400)/np.log(10), num=30),0) * units.MHz
+
+        # initialise sky model
+        if skymodel == 'lfmap':
+            sky_model = LFmap()
+            print("Using LFmap as sky model")
+        if skymodel == 'lfss':
+            sky_model = LowFrequencySkyModel(freq_unit="MHz")
+            print("Using LFSS as sky model")
+        if skymodel == 'gsm2008':
+            sky_model = GlobalSkyModel(freq_unit="MHz")
+            print("Using GSM2008 as sky model")
+        if skymodel == 'gsm2016':
+            sky_model = GlobalSkyModel2016(freq_unit="MHz")
+            print("Using GSM2016 as sky model")
+        if skymodel == 'haslam':
+            sky_model = HaslamSkyModel(freq_unit="MHz", spectral_index=-2.53)
+            print("Using Haslam as sky model")
+        if skymodel == 'ssm':
+            sky_model = SSM()
+            print("Using SSM as sky model")
+        if skymodel == 'gmoss':
+            sky_model = GMOSS()
+            print("Using GMOSS as sky model")
+        if skymodel == 'ulsa_fdi':
+            sky_model = ULSA(index_type='freq_dependent_index')
+            print("Using ULSA_fdi as sky model")
+        if skymodel == 'ulsa_ci':
+            sky_model = ULSA(index_type='constant_index')
+            print("Using ULSA_ci as sky model")
+        if skymodel == 'ulsa_dpi':
+            sky_model = ULSA(index_type='direction_dependent_index')
+            print("Using ULSA_dpi as sky model")
+        if skymodel is None:
+            sky_model = GlobalSkyModel(freq_unit="MHz")
+            print("No sky model specified. Using standard: Global Sky Model (2008). Other sky models available: lfmap, lfss, gsm2016, haslam, ssm, gmoss, ulsa_fdi, ulsa_dpi, ulsa_ci. ")
+        
+        self.__noise_temperatures = np.zeros((len(self.__interpolation_frequencies), healpy.pixelfunc.nside2npix(self.__n_side)))
+        print("generating noise temperatures")
+        #generating sky maps and noise temperatures from chosen sky model in given frequency range
+        for i_freq, noise_freq in enumerate(self.__interpolation_frequencies):
+            self.__radio_sky = sky_model.generate(noise_freq / units.MHz)
+            self.__radio_sky = healpy.pixelfunc.ud_grade(self.__radio_sky, self.__n_side)
+            self.__noise_temperatures[i_freq] = self.__radio_sky
+            print('%s MHz'% (noise_freq*1000))
+      
+                
+
 
     @register_run()
     def run(
@@ -76,6 +135,10 @@ class channelGalacticNoiseAdder:
         detector,
         passband=None
     ):
+        
+
+
+
         """
         Adds noise resulting from galactic radio emission to the channel traces
 
@@ -93,12 +156,13 @@ class channelGalacticNoiseAdder:
         """
         if passband is None:
             passband = [10 * units.MHz, 1000 * units.MHz]
-        self.__gdsm = pygdsm.pygsm.GlobalSkyModel()
+
+                
         site_latitude, site_longitude = detector.get_site_coordinates(station.get_id())
         site_location = astropy.coordinates.EarthLocation(lat=site_latitude * astropy.units.deg, lon=site_longitude * astropy.units.deg)
         station_time = station.get_station_time()
-        station_time.format = 'iso'
-        noise_temperatures = np.zeros((len(self.__interpolaiton_frequencies), healpy.pixelfunc.nside2npix(self.__n_side)))
+
+        
         local_cs = astropy.coordinates.AltAz(location=site_location, obstime=station_time)
         solid_angle = healpy.pixelfunc.nside2pixarea(self.__n_side, degrees=False)
         pixel_longitudes, pixel_latitudes = healpy.pixelfunc.pix2ang(self.__n_side, range(healpy.pixelfunc.nside2npix(self.__n_side)), lonlat=True)
@@ -108,10 +172,7 @@ class channelGalacticNoiseAdder:
         local_coordinates = galactic_coordinates.transform_to(local_cs)
         n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
         # save noise temperatures for all directions and frequencies
-        for i_freq, noise_freq in enumerate(self.__interpolaiton_frequencies):
-            radio_sky = self.__gdsm.generate(noise_freq / units.MHz)
-            radio_sky = healpy.pixelfunc.ud_grade(radio_sky, self.__n_side)
-            noise_temperatures[i_freq] = radio_sky
+
 
         for channel in station.iter_channels():
             antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(detector.get_antenna_model(station.get_id(), channel.get_id()))
@@ -122,7 +183,7 @@ class channelGalacticNoiseAdder:
             passband_filter = (freqs > passband[0]) & (freqs < passband[1])
             noise_spec_sum = np.zeros_like(channel.get_frequency_spectrum())
             flux_sum = np.zeros(freqs[passband_filter].shape)
-            efield_sum = np.zeros((3, freqs.shape[0]), dtype=complex)
+            efield_sum = np.zeros((3, freqs.shape[0]), dtype=np.complex128)
             if self.__debug:
                 plt.close('all')
                 fig = plt.figure(figsize=(12, 8))
@@ -160,7 +221,7 @@ class channelGalacticNoiseAdder:
                 zenith = np.pi / 2. - local_coordinates[i_pixel].alt.rad
                 if zenith > 90. * units.deg:
                     continue
-                temperature_interpolator = scipy.interpolate.interp1d(self.__interpolaiton_frequencies, np.log10(noise_temperatures[:, i_pixel]), kind='quadratic')
+                temperature_interpolator = scipy.interpolate.interp1d(self.__interpolation_frequencies, np.log10(self.__noise_temperatures[:, i_pixel]), kind='quadratic')
                 noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
                 # calculate spectral radiance of radio signal using rayleigh-jeans law
                 S = (2. * (scipy.constants.Boltzmann * units.joule / units.kelvin) * freqs[passband_filter]**2 / (scipy.constants.c * units.m / units.s)**2 * (noise_temperature) * solid_angle)
@@ -171,13 +232,13 @@ class channelGalacticNoiseAdder:
                 # calculate electric field per energy bin from the radiance per bin
                 E = np.sqrt(S_per_bin / (scipy.constants.c * units.m / units.s * scipy.constants.epsilon_0 * (units.coulomb / units.V / units.m))) / (d_f)
                 if self.__debug:
-                    ax_1.scatter(self.__interpolaiton_frequencies / units.MHz, noise_temperatures[:, i_pixel] / units.kelvin, c='k', alpha=.01)
+                    ax_1.scatter(self.__interpolation_frequencies / units.MHz, self.__noise_temperatures[:, i_pixel] / units.kelvin, c='k', alpha=.01)
                     ax_1.plot(freqs[passband_filter] / units.MHz, noise_temperature, c='k', alpha=.02)
                     ax_2.plot(freqs[passband_filter] / units.MHz, S_per_bin / d_f / (units.watt / units.m**2 / units.MHz), c='k', alpha=.02)
                     ax_3.plot(freqs[passband_filter] / units.MHz, E / (units.V / units.m), c='k', alpha=.02)
 
                 # assign random phases and polarizations to electric field
-                noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=complex)
+                noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=np.complex128)
                 phases = np.random.uniform(0, 2. * np.pi, len(S))
                 polarizations = np.random.uniform(0, 2. * np.pi, len(S))
 
@@ -204,6 +265,7 @@ class channelGalacticNoiseAdder:
                 channel_spectrum += channel_noise_spectrum
                 noise_spec_sum += channel_noise_spectrum
             channel.set_frequency_spectrum(channel_spectrum, sampling_rate)
+
             if self.__debug:
                 ax_2.plot(freqs[passband_filter] / units.MHz, flux_sum / d_f / (units.watt / units.m**2 / units.MHz), c='C0', label='total flux')
                 ax_3.plot(freqs[passband_filter] / units.MHz, np.sqrt(np.abs(efield_sum[1])**2 + np.abs(efield_sum[2])**2)[passband_filter] / (units.V / units.m), c='k', linestyle='-', label='sum of E-fields')
