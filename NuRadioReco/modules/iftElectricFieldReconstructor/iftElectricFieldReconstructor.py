@@ -14,6 +14,7 @@ import nifty5 as ift
 import matplotlib.pyplot as plt
 import scipy.signal
 import radiotools.helper
+import json
 
 
 class IftElectricFieldReconstructor:
@@ -646,19 +647,26 @@ class IftElectricFieldReconstructor:
         polarization_inserter = NuRadioReco.modules.iftElectricFieldReconstructor.operators.Inserter(mag_S_h.target)
         polarization_field = realizer2 @ polarization_inserter @ (2. * ift.FieldAdapter(polarization_domain, 'pol'))
 
+
         delta_params_dct = {
             'n_pix': 64,  # spectral bins
             # Spectral smoothness (affects Gaussian process part)
             'a': .01,
             'k0': 2.,
             # Power-law part of spectrum:
-            'sm': -3.5,
+            'sm': -4.5,
             'sv': .5,
             'im': -4.,
-            'iv': 0.5,
+            'iv': 1,
             'target': power_space
 
         }
+        with open(f"{self.__plot_folder}/delta_params.txt", "a") as file:
+            for key in delta_params_dct:
+                file.write(str(key))
+                file.write(" : ")
+                file.write(str(delta_params_dct[key]))
+                file.write("\n")
 
         #np.save_txt(self.__plot_folder )
         n_groups = len(self.__used_grouped_channel_ids)
@@ -671,6 +679,7 @@ class IftElectricFieldReconstructor:
         for i_channel_group, channel_group in enumerate(self.__used_grouped_channel_ids):
 
             if i_channel_group != 0:
+                print("channel group", i_channel_group)
                 B = ift.SLAmplitude(**delta_params_dct)
                 correlated_fields_delta[i_channel_group-1] = ift.CorrelatedField(large_frequency_domain.get_default_codomain(), B)
                 print(correlated_fields_delta[i_channel_group-1])
@@ -685,7 +694,7 @@ class IftElectricFieldReconstructor:
                                                                       @ self.__spec_difference[i_channel_group])
 
                 self.__spec_difference[i_channel_group] = realizer2.adjoint @ (self.__spec_difference[i_channel_group])
-                self.__spec_difference[i_channel_group] *= 0.05
+                self.__spec_difference[i_channel_group] *= 0.01
 
                 #current_mag_S_h = mag_S_h + self.__efield_spec_group_delta_operators[-1]
 
@@ -1244,6 +1253,7 @@ class IftElectricFieldReconstructor:
             for n_channel, channel_id in enumerate(channel_group):
                 i_channel += 1
                 print(f"plotting group {i_channel_group} channel {i_channel}")
+
                 times = np.arange(self.__data_traces.shape[1]) / sampling_rate + self.__trace_start_times[i_channel]
                 trace_stat_calculator = ift.StatCalculator()
                 amp_trace_stat_calculator = ift.StatCalculator()

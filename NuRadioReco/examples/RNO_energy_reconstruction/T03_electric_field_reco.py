@@ -104,7 +104,7 @@ ift_efield_reconstructor.begin(
 
     passband=efield_reco_passband,
     n_samples=10,
-    n_iterations=5,
+    n_iterations=2,
     phase_slope='negative',
     energy_fluence_passbands=[
         [.13, .2],
