@@ -114,7 +114,7 @@ if __name__ == "__main__":
     sphinx_log = subprocess.run(['make', 'html'], stderr=subprocess.PIPE, stdout=pipe_stdout)
 
     # we write out all the sphinx errors to sphinx-debug.log, and parse these
-    with open('sphix-debug.log') as f:
+    with open('sphinx-debug.log') as f:
         errs_raw = f.read()
     errs_sphinx = re.split('\\x1b\[[0-9;]+m', errs_raw) # split the errors
      
