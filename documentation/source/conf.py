@@ -247,6 +247,7 @@ nitpicky = True
 # this ignores some cross-reference errors inside docstrings
 # that we don't care about
 nitpick_ignore_regex = [
+    ("py:class", "aenum._enum.Enum"),
     ("py:class", "aenum.Enum"),
     ("py:class", "tinydb_serialization.Serializer"),
     ("py:class", "radiopropa.ScalarField"),
