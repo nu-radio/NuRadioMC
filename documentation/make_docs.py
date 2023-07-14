@@ -113,11 +113,12 @@ if __name__ == "__main__":
         subprocess.check_output(['make', 'clean'])
     sphinx_log = subprocess.run(['make', 'html'], stderr=subprocess.PIPE, stdout=pipe_stdout)
 
-    # errs = sphinx_log.stderr.decode().split('\n')
-    errs = re.split('\\x1b\[[0-9;]+m', sphinx_log.stderr.decode()) # split the errors
-    # output = sphinx_log.stdout.decode().split('\n')
-
-    for err in errs:
+    # we write out all the sphinx errors to sphinx-debug.log, and parse these
+    with open('sphix-debug.log') as f:
+        errs_raw = f.read()
+    errs_sphinx = re.split('\\x1b\[[0-9;]+m', errs_raw) # split the errors
+     
+    for err in errs_sphinx:
         if not err.split(): # whitespace only
             continue
         for key in error_dict.keys():
@@ -130,6 +131,12 @@ if __name__ == "__main__":
         if key == 'other': # we don't fail on these errors
             continue
         fixable_errors += len(error_dict[key]['matches'])
+    
+    # stderr includes non-sphinx errors/warnings raised during the build process
+    # we record these for debugging but don't fail on them
+    errs_other = re.split('\\x1b\[[0-9;]+m', sphinx_log.stderr.decode())
+    errs_other = [err for err in errs_other if not err in errs_sphinx]
+    error_dict['other']['matches'] += errs_other
     
     print(2*'\n'+78*'-')
     if fixable_errors:
