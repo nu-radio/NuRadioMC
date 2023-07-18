@@ -55,7 +55,7 @@ class DataProviderRoot(object):
         if filename != self.__user_instances[user_id]['filename']:
             # user is requesting new file -> close current file and open new one
             reader = self.__user_instances[user_id]['reader']
-            reader.begin([os.path.dirname(filename)])
+            reader.begin([os.path.dirname(filename)], overwrite_sampling_rate=3.2) #TODO - remove hardcoded sampling rate
             self.__user_instances[user_id] = dict(
                 reader=reader, filename=filename,
             )
