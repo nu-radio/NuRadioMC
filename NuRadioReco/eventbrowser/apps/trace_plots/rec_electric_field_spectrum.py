@@ -4,7 +4,7 @@ import plotly.subplots
 from NuRadioReco.utilities import units
 from NuRadioReco.eventbrowser.default_layout import default_layout
 import numpy as np
-from dash import dcc
+from dash import dcc, html
 from dash.dependencies import State
 from NuRadioReco.eventbrowser.app import app
 import NuRadioReco.eventbrowser.dataprovider
@@ -12,6 +12,7 @@ import NuRadioReco.eventbrowser.dataprovider
 provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 
 layout = [
+    html.Button(id='efield-spectrum-log-linear-switch', children='log'),
     dcc.Graph(id='efield-spectrum')
 ]
 
