@@ -22,8 +22,10 @@ layout = [
      dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value'),
      dash.dependencies.Input('station-id-dropdown', 'value')],
-    [State('user_id', 'children')])
-def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id):
+    [State('user_id', 'children'),
+     State('channel-spectrum-log-linear-switch', 'children')]
+    )
+def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id, yscale):
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
@@ -50,5 +52,5 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
     fig['layout'].update(default_layout)
     fig['layout']['legend']['uirevision'] = filename
     fig['layout']['xaxis1'].update(title='frequency [MHz]')
-    fig['layout']['yaxis1'].update(title='amplitude [mV]')
+    fig['layout']['yaxis'].update(title='amplitude [mV]', type=yscale)
     return fig

@@ -125,9 +125,11 @@ def get_L1(a):
      dash.dependencies.Input('station-id-dropdown', 'value'),
      dash.dependencies.Input('open-template-button', 'n_clicks_timestamp')],
     [State('user_id', 'children'),
-     State('template-directory-input', 'value')])
+     State('template-directory-input', 'value'),
+     State('channel-spectrum-log-linear-switch', 'children')]
+)
 def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_info, station_id,
-                              open_template_timestamp, juser_id, template_directory):
+                              open_template_timestamp, juser_id, template_directory, yscale):
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
@@ -419,6 +421,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(
             title='<b>Ch. {}</b><br>voltage [mV]'.format(channel_id)
         )
+        fig['layout']['yaxis{:d}'.format(i * 2 + 2)].update(type=yscale)
 
         if channel.get_trace() is None:
             continue
