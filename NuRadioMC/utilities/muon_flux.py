@@ -9,20 +9,10 @@ from functools import lru_cache
 
 class MuonFlux:
     def __init__(self):
-        self.mc_cm = 1.
+
         self.mc_m = 1e2
-        self.mc_km = 1e3 * self.mc_m
-
-        self.mc_deg = 1.
         self.mc_rad = 180. / np.pi
-
         self.mc_eV = 1.e-9
-        self.mc_GeV = 1
-        self.mc_TeV = 1.e3
-        self.mc_PeV = 1.e6
-        self.mc_EeV = 1.e9
-
-        self.mc_s = 1
         self.mc_ns = 1e-9
 
         self.__buffer = {}
@@ -32,6 +22,7 @@ class MuonFlux:
             self.__buffer = pickle.load(fin)
             fin.close()
 
+
     @lru_cache(maxsize=5000)
     def get_mu_flux(self, theta, altitude=3200, interaction_model='SIBYLL23C', primary_model=(crf.GlobalSplineFitBeta, None), particle_names=("total_mu+", "total_mu-")):
         
@@ -39,7 +30,6 @@ class MuonFlux:
         The function get_mu_flux returns the muon flux at theta, for a given altitude, CR model, and hadronic interaction model. 
                 
         Parameters
-        
         ----------
         energy: float
             energy in eV
@@ -56,7 +46,6 @@ class MuonFlux:
             energy grid in eV
         flux: array of floats
             flux in NuRadioReco units 1/(area * time  * energy * steradian)
-
         """
          
         altitude *= self.mc_m
@@ -82,6 +71,7 @@ class MuonFlux:
 
         return e_grid, flux
     
+
     def get_interp_angle_mu_flux(self, theta_min, theta_max, altitude=3200, n_steps=3, primary_model=(crf.GlobalSplineFitBeta, None),
                           interaction_model='SIBYLL23C', particle_names=("total_mu+", "total_mu-")):
         """
@@ -91,7 +81,6 @@ class MuonFlux:
         Returns zenith angle integrated flux in NuRadioReco units 1/(area * time  * energy)
         
         Parameters
-        
         ----------
         energy: float
             energy in eV
@@ -134,7 +123,6 @@ class MuonFlux:
         The function get_int_angle_mu_flux evalueates the integrated muon flux from theta_min to theta_max and caches the result.
             
         Parameters
-        
         ----------
         energy: float
             energy in eV
@@ -151,7 +139,6 @@ class MuonFlux:
         -------
         flux: float
             zenith angle integrated flux in NuRadioReco units 1/(area * time  * energy)   
-
         """
 
         params = (np.round(energy), np.round(theta_min, 6), np.round(theta_max, 6), np.round(altitude),
@@ -168,8 +155,26 @@ class MuonFlux:
                 pickle.dump(self.__buffer, fout, protocol=4)
 
         return self.__buffer[params]
+    
 
     def get_e_grid(self, theta_deg=50, interaction_model='SIBYLL23C', primary_model=(crf.GlobalSplineFitBeta, None)):
+        """
+        Returns the energy grid for a given interaction model and primary model. Usually this is the same for all zenith angles.
+            
+        Parameters
+        ----------
+        theta_deg: float
+            minimum zenith angle in rad
+        interaction_model: str
+            hadronic interaction model
+        primary_model: tuple
+            cosmic ray model
+
+        Returns
+        -------
+        energies: array of floats
+            energy grid in eV
+        """
         mceq = MCEqRun(interaction_model=interaction_model, primary_model=primary_model, theta_deg=theta_deg)
         e_grid = mceq.e_grid / self.mc_eV
         return e_grid
