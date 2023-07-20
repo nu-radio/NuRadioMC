@@ -13,7 +13,6 @@ import numpy as np
 import pandas as pd
 from NuRadioReco.modules.neutrinoVertexReconstructor import neutrino3DVertexReconstructor_v2 as neutrino3DVertexReconstructor
 from NuRadioReco.modules.neutrinoDirectionReconstruction import rayTypeSelecter, neutrinoDirectionReconstructor
-from NuRadioReco.modules.neutrinoDirectionReconstruction import planeWaveFitterRNOG, distanceFitter
 from NuRadioReco.modules import channelBandPassFilter, channelResampler, channelGenericNoiseAdder
 import NuRadioMC.utilities.medium
 import NuRadioMC.SignalGen.askaryan
@@ -341,30 +340,32 @@ if __name__ == "__main__":
                     bandpassfilter.run(evt, sim_station, det, passband = [0, passband[1]], filter_type = 'butter', order = 10)
 
             shower_ids = [sh.get_id() for sh in evt.get_sim_showers()]
+            raytypeselecter.begin(debug=debug_direction, debugplots_path=output_csv_dir)
             try:
                 raytypeselecter.run(
                     evt, station, det, noise_rms=noise_level, use_channels=channel_dict['PA_ids_baseline'][::-1],
                     sim = False, template = direction_pulse_template, icemodel='greenland_simple', att_model='GL1',
-                    debugplots_path=output_csv_dir, debug_plots=debug_direction)
+                    )
                 ch_Vpol_rec = 3
             except UnboundLocalError: # no RT solutions for given channel:
                 raytypeselecter.run(
                     evt, station, det, noise_rms=noise_level, use_channels=channel_dict['PA_ids_baseline'],
                     sim = False, template = direction_pulse_template, icemodel='greenland_simple', att_model='GL1',
-                    debugplots_path=output_csv_dir, debug_plots=debug_direction)
+                    )
                 ch_Vpol_rec = 0
+            
             ### this helps keep debug plots happy
             try:
                 raytypeselecter.run(
                     evt, station, det, noise_rms=noise_level, use_channels=channel_dict['PA_ids_baseline'][::-1],
                     sim = True, template = direction_pulse_template, icemodel='greenland_simple', att_model='GL1',
-                    debugplots_path=output_csv_dir, debug_plots=False, shower_id=shower_ids[0])
+                    )
                 ch_Vpol_sim = 3
             except UnboundLocalError:
                 raytypeselecter.run(
                     evt, station, det, noise_rms=noise_level, use_channels=channel_dict['PA_ids_baseline'],
                     sim = True, template = direction_pulse_template, icemodel='greenland_simple', att_model='GL1',
-                    debugplots_path=output_csv_dir, debug_plots=False, shower_id=shower_ids[0])
+                    )
                 ch_Vpol_sim = 0
             df.loc[0, 'ray_type'] = station.get_parameter(stnp.raytype)
             df.loc[0, 'ray_type_sim'] = station.get_parameter(stnp.raytype_sim)
