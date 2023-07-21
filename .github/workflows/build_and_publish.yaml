@@ -50,6 +50,16 @@ jobs:
           exit 1
         fi
 
+    - name: Make tag and release
+      if: ${{ github.ref == 'refs/heads/master'}} # only runs if the push is to master
+      env:
+        GH_TOKEN: ${{ github.token}}
+      run: |
+        export tag_name=v"$(poetry version -s)"
+        git tag $tag_name
+        git push origin $tag_name
+        gh release create $tag_name --generate-notes
+
     - name: Publish distribution 📦 to Test PyPI
       if: ${{ github.ref == 'refs/heads/master'}} # only runs if the push is to master
       uses: pypa/gh-action-pypi-publish@master
