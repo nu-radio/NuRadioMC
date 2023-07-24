@@ -194,7 +194,6 @@
       "ant_rotation_phi": 90.0,
       "ant_rotation_theta": 90.0,
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
-      "cab_time_delay": 19.8,
       "reference_channel": 0,
       "channel_id": 12,
       "station_id": 11
@@ -211,7 +210,6 @@
       "ant_rotation_phi": 90.0,
       "ant_rotation_theta": 90.0,
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
-      "cab_time_delay": 19.8,
       "reference_channel": 0,
       "channel_id": 13,
       "station_id": 11
@@ -228,7 +226,6 @@
       "ant_rotation_phi": 90.0,
       "ant_rotation_theta": 90.0,
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
-      "cab_time_delay": 19.8,
       "reference_channel": 0,
       "channel_id": 14,
       "station_id": 11
@@ -236,15 +233,14 @@
     "15": {
       "amp_type": "rno_surface",
       "ant_comment": "second arm south-east from DAQ, north-east position in arm, pointing side-downwards",
-      "ant_orientation_phi": 240.0,
+      "ant_orientation_phi": 120.0,
       "ant_orientation_theta": 135.0,
       "ant_position_x": -10.276,
       "ant_position_y": -4.2,
       "ant_position_z": -2.0,
-      "ant_rotation_phi": 330.0,
+      "ant_rotation_phi": 210.0,
       "ant_rotation_theta": 90.0,
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
-      "cab_time_delay": 19.8,
       "reference_channel": 0,
       "channel_id": 15,
       "station_id": 11
@@ -258,10 +254,9 @@
       "ant_position_x": -9.526,
       "ant_position_y": -5.5,
       "ant_position_z": -2.0,
-      "ant_rotation_phi": 330.0,
+      "ant_rotation_phi": 210.0,
       "ant_rotation_theta": 90.0,
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
-      "cab_time_delay": 19.8,
       "reference_channel": 0,
       "channel_id": 16,
       "station_id": 11
@@ -270,12 +265,12 @@
     "17": {
       "amp_type": "rno_surface",
       "ant_comment": "second arm south-east from DAQ, south-west position in arm, pointing side-downwards",
-      "ant_orientation_phi": 60.0,
+      "ant_orientation_phi": 300.0,
       "ant_orientation_theta": 135.0,
       "ant_position_x": -8.776,
       "ant_position_y": -6.8,
       "ant_position_z": -2,
-      "ant_rotation_phi": 330.0,
+      "ant_rotation_phi": 210.0,
       "ant_rotation_theta": 90.0,
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
       "reference_channel": 0,
@@ -286,12 +281,12 @@
     "18": {
       "amp_type": "rno_surface",
       "ant_comment": "third arm south-west from DAQ, south-east position in arm, pointing side-downwards",
-      "ant_orientation_phi": 120.0,
+      "ant_orientation_phi": 240.0,
       "ant_orientation_theta": 135.0,
       "ant_position_x": 8.776,
       "ant_position_y": -6.8,
       "ant_position_z": -2.0,
-      "ant_rotation_phi": 210.0,
+      "ant_rotation_phi": 330.0,
       "ant_rotation_theta": 90.0,
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
       "reference_channel": 0,
@@ -306,7 +301,7 @@
       "ant_position_x": 9.526,
       "ant_position_y": -5.5,
       "ant_position_z": -2.0,
-      "ant_rotation_phi": 210.0,
+      "ant_rotation_phi": 330.0,
       "ant_rotation_theta": 90.0,
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
       "reference_channel": 0,
@@ -316,12 +311,12 @@
     "20": {
       "amp_type": "rno_surface",
       "ant_comment": "third arm south-west from DAQ, north-west position in arm, pointing side-downwards",
-      "ant_orientation_phi": 300.0,
+      "ant_orientation_phi": 60.0,
       "ant_orientation_theta": 135.0,
-      "ant_position_x": -10.276,
-      "ant_position_y": 4.2,
+      "ant_position_x": 10.276,
+      "ant_position_y": -4.2,
       "ant_position_z": -2.0,
-      "ant_rotation_phi": 210.0,
+      "ant_rotation_phi": 330.0,
       "ant_rotation_theta": 90.0,
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
       "reference_channel": 0,
@@ -381,7 +376,8 @@
       "pos_northing": 0.0,
       "pos_site": "summit",
       "station_id": 11,
-      "station_type": null
+      "station_type": null,
+      "reference_station": 11
     }
   }
 }
