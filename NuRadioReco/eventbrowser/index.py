@@ -424,9 +424,11 @@ def update_event_info_time(event_i, filename, station_id, juser_id):
 
 
 if __name__ == '__main__':
-    if int(dash.__version__.split('.')[0]) < 2:
-        print(
-            'WARNING: Dash version 2.0.0 or newer is required, you are running version {}. Please update.'.format(
+    dash_version = [int(i) for i in dash.__version__.split('.')]
+    if dash_version[0] <= 2:
+        if (dash_version[1] < 9) or (dash_version[0] < 2):
+            print(
+                'WARNING: Dash version 2.9.2 or newer is required, you are running version {}. Please update.'.format(
                 dash.__version__))
     if not parsed_args.debug:
         werkzeug_logger = logging.getLogger('werkzeug')
