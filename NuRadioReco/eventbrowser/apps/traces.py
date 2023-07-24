@@ -119,7 +119,8 @@ def toggle_efield_spectrum_plot(button_clicks, showhide):
     
 # callback to change frequency spectra between linear and log scale
 @app.callback(
-    [Output('channel-spectrum', 'figure', allow_duplicate=True), # this is a 'duplicate' callback - requires dash >= 2.9
+    [Output('efield-spectrum', 'figure', allow_duplicate=True), # this is a 'duplicate' callback - requires dash >= 2.9
+     Output('channel-spectrum', 'figure', allow_duplicate=True), # this is a 'duplicate' callback - requires dash >= 2.9
      Output('time-traces', 'figure', allow_duplicate=True),
      Output('channel-spectrum-log-linear-switch', 'children'),
      Output('efield-spectrum-log-linear-switch', 'children')
@@ -127,21 +128,23 @@ def toggle_efield_spectrum_plot(button_clicks, showhide):
     [Input('channel-spectrum-log-linear-switch', 'n_clicks'),
      Input('efield-spectrum-log-linear-switch', 'n_clicks')],
     [State('channel-spectrum-log-linear-switch', 'children'),
+     State('efield-spectrum', 'figure'),
      State('channel-spectrum', 'figure'),
      State('time-traces', 'figure'),
     ], prevent_initial_call=True
 )
-def toggle_linear_log_scale(button_clicks, button_current_value, channel_spectrum, multichannel_plot):
+def toggle_linear_log_scale(button_clicks, button2_clicks, button_current_value, efield_spectrum, channel_spectrum, multichannel_plot):
     outputs = []
     if button_current_value == 'linear': # switch to log
         new_value = 'log'
     else:
         new_value = 'linear'
-    try:
-        channel_spectrum['layout']['yaxis']['type'] = new_value
-        outputs.append(channel_spectrum)
-    except KeyError:
-        outputs.append(no_update)
+    for spectrum_plot in [efield_spectrum, channel_spectrum]:
+        try:
+            spectrum_plot['layout']['yaxis']['type'] = new_value
+            outputs.append(spectrum_plot)
+        except KeyError:
+            outputs.append(no_update)
     
     try:
         yaxes = [key for key in multichannel_plot['layout'].keys() if 'yaxis' in key]
