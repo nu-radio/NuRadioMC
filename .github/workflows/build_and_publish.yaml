@@ -46,9 +46,9 @@ jobs:
     - name: Check if version is updated
       if: ${{ github.ref != 'refs/heads/master'}} # don't run if we're on master
       run: |
-        git checkout origin/master
+        git checkout master
         export master_version=$(poetry version)
-        git checkout $GITHUB_REF_NAME
+        git checkout $GITHUB_REF
         if [ "$master_version" = "$(poetry version)" ]
         then
           echo Version number is the same as existing release. Please update the version number!
