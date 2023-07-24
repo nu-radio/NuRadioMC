@@ -12,7 +12,6 @@ import NuRadioReco.eventbrowser.dataprovider
 provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 
 layout = [
-    html.Button(id='efield-spectrum-log-linear-switch', children='log'),
     dcc.Graph(id='efield-spectrum')
 ]
 
@@ -23,8 +22,9 @@ layout = [
      dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value'),
      dash.dependencies.Input('station-id-dropdown', 'value')],
-    [State('user_id', 'children')])
-def update_efield_spectrum(trigger, evt_counter, filename, station_id, juser_id):
+    [State('user_id', 'children'),
+     State('channel-spectrum-log-linear-switch', 'children')])
+def update_efield_spectrum(trigger, evt_counter, filename, station_id, juser_id, yscale):
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
@@ -62,5 +62,5 @@ def update_efield_spectrum(trigger, evt_counter, filename, station_id, juser_id)
         ), 1, 1)
     fig['layout'].update(default_layout)
     fig['layout']['xaxis1'].update(title='frequency [MHz]')
-    fig['layout']['yaxis1'].update(title='amplitude [mV/m]')
+    fig['layout']['yaxis'].update(title='amplitude [mV/m]', type=yscale)
     return fig
