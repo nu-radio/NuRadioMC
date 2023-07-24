@@ -48,7 +48,7 @@ jobs:
       run: |
         git checkout master
         export master_version=$(poetry version)
-        git checkout $GITHUB_REF
+        git checkout $GITHUB_SHA
         if [ "$master_version" = "$(poetry version)" ]
         then
           echo Version number is the same as existing release. Please update the version number!
