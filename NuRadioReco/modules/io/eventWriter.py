@@ -12,10 +12,12 @@ def get_header(evt):
     header = {'stations': {}}
     for iS, station in enumerate(evt.get_stations()):
         header['stations'][station.get_id()] = station.get_parameters().copy()
-        if(station.has_sim_station()):
+        header['stations'][station.get_id()][stnp.station_time] = station.get_station_time_dict()
+
+        if station.has_sim_station():
             header['stations'][station.get_id()]['sim_station'] = {}
-            header['stations'][station.get_id()]['sim_station'] = station.get_sim_station().get_parameters()
-        header['stations'][station.get_id()][stnp.station_time] = station.get_station_time()
+            header['stations'][station.get_id()]['sim_station'] = station.get_sim_station().get_parameters().copy()
+    
     header['event_id'] = (evt.get_run_number(), evt.get_id())
     return header
 
@@ -70,12 +72,14 @@ class eventWriter:
             both set, the file will be split whenever any of the two conditions is fullfilled.
         """
         logger.setLevel(log_level)
-        if filename[-4:] == '.nur':
+        if filename.endswith(".nur"):
             self.__filename = filename[:-4]
         else:
             self.__filename = filename
-        if filename[-4:] == '.ari':
+        
+        if filename.endswith('.ari'):
             logger.warning('The file ending .ari for NuRadioReco files is deprecated. Please use .nur instead.')
+        
         self.__check_for_duplicates = check_for_duplicates
         self.__number_of_events = 0
         self.__current_file_size = 0

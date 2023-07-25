@@ -328,7 +328,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                 'flavors': [],
                 'energies': []}
     # calculate rotation matrix to transform position on area to 3D
-    mask_int = np.zeros_like(mask, dtype=np.bool)
+    mask_int = np.zeros_like(mask, dtype=bool)
     t0 = time.perf_counter()
     n_cylinder = 0
     for j, i in enumerate(np.arange(n_events, dtype=int)[mask]):
@@ -586,7 +586,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets['flavors'] = np.ones(np.sum(mask_int))
     data_sets["event_ids"] = np.arange(np.sum(mask_int)) + start_event_id
     data_sets["n_interaction"] = np.ones(np.sum(mask_int), dtype=int)
-    data_sets["vertex_times"] = np.zeros(np.sum(mask_int), dtype=np.float)
+    data_sets["vertex_times"] = np.zeros(np.sum(mask_int), dtype=float)
 
     data_sets["interaction_type"] = inelasticities.get_ccnc(np.sum(mask_int))
     data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(np.sum(mask_int))
