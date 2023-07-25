@@ -164,28 +164,35 @@ class NuRadioRecoio(object):
     def _parse_event_header(self, evt_header):
         from NuRadioReco.framework.parameters import stationParameters as stnp
         self.__event_ids.append(evt_header['event_id'])
+
         for station_id, station in evt_header['stations'].items():
+
             if station_id not in self.__event_headers:
                 self.__event_headers[station_id] = {}
+
             for key, value in station.items():
                 # treat sim_station differently
-                if(key == 'sim_station'):
-                    pass
-                else:
+                if key != 'sim_station':
+
                     if key not in self.__event_headers[station_id]:
                         self.__event_headers[station_id][key] = []
-                    if(key == stnp.station_time):
+
+                    if key == stnp.station_time:
                         import astropy.time
+                        station_time = None
                         if value is not None:
-                            if value.format == 'datetime':
-                                time_strings = str(value).split(' ')
-                                station_time = astropy.time.Time('{}T{}'.format(time_strings[0], time_strings[1]), format='isot')
+                            if isinstance(value, dict):
+                                station_time = astropy.time.Time(value["value"], format=value["format"])
+                            # For backward compatibility, we also keep supporting station times stored as astropy.time objects
+                            elif isinstance(value, astropy.time.Time):
+                                station_time = value
                             else:
-                                value.in_subfmt = 'date_hms'
-                                value.out_subfmt = 'date_hms'
-                                station_time=value
-                        else:
-                            station_time = None
+                                err = f"Station time not stored as dict or astropy.time.Time: ({type(value)})"
+                                self.logger.error(err)
+                                raise ValueError(err)
+                            
+                            station_time.format = 'isot'
+                        
                         self.__event_headers[station_id][key].append(station_time)
                     else:
                         self.__event_headers[station_id][key].append(value)
