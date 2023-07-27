@@ -4,15 +4,23 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 2.2.0-dev
 new features:
+- added getting to query ARZ charge-excess profiles
 - upgrade to proposal v 7.5.0 with new NuRadioProposal interface and improved LPM treatment
 - add script to generate / download pre-calculated proposal tables for known detector configurations
 - adding default RadioPropa ice model object to medium with the feature to set a personlised object as alternative
 - add positions array functionality to simple ice model in average and gradient functions
 - analytic ray tracing solutions are now sorted consistently from lowest to highest ray
 - added ability to generate high-low-triggered noise on a narrow band but return full-band waveforms
+- phased array noise generation utility class: calculate trigger time and cut trace accordingly
+- use Philox noise generator in noise adder module (this changes the default random sequence)
+
 bugfixes:
 - fixed/improved C++ raytracer not finding solutions for some near-horizontal or near-shadowzone vertices
+- fixed wrong number in Feldman-Cousins upper limit
 
+version 2.1.8
+bugfixes:
+- replace deprecated np.float with float
 
 version 2.1.7
 new features:
@@ -21,10 +29,10 @@ new features:
 - adding minimize mode to the radiopropa propagation module & more configurable settings in config file
 - add uniform ice model with 1.78 refractive index
 - update ARA detector description and add a file to Print ARA detector json file
+- pass evt_time to sim station
 bugfixes:
 - fix bug in NuRadioProposal which pervented muons from tau decays to be propagated
 - update proposal version to 6.1.8 to avoid problems with pypi
-
 
 version 2.1.6
 bugfixes:
