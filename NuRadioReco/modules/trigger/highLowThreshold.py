@@ -32,7 +32,7 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
         the bins where the trigger condition is satisfied
     """
     n_bins_coincidence = int(np.round(time_coincidence / dt)) + 1
-    c = np.ones(n_bins_coincidence, dtype=np.bool)
+    c = np.ones(n_bins_coincidence, dtype=bool)
     logger.debug("length of trace {} bins, coincidence window {} bins".format(len(trace), len(c)))
 
     c2 = np.array([1, -1])
@@ -70,7 +70,7 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
     if(n_bins_coincidence > n):  # reduce coincidence window to maximum trace length
         n_bins_coincidence = n
         logger.debug("specified coincidence window longer than tracelenght, reducing coincidence window to trace length")
-    c = np.ones(n_bins_coincidence, dtype=np.bool)
+    c = np.ones(n_bins_coincidence, dtype=bool)
 
     for i in range(len(tts)):
         logger.debug("get_majority_logic() length of trace {} bins, coincidence window {} bins".format(len(tts[i]), len(c)))
@@ -192,8 +192,8 @@ class triggerSimulator:
             logger.info("Station has NOT passed trigger")
         else:
             trigger.set_triggered(True)
-            trigger.set_trigger_time(triggered_times.min() + channel_trace_start_time)
-            trigger.set_trigger_times(triggered_times + channel_trace_start_time)
+            trigger.set_trigger_time(triggered_times.min()+channel_trace_start_time) #trigger_time= time from start of trace + start time of trace with respect to moment of first interaction = trigger time from moment of first interaction
+            trigger.set_trigger_times(triggered_times+channel_trace_start_time)
             logger.info("Station has passed trigger, trigger time is {:.1f} ns".format(
                 trigger.get_trigger_time() / units.ns))
 
