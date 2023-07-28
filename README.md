@@ -36,7 +36,15 @@ Also please visit https://nu-radio.github.io/NuRadioMC/Introduction/pages/contri
 ## Publications builing up on NuRadioMC/Reco
 NuRadioMC is used in an increasing number of studies. To get an overview for what NuRadioMC can be used for, please have a look at the following publications or see [here](https://inspirehep.net/literature?sort=mostrecent&size=25&page=1&q=refersto%3Arecid%3A1738571%20or%20refersto%3Arecid%3A1725583):
 
-
+* ARIANNA collaboration (A. Anker et al.), "Developing New Analysis Tools for Near Surface Radio-based Neutrino Detectors", [arXiv:2307.07188](https://arxiv.org/abs/2307.07188)
+* L. Pyras, C. Glaser S. Hallmann and A. Nelles, "Atmospheric muons at PeV energies in radio neutrino detectors", [arXiv:2307.04736](https://arxiv.org/abs/2307.04736)
+* I. Plaisier, S. Bouma, A. Nelles, "Reconstructing the arrival direction of neutrinos in deep in-ice radio detectors", [arXiv:2302.00054](https://arxiv.org/abs/2302.00054)
+* S. Bouma, A. Nelles for the IceCube-Gen2 collaboration, "Direction reconstruction performance for IceCube-Gen2 Radio", [PoS(ICRC2023)1045](https://pos.sissa.it/444/1045/pdf)
+* F. Schlüter and S. Toscano for the IceCube-Gen2 collaboration, "Estimating the coincidence rate between the optical and radio array of IceCube-Gen2", [PoS(ICRC2023)1022](https://pos.sissa.it/444/1022/pdf)
+* C. Glaser, A. Coleman and T. Glusenkamp, "NuRadioOpt: Optimization of Radio Detectors of Ultra-High Energy Neutrinos through Deep Learning and Differential Programming", [PoS(ICRC2023)1114](https://pos.sissa.it/444/1114/pdf) 
+* A. Coleman and C. Glaser for the RNO-G collaboration, "Enhancing the Sensitivity of RNO-G Using a Machine-learning Based Trigger", [PoS(ICRC2023)1100](https://pos.sissa.it/444/1100/pdf)
+* N. Heyer, C. Glaser and T. Glusenkamp for the IceCube-Gen2 collaboration, "Deep Learning Based Event Reconstruction for the IceCube-Gen2 Radio Detector" [PoS(ICRC2023)1102](https://pos.sissa.it/444/1102/pdf)
+* N. Heyer and C. Glaser, "Impact of Birefringence on In-Ice Radio Detectors of ultra-high-energy Neutrinos", [PoS(ICRC2023)1101](https://pos.sissa.it/444/1101/pdf) 
 * V. B. Valera, M. Bustamante and C. Glaser, “Near-future discovery of the diffuse flux of ultra-high-energy cosmic neutrinos”, Phys. Rev. D 107, 043019 [arXiv:2210.03756](https://arxiv.org/abs/2210.03756)
 * Alfonso Garcia Soto, Diksha Garg, Mary Hall Reno, Carlos A. Argüelles, "Probing Quantum Gravity with Elastic Interactions of Ultra-High-Energy Neutrinos", Phys. Rev. D 107, 033009 (2023) [arXiv:2209.06282](https://arxiv.org/abs/2209.06282)
 * Damiano F. G. Fiorillo, Mauricio Bustamante, Victor B. Valera, "Near-future discovery of point sources of ultra-high-energy neutrinos", JCAP 03 (2023) 026 [arXiv:2205.15985](https://arxiv.org/abs/2205.15985)
