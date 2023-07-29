@@ -36,6 +36,7 @@ Also please visit https://nu-radio.github.io/NuRadioMC/Introduction/pages/contri
 ## Publications builing up on NuRadioMC/Reco
 NuRadioMC is used in an increasing number of studies. To get an overview for what NuRadioMC can be used for, please have a look at the following publications or see [here](https://inspirehep.net/literature?sort=mostrecent&size=25&page=1&q=refersto%3Arecid%3A1738571%20or%20refersto%3Arecid%3A1725583):
 
+* IceCube-Gen2 collaboration, [IceCube-Gen2 Technical Design Report](https://icecube-gen2.wisc.edu/science/publications/TDR)
 * ARIANNA collaboration (A. Anker et al.), "Developing New Analysis Tools for Near Surface Radio-based Neutrino Detectors", [arXiv:2307.07188](https://arxiv.org/abs/2307.07188)
 * L. Pyras, C. Glaser S. Hallmann and A. Nelles, "Atmospheric muons at PeV energies in radio neutrino detectors", [arXiv:2307.04736](https://arxiv.org/abs/2307.04736)
 * I. Plaisier, S. Bouma, A. Nelles, "Reconstructing the arrival direction of neutrinos in deep in-ice radio detectors", [arXiv:2302.00054](https://arxiv.org/abs/2302.00054)
