@@ -1,11 +1,13 @@
-# NuRadioMC/NuRadioReco
-A Monte Carlo simulation package for radio neutrino detectors and reconstruction framework for radio detectors of high-energy neutrinos and cosmic-rays
+# NuRadioMC
+A Monte Carlo simulation package for radio neutrino detectors
+
+#NuRadioReco
+Reconstruction and detector simulation framework for radio detectors of high-energy neutrinos and cosmic-rays. (NuRadioReco is independet of NuRadioMC 
+and used by NuRadioMC for the detector and trigger simulation. To simplify the development and continuous integration testing, both codes are developed 
+in the same github repository.)
 
 The documentation can be found at https://nu-radio.github.io/NuRadioMC/main.html
 
-If you want to keep up to date, consider signing up to the following email lists:
- * user email list, will be used to announce new versions and major improvements etc. Subscribe via https://lists.uu.se/sympa/subscribe/physics-astro-nuradiomc
- * developer email list, will be used to discuss the future development of NuRadioMC/Reco. Subscribe via: https://lists.uu.se/sympa/subscribe/physics-astro-nuradiomc-dev
 
 If you're using NuRadioMC for your research, please cite
 
@@ -14,7 +16,6 @@ If you're using NuRadioMC for your research, please cite
 and for the detector simulation and event reconstruction part
 
 * C. Glaser, A. Nelles, I. Plaisier, C. Welling et al., "NuRadioReco: A reconstruction framework for radio neutrino detectors", [Eur. Phys. J. C (2019) 79: 464](https://dx.doi.org/10.1140/epjc/s10052-019-6971-5), [arXiv:1903.07023](https://arxiv.org/abs/1903.07023)
-
 
 
 NuRadioMC is continuously improved and new features are being added. The following papers document new features (in reverse chronological order):
@@ -26,7 +27,6 @@ NuRadioMC is continuously improved and new features are being added. The followi
 * C. Glaser D. García-Fernández and A. Nelles, "Prospects for neutrino-flavor physics with in-ice radio detectors", [PoS(ICRC2021)1231](https://doi.org/10.22323/1.395.1231) (generalizes NuRadioMC to simulate the radio emission from any number of in-ice showers including their interference)
 
 * D. García-Fernández, C. Glaser and A. Nelles, “The signatures of secondary leptons in radio-neutrino detectors in ice”, [Phys. Rev. D 102, 083011](https://dx.doi.org/10.1103/PhysRevD.102.083011), [arXiv:2003.13442](https://arxiv.org/abs/2003.13442) (addition of secondary interactions of muons and taus) 
-
 
 
 If you would like to contribute, please contact @cg-laser or @anelles for permissions to work on NuRadioMC. We work with pull requests only that can be merged after review.
@@ -73,3 +73,8 @@ NuRadioMC is used in an increasing number of studies. To get an overview for wha
 * C. Glaser, S. Barwick, "An improved trigger for Askaryan radio detectors", [JINST 16 (2021) 05, T05001](https://doi.org/10.1088/1748-0221/16/05/T05001), [arXiv:2011.12997](https://arxiv.org/abs/2011.12997)
 * RNO-G collaboration, "Design and Sensitivity of the Radio Neutrino Observatory in Greenland (RNO-G)", [JINST 16 (2021) 03, P03025](https://doi.org/10.1088/1748-0221/16/03/P03025) [arXiv:2010.12279](https://arxiv.org/abs/2010.12279)
 * ARIANNA collaboration, "Probing the angular and polarization reconstruction of the ARIANNA detector at the South Pole", [JINST 15 (2020) 09, P09039](https://doi.org/10.1088/1748-0221/15/09/P09039), [arXiv:2006.03027](https://arxiv.org/abs/2006.03027)
+
+
+If you want to keep up to date, consider signing up to the following email lists:
+ * user email list, will be used to announce new versions and major improvements etc. Subscribe via https://lists.uu.se/sympa/subscribe/physics-astro-nuradiomc
+ * developer email list, will be used to discuss the future development of NuRadioMC/Reco. Subscribe via: https://lists.uu.se/sympa/subscribe/physics-astro-nuradiomc-dev
