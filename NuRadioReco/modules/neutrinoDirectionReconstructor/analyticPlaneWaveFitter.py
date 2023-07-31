@@ -85,7 +85,7 @@ def find_threshold_crossing(channels, threshold, offset=5, min_amp=.15, debug=Fa
         
     return np.array(threshold_times)
 
-def analytic_plane_wave_fitter(dt, pos, n_index=1.):
+def analytic_plane_wave_fitter(dt, pos, n_index=1.000293):
     """analytic plane wave fit
     
     Given three time delays ``dt`` and three positions 
@@ -103,48 +103,26 @@ def analytic_plane_wave_fitter(dt, pos, n_index=1.):
     
     Returns
     -------
-    (theta, phi): np.array of floats
+    (theta, phi): tuple of floats
         zenith and azimuth of the analytic solution
     
     """
-    ds = speed_of_light * np.array(dt) / n_index
-    ch0 = np.argmin(ds)
-    ind = [i for i in range(3) if i != ch0]
-    ds -= np.min(ds)
-    pos_shifted = pos - pos[ch0][None]
-    dch = np.linalg.norm(pos_shifted, axis=1)
-    
-    tau = np.array([ds[i] / dch[i] for i in ind])
-    logger.debug("ds/dch: {:.3g}, {:.3g}".format(*tau))
-    
+    if len(dt) > 3:
+        logger.warning("System overdetermined, using only first three time delays & observers")
     #TODO - implement rotation so this is valid
     #even if the observers don't have the same z coord
     if not all(np.abs(pos[:,2] - pos[0,2]) <= 1e-8):
         logger.warning("Z coordinates of observers are not identical! Result will not be valid.")
     
-    dphi = [np.arctan2(pos_shifted[i, 1], pos_shifted[i, 0]) for i in ind]
-#     print(dphi)
-    dphi1 = dphi[0]
-    dphi2 = dphi[0] - dphi[1]
-    
-    x1 = (np.cos(dphi2) - tau[1]/tau[0]) / np.sin(dphi2)
-    x2 = (np.cos(dphi2) + tau[1]/tau[0]) / np.sin(dphi2)
-    phi = np.arctan(np.array([x1, x2]))
-    theta = np.arcsin(tau[0] / np.abs(np.cos(phi)))
-    # we find two solutions, so need to check which one is real:
-    mask1 = np.abs((np.sin(theta) * np.cos(phi) - tau[0])) < 1e-8
-    mask2 = np.abs((np.sin(theta) * np.cos(phi + dphi2) - tau[1])) < 1e-8
-    mask = mask1 & mask2
-    
-    logger.debug("phi   : {:.3g}, {:.3g}".format(*phi))
-    logger.debug("theta : {:.3g}, {:.3g}".format(*theta))
-    logger.debug("valid : {}, {}".format(*mask))
-    # undo implicit rotation of ch1 to np.pi
-    phi += dphi1 - np.pi
-    phi = phi % (2*np.pi)
-    if np.sum(mask) > 1:
-        if abs(theta[0]-theta[1]) + abs(phi[1]-phi[0]) > 1e-8:
-            raise ValueError("More than one solution found!")
-    elif np.sum(mask) == 0:
-        raise ValueError("No valid solutions")
-    return np.array([theta[mask][0], phi[mask][0]])
+    pos_xy = pos[1:3,:2] - pos[0:1, :2]
+    ds = speed_of_light * np.array(dt) / n_index
+    ds = ds[1:3] - ds[0]
+
+    sol_vector = -np.linalg.inv(pos_xy) @ ds # - sign because we want the source direction
+    sin_theta = np.linalg.norm(sol_vector)
+
+    if sin_theta > 1:
+        logger.warning("No valid solution!")
+        return np.nan, np.nan
+
+    return np.arcsin(sin_theta), np.arctan2(sol_vector[1], sol_vector[0])
