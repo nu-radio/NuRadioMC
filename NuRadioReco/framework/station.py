@@ -36,7 +36,18 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def get_channel(self, channel_id):
         return self.__channels[channel_id]
-
+    
+    def iter_channel_group(self, channel_group_id):
+        found_channel_group = False
+        for channel_id, channel in iteritems(self.__channels):
+            if(channel.get_group_id() == channel_group_id):
+                found_channel_group = True
+                yield channel
+        if found_channel_group == False:
+            msg = "channel group id {channel_group_id} is not present"
+            logger.errpr(msg)
+            raise ValueError(msg)
+            
     def get_number_of_channels(self):
         return len(self.__channels)
 
