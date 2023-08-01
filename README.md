@@ -48,6 +48,7 @@ NuRadioMC is used in an increasing number of studies. To get an overview for wha
 * N. Heyer and C. Glaser, "Impact of Birefringence on In-Ice Radio Detectors of ultra-high-energy Neutrinos", [PoS(ICRC2023)1101](https://pos.sissa.it/444/1101/pdf)
 * J. Henrichs, A. Nelles for the RNO-G Collaboration, "Searching for cosmic-ray air showers with RNO-G", [PoS(ICRC2023)259](https://pos.sissa.it/444/259/pdf)
 * B. Oeyen for the RNO-G Collaboration, "The interplay of ice-firn model and station calibration in RNO-G", [PoS(ICRC2023)1042](https://pos.sissa.it/444/1042/pdf)
+* P. Windischhofer, C. Welling and C. Deaconu, "Eisvogel: Exact and efficient calculations of radio emissions from in-ice neutrino showers", [PoS(ICRC2023)1157](https://pos.sissa.it/444/1157/)
 * V. B. Valera, M. Bustamante and C. Glaser, “Near-future discovery of the diffuse flux of ultra-high-energy cosmic neutrinos”, Phys. Rev. D 107, 043019 [arXiv:2210.03756](https://arxiv.org/abs/2210.03756)
 * Alfonso Garcia Soto, Diksha Garg, Mary Hall Reno, Carlos A. Argüelles, "Probing Quantum Gravity with Elastic Interactions of Ultra-High-Energy Neutrinos", Phys. Rev. D 107, 033009 (2023) [arXiv:2209.06282](https://arxiv.org/abs/2209.06282)
 * Damiano F. G. Fiorillo, Mauricio Bustamante, Victor B. Valera, "Near-future discovery of point sources of ultra-high-energy neutrinos", JCAP 03 (2023) 026 [arXiv:2205.15985](https://arxiv.org/abs/2205.15985)
