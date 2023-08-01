@@ -105,13 +105,16 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
         """
 
         present_time = self.__database_time
+        print('present_time', present_time)
 
         # find the current primary measurement
         obj_id, measurement_id = self.find_primary_measurement(type, name, present_time, identification_label=identification_label, _id=_id, id_label=id_label, breakout_id=breakout_id, breakout_channel_id=breakout_channel_id)
-
+        print(obj_id, measurement_id)
         if obj_id is None and measurement_id[0] == 0:
             #  no primary measurement was found and thus there is no measurement to update
             pass
+        elif obj_id is None and measurement_id == [None]:
+            raise ValueError('More than one primary measurements are found. Please contact the database support.')
         else:
             for m_id in measurement_id:
                 # get the old primary times
@@ -848,7 +851,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             logger.error(f'No active station {station_id} in the database')
         else:
             # filter to get all active stations with the correct id
-            time = self.__current_time
+            time = decomm_time
             time_filter = [{"$match": {
                 'commission_time': {"$lte": time},
                 'decommission_time': {"$gte": time},
@@ -1012,6 +1015,8 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
         """
         collection_name = 'station_position'
 
+        self.set_database_time(datetime.datetime.utcnow())
+
         # close the time period of the old primary measurement
         if primary and position_id in self.db[collection_name].distinct('id'):
             self.update_current_primary(collection_name, position_id, identification_label='id')
@@ -1039,7 +1044,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
 
     # channels
 
-    def add_channel_position(self, station_id, channel_number, measurement_name, measurement_time, position, orientation, rotation, primary):
+    def add_channel_position(self, cha_position_id, channel_id, measurement_name, measurement_time, position, orientation, rotation, primary):
         """
         inserts a position measurement for a channel into the database
         If the station dosn't exist yet, it will be created.
@@ -1064,9 +1069,12 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             indicates if the measurement will be used as the primary measurement from now on
         """
         collection_name = 'channel_position'
+
+        self.set_database_time(datetime.datetime.utcnow())
+
         # close the time period of the old primary measurement
-        if primary and station_id in self.db[collection_name].distinct('id'):
-            self.update_current_primary(collection_name, station_id, identification_label='id', _id=channel_number, id_label='channel')
+        if primary and cha_position_id in self.db[collection_name].distinct('id'):
+            self.update_current_primary(collection_name, cha_position_id, identification_label='id')
 
         # define the new primary measurement times
         if primary:
@@ -1075,11 +1083,11 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             primary_measurement_times = []
 
         # update the entry with the measurement (if the entry doesn't exist it will be created)
-        self.db[collection_name].update_one({'id': station_id},
+        self.db[collection_name].update_one({'id': cha_position_id},
                                       {'$push': {'measurements': {
                                           'id_measurement': ObjectId(),
-                                          'channel_id': channel_number,
                                           'measurement_name': measurement_name,
+                                          'channel_id': channel_id,
                                           'last_updated': datetime.datetime.utcnow(),
                                           'primary_measurement': primary_measurement_times,
                                           'position': position,
@@ -1091,7 +1099,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
     def change_primary_channel_measurement(self):
         pass
 
-    def add_channel_signal_chain(self, station_id, channel_number, config_name, sig_chain, primary, primary_components):
+    def add_channel_signal_chain(self, cha_signal_id, channel_number, config_name, sig_chain, primary, primary_components, VEL):
         """
         inserts a signal chain config for a channel into the database
         If the station dosn't exist yet, it will be created.
@@ -1112,9 +1120,12 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             dates which say which measurement for each single component is used
         """
         collection_name = 'signal_chain'
+
+        self.set_database_time(datetime.datetime.utcnow())
+
         # close the time period of the old primary measurement
-        if primary and station_id in self.db[collection_name].distinct('id'):
-            self.update_current_primary(collection_name, station_id, identification_label='id', _id=channel_number, id_label='channel')
+        if primary and cha_signal_id in self.db[collection_name].distinct('id'):
+            self.update_current_primary(collection_name, cha_signal_id, identification_label='id')
 
         # define the new primary measurement times
         if primary:
@@ -1123,10 +1134,11 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             primary_measurement_times = []
 
         # update the entry with the measurement (if the entry doesn't exist it will be created)
-        self.db[collection_name].update_one({'id': station_id},
+        self.db[collection_name].update_one({'id': cha_signal_id},
                                       {'$push': {'measurements': {
                                           'id_measurement': ObjectId(),
                                           'channel_id': channel_number,
+                                          'VEL': VEL,
                                           'measurement_name': config_name,
                                           'last_updated': datetime.datetime.utcnow(),
                                           'primary_measurement': primary_measurement_times,
@@ -1139,15 +1151,15 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
 
     # devices (pulser, DAQ, windturbine, solar panels)
 
-    def add_device_position(self, station_id, device_id, measurement_name, measurement_time, position, orientation, rotation, primary):
+    def add_device_position(self, dev_position_id, device_id, measurement_name, measurement_time, position, orientation, rotation, primary):
         """
         inserts a position measurement for a device into the database
         If the station dosn't exist yet, it will be created.
 
         Parameters
         ----------
-        station_id: int
-            the unique identifier of the station the channel belongs to
+        dev_position_id: int
+            the unique identifier of the station and device
         device_id: int
             unique identifier of the device
         measurement_name: string
@@ -1164,9 +1176,12 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             indicates if the measurement will be used as the primary measurement from now on
         """
         collection_name = 'device_position'
+
+        self.set_database_time(datetime.datetime.utcnow())
+
         # close the time period of the old primary measurement
-        if primary and station_id in self.db[collection_name].distinct('id'):
-            self.update_current_primary(collection_name, station_id, identification_label='id', _id=device_id, id_label='device')
+        if primary and dev_position_id in self.db[collection_name].distinct('id'):
+            self.update_current_primary(collection_name, dev_position_id, identification_label='id')
 
         # define the new primary measurement times
         if primary:
@@ -1175,7 +1190,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             primary_measurement_times = []
 
         # update the entry with the measurement (if the entry doesn't exist it will be created)
-        self.db[collection_name].update_one({'id': station_id},
+        self.db[collection_name].update_one({'id': dev_position_id},
                                             {'$push': {'measurements': {
                                                 'id_measurement': ObjectId(),
                                                 'device_id': device_id,
