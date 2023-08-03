@@ -1,7 +1,7 @@
 # NuRadioMC
 A Monte Carlo simulation package for radio neutrino detectors
 
-#NuRadioReco
+# NuRadioReco
 Reconstruction and detector simulation framework for radio detectors of high-energy neutrinos and cosmic-rays. (NuRadioReco is independet of NuRadioMC 
 and used by NuRadioMC for the detector and trigger simulation. To simplify the development and continuous integration testing, both codes are developed 
 in the same github repository.)
