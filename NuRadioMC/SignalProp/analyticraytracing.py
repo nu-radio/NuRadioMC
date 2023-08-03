@@ -639,7 +639,7 @@ class ray_tracing_2D(ray_tracing_base):
                 mask = frequency > 0
                 freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
                 gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-                print("_use_optimized_calculation", self._use_optimized_calculation)
+                self.__logger.info("_use_optimized_calculation", self._use_optimized_calculation)
 
                 if self._use_optimized_calculation:
                     # The integration of the attenuation factor along the path with scipy.quad is inefficient. The 
@@ -1751,8 +1751,8 @@ class ray_tracing(ray_tracing_base):
         if(self._X2[2] < self._X1[2]):
             self._swap = True
             self.__logger.debug('swap = True')
-            self._X2 = np.array(x1, dtype =np.float)
-            self._X1 = np.array(x2, dtype =np.float)
+            self._X2 = np.array(x1, dtype =float)
+            self._X1 = np.array(x2, dtype =float)
 
         dX = self._X2 - self._X1
         self._dPhi = -np.arctan2(dX[1], dX[0])
