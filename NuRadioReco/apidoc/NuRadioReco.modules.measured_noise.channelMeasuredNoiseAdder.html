@@ -616,7 +616,7 @@ first, for example using the channelLengthAdjuster.</p>
 <dt><strong>folder: str</strong></dt><dd><p>Only used when “filenames” is None. Directory to search for .nur files matching the “file_pattern”
 including subdirectories. (Default: None)</p>
 </dd>
-<dt><strong>file_pattern: str</strong></dt><dd><p>Use glob.glob(f”{folder}/<a href="#id1"><span class="problematic" id="id2">**</span></a>/{file_pattern}.nur”, recursive=True) to search for files. (Default: “*”)</p>
+<dt><strong>file_pattern: str</strong></dt><dd><p>Use <code class="docutils literal notranslate"><span class="pre">glob.glob(f&quot;{folder}/**/{file_pattern}.nur&quot;,</span> <span class="pre">recursive=True)</span></code> to search for files. (Default: “*”)</p>
 </dd>
 <dt><strong>random_seed: int, default: None</strong></dt><dd><p>Seed for the random number generator. By default, no seed is set.</p>
 </dd>

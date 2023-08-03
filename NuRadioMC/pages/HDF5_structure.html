@@ -779,8 +779,12 @@ is the number of showers (which may be larger than the number of events), and <c
 <section id="station-data">
 <h3>Station data<a class="headerlink" href="#station-data" title="Permalink to this heading"></a></h3>
 <p>In addition, the HDF5 file contains a key for each station in the simulation.
-The station contains more detailed information for each event that triggered it:
-<code class="docutils literal notranslate"><span class="pre">m_events</span></code> and <code class="docutils literal notranslate"><span class="pre">m_showers</span></code> refer to the number of events and showers that triggered the station.
+The station contains more detailed information for each station. Some parameters are per event and
+some parameters are per shower. See <a class="reference external" href="https://doi.org/10.22323/1.395.1231">https://doi.org/10.22323/1.395.1231</a> for a description of how showers relate to events.
+<code class="docutils literal notranslate"><span class="pre">m_events</span></code> and <code class="docutils literal notranslate"><span class="pre">m_showers</span></code> refer to the number of events and showers that triggered the station. NOTE: The simple table
+structure of hdf5 files can not capture the complex relation between events and showers in all cases. Some fields can be ambiguous
+(e.g. <em class="xref py py-obj">trigger_times</em> that only lists the last trigger that a shower generated).
+For more advanced analyses, please use the <code class="docutils literal notranslate"><span class="pre">*.nur</span></code> files.
 The <code class="docutils literal notranslate"><span class="pre">event_group_id</span></code> is the same as in the global dictionary. Therefore you can check for one event with
 an <code class="docutils literal notranslate"><span class="pre">event_group_id</span></code> which stations contain the same <code class="docutils literal notranslate"><span class="pre">event_group_id</span></code> and retrieve the information, which
 station triggered, with which amplitude, etc. The same approach works for <code class="docutils literal notranslate"><span class="pre">shower_id</span></code>.</p>
@@ -892,7 +896,11 @@ station triggered, with which amplitude, etc. The same approach works for <code 
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">trigger_times</span></code></p></td>
 <td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_triggers</span></code>)</p></td>
-<td><p>The trigger times for each shower and trigger.</p></td>
+<td><p>The trigger times for each shower and trigger. IMPORTANT: A shower can potentially generate multiple events. Then this field is ambiguous, as only a single trigger time per shower can be saved. In that case, the latest trigger time is saved into this field.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">trigger_times_per_event</span></code></p></td>
+<td><p>(<code class="docutils literal notranslate"><span class="pre">m_events</span></code>, <code class="docutils literal notranslate"><span class="pre">n_triggers</span></code>)</p></td>
+<td><p>The trigger times per event.</p></td>
 </tr>
 </tbody>
 </table>
