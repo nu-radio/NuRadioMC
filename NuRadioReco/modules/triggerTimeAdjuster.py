@@ -67,7 +67,11 @@ class triggerTimeAdjuster:
 
                 trace = channel.get_trace()
                 trace_length = len(trace)
-                number_of_samples = int(detector.get_number_of_samples(station.get_id(), channel.get_id()) * channel.get_sampling_rate() / detector.get_sampling_frequency(station.get_id(), channel.get_id()))
+                number_of_samples = int(
+                    2 * np.ceil( # this should ensure that 1) the number of samples is even and 2) resampling to the detector sampling rate results in the correct number of samples (note that 2) can only be guaranteed if the detector sampling rate is lower than the current sampling rate)
+                        detector.get_number_of_samples(station.get_id(), channel.get_id()) / 2 
+                        * channel.get_sampling_rate() / detector.get_sampling_frequency(station.get_id(), channel.get_id())
+                    ))
                 if number_of_samples > trace.shape[0]:
                     logger.error("Input has fewer samples than desired output. Channels has only {} samples but {} samples are requested.".format(
                         trace.shape[0], number_of_samples))
