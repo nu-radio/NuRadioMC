@@ -122,7 +122,7 @@ class Database(object):
     def get_detector_time(self):
         return self.__detector_time
 
-    def find_primary_measurement(
+    def find_primary_measurement_old(
             self, type, name, primary_time, identification_label='name', _id=None, id_label='channel', 
             breakout_id=None, breakout_channel_id=None):
         """
@@ -200,6 +200,69 @@ class Database(object):
             object_id = matching_entries[0]['_id']
             measurement_id = matching_entries[0]['measurements']['id_measurement']
             return object_id, [measurement_id]
+        
+    def find_primary_measurement(self, type, name, primary_time, identification_label, data_dict):
+        """
+        Find the object_id of entry with name 'name' and gives the measurement_id of the primary measurement, 
+        return the id of the object and the measurement
+
+        Parameters
+        ----------
+        type: string
+            type of the input unit (HPol, VPol, surfCABLE, ...)
+        
+        name: string
+            the unique identifier of the input unit
+        
+        primary_time: datetime.datetime
+            timestamp for the primary measurement
+        
+        _id: int
+            if there is a channel or device id for the object, the id is used in the search filter mask
+        
+        id_label: string
+            sets if a channel id ('channel') or device id ('device) is used
+
+        """
+
+        # define search filter for the collection
+        filter_primary = [{'$match': {identification_label: name}},
+                            {'$unwind': '$measurements'},
+                            {'$unwind': '$measurements.primary_measurement'}]
+        
+        add_filter = {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
+                                 'measurements.primary_measurement.end': {'$gte': primary_time}}}
+        
+        data_dict_keys = data_dict.keys()
+
+        if 'breakout_channel' in data_dict_keys and 'breakout' in data_dict_keys:
+            add_filter['$match'].update({'measurements.breakout': data_dict['breakout'],
+                                         'measurements.breakout_channel': data_dict['breakout_channel']})
+
+        if 'channel_id' in data_dict_keys:
+            add_filter['$match'].update({f'measurements.channel_id': data_dict['channel_id']})
+
+        if 'S_parameter' in data_dict_keys:
+            add_filter['$match'].update({'measurements.S_parameter': data_dict['S_parameter']})
+        
+        filter_primary.append(add_filter)
+
+        # get all entries matching the search filter
+        matching_entries = list(self.db[type].aggregate(filter_primary))
+
+        # extract the object and measurement id
+        if len(matching_entries) > 1:
+            logger.error('More than one primary measurement found.')
+            return None, [None]
+        elif len(matching_entries) == 0:
+            logger.error('No primary measurement found.')
+            # the last zero is the information that no primary measurement was found
+            return None, [0]
+        else:
+            object_id = matching_entries[0]['_id']
+            measurement_id = matching_entries[0]['measurements']['id_measurement']
+            return object_id, [measurement_id]        
+
 
     def get_object_names(self, object_type):
         return self.db[object_type].distinct('name')
