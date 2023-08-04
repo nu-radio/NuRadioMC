@@ -33,7 +33,7 @@ fig, ax = plt.subplots(1, 1)
 ax.plot(x1[0], x1[2], 'ko')
 for i, x in enumerate([x2, x3, x4, x5]):
     print('finding solutions for ', x)
-    r = ray.ray_tracing(ice, log_level=logging.DEBUG)
+    r = ray.ray_tracing(ice, log_level=logging.DEBUG, use_cpp=False)
     r.set_start_and_end_point(x1, x)
     r.find_solutions()
     if(r.has_solution()):
