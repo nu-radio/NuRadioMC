@@ -667,6 +667,13 @@ class ray_tracing_2D(ray_tracing_base):
                 x1 = x1t
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
+                
+            # treat special ice to air case. Attenuation in air can be neglected, so only 
+            # calculate attenuation until the ray reaches the surface
+            if x2[1] > 0:
+                z_turn = 0
+                y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
+                x2 = [y_turn, z_turn]
 
             if self.use_cpp:
                 mask = frequency > 0
@@ -694,7 +701,7 @@ class ray_tracing_2D(ray_tracing_base):
                 mask = frequency > 0
                 freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
                 gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-                self.__logger.info("_use_optimized_calculation", self._use_optimized_calculation)
+                self.__logger.info(f"_use_optimized_calculation {self._use_optimized_calculation}")
 
                 if self._use_optimized_calculation:
                     # The integration of the attenuation factor along the path with scipy.quad is inefficient. The
@@ -1815,9 +1822,9 @@ class ray_tracing(ray_tracing_base):
         self.set_config(config=config)
         
         if use_cpp:
-            self.__logger.warning(f"using CPP version of ray tracer")
+            self.__logger.debug(f"using CPP version of ray tracer")
         else:
-            self.__logger.warning(f"using python version of ray tracer")
+            self.__logger.debug(f"using python version of ray tracer")
 
         self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self._n_frequencies_integration,

@@ -51,6 +51,9 @@ for i, x in enumerate([x2, x3, x4, x5]):
             zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
             print("     Receiving Zenith %.3f and Azimuth %.3f " % (zenith / units.deg, azimuth / units.deg))
 
+            att = r.get_attenuation(iS, np.array([100, 200]) * units.MHz)
+            print(att)
+
             # to readout the actual trace, we have to flatten to 2D
             dX = x - x1
             dPhi = -np.arctan2(dX[1], dX[0])
