@@ -24,7 +24,7 @@ cpp_available = False
 try:
     from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
     cpp_available = True
-    print("using CPP version of ray tracer")
+    print("CPP version of ray tracer is available")
 except:
     print("trying to compile the CPP extension on-the-fly")
     try:
@@ -34,7 +34,7 @@ except:
                                  "install.sh"))
         from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper
         cpp_available = True
-        print("compilation was successful, using CPP version of ray tracer")
+        print("compilation was successful, CPP version of ray tracer is available")
     except:
         print("compilation was not successful, using python version of ray tracer")
         print("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
@@ -1813,6 +1813,11 @@ class ray_tracing(ray_tracing_base):
                          config=config,
                          detector=detector)
         self.set_config(config=config)
+        
+        if use_cpp:
+            self.__logger.warning(f"using CPP version of ray tracer")
+        else:
+            self.__logger.warning(f"using python version of ray tracer")
 
         self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self._n_frequencies_integration,
