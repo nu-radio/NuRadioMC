@@ -42,8 +42,10 @@ for i, x in enumerate([x2, x3, x4, x5]):
             ray_tracing_solution_type[i, iS] = r.get_solution_type(iS)
             print("     Solution %d, Type %d: " % (iS, ray_tracing_solution_type[i, iS]))
             R = r.get_path_length(iS)  # calculate path length
+            R2 = r.get_path_length(iS, analytic=False)  # calculate path length
             T = r.get_travel_time(iS)  # calculate travel time
-            print("     Ray Distance %.3f and Travel Time %.3f" % (R / units.m, T / units.ns))
+            T2 = r.get_travel_time(iS, analytic=False)  # calculate travel time
+            print(f"     Ray Distance {R/units.m:.3f}m {R2/units.m:.3f}m and Travel Time {T/units.ns:.3f}ns {T2/units.ns:.3f}ns")
             receive_vector = r.get_receive_vector(iS)
             receive_vectors[i, iS] = receive_vector
             zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
