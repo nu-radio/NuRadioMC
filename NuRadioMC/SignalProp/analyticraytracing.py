@@ -40,7 +40,6 @@ except:
         print("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
         cpp_available = False
 
-cpp_available = False
 
 """
 analytic ray tracing solution
@@ -94,7 +93,8 @@ class ray_tracing_2D(ray_tracing_base):
                  log_level=logging.WARNING,
                  n_frequencies_integration=25,
                  use_optimized_start_values=False,
-                 overwrite_speedup=None):
+                 overwrite_speedup=None,
+                 use_cpp=cpp_available):
         """
         initialize 2D analytic ray tracing class
 
@@ -119,6 +119,9 @@ class ray_tracing_2D(ray_tracing_base):
             speedup_attenuation_models (i.e., "GL3"). With this argument you can explicitly activate or deactivate
             (True or False) if you want to use the optimization. (Default: None, i.e., use optimization if ice model is
             listed in speedup_attenuation_models)
+        use_cpp: bool
+            if True, use CPP implementation of minimization routines
+            default: True if CPP version is available
             
         """
         self.medium = medium
@@ -138,6 +141,7 @@ class ray_tracing_2D(ray_tracing_base):
         self._use_optimized_calculation = self.attenuation_model in speedup_attenuation_models
         if overwrite_speedup is not None:
             self._use_optimized_calculation = overwrite_speedup
+        self.use_cpp = use_cpp
 
     def n(self, z):
         """
@@ -437,18 +441,32 @@ class ray_tracing_2D(ray_tracing_base):
                         # z0 above z_deep, z1 below z_deep
                         return int2 - int1 - int_diff
 
-            if(solution_type == 1):
-                tmp += get_path_direct(x1[1], x2[1])
-            else:
-                if(solution_type == 3):
-                    z_turn = 0
-                else:
-                    gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-    #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
+            # first treat special case of ice to air propagation
+            if(x2[1] > 0):
+                z_turn = 0
+                y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
+                d_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5
                 try:
-                    tmp += get_path_direct(x1[1], z_turn) + get_path_direct(x2[1], z_turn)
+                    ttmp = get_path_direct(x1[1], z_turn)
+                    tmp += ttmp + d_air
+                    self.__logger.info("calculating travel distance from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = {:.2f} m in ice + {:.2f} m in air".format(
+                        x1[0], x1[1], x2[0], x2[1], ttmp / units.m, d_air / units.m))
                 except:
                     tmp += None
+                
+            else:
+                if(solution_type == 1):
+                    tmp += get_path_direct(x1[1], x2[1])
+                else:
+                    if(solution_type == 3):
+                        z_turn = 0
+                    else:
+                        gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+        #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
+                    try:
+                        tmp += get_path_direct(x1[1], z_turn) + get_path_direct(x2[1], z_turn)
+                    except:
+                        tmp += None
 
         return tmp
 
@@ -558,24 +576,38 @@ class ray_tracing_2D(ray_tracing_base):
                         # z0 above z_deep, z1 below z_deep
                         return int2 - int1 - int_diff
 
-            if(solution_type == 1):
-                ttmp = get_ToF_direct(x1[1], x2[1])
-                tmp += ttmp
-                self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = {:.2f} ns".format(
-                    x1[0], x1[1], x2[0], x2[1], ttmp / units.ns))
-            else:
-                if(solution_type == 3):
-                    z_turn = 0
-                else:
-                    gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-    #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
+            # first treat special case of ice to air propagation
+            if(x2[1] > 0):
+                z_turn = 0
+                y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
+                t_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5 / speed_of_light
                 try:
-                    ttmp = get_ToF_direct(x1[1], z_turn) + get_ToF_direct(x2[1], z_turn)
+                    ttmp = get_ToF_direct(x1[1], z_turn)
+                    tmp += ttmp + t_air
+                    self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = {:.2f} ns in ice + {:.2f} ns in air".format(
+                        x1[0], x1[1], x2[0], x2[1], ttmp / units.ns, t_air / units.ns))
+                except:
+                    tmp += None
+                
+            else:
+                if(solution_type == 1):
+                    ttmp = get_ToF_direct(x1[1], x2[1])
                     tmp += ttmp
                     self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = {:.2f} ns".format(
                         x1[0], x1[1], x2[0], x2[1], ttmp / units.ns))
-                except:
-                    tmp += None
+                else:
+                    if(solution_type == 3):
+                        z_turn = 0
+                    else:
+                        gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+        #             print('solution type {:d}, zturn = {:.1f}'.format(solution_type, z_turn))
+                    try:
+                        ttmp = get_ToF_direct(x1[1], z_turn) + get_ToF_direct(x2[1], z_turn)
+                        tmp += ttmp
+                        self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = {:.2f} ns".format(
+                            x1[0], x1[1], x2[0], x2[1], ttmp / units.ns))
+                    except:
+                        tmp += None
         return tmp
 
     def __get_frequencies_for_attenuation(self, frequency, max_detector_freq):
@@ -613,7 +645,7 @@ class ray_tracing_2D(ray_tracing_base):
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
 
-            if cpp_available:
+            if self.use_cpp:
                 mask = frequency > 0
                 freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_freq)
                 tmp = np.zeros_like(freqs)
@@ -1170,7 +1202,7 @@ class ray_tracing_2D(ray_tracing_base):
             self.__logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(reflection))
             raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(reflection))
 
-        if(cpp_available):
+        if(self.use_cpp):
             #             t = time.time()
 #             print("find solutions", x1, x2, self.medium.n_ice, self.medium.delta_n, self.medium.z_0, reflection, reflection_case, self.medium.reflection)
             tmp_reflection = copy.copy(self.medium.reflection)
@@ -1689,7 +1721,8 @@ class ray_tracing(ray_tracing_base):
 
     def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
                  n_frequencies_integration=100, n_reflections=0, config=None,
-                 detector=None, ray_tracing_2D_kwards={}):
+                 detector=None, ray_tracing_2D_kwards={},
+                 use_cpp=cpp_available):
         """
         class initilization
 
@@ -1736,6 +1769,10 @@ class ray_tracing(ray_tracing_base):
         ray_tracing_2D_kwards: dict
             Additional arguments which are passed to ray_tracing_2D
             
+        use_cpp: bool
+            if True, use CPP implementation of minimization routines
+            default: True if CPP version is available
+            
         """
         self.__logger = logging.getLogger('ray_tracing_analytic')
         self.__logger.setLevel(log_level)
@@ -1756,7 +1793,7 @@ class ray_tracing(ray_tracing_base):
 
         self._r2d = ray_tracing_2D(self._medium, self._attenuation_model, log_level=log_level,
                                     n_frequencies_integration=self._n_frequencies_integration,
-                                    **ray_tracing_2D_kwards)
+                                    **ray_tracing_2D_kwards, use_cpp=use_cpp)
 
         self._swap = None
         self._dPhi = None
