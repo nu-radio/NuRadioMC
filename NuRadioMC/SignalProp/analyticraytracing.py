@@ -354,16 +354,28 @@ class ray_tracing_2D(ray_tracing_base):
                 x1 = x1t
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
-            x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
-            gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+                
+            # first treat special case of ice to air propagation
+            z_int = None
             points = None
-            if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
-                points = [z_turn]
-            path_length = integrate.quad(self.ds, x1[1], x2_mirrored[1], args=(C_0), points=points, epsabs=1e-4, epsrel=1.49e-08, limit=50)
-            self.__logger.info("calculating path length ({}) from ({:.0f}, {:.0f}) to ({:.2f}, {:.2f}) = ({:.2f}, {:.2f}) = {:.2f} m".format(solution_types[self.determine_solution_type(x1, x2, C_0)], x1[0], x1[1], x2[0], x2[1],
-                                                                                                                                        x2_mirrored[0],
-                                                                                                                                        x2_mirrored[1],
-                                                                                                                                        path_length[0] / units.m))
+            if(x2[1] > 0):
+                # we need to integrat only until the ray touches the surface
+                z_turn = 0
+                y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
+                d_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5
+                tmp += d_air
+                z_int = z_turn
+                self.__logger.info(f"adding additional propagation path through air of {d_air/units.m:.1f}m")
+            else:
+                x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
+                gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+                if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
+                    points = [z_turn]
+                z_int = x2_mirrored[1]
+            path_length = integrate.quad(self.ds, x1[1], z_int, args=(C_0), points=points,
+                                         epsabs=1e-4, epsrel=1.49e-08, limit=50)
+            self.__logger.info(f"calculating path length ({solution_types[self.determine_solution_type(x1, x2, C_0)]}) \
+                                from ({x1[0]:.0f}, {x1[1]:.0f}) to ({x2[0]:.2f}, {x2[1]:.2f}) = {path_length[0] / units.m:.2f} m")
             tmp += path_length[0]
         return tmp
 
@@ -483,18 +495,29 @@ class ray_tracing_2D(ray_tracing_base):
                 x1 = x1t
             else:
                 x11, x1, x22, x2, C_0, C_1 = segment
-
+                
+            # first treat special case of ice to air propagation
+            z_int = None
+            points = None
             x2_mirrored = self.get_z_mirrored(x1, x2, C_0)
-
+            if(x2[1] > 0):
+                # we need to integrat only until the ray touches the surface
+                z_turn = 0
+                y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
+                T_air = ((x2[0] - y_turn) ** 2 + (x2[1]) ** 2) ** 0.5 / speed_of_light
+                tmp += T_air
+                z_int = z_turn
+                self.__logger.info(f"adding additional propagation path through air of {T_air/units.ns:.1f}ns")
+            else:
+                gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
+                if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
+                    points = [z_turn]
+                z_int = x2_mirrored[1]
             def dt(t, C_0):
                 z = self.get_z_unmirrored(t, C_0)
                 return self.ds(t, C_0) / speed_of_light * self.n(z)
-
-            gamma_turn, z_turn = self.get_turning_point(self.medium.n_ice ** 2 - C_0 ** -2)
-            points = None
-            if(x1[1] < z_turn and z_turn < x2_mirrored[1]):
-                points = [z_turn]
-            travel_time = integrate.quad(dt, x1[1], x2_mirrored[1], args=(C_0), points=points, epsabs=1e-10, epsrel=1.49e-08, limit=500)
+            travel_time = integrate.quad(dt, x1[1], z_int, args=(C_0), points=points,
+                                         epsabs=1e-10, epsrel=1.49e-08, limit=500)
             self.__logger.info("calculating travel time from ({:.0f}, {:.0f}) to ({:.0f}, {:.0f}) = ({:.0f}, {:.0f}) = {:.2f} ns".format(
                 x1[0], x1[1], x2[0], x2[1], x2_mirrored[0], x2_mirrored[1], travel_time[0] / units.ns))
             tmp += travel_time[0]
