@@ -79,7 +79,7 @@ class channelTimeOffsetCalculator:
             channel waveforms when determining correlation to the template. Can
             be used to filter out frequencies that are dominated by noise.
         """
-
+        print(channel_ids)
         # Create data structured to store pulse properties
         propagation_times = np.zeros((len(channel_ids), 3))
         receive_angles = np.zeros((len(channel_ids), 3, 2))
@@ -161,7 +161,7 @@ class channelTimeOffsetCalculator:
                     channel_templates[i_channel, 0],
                     (channel + empty_trace).get_filtered_trace(passband, 'butter', 10)
                 )
-
+        print("time offsets")
         for i_channel, channel_id in enumerate(channel_ids):
             channel = station.get_channel(channel_id)
             if channel.has_parameter(chp.signal_regions):
@@ -189,6 +189,7 @@ class channelTimeOffsetCalculator:
                         ray_types[i_region] = max_corr_ray + 1
                     channel.set_parameter(chp.signal_time_offsets, time_offsets)
                     channel.set_parameter(chp.signal_receiving_zeniths, receiving_zeniths)
+                    print(channel_id, time_offsets)
                     if not use_2d_vertex:
                         channel.set_parameter(chp.signal_receiving_azimuths, receiving_azimuths)
                         channel.set_parameter(chp.signal_ray_types, ray_types)

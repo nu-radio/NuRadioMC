@@ -242,7 +242,7 @@ class IftElectricFieldReconstructor:
                 if channel.has_parameter(chp.signal_ray_types):
                     for signal_ray_type in channel.get_parameter(chp.signal_ray_types):
                         if signal_ray_type == ray_type:
-                            print(f"found ray type for {channel_id}")
+                            print(f"found ray type f{signal_ray_type} for {channel_id}")
                             succesful_channels_in_this_group.append(channel_id)
                             #self.__used_channel_ids.append(channel_id)
                             break
@@ -397,7 +397,7 @@ class IftElectricFieldReconstructor:
                 final_KL,
                 ''
             )
-        print("1-2", np.sum(self.__spec_difference[1]-self.__spec_difference[2]))
+        #print("1-2", np.sum(self.__spec_difference[1]-self.__spec_difference[2]))
         return True
 
     def __prepare_traces(
@@ -429,6 +429,7 @@ class IftElectricFieldReconstructor:
         passband = [100. * units.MHz, 200 * units.MHz]
         sim_channel_traces = []
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
+            print("prepare traces", channel_id)
             channel = station.get_channel(channel_id)
             if self.__use_sim:
                 sim_channel_sum = NuRadioReco.framework.base_trace.BaseTrace()
@@ -504,7 +505,7 @@ class IftElectricFieldReconstructor:
             # else:
             #     channel.apply_time_shift(channel.get_parameter(chp.signal_time_offset), True)
             if self.__debug:
-                ax1_1.plot(toffset, correlation)
+                ax1_1.plot(toffset, correlation, label=channel_id)
 
         #for channel_group in channel_group_list:
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
@@ -548,6 +549,9 @@ class IftElectricFieldReconstructor:
 
         if self.__debug:
             ax1_2.plot(correlation_sum)
+
+            fig1.savefig(f'{self.__plot_folder}/toffset.png')
+
             fig2.tight_layout()
             fig2.savefig('{}/{}_{}_traces.png'.format(self.__plot_folder, event.get_run_number(), event.get_id()))
 
@@ -654,7 +658,7 @@ class IftElectricFieldReconstructor:
             'a': .01,
             'k0': 2.,
             # Power-law part of spectrum:
-            'sm': -4.5,
+            'sm': -5.5,
             'sv': .5,
             'im': -4.,
             'iv': 1,
@@ -682,7 +686,6 @@ class IftElectricFieldReconstructor:
                 print("channel group", i_channel_group)
                 B = ift.SLAmplitude(**delta_params_dct)
                 correlated_fields_delta[i_channel_group-1] = ift.CorrelatedField(large_frequency_domain.get_default_codomain(), B)
-                print(correlated_fields_delta[i_channel_group-1])
 
                 self.__spec_difference.append(0)
 
@@ -698,6 +701,7 @@ class IftElectricFieldReconstructor:
 
                 #current_mag_S_h = mag_S_h + self.__efield_spec_group_delta_operators[-1]
 
+            #print(self.__spec_difference)
             for n_channel, channel_id in enumerate(channel_group):
 
                 i_channel = i_channel + 1
