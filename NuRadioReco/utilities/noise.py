@@ -254,31 +254,35 @@ class thermalNoiseGeneratorPhasedArray():
             the trigger threshold (assuming a symmetric high and low threshold)
         ref_index: float
             reference refractive index for calculating time delays of the beams
+
+        Other Parameters
+        ----------------
         noise_type: string
             the type of the noise, can be
             * "rayleigh" (default)
             * "noise"
-        log_level: logging enum
+        log_level: logging enum, default warn 
             the print level for this module
-        pre_trigger_time: float
+        pre_trigger_time: float, default 100 ns
             the time in the trace before the trigger happens
-        trace_length: float
+        trace_length: float, default 512 ns
             the total trace length
-        filt: array of complex values
+        filt: array of complex values, default None
             the filter that should be applied after noise generation (needs to match frequency binning in upsampled domain)
-        upsampling: int
+            if `None`, a default filter is calculated from 96 to 220 MHz
+        upsampling: int, default 2
             factor by which the waveforms will be upsampled before calculating time delays and beamforming
-        window_length: float
+        window_length: float, default 16 ns
             time interval of the integration window
-        step_size: float
+        step_size: float, default 8 ns
             duration of a stride between window calcuations
-        main_low_angle: float
+        main_low_angle: float, default -59.5 deg
             angle (radians) of the lowest beam
-        main_high_angle: float
+        main_high_angle: float 59.5 deg
             angle (radians) of the highest beam
-        n_beams: int
+        n_beams: int, default 11
             number of beams to calculate
-        quantize: bool
+        quantize: bool, default True
             If set to true, the conversion to and from ADC will be performed to mimic digitizations
         """
         logger.setLevel(log_level)
@@ -295,9 +299,8 @@ class thermalNoiseGeneratorPhasedArray():
         self.n_samples_trigger = int(trace_length * self.sampling_rate)
 
         if self.n_samples_trigger > self.n_samples:
-            logger.error(f"Requested `trace_length` of {trace_length/units.ns:.1f}ns ({self.n_samples_trigger} bins)" +
-                         f" is longer than the number of samples specified in the detector file ({self.n_samples} bins)")
-            exit()
+            raise ValueError(f"Requested `trace_length` of {trace_length/units.ns:.1f}ns ({self.n_samples_trigger} bins)" +
+                             f" is longer than the number of samples specified in the detector file ({self.n_samples} bins)")
 
         self.quantize = quantize
         if self.quantize:
@@ -349,9 +352,8 @@ class thermalNoiseGeneratorPhasedArray():
                               passband=[1 * units.MHz, 220 * units.MHz], filter_type='cheby1', order=7, rp=0.1)
         else:
             if len(filt) != len(self.ff):
-                logger.error(f"Frequency filter supplied has {len(filt)} bins. It should match the upsampled" +
-                             f" frequency binning of {len(self.ff)} bins from {self.ff[0] / units.MHz:.0f} to {self.ff[-1] / units.MHz:.0f} MHz")
-                exit()
+                raise ValueError(f"Frequency filter supplied has {len(filt)} bins. It should match the upsampled" +
+                                 f" frequency binning of {len(self.ff)} bins from {self.ff[0] / units.MHz:.0f} to {self.ff[-1] / units.MHz:.0f} MHz")
             self.filt = np.array(filt)
 
         self.norm = np.trapz(np.abs(self.filt) ** 2, self.ff)
@@ -471,7 +473,8 @@ class thermalNoiseGeneratorPhasedArray():
             # self.max_amp = max(squared_mean.max(), self.max_amp)
             self.max_amp = max(squared_mean.max(), self.max_amp)
             if True in (squared_mean > self.threshold):
-                logger.info(f"triggered at beam {iBeam}")
+                triggered_bin = np.where(squared_mean > self.threshold)[0,0]
+                logger.debug(f"triggered at beam {iBeam}")
                 if(self.debug):
                     import matplotlib.pyplot as plt
                     fig, ax = plt.subplots(self.n_channels+1, 1, sharex=True)
@@ -481,8 +484,8 @@ class thermalNoiseGeneratorPhasedArray():
                     ax[self.n_channels].plot(self._phased_traces[iBeam])
                     fig.tight_layout()
                     plt.show()
-                return True
-        return False
+                return True, triggered_bin, iBeam
+        return False, None, None
 
     def generate_noise(self, phasing_mode="slice", trigger_mode="binned_sum", debug=False):
         """
@@ -500,7 +503,7 @@ class thermalNoiseGeneratorPhasedArray():
             generate debug plot
         Returns
         -------
-        np.array of shape (n_channels, n_samples)
+        np.array of shape (n_channels, n_samples), index of triggered bin, index of triggered beam
         """
         self.debug = debug
 
@@ -544,7 +547,7 @@ class thermalNoiseGeneratorPhasedArray():
                 is_triggered, triggered_bin, triggered_beam = self.__triggering()
             elif trigger_mode == "stride":
                 # more time consuming attempt to do triggering compared to taking binned sums
-                is_triggered = self.__triggering_strided()
+                is_triggered, triggered_bin, triggered_beam = self.__triggering_strided()
             else:
                 logger.error(f"Requested trigger_mode {trigger_mode}. Only 'binned_sum' and 'stride' are allowed")
                 raise NotImplementedError(f"Requested trigger_mode {trigger_mode}. Only 'binned_sum'  and 'stride' are supported")
