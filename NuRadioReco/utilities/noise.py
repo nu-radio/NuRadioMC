@@ -565,7 +565,7 @@ class thermalNoiseGeneratorPhasedArray():
                 self._traces = scipy.signal.resample(self._traces, np.shape(self._traces)[-1] // self.upsampling, axis=-1)
 
                 if (i_low >= 0) and (i_high < self.n_samples): # If range is directly a subset of the waveform
-                    return self._traces[:, i_low:i_high], self._phased_traces
+                    return self._traces[:, i_low:i_high], self._phased_traces, triggered_beam
 
                 # Otherwise, roll the waveforms. Safe as long as noise is generated in the freq domain
                 self._phased_traces = np.roll(self._phased_traces, -i_low * self.upsampling, axis=-1)
