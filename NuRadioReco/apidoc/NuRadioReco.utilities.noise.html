@@ -715,7 +715,7 @@ triggering on a different (i.e. <em class="xref py py-obj">filt</em>) band than 
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.noise.</span></span><span class="sig-name descname"><span class="pre">thermalNoiseGeneratorPhasedArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">detector_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rayleigh'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_trigger_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#thermalNoiseGeneratorPhasedArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.noise.</span></span><span class="sig-name descname"><span class="pre">thermalNoiseGeneratorPhasedArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">detector_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triggered_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rayleigh'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_trigger_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upsampling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">main_low_angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1.039338088856046</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">main_high_angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.039338088856046</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_beams</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#thermalNoiseGeneratorPhasedArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Efficient algorithms to generate thermal noise fluctuations that fulfill a phased array trigger</p>
 <dl class="field-list simple">
@@ -731,17 +731,38 @@ triggering on a different (i.e. <em class="xref py py-obj">filt</em>) band than 
 </dd>
 <dt><strong>threshold: float</strong></dt><dd><p>the trigger threshold (assuming a symmetric high and low threshold)</p>
 </dd>
-<dt><strong>trigger_time: float</strong></dt><dd><p>the trigger time (time when the trigger completes)</p>
+<dt><strong>ref_index: float</strong></dt><dd><p>reference refractive index for calculating time delays of the beams</p>
 </dd>
-<dt><strong>filt: array of floats</strong></dt><dd><p>the filter that should be applied after noise generation (needs to match frequency binning)</p>
+</dl>
 </dd>
+<dt class="field-even">Other Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
 <dt><strong>noise_type: string</strong></dt><dd><p>the type of the noise, can be
 * “rayleigh” (default)
 * “noise”</p>
 </dd>
-<dt><strong>pre_trigger_time: float</strong></dt><dd><p>the time in the trace before the trigger happens</p>
+<dt><strong>log_level: logging enum, default warn</strong></dt><dd><p>the print level for this module</p>
 </dd>
-<dt><strong>trace_length: float</strong></dt><dd><p>the total trace length</p>
+<dt><strong>pre_trigger_time: float, default 100 ns</strong></dt><dd><p>the time in the trace before the trigger happens</p>
+</dd>
+<dt><strong>trace_length: float, default 512 ns</strong></dt><dd><p>the total trace length</p>
+</dd>
+<dt><strong>filt: array of complex values, default None</strong></dt><dd><p>the filter that should be applied after noise generation (needs to match frequency binning in upsampled domain)
+if <em class="xref py py-obj">None</em>, a default filter is calculated from 96 to 220 MHz</p>
+</dd>
+<dt><strong>upsampling: int, default 2</strong></dt><dd><p>factor by which the waveforms will be upsampled before calculating time delays and beamforming</p>
+</dd>
+<dt><strong>window_length: float, default 16 ns</strong></dt><dd><p>time interval of the integration window</p>
+</dd>
+<dt><strong>step_size: float, default 8 ns</strong></dt><dd><p>duration of a stride between window calcuations</p>
+</dd>
+<dt><strong>main_low_angle: float, default -59.5 deg</strong></dt><dd><p>angle (radians) of the lowest beam</p>
+</dd>
+<dt><strong>main_high_angle: float 59.5 deg</strong></dt><dd><p>angle (radians) of the highest beam</p>
+</dd>
+<dt><strong>n_beams: int, default 11</strong></dt><dd><p>number of beams to calculate</p>
+</dd>
+<dt><strong>quantize: bool, default True</strong></dt><dd><p>If set to true, the conversion to and from ADC will be performed to mimic digitizations</p>
 </dd>
 </dl>
 </dd>
@@ -774,7 +795,7 @@ The default shows better performance, but “stride” is kept as an alternative
 </dd>
 <dt><strong>Returns</strong></dt><dd></dd>
 <dt><strong>——-</strong></dt><dd></dd>
-<dt><strong>np.array of shape (n_channels, n_samples)</strong></dt><dd></dd>
+<dt><strong>np.array of shape (n_channels, n_samples), index of triggered bin, index of triggered beam</strong></dt><dd></dd>
 </dl>
 </dd>
 </dl>
