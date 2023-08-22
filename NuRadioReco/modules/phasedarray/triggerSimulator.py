@@ -336,6 +336,8 @@ class triggerSimulator:
             the earliest trigger time with respect to first interaction time.
         trigger_times: dictionary
             all time bins that fulfil the trigger condition per beam. The key is the beam number. Time with respect to first interaction time.
+        maximum_amps: list of floats (length equal to that of `phasing_angles`)
+            the maximum value of all the integration windows for each of the phased waveforms
         """
 
         if(triggered_channels is None):
@@ -375,29 +377,9 @@ class triggerSimulator:
                     raise ValueError("Could not convert upsampling_factor to integer. Exiting.")
 
             if(upsampling_factor >= 2):
-                '''
-                # Zero inserting and filtering
-                upsampled_trace = upsampling_fir(trace, adc_sampling_frequency,
-                                                 int_factor=upsampling_factor, ntaps=1)
-
-                channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
-                ff = np.fft.rfftfreq(len(upsampled_trace), 1.0 / adc_sampling_frequency / upsampling_factor)
-                filt = channelBandPassFilter.get_filter(ff, 0, 0, None, passband=[0, 240 * units.MHz], filter_type="cheby1", order=9, rp=.1)
-
-                upsampled_trace = np.fft.irfft(np.fft.rfft(upsampled_trace) * filt)
-                '''
-
                 # FFT upsampling
                 new_len = len(trace) * upsampling_factor
                 upsampled_trace = scipy.signal.resample(trace, new_len)
-
-                '''
-                # Linear interpolation
-                x = np.arange(len(trace))
-                f_trace = interp1d(x, trace, kind='linear', fill_value=(trace[0], trace[-1]), bounds_error=False)
-                x_new = np.arange(len(trace) * upsampling_factor) / upsampling_factor
-                upsampled_trace = f_trace(x_new)
-                '''
 
                 #  If upsampled is performed, the final sampling frequency changes
                 trace = upsampled_trace[:]
@@ -424,10 +406,14 @@ class triggerSimulator:
         channel_trace_start_time = self.get_channel_trace_start_time(station, triggered_channels)
 
         trigger_delays = {}
+        maximum_amps = np.zeros_like(phased_traces)
+
         for iTrace, phased_trace in enumerate(phased_traces):
 
             # Create a sliding window
             squared_mean, num_frames = self.power_sum(coh_sum=phased_trace, window=window, step=step, adc_output=adc_output)
+
+            maximum_amps[iTrace] = np.max(squared_mean)
 
             if True in (squared_mean > threshold):
                 trigger_delays[iTrace] = {}
@@ -447,7 +433,7 @@ class triggerSimulator:
             trigger_time = min([x.min() for x in trigger_times.values()])
             # logger.debug(f"minimum trigger time is {trigger_time:.0f}ns")
 
-        return is_triggered, trigger_delays, trigger_time, trigger_times
+        return is_triggered, trigger_delays, trigger_time, trigger_times, maximum_amps
 
     @register_run()
     def run(self, evt, station, det,
@@ -543,25 +529,36 @@ class triggerSimulator:
         if(set_not_triggered):
             is_triggered = False
             trigger_delays = {}
+            triggered_beams = []
         else:
-            is_triggered, trigger_delays, trigger_time, trigger_times = self.phased_trigger(station=station,
-                                                                             det=det,
-                                                                             Vrms=Vrms,
-                                                                             threshold=threshold,
-                                                                             triggered_channels=triggered_channels,
-                                                                             phasing_angles=phasing_angles,
-                                                                             ref_index=ref_index,
-                                                                             trigger_adc=trigger_adc,
-                                                                             clock_offset=clock_offset,
-                                                                             adc_output=adc_output,
-                                                                             trigger_filter=trigger_filter,
-                                                                             upsampling_factor=upsampling_factor,
-                                                                             window=window,
-                                                                             step=step)
+            is_triggered, trigger_delays, trigger_time, trigger_times, maximum_amps = self.phased_trigger(
+                station=station,
+                det=det,
+                Vrms=Vrms,
+                threshold=threshold,
+                triggered_channels=triggered_channels,
+                phasing_angles=phasing_angles,
+                ref_index=ref_index,
+                trigger_adc=trigger_adc,
+                clock_offset=clock_offset,
+                adc_output=adc_output,
+                trigger_filter=trigger_filter,
+                upsampling_factor=upsampling_factor,
+                window=window,
+                step=step,
+            )
 
         # Create a trigger object to be returned to the station
-        trigger = SimplePhasedTrigger(trigger_name, threshold, channels=triggered_channels,
-                                      primary_angles=phasing_angles, trigger_delays=trigger_delays)
+        trigger = SimplePhasedTrigger(
+            trigger_name, 
+            threshold, 
+            channels=triggered_channels,
+            primary_angles=phasing_angles, 
+            trigger_delays=trigger_delays,
+            window_size=window, 
+            step_size=step,
+            maximum_amps=maximum_amps,
+        )
 
         trigger.set_triggered(is_triggered)
         
