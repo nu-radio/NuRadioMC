@@ -296,7 +296,7 @@ class analogToDigitalConverter:
         if trigger_filter is not None:
 
             trace_fft = np.fft.rfft(trace)
-            if(len(trace_fft) != len(trigger_filter)):
+            if len(trace_fft) != len(trigger_filter):
                 raise ValueError("Wrong filter length to apply to traces")
 
             trace = np.fft.irfft(trace_fft * trigger_filter)
