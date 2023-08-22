@@ -252,7 +252,14 @@ class ray_tracing_2D(ray_tracing_base):
         """
         derivative dy(z)/dz
         """
-
+        correct_for_air = False
+        # if we are above the ice surface, the analytic expression below
+        # does not apply. Therefore, we instead calculate dy/dz at z=0 where it is still valid
+        # and then correct this using Snell's law
+        if z_raw > 0: # we are above the ice surface, where the below expression does not apply
+            z_raw_copy = copy.copy(z_raw)
+            z_raw = 0
+            correct_for_air = True
         z = self.get_z_unmirrored(z_raw, C_0)
         c = self.medium.n_ice ** 2 - C_0 ** -2
         B = (0.2e1 * np.sqrt(c) * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n **
@@ -263,7 +270,12 @@ class ray_tracing_2D(ray_tracing_base):
         E = (E1 + E2 + c)
         res = (-np.sqrt(c) * np.exp(z / self.medium.z_0) * self.__b * self.medium.delta_n + 0.2e1 * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z /
                                                                                                                                                      self.medium.z_0) + self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0) + c) * c + 0.2e1 * c ** 1.5) / B * E ** -0.5 * (D ** (-0.5))
-
+        if correct_for_air:
+            n_surface = self.medium.get_index_of_refraction([0,0,0])
+            theta_ice = np.arctan(res)
+            theta_air = np.arcsin(n_surface * np.sin(theta_ice))
+            res = np.tan(theta_air)
+            z_raw = z_raw_copy
         if(z != z_raw):
             res *= -1
         return res
@@ -1251,10 +1263,15 @@ class ray_tracing_2D(ray_tracing_base):
                 # special case of ice to air ray tracing. There is always one unique solution between C_0 = inf and C_0 that
                 # skims the surface. Therefore, we can find the solution using an efficient root finding algorithm.
                 logC0_start = 1  # infinity is bad, 1 is steep enough
-                C_0_stop, th_start = self.get_surf_skim_angle(x1)
-                C_0_stop /= 2  # for some reason, the get_surf_skim_angle function does not give the correct angle. The launch angle
-                                # needs to be slightly steeper
-                logC0_stop = np.log(C_0_stop)
+                C_0_stop = self.get_C_0_from_angle(np.arcsin(1/self.medium.get_index_of_refraction([0, x1[0], x1[1]])), x1[1]).x[0]
+                # C_0_stop, th_start = self.get_surf_skim_angle(x1)
+                # C_0_stop *= (1-1e-8)  # for some reason, the get_surf_skim_angle function does not give the correct angle. The launch angle
+                #                 # needs to be slightly steeper
+                logC0_stop = np.log(C_0_stop - 1/self.medium.n_ice)
+                self.__logger.warning(
+                    "C0: {}, {} start: {} stop: {}".format(
+                        logC0_start, logC0_stop, *[self.obj_delta_y(logC0, x1, x2, reflection, reflection_case) for logC0 in [logC0_start, logC0_stop]]
+                    ))
                 result = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
 
                 C_0 = self.get_C0_from_log(result)
@@ -1821,6 +1838,7 @@ class ray_tracing(ray_tracing_base):
                          detector=detector)
         self.set_config(config=config)
         
+        self.use_cpp = use_cpp
         if use_cpp:
             self.__logger.debug(f"using CPP version of ray tracer")
         else:
@@ -2179,10 +2197,13 @@ class ray_tracing(ray_tracing_base):
         focusing: float
             gain of the signal at the receiver due to the focusing effect
         """
+        self.__logger.warning("We're trying to focus here!")
         recVec = self.get_receive_vector(iS)
         recVec = -1.0 * recVec
+        # recAng = np.arcsin(recVec[2] / np.linalg.norm(recVec))
         recAng = np.arccos(recVec[2] / np.sqrt(recVec[0] ** 2 + recVec[1] ** 2 + recVec[2] ** 2))
         lauVec = self.get_launch_vector(iS)
+        # lauAng = np.arcsin(lauVec[2] / np.linalg.norm(lauVec))
         lauAng = np.arccos(lauVec[2] / np.sqrt(lauVec[0] ** 2 + lauVec[1] ** 2 + lauVec[2] ** 2))
         distance = self.get_path_length(iS)
         # we need to be careful here. If X1 (the emitter) is above the X2 (the receiver) the positions are swapped
@@ -2198,19 +2219,25 @@ class ray_tracing(ray_tracing_base):
             recPos1 = np.array([self._X2[0], self._X2[1], self._X2[2] + dz])
         if not hasattr(self, "_r1"):
             self._r1 = ray_tracing(self._medium, self._attenuation_model, logging.WARNING,
-                             self._n_frequencies_integration, self._n_reflections)
+                             self._n_frequencies_integration, self._n_reflections, use_cpp=self.use_cpp)
         self._r1.set_start_and_end_point(vetPos, recPos1)
         self._r1.find_solutions()
         if iS < self._r1.get_number_of_solutions():
             lauVec1 = self._r1.get_launch_vector(iS)
+            # lauAng1 = np.arcsin(lauVec1[2] / np.linalg.norm(lauVec1))
             lauAng1 = np.arccos(lauVec1[2] / np.sqrt(lauVec1[0] ** 2 + lauVec1[1] ** 2 + lauVec1[2] ** 2))
+            self.__logger.warning(
+                "focusing: receive angle {:.2f} / launch angle {:.2f} / d_launch_angle {:.4f}".format(
+                    recAng / units.deg, lauAng / units.deg, (lauAng1-lauAng) / units.deg
+                )
+            )
             focusing = np.sqrt(distance / np.sin(recAng) * np.abs((lauAng1 - lauAng) / (recPos1[2] - recPos[2])))
             if (self.get_results()[iS]['reflection'] != self._r1.get_results()[iS]['reflection']
                     or self.get_results()[iS]['reflection_case'] != self._r1.get_results()[iS]['reflection_case']):
                 self.__logger.error("Number or type of reflections are different between solutions - focusing correction may not be reliable.")
         else:
             focusing = 1.0
-            self.__logger.info("too few ray tracing solutions, setting focusing factor to 1")
+            self.__logger.warning("too few ray tracing solutions, setting focusing factor to 1")
         self.__logger.debug(f'amplification due to focusing of solution {iS:d} = {focusing:.3f}')
         if(focusing > limit):
             self.__logger.info(f"amplification due to focusing is {focusing:.1f}x -> limiting amplification factor to {limit:.1f}x")
