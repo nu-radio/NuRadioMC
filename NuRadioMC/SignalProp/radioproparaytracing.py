@@ -393,9 +393,11 @@ class radiopropa_ray_tracing(ray_tracing_base):
         self.__xtol = xtol
         self.__ztol = ztol
 
-    def raytracer_birefringence(self, launch_v, spec, s_rate):
+    def raytracer_birefringence(self, launch_v, spec, s_rate, bire_model = 'A'):
         """
-        Uses RadioPropa propagate an electric field through the correct solution of the ray path. To use add to the config.yaml file:
+        Function for the time trace propagation according to the polarization change due to birefringence. 
+        The trace propagation is explained in this paper: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
+        RadioPropa propagates an electric field through the correct solution of the ray path. To use add to the config.yaml file:
         propagation:
         module: radiopropa
         ice_model: southpole_2015
@@ -411,13 +413,22 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
         s_rate: float
             sampling rate of the electric field
+
+        Returns
+        ------------
+        E_field: np.ndarray([eR, eTheta, ePhi])
+            [0] - eR        - final frequency spectrum of the radial component after birefringence propagation
+            [1] - eTheta    - final frequency spectrum of the theta componentnt after birefringence propagation
+            [2] - ePhi      - final frequency spectrum of the phi component after birefringence propagation
         """
-        try:
-            X1 = self._X1 * (radiopropa.meter/units.meter)
-            X2 = self._X2 * (radiopropa.meter/units.meter)
-        except TypeError: 
+
+        if (self._X1 is None) or (self._X2 is None):
             self.__logger.error('NoneType: start or endpoint not initialized')
             raise TypeError('NoneType: start or endpoint not initialized')
+        else:
+            X1 = self._X1 * (radiopropa.meter/units.meter)
+            X2 = self._X2 * (radiopropa.meter/units.meter)
+
 
         v = (self._X2 - self._X1)
         u = copy.deepcopy(v)
@@ -427,7 +438,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
         ##define module list for simulation
         sim = radiopropa.ModuleList()
-        sim.add(radiopropa.PropagationCK(self._ice_model.get_scalar_field(), 1E-8, .001, 1., True)) ## add propagation to module list
+        sim.add(radiopropa.PropagationCK(self._ice_model.get_scalar_field(), 1E-8, .001, 1., bire_model)) ## add propagation to module list
         for module in self._ice_model.get_modules().values(): 
             sim.add(module)
         sim.add(radiopropa.MaximumTrajectoryLength(self._max_traj_length * (radiopropa.meter/units.meter)))

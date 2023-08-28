@@ -14,14 +14,10 @@ except ImportError:
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import attenuation as attenuation_util
 
-
-#from NuRadioMC.utilities.medium import birefringence_index
-from NuRadioMC.utilities.medium import birefringence_medium
-
-
 from radiotools import coordinatesystems as cstrans
 from radiotools import helper as hp
 
+from NuRadioMC.utilities import medium
 
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 
@@ -1602,7 +1598,6 @@ class ray_tracing(ray_tracing_base):
 
         
         self.__medium = medium
-        #self.__birefringence_model = birefringence_model
         
 
 
@@ -1627,8 +1622,6 @@ class ray_tracing(ray_tracing_base):
         self._R = None
         self._x1 = None
         self._x2 = None
-        self._source = None
-        self._antenna = None
 
 
     def reset_solutions(self):
@@ -1643,8 +1636,6 @@ class ray_tracing(ray_tracing_base):
         self._swap = None
         self._dPhi = None
         self._R = None
-        self._source = None
-        self._antenna = None
 
     def set_start_and_end_point(self, x1, x2):
         """
@@ -1660,9 +1651,6 @@ class ray_tracing(ray_tracing_base):
 
 
         super().set_start_and_end_point(x1, x2)
-        
-        self._source = x1
-        self._antenna = x2
 
         self._swap = False
         if(self._X2[2] < self._X1[2]):
@@ -1756,7 +1744,7 @@ class ray_tracing(ray_tracing_base):
         path = MM.T + self._X1
         return path
 
-    def get_effective_index_fast(self, nx, ny, nz, direction):
+    def get_effective_index_birefringence(self, nx, ny, nz, direction):
 
         """
         Function to find the analytical solutions for the effective refractive indices.
@@ -1830,7 +1818,7 @@ class ray_tracing(ray_tracing_base):
 
         return p / np.linalg.norm(p)
 
-    def get_effective_index_birefringence(self, pulse, i_solution, acc=1000, samp_rate = 0.01):
+    def get_pulse_propagation_birefringence(self, pulse, samp_rate, i_solution, acc=1000, bire_model = 'A'):
         
         """
         Function for the time trace propagation according to the polarization change due to birefringence. 
@@ -1870,36 +1858,37 @@ class ray_tracing(ray_tracing_base):
             [2] - ePhi (np.array) - final frequency spectrum of the phi component
         """
 
-        t_slow = base_trace.BaseTrace()
         t_fast = base_trace.BaseTrace()
 
-        t_theta = base_trace.BaseTrace()
-        t_phi = base_trace.BaseTrace()
-        
-        t_theta.set_frequency_spectrum(pulse[1], sampling_rate=samp_rate)
-        t_phi.set_frequency_spectrum(pulse[2], sampling_rate=samp_rate)
+        natural_base = np.vstack((pulse[1], pulse[2]))
 
         light_speed = speed_of_light * units.m / units.ns
 
         ice_n = self.__medium
+
+        ice_birefringence = medium.get_ice_model('birefringence_medium')
+        ice_birefringence.__init__(bire_model)
+
+        refractive_index_comp = ice_n.get_index_of_refraction(np.array([0, 0, -2500]))
+
         path = self.get_path(i_solution, n_points=acc)
 
         for i in range(acc-1):
 
-            refractive_index = ice_n.get_birefringence_index_of_refraction(path[i])
+            refractive_index = ice_n.get_index_of_refraction(path[i])
+            refractive_index_birefringence = ice_birefringence.get_birefringence_index_of_refraction(path[i])
 
-            dx = path[i+1, 0] - path[i, 0]
-            dy = path[i+1, 1] - path[i, 1]
-            dz = path[i+1, 2] - path[i, 2]      
+            nx, ny, nz = refractive_index + refractive_index_birefringence - refractive_index_comp
+            dD = path[i+1] - path[i]     
 
-            direction = np.array([dx, dy, dz])
+            direction = np.array(dD)
             len_diff = np.linalg.norm(direction)
             direction = direction / len_diff
 
-            s = self.get_effective_index_fast(refractive_index[0], refractive_index[1], refractive_index[2], direction)
+            s = self.get_effective_index_birefringence(nx, ny, nz, direction)
 
-            p0 = self.get_polarization_birefringence(s[0], direction, refractive_index[0], refractive_index[1], refractive_index[2])
-            p1 = self.get_polarization_birefringence(s[1], direction, refractive_index[0], refractive_index[1], refractive_index[2])
+            p0 = self.get_polarization_birefringence(s[0], direction, nx, ny, nz)
+            p1 = self.get_polarization_birefringence(s[1], direction, nx, ny, nz)
 
             zenith, azimuth = hp.cartesian_to_spherical(*(direction))
             cs = cstrans.cstrafo(zenith, azimuth)
@@ -1910,41 +1899,112 @@ class ray_tracing(ray_tracing_base):
             t_0 = len_diff * s[0] / light_speed
             t_1 = len_diff * s[1] / light_speed
 
-            
             a = sky0[1]
             b = sky0[2]
-            
             c = sky1[1]
             d = sky1[2]
 
             if np.isclose(a*d - b*c, 0) or np.isnan([a, b, c, d]).any():
                 self.__logger.warning("warning: Polarization vectors similar, R-matrix not invertible, iteration" + str(i))
-                
-                R = np.matrix([[1, 0], [0, 1]])
-                time_shift = 0
+                continue
             
             else:
                 R = np.matrix([[a, b], [c, d]])
-                #time_shift = diff[i]
                 time_shift = t_1 - t_0
             
-            th = t_theta.get_frequency_spectrum()
-            ph = t_phi.get_frequency_spectrum()
-            t_slow.set_frequency_spectrum(th * R[0, 0] + ph * R[0, 1], sampling_rate=samp_rate)
-            t_fast.set_frequency_spectrum(th * R[1, 0] + ph * R[1, 1], sampling_rate=samp_rate)
-            
-            t_fast.apply_time_shift(time_shift)
-            
-            Rinv = np.linalg.inv(R)
-            
-            fa = t_fast.get_frequency_spectrum()
-            sl = t_slow.get_frequency_spectrum()
-            t_theta.set_frequency_spectrum(sl * Rinv[0, 0] + fa * Rinv[0, 1], sampling_rate=samp_rate)
-            t_phi.set_frequency_spectrum(sl * Rinv[1, 0] + fa * Rinv[1, 1], sampling_rate=samp_rate)
 
-        el_field = np.vstack((pulse[0], t_theta.get_frequency_spectrum(), t_phi.get_frequency_spectrum()))
+            birefringent_base = R * natural_base 
+
+            t_fast.set_frequency_spectrum(birefringent_base[1], sampling_rate=samp_rate)
+            t_fast.apply_time_shift(time_shift)
+            birefringent_base[1] = t_fast.get_frequency_spectrum()
+            
+            Rinv = np.matrix.transpose(R)
+
+            natural_base = Rinv * birefringent_base
+
+
+        el_field = np.vstack((pulse[0], natural_base[0], natural_base[1]))
 
         return el_field
+    
+    def get_path_properties_birefringence(self, i_solution, acc=1000, bire_model = 'A'):
+
+        light_speed = speed_of_light * units.m / units.ns
+
+        ice_n = self.__medium
+        path = self.get_path(i_solution, n_points=acc)
+
+        N1 = np.zeros(acc-1)
+        N2 = np.zeros(acc-1)
+
+        P1 = np.zeros(acc-1, 3)
+        P2 = np.zeros(acc-1, 3)
+
+        T1 = np.zeros(acc-1)
+        T2 = np.zeros(acc-1)
+
+        ice_birefringence = medium.get_ice_model('birefringence_medium')
+        ice_birefringence.__init__(bire_model)
+
+        refractive_index_comp = ice_n.get_index_of_refraction(np.array([0, 0, -2500]))
+
+        for i in range(acc-1):
+
+            refractive_index = ice_n.get_index_of_refraction(path[i])
+            refractive_index_birefringence = ice_birefringence.get_birefringence_index_of_refraction(path[i])
+
+            #print(refractive_index)
+
+            nx = refractive_index + refractive_index_birefringence[0] - refractive_index_comp
+            ny = refractive_index + refractive_index_birefringence[1] - refractive_index_comp
+            nz = refractive_index + refractive_index_birefringence[2] - refractive_index_comp
+
+            dx = path[i+1, 0] - path[i, 0]
+            dy = path[i+1, 1] - path[i, 1]
+            dz = path[i+1, 2] - path[i, 2]      
+
+            direction = np.array([dx, dy, dz])
+            len_diff = np.linalg.norm(direction)
+            direction = direction / len_diff
+
+            s = self.get_effective_index_birefringence(nx, ny, nz, direction)
+
+            p0 = self.get_polarization_birefringence(s[0], direction, nx, ny, nz)
+            p1 = self.get_polarization_birefringence(s[1], direction, nx, ny, nz)
+            zenith, azimuth = hp.cartesian_to_spherical(*(direction))
+            cs = cstrans.cstrafo(zenith, azimuth)
+
+            sky0 = cs.transform_from_ground_to_onsky(p0)
+            sky1 = cs.transform_from_ground_to_onsky(p1)
+
+            t_0 = len_diff * s[0] / light_speed
+            t_1 = len_diff * s[1] / light_speed
+
+            N1[i] = s[0]
+            N2[i] = s[1]
+
+            P1[i] = sky0
+            P2[i] = sky1
+
+            T1[i] = t_0
+            T2[i] = t_1
+
+        Dt = np.sum(T1) - np.sum(T2)
+
+        path_properties = {}
+
+        path_properties['first_refractive_index'] = N1
+        path_properties['second_refractive_index'] = N2
+
+        path_properties['first_polarization_vector'] = P1
+        path_properties['second_polarization_vector'] = P2
+
+        path_properties['first_time_delay'] = T1
+        path_properties['second_time_delay'] = T2
+
+        return(path_properties, Dt)
+
     
     def get_launch_vector(self, iS):
         """
@@ -2312,20 +2372,49 @@ class ray_tracing(ray_tracing_base):
         
         # apply the birefringence effect
         if self._config['propagation']['birefringence']:
-        
-            try:
-                #use ice model: southpole_2015
-                from NuRadioMC.SignalProp import radioproparaytracing
-                launch_v = self.get_launch_vector(i_solution)
-                radiopropa_rays = radioproparaytracing.radiopropa_ray_tracing(self._medium)
-                radiopropa_rays.set_start_and_end_point(self._source,self._antenna)
-                spec = radiopropa_rays.raytracer_birefringence(launch_v, spec, s_rate)
 
-            except:
-                print('using analytical propagation')
-                #use ice model: birefringence_medium
-                #this might run faster if you install radiopropa
-                spec = self.get_effective_index_birefringence(spec, i_solution, samp_rate = s_rate)
+            if "birefringence_model" in self._config['propagation']:
+
+                bire_model = self._config['propagation']['birefringence_model']
+
+                if "birefringence_propagation" in self._config['propagation']:
+
+                    if self._config['propagation']['birefringence_propagation'] == 'analytical':
+                        print('a')
+                        
+                        spec = self.get_pulse_propagation_birefringence(spec, s_rate, i_solution, bire_model = bire_model)
+
+                    elif self._config['propagation']['birefringence_propagation'] == 'numerical':
+                        from NuRadioMC.SignalProp import radioproparaytracing
+                        launch_v = self.get_launch_vector(i_solution)
+                        radiopropa_rays = radioproparaytracing.radiopropa_ray_tracing(self._medium)
+                        radiopropa_rays.set_start_and_end_point(self._X1, self._X2)
+
+                        spec = radiopropa_rays.raytracer_birefringence(launch_v, spec, s_rate) #, bire_model = bire_model --> has to be implemented
+
+                else:
+                    print('b')
+                    spec = self.get_pulse_propagation_birefringence(spec, s_rate, i_solution, bire_model = bire_model)
+
+            else:
+
+                if "birefringence_propagation" in self._config['propagation']:
+
+                    if self._config['propagation']['birefringence_propagation'] == 'analytical':
+                        print('c')
+                        spec = self.get_pulse_propagation_birefringence(spec, s_rate, i_solution)
+
+                    elif self._config['propagation']['birefringence_propagation'] == 'numerical':
+                        from NuRadioMC.SignalProp import radioproparaytracing
+                        launch_v = self.get_launch_vector(i_solution)
+                        radiopropa_rays = radioproparaytracing.radiopropa_ray_tracing(self._medium)
+                        radiopropa_rays.set_start_and_end_point(self._X1, self._X2)
+
+                        spec = radiopropa_rays.raytracer_birefringence(launch_v, spec, s_rate)
+
+                else:
+                    print('d')
+                    spec = self.get_pulse_propagation_birefringence(spec, s_rate, i_solution)
 
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())

@@ -1,3 +1,10 @@
+######
+
+#This file is meant to give a guide for creating spline tables that can be used for the birefringence propagation functions.
+#The script is not used during the propagation.
+
+######
+
 import numpy as np
 import csv
 from scipy import constants
