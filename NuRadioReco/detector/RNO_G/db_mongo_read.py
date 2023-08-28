@@ -1239,13 +1239,13 @@ class Database(object):
 
             mod_set = np.unique(station_times_comm + station_times_decomm + channel_times_comm + channel_times_decomm)
             mod_set.sort()
-            channel_times_comm.sort()
-            channel_times_decomm.sort()
+            station_times_comm.sort()
+            station_times_decomm.sort()
             
             station_data = {
                 "modification_timestamps": mod_set,
-                "station_commission_timestamps": channel_times_comm,
-                "station_decommission_timestamps": channel_times_decomm
+                "station_commission_timestamps": station_times_comm,
+                "station_decommission_timestamps": station_times_decomm
             }
             
             logger.info(station_data)
