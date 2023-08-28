@@ -402,8 +402,8 @@ class Database(object):
             logger.warning('No corresponding channel found!')
             return {}
         elif len(channel_info) > 1:
-            err = f"Found to many channels ({len(channel_info)}) for: station_id = {station_id}, " + \
-                  f"channel_id = {channel_id}, and time = {detector_time}"
+            err = (f"Found to many channels ({len(channel_info)}) for: station_id = {station_id}, "
+                   f"channel_id = {channel_id}, and time = {detector_time}")
             logger.error(err)
             raise ValueError(err)
         
@@ -793,8 +793,8 @@ class Database(object):
             logger.warning('No corresponding channel found!')
             return None, None
         elif len(channel_info) > 1:
-            err = f"Found to many channels ({len(channel_info)}) for: station_id = {station_id}, " + \
-                  f"channel_id = {channel_id}, and time = {detector_time}"
+            err = (f"Found to many channels ({len(channel_info)}) for: station_id = {station_id}, "
+                   f"channel_id = {channel_id}, and time = {detector_time}")
             logger.error(err)
             raise ValueError(err)
         
@@ -880,8 +880,8 @@ class Database(object):
             logger.warning('No corresponding device found!')
             return None
         elif len(device_info) > 1:
-            err = f"Found to many devices ({len(device_info)}) for: station_id = {station_id}, " + \ 
-                  f"channel_id = {device_id}, and time = {detector_time}"
+            err = (f"Found to many devices ({len(device_info)}) for: station_id = {station_id}, "  
+                  f"channel_id = {device_id}, and time = {detector_time}")
             logger.error(err)
             raise ValueError(err)
         
