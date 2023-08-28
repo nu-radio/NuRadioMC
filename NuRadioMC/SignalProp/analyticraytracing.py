@@ -248,7 +248,7 @@ class ray_tracing_2D(ray_tracing_base):
         result = self.medium.z_0 * (self.medium.n_ice ** 2 * C_0 ** 2 - 1) ** -0.5 * np.log(logargument) + C_1
         return result
 
-    def get_y_diff(self, z_raw, C_0):
+    def get_y_diff(self, z_raw, C_0, in_air=False):
         """
         derivative dy(z)/dz
         """
@@ -256,11 +256,11 @@ class ray_tracing_2D(ray_tracing_base):
         # if we are above the ice surface, the analytic expression below
         # does not apply. Therefore, we instead calculate dy/dz at z=0 where it is still valid
         # and then correct this using Snell's law
-        if z_raw > 0: # we are above the ice surface, where the below expression does not apply
-            z_raw_copy = copy.copy(z_raw)
-            z_raw = 0
+        if (not in_air) or (z_raw < 0):
+            z = self.get_z_unmirrored(z_raw, C_0)
+        else: # we are above the ice surface, where the below expression does not apply
+            z = 0
             correct_for_air = True
-        z = self.get_z_unmirrored(z_raw, C_0)
         c = self.medium.n_ice ** 2 - C_0 ** -2
         B = (0.2e1 * np.sqrt(c) * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + self.medium.delta_n **
                                           2 * np.exp(0.2e1 * z / self.medium.z_0) + c) - self.__b * self.medium.delta_n * np.exp(z / self.medium.z_0) + 0.2e1 * c)
@@ -271,11 +271,10 @@ class ray_tracing_2D(ray_tracing_base):
         res = (-np.sqrt(c) * np.exp(z / self.medium.z_0) * self.__b * self.medium.delta_n + 0.2e1 * np.sqrt(-self.__b * self.medium.delta_n * np.exp(z /
                                                                                                                                                      self.medium.z_0) + self.medium.delta_n ** 2 * np.exp(0.2e1 * z / self.medium.z_0) + c) * c + 0.2e1 * c ** 1.5) / B * E ** -0.5 * (D ** (-0.5))
         if correct_for_air:
-            n_surface = self.medium.get_index_of_refraction([0,0,0])
+            n_surface = self.n(0)
             theta_ice = np.arctan(res)
             theta_air = np.arcsin(n_surface * np.sin(theta_ice))
             res = np.tan(theta_air)
-            z_raw = z_raw_copy
         if(z != z_raw):
             res *= -1
         return res
@@ -865,7 +864,7 @@ class ray_tracing_2D(ray_tracing_base):
             x1 = x2
         return tmp
 
-    def get_angle(self, x, x_start, C_0, reflection=0, reflection_case=1):
+    def get_angle(self, x, x_start, C_0, reflection=0, reflection_case=1, in_air=False):
         """
         calculates the angle with respect to the positive z-axis of the ray path at position x
 
@@ -890,17 +889,17 @@ class ray_tracing_2D(ray_tracing_base):
         x_start = last_segment[1]
 
         z = self.get_z_mirrored(x_start, x, C_0)[1]
-        dy = self.get_y_diff(z, C_0)
+        dy = self.get_y_diff(z, C_0, in_air=in_air)
         angle = np.arctan(dy)
         if(angle < 0):
             angle = np.pi + angle
         return angle
 
     def get_launch_angle(self, x1, C_0, reflection=0, reflection_case=1):
-        return self.get_angle(x1, x1, C_0, reflection, reflection_case)
+        return self.get_angle(x1, x1, C_0, reflection, reflection_case, in_air=x1[1]>0)
 
     def get_receive_angle(self, x1, x2, C_0, reflection=0, reflection_case=1):
-        return np.pi - self.get_angle(x2, x1, C_0, reflection, reflection_case)
+        return np.pi - self.get_angle(x2, x1, C_0, reflection, reflection_case, in_air=x2[1]>0)
 
     def get_reflection_angle(self, x1, x2, C_0, reflection=0, reflection_case=1):
         """
@@ -931,7 +930,7 @@ class ray_tracing_2D(ray_tracing_base):
             gamma_turn, z_turn = self.get_turning_point(c)
             y_turn = self.get_y_turn(C_0, x1)
             if((z_turn >= 0) and (y_turn > x11[0]) and (y_turn < x22[0])):  # for the first track segment we need to check if turning point is right of start point (otherwise we have a downward going ray that does not have a turning point), and for the last track segment we need to check that the turning point is left of the stop position.
-                r = self.get_angle(np.array([y_turn, 0]), x1, C_0)
+                r = self.get_angle(np.array([y_turn, 0]), x1, C_0, in_air=(x2[1]>0))
                 self.__logger.debug(
                     "reflecting off surface at y = {:.1f}m, reflection angle = {:.1f}deg".format(y_turn, r / units.deg))
                 output.append(r)
@@ -1265,8 +1264,8 @@ class ray_tracing_2D(ray_tracing_base):
                 logC0_start = 1  # infinity is bad, 1 is steep enough
                 C_0_stop = self.get_C_0_from_angle(np.arcsin(1/self.medium.get_index_of_refraction([0, x1[0], x1[1]])), x1[1]).x[0]
                 logC0_stop = np.log(C_0_stop - 1/self.medium.n_ice)
-                self.__logger.warning(
-                    "C0: {}, {} start: {} stop: {}".format(
+                self.__logger.debug(
+                    "Looking for ice-air solutions between C0 ({}, {}) with delta_y ({}, {})".format(
                         logC0_start, logC0_stop, *[self.obj_delta_y(logC0, x1, x2, reflection, reflection_case) for logC0 in [logC0_start, logC0_stop]]
                     ))
                 result = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
@@ -1389,11 +1388,11 @@ class ray_tracing_2D(ray_tracing_base):
     #     ax.plot(x2[1], x2[0], 'd')
         ax.legend()
 
-    def get_angle_from_C_0(self, C_0, z_pos, angoff=0):
+    def get_angle_from_C_0(self, C_0, z_pos, angoff=0, in_air=False):
         logC_0 = np.log(C_0 - 1. / self.medium.n_ice)
-        return self.get_angle_from_logC_0(logC_0, z_pos, angoff)
+        return self.get_angle_from_logC_0(logC_0, z_pos, angoff, in_air=in_air)
 
-    def get_angle_from_logC_0(self, logC_0, z_pos, angoff=0):
+    def get_angle_from_logC_0(self, logC_0, z_pos, angoff=0, in_air=False):
 
         '''
         argument angoff is provided so that the function can be used for minimization in get_C_0_from_angle(),
@@ -1416,7 +1415,7 @@ class ray_tracing_2D(ray_tracing_base):
 
         C_0 = self.get_C0_from_log(logC_0)
 
-        dydz = self.get_y_diff(z_pos, C_0)
+        dydz = self.get_y_diff(z_pos, C_0, in_air=in_air)
 #        dydz = self.get_dydz_analytic(C_0, z_pos)
         angle = np.arctan(dydz)
 
@@ -1424,7 +1423,7 @@ class ray_tracing_2D(ray_tracing_base):
 
         return angle - angoff
 
-    def get_C_0_from_angle(self, anglaunch, z_pos):
+    def get_C_0_from_angle(self, anglaunch, z_pos, in_air=False):
 
         '''
         Find parameter C0 corresponding to a given launch angle and z-position of a ray.
@@ -1447,7 +1446,7 @@ class ray_tracing_2D(ray_tracing_base):
         logC_0_start = np.log(C_0_start - 1. / self.medium.n_ice)
 
 #        result = optimize.root(self.get_angle_from_C_0,np.pi/4.,args=(z_pos,anglaunch))
-        result = optimize.root(self.get_angle_from_logC_0, logC_0_start, args=(z_pos, anglaunch))
+        result = optimize.root(self.get_angle_from_logC_0, logC_0_start, args=(z_pos, anglaunch, 0, in_air))
 
         # want to return the complete instance of the result class; result value result.x[0] is logC_0,
         # but we want C_0, so replace it in the result class. This may not be good practice but it seems to be
