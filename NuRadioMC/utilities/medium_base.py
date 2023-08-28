@@ -3,6 +3,7 @@ import numpy as np
 from scipy import integrate, linalg
 from NuRadioReco.utilities import units
 from scipy import interpolate
+import os
 import logging
 logging.basicConfig()
 
@@ -208,7 +209,8 @@ class IceModelSimple(IceModel):
                  z_0,
                  z_shift=0*units.meter,
                  z_air_boundary=0*units.meter,
-                 z_bottom=None):
+                 z_bottom=None
+                 ):
 
         """
         initiaion of a simple exponential ice model
@@ -373,21 +375,13 @@ class IceModelSimple(IceModel):
                                         z_0=self.z_0*RP.meter/units.meter,
                                         z_shift=self.z_shift*RP.meter/units.meter)
         return RadioPropaIceWrapper(self, scalar_field)
-            
-
+    
 
 class IceModelBirefringence(IceModelSimple):
     """
     predefined ice model (to inherit from) including different indieces of refraction for differnt directions (birefringence)
     """
-    def __init__(self,
-                 exp_model,
-                 bir_model,
-                 n_ice,
-                 delta_n,
-                 z_0,
-                 z_shift
-                 ):
+    def __init__(self, bir_model):
 
         """
         initiaion of a simple exponential ice model
@@ -418,47 +412,10 @@ class IceModelBirefringence(IceModelSimple):
                   up or down shift od the exponential profile
         """
 
-        super().__init__(n_ice, delta_n, z_0, z_shift)
-        
-        self.exp_model = exp_model
-        self.bir_model = bir_model
-
-        self.f1 = interpolate.UnivariateSpline._from_tck(self.bir_model[0])
-        self.f2 = interpolate.UnivariateSpline._from_tck(self.bir_model[1])
-        self.f3 = interpolate.UnivariateSpline._from_tck(self.bir_model[2])
-
-        self.comp = self.exp_model.get_index_of_refraction(np.array([0, 0, -2500]))
-
-
-    def get_index_of_refraction(self, position):
-        """
-        returns the index of refraction at position.
-        Overwrites function of the mother class
-
-        Parameters
-        ----------
-        position:  1D or 2D numpy array
-                    Either one position or an array
-                    of positions for which the indices
-                    of refraction are returned
-
-        Returns
-        -------
-        n:  float
-            index of refraction
-        """
-        if isinstance(position, list) or position.ndim == 1:
-            if (position[2] - self.z_air_boundary) <= 0:
-                return self.n_ice - self.delta_n * np.exp((position[2] - self.z_shift) / self.z_0)
-            else:
-                return 1
-        else:
-            ior = self.n_ice - self.delta_n * np.exp((position[:, 2] - self.z_shift) / self.z_0)
-            ior[position[:, 2] >= 0] = 1.
-            return ior
+        self.f1 = interpolate.UnivariateSpline._from_tck(bir_model[0])
+        self.f2 = interpolate.UnivariateSpline._from_tck(bir_model[1])
+        self.f3 = interpolate.UnivariateSpline._from_tck(bir_model[2])
     
-    
-    #def get_birefringence_index_of_refraction(self, position):
     def get_birefringence_index_of_refraction(self, position):
         """
         returns the index of refraction at position.
@@ -475,92 +432,11 @@ class IceModelBirefringence(IceModelSimple):
             index of refraction for every direction
         """
 
-        nx = self.exp_model.get_index_of_refraction(position) + self.f1(-position[2]) - self.comp
-        ny = self.exp_model.get_index_of_refraction(position) + self.f2(-position[2]) - self.comp
-        nz = self.exp_model.get_index_of_refraction(position) + self.f3(-position[2]) - self.comp
+        nx = self.f1(-position[2])
+        ny = self.f2(-position[2])
+        nz = self.f3(-position[2])
 
         return nx, ny, nz
-
-    def get_average_index_of_refraction(self, position1, position2):
-        """
-        returns the average index of refraction between two points
-        Overwrites function of the mother class
-
-        Parameters
-        ----------
-        position1: 3dim np.array
-                    point
-        position2: 3dim np.array
-                    point
-
-        Returns
-        -------
-        n_average:  float
-                    averaged index of refraction between the two points
-        """
-        zmax = max(position1[2], position2[2])
-        zmin = min(position1[2], position2[2])
-
-        def exp_average(z_max, z_min):
-            return (self.n_ice - self.delta_n * self.z_0 / (z_max - z_min) 
-                    * (np.exp((z_max-self.z_shift) / self.z_0) - np.exp((z_min-self.z_shift) / self.z_0)))
-
-        if ((zmax - self.z_air_boundary) <=0):
-            return exp_average(zmax, zmin)
-        elif ((zmin - self.z_air_boundary) <=0):
-            n1 = exp_average(self.z_air_boundary, zmin)
-            n2 = 1
-            return (n1 * (self.z_air_boundary - zmin) + n2 * (zmax - self.z_air_boundary)) / (zmax - zmin)
-        else:
-            return 1
-
-    def get_gradient_of_index_of_refraction(self, position):
-        """
-        (same as in IceModelSimple)
-        returns the gradient of index of refraction at position
-        Overwrites function of the mother class
-
-        Parameters
-        ----------
-        position: 3dim np.array
-                    point
-
-        Returns
-        -------
-        n_nabla:    (3,) np.array
-                    gradient of index of refraction at the point
-        """
-        gradient = np.array([0., 0., 0.])
-        if (position[2] - self.z_air_boundary) <=0:
-            gradient[2] = -self.delta_n / self.z_0 * np.exp((position[2] - self.z_shift) / self.z_0)
-        return gradient
-
-    def get_ice_model_radiopropa(self):
-        """
-        (same as in IceModelSimple)
-        If radiopropa is installed this will return an object holding the radiopropa
-        scalarfield and necessary radiopropa moduldes that define the medium in radiopropa. 
-        It uses the parameters of the medium object to contruct the scalar field using the 
-        simple ice model implementation in radiopropa and some modules, like a discontinuity 
-        object for the air boundary
-
-        Overwrites function of the mother class
-
-        Returns
-        -------
-        ice:    RadioPropaIceWrapper
-                object holding the radiopropa scalarfield and modules
-        """
-        if radiopropa_is_imported:
-            scalar_field = RP.IceModel_Simple(z_surface=self.z_air_boundary*RP.meter/units.meter, 
-                                            n_ice=self.n_ice, delta_n=self.delta_n, 
-                                            z_0=self.z_0*RP.meter/units.meter,
-                                            z_shift=self.z_shift*RP.meter/units.meter)
-            return RadioPropaIceWrapper(self, scalar_field)
-        else:
-            logger.error('The radiopropa dependency was not import and can therefore not be used.'
-                        +'\nMore info on https://github.com/nu-radio/RadioPropa')
-            raise ImportError('RadioPropa could not be imported')
 
 
 if radiopropa_is_imported:

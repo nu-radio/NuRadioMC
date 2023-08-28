@@ -87,7 +87,7 @@ class ARAsim_southpole(medium_base.IceModelSimple):
 
 class ARA_2022(medium_base.IceModelSimple):
     def __init__(self):
-        # define model parameters (SPICE 2015/southpole)
+        # define model parameters (ARA/southpole) -> https://journals.aps.org/prd/pdf/10.1103/PhysRevD.105.122006
         super().__init__(
             z_bottom = -2820*units.meter, 
             n_ice = 1.78, 
@@ -98,20 +98,10 @@ class ARA_2022(medium_base.IceModelSimple):
 
 class birefringence_medium(medium_base.IceModelBirefringence):
 
-    def __init__(self, bir_model='A', exp_model=southpole_2015()):
+    def __init__(self, bir_model='A'):
 
         filepath = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/birefringence_southpole_' + bir_model + '.npy'
-
-        super().__init__(
-
-            exp_model=exp_model,
-            bir_model=np.load(filepath, allow_pickle=True),
-
-            n_ice=exp_model.n_ice,
-            delta_n=exp_model.delta_n,
-            z_0=exp_model.z_0,
-            z_shift=exp_model.z_shift
-            )
+        super().__init__(bir_model=np.load(filepath, allow_pickle=True))
 
 
 class mooresbay_simple(medium_base.IceModelSimple):
