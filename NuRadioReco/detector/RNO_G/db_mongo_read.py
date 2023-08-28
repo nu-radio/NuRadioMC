@@ -1025,35 +1025,27 @@ class Database(object):
         
         complete_info: dict
         """
-        complete_info = {}
 
         # load general station information (dump of the main collection)
         general_info = self.get_general_station_information(station_id)
         
-        print(general_info)
-
         #extract and delete the position identifier, drop the general channel and device information
-        station_position_id = general_info[station_id].pop('id_position')
-        general_channel_info = general_info[station_id].pop('channels')
-        general_device_info = general_info[station_id].pop('devices')
+        station_position_id = general_info[station_id]['id_position']
+        general_channel_info = general_info[station_id]['channels']
+        general_device_info = general_info[station_id]['devices']
         
         # remove '_id' object
         general_info[station_id].pop('_id')
 
-        # include general infos into the final dict
-        complete_info.update(general_info[station_id])
-
-
         # get the station positions
         station_position = self.get_station_position(
             station_position_id=station_position_id, measurement_name=measurement_station_position, verbose=verbose)
-
+        
         # remove 'id_measurement' object
         station_position.pop('id_measurement', None)
-
+        
         # include the station position into the final dict
-        complete_info['station_position'] = station_position
-
+        general_info[station_id]['station_position'] = station_position
 
         # get the channel ids of all channels contained in the station
         channel_ids = list(general_channel_info.keys())
@@ -1066,8 +1058,9 @@ class Database(object):
                 measurement_signal_chain=measurement_signal_chain, verbose=verbose)        
 
         # include the channel information into the final dict
-        complete_info['channels'] = channel_info
-
+        for channel_id in general_info[station_id]['channels']:
+            # print(general_info[station_id]['channels'][channel_id].keys(), channel_info[channel_id].keys())
+            general_info[station_id]['channels'][channel_id].update(channel_info[channel_id])
 
         # get the device ids of all devices contained in the station
         device_ids = list(general_device_info.keys())
@@ -1079,9 +1072,10 @@ class Database(object):
                 station_id, dev_id, measurement_position=measurement_device_position,verbose=verbose)
 
         # include the device information into the final dict
-        complete_info['devices'] = device_info
+        for device in general_info[station_id]['devices']:
+            general_info[station_id]['devices'][device].update(device_info[device])
 
-        return complete_info
+        return general_info
 
 
     def get_complete_channel_information(
