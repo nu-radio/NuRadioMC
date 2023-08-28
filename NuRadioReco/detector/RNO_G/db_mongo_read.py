@@ -1028,7 +1028,7 @@ class Database(object):
         complete_info = {}
 
         # load general station information (dump of the main collection)
-        general_info = self.get_general_station_information(self.__station_collection, station_id)
+        general_info = self.get_general_station_information(station_id)
         
         print(general_info)
 
@@ -1045,7 +1045,8 @@ class Database(object):
 
 
         # get the station positions
-        station_position = self.get_station_position(station_position_id=station_position_id, measurement_name=measurement_station_position, verbose=verbose)
+        station_position = self.get_station_position(
+            station_position_id=station_position_id, measurement_name=measurement_station_position, verbose=verbose)
 
         # remove 'id_measurement' object
         station_position.pop('id_measurement', None)
@@ -1060,7 +1061,9 @@ class Database(object):
         # get the channel info
         channel_info = {}
         for cha_id in sorted(channel_ids):
-            channel_info[cha_id] = self.get_complete_channel_information(station_id, cha_id, measurement_position=measurement_channel_position, measurement_signal_chain=measurement_signal_chain, verbose=verbose)        
+            channel_info[cha_id] = self.get_complete_channel_information(
+                station_id, cha_id, measurement_position=measurement_channel_position, 
+                measurement_signal_chain=measurement_signal_chain, verbose=verbose)        
 
         # include the channel information into the final dict
         complete_info['channels'] = channel_info
@@ -1072,7 +1075,8 @@ class Database(object):
         # get the device info
         device_info = {}
         for dev_id in sorted(device_ids):
-            device_info[dev_id] = self.get_complete_device_information(station_id, dev_id, measurement_position=measurement_device_position,verbose=verbose)
+            device_info[dev_id] = self.get_complete_device_information(
+                station_id, dev_id, measurement_position=measurement_device_position,verbose=verbose)
 
         # include the device information into the final dict
         complete_info['devices'] = device_info
@@ -1108,7 +1112,7 @@ class Database(object):
         complete_info = {}
 
         # load general channel information
-        general_info = self.get_general_channel_information(self.__station_collection, station_id, channel_id)
+        general_info = self.get_general_channel_information(station_id, channel_id)
 
         #extract and delete the position/signal identifier
         position_id = general_info.pop('id_position')
@@ -1186,7 +1190,7 @@ class Database(object):
         complete_info = {}
 
         # load general device information
-        general_info = self.get_general_device_information(self.__station_collection, station_id, device_id)
+        general_info = self.get_general_device_information(station_id, device_id)
 
         #extract and delete the position identifier
         position_id = general_info.pop('id_position')
