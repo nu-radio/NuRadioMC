@@ -247,22 +247,41 @@ class simulation(
                 self._create_sim_station()
 
                 station_output, efield_array = self.__station_simulator.simulate_station(self._station_id)
-                event_objects, station_objects, sub_event_shower_ids, station_has_triggered, harware_response_output = self.__hardware_response_simulator.simulate_detector_response(
+                event_objects, station_objects, sub_event_shower_ids, station_has_triggered, hardware_response_output = self.__hardware_response_simulator.simulate_detector_response(
                     self._station_id,
                     efield_array,
                     event_indices
                 )
                 if np.any(station_has_triggered):
-                    self.__output_writer_hdf5.add_station(
-                        self._station_id,
-                        event_objects,
-                        station_objects,
-                        station_output,
-                        harware_response_output,
-                        event_group_id,
-                        sub_event_shower_ids,
-                        station_has_triggered
-                    )
+                    trigger_indices = np.where(station_has_triggered)[0]
+                    # if several sub-events have triggered, most data is only saved for the
+                    # last event in the group
+                    for i_sub_evt in event_objects.keys():
+                        if station_has_triggered[i_sub_evt]:
+                            if i_sub_evt == np.max(trigger_indices):
+                                self.__output_writer_hdf5.add_station(
+                                    self._station_id,
+                                    event_objects[i_sub_evt],
+                                    station_objects[i_sub_evt],
+                                    station_output,
+                                    hardware_response_output,
+                                    event_group_id,
+                                    sub_event_shower_ids[i_sub_evt]
+                                )
+                            else:
+                                # the signal amplitudes are saved for all sub-events if multiple
+                                # sub-events exist, so we still have to pass the station object,
+                                # but leave out the other information to signal that it does
+                                # not need to be saved
+                                self.__output_writer_hdf5.add_station(
+                                    self._station_id,
+                                    event_objects[i_sub_evt],
+                                    station_objects[i_sub_evt],
+                                    None,
+                                    None,
+                                    event_group_id,
+                                    sub_event_shower_ids[i_sub_evt]
+                                )
                 # loop over all showers in event group
                 # create output data structure for this channel
 

@@ -50,53 +50,52 @@ class outputWriterHDF5:
     def add_station(
             self,
             station_id,
-            event_objects,
-            station_objects,
+            event_object,
+            station_object,
             simulation_results,
             hardware_response_sim_results,
             event_group_id,
-            sub_event_shower_ids,
-            trigger_status
+            sub_event_shower_id,
     ):
-        print(hardware_response_sim_results.keys())
         if station_id not in self.__output_station.keys():
             self.__output_station[station_id] = {
                 'trigger_times': []
             }
-        event_group_ids = np.full(simulation_results['event_id_per_shower'].shape, event_group_id)
-        for key in simulation_results:
-            if key not in self.__output_station[station_id]:
-                self.__output_station[station_id][key] = list(simulation_results[key])
-            else:
-                self.__output_station[station_id][key].extend(list(simulation_results[key]))
-        for key in hardware_response_sim_results:
-            if key not in self.__output_station[station_id]:
-                self.__output_station[station_id][key] = list(hardware_response_sim_results[key])
-            else:
-                self.__output_station[station_id][key].extend(list(hardware_response_sim_results[key]))
-        event_indices = np.atleast_1d(np.squeeze(np.argwhere(self.__input_data['event_group_ids'] == event_group_id)))
-        for i_station,  station in iteritems(station_objects):
-            if trigger_status[i_station]:
-                for trigger_name in station.get_triggers():
-                    trigger = station.get_trigger(trigger_name)
+        if simulation_results is not None:
+            # if simulation_results is None, that means that there are multiple sub-events in the group,
+            # and only the maximum amplitude of this event has to be stored.
+            event_group_ids = np.full(simulation_results['event_id_per_shower'].shape, event_group_id)
+            for key in simulation_results:
+                if key not in self.__output_station[station_id]:
+                    self.__output_station[station_id][key] = list(simulation_results[key])
+                else:
+                    self.__output_station[station_id][key].extend(list(simulation_results[key]))
+            for key in hardware_response_sim_results:
+                if key not in self.__output_station[station_id]:
+                    self.__output_station[station_id][key] = list(hardware_response_sim_results[key])
+                else:
+                    self.__output_station[station_id][key].extend(list(hardware_response_sim_results[key]))
+            event_indices = np.atleast_1d(np.squeeze(np.argwhere(self.__input_data['event_group_ids'] == event_group_id)))
+            for trigger_name in station_object.get_triggers():
+                trigger = station_object.get_trigger(trigger_name)
 
-                self.__add_trigger_to_output(
-                    event_objects[i_station],
-                    station,
-                    sub_event_shower_ids[i_station],
-                    event_indices,
-                    simulation_results['launch_vectors'].shape[0]
-                )
-                if station.has_triggered():
-                    amplitudes = np.zeros(station.get_number_of_channels())
-                    amplitudes_envelope = np.zeros(station.get_number_of_channels())
-                    channel_ids = self.__detector.get_channel_ids(station_id)
-                    for channel in station.iter_channels():
-                        channel_index = channel_ids.index(channel.get_id())
-                        amplitudes[channel_index] = channel.get_parameter(chp.maximum_amplitude)
-                        amplitudes_envelope[channel_index] = channel.get_parameter(chp.maximum_amplitude_envelope)
-                    self.__output_maximum_amplitudes[station_id].append(amplitudes)
-                    self.__output_maximum_amplitudes_envelope[station_id].append(amplitudes_envelope)
+            self.__add_trigger_to_output(
+                event_object,
+                station_object,
+                sub_event_shower_id,
+                event_indices,
+                simulation_results['launch_vectors'].shape[0]
+            )
+        if station_object.has_triggered():
+            amplitudes = np.zeros(station_object.get_number_of_channels())
+            amplitudes_envelope = np.zeros(station_object.get_number_of_channels())
+            channel_ids = self.__detector.get_channel_ids(station_id)
+            for channel in station_object.iter_channels():
+                channel_index = channel_ids.index(channel.get_id())
+                amplitudes[channel_index] = channel.get_parameter(chp.maximum_amplitude)
+                amplitudes_envelope[channel_index] = channel.get_parameter(chp.maximum_amplitude_envelope)
+            self.__output_maximum_amplitudes[station_id].append(amplitudes)
+            self.__output_maximum_amplitudes_envelope[station_id].append(amplitudes_envelope)
 
     def save_output(self):
         output_file = h5py.File(self.__filename, 'w')
@@ -212,11 +211,11 @@ class outputWriterHDF5:
             self,
             event_object,
             station,
-            sub_event_shower_ids,
+            sub_event_shower_id,
             event_indices,
             n_showers
     ):
-        global_shower_indices = self.__get_shower_index(sub_event_shower_ids)
+        global_shower_indices = self.__get_shower_index(sub_event_shower_id)
         local_shower_indices = np.atleast_1d(np.squeeze(np.argwhere(np.isin(event_indices, global_shower_indices, assume_unique=True))))
         station_id = station.get_id()
         extend_array = False
@@ -246,10 +245,10 @@ class outputWriterHDF5:
             if station.has_trigger(trigger_name):
                 multiple_triggers[i_trigger] = station.get_trigger(trigger_name).has_triggered()
                 trigger_times[i_trigger] = station.get_trigger(trigger_name).get_trigger_time()
+                
                 for local_shower_index in local_shower_indices:  # now save trigger information per shower of the current station
                     trigger_data['multiple_triggers'][local_shower_index][i_trigger] = station.get_trigger(trigger_name).has_triggered()
                     trigger_data['trigger_times'][local_shower_index][i_trigger] = trigger_times[i_trigger]
-                    print(trigger_times[i_trigger])
                     station_trigger_times[local_shower_index][i_trigger] = trigger_times[i_trigger]
         for i_trigger in range(station_trigger_times.shape[0]):
             self.__output_station[station_id]['trigger_times'].append(station_trigger_times[i_trigger])
