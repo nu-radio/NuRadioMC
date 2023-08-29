@@ -266,7 +266,7 @@ if __name__ == "__main__":
                     #                 try:
                     input_files = np.array(sorted(glob.glob(filename + '.part????')))
                     input_files = np.append(input_files, np.array(sorted(glob.glob(filename + '.part??????'))))
-                    mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=np.bool)
+                    mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=bool)
                     if(np.sum(~mask)):
                         logger.warning("{:d} files were deselected because their filesize was to small".format(np.sum(~mask)))
                     input_args.append({'filenames': input_files[mask], 'output_filename': output_filename})

@@ -113,11 +113,12 @@ if __name__ == "__main__":
         subprocess.check_output(['make', 'clean'])
     sphinx_log = subprocess.run(['make', 'html'], stderr=subprocess.PIPE, stdout=pipe_stdout)
 
-    # errs = sphinx_log.stderr.decode().split('\n')
-    errs = re.split('\\x1b\[[0-9;]+m', sphinx_log.stderr.decode()) # split the errors
-    # output = sphinx_log.stdout.decode().split('\n')
-
-    for err in errs:
+    # we write out all the sphinx errors to sphinx-debug.log, and parse these
+    with open('sphinx-debug.log') as f:
+        errs_raw = f.read()
+    errs_sphinx = re.split('\\x1b\[[0-9;]+m', errs_raw) # split the errors
+     
+    for err in errs_sphinx:
         if not err.split(): # whitespace only
             continue
         for key in error_dict.keys():
@@ -131,20 +132,26 @@ if __name__ == "__main__":
             continue
         fixable_errors += len(error_dict[key]['matches'])
     
-    print(2*'\n'+78*'-')
+    # stderr includes non-sphinx errors/warnings raised during the build process
+    # we record these for debugging but don't fail on them
+    errs_other = re.split('\\x1b\[[0-9;]+m', sphinx_log.stderr.decode())
+    errs_other = [err for err in errs_other if not err in errs_sphinx]
+    error_dict['other']['matches'] += errs_other
+
+    errors_string = '\n'.join([
+        f'[{key}]\n' + '\n'.join(value['matches']) 
+        for key, value in error_dict.items() if len(value['matches'])
+    ])
+
+    print(2*'\n'+78*'-', flush=True)
     if fixable_errors:
-        logger.warning("The documentation was not built without errors. Please fix the following errors!")
-        for key, item in error_dict.items():
-            if len(item['matches']):
-                print(f'[{key}]')
-                print('\n'.join(item['matches']))
+        logger.error(f"The documentation was not built without errors. Please fix the following errors!\n{errors_string}")
     elif len(error_dict['other']['matches']):
         logger.warning((
             "make_docs found some errors but doesn't know what to do with them.\n"
-            "The documentation may not be rejected, but consider fixing the following anyway:"
+            f"The documentation may not be rejected, but consider fixing the following anyway:\n{errors_string}"
             ))
-        print('\n'.join(error_dict['other']['matches']))
-    print(78*'-'+2*'\n')
+    print(78*'-'+2*'\n', flush=True)
 
     if sphinx_log.returncode:
         logger.error("The documentation failed to build, make_docs will raise an error.")
