@@ -190,9 +190,16 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
                 ref = self._channels.get(
                     (Channel.station_id == chan["station_id"]) & (Channel.channel_id == chan["reference_channel"]))
                 if ref is None:
-                    raise ValueError(
-                        'The reference channel {} of station {} was not found in the detector description'.format(
-                            chan["reference_channel"], chan["station_id"]))
+                    # Check if reference channel sits in reference station
+                    reference_station_id = self.__lookuptable_reference_station[chan["station_id"]]
+                    ref = self._channels.get(
+                        (Channel.station_id == reference_station_id) &
+                        (Channel.channel_id == chan["reference_channel"])
+                    )
+                    if ref is None:
+                        raise ValueError(
+                            'The reference channel {} of station {} was not found in the detector description'.format(
+                                chan["reference_channel"], chan["station_id"]))
 
         Device = Query()
         for dev in self._devices.all():
