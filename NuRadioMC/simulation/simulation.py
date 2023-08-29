@@ -201,12 +201,17 @@ class simulation(
             # determine if a particle (neutrinos, or a secondary interaction of a neutrino, or surfaec muons) is simulated
             self._mout['weights'][event_indices] = np.ones(len(event_indices))  # for a pulser simulation, every event has the same weight
             if self._particle_mode:
-                self._calculate_particle_weights(event_indices)
+                event_group_weight = self._calculate_particle_weights(event_indices)
+            else:
+                event_group_weight = 1
             self._weightTime += time.time() - t1
+            self.__output_writer_hdf5.store_event_group_weight(
+                event_group_weight,
+                event_indices
+            )
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
-
-            if self._mout['weights'][self._primary_index] < self._cfg['speedup']['minimum_weight_cut']:
+            if event_group_weight < self._cfg['speedup']['minimum_weight_cut']:
                 logger.debug("neutrino weight is smaller than {}, skipping event".format(self._cfg['speedup']['minimum_weight_cut']))
                 continue
 
@@ -540,6 +545,7 @@ class simulation(
                                                    phi_nu=self.primary[simp.azimuth])
         # all entries for the event for this primary get the calculated primary's weight
         self._mout['weights'][evt_indices] = self.primary[simp.weight]
+        return self.primary[simp.weight]
 
     def _distance_cut_channel(
             self,

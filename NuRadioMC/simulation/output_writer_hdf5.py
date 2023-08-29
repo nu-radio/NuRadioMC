@@ -55,7 +55,7 @@ class outputWriterHDF5:
             simulation_results,
             hardware_response_sim_results,
             event_group_id,
-            sub_event_shower_id,
+            sub_event_shower_id
     ):
         if station_id not in self.__output_station.keys():
             self.__output_station[station_id] = {
@@ -97,6 +97,13 @@ class outputWriterHDF5:
             self.__output_maximum_amplitudes[station_id].append(amplitudes)
             self.__output_maximum_amplitudes_envelope[station_id].append(amplitudes_envelope)
 
+    def store_event_group_weight(
+        self,
+        weight,
+        event_indices
+    ):
+        self.__meta_output['weights'][event_indices] = weight
+
     def save_output(self):
         output_file = h5py.File(self.__filename, 'w')
         saved_events_mask = np.copy(self.__meta_output['triggered'])
@@ -123,7 +130,7 @@ class outputWriterHDF5:
                     station_data['maximum_amplitudes_envelope'] = np.array(self.__output_maximum_amplitudes_envelope[station_id])
                     station_data['triggered_per_event'] = np.array(self.__output_triggered_station[station_id])
         for (key, value) in iteritems(self.__meta_output):
-            output_file.attrs[key] = value[saved_events_mask]
+            output_file[key] = value[saved_events_mask]
 
         output_file.attrs.create("Tnoise", self.__detector_simulator.get_noise_temperature(), dtype=np.float)
         output_file.attrs.create("Vrms", self.__detector_simulator.get_noise_vrms(), dtype=np.float)
