@@ -43,6 +43,7 @@ class hardwareResponseSimulator:
         self.__channel_resampler = NuRadioReco.modules.channelResampler.channelResampler()
         self.__efield_resampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
         self.__channel_generic_noise_adder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
+        self.__channel_generic_noise_adder.begin(seed=self.__config['seed'])
         self.__detector_simulation_trigger = detector_simulation_trigger
         self.__detector_simulation_filter_amp = detector_simulation_filter_amp
         self.__raytracer = raytracer
@@ -168,7 +169,7 @@ class hardwareResponseSimulator:
             self.__config['sampling_rate']
         )
         if self.__config['noise']:
-            max_freq = 0.5 * sampling_rate_detector
+            max_freq = 0.5 * self.__config['sampling_rate']
             v_rms = {}
             for channel_id in channel_ids:
                 norm = self.__bandwidth_per_channel[station.get_id()][channel_id]
