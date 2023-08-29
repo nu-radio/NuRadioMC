@@ -2397,7 +2397,7 @@ class ray_tracing(ray_tracing_base):
         
         # apply the birefringence effect
         if self._config['propagation']['birefringence']:
-
+            
             if "birefringence_model" in self._config['propagation']:
 
                 bire_model = self._config['propagation']['birefringence_model']
@@ -2405,8 +2405,7 @@ class ray_tracing(ray_tracing_base):
                 if "birefringence_propagation" in self._config['propagation']:
 
                     if self._config['propagation']['birefringence_propagation'] == 'analytical':
-                        print('a')
-                        
+
                         spec = self.get_pulse_propagation_birefringence(spec, s_rate, i_solution, bire_model = bire_model)
 
                     elif self._config['propagation']['birefringence_propagation'] == 'numerical':
@@ -2414,11 +2413,10 @@ class ray_tracing(ray_tracing_base):
                         launch_v = self.get_launch_vector(i_solution)
                         radiopropa_rays = radioproparaytracing.radiopropa_ray_tracing(self._medium)
                         radiopropa_rays.set_start_and_end_point(self._X1, self._X2)
-
                         spec = radiopropa_rays.raytracer_birefringence(launch_v, spec, s_rate) #, bire_model = bire_model --> has to be implemented
-
+                
                 else:
-                    print('b')
+
                     spec = self.get_pulse_propagation_birefringence(spec, s_rate, i_solution, bire_model = bire_model)
 
             else:
@@ -2426,19 +2424,19 @@ class ray_tracing(ray_tracing_base):
                 if "birefringence_propagation" in self._config['propagation']:
 
                     if self._config['propagation']['birefringence_propagation'] == 'analytical':
-                        print('c')
-                        spec = self.get_pulse_propagation_birefringence(spec, s_rate, i_solution)
 
+                        spec = self.get_pulse_propagation_birefringence(spec, s_rate, i_solution)
+                    
                     elif self._config['propagation']['birefringence_propagation'] == 'numerical':
+
                         from NuRadioMC.SignalProp import radioproparaytracing
                         launch_v = self.get_launch_vector(i_solution)
                         radiopropa_rays = radioproparaytracing.radiopropa_ray_tracing(self._medium)
                         radiopropa_rays.set_start_and_end_point(self._X1, self._X2)
-
                         spec = radiopropa_rays.raytracer_birefringence(launch_v, spec, s_rate)
 
                 else:
-                    print('d')
+
                     spec = self.get_pulse_propagation_birefringence(spec, s_rate, i_solution)
 
 
