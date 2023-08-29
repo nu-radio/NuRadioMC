@@ -643,7 +643,7 @@ class simulation(
         if not self._cfg['speedup']['distance_cut']:
             return True
         t_tmp = time.time()
-        vertex_distances_to_station = np.linalg.norm(vertex_positions - station_barycenter, axis=1)
+        vertex_distances_to_station = np.linalg.norm(vertex_positions.T - station_barycenter, axis=1)
         distance_cut = self._get_distance_cut(np.sum(
             shower_energies)) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
         if vertex_distances_to_station.min() > distance_cut:
