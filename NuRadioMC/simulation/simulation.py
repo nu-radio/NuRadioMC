@@ -293,51 +293,6 @@ class simulation(
                                 self.__output_writer_nur.save_event(
                                     event_objects[i_sub_evt]
                                 )
-                # loop over all showers in event group
-                # create output data structure for this channel
-
-                #output_data = self._create_station_output_structure(len(event_indices), self._det.get_number_of_channels(self._station_id))
-                """
-
-                for iSh, self._shower_index in enumerate(event_indices):
-                    iCounter += 1
-                    if (time.time() - t_last_update) > 60:
-                        self._write_progress_output(
-                            iCounter,
-                            i_event_group_id,
-                            unique_event_group_ids
-                        )
-                        t_last_update = time.time()
-                    is_candidate_shower, sim_shower = self._simulate_event(
-                        iSh,
-                        iSt,
-                        output_data,
-                        vertex_positions,
-                        shower_energies,
-                        pre_simulated,
-                        ray_tracing_performed
-                    )
-                    if sim_shower is not None:
-                        sim_showers[str(sim_shower.get_id())] = sim_shower
-                    if is_candidate_shower:
-                        candidate_station = True
-                    """
-                # now perform first part of detector simulation -> convert each efield to voltage
-                # (i.e. apply antenna response) and apply additional simulation of signal chain (such as cable delays,
-                # amp response etc.)
-                continue
-                if not candidate_station:
-                    logger.debug("electric field amplitude too small in all channels, skipping to next event")
-                    continue
-                self._detector_simulation(
-                    event_indices,
-                    output_data,
-                    sim_showers
-                )
-
-            # end station loop
-
-        # end event group loop
 
         # Create trigger structures if there are no triggering events.
         # This is done to ensure that files with no triggering n_events
