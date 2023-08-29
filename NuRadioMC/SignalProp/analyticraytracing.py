@@ -25,11 +25,7 @@ from NuRadioReco.framework import base_trace
 
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
-<<<<<<< HEAD
 
-
-=======
->>>>>>> 5cebd1a03941fbfdcb63412d4beb5d93f974506c
 import logging
 logging.basicConfig()
 
@@ -1659,13 +1655,10 @@ class ray_tracing(ray_tracing_base):
     """
 
     def __init__(self, medium, attenuation_model="SP1", log_level=logging.WARNING,
-<<<<<<< HEAD
-                 n_frequencies_integration=100, n_reflections=0, config=None, detector=None):
-        
-=======
                  n_frequencies_integration=100, n_reflections=0, config=None,
                  detector=None, ray_tracing_2D_kwards={}):
->>>>>>> 5cebd1a03941fbfdcb63412d4beb5d93f974506c
+
+
         """
         class initilization
 
