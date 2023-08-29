@@ -726,7 +726,6 @@ class Database(object):
         elif station_id is not None:
             # get the station_position_id
             # # set the detector time to the current time
-            self.set_detector_time(datetime.datetime.utcnow())
             station_position_id = self.get_station_position_identifier(station_id, detector_time=self.get_detector_time())
         else:
             raise ValueError('Either the station_id or the station_position_id needes to be given!')
@@ -1076,6 +1075,39 @@ class Database(object):
             general_info[station_id]['devices'][device].update(device_info[device])
 
         return general_info
+    
+    
+    def get_channel_signal_chain(self, channel_signal_id, measurement_name=None, verbose=True):
+
+        # load the signal chain information:
+        channel_sig_info = self.get_channel_signal_chain_measurement(
+            channel_signal_id=channel_signal_id, measurement_name=measurement_name, verbose=verbose)
+                
+        # TODO: remove these hard-coded strings
+        # get the component names 
+        component_dict = channel_sig_info.pop('sig_chain')
+        components = []
+        components_id = []
+        endings = ('_board', '_chain', '_cable')
+        for key in component_dict.keys():
+            if key.endswith(endings):
+                components.append(key)
+                components_id.append(component_dict[key])
+        
+        # get components data
+        components_data = {}
+        for component, component_id in zip(components, components_id):
+            supp_info = {k[len(component)+1:]: component_dict[k] for k in component_dict.keys() if component in k and component != k}
+            component_data = self.get_channel_signal_chain_component_data(
+                component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
+
+            components_data[component] = {'name': component_id}
+            components_data[component].update(component_data)
+
+        # add/update the signal chain to the channel data
+        channel_sig_info['response_chain'] = components_data
+        
+        return channel_sig_info
 
 
     def get_complete_channel_information(
@@ -1103,61 +1135,32 @@ class Database(object):
         
         complete_info
         """
-        complete_info = {}
 
         # load general channel information
         general_info = self.get_general_channel_information(station_id, channel_id)
 
         #extract and delete the position/signal identifier
-        position_id = general_info.pop('id_position')
-        signal_id = general_info.pop('id_signal')
+        position_id = general_info['id_position']
+        signal_id = general_info['id_signal']
 
         # change name of signal chain entry to 'built_in_sig_chain'
-        general_info['built_in_sig_chain'] = general_info.pop('signal_ch')
-
-        # include the general info into the final dict
-        complete_info.update(general_info)
-
+        general_info['installed_components'] = general_info.pop('signal_ch')
+        
         # load the channel position information:
-        channel_pos_info = self.get_channel_position(channel_position_id=position_id, measurement_name=measurement_position, verbose=verbose)
-        # remove 'id_measurement' and 'channel_id' object
-        channel_pos_info.pop('id_measurement', None)
-        channel_pos_info.pop('channel_id', None)
+        channel_pos_info = self.get_channel_position(
+            channel_position_id=position_id, measurement_name=measurement_position, verbose=verbose)
 
         # include the channel position into the final dict
-        complete_info['channel_position'] = channel_pos_info
+        general_info['channel_position'] = channel_pos_info
 
-        # load the signal chain information:
-        channel_sig_info = self.get_channel_signal_chain_measurement(channel_signal_id=signal_id, measurement_name=measurement_signal_chain, verbose=verbose)
-
+        channel_sig_info = self.get_channel_signal_chain(signal_id, measurement_signal_chain, verbose)
+        
         # remove 'id_measurement' and 'channel_id' object
-        channel_sig_info.pop('id_measurement', None)
         channel_sig_info.pop('channel_id', None)
+        
+        general_info['signal_chain'] = channel_sig_info
 
-        # get the component names 
-        components = []
-        components_id = []
-        endings = ('_board', '_chain', '_cable')
-        for key in channel_sig_info['sig_chain'].keys():
-            if key.endswith(endings):
-                components.append(key)
-                components_id.append(channel_sig_info['sig_chain'][key])
-                
-        # get components data
-        component_data = {}
-        for comp, comp_id in zip(components, components_id):
-            supp_info = {k[len(comp)+1:]: channel_sig_info['sig_chain'][k] for k in channel_sig_info['sig_chain'].keys() if comp in k and comp != k}
-            component_data_help = self.get_channel_signal_chain_component_data(comp, comp_id, supp_info, primary_time=channel_sig_info['primary_components'][comp], verbose=verbose)
-            component_data[comp] = {'name': comp_id}
-            component_data[comp].update(component_data_help)
-
-        # add/update the signal chain to the channel data
-        channel_sig_info['components'] = component_data
-        channel_sig_info.pop('sig_chain')
-
-        complete_info['signal_chain'] = channel_sig_info
-
-        return complete_info
+        return general_info
 
 
     def get_complete_device_information(self, station_id, device_id, measurement_position=None, verbose=True):
