@@ -59,6 +59,8 @@ Ph = th_max * t_theta.get_trace() / max(t_theta.get_trace())
 test_pulse = np.array([T, Th, Ph])
 np.save('test_pulse.npy', test_pulse)
 
+new_test_pulse = np.array([spectrum, spectrum, spectrum])
+
 
 results_theta = np.array([test_pulse[1]])
 results_phi = np.array([test_pulse[2]])
@@ -70,7 +72,7 @@ for iX, x in enumerate(points):
     r.find_solutions()
     if r.has_solution():
         for iS in range(r.get_number_of_solutions()):
-            final_pulse = r.get_pulse_trace_fast(x, x_receiver, 'test_pulse.npy', path_type=iS)
+            final_pulse = r.get_pulse_propagation_birefringence(test_pulse, 1 / dt, path_type=iS)
             results_theta = np.vstack((results_theta, final_pulse[2]))
             results_phi = np.vstack((results_phi, final_pulse[2]))
 

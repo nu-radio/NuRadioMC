@@ -379,37 +379,20 @@ class IceModelSimple(IceModel):
 
 class IceModelBirefringence(IceModelSimple):
     """
-    predefined ice model (to inherit from) including different indieces of refraction for differnt directions (birefringence)
+    predefined birefringence ice model (to inherit from) including different indieces of refraction for differnt directions
     """
     def __init__(self, bir_model):
 
         """
-        initiaion of a simple exponential ice model
-
-        The bottom defined here is a boundary condition used in simulations and
-        should always be defined. Note: it is not the same as reflective bottom.
-        The latter can be added using the `add_reflective_layer` function.
-
-        The z_shift is a variable introduced to be able to shift the exponential
-        up or down along the z direction. For simple models this is almost never
-        but it is used to construct more complex ice models which rely on exp.
-        profiles also
+        initiaion of a birefringent ice model with an interpolation of the data as described in:
+        https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
 
         Parameters
         ----------
-        exp_model:    pointer
-                        exponential parametrisation of the density effect on the refractive index
-        bir_model:    str
-                        choice for the birefringence model, 'southpole_A', 'southpole_B', ...
-        n_ice:  float, dimensionless
-                refractive index of the deep bulk ice
-        delta_n:  float, NuRadio length units
-                  difference between n_ice and the refractive index
-                  of the snow at the surface
-        z_0:  float, NuRadio length units
-              scale depth of the exponential
-        z_shift:  float, NuRadio length units
-                  up or down shift od the exponential profile
+        bire_model: string
+            choose the interpolation to fit the measured refractive index data
+            options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description
+
         """
 
         self.f1 = interpolate.UnivariateSpline._from_tck(bir_model[0])
@@ -417,14 +400,14 @@ class IceModelBirefringence(IceModelSimple):
         self.f3 = interpolate.UnivariateSpline._from_tck(bir_model[2])
     
     def get_birefringence_index_of_refraction(self, position):
+
         """
-        returns the index of refraction at position.
-        Overwrites function of the mother class
+        returns the birefringent index of refraction at any position, no density effects are included at this point.
 
         Parameters
         ----------
-        position:  3dim np.array
-                    point
+        position:  3dim np.array [x, y, z]
+            position at which the ice model should be evaluated
 
         Returns
         -------
@@ -432,9 +415,9 @@ class IceModelBirefringence(IceModelSimple):
             index of refraction for every direction
         """
 
-        nx = self.f1(-position[2])
-        ny = self.f2(-position[2])
-        nz = self.f3(-position[2])
+        nx = self.f1( - position[2])
+        ny = self.f2( - position[2])
+        nz = self.f3( - position[2])
 
         return nx, ny, nz
 
