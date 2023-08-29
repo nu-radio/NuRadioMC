@@ -154,7 +154,7 @@ class Detector():
         pickle.dump(export_dir, open(filename, "wb"))
         
 
-    def _check_if_update_buffer(self):
+    def _check_update_buffer(self):
         """
         Checks whether the correct detector description per station in in the current period.
         
@@ -168,11 +168,8 @@ class Detector():
 
         
         for station_id in self._time_periods_per_station:
-            print(self._time_periods_per_station[station_id]["modification_timestamps"])
-            print
             period = np.digitize(self.get_detector_time().timestamp(), 
                                  [dt.timestamp() for dt in self._time_periods_per_station[station_id]["modification_timestamps"]])
-            print(period, self.get_detector_time(), self._time_periods_per_station[station_id]["modification_timestamps"])
             
             if period != self._time_period_index_per_station[station_id]:
                 need_update[station_id] = True
@@ -236,7 +233,7 @@ class Detector():
         self.__set_detector_time(time)
         self.__db.set_detector_time(time)
         
-        update_buffer_for_station = self._check_if_update_buffer()
+        update_buffer_for_station = self._check_update_buffer()
         any_update = np.any([v for v in update_buffer_for_station.values()])
         
         if any_update:
@@ -322,7 +319,7 @@ class Detector():
             station_information = self.__db.get_complete_station_information(station_id)
         else:
             station_information = self.__db.get_general_station_information(station_id)
-        print(station_information)
+
         if len(station_information) != 1:
             raise ValueError(f"Could not query information of station {station_id} at {self.get_detector_time()}. "
                              f"Found {len(station_information)} entries in database.")
@@ -379,7 +376,7 @@ class Detector():
     #     return self.__buffered_stations[station_id]
     
     
-    def get_channel_from_buffer(self, station_id, channel_id, with_position=False, with_signal_chain=False):
+    def __get_channel(self, station_id, channel_id, with_position=False, with_signal_chain=False):
         """
         Get most basic channel information from buffer. If not in buffer query DB for all channels. 
         In particular this will query and buffer position information  
@@ -405,33 +402,37 @@ class Detector():
         channel_info: dict
             Dict of channel information
         """
-        if not self._has_valid_parameter_in_buffer([station_id, "channels", channel_id]):
-
-            time_filter = [
-                {"$match": {
-                    'id': station_id,
-                    'commission_time': {"$lte": self.get_detector_time()},
-                    'decommission_time': {"$gte": self.get_detector_time()}}}]
-
-            # get all stations which fit the filter
-            station_information = list(self.__db.db["station_rnog"].aggregate(time_filter))
+        if keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id]):
+            raise KeyError(f"Could not find channel {channel_id} in detector description for station {station_id}.")
             
-            if len(station_information) != 1:
-                raise ValueError
-            
-            channels_information = station_information[0]["channels"]
-            
-            self.__buffered_stations[station_id]["channels"] = channels_information
+        # print(self.__buffered_stations[station_id]["channels"][channel_id].keys())
+        # print(self.__buffered_stations[station_id]["channels"][channel_id]["signal_ch"].keys())
+        # print(self.__buffered_stations[station_id]["channels"][channel_id]["id_signal"])
         
         if with_position and keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "channel_position"]):
-            channel_position_dict = self.__db.get_channels_position(station_id)
-            for cha_id in channel_position_dict:
-                self.__buffered_stations[station_id]["channels"][cha_id]['channel_position'] = channel_position_dict[cha_id]
-        
-        if with_signal_chain and keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "channel_signal_chain"]):
-            signal_chain = self.__db.get_channels_signal_chain(station_id, channel_id=channel_id)
-            self.__buffered_stations[station_id]["channels"][channel_id]["channel_signal_chain"] = signal_chain[channel_id]
-        
+            
+            if keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "id_position"]):
+                raise KeyError(f"\"id_position\" not in buffer for station.channel {station_id}.{channel_id}. Did you call det.update(..)")
+            
+            channel_position_id = self.__buffered_stations[station_id]["channels"][channel_id]["id_position"]            
+            self.logger.debug(f"Query position of station.channel {station_id}.{channel_id} with id {channel_position_id}")
+
+            channel_position_dict = self.__db.get_channel_position(channel_position_id=channel_position_id)
+            self.__buffered_stations[station_id]["channels"][channel_id]['channel_position'] = channel_position_dict
+            
+        if with_signal_chain and keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "signal_chain"]):
+            
+            if keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "id_signal"]):
+                raise KeyError(f"\"id_signal\" not in buffer for station.channel {station_id}.{channel_id}. Did you call det.update(..)")
+            
+            signal_id = self.__buffered_stations[station_id]["channels"][channel_id]['id_signal']
+            channel_sig_info = self.__db.get_channel_signal_chain(signal_id)
+            # remove 'id_measurement' and 'channel_id' object
+            channel_sig_info.pop('channel_id', None)
+            
+            self.__buffered_stations[station_id]["channels"][channel_id]['signal_chain'] = channel_sig_info
+            
+
         return self.__buffered_stations[station_id]["channels"][channel_id]
 
 
@@ -452,8 +453,17 @@ class Detector():
             3-dim array of absolute station position in easting, northing and depth wrt. to snow level at
             time of measurement
         """
+        self.logger.debug(f"Requesting station position for station {station_id}.")
+        
         if keys_not_in_dict(self.__buffered_stations, [station_id, "station_position"]):
-            station_position = self.__db.get_station_position(station_id)
+
+            if keys_not_in_dict(self.__buffered_stations, [station_id, "id_position"]):
+                raise KeyError(f"\"id_position\" not in buffer for station {station_id}. Did you call det.update(..)")
+            
+            station_position_id = self.__buffered_stations[station_id]["id_position"]
+            self.logger.debug(f"Query position for id \"{station_position_id}\"")
+
+            station_position = self.__db.get_station_position(station_position_id=station_position_id)
             self.__buffered_stations[station_id]["station_position"] = station_position
 
         return self.__buffered_stations[station_id]["station_position"]["position"]
@@ -478,7 +488,7 @@ class Detector():
         pos: np.array(3,)
             3-dim array of relative station position
         """
-        channel_info = self.get_channel_from_buffer(station_id, channel_id, with_position=True)
+        channel_info = self.__get_channel(station_id, channel_id, with_position=True)
         return channel_info["channel_position"]['position']
 
 
@@ -546,7 +556,7 @@ class Detector():
         (orientation_theta, orientation_phi, rotation_theta, rotation_phi): tuble of floats
         """
         
-        channel_info = self.get_channel_from_buffer(station_id, channel_id)
+        channel_info = self.__get_channel(station_id, channel_id, with_position=True)
         orientation = channel_info['channel_position']["orientation"]
         rotation = channel_info['channel_position']["rotation"]
 
@@ -572,8 +582,15 @@ class Detector():
             Returns dictionary which contains a list ("signal_chain") which contains (the names of) components/response which are used to
             describe the signal chain of the channel
         """
-        channel_info = self.get_channel_from_buffer(station_id, channel_id, with_signal_chain==True)
-        return self.__buffered_stations[station_id]["channels"][channel_id]["channel_signal_chain"]
+        channel_info = self.__get_channel(station_id, channel_id, with_signal_chain=True)
+        
+        print(channel_info.keys())
+        for key in channel_info:
+            if isinstance(channel_info[key], dict):
+                print("\t", key,  channel_info[key].keys())
+                # print(channel_info[key].values())
+                        
+        return self.__buffered_stations[station_id]["channels"][channel_id]["signal_chain"]
     
     
     def get_signal_chain_response(self, station_id, channel_id):
@@ -596,66 +613,55 @@ class Detector():
         """
         signal_chain_dict = self.get_channel_signal_chain(station_id, channel_id)
         
-        if keys_not_in_dict(self.__buffered_stations, 
-                [station_id, "channels", channel_id, 'channel_signal_chain', 'measurements_components']):
-            measurement_components_dic = self.__db.get_sig_chain_component_measurements(signal_chain_dict)
-            
-            self.__buffered_stations[station_id]["channels"][channel_id] \
-                ["channel_signal_chain"]['measurements_components'] = measurement_components_dic
-            
-        else:
-            measurement_components_dic = self.__buffered_stations[station_id]["channels"][channel_id] \
-                ["channel_signal_chain"]['measurements_components']
+        measurement_components_dic = signal_chain_dict["response_chain"]
         
-        response = None
+        responses = []
         for key, value in measurement_components_dic.items():
-            if response is None:
-                response = Response(value["freq"], value["ydata"], value["y_units"], name=key)
-            else:
-                response *= Response(value["freq"], value["ydata"], value["y_units"], name=key)
+            ydata = [value["mag"], value["phase"]]
+            idx = np.argmin(np.abs(np.array(value["frequencies"]) - 0.5))
+            responses.append(Response(value["frequencies"], ydata, value["y-axis_units"], name=key))
 
-        return response
-    
-    
-    def _has_valid_parameter_in_buffer(self, key_list):
-        """
-        This function first checks if a parameter which is specified with a key_list (e.g. [station_id, "channels", channel_id, "channel_position"])
-        exists in the buffer and second if it is still valid base on detector time (i.e., if corresponding station and channel are still commission).
-        Remove station or channel from buffer if not commission.
-        
-        Parameters
-        ----------
-        
-        key_list: list
-            Specifies a parameter (see example above)
-        
-        Returns
-        -------
-        
-        has_parameter:  bool
-            True if key_list exists and is valid
-        """
-        
-        if keys_not_in_dict(self.__buffered_stations, key_list):
-            self.logger.debug("Parameter not in buffer: " + " / ".join([str(x) for x in key_list]))
-            return False
-        
-        station_info = self.__buffered_stations[key_list[0]]
-        
-        if station_info["commission_time"] > self.get_detector_time() or station_info["decommission_time"] < self.get_detector_time():
-            self.logger.debug(f"Station {key_list[0]} not commission anymore at {self.get_detector_time()}. Remove from buffer ...")
-            self.__buffered_stations[key_list[0]] = {}  # clean buffer
-            return False
-        
-        if key_list[1] == "channels" and len(key_list) >= 3:
-            channel_info = station_info["channels"][key_list[2]]
-            if station_info["commission_time"] > self.get_detector_time() or station_info["decommission_time"] < self.get_detector_time():
-                self.logger.debug(f"Channel {key_list[2]} (of Station {key_list[0]}) not commission anymore at {self.get_detector_time()}. Remove from buffer ...")
-                self.__buffered_stations[key_list[0]]["channels"][key_list[2]] = {}  # clean buffer
-                return False
+        return np.prod(responses)
 
-        self.logger.debug("Parameter in buffer and valid: " + " / ".join([str(x) for x in key_list]))
-        return True
+    # def _has_valid_parameter_in_buffer(self, key_list):
+    #     """
+    #     This function first checks if a parameter which is specified with a key_list (e.g. [station_id, "channels", channel_id, "channel_position"])
+    #     exists in the buffer and second if it is still valid base on detector time (i.e., if corresponding station and channel are still commission).
+    #     Remove station or channel from buffer if not commission.
+        
+    #     Parameters
+    #     ----------
+        
+    #     key_list: list
+    #         Specifies a parameter (see example above)
+        
+    #     Returns
+    #     -------
+        
+    #     has_parameter:  bool
+    #         True if key_list exists and is valid
+    #     """
+        
+    #     if keys_not_in_dict(self.__buffered_stations, key_list):
+    #         self.logger.debug("Parameter not in buffer: " + " / ".join([str(x) for x in key_list]))
+    #         return False
+        
+    #     station_info = self.__buffered_stations[key_list[0]]
+        
+    #     if station_info["commission_time"] > self.get_detector_time() or station_info["decommission_time"] < self.get_detector_time():
+    #         self.logger.debug(f"Station {key_list[0]} not commission anymore at {self.get_detector_time()}. Remove from buffer ...")
+    #         self.__buffered_stations[key_list[0]] = {}  # clean buffer
+    #         return False
+        
+    #     if key_list[1] == "channels" and len(key_list) >= 3:
+    #         channel_info = station_info["channels"][key_list[2]]
+    #         if station_info["commission_time"] > self.get_detector_time() or station_info["decommission_time"] < self.get_detector_time():
+    #             self.logger.debug(f"Channel {key_list[2]} (of Station {key_list[0]}) not commission anymore at {self.get_detector_time()}. Remove from buffer ...")
+    #             self.__buffered_stations[key_list[0]]["channels"][key_list[2]] = {}  # clean buffer
+    #             return False
+
+    #     self.logger.debug("Parameter in buffer and valid: " + " / ".join([str(x) for x in key_list]))
+    #     return True
     
 
     def get_number_of_channels(self, station_id):
@@ -766,6 +772,7 @@ class Detector():
         return self.__db
         
     def set_detector_time(self, time):
+        """ Temp. interface for development """
         self.__set_detector_time(time)
     
     
@@ -798,7 +805,7 @@ class Response:
         
         
         self.__names = [name]
-        
+                
         self.__frequency = np.array(frequency) * units.GHz
 
         if y[0] is None or y[1] is None:
@@ -809,6 +816,7 @@ class Response:
         
         if y_unit[0] == "dB":
             gain = helper.dB_to_linear(y_ampl)
+            print(gain)
         elif y_unit[0] == "mag" or y_unit[0] == "MAG":
             gain = y_ampl
         else:
@@ -823,6 +831,7 @@ class Response:
             
         self.__gains = [interpolate.interp1d(
             self.__frequency, gain, kind="linear", bounds_error=False, fill_value=0)]
+        print(self.__gains[0](0.5))
         
         self.__phases = [interpolate.interp1d(
             self.__frequency, y_phase, kind="linear", bounds_error=False, fill_value=0)]
@@ -890,14 +899,20 @@ class Response:
 
 
     def __str__(self):
-        return "Response of " + ", ".join(self.get_names())
+        return "Response of " + ", ".join(self.get_names()) + f": R(0.5 GHz) = {self(0.5 * units.GHz)}"
 
 
 if __name__ == "__main__":
     det = Detector(log_level=logging.DEBUG, over_write_handset_values={"sampling_frequency": 2.4 * units.GHz}, always_query_entire_description=False)
 
-    det.update(datetime.datetime(2012, 8, 2, 0, 0))
-    det.update(datetime.datetime(2044, 8, 2, 0, 0))
+    det.update(datetime.datetime(2022, 8, 2, 0, 0))
+    print(det.get_absolute_position(11))
+    print(det.get_relative_position(11, 0))
+    print(det.get_channel_orientation(11, 0))
+    # det.get_channel_signal_chain(11, 0) 
+    res = det.get_signal_chain_response(11, 0)
+    print(res)
+    
     # det._query_station_information(11)
 
     # det.update(datetime.datetime(2022, 8, 2, 0, 0))
