@@ -145,6 +145,7 @@ class hardwareResponseSimulator:
             station_objects[i_sub_event] = new_station
             event_objects[i_sub_event] = new_event
         return event_objects, station_objects, sub_event_shower_ids, station_has_triggered, output_data
+    
     def __simulate_station_detector_response(
             self,
             event,
@@ -188,6 +189,7 @@ class hardwareResponseSimulator:
         self.__detector_simulation_trigger(event, station, self.__detector)
         if station.has_triggered:
             self.__channel_signal_reconstructor.run(event, station, self.__detector)
+    
     def __simulate_sim_station_detector_response(
             self,
             station,

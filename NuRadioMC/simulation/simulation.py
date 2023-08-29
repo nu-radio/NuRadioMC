@@ -47,6 +47,7 @@ import NuRadioMC.simulation.shower_simulator
 import NuRadioMC.simulation.station_simulator
 import NuRadioMC.simulation.hardware_response_simulator
 import NuRadioMC.simulation.output_writer_hdf5
+import NuRadioMC.simulation.output_writer_nur
 STATUS = 31
 
 # logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
@@ -173,6 +174,14 @@ class simulation(
             self.__hardware_response_simulator,
             self._inputfilename
         )
+        if self._outputfilenameNuRadioReco is None:
+            self.__output_writer_nur = None
+        else:
+            self.__output_writer_nur = NuRadioMC.simulation.output_writer_nur.outputWriterNur(
+                self._outputfilenameNuRadioReco,
+                self._write_detector,
+                self._det
+            )
         # loop over event groups
         for i_event_group_id, event_group_id in enumerate(unique_event_group_ids):
             if i_event_group_id > 10e99:
@@ -213,9 +222,7 @@ class simulation(
                 shower_energies = np.zeros(event_indices.shape)
             vertex_positions = np.array([np.array(self._fin['xx'])[event_indices],
                                          np.array(self._fin['yy'])[event_indices],
-                                         np.array(self._fin['zz'])[event_indices]]).T
-            self._distance_cut_time += time.time() - t_tmp
-
+                                         np.array(self._fin['zz'])[event_indices]])
             self.__station_simulator.set_event_group(
                 i_event_group_id,
                 event_group_id,
@@ -281,6 +288,10 @@ class simulation(
                                     None,
                                     event_group_id,
                                     sub_event_shower_ids[i_sub_evt]
+                                )
+                            if self.__output_writer_nur is not None:
+                                self.__output_writer_nur.save_event(
+                                    event_objects[i_sub_evt]
                                 )
                 # loop over all showers in event group
                 # create output data structure for this channel

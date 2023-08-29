@@ -99,7 +99,6 @@ class outputWriterHDF5:
 
     def save_output(self):
         output_file = h5py.File(self.__filename, 'w')
-
         saved_events_mask = np.copy(self.__meta_output['triggered'])
         if 'n_interactions' in self.__input_data:  # if n_interactions is not specified, there are no parents
             parent_mask = self.__input_data['n_interaction'] == 1
@@ -112,7 +111,6 @@ class outputWriterHDF5:
             output_group = output_file.create_group('station_{:d}'.format(station_key))
             for key, value in iteritems(val):
                 output_group[key] = np.array(value, dtype=float)
-
         if 'trigger_names' in self.__meta_output_attributes:
             n_triggers = len(self.__meta_output_attributes['trigger_names'])
             for station_id in self.__meta_output_groups:
@@ -156,7 +154,6 @@ class outputWriterHDF5:
 
         for key, value in iteritems(self.__meta_output_attributes):
             output_file.attrs[key] = value
-
 
         output_file.close()
 
