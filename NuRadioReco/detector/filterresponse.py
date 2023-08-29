@@ -24,7 +24,7 @@ def get_filter_response_mini_circuits(frequencies, filter_name):
 
     get_S21 = intp.interp1d(ff, S21)
 
-    response = np.zeros_like(frequencies, dtype=np.complex)
+    response = np.zeros_like(frequencies, dtype=complex)
     mask = (frequencies > ff.min()) & (frequencies < ff.max())
     response[mask] = get_S21(frequencies[mask])
     return response
@@ -54,7 +54,7 @@ def get_filter_response_mini_circuits2(frequencies, filter_name):
     phase2 = -2 * np.pi * np.cumsum(get_group_delay(fff2) * df)
     get_phase = intp.interp1d(fff2, phase2)
 
-    response = np.zeros_like(frequencies, dtype=np.complex)
+    response = np.zeros_like(frequencies, dtype=complex)
     mask = (frequencies > max(ff.min(), ff2.min())) & (frequencies < min(ff.max(), ff2.max()))
     response[mask] = get_insertion_loss(frequencies[mask]) * np.exp(1j * get_phase(frequencies[mask]))
     return response
@@ -83,7 +83,7 @@ def get_filter_response(frequencies, filter_name):
         get_phase = intp.interp1d(ff2, np.unwrap(phase))
         get_insertion_loss = intp.interp1d(ff, insertion_loss)
 
-    response = np.zeros_like(frequencies, dtype=np.complex)
+    response = np.zeros_like(frequencies, dtype=complex)
     mask = (frequencies > max(ff.min(), ff2.min())) & (frequencies < min(ff.max(), ff2.max()))
     response[mask] = get_insertion_loss(frequencies[mask]) * np.exp(1j * get_phase(frequencies[mask]))
     return response

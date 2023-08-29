@@ -335,35 +335,35 @@ def get_Veff_Aeff_single(
         return out
         
     for iT, trigger_name in enumerate(trigger_names):
-        triggered = np.array(fin['multiple_triggers'][:, iT], dtype=np.bool)
+        triggered = np.array(fin['multiple_triggers'][:, iT], dtype=bool)
         triggered = remove_duplicate_triggers(triggered, fin['event_group_ids'])
         out[veff_aeff][trigger_name] = get_veff_output(volume_proj_area, np.sum(weights[triggered]), n_events)
 
     for trigger_name, values in iteritems(trigger_combinations):
         indiv_triggers = values['triggers']
-        triggered = np.zeros_like(fin['multiple_triggers'][:, 0], dtype=np.bool)
+        triggered = np.zeros_like(fin['multiple_triggers'][:, 0], dtype=bool)
         
         if isinstance(indiv_triggers, str):
             triggered = triggered | \
-                np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_triggers]], dtype=np.bool)
+                np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_triggers]], dtype=bool)
         else:
             for indiv_trigger in indiv_triggers:
                 triggered = triggered | \
-                    np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_trigger]], dtype=np.bool)
+                    np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_trigger]], dtype=bool)
         
         if 'triggerAND' in values:
             triggered = triggered & \
-                np.array(fin['multiple_triggers'][:, trigger_names_dict[values['triggerAND']]], dtype=np.bool)
+                np.array(fin['multiple_triggers'][:, trigger_names_dict[values['triggerAND']]], dtype=bool)
         
         if 'notriggers' in values:
             indiv_triggers = values['notriggers']
             if(isinstance(indiv_triggers, str)):
                 triggered = triggered & \
-                    ~np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_triggers]], dtype=np.bool)
+                    ~np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_triggers]], dtype=bool)
             else:
                 for indiv_trigger in indiv_triggers:
                     triggered = triggered & \
-                        ~np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_trigger]], dtype=np.bool)
+                        ~np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_trigger]], dtype=bool)
         
         if 'min_sigma' in values.keys():
             if isinstance(values['min_sigma'], list):
@@ -396,7 +396,7 @@ def get_Veff_Aeff_single(
             As = np.array(fin['max_amp_ray_solution'])
             max_amps = np.argmax(As[:, values['ray_channel']], axis=-1)
             sol = np.array(fin['ray_tracing_solution_type'])
-            mask = np.array([sol[i, values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=np.bool)
+            mask = np.array([sol[i, values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=bool)
             triggered = triggered & mask
 
         if 'n_reflections' in values.keys():
@@ -644,7 +644,7 @@ def get_Veff_Aeff_array(data):
     * array of unique trigger names
 
     Examples
-    ---------
+    --------
 
     To plot the full sky effective volume for 'all_triggers' do
 
