@@ -50,7 +50,8 @@ class showerSimulator:
             self,
             i_event_group,
             event_group_id,
-            event_indices
+            event_indices,
+            particle_mode
     ):
         self.__i_event_group = i_event_group
         self.__event_group_id = event_group_id
@@ -63,7 +64,8 @@ class showerSimulator:
         self.__event_group_vertex_distances = np.linalg.norm(
             self.__event_group_vertices - self.__event_group_vertices[0], axis=1
         )
-        self.__event_group_shower_energies = self.__input_data['energies'][event_indices]
+        if particle_mode:
+            self.__event_group_shower_energies = self.__input_data['energies'][event_indices]
         self.__channel_efield_simulator.set_event_group(np.sum(self.__event_group_shower_energies))
 
     def simulate_shower(
@@ -86,7 +88,6 @@ class showerSimulator:
             self.__input_data['yy'][shower_index],
             self.__input_data['zz'][shower_index]
         ])
-        vertex_time = self.__input_data['vertex_times'][shower_index]
         if not self.__distance_cut(shower_vertex):
             return [], [], [], [], [], [], [], []
         if not self.__in_fiducial_volume(shower_vertex):

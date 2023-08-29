@@ -37,12 +37,14 @@ class stationSimulator:
             self,
             i_event_group,
             event_group_id,
-            shower_indices
+            shower_indices,
+            particle_mode
     ):
         self.__shower_simulator.set_event_group(
             i_event_group,
             event_group_id,
-            shower_indices
+            shower_indices,
+            particle_mode
         )
         self.__i_event_group = i_event_group
         self.__event_group_id = event_group_id

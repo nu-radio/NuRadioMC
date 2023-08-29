@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import astropy.time
 import NuRadioReco.framework.station
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.event
@@ -138,6 +139,8 @@ class hardwareResponseSimulator:
             new_station = NuRadioReco.framework.station.Station(station_id)
             new_station.set_sim_station(new_sim_station)
             new_event = NuRadioReco.framework.event.Event(self.__event_group_id, i_sub_event)
+            new_station.set_station_time(astropy.time.Time(['2018-01-01T00:00:01.000'], scale='utc', format='isot'))
+            new_station.get_sim_station().set_station_time(new_station.get_station_time())
             new_event.set_station(new_station)
             if self.__config['signal']['zerosignal']:
                 self.__increase_signal(new_station, None, 0)

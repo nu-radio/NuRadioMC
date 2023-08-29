@@ -89,7 +89,7 @@ class simulation(
         self._n_showers = len(self._fin['event_group_ids'])
         self._shower_ids = np.array(self._fin['shower_ids'])
         self._shower_index_array = {}  # this array allows to convert the shower id to an index that starts from 0 to be used to access the arrays in the hdf5 file.
-
+        self.__particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
         self._raytracer = self._prop(
             self._ice, self._cfg['propagation']['attenuation_model'],
             log_level=self._log_level_ray_propagation,
@@ -152,7 +152,6 @@ class simulation(
 
         # Check if vertex_times exists:
         self._check_vertex_times()
-
         self._input_time = 0.0
         self._askaryan_time = 0.0
         self._rayTracingTime = 0.0
@@ -226,7 +225,8 @@ class simulation(
             self.__station_simulator.set_event_group(
                 i_event_group_id,
                 event_group_id,
-                event_indices
+                event_indices,
+                self.__particle_mode
             )
             self.__hardware_response_simulator.set_event_group(
                 event_group_id
