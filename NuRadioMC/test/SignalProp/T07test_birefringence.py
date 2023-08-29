@@ -13,7 +13,9 @@ logger = logging.getLogger('test_raytracing')
 this unit test checks the output of the birefringence calculations
 """
 
-ice = medium.birefringence_medium(bir_model='A', exp_model=medium.southpole_2015())
+ref_index_model = 'southpole_2015'
+ice = medium.get_ice_model(ref_index_model)
+
 
 np.random.seed(42)  # set seed to have reproducible results
 n_events = int(10)
@@ -59,7 +61,7 @@ Ph = th_max * t_theta.get_trace() / max(t_theta.get_trace())
 test_pulse = np.array([T, Th, Ph])
 np.save('test_pulse.npy', test_pulse)
 
-new_test_pulse = np.array([spectrum, spectrum, spectrum])
+new_test_pulse = np.array([th_max * spectrum / max(spectrum), th_max * spectrum / max(spectrum), th_max * spectrum / max(spectrum)])
 
 
 results_theta = np.array([test_pulse[1]])
