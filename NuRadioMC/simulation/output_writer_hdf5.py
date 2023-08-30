@@ -124,7 +124,7 @@ class outputWriterHDF5:
                 n_events_for_station = len(self.__output_triggered_station[station_id])
                 if n_events_for_station > 0:
                     station_data = output_file['station_{:d}'.format(station_id)]
-                    station_data['event_group_dis'] = np.array(self.__output_event_group_ids[station_id])
+                    station_data['event_group_ids'] = np.array(self.__output_event_group_ids[station_id])
                     station_data['event_ids'] = np.array(self.__output_sub_event_ids[station_id])
                     station_data['maximum_amplitudes'] = np.array(self.__output_maximum_amplitudes[station_id])
                     station_data['maximum_amplitudes_envelope'] = np.array(self.__output_maximum_amplitudes_envelope[station_id])
