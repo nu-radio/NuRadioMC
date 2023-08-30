@@ -9,6 +9,8 @@ new features:
 - add uniform ice model with 1.78 refractive index
 
 bugfixes:
+- updated reference channel check in GenericDetector to look into the reference station when the channel
+is not found in the current station
 
 
 version 2.1.6
