@@ -502,8 +502,6 @@ class Database(object):
         # if the collection is empty, return an empty dict
         if self.db[collection_name].count_documents({'id': {'$regex': f'_stn{station_id}_'}}) == 0:
             return {}
-
-        primary_time = self.__database_time
         
         # define the search filter
         search_filter = [{'$match': {'id': {'$regex': f'_stn{station_id}_'}}}, {'$unwind': '$measurements'}]
@@ -524,8 +522,8 @@ class Database(object):
         if measurement_name is None or use_primary_time_with_measurement:
             search_filter += [
                 {'$unwind': '$measurements.primary_measurement'},
-                {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
-                            'measurements.primary_measurement.end': {'$gte': primary_time}}}]
+                {'$match': {'measurements.primary_measurement.start': {'$lte': self.__database_time},
+                            'measurements.primary_measurement.end': {'$gte': self.__database_time}}}]
         else:
             # measurement/object identified by soley by "measurement_name"
             pass
@@ -589,9 +587,7 @@ class Database(object):
         # if the collection is empty, return an empty dict
         if self.db[collection_name].count_documents({'id': id}) == 0:
             return {}
-        
-        primary_time = self.__database_time
-        
+                
         # define the search filter
         search_filter = [{'$match': {'id': id}},
                          {'$unwind': '$measurements'}]
@@ -602,8 +598,8 @@ class Database(object):
         if measurement_name is None or use_primary_time_with_measurement:
             search_filter += [
                 {'$unwind': '$measurements.primary_measurement'},
-                {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
-                            'measurements.primary_measurement.end': {'$gte': primary_time}}}]
+                {'$match': {'measurements.primary_measurement.start': {'$lte': self.__database_time},
+                            'measurements.primary_measurement.end': {'$gte': self.__database_time}}}]
         else:
             # measurement/object identified by soley by "measurement_name"
             pass    
