@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import json
 import NuRadioReco.modules.io.eventReader
 import argparse
@@ -41,7 +41,7 @@ else:
         for prop in properties:
             if(prop == "trigger_time"):
                 try:
-                    np.testing.assert_allclose(np.array(trigger_results[trigger_name][prop], dtype=np.float64), np.array(reference[trigger_name][prop], dtype=np.float64))
+                    np.testing.assert_allclose(np.array(trigger_results[trigger_name][prop], dtype=float), np.array(reference[trigger_name][prop], dtype=float))
                 except AssertionError as e:
                     print('Property {} of trigger {} differs from reference'.format(prop, trigger_name))
                     print(e)

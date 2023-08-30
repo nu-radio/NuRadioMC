@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
 from NuRadioReco.utilities import units, io_utilities
@@ -63,7 +63,7 @@ def get_vector_potential(
     profile_ce: array of floats
         charge-excess values of the charge excess profile
     shower_type: string (default "HAD")
-        type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+        type of shower, either "HAD" (hadronic) or "EM" (electromagnetic)
     n_index: float (default 1.78)
         index of refraction where the shower development takes place
     distance: float (default 1km)
@@ -239,7 +239,7 @@ def get_vector_potential(
         v[0] = vperp_x
         v[1] = vperp_y
         v[2] = vperp_z
-#         v = np.array([vperp_x, vperp_y, vperp_z], dtype=np.float64)
+#         v = np.array([vperp_x, vperp_y, vperp_z], dtype=float)
         """
         Function F_p Eq.(15) PRD paper.
         """
@@ -468,6 +468,37 @@ class ARZ(object):
         """
         self._interp_factor2 = interp_factor
 
+    def get_shower_profile(self, shower_energy, shower_type, iN):
+        """
+        Gets a charge-excess profile
+
+        Parameters
+        ----------
+        shower_energy: float
+            the energy of the shower
+        shower_type: string (default "HAD")
+            type of shower, either "HAD" (hadronic) or "EM" (electromagnetic)
+        iN: int
+            specify shower number
+
+        Returns
+        -------
+        depth, excess: two arrays of floats
+            slant depths and charge profile amplitudes
+        """
+
+        energies = np.array([*self._library[shower_type]])
+        iE = np.argmin(np.abs(energies - shower_energy))
+
+        rescaling_factor = shower_energy / energies[iE]
+
+        profiles = self._library[shower_type][energies[iE]]
+        profile_depth = profiles['depth']
+        profile_ce = profiles['charge_excess'][iN] * rescaling_factor
+
+        return profile_depth, profile_ce
+
+
     def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False,
                        same_shower=False, iN=None, output_mode='trace', maximum_angle=20 * units.deg):
         """
@@ -483,12 +514,8 @@ class ARZ(object):
             number of samples in the time domain
         dt: float
             size of one time bin in units of time
-        profile_depth: array of floats
-            shower depth values of the charge excess profile
-        profile_ce: array of floats
-            charge-excess values of the charge excess profile
         shower_type: string (default "HAD")
-            type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+            type of shower, either "HAD" (hadronic) or "EM" (electromagnetic)
         n_index: float (default 1.78)
             index of refraction where the shower development takes place
         R: float (default 1km)
@@ -498,7 +525,7 @@ class ARZ(object):
             for small vertex distances but also slows down the calculation proportional to the interpolation factor.
         shift_for_xmax: bool (default False)
             if True the observer position is placed relative to the position of the shower maximum, if False it is placed
-            with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined 
+            with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined
             as the position of the maximum of the charge excess profile
         same_shower: bool (default False)
             if False, for each request a new random shower realization is choosen.
@@ -507,14 +534,18 @@ class ARZ(object):
         iN: int or None (default None)
             specify shower number
         output_mode: string
+
             * 'trace' (default): return only the electric field trace
             * 'Xmax': return trace and position of xmax in units of length
             * 'full' return trace, depth and charge_excess profile
+
         maximum_angle: float
             Maximum angular difference allowed between the observer angle and the Cherenkov angle.
             If the difference is greater, the function returns an empty trace.
 
-        Returns: array of floats
+        Returns
+        -------
+        efield_trace: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
         """
         if not shower_type in self._library.keys():
@@ -533,6 +564,7 @@ class ARZ(object):
         rescaling_factor = shower_energy / energies[iE]
         logger.info("shower energy of {:.3g}eV requested, closest available energy is {:.3g}eV. The amplitude of the charge-excess profile will be rescaled accordingly by a factor of {:.2f}".format(shower_energy / units.eV, energies[iE] / units.eV, rescaling_factor))
         profiles = self._library[shower_type][energies[iE]]
+
         N_profiles = len(profiles['charge_excess'])
 
         if(iN is None or np.isnan(iN)):
@@ -593,7 +625,7 @@ class ARZ(object):
             logger.error("Tau showers are not yet implemented")
             raise NotImplementedError("Tau showers are not yet implemented")
         else:
-            msg = "showers of type {} are not implemented. Use 'HAD', 'EM' or 'TAU'".format(shower_type)
+            msg = "showers of type {} are not implemented. Use 'HAD', 'EM'".format(shower_type)
             logger.error(msg)
             raise NotImplementedError(msg)
         if self._use_numba:
@@ -665,7 +697,7 @@ class ARZ(object):
         profile_ce: array of floats
             charge-excess values of the charge excess profile
         shower_type: string (default "HAD")
-            type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+            type of shower, either "HAD" (hadronic) or "EM" (electromagnetic)
         n_index: float (default 1.78)
             index of refraction where the shower development takes place
         distance: float (default 1km)
@@ -678,7 +710,7 @@ class ARZ(object):
             interpolation just around the peak of the form factor
         shift_for_xmax: bool (default False)
             if True the observer position is placed relative to the position of the shower maximum, if False it is placed
-            with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined 
+            with respect to (0,0,0) which is the start of the charge-excess profile. The shower maximum is determined
             as the position of the maximum of the charge excess profile
         """
         logger.warning("This function has been deprecated - please use the module level ARZ.get_vector_potential_numba or ARZ.get_vector_potential instead")
@@ -1132,7 +1164,7 @@ class ARZ_tabulated(object):
         dt: float
             size of one time bin in units of time
         shower_type: string (default "HAD")
-            type of shower, either "HAD" (hadronic), "EM" (electromagnetic) or "TAU" (tau lepton induced)
+            type of shower, either "HAD" (hadronic) or "EM" (electromagnetic)
         n_index: float (default 1.78)
             index of refraction where the shower development takes place
         R: float (default 1km)
@@ -1144,13 +1176,18 @@ class ARZ_tabulated(object):
         iN: int or None (default None)
             specify shower number
         output_mode: string
+
             * 'trace' (default): return only the electric field trace
             * 'Xmax': return trace and position of xmax in units of length
+
         theta_reference: string (default: X0)
+
             * 'X0': viewing angle relativ to start of the shower
             * 'Xmax': viewing angle is relativ to Xmax, internally it will be converted to be relative to X0
 
-        Returns: array of floats
+        Returns
+        -------
+        efield_trace: array of floats
             array of electric-field time trace in 'on-sky' coordinate system eR, eTheta, ePhi
         """
         if not shower_type in self._library.keys():

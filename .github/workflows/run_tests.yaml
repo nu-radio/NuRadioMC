@@ -1,20 +1,38 @@
 name: Unit tests
 
-on: [push]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
-  build:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      runtests: ${{ steps.check.outputs.runtests }}
+    steps:
+    - id: check
+      run: |
+        output='false'
+        if [[ "${{ github.event_name }}" != pull_request ]]
+        then
+          runtests='true'
+        elif [[ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.event.pull_request.base.repo.full_name }}" ]]
+        then
+          runtests='true'
+        fi
+        echo "runtests=${runtests}" >> $GITHUB_OUTPUT
 
+  build:
+    needs: [prepare]
+    if: needs.prepare.outputs.runtests
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Cache pip
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         # This path is specific to Ubuntu
         path: ~/.cache/pip
@@ -32,7 +50,7 @@ jobs:
         python install_dev.py --install --no-interactive
         pip uninstall numba -y # easiest way to test ARZ without numba
         export PYTHONPATH=$(pwd):$PYTHONPATH
-        
+
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
     - name: Lint with flake8 (important)
@@ -108,7 +126,7 @@ jobs:
     - name: "Test webinar examples"
       if: always()
       run: |
-        export GSLDIR=$(gsl-config --prefix) 
+        export GSLDIR=$(gsl-config --prefix)
         export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/examples/test_webinar.sh
     - name: "Veff test"
@@ -124,7 +142,7 @@ jobs:
         export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioMC/test/Veff/1e18eV/test_build_noise.sh
     - name: "Atmospheric Aeff test"
-      if: always() 
+      if: always()
       run: |
         export GSLDIR=$(gsl-config --prefix)
         export PYTHONPATH=$(pwd):$PYTHONPATH

@@ -25,7 +25,7 @@ tinydb = ">=4.1.1"
 tinydb-serialization = ">=2.1"
 aenum = "*"
 astropy = "*"
-radiotools = ">=0.2"
+radiotools = ">=0.2.1"
 cython = "*"
 dash = ">=2.0"
 future = "*"
@@ -33,7 +33,7 @@ h5py = "*"
 peakutils = "*"
 pymongo = "*"
 pyyaml = "*"
-awkward = "*"
+awkward = "<2"
 python = "^3.6"
 matplotlib = "*"
 requests = "*"
@@ -45,14 +45,18 @@ numba = "*"
 [tool.poetry.dev-dependencies]
 Sphinx = "*"
 sphinx-rtd-theme = "*"
-numpydoc = "1.1.0"
-proposal = "6.1.6"
+numpydoc = "*"
+proposal = "7.5.1"
 pygdsm = {git = "https://github.com/telegraphic/pygdsm"}
 nifty5 = {git = "https://gitlab.mpcdf.mpg.de/ift/nifty.git", branch="NIFTy_5"}
 pypocketfft = {git = "https://gitlab.mpcdf.mpg.de/mtr/pypocketfft"}
+pandas = "*"
+mattak = {git = "https://github.com/RNO-G/mattak"}
+runtable = {git = "ssh://git@github.com/RNO-G/rnog-runtable.git"}
 
 [tool.poetry.extras]
 documentation = ["Sphinx", "sphinx-rtd-theme", "numpydoc"]
 proposal = ["proposal"]
 galacticnoise = ['pygdsm']
 ift_reco = ['nifty5', 'pypocketfft']
+RNO_G_DATA = ["mattak", "runtable", "pandas"]

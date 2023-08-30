@@ -45,7 +45,7 @@ class channelTemplateCorrelation:
             n_templates=1):
         """
         Parameters
-        -----------
+        ----------
         evt: Event
             Event to run the module on
         station: Station

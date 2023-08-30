@@ -47,7 +47,7 @@ class channelGalacticNoiseAdder:
         Set up important parameters for the module
 
         Parameters
-        ---------------
+        ----------
         debug: bool, default: False
             It True, debug plots will be shown
         n_side: int, default: 4
@@ -80,7 +80,7 @@ class channelGalacticNoiseAdder:
         Adds noise resulting from galactic radio emission to the channel traces
 
         Parameters
-        --------------
+        ----------
         event: Event object
             The event containing the station to whose channels noise shall be added
         station: Station object
@@ -122,7 +122,7 @@ class channelGalacticNoiseAdder:
             passband_filter = (freqs > passband[0]) & (freqs < passband[1])
             noise_spec_sum = np.zeros_like(channel.get_frequency_spectrum())
             flux_sum = np.zeros(freqs[passband_filter].shape)
-            efield_sum = np.zeros((3, freqs.shape[0]), dtype=np.complex)
+            efield_sum = np.zeros((3, freqs.shape[0]), dtype=complex)
             if self.__debug:
                 plt.close('all')
                 fig = plt.figure(figsize=(12, 8))
@@ -177,7 +177,7 @@ class channelGalacticNoiseAdder:
                     ax_3.plot(freqs[passband_filter] / units.MHz, E / (units.V / units.m), c='k', alpha=.02)
 
                 # assign random phases and polarizations to electric field
-                noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=np.complex)
+                noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=complex)
                 phases = np.random.uniform(0, 2. * np.pi, len(S))
                 polarizations = np.random.uniform(0, 2. * np.pi, len(S))
 
