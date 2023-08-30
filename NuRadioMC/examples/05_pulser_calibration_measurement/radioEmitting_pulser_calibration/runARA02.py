@@ -40,7 +40,7 @@ class mySimulation(simulation.simulation):
     def _detector_simulation_trigger(self, evt, station, det):
         # save the amplitudes to output hdf5 file
         # save amplitudes per ray tracing solution to hdf5 data output
-        calculateAmplitudePerRaySolution.run(self._evt, self._station, self._det)
+        calculateAmplitudePerRaySolution.run(evt, station, det)
         triggerSimulator.run(evt, station, det,
                            threshold_high=1e-6 * self._Vrms,
                            threshold_low=-1e-6 * self._Vrms,
