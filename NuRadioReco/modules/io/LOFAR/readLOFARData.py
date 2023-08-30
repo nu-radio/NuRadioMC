@@ -2,16 +2,21 @@ import re
 import os
 import glob
 import json
+import logging
 
 from datetime import datetime
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
+from NuRadioReco.modules.base import module
 
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.channel
 
 from kratos.data_io import lofar_io
+
+
+logger = module.setup_logger(level=logging.WARNING)
 
 
 def tbb_filetag_from_utc(timestamp):
@@ -59,6 +64,8 @@ class readLOFARData:
         The path to the directory containing the LOFAR metadata (antenna positions and timing calibrations).
     """
     def __init__(self, tbb_directory, json_directory, metadata_directory):
+        self.logger = logging.getLogger('NuRadioReco.readLOFARData')
+
         self.tbb_dir= tbb_directory
         self.json_dir = json_directory
         self.meta_dir = metadata_directory
@@ -131,7 +138,7 @@ class readLOFARData:
         tbb_filename_pattern = tbb_filetag_from_utc(self.__event_id + 1262304000)  # event id is based on timestamp
 
         tbb_filename_pattern = self.tbb_dir + "/*" + tbb_filename_pattern + "*.h5"
-        print(f'Looking for files with {tbb_filename_pattern}...')
+        self.logger.debug(f'Looking for files with {tbb_filename_pattern}...')
         all_tbb_files = glob.glob(
             tbb_filename_pattern
         )  # this is expensive in a big NFS-mounted directory...
@@ -139,7 +146,7 @@ class readLOFARData:
 
         for tbb_filename in all_tbb_files:
             station_name = re.findall("CS\d\d\d", tbb_filename)[0]
-            print(f'Found file {tbb_filename} for station {station_name}...')
+            self.logger.info(f'Found file {tbb_filename} for station {station_name}...')
             self.__stations[station_name]['files'].append(tbb_filename)
 
             # Save the metadata only once (in case there are multiple files for a station)
