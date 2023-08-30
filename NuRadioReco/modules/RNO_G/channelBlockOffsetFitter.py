@@ -138,7 +138,8 @@ class channelBlockOffsets:
 
                 block_offsets = fit_block_offsets(
                     trace, self.block_size,
-                    channel.get_sampling_rate(), self._max_frequency
+                    channel.get_sampling_rate(), self._max_frequency,
+                    mode=mode
                 )
                 offsets[channel_id] = -block_offsets
         
