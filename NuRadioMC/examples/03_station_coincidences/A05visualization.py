@@ -79,7 +79,7 @@ for iE in np.arange(n_events, dtype=int)[np.any(triggered_deep[:, mask], axis=1)
         x2 = det.get_relative_position(101, iC)
         if(plot):
             ax.plot([x2[0]], [x2[1]], [x2[2]], 'ko')
-        if(j != 0 and (~(np.array(triggered_deep[iE], dtype=np.bool) & mask))[j]):
+        if(j != 0 and (~(np.array(triggered_deep[iE], dtype=bool) & mask))[j]):
             continue
         vertex = np.array([fin['xx'][iE], fin['yy'][iE], fin['zz'][iE]])
 #         print(fin.keys())

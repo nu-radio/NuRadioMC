@@ -156,6 +156,10 @@ double get_temperature(double z){
 }
 
 double get_attenuation_length(double z, double frequency, int model){
+	if (z>0) {
+		double inf = 1e130;
+		return inf;
+	}
 	if(model == 1) {
 		double t = get_temperature(z);
 		double f0 = 0.0001;
@@ -198,7 +202,7 @@ double get_attenuation_length(double z, double frequency, int model){
 	} else if (model == 5) {
 	    return fit_GL3(z, frequency);
 	} else {
-		std::cout << "attenuation length model " << model << " unknown" << std::endl;
+		std::cout << "attenuation length model " << model << " unknown. Maybe you need to recompile the C++ ray tracer." << std::endl;
 		throw 0;
 	}
 }
