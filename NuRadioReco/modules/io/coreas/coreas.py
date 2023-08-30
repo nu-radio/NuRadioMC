@@ -1,20 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
 from radiotools import helper as hp
 from radiotools import coordinatesystems
-
 from NuRadioReco.utilities import units
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.radio_shower
 import radiotools.coordinatesystems
-
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import showerParameters as shp
-
 import logging
 logger = logging.getLogger('coreas')
 
@@ -70,7 +66,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
         ax1.set_ylabel(r'Position in $\vec{v} \times \vec{v} \times \vec{B}$ - direction [m]')
 
     weights = np.zeros_like(positions[:, 0])
-    for p in range(0, weights.shape[0]):  # loop over all 240 station positions
+    for p in range(0, weights.shape[0]):  # loop over all observer positions
         vertices_shower_2d = vor.vertices[vor.regions[vor.point_region[p]]]
 
         # x_vertice_ground = x_trafo_from_shower[0] * x_vertice_shower + y_trafo_from_shower[0] * y_vertice_shower + z_trafo_from_shower[0] * z_vertice_shower
@@ -87,7 +83,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
         vertices_shower_3d = np.array(vertices_shower_3d)
         vertices_ground = cstrafo.transform_from_vxB_vxvxB(station_position=vertices_shower_3d)
 
-        n_arms = 8  # mask last stations of each arm
+        n_arms = 8  # mask last observer position of each arm
         length_shower = np.sqrt(shower[:, 0] ** 2 + shower[:, 1] ** 2)
         ind = np.argpartition(length_shower, -n_arms)[-n_arms:]
 
@@ -99,7 +95,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
             ax2.plot(vertices_ground[:, 0], vertices_ground[:, 1], c='grey', zorder=1)
             ax2.scatter(vertices_ground[:, 0], vertices_ground[:, 1], c='tab:orange', zorder=2)
     if debug:
-        ax2.scatter(positions[:, 0], positions[:, 1], c='tab:blue', s=10, label='Position of stations')
+        ax2.scatter(positions[:, 0], positions[:, 1], c='tab:blue', s=10, label='Position of observer')
         ax2.scatter(vertices_ground[:, 0], vertices_ground[:, 1], c='tab:orange', label='Vertices of cell')
         ax2.set_aspect('equal')
         ax2.set_title('On ground, total area {:.2f} $km^2$'.format(sum(weights) / units.km ** 2))
@@ -117,7 +113,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
         ax4.hist(weights)
         ax4.set_title('Weight distribution')
         ax4.set_xlabel(r'Weights (here area) $[m^2]$')
-        ax4.set_ylabel(r'Number of stations')
+        ax4.set_ylabel(r'Number of observer')
 
         ax5.scatter(length_shower ** 2, weights)
         ax5.set_xlabel(r'$Length^2 [m^2]$')
@@ -127,9 +123,9 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
     return weights
 
 
-def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
+def make_sim_station(station_id, corsika, observer, channel_ids, weight=None)
     """
-    creates an NuRadioReco sim station from the observer object of the coreas hdf5 file
+    creates an NuRadioReco sim station from the (interpolated) observer object of the coreas hdf5 file
 
     Parameters
     ----------
@@ -145,10 +141,11 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
     Returns
     -------
     sim_station: sim station
-        ARIANNA simulated station object
+        simulated station object
     """
-    # loop over all coreas stations, rotate to ARIANNA CS and save to simulation branch
+
     zenith, azimuth, magnetic_field_vector = get_angles(corsika)
+
     if(observer is None):
         data = np.zeros((512, 4))
         data[:, 0] = np.arange(0, 512) * units.ns / units.second
@@ -201,6 +198,22 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
 
 
 def make_sim_shower(corsika, observer=None, detector=None, station_id=None):
+    """
+    creates an NuRadioReco sim shower from the coreas hdf5 file
+
+    Parameters
+    ----------
+    corsika : hdf5 file object
+        the open hdf5 file object of the corsika hdf5 file
+    observer : hdf5 observer object
+    detector : detector object
+    station_id : station id of the station relativ to which the shower core is given
+
+    Returns
+    -------
+    sim_shower: sim shower
+        simulated shower object
+    """
     sim_shower = NuRadioReco.framework.radio_shower.RadioShower()
 
     zenith, azimuth, magnetic_field_vector = get_angles(corsika)
