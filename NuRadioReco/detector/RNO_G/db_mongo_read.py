@@ -1078,6 +1078,22 @@ class Database(object):
     
     
     def get_channel_signal_chain(self, channel_signal_id, measurement_name=None, verbose=True):
+        """
+        Returns the response data for a given signal chain.
+        
+        Parameters
+        ----------
+        
+        channel_signal_id: str
+            Indentifier of the signal chain
+            
+        Returns
+        -------
+        
+        signal_chain: dict
+            A dictinoary which among otherthings contains the "response_chain" which carries the measured response for the different 
+            components in the signal chain.
+        """
 
         # load the signal chain information:
         channel_sig_info = self.get_channel_signal_chain_measurement(
@@ -1212,9 +1228,8 @@ class Database(object):
         Collects all the timestamps for station and channel (de)commissioning from the database.
         Combines those to get a list of timestamps when modifications happened which requiers to update the buffer.
         
-        
         Returns
-        ------
+        -------
         
         station_data: dict(dict(list))
             Returns for each station (key = station.id) a dictionary with three entries:
@@ -1244,9 +1259,7 @@ class Database(object):
                 "station_commission_timestamps": station_times_comm,
                 "station_decommission_timestamps": station_times_decomm
             }
-            
-            logger.info(station_data)
-            
+                        
             # store timestamps, which can be used with np.digitize
             modification_timestamp_dict[station_id] = station_data
         
