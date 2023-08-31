@@ -4,10 +4,14 @@ from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import units
 from NuRadioReco.framework import base_trace
+import NuRadioReco.framework.electric_field
 import logging
 from scipy.spatial.tests.test_qhull import points
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('test_raytracing')
+
+
+import matplotlib.pyplot as plt
 
 """
 this unit test checks the output of the birefringence calculations
@@ -29,57 +33,59 @@ xx = rr * np.cos(phiphi)
 yy = rr * np.sin(phiphi)
 zz = np.random.uniform(zmin, zmax, n_events)
 
-points = np.array([xx, yy, zz]).T
-x_receiver = np.array([0., 0., -5.])
+points = np.array([xx, yy, zz]).T * units.m
+x_receiver = np.array([0., 0., -150.]) * units.m
 
-stamps = 20000
+size = 500
 
-T_start = -50
-T_final = 50
-th_max = 3
+delta = np.zeros(size)
+delta[int(size/2)] = 1
 
-T = np.linspace(T_start, T_final, stamps)
-dt = T[1] - T[0]
+sr = 2*10**(9) * units.hertz
 
-t_theta = base_trace.BaseTrace()
-t_phi = base_trace.BaseTrace()
+delta_pulse_ana = NuRadioReco.framework.electric_field.ElectricField([1], position=None,
+                 shower_id=None, ray_tracing_id=None)
 
-delta_pulse_theta = np.zeros(stamps)
-delta_pulse_theta[int(stamps/2)] = 1
+delta_pulse_ana.set_trace(delta, sr)
 
-t_theta.set_trace(delta_pulse_theta, sampling_rate=1 / dt)
+filter = delta_pulse_ana.get_filtered_trace([50* units.MHz, 300* units.MHz], filter_type = 'rectangular')
+filter = 1/np.sqrt(2) * filter/max(filter)
 
-ff = t_theta.get_frequencies()
-spectrum = t_theta.get_frequency_spectrum()
-spectrum[ff > 300 * units.MHz] = 0
-spectrum[ff < 80 * units.MHz] = 0
-t_theta.set_frequency_spectrum(spectrum, sampling_rate=1 / dt)
+zeros = np.zeros(size)
+delta_efield = np.vstack((zeros, filter, filter))
 
-Th = th_max * t_theta.get_trace() / max(t_theta.get_trace())
-Ph = th_max * t_theta.get_trace() / max(t_theta.get_trace())
-
-test_pulse = np.array([T, Th, Ph])
-np.save('test_pulse.npy', test_pulse)
-
-new_test_pulse = np.array([th_max * spectrum / max(spectrum), th_max * spectrum / max(spectrum), th_max * spectrum / max(spectrum)])
+delta_pulse_ana.set_trace(delta_efield, sr)
 
 
-results_theta = np.array([test_pulse[1]])
-results_phi = np.array([test_pulse[2]])
+config = {'propagation': {}}
+config['propagation']['attenuate_ice'] = False
+config['propagation']['focusing_limit'] = 2
+config['propagation']['focusing'] = False
+config['propagation']['birefringence'] = True
+
+results_theta = np.array(delta_pulse_ana.get_trace()[1])
+results_phi = np.array(delta_pulse_ana.get_trace()[2])
 
 for iX, x in enumerate(points):
 
     r = ray.ray_tracing(ice)
     r.set_start_and_end_point(x, x_receiver)
     r.find_solutions()
+    r.set_config(config)
     if r.has_solution():
         for iS in range(r.get_number_of_solutions()):
-            final_pulse = r.get_pulse_propagation_birefringence(test_pulse, 1 / dt, path_type=iS)
-            results_theta = np.vstack((results_theta, final_pulse[2]))
-            results_phi = np.vstack((results_phi, final_pulse[2]))
+
+            delta_efield = np.vstack((zeros, filter, filter))
+            delta_pulse_ana.set_trace(delta_efield, sr)
+            
+            final_pulse = r.apply_propagation_effects(delta_pulse_ana, 0)
+
+            results_theta = np.vstack((results_theta, final_pulse.get_trace()[1]))
+            results_phi = np.vstack((results_phi, final_pulse.get_trace()[2]))
+
 
 compare_array = np.vstack((results_theta, results_phi))
 reference_array = np.load('reference_BF.npy')
 
-testing.assert_allclose(compare_array, reference_array, atol=2e-1  * units.V / units.m, rtol=1e-5)
+testing.assert_allclose(compare_array, reference_array, atol=2e-4  * units.V / units.m, rtol=1e-7)
 print('T07test_birefringence passed without issues')
