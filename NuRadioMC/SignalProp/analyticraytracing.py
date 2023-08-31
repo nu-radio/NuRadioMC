@@ -1867,7 +1867,7 @@ class ray_tracing(ray_tracing_base):
         The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
 
         Parameters
-        ------------
+        ----------
         direction: numpy.array
         propagation direction of the wave
         nx: float
@@ -1878,7 +1878,7 @@ class ray_tracing(ray_tracing_base):
         the index of refraction in the z-direction
 
         Returns
-        ------------
+        -------
         output format: tuple: (n1, n2)
         meaning: effective refractive indices
         """
@@ -1913,7 +1913,7 @@ class ray_tracing(ray_tracing_base):
         The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
 
         Parameters
-        ------------
+        ----------
         n: float
             the effective index of refraction in the propagation direction calculated by get_effective_index_birefringence
         direction: numpy.array
@@ -1930,7 +1930,7 @@ class ray_tracing(ray_tracing_base):
             Most realistic used cases can use the pre-defined value.
 
         Returns
-        ------------
+        -------
         output format: numpy.array: np.array([px, py, pz])
         meaning:       normalized e-field vector in cartesian coordinates
         """
@@ -1959,7 +1959,7 @@ class ray_tracing(ray_tracing_base):
             sky = cs.transform_from_ground_to_onsky(p)
 
         Parameters
-        ------------
+        ----------
         theta: float
             zenith angle of the propagation direction
         phi: float
@@ -1969,7 +1969,7 @@ class ray_tracing(ray_tracing_base):
 
 
         Returns
-        ------------
+        -------
         output format: numpy.array: np.array([sky_R, sky_theta, sky_phi])
         meaning:       normalized e-field vector in spherical coordinates
         """
@@ -1987,7 +1987,7 @@ class ray_tracing(ray_tracing_base):
         The trace propagation is explained in this paper: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
 
         Parameters
-        ------------
+        ----------
         pulse: np.ndarray
             3d array with the frequency spectrum of np.array([eR, eTheta, ePhi]), usually provided by the apply_propagation_effects function
         samp_rate: float
@@ -1999,7 +1999,7 @@ class ray_tracing(ray_tracing_base):
             options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description
 
         Returns
-        ------------
+        -------
 
         final pulse: numpy.array([eR, eTheta, ePhi])
             [0] - eR        - final frequency spectrum of the radial component - not altered by the function
@@ -2014,6 +2014,7 @@ class ray_tracing(ray_tracing_base):
         ice_birefringence.__init__(bire_model)
 
         acc = int(self.get_path_length(i_solution))
+
         path = self.get_path(i_solution, n_points=acc)
 
         for i in range(acc - 1):
@@ -2054,7 +2055,7 @@ class ray_tracing(ray_tracing_base):
             t_fast.apply_time_shift(t_1 - t_0)
             birefringent_base[1] = t_fast.get_frequency_spectrum()
             
-            Rinv = np.matrix.transpose(R)
+            Rinv = np.linalg.inv(R)
             pulse[1:]  = Rinv * birefringent_base
         
         return pulse
@@ -2066,7 +2067,7 @@ class ray_tracing(ray_tracing_base):
         The important properties as effective refractive indices, polarization eigenvectors, and incremental time delays
 
         Parameters
-        ------------
+        ----------
 
         i_solution: int
         choose which ray-tracing solution should be propagated
@@ -2075,7 +2076,7 @@ class ray_tracing(ray_tracing_base):
         options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description
 
         Returns
-        ------------
+        -------
 
         path_properties: directory
             ['first_refractive_index']:     np.array - effective refractive index of the first birefringent state along the full path
