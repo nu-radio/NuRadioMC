@@ -268,37 +268,31 @@ class simulation(
                     trigger_indices = np.where(station_has_triggered)[0]
                     # if several sub-events have triggered, most data is only saved for the
                     # last event in the group
-                    for i_sub_evt in event_objects.keys():
-                        if station_has_triggered[i_sub_evt]:
-                            if i_sub_evt == np.max(trigger_indices):
-                                self.__output_writer_hdf5.add_station(
-                                    self._station_id,
-                                    event_objects[i_sub_evt],
-                                    station_objects[i_sub_evt],
-                                    station_output,
-                                    hardware_response_output,
-                                    event_group_id,
-                                    sub_event_shower_ids[i_sub_evt]
-                                )
-                            else:
-                                # the signal amplitudes are saved for all sub-events if multiple
-                                # sub-events exist, so we still have to pass the station object,
-                                # but leave out the other information to signal that it does
-                                # not need to be saved
-                                self.__output_writer_hdf5.add_station(
-                                    self._station_id,
-                                    event_objects[i_sub_evt],
-                                    station_objects[i_sub_evt],
-                                    None,
-                                    None,
-                                    event_group_id,
-                                    sub_event_shower_ids[i_sub_evt]
-                                )
-                            if self.__output_writer_nur is not None:
-                                self.__output_writer_nur.save_event(
-                                    event_objects[i_sub_evt]
-                                )
-
+                    self.__output_writer_hdf5.add_station(
+                        self._station_id,
+                        event_objects,
+                        station_objects,
+                        station_output,
+                        hardware_response_output,
+                        event_group_id,
+                        sub_event_shower_ids,
+                        station_has_triggered
+                    )
+                    self.__output_writer_hdf5.add_station_per_shower(
+                        self._station_id,
+                        event_objects,
+                        station_objects,
+                        station_output,
+                        hardware_response_output,
+                        event_group_id,
+                        sub_event_shower_ids
+                    )
+                    """
+                    if self.__output_writer_nur is not None:
+                        self.__output_writer_nur.save_event(
+                            event_objects[i_sub_evt]
+                        )
+                    """
         # Create trigger structures if there are no triggering events.
         # This is done to ensure that files with no triggering n_events
         # merge properly.
