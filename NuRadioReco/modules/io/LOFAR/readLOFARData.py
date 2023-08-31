@@ -66,7 +66,7 @@ class readLOFARData:
     def __init__(self, tbb_directory, json_directory, metadata_directory):
         self.logger = logging.getLogger('NuRadioReco.readLOFARData')
 
-        self.tbb_dir= tbb_directory
+        self.tbb_dir = tbb_directory
         self.json_dir = json_directory
         self.meta_dir = metadata_directory
 
@@ -110,6 +110,9 @@ class readLOFARData:
             'CS401': {'files': []},
             'CS501': {'files': []},
         }  # Dictionary containing list of TBB files for every station in event
+
+    def get_stations(self):
+        return self.__stations
 
     def begin(self, event_id):
         """
@@ -157,7 +160,7 @@ class readLOFARData:
                 )
                 # Metadata is a list containing:
                 # station name, antenna set, tbb timestamp (seconds), tbb timestamp (nanoseconds),
-                # station clock frequency (MHz), positions of antennas, dipole IDs and calibration delays per dipole
+                # station clock frequency (Hz), positions of antennas, dipole IDs and calibration delays per dipole
 
     @register_run()
     def run(self, detector, trace_length=65536):
@@ -210,7 +213,7 @@ class readLOFARData:
                 channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id=channel_group)
                 channel.set_trace(
                     lofar_trace_access.get_trace(str(channel_id).zfill(9)),  # channel ID is 9 digits
-                    station_dict['metadata'][4] * units.MHz
+                    station_dict['metadata'][4] * units.Hz
                 )
                 station.add_channel(channel)
 
