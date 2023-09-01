@@ -413,13 +413,13 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
         s_rate: float
             sampling rate of the electric field
-            
+
         bire_model: string
             choose the interpolation to fit the measured refractive index data
             options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description
 
         Returns
-        ------------
+        -------
         E_field: np.ndarray([eR, eTheta, ePhi])
             [0] - eR        - final frequency spectrum of the radial component after birefringence propagation
             [1] - eTheta    - final frequency spectrum of the theta componentnt after birefringence propagation

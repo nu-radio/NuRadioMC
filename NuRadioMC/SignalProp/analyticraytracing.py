@@ -1970,8 +1970,10 @@ class ray_tracing(ray_tracing_base):
 
         Returns
         -------
-        output format: numpy.array: np.array([sky_R, sky_theta, sky_phi])
-        meaning:       normalized e-field vector in spherical coordinates
+        output format: numpy.array
+            np.array([sky_R, sky_theta, sky_phi])
+        meaning       
+            normalized e-field vector in spherical coordinates
         """
 
         transform = np.array([  [np.sin(theta) * np.cos(phi) , np.sin(theta) * np.sin(phi)   , np.cos(theta)    ], 
