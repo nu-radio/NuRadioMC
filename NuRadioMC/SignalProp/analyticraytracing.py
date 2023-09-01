@@ -888,7 +888,10 @@ class ray_tracing_2D(ray_tracing_base):
         last_segment = self.get_path_segments(x_start, x, C_0, reflection, reflection_case)[-1]
         x_start = last_segment[1]
 
-        z = self.get_z_mirrored(x_start, x, C_0)[1]
+        if in_air:
+            z = x[1]
+        else:
+            z = self.get_z_mirrored(x_start, x, C_0)[1]
         dy = self.get_y_diff(z, C_0, in_air=in_air)
         angle = np.arctan(dy)
         if(angle < 0):
@@ -930,7 +933,7 @@ class ray_tracing_2D(ray_tracing_base):
             gamma_turn, z_turn = self.get_turning_point(c)
             y_turn = self.get_y_turn(C_0, x1)
             if((z_turn >= 0) and (y_turn > x11[0]) and (y_turn < x22[0])):  # for the first track segment we need to check if turning point is right of start point (otherwise we have a downward going ray that does not have a turning point), and for the last track segment we need to check that the turning point is left of the stop position.
-                r = self.get_angle(np.array([y_turn, 0]), x1, C_0, in_air=(x2[1]>0))
+                r = self.get_angle(np.array([y_turn, 0]), x1, C_0)
                 self.__logger.debug(
                     "reflecting off surface at y = {:.1f}m, reflection angle = {:.1f}deg".format(y_turn, r / units.deg))
                 output.append(r)
@@ -1446,7 +1449,7 @@ class ray_tracing_2D(ray_tracing_base):
         logC_0_start = np.log(C_0_start - 1. / self.medium.n_ice)
 
 #        result = optimize.root(self.get_angle_from_C_0,np.pi/4.,args=(z_pos,anglaunch))
-        result = optimize.root(self.get_angle_from_logC_0, logC_0_start, args=(z_pos, anglaunch, 0, in_air))
+        result = optimize.root(self.get_angle_from_logC_0, logC_0_start, args=(z_pos, anglaunch, in_air))
 
         # want to return the complete instance of the result class; result value result.x[0] is logC_0,
         # but we want C_0, so replace it in the result class. This may not be good practice but it seems to be
