@@ -26,7 +26,7 @@ class neutrino3DVertexReconstructor:
         Constructor for the vertex reconstructor
 
         Parameters
-        --------------
+        ----------
         lookup_table_location: string
             path to the folder in which the lookup tables for the signal travel
             times are stored
@@ -67,17 +67,6 @@ class neutrino3DVertexReconstructor:
             ['R', 'D'],
             ['R', 'R']
         ]
-        # self.__ray_types = [
-        #     ['direct', 'direct'],
-        #     ['reflected', 'reflected'],
-        #     ['refracted', 'refracted'],
-        #     ['direct', 'reflected'],
-        #     ['reflected', 'direct'],
-        #     ['direct', 'refracted'],
-        #     ['refracted', 'direct'],
-        #     ['reflected', 'refracted'],
-        #     ['refracted', 'reflected']
-        # ]
 
     def begin(
             self,
@@ -86,15 +75,10 @@ class neutrino3DVertexReconstructor:
             detector,
             template,
             distances_2d=None,
-            azimuths_2d=None,
-            z_coordinates_2d=None,
-            distance_step_3d=2 * units.m,
-            widths_3d=None,
-            z_step_3d=2 * units.m,
             passband=None,
             min_antenna_distance=5. * units.m,
-            use_maximum_filter=True,
-            resolution_target=0.1  *units.deg,
+            use_maximum_filter=False,
+            resolution_target=0.1*units.deg,
             debug_folder='.',
             sampling_rate=None,
             debug_formats='.png'
@@ -103,7 +87,7 @@ class neutrino3DVertexReconstructor:
         General settings for vertex reconstruction
 
         Parameters
-        -------------
+        ----------
         station_id: integer
             ID of the station to be used for the reconstruction
         channel_ids: array of integers
@@ -115,28 +99,20 @@ class neutrino3DVertexReconstructor:
             with the channel traces in order to determine the timing difference between
             channels
         distances_2d: array of float
-            A list of horizontal distances from the center of the station at which the first
-            rough scan to determine the search volume is done. The minimum and maximum of this
-            list is later also used as the minimum and maximum distance for the finer search
-        azimuths_2d: array of float
-            Array of azimuths to be used in the first scan to determine the search volume
-        z_coordinates_2d: array of float
-            Array of the z coordinates relative to the surface to be used in the first scan
-            to determine the search volume. The maximum depth is also used as the maximum
-            depth for the finer search
-        distance_step_3d: float
-            Step size for the horizontal distances used in the finer scan
-        widths_3d: array of float
-            List of distances to the left and right of the line determined in the first rough
-            scan on which the finer scan should be performed
-        z_step_3d: float
-            Step size for the depts used in the finer scan
+            The minimum and maximum horizontal distance from the station in which to search
+            If not specified, will look between 100 - 3000 m
         passband: array of float
             Lower and upper bounds off the bandpass filter that is applied to the channel
             waveform and the template before the correlations are determined. This filter
             does not affect the voltages stored in the channels.
         min_antenna_distance: float
             Minimum distance two antennas need to have to be used as a pair in the reconstruction
+        use_maximum_filter: bool, default False
+            if True, use a maximum filter to avoid missing maxima in the correlation
+            due to the finite grid spacing.
+        resolution_target: float, default 0.1 * units.deg
+            The target resolution of the search grid; optimization will terminate once
+            this has been reached.
         debug_folder: string
             Path to the folder in which debug plots should be saved if the debug=True option
             is picked in the run() method.
@@ -173,23 +149,9 @@ class neutrino3DVertexReconstructor:
             self.__voltage_trace_template = None
         self.__passband = passband
         if distances_2d is None:
-            self.__distances_2d = np.arange(100, 3000, 200)
+            self.__distances_2d = [100, 3000]
         else:
             self.__distances_2d = distances_2d
-        if azimuths_2d is None:
-            self.__azimuths_2d = np.arange(0, 360.1, 2.5) * units.deg
-        else:
-            self.__azimuths_2d = azimuths_2d
-        if z_coordinates_2d is None:
-            self.__z_coordinates_2d = np.arange(-2700, -100, 25)
-        else:
-            self.__z_coordinates_2d = z_coordinates_2d
-        self.__distance_step_3d = distance_step_3d
-        if widths_3d is None:
-            self.__widths_3d = np.arange(-50, 50, 2.)
-        else:
-            self.__widths_3d = widths_3d
-        self.__z_step_3d = z_step_3d
         for channel_id in channel_ids:
             channel_z = abs(detector.get_relative_position(station_id, channel_id)[2])
             channel_type = int(channel_z)
@@ -401,7 +363,6 @@ class neutrino3DVertexReconstructor:
         # <--- 3D Fit ---> #
         logger.debug("Starting 3D correlation...")
         self._dTheta0 = 2 * units.deg
-        # self._dTheta_goal = .1 * units.deg
         self._dTheta_current = self._dTheta0
         dTheta = self._dTheta0
         thetaphi_mask = None
@@ -659,39 +620,7 @@ class neutrino3DVertexReconstructor:
             n_distance_steps = int(n_distance_steps * np.sqrt(2))
             i_iteration += 1
 
-
-
-
-        # logger.warning("starting scipy fitter...")
-        # fitter_output = scipy.optimize.fmin(
-        #     self.__full_correlation_for_pos, fit_vertex, full_output=True, xtol=1.)
-        # #     minimizer_kwargs=dict(full_output=True))
-        # logger.warning("...finished. Results:")
-        # print(fitter_output)
-
-        # dist_corrs = np.max(np.max(combined_correlations, axis=0), axis=1)
-        # station.set_parameter(stnp.distance_correlations, dist_corrs)
-        # station.set_parameter(stnp.vertex_search_path, [slope, offset, median_theta])
-        # station.set_parameter(stnp.vertex_correlation_sums, [fit_correlation, sim_correlation, max_pair_correlations, max_dnr_correlations])
         if debug:
-            # self.__draw_dnr_reco(
-            #     event,
-            #     correlation_sum / np.max(correlation_sum),
-            #     self_correlation_sum / np.max(self_correlation_sum),
-            #     combined_correlations / np.max(combined_correlations),
-            #     x_0,
-            #     y_0,
-            #     z_0,
-            #     slope,
-            #     offset,
-            #     median_theta,
-            #     i_max,
-            #     i_max_dnr
-            # )
-            # np.save(
-            #     '{}/{}_{}_dnr_correlation.npy'.format(self.__debug_folder, event.get_run_number(), event.get_id()),
-            #     self_correlation_sum
-            # )
             fit_vx_times = dict()
             sim_vx_times = dict()
             for channel_id in self.__channel_ids:
@@ -773,51 +702,25 @@ class neutrino3DVertexReconstructor:
         delta_t = t_1 - t_2
         delta_start_time = self.__start_times[self.__channel_pair[1]] - self.__start_times[self.__channel_pair[0]]
         delta_t = delta_t.astype(float)
-        # print(d_hor[0].shape, z.shape, delta_t.shape)
-        # print(t_1)
-        # print(delta_t)
-        # To avoid missing maxima because of our finite grid spacing,
-        # we use a maximum filter. We determine the footprint of the filter
-        # from the resolution of our grid in distance, theta and phi
         time_deviations = np.zeros_like(delta_t)
         mask_invalid = (delta_t[1:] == 0) | (delta_t[:-1] == 0)
         delta_t_offset = np.abs(delta_t[1:] - delta_t[:-1])
         delta_t_offset[mask_invalid] = 0
-        # np.savez(f'debug_dt_{self.__current_ray_types[0]}_{self.__current_ray_types[1]}', dt=delta_t_offset, d_hor=d_hor,z=z, t_1=t_1,t_2=t_2)
         time_deviations[:-1] = delta_t_offset
-        # dtdt = np.copy(time_deviations)
-        # dtdt[dtdt==0] = np.nan
-        # dtdt = np.nanmedian(dtdt, axis=0)
-        # dtdt[np.isnan(dtdt)] = 0
-        # self.__draw_correlation_map_polar(self.__event, self.__thetaphi, dtdt, percentile=10, filetag=f'_dt_distance_{self.__channel_pair}')
         delta_t_offset = np.abs(delta_t - delta_t[:, self.__nn_theta])
         mask_invalid = (delta_t == 0) | (delta_t[:, self.__nn_theta] == 0)
         delta_t_offset[mask_invalid] = 0
         time_deviations = np.maximum(time_deviations, delta_t_offset)
-        # dtdt = np.copy(delta_t_offset)
-        # dtdt[dtdt==0] = np.nan
-        # dtdt = np.nanmedian(dtdt, axis=0)
-        # dtdt[np.isnan(dtdt)] = 0
-        # self.__draw_correlation_map_polar(self.__event, self.__thetaphi, dtdt, percentile=10, filetag=f'_dt_theta_{self.__channel_pair}')
         delta_t_offset = np.abs(delta_t - delta_t[:, self.__nn_phi])
         mask_invalid = (delta_t == 0) | (delta_t[:, self.__nn_phi] == 0)
         delta_t_offset[mask_invalid] = 0
         time_deviations = np.maximum(time_deviations, delta_t_offset)
-        # dtdt = np.copy(delta_t_offset)
-        # dtdt[dtdt==0] = np.nan
-        # dtdt = np.nanmedian(dtdt, axis=0)
-        # dtdt[np.isnan(dtdt)] = 0
-        # self.__draw_correlation_map_polar(self.__event, self.__thetaphi, dtdt, percentile=10, filetag=f'_dt_phi_{self.__channel_pair}')
-
         time_deviations[np.isnan(time_deviations)] = 0
 
         corr_index = self.__correlation.shape[0] / 2 + np.round((delta_t + delta_start_time) * self.__sampling_rate)
         corr_index[np.isnan(delta_t)] = -1
         mask = (corr_index >= 0) & (corr_index < self.__correlation.shape[0]) & (~np.isinf(delta_t))
         corr_index[~mask] = 0
-        # res = np.take(self.__correlation, corr_index.astype(int))
-        # res[~mask] = 0
-        # return res
 
         res = np.zeros_like(corr_index)
         if self._use_maximum_filter:
@@ -844,16 +747,6 @@ class neutrino3DVertexReconstructor:
             res = np.abs(self.__correlation)[corr_index.astype(int)]
         res[~mask] = 0
         res[np.isnan(res)] = 0
-        # print(time_deviations)
-        # print(res)
-        """
-        corr_index = self.__correlation.shape[0] / 2 + np.round(delta_t * self.__sampling_rate)
-        corr_index[np.isnan(delta_t)] = 0
-        mask = (corr_index > 0) & (corr_index < self.__correlation.shape[0]) & (~np.isinf(delta_t))
-        corr_index[~mask] = 0
-        res = np.take(self.__correlation, corr_index.astype(int))
-        res[~mask] = 0
-        """
         return res
 
     def get_signal_travel_time(self, d_hor, z, ray_type, channel_id):
