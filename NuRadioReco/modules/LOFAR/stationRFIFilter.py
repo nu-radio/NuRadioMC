@@ -400,16 +400,43 @@ def FindRFI(
 
 
 class stationRFIFilter:
+    """
+    Remove the RFI from all stations in an Event, by using the phase-variance method described in
+    :py:func:`.FindRFI`. This function returns the frequency channels which are contaminated, which are
+    subsequently put to zero in the traces.
+
+    **Note**: currently the class uses hardcoded values for LOFAR, this needs to be improved later.
+    """
     def __init__(self):
         self.logger = logging.getLogger('NuRadioReco.channelRFIFilter')
 
         self.__rfi_trace_length = None
 
     def begin(self, rfi_cleaning_trace_length=65536):
+        """
+        Set the variables used for RFI detection.
+
+        Parameters
+        ----------
+        rfi_cleaning_trace_length : int
+            The number of samples to use per block to construct the frequency spectrum.
+        """
         self.__rfi_trace_length = rfi_cleaning_trace_length
 
     @register_run()
     def run(self, event, reader):
+        """
+        Run the filter on the `event`. The `reader` object is required to retrieve the filenames associated with
+        the loaded stations. The method currently uses :py:func:`.FindRFI_LOFAR` to find the contaminated channels
+        and then puts the corresponding frequency bands to zero in every channel (in place).
+
+        Parameters
+        ----------
+        event : Event object
+            The event on which to run the filter.
+        reader : readLOFARData object
+            The reader used to read in the data of the event.
+        """
         stations_dict = reader.get_stations()
 
         for station in event.get_stations():
@@ -430,6 +457,7 @@ class stationRFIFilter:
                                   f'length ({self.__rfi_trace_length}) as well as a multiple of it.')
                 raise ValueError
 
+            # TODO: replace this with FindRFI() as to allow other experiments to use the same code
             packet = FindRFI_LOFAR(station_files,
                                    reader.meta_dir,
                                    station_trace_length,
