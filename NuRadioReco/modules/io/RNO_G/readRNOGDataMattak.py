@@ -15,6 +15,18 @@ import NuRadioReco.framework.trigger
 from NuRadioReco.utilities import units
 import mattak.Dataset
 
+import string
+import random
+
+def create_random_directory_path(prefix="/tmp/", n=7):
+    
+    # using random.choices()
+    # generating random strings
+    res = ''.join(random.choices(string.ascii_lowercase + string.digits, k=n))
+    path = os.path.join(prefix, "readRNOGData_" + res)
+    
+    return path
+    
 
 def baseline_correction(wfs, n_bins=128, func=np.median):
     """
@@ -152,6 +164,8 @@ class readRNOGData:
      
         # Initialize run table for run selection
         self.__run_table = None
+        
+        self.__temporary_dirs = []
 
         if run_table_path is None:
             try:
@@ -310,14 +324,28 @@ class readRNOGData:
                 if not all_files_in_directory(dir_file):
                     self.logger.error(f"Incomplete directory: {dir_file}. Skip ...")
                     continue
-                
-                try:
-                    dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=dir_file, verbose=verbose, **mattak_kwargs)
-                except (ReferenceError, KeyError) as e:
-                    self.logger.error(f"The following exeption was raised reading in the run: {dir_file}. Skip that run ...:\n", exc_info=e)
-                    continue
             else:
-                raise NotImplementedError("The option to read in files is not implemented yet")
+                
+                path = create_random_directory_path()
+                self.logger.debug(f"Create temporary directory: {path}")
+                if os.path.exists(path):
+                    raise ValueError(f"Temporary directory {path} already exists.")
+                
+                os.mkdir(path)
+                self.__temporary_dirs.append(path)
+                
+                self.logger.debug(f"Create symlink for {dir_file}")
+                os.symlink(dir_file, os.path.join(path, "combined.root"))
+                
+                dir_file = path
+                
+                # raise NotImplementedError("The option to read in files is not implemented yet")
+
+            try:
+                dataset = mattak.Dataset.Dataset(station=0, run=0, data_dir=dir_file, verbose=verbose, **mattak_kwargs)
+            except (ReferenceError, KeyError) as e:
+                self.logger.error(f"The following exeption was raised reading in the run: {dir_file}. Skip that run ...:\n", exc_info=e)
+                continue
 
 
             # filter runs/datasets based on 
@@ -557,8 +585,7 @@ class readRNOGData:
         is_valid: bool
             Returns True if all information valid, false otherwise
         """
-
-
+        
         if math.isinf(event_info.triggerTime):
             self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
                                      "has inf trigger time. Skip event...")
@@ -568,7 +595,7 @@ class readRNOGData:
 
         if (event_info.sampleRate == 0 or event_info.sampleRate is None) and self._overwrite_sampling_rate is None:
             self.logger.error(f"Event {event_info.eventNumber} (st {event_info.station}, run {event_info.run}) "
-                              f"has a sampling rate of {event_info.sampleRate:.2f} GHz. Event is skipped ... "
+                              f"has a sampling rate of {event_info.sampleRate} GHz. Event is skipped ... "
                               f"You can avoid this by setting 'overwrite_sampling_rate' in the begin() method.")
             self.__invalid += 1
             return False
@@ -790,3 +817,8 @@ class readRNOGData:
         else:
             self.logger.info(
                 f"\n\tRead {self.__counter} events (skipped {self.__skipped} events, {self.__invalid} invalid events)")
+            
+        for d in self.__temporary_dirs:
+            self.logger.debug(f"Remove temporary folder: {d}")
+            os.unlink(os.path.join(d, "combined.root"))
+            os.rmdir(d)
