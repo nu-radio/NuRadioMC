@@ -20,31 +20,33 @@ class outputWriterNur:
     
     def save_event(
         self,
-        event
+        events
     ):
-        for station in event.get_stations():
-            target_sampling_rate = self.__detector.get_sampling_frequency(
-                station.get_id(),
-                station.get_channel_ids()[0]
-            )
-            self.__channel_resampler.run(
-                event,
-                station,
-                self.__detector,
-                target_sampling_rate
-            )
-            self.__channel_resampler.run(
-                event,
-                station.get_sim_station(),
-                self.__detector,
-                target_sampling_rate
-            )
-        if self.__save_detector:
-            self.__event_writer.run(
-                event,
-                self.__detector
-            )
-        else:
-            self.__event_writer.run(
-                event
-            )
+        for key in events:
+            event = events[key]
+            for station in event.get_stations():
+                target_sampling_rate = self.__detector.get_sampling_frequency(
+                    station.get_id(),
+                    station.get_channel_ids()[0]
+                )
+                self.__channel_resampler.run(
+                    event,
+                    station,
+                    self.__detector,
+                    target_sampling_rate
+                )
+                self.__channel_resampler.run(
+                    event,
+                    station.get_sim_station(),
+                    self.__detector,
+                    target_sampling_rate
+                )
+            if self.__save_detector:
+                self.__event_writer.run(
+                    event,
+                    self.__detector
+                )
+            else:
+                self.__event_writer.run(
+                    event
+                )

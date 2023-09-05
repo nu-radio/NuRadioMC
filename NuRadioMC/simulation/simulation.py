@@ -287,12 +287,10 @@ class simulation(
                         event_group_id,
                         sub_event_shower_ids
                     )
-                    """
                     if self.__output_writer_nur is not None:
                         self.__output_writer_nur.save_event(
-                            event_objects[i_sub_evt]
+                            event_objects
                         )
-                    """
         # Create trigger structures if there are no triggering events.
         # This is done to ensure that files with no triggering n_events
         # merge properly.
