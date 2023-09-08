@@ -236,7 +236,16 @@ class outputWriterHDF5:
             self.__output['zeniths'] = np.array(self.__input_data['zeniths'])
             self.__output['shower_type'] = np.array(self.__input_data['shower_type'])
             self.__output['vertex_times'] = np.array(self.__input_data['vertex_times'])
-        
+        else:
+            self.__output['emitter_amplitudes'] = np.array(self.__input_data['emitter_amplitudes'])
+            self.__output['emitter_antenna_type'] = np.array(self.__input_data['emitter_antenna_type'])
+            self.__output['emitter_frequency'] = np.array(self.__input_data['emitter_frequency'])
+            self.__output['emitter_half_width'] = np.array(self.__input_data['emitter_half_width'])
+            self.__output['emitter_model'] = np.array(self.__input_data['emitter_model'])
+            self.__output['emitter_orientation_phi'] = np.array(self.__input_data['emitter_orientation_phi'])
+            self.__output['emitter_orientation_theta'] = np.array(self.__input_data['emitter_orientation_theta'])
+            self.__output['emitter_rotation_phi'] = np.array(self.__input_data['emitter_rotation_phi'])
+            self.__output['emitter_rotation_theta'] = np.array(self.__input_data['emitter_rotation_theta'])
         self.__output['event_group_ids'] = np.array(self.__input_data['event_group_ids'])
         self.__output['shower_ids'] = np.array(self.__input_data['shower_ids'])
         self.__output['triggered'] = np.zeros(self.__input_data['shower_ids'].shape, dtype=bool)
