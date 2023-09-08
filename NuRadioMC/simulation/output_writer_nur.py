@@ -1,6 +1,7 @@
 import numpy as np
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.channelResampler
+import NuRadioReco.modules.electricFieldResampler
 
 class outputWriterNur:
     def __init__(
@@ -17,6 +18,7 @@ class outputWriterNur:
             self.__output_filename
         )
         self.__channel_resampler = NuRadioReco.modules.channelResampler.channelResampler()
+        self.__electric_field_resampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
     
     def save_event(
         self,
@@ -36,6 +38,12 @@ class outputWriterNur:
                     target_sampling_rate
                 )
                 self.__channel_resampler.run(
+                    event,
+                    station.get_sim_station(),
+                    self.__detector,
+                    target_sampling_rate
+                )
+                self.__electric_field_resampler.run(
                     event,
                     station.get_sim_station(),
                     self.__detector,
