@@ -171,7 +171,8 @@ class simulation(
             self._station_ids,
             self._raytracer,
             self.__hardware_response_simulator,
-            self._inputfilename
+            self._inputfilename,
+            self._particle_mode
         )
         if self._outputfilenameNuRadioReco is None:
             self.__output_writer_nur = None

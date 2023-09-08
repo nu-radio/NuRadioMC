@@ -16,7 +16,8 @@ class outputWriterHDF5:
             station_ids,
             raytracer,
             detector_simulator,
-            input_filename
+            input_filename,
+            particle_mode
     ):
         self.__filename = output_filename
         self.__config = config
@@ -29,6 +30,7 @@ class outputWriterHDF5:
         self.__meta_output_attributes = None
         self.__detector_simulator = detector_simulator
         self.__input_filename = input_filename
+        self.__particle_mode = particle_mode
         self.__shower_index_array = {}
         input_file = h5py.File(self.__input_filename, 'r')
         self.__input_data = {}
@@ -223,23 +225,25 @@ class outputWriterHDF5:
         self.__output['trigger_times'] = np.zeros((self.__input_data['shower_ids'].shape[0], len(self.__output_attributes['trigger_names'])))
 
     def __create_output_data_structure(self):
-        self.__output['azimuths'] = np.array(self.__input_data['azimuths'])
-        self.__output['energies'] = np.array(self.__input_data['energies'])
+        if self.__particle_mode:
+            self.__output['azimuths'] = np.array(self.__input_data['azimuths'])
+            self.__output['energies'] = np.array(self.__input_data['energies'])
+            self.__output['flavors'] = np.array(self.__input_data['flavors'])
+            self.__output['inelasticity'] = np.array(self.__input_data['inelasticity'])
+            self.__output['interaction_type'] = np.array(self.__input_data['interaction_type'])
+            self.__output['n_interaction'] = np.array(self.__input_data['n_interaction'])
+            self.__output['shower_energies'] = np.array(self.__input_data['shower_energies'])
+            self.__output['zeniths'] = np.array(self.__input_data['zeniths'])
+            self.__output['shower_type'] = np.array(self.__input_data['shower_type'])
+            self.__output['vertex_times'] = np.array(self.__input_data['vertex_times'])
+        
         self.__output['event_group_ids'] = np.array(self.__input_data['event_group_ids'])
-        self.__output['flavors'] = np.array(self.__input_data['flavors'])
-        self.__output['inelasticity'] = np.array(self.__input_data['inelasticity'])
-        self.__output['interaction_type'] = np.array(self.__input_data['interaction_type'])
-        self.__output['n_interaction'] = np.array(self.__input_data['n_interaction'])
-        self.__output['shower_energies'] = np.array(self.__input_data['shower_energies'])
         self.__output['shower_ids'] = np.array(self.__input_data['shower_ids'])
-        self.__output['shower_type'] = np.array(self.__input_data['shower_type'])
         self.__output['triggered'] = np.zeros(self.__input_data['shower_ids'].shape, dtype=bool)
-        self.__output['vertex_times'] = np.array(self.__input_data['vertex_times'])
         self.__output['weights'] = np.zeros(self.__input_data['shower_ids'].shape)
         self.__output['xx'] = np.array(self.__input_data['xx'])
         self.__output['yy'] = np.array(self.__input_data['yy'])
         self.__output['zz'] = np.array(self.__input_data['zz'])
-        self.__output['zeniths'] = np.array(self.__input_data['zeniths'])
         
     def __create_station_output_structure(self, station_id):
         self.__output_station[station_id]['shower_id'] = []
