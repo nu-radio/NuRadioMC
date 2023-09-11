@@ -118,17 +118,6 @@ class simulation(
             self.__channel_simulator,
             self._raytracer.get_number_of_raytracing_solutions()
         )
-        self.__station_simulator = NuRadioMC.simulation.station_simulator.stationSimulator(
-            self._det,
-            self._channel_ids,
-            self._cfg,
-            self._fin,
-            self._fin_attrs,
-            self._fin_stations,
-            self.__shower_simulator,
-            self._raytracer,
-            self._check_if_was_pre_simulated()
-        )
         self.__hardware_response_simulator = NuRadioMC.simulation.hardware_response_simulator.hardwareResponseSimulator(
             self._det,
             self._cfg,
@@ -139,6 +128,20 @@ class simulation(
             self._detector_simulation_filter_amp,
             self._raytracer,
             self._evt_time
+        )
+
+        efield_v_rms_per_channel = self.__hardware_response_simulator.get_efield_v_rms_per_channel()
+        self.__station_simulator = NuRadioMC.simulation.station_simulator.stationSimulator(
+            self._det,
+            self._channel_ids,
+            self._cfg,
+            self._fin,
+            self._fin_attrs,
+            self._fin_stations,
+            self.__shower_simulator,
+            self._raytracer,
+            self._check_if_was_pre_simulated(),
+            efield_v_rms_per_channel
         )
 
 
@@ -250,7 +253,6 @@ class simulation(
                     iCounter += 1
                     continue
 
-                candidate_station = False
                 self._set_detector_properties()
                 ray_tracing_performed = False
                 if 'station_{:d}'.format(self._station_id) in self._fin_stations:
@@ -259,7 +261,9 @@ class simulation(
                 sim_showers = {}
                 self._create_sim_station()
 
-                station_output, efield_array = self.__station_simulator.simulate_station(self._station_id)
+                station_output, efield_array, is_candidate_station = self.__station_simulator.simulate_station(self._station_id)
+                if not is_candidate_station:
+                    continue
                 event_objects, station_objects, sub_event_shower_ids, station_has_triggered, hardware_response_output = self.__hardware_response_simulator.simulate_detector_response(
                     self._station_id,
                     efield_array,

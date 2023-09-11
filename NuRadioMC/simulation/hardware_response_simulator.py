@@ -367,3 +367,6 @@ class hardwareResponseSimulator:
 
     def get_bandwidth(self):
         return self.__bandwidth
+    
+    def get_efield_v_rms_per_channel(self):
+        return self.__v_rms_efield_per_channel

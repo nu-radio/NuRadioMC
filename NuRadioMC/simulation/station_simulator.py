@@ -12,7 +12,8 @@ class stationSimulator:
             input_stations,
             shower_simulator,
             raytracer,
-            was_pre_simulated
+            was_pre_simulated,
+            efield_v_rms_per_channel
     ):
         self.__detector = detector
         self.__channel_ids = channel_ids
@@ -27,6 +28,7 @@ class stationSimulator:
         self.__i_event_group = None
         self.__event_group_id = None
         self.__shower_indices = None
+        self.__efield_v_rms_per_channel = efield_v_rms_per_channel
         if self.__config['speedup']['distance_cut']:
             self.__distance_cut_polynomial = np.polynomial.polynomial.Polynomial(self.__config['speedup']['distance_cut_coefficients'])
         else:
@@ -76,7 +78,10 @@ class stationSimulator:
         n_showers = len(self.__shower_indices)
         n_antennas = len(self.__detector.get_channel_ids(station_id))
         n_raytracing_solutions = self.__raytracer.get_number_of_raytracing_solutions()  # number of possible ray-tracing solutions
-
+        if 'min_efield_amplitude' in self.__config['speedup'].keys():
+            is_candidate_station = False
+        else:
+            is_candidate_station = True
         for i_shower, shower_index in enumerate(self.__shower_indices):
             efield_objects, launch_vectors, receive_vectors, travel_times, path_lengths, polarization_directions, \
                 efield_amplitudes, raytracing_output = self.__shower_simulator.simulate_shower(
@@ -95,7 +100,13 @@ class stationSimulator:
                 if key not in output_structure:
                     output_structure[key] = np.full((n_showers, n_antennas, n_raytracing_solutions), np.nan)
                 output_structure[key][i_shower] = raytracing_output[key]
-        return output_structure, efield_array
+            if not is_candidate_station:
+                for i_channel, channel_id in enumerate(self.__channel_ids):
+                    amplitude_cut = efield_amplitudes[i_channel] > self.__config['speedup']['min_efield_amplitude'] * self.__efield_v_rms_per_channel[station_id][channel_id]
+                    amplitude_cut[np.isnan(efield_amplitudes[i_channel])] = False
+                    if np.any(amplitude_cut):
+                        is_candidate_station = True
+        return output_structure, efield_array, is_candidate_station
     def __distance_cut(
             self,
             station_id
