@@ -87,4 +87,4 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
             NuRadioReco.framework.base_trace.BaseTrace.deserialize(self, data['base_trace'])
         self._parameters = NuRadioReco.framework.parameter_serialization.deserialize(data['parameters'], parameters.channelParameters)
         self._id = data['id']
-        self._group_id = data['group_id']
+        self._group_id = data.get('group_id')  # Attempts to load group_id, returns None if not found
