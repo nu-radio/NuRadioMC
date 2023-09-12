@@ -12,7 +12,6 @@ in the `NuRadioReco.framework.parameters.channelParameters.block_offsets` parame
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.framework.base_trace import BaseTrace
 from NuRadioReco.framework.parameters import channelParameters
-# from iminuit import Minuit
 import numpy as np
 import scipy
 
