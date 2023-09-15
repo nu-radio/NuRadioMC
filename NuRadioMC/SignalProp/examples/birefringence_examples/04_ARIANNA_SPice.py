@@ -1,36 +1,21 @@
-from NuRadioMC.SignalProp import propagation
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import units
 import NuRadioReco.framework.electric_field
 import matplotlib.pyplot as plt
 import numpy as np
-import time
-
-from NuRadioMC.SignalProp import radioproparaytracing
+from scipy import signal
 from NuRadioMC.SignalProp import analyticraytracing
 
-#Left to do
-
-# correct emitter and reciver positions
-# correct emitter angle
-# fold antenna response
-# calculate max of hilbert envelope
-
-
-
 SPice_position = np.array([0 , 0 , -1300 ])* units.m
-ARIANNA_position = np.array([500, 50, -5])* units.m
+ARIANNA_position = np.array([564, 37, -1])* units.m
 
 ref_index_model = 'southpole_2015'
 ice = medium.get_ice_model(ref_index_model)
 rays = analyticraytracing.ray_tracing(ice)
 ray_tracing_solution = 0
 
-
-
-
-
-re_sr = 2*10**(9) * units.hertz
+propagation_pulse = NuRadioReco.framework.electric_field.ElectricField([1], position=None,
+                shower_id=None, ray_tracing_id=None)
 
 config = {'propagation': {}}
 config['propagation']['attenuate_ice'] = True
@@ -38,68 +23,115 @@ config['propagation']['focusing_limit'] = 2
 config['propagation']['focusing'] = False
 config['propagation']['birefringence'] = True
 
+def hilbert(T, th, ph):
+         
+    h_th = signal.hilbert(th)
+    h_ph = signal.hilbert(ph)    
+    return(T, th, ph, np.abs(h_th), np.abs(h_ph))
 
-propagation_pulse = NuRadioReco.framework.electric_field.ElectricField([1], position=None,
-                 shower_id=None, ray_tracing_id=None)
+
+def hilbert_max(T, th, ph):
+    
+    hil = hilbert(T, th, ph)
+    return(hil[0][hil[3] == max(hil[3])], hil[0][hil[4] == max(hil[4])], max(hil[3]), max(hil[4]))
+       
+
+def fluence_hil(T, th, ph):
+    
+    data = hilbert(T, th, ph)    
+    m = hilbert_max(T, th, ph)
+    
+    if m[2] > m[3]:
+        dominant = m[0]
+    else:
+        dominant = m[1]
+    
+    t_area = data[0][(data[0] < (dominant + 35)) &  (data[0] > (dominant - 35))]
+    th_area = data[1][(data[0] < (dominant + 35)) &  (data[0] > (dominant - 35))]   
+    ph_area = data[2][(data[0] < (dominant + 35)) &  (data[0] > (dominant - 35))]        
+    dt = t_area[1] - t_area[0]
+
+    F_th = np.sqrt(np.sum(th_area**2))
+    F_ph = np.sqrt(np.sum(ph_area**2))    
+    return(F_th, F_ph, dt)
+
+
+def pulse_polarization(T, th, ph):
+    
+    F = fluence_hil(T, th, ph)
+    return np.rad2deg(np.arctan(F[1]/F[0]))
 
 
 def birefringence_propagation(e_field, emitter_depth):
 
     propagation_pulse.set_trace(e_field, sr)
-    propagation_pulse.resample(re_sr)
     SPice_position = np.array([0 , 0 , emitter_depth ])* units.m
     
-    rays.set_start_and_end_point(SPice_position, A5ara_position)
+    rays.set_start_and_end_point(SPice_position, ARIANNA_position)
     rays.find_solutions()
     rays.set_config(config)
 
     rays.apply_propagation_effects(propagation_pulse, ray_tracing_solution)
 
-    vpol_max = np.max(propagation_pulse.get_trace()[1])
-    hpol_max = np.max(propagation_pulse.get_trace()[2])
+    trace = propagation_pulse.get_trace()
 
-    return vpol_max, hpol_max
-
-
+    pol = pulse_polarization(propagation_pulse.get_times(), trace[1], trace[2])
+    return pol
 
 
-depths = np.arange(-1600, -849, 10)
-pulse_number = np.arange(0, 10, 1)
-print(depths)
+depths = np.arange(-1700, -699, 100)
+angle = 60 
+waveform = 0
 
-v_max = np.empty(shape=(len(pulse_number), len(depths)))
-h_max = np.empty(shape=(len(pulse_number), len(depths)))
+polar = []
 
+pulse = np.load('SPice_pulses/eField_launchAngle_' + str(angle) + '_set_' + str(waveform) + '.npy')
+dt = pulse[0, 1] - pulse[0, 0]
+sr = 1 / dt
 
-for waveform in pulse_number:
+#normalizing waveforms
+pulse_fluence = fluence_hil(pulse[0], pulse[1], pulse[2])
+norm = pulse_fluence[0] + pulse_fluence[1]
+pulse[1] = pulse[1] / norm
+pulse[2] = pulse[2] / norm
 
-    
-    pulse = np.load('SPice_pulses/eField_launchAngle_15_set_' + str(waveform) + '.npy')
-    dt = pulse[0, 1] - pulse[0, 0]
-    sr = 1 / dt
+fig, axs = plt.subplots(2, 1, figsize=(6, 8))
 
-    r_component = np.zeros(len(pulse[1]))
-    electric_field = np.stack((r_component, pulse[1], pulse[2]))
+axs[0].plot(pulse[0], pulse[1], 'b', label='starting pulse, theta')
+axs[0].plot(pulse[0], pulse[2], 'r', label='starting pulse, phi')
+axs[0].set_ylabel('amplitude [A.U.]')
+axs[0].set_xlabel('time [ns]')
+axs[0].legend()
 
-    for depth in range(len(depths)):
+r_component = np.zeros(len(pulse[1]))
+electric_field = np.stack((r_component, pulse[1], pulse[2]))
 
-        print('waveform: ', waveform)
-        print('depth: ', depths[depth])
+for depth in range(len(depths)):
+    print('depth: ', depths[depth])
 
-        st = time.time()
-        vpol_max, hpol_max = birefringence_propagation(electric_field, depths[depth])
-        et = time.time()
-        print('Execution time (numerical propagation):', et - st, 'seconds')
-
-        v_max[waveform, depth] = vpol_max
-        h_max[waveform, depth] = hpol_max
-
-
-
-
-plt.plot(depths, np.mean(v_max, axis=0), label='pulse theta')
-plt.plot(depths, np.mean(h_max, axis=0), label='pulse phi')
+    polarization = birefringence_propagation(electric_field, depths[depth])
+    polar.append(polarization)
 
 
-plt.legend()
-plt.show()
+syst = np.load('ARIANNA_systematics.npy')
+ARIANNA_data = np.load('ARIANNA_data.npy')
+
+axs[1].fill_between(syst[0], syst[1], syst[2],color='deepskyblue', label='systematic uncertainty', alpha=.25)
+axs[1].errorbar(ARIANNA_data[0], ARIANNA_data[1], ARIANNA_data[2],fmt='d',elinewidth=1, color='midnightblue', label='SPICE data')
+axs[1].plot(depths, polar, 'r', zorder=10, label='simulated polarization')
+
+comm_a = [-900 , -950]
+comm_b = [-1230 , -1270]
+comm_c = [-1520 , -1550]
+axs[1].fill_between(comm_a, 0, 30, color='black',alpha=0.15,linewidth=0.0, label='Comm. Period')
+axs[1].fill_between(comm_b, 0, 30, color='black',alpha=0.15,linewidth=0.0)
+axs[1].fill_between(comm_c, 0, 30, color='black',alpha=0.15,linewidth=0.0)
+
+axs[1].set_xlabel('depth [m]')
+axs[1].set_ylabel(r'$\arctan\left(\frac{f_\Phi}{f_\theta}\right)[^\circ]$', fontsize=10)
+axs[1].set_ylim(0,30)
+axs[1].set_xlim(-1750,-750)        
+axs[1].legend()
+
+plt.tight_layout() 
+plt.savefig('04_ARIANNA_simple_plot.png', dpi=400)
