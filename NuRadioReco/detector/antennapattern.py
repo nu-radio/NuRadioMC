@@ -64,8 +64,14 @@ def interpolate_linear_vectorized(x, x0, x1, y0, y1, interpolation_method='compl
     """
     x = np.array(x)
     mask = x0 != x1
-    result = np.zeros_like(x, dtype=complex)
+    result = np.zeros_like(x, dtype=np.complex)
     denominator = x1 - x0
+    
+    #debug test:
+    #if x0 == x1:
+        #return y0
+    
+    
     if interpolation_method == 'complex':
         result[mask] = y0[mask] + (y1[mask] - y0[mask]) * (x[mask] - x0[mask]) / denominator[mask]
     elif interpolation_method == 'magphase':  # interpolate magnitude and phase
@@ -623,13 +629,13 @@ def parse_AERA_XML_file(path):
 
     # get frequencies and angles
     frequencies_node = root.find("./frequency")
-    frequencies = np.array(frequencies_node.text.strip().split(), dtype=float) * units.MHz
+    frequencies = np.array(frequencies_node.text.strip().split(), dtype=np.float) * units.MHz
 
     theta_node = root.find("./theta")
-    thetas = np.array(theta_node.text.strip().split(), dtype=float) * units.deg
+    thetas = np.array(theta_node.text.strip().split(), dtype=np.float) * units.deg
 
     phi_node = root.find("./phi")
-    phis = np.array(phi_node.text.strip().split(), dtype=float) * units.deg
+    phis = np.array(phi_node.text.strip().split(), dtype=np.float) * units.deg
 
     n_freqs = len(frequencies)
     n_angles = len(phis)
@@ -650,16 +656,16 @@ def parse_AERA_XML_file(path):
             freq_string = "%.1f" % freq
 
         theta_amp_node = root.find("./EAHTheta_amp[@idfreq='%s']" % freq_string)
-        theta_amps[iFreq] = np.array(theta_amp_node.text.strip().split(), dtype=float) * units.m
+        theta_amps[iFreq] = np.array(theta_amp_node.text.strip().split(), dtype=np.float) * units.m
 
         theta_phase_node = root.find("./EAHTheta_phase[@idfreq='%s']" % freq_string)
-        theta_phases[iFreq] = np.deg2rad(np.array(theta_phase_node.text.strip().split(" "), dtype=float))
+        theta_phases[iFreq] = np.deg2rad(np.array(theta_phase_node.text.strip().split(" "), dtype=np.float))
 
         phi_amp_node = root.find("./EAHPhi_amp[@idfreq='%s']" % freq_string)
-        phi_amps[iFreq] = np.array(phi_amp_node.text.strip().split(), dtype=float) * units.m
+        phi_amps[iFreq] = np.array(phi_amp_node.text.strip().split(), dtype=np.float) * units.m
 
         phi_phase_node = root.find("./EAHPhi_phase[@idfreq='%s']" % freq_string)
-        phi_phases[iFreq] = np.deg2rad(np.array(phi_phase_node.text.strip().split(), dtype=float))
+        phi_phases[iFreq] = np.deg2rad(np.array(phi_phase_node.text.strip().split(), dtype=np.float))
 
     return frequencies, phis, thetas, phi_amps, phi_phases, theta_amps, theta_phases
 
@@ -1059,14 +1065,15 @@ class AntennaPatternBase:
             of the same length as the frequency input
         """
         if self._notfound:
-            VEL = {'theta': np.ones(len(freq), dtype=complex),
-                   'phi': np.ones(len(freq), dtype=complex)}
+            VEL = {'theta': np.ones(len(freq), dtype=np.complex),
+                   'phi': np.ones(len(freq), dtype=np.complex)}
             return VEL
 
         if isinstance(freq, (float, int)):
             freq = np.array([freq])
         theta, phi = self._get_theta_and_phi(zenith, azimuth, orientation_theta, orientation_phi, rotation_theta,
                                              rotation_phi)
+        
 
         Vtheta_raw, Vphi_raw = self._get_antenna_response_vectorized_raw(freq, theta, phi)
 
@@ -1084,7 +1091,10 @@ class AntennaPatternBase:
         V_onsky = cstrans2.transform_from_ground_to_onsky(V_xyz)
         VEL = {'theta': V_onsky[1],
                'phi': V_onsky[2]}
-        return VEL
+        #DEBUG VERSION:
+            
+        return VEL, Vtheta_raw, Vphi_raw
+        #return VEL
 
 
 class AntennaPattern(AntennaPatternBase):
@@ -1325,7 +1335,9 @@ class AntennaPattern(AntennaPatternBase):
         interpolated_VELt[out_of_bound_freqs_high] = 0 + 0 * 1j
         interpolated_VELp[out_of_bound_freqs_low] = 0 + 0 * 1j
         interpolated_VELp[out_of_bound_freqs_high] = 0 + 0 * 1j
-        return interpolated_VELt, interpolated_VELp
+        #return interpolated_VELt, interpolated_VELp
+        
+        return interpolated_VELt, interpolated_VELp, 
 
 
 class AntennaPatternAnalytic(AntennaPatternBase):
@@ -1395,7 +1407,11 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
             # Assuming simple cosine, sine falls-off for dummy module
             H_eff_t = np.zeros_like(Gain)
-            fmask = freq >= 0
+            
+            #FIXED FOLLOWING ISSUE:
+            #fmask = freq >= 0 #this allow the freq = 0, which causes NaN issues below
+            fmask = freq > 0  
+            
             H_eff_t[fmask] = Gain[fmask] * max_gain_cross * 1 / freq[fmask]
             H_eff_t *= np.cos(theta) * np.sin(phi)
             H_eff_t *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi
