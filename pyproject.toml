@@ -45,7 +45,7 @@ numba = "*"
 [tool.poetry.dev-dependencies]
 Sphinx = "*"
 sphinx-rtd-theme = "*"
-numpydoc = "1.1.0"
+numpydoc = "*"
 proposal = "7.5.1"
 pygdsm = {git = "https://github.com/telegraphic/pygdsm"}
 nifty5 = {git = "https://gitlab.mpcdf.mpg.de/ift/nifty.git", branch="NIFTy_5"}
