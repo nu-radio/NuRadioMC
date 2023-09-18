@@ -12,6 +12,10 @@ import logging
 logger = logging.getLogger('Event')
 
 
+def is_builtin_class_instance(obj):
+    return obj.__class__.__module__ == '__builtin__'
+
+
 class Event:
 
     def __init__(self, run_number, event_id):
@@ -41,7 +45,12 @@ class Event:
         kwargs:
             the key word arguments of the run method
         """
-
+        key_to_be_dropped = [key for key in kwargs 
+                             if not is_builtin_class_instance(kwargs[key])]
+        
+        for key in key_to_be_dropped:
+            kwargs.pop(key)
+                
         self.__modules_event.append([name, instance, kwargs])
 
     def register_module_station(self, station_id, instance, name, kwargs):
@@ -59,8 +68,15 @@ class Event:
         kwargs:
             the key word arguments of the run method
         """
-        if(station_id not in self.__modules_station):
+        if station_id not in self.__modules_station:
             self.__modules_station[station_id] = []
+            
+        key_to_be_dropped = [key for key in kwargs 
+                             if not is_builtin_class_instance(kwargs[key])]
+        
+        for key in key_to_be_dropped:
+            kwargs.pop(key)
+        
         iE = len(self.__modules_event)
         self.__modules_station[station_id].append([iE, name, instance, kwargs])
 
@@ -427,21 +443,18 @@ class Event:
             commit_hash = NuRadioReco.utilities.version.get_NuRadioMC_commit_hash()
             self.set_parameter(parameters.eventParameters.hash_NuRadioMC, commit_hash)
         except:
+            logger.warning("Event is serialized without commit hash!")
             self.set_parameter(parameters.eventParameters.hash_NuRadioMC, None)
 
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))
 
-        showers_pkl = []
-        for shower in self.get_showers():
-            showers_pkl.append(shower.serialize())
-        sim_showers_pkl = []
-        for shower in self.get_sim_showers():
-            sim_showers_pkl.append(shower.serialize())
-        particles_pkl = []
-        for particle in self.get_particles():
-            particles_pkl.append(particle.serialize())
+        showers_pkl = [shower.serialize() for shower in self.get_showers()]
+        sim_showers_pkl = [shower.serialize() for shower in self.get_sim_showers()]
+        particles_pkl = [particle.serialize() for particle in self.get_particles()]
+        
         hybrid_info = self.__hybrid_information.serialize()
+        
         modules_out_event = []
         for value in self.__modules_event:  # remove module instances (this will just blow up the file size)
             modules_out_event.append([value[0], None, value[2]])
@@ -489,9 +502,11 @@ class Event:
                 particle = NuRadioReco.framework.particle.Particle(None)
                 particle.deserialize(particle_pkl)
                 self.add_particle(particle)
+        
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         if 'hybrid_info' in data.keys():
             self.__hybrid_information.deserialize(data['hybrid_info'])
+        
         self._parameters = data['_parameters']
         self.__run_number = data['__run_number']
         self._id = data['_id']
@@ -500,7 +515,7 @@ class Event:
         if 'generator_info' in data.keys():
             self._generator_info = data['generator_info']
 
-        if("__modules_event" in data):
+        if "__modules_event" in data:
             self.__modules_event = data['__modules_event']
-        if("__modules_station" in data):
+        if "__modules_station" in data:
             self.__modules_station = data['__modules_station']

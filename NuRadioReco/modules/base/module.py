@@ -39,20 +39,21 @@ def register_run(level=None):
             # generator, so not sure how to access the event.
             evt = None
             station = None
+            
             # find out type of module automatically
-            if(len(args) == 1):
-                if(isinstance(args[0], NuRadioReco.framework.event.Event)):
+            if len(args) == 1:
+                if isinstance(args[0], NuRadioReco.framework.event.Event):
                     module_level = "event"
                     evt = args[0]
                 else:
                     # this is a module that creats events
                     module_level = "reader"
-            elif(len(args) >= 2):
-                if(isinstance(args[0], NuRadioReco.framework.event.Event) and isinstance(args[1], NuRadioReco.framework.base_station.BaseStation)):
+            elif len(args) >= 2:
+                if isinstance(args[0], NuRadioReco.framework.event.Event) and isinstance(args[1], NuRadioReco.framework.base_station.BaseStation):
                     module_level = "station"
                     evt = args[0]
                     station = args[1]
-                elif(isinstance(args[0], NuRadioReco.framework.event.Event)):
+                elif isinstance(args[0], NuRadioReco.framework.event.Event):
                     module_level = "event"
                     evt = args[0]
                 else:
@@ -64,18 +65,27 @@ def register_run(level=None):
                 module_level = "reader"
 
             start = timer()
-            res = run(self, *args, **kwargs)
-            if(module_level == "event"):
+
+            # Currently we are not storing the args with which the module is called. Typically those are the event and/or station
+            # on which the module is run which should not be stored here. The danger is if other data is passed as args
+            # kwargs["args"] = args  # otherwise we do not store the args 
+            
+            if module_level == "event":
                 evt.register_module_event(self, self.__class__.__name__, kwargs)
-            elif(module_level == "station"):
+            elif module_level == "station":
                 evt.register_module_station(station.get_id(), self, self.__class__.__name__, kwargs)
-            elif(module_level == "reader"):
+            elif module_level == "reader":
                 # not sure what to do... function returns generator, not sure how to access the event...
                 pass
+            
+            res = run(self, *args, **kwargs)
+            
             end = timer()
+            
             if self not in register_run_method.time:  # keep track of timing of modules. We use the module instance as key to time different module instances separately.
                 register_run_method.time[self] = 0
             register_run_method.time[self] += (end - start)
+            
             return res
 
         register_run_method.time = {}
