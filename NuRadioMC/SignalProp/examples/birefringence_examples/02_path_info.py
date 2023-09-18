@@ -5,10 +5,15 @@ import NuRadioReco.framework.electric_field
 import matplotlib.pyplot as plt
 import numpy as np
 
-from NuRadioMC.SignalProp import radioproparaytracing
 from NuRadioMC.SignalProp import analyticraytracing
 
-simulated_trace = np.load('example_pulse.npy')
+###-----------------------------------------
+#   EXAMPLE: Script to simulate the effects of birefringence for a specific geometry and pulse. 
+#            The relevant birefringent propaties along the ray path are extracted and plotted. (propagation path, final pulse, refractive indices, polarization vectors)
+###-----------------------------------------
+
+
+simulated_trace = np.load('extra_files/example_pulse.npy')
 
 norm_factor = 1600
 sr = 2*10**(9) * units.hertz
