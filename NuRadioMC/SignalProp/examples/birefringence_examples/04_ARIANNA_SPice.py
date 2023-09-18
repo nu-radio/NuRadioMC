@@ -6,6 +6,12 @@ import numpy as np
 from scipy import signal
 from NuRadioMC.SignalProp import analyticraytracing
 
+###-----------------------------------------
+#   EXAMPLE: Script to simulate the effects of birefringence on the polarization at the ARIANNA SouthPole station. 
+#            The measured data the simulation is compared to was taken from: DOI 10.1088/1748-0221/15/09/P09039
+#            A full study of this calculation was published here: DOI https://doi.org/10.1140/epjc/s10052-023-11238-y
+###-----------------------------------------
+
 SPice_position = np.array([0 , 0 , -1300 ])* units.m
 ARIANNA_position = np.array([564, 37, -1])* units.m
 
@@ -24,6 +30,7 @@ config['propagation']['focusing'] = False
 config['propagation']['birefringence'] = True
 
 def hilbert(T, th, ph):
+    # function to calculate the hilbert envelope of a pulse
          
     h_th = signal.hilbert(th)
     h_ph = signal.hilbert(ph)    
@@ -31,12 +38,14 @@ def hilbert(T, th, ph):
 
 
 def hilbert_max(T, th, ph):
+    # function to calculate the maximum of the hilbert envelope of a pulse
     
     hil = hilbert(T, th, ph)
     return(hil[0][hil[3] == max(hil[3])], hil[0][hil[4] == max(hil[4])], max(hil[3]), max(hil[4]))
        
 
 def fluence_hil(T, th, ph):
+    # function to calculate the fluence of the hilbert envelope of a pulse for 70ns around the maximum of the pulse
     
     data = hilbert(T, th, ph)    
     m = hilbert_max(T, th, ph)
@@ -57,12 +66,14 @@ def fluence_hil(T, th, ph):
 
 
 def pulse_polarization(T, th, ph):
+    # function to calculate the polarization of a pulse
     
     F = fluence_hil(T, th, ph)
     return np.rad2deg(np.arctan(F[1]/F[0]))
 
 
 def birefringence_propagation(e_field, emitter_depth):
+    # function to apply the birefringence effects for a specific SPice depth
 
     propagation_pulse.set_trace(e_field, sr)
     SPice_position = np.array([0 , 0 , emitter_depth ])* units.m
@@ -113,8 +124,8 @@ for depth in range(len(depths)):
     polar.append(polarization)
 
 
-syst = np.load('ARIANNA_systematics.npy')
-ARIANNA_data = np.load('ARIANNA_data.npy')
+syst = np.load('extra_files/ARIANNA_systematics.npy')
+ARIANNA_data = np.load('extra_files/ARIANNA_data.npy')
 
 axs[1].fill_between(syst[0], syst[1], syst[2],color='deepskyblue', label='systematic uncertainty', alpha=.25)
 axs[1].errorbar(ARIANNA_data[0], ARIANNA_data[1], ARIANNA_data[2],fmt='d',elinewidth=1, color='midnightblue', label='SPICE data')

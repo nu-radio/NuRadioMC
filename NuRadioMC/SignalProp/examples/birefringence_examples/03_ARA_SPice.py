@@ -9,6 +9,12 @@ from radiotools import helper as hp
 from scipy import signal
 from NuRadioMC.SignalProp import analyticraytracing
 
+###-----------------------------------------
+#   EXAMPLE: Script to simulate the effects of birefringence on the vpol amplitude at the ARA A5 station. 
+#            The measured data the simulation is compared to was taken from: DOI 10.1088/1475-7516/2020/12/009
+#            A full study of this calculation was published here: DOI https://doi.org/10.1140/epjc/s10052-023-11238-y
+###-----------------------------------------
+
 SPice_position = np.array([0 , 0 , -1300 ])* units.m
 A5ara_position = np.array([-434, 4125, -200])* units.m
 
@@ -32,19 +38,22 @@ vpol = prov.load_antenna_pattern("XFDTD_Vpol_CrossFeed_150mmHole_n1.78")
 
 
 def hilbert(T, th, ph):
-         
+    # function to calculate the hilbert envelope of a pulse
+ 
     h_th = signal.hilbert(th)
     h_ph = signal.hilbert(ph)    
     return(T, th, ph, np.abs(h_th), np.abs(h_ph))
 
 
 def hilbert_max(T, th, ph):
+    # function to calculate the maximum of the hilbert envelope of a pulse
     
     hil = hilbert(T, th, ph)
     return(hil[0][hil[3] == max(hil[3])], hil[0][hil[4] == max(hil[4])], max(hil[3]), max(hil[4]))
        
 
 def fluence_hil(T, th, ph):
+    # function to calculate the fluence of the hilbert envelope of a pulse for 70ns around the maximum of the pulse
     
     data = hilbert(T, th, ph)    
     m = hilbert_max(T, th, ph)
@@ -65,6 +74,7 @@ def fluence_hil(T, th, ph):
 
 
 def get_antenna_response(vec_r, e_field):
+    # function to convert the electric field to voltage traces by folding it with the antenna response
 
     zenith, azimuth = hp.cartesian_to_spherical(*vec_r)
 
@@ -94,6 +104,7 @@ def get_antenna_response(vec_r, e_field):
     return v_pol, h_pol
 
 def birefringence_propagation(e_field, emitter_depth):
+    # function to apply the birefringence effects for a specific SPice depth
 
     propagation_pulse.set_trace(e_field, sr)
     SPice_position = np.array([0 , 0 , emitter_depth ])* units.m
@@ -148,7 +159,7 @@ for depth in range(len(depths)):
 
 
 norm_factor = 2150
-loaded_data = np.load('ARA_data.npy')
+loaded_data = np.load('extra_files/ARA_data.npy')
 
 axs[1].errorbar(loaded_data[0], loaded_data[1], loaded_data[2], markersize = 3, linestyle='None', marker='s', label = 'measured vpol amplitude')
 axs[1].plot(depths, norm_factor * np.array(v_max), label='pulse theta')

@@ -8,7 +8,11 @@ import numpy as np
 from NuRadioMC.SignalProp import radioproparaytracing
 from NuRadioMC.SignalProp import analyticraytracing
 
-simulated_trace = np.load('example_pulse.npy')
+###-----------------------------------------
+#   EXAMPLE: Script to simulate the effects of birefringence on a simple pulse using different available propagation modules and ice-models. 
+###-----------------------------------------
+
+simulated_trace = np.load('extra_files/example_pulse.npy')
 
 sr = 2*10**(9) * units.hertz
 zeros = np.zeros(len(simulated_trace))
@@ -25,6 +29,8 @@ fig, axs = plt.subplots(4, 1, figsize=(10, 12))
 x_limits = [460, 520]
 
 def birefringence_propagation(config, raytracing, isolution, plot, lim, tracing_module, propagation_module, birefringent_ice_model):
+
+    #function to initialize a new config file, apply propagation effects and plot the results
 
     sim_pulse.set_trace(pulse_efield, sr)
     ref_index_model = 'southpole_2015'
