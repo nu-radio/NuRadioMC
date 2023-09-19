@@ -8,6 +8,7 @@ from NuRadioReco.utilities import units
 
 from radiotools import helper
 from scipy import interpolate
+from functools import wraps
 
 import datetime
 import numpy as np
@@ -34,6 +35,14 @@ def keys_not_in_dict(d, keys):
         d_tmp = d_tmp[key]
 
     return False
+
+
+def check_detector_time(method):
+    @wraps(method)
+    def _impl(self, *method_args, **method_kwargs):
+        self.get_detector_time()  # this will raise an error if time is not set
+        return method(self, *method_args, **method_kwargs)
+    return _impl
 
 
 class Detector():
@@ -265,6 +274,7 @@ class Detector():
                     self._query_station_information(
                         station_id, all=self._query_all)
 
+    @check_detector_time
     def get_station_ids(self):
         """
         Returns the list of all commissioned stations. 
@@ -284,7 +294,8 @@ class Detector():
                     commissioned_stations.append(station_id)
 
         return commissioned_stations
-
+    
+    @check_detector_time
     def has_station(self, station_id):
         """
         Returns true if the station is commission. First checks buffer. If not in buffer, queries (and buffers)
@@ -468,6 +479,7 @@ class Detector():
 
         return self.__buffered_stations[station_id]["channels"][channel_id]
 
+    @check_detector_time
     def get_absolute_position(self, station_id):
         """
         Get the absolute position of a specific station (relative to site)
@@ -504,6 +516,7 @@ class Detector():
 
         return self.__buffered_stations[station_id]["station_position"]["position"]
 
+    @check_detector_time
     def get_relative_position(self, station_id, channel_id):
         """
         Get the relative position of a specific channel/antenna with respect to the station center
@@ -527,6 +540,7 @@ class Detector():
             station_id, channel_id, with_position=True)
         return channel_info["channel_position"]['position']
 
+    @check_detector_time
     def get_channel_orientation(self, station_id, channel_id):
         """
         Returns the orientation of a specific channel/antenna
@@ -561,6 +575,7 @@ class Detector():
 
         return orientation["theta"], orientation["phi"], rotation["theta"], rotation["phi"]
 
+    @check_detector_time
     def get_channel_signal_chain(self, station_id, channel_id):
         """
 
@@ -577,13 +592,15 @@ class Detector():
         -------
 
         channel_signal_chain: dict
-            Returns dictionary which contains a list ("signal_chain") which contains (the names of) components/response which are used to
-            describe the signal chain of the channel
+            Returns dictionary which contains a list ("signal_chain") which contains 
+            (the names of) components/response which are used to describe the signal
+            chain of the channel
         """
         channel_info = self.__get_channel(
             station_id, channel_id, with_signal_chain=True)
         return self.__buffered_stations[station_id]["channels"][channel_id]["signal_chain"]
 
+    @check_detector_time
     def get_signal_chain_response(self, station_id, channel_id):
         """
 
@@ -606,16 +623,31 @@ class Detector():
             station_id, channel_id)
 
         measurement_components_dic = signal_chain_dict["response_chain"]
+        
+        # Here comes a HACK
+        components = list(measurement_components_dic.keys())
+        is_equal = False
+        if "drab_board" in components and "iglu_board" in components:
+            
+            is_equal = np.allclose(measurement_components_dic["drab_board"]["mag"],
+                                   measurement_components_dic["iglu_board"]["mag"])
+            
+            if is_equal:
+                self.logger.warn("Currently both, iglu and drab board are configured in the signal chain but their"
+                                 " responses are the same (because we measure them together in the lab). Drop the drab board response.")
 
         responses = []
         for key, value in measurement_components_dic.items():
+            if is_equal and key == "drab_board":
+                continue
+            
             ydata = [value["mag"], value["phase"]]
-            idx = np.argmin(np.abs(np.array(value["frequencies"]) - 0.5))
             responses.append(
                 Response(value["frequencies"], ydata, value["y-axis_units"], name=key))
 
         return np.prod(responses)
 
+    @check_detector_time
     def get_devices(self, station_id):
         """
         Get all devices for a particular station.
@@ -640,6 +672,7 @@ class Detector():
 
         return {device["id"]: device["device_name"] for device in self.__buffered_stations[station_id]["devices"].values()}
 
+    @check_detector_time
     def get_relative_position_device(self, station_id, device_id):
         """
         Get the relative position of a specific device with respect to the station center
@@ -717,6 +750,7 @@ class Detector():
     #     self.logger.debug("Parameter in buffer and valid: " + " / ".join([str(x) for x in key_list]))
     #     return True
 
+    @check_detector_time
     def get_number_of_channels(self, station_id):
         """
         Get number of channels for a particlular station. It will query the basic information of all stations in the 
@@ -745,6 +779,7 @@ class Detector():
 
         return len(channels)
 
+    @check_detector_time
     def get_channel_ids(self, station_id):
         """
         Get channel ids for a particlular station. It will query the basic information of all stations in the 
@@ -864,7 +899,7 @@ class Response:
         y_phase = np.array(y[1])
 
         if y_unit[0] == "dB":
-            gain = helper.dB_to_linear(y_ampl)
+            gain = 10 ** (y_ampl / 20)
         elif y_unit[0] == "mag" or y_unit[0] == "MAG":
             gain = y_ampl
         else:
