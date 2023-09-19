@@ -98,9 +98,9 @@ class ARA_2022(medium_base.IceModelSimple):
 
 class birefringence_medium(medium_base.IceModelBirefringence):
 
-    def __init__(self, bir_model='A'):
+    def __init__(self, bir_model='southpole_A'):
         # from https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
-        filepath = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/birefringence_southpole_' + bir_model + '.npy'
+        filepath = os.path.dirname(os.path.realpath(__file__)) + '/birefringence_models/birefringence_' + bir_model + '.npy'
         super().__init__(bir_model=np.load(filepath, allow_pickle=True))
 
 
