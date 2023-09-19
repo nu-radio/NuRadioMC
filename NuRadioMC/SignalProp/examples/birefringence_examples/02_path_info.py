@@ -34,9 +34,9 @@ y_limits = [-1, 1.4]
 
 # ---------------   raytracing:            analyticraytracing.py ---------------------
 # ---------------   e-field propagation:   analyticraytracing.py ---------------------
-# ---------------   biefringence model:    'A' ---------------------
+# ---------------   biefringence model:    'southpole_A' ---------------------
 
-bire_ice_model = 'A'
+bire_ice_model = 'southpole_A'
 
 config = {'propagation': {}}
 config['propagation']['attenuate_ice'] = False

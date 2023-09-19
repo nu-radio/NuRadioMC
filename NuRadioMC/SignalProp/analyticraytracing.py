@@ -2055,7 +2055,7 @@ class ray_tracing(ray_tracing_base):
 
         return transform.dot(polarization)
 
-    def get_pulse_propagation_birefringence(self, pulse, samp_rate, i_solution, bire_model = 'A'):
+    def get_pulse_propagation_birefringence(self, pulse, samp_rate, i_solution, bire_model = 'southpole_A'):
         
         """
         Function for the time trace propagation according to the polarization change due to birefringence. 
@@ -2128,7 +2128,7 @@ class ray_tracing(ray_tracing_base):
 
         return pulse
     
-    def get_path_properties_birefringence(self, i_solution, bire_model = 'A'):
+    def get_path_properties_birefringence(self, i_solution, bire_model = 'southpole_A'):
 
         """
         Function to extract important information about the birefringent propagation along the path.

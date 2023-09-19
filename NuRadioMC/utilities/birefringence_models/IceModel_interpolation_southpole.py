@@ -70,20 +70,12 @@ e1 = []
 e2 = []
 e3 = []
 
-with open("eps.csv", 'r') as inputfile:
-    for i in range(84):
-        line = inputfile.readline()
-        if i > 2:
-            line_s = line.split(',')
-            depthL.append(float(line_s[0]))
-            e3.append(float(line_s[3]))
-            e2.append(float(line_s[4]))
-            e1.append(float(line_s[5]))
+raw_ice_southpole = np.load('raw_ice_southpole.npy')
 
-dep = np.array(depthL)
-e1 = np.array(e1)
-e2 = np.array(e2)
-e3 = np.array(e3)
+dep = raw_ice_southpole[0]
+e1 = raw_ice_southpole[1]
+e2 = raw_ice_southpole[2]
+e3 = raw_ice_southpole[3]
 
 n1 = np.sqrt(e_p + e_d * e1)
 n2 = np.sqrt(e_p + e_d * e2)
@@ -175,7 +167,7 @@ if 1:
     plt.show()
 
 # -------------Jordan + Southpole
-if 0:
+if 1:
     p = [0, 0, -2500]
 
     i_all = get_index_of_refraction_all(p)
