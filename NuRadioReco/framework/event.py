@@ -45,10 +45,13 @@ class Event:
         kwargs:
             the key word arguments of the run method
         """
-        key_to_be_dropped = [key for key in kwargs 
+        
+        # Not every kwargs argument passed to a run(..) method is serializable. Example is a detector object. 
+        # Drop all arguments for which this is the case
+        keys_to_be_dropped = [key for key in kwargs 
                              if not is_serializable(kwargs[key])]
         
-        for key in key_to_be_dropped:
+        for key in keys_to_be_dropped:
             logger.warn(f"Dropping \"{key}\" of type {type(kwargs[key])} from kwargs of __modules_event")
             kwargs.pop(key)
                 
@@ -72,10 +75,12 @@ class Event:
         if station_id not in self.__modules_station:
             self.__modules_station[station_id] = []
             
-        key_to_be_dropped = [key for key in kwargs 
+        # Not every kwargs argument passed to a run(..) method is serializable. Example is a detector object. 
+        # Drop all arguments for which this is the case
+        keys_to_be_dropped = [key for key in kwargs 
                              if not is_serializable(kwargs[key])]
         
-        for key in key_to_be_dropped:
+        for key in keys_to_be_dropped:
             logger.warn(f"Dropping \"{key}\" of type {type(kwargs[key])} from kwargs of __modules_station")
             kwargs.pop(key)
         
