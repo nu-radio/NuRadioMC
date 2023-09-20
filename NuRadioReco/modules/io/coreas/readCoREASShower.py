@@ -117,17 +117,17 @@ class readCoREASShower:
                         station_id, corsika, observer, channel_ids=[0, 1, 2])
                 else:
                     sim_station = coreas.make_sim_station(
-                        station_id, corsika, observer, channel_ids=self.__det.get_channel_ids(self.__det.get_default_station_id()))
+                        station_id, corsika, observer, 
+                        channel_ids=self.__det.get_channel_ids(self.__det.get_default_station_id()))
+                
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
+                
                 if self.__det is not None:
                     position = observer.attrs['position']
-                    antenna_position = np.zeros(3)
-                    antenna_position[0], antenna_position[1], antenna_position[2] = - \
-                        position[1] * units.cm, position[0] * \
-                        units.cm, position[2] * units.cm
-                    antenna_position = cs.transform_from_magnetic_to_geographic(
-                        antenna_position)
+                    antenna_position = np.array([-position[1], position[0], position[2]]) * units.cm
+                    antenna_position = cs.transform_from_magnetic_to_geographic(antenna_position)
+                    
                     if not self.__det.has_station(station_id):
                         self.__det.add_generic_station({
                             'station_id': station_id,
