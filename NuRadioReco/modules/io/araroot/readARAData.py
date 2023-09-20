@@ -14,14 +14,15 @@ import ctypes
 
 
 sys.path.append(os.path.expandvars('${ARA_UTIL_INSTALL_DIR}/lib'))
-
-libc = ctypes.CDLL("libAraEvent.so")
-libc = ctypes.CDLL("libAraConfig.so")
-libc = ctypes.CDLL("libAraCorrelator.so")
-libc = ctypes.CDLL("libAraDisplay.so")
-libc = ctypes.CDLL("libAraKvp.so")
-libc = ctypes.CDLL("libRootFftwWrapper.so")
-
+try:
+    libc = ctypes.CDLL("libAraEvent.so")
+    libc = ctypes.CDLL("libAraConfig.so")
+    libc = ctypes.CDLL("libAraCorrelator.so")
+    libc = ctypes.CDLL("libAraDisplay.so")
+    libc = ctypes.CDLL("libAraKvp.so")
+    libc = ctypes.CDLL("libRootFftwWrapper.so")
+except OSError:
+    logging.warn(f"libAra*.so could not be loaded. No ARA support")
 
 class readARAData:
 
