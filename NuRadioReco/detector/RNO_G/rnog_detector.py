@@ -374,53 +374,6 @@ class Detector():
 
         self.__buffered_stations[station_id] = station_information[station_id]
 
-        # time_filter = [{"$match": {
-        #     'id': station_id,
-        #     'commission_time': {"$lte": self.get_detector_time()},
-        #     'decommission_time': {"$gte": self.get_detector_time()}}}]
-
-        # # get all stations which fit the filter
-        # station_information = list(self.__db.db["station_rnog"].aggregate(time_filter))
-
-        # if len(station_information) != 1:
-        #     raise ValueError(f"Could not query information of station {station_id} at {self.get_detector_time()}. "
-        #                      f"Found {len(station_information)} entries in database.")
-
-        # station_information[0].pop("id")
-        # self.__buffered_stations[station_id] = station_information[0]
-
-    # def get_full_station_information(self, station_id, update=False):
-    #     """
-
-    #     Parameters
-    #     ----------
-
-    #     station_id: int
-    #         Station id
-
-    #     update: bool
-    #         Force to query full station information. (Default: False)
-
-    #     Returns:
-
-    #     full_info: dict
-    #         Get dictionary of _all_ information of a commissioned station including all channel and device infomration
-    #         such as the S-parameter of the amplifier
-    #     """
-
-    #     if station_id not in self.__buffered_stations or self.__buffered_stations[station_id] == {} or update:
-    #         # query all information
-    #         self.logger.debug(f"Query full information of station {station_id} at {self.get_detector_time()}")
-    #         self.__buffered_stations[station_id] = self.__db.get_complete_station_information(station_id=station_id)
-    #     else:
-    #         info = self.__buffered_stations[station_id]
-    #         # This should ne be necessary because we clean the buffer in Detector.update(...).
-    #         # However, I keep it here because "twice holds longer" and in future we might implement a more smart way of updateing
-    #         if info["commission_time"] > self.get_detector_time() or info["decommission_time"] < self.get_detector_time():
-    #             self.__buffered_stations[station_id] = self.__db.get_complete_station_information(station_id=station_id)
-
-    #     return self.__buffered_stations[station_id]
-
     def __get_channel(self, station_id, channel_id, with_position=False, with_signal_chain=False):
         """
         Get most basic channel information from buffer. If not in buffer query DB for all channels. 
