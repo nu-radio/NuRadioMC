@@ -40,7 +40,7 @@ def birefringence_propagation(config, raytracing, isolution, plot, lim, tracing_
     if raytracing == 'analytical':
         rays = analyticraytracing.ray_tracing(ice)
     elif raytracing == 'numerical':
-        rays = radioproparaytracing.ray_tracing(ice)
+        rays = radioproparaytracing.radiopropa_ray_tracing(ice)
 
     rays.set_start_and_end_point(initial_point,final_point)
     rays.find_solutions()
@@ -116,7 +116,7 @@ propa_config['speedup'] = dict(
     delta_C_cut = 40 * units.degree
 )
 
-birefringence_propagation(config, 'analytical', ray_tracing_solution, 3, x_limits, 'radioproparaytracing.py', 'radioproparaytracing.py', 'southpole_A')
+birefringence_propagation(propa_config, 'numerical', ray_tracing_solution, 3, x_limits, 'radioproparaytracing.py', 'radioproparaytracing.py', 'southpole_A')
 
 # ---------------   plotting the results ---------------------
 axs[0].legend(loc = 1)
