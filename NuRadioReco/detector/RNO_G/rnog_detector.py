@@ -46,7 +46,7 @@ def check_detector_time(method):
 
 
 class Detector():
-    def __init__(self, database_connection='RNOG_test_public', log_level=logging.DEBUG, over_write_handset_values={},
+    def __init__(self, database_connection='RNOG_test_public', log_level=logging.INFO, over_write_handset_values={},
                  database_time=None, always_query_entire_description=True,
                  pickle_file=None):
         """
@@ -81,7 +81,8 @@ class Detector():
             "noise_temperature": 300 * units.kelvin,
             "sampling_frequency": 3.2 * units.GHz,
             "number_of_samples": 2048,
-            "is_noiseless": False
+            "is_noiseless": False,
+            "cable_delay": 0.
         }
 
         if pickle_file is None:
@@ -514,7 +515,7 @@ class Detector():
                 station_position_id=station_position_id)
             self.__buffered_stations[station_id]["station_position"] = station_position
 
-        return self.__buffered_stations[station_id]["station_position"]["position"]
+        return np.array(self.__buffered_stations[station_id]["station_position"]["position"])
 
     @check_detector_time
     def get_relative_position(self, station_id, channel_id):
@@ -538,7 +539,7 @@ class Detector():
         """
         channel_info = self.__get_channel(
             station_id, channel_id, with_position=True)
-        return channel_info["channel_position"]['position']
+        return np.array(channel_info["channel_position"]['position'])
 
     @check_detector_time
     def get_channel_orientation(self, station_id, channel_id):
@@ -564,8 +565,8 @@ class Detector():
 
         Returns
         -------
-
-        (orientation_theta, orientation_phi, rotation_theta, rotation_phi): tuble of floats
+        orientation: array of floats
+            (orientation_theta, orientation_phi, rotation_theta, rotation_phi): tuble of floats
         """
 
         channel_info = self.__get_channel(
@@ -573,7 +574,11 @@ class Detector():
         orientation = channel_info['channel_position']["orientation"]
         rotation = channel_info['channel_position']["rotation"]
 
-        return orientation["theta"], orientation["phi"], rotation["theta"], rotation["phi"]
+        return np.deg2rad([orientation["theta"], orientation["phi"], rotation["theta"], rotation["phi"]])
+
+    def get_antenna_orientation(self, station_id, channel_id):
+        """ Returns get_channel_orientation """
+        return self.get_channel_orientation(station_id, channel_id)
 
     @check_detector_time
     def get_channel_signal_chain(self, station_id, channel_id):
@@ -708,7 +713,7 @@ class Detector():
                 device_position_id=position_id)
             self.__buffered_stations[station_id]["devices"][device_id]['device_position'] = device_pos_info
 
-        return self.__buffered_stations[station_id]["devices"][device_id]["device_position"]["position"]
+        return np.array(self.__buffered_stations[station_id]["devices"][device_id]["device_position"]["position"])
 
     # def _has_valid_parameter_in_buffer(self, key_list):
     #     """
@@ -806,7 +811,29 @@ class Detector():
         # now station is in buffer (or an error was raised)
         channels = self.__buffered_stations[station_id]["channels"]
 
-        return [ele["id"] for ele in channels]
+        return [ele["id"] for ele in channels.values()]
+    
+    def get_antenna_model(self, station_id, channel_id, zenith=None):
+        """
+
+        Parameters
+        ----------
+        station_id: int
+            Station id
+            
+        channel_id: int
+            Channel id
+
+        Returns
+        -------
+        
+        antenna_model: string
+            Name of the antenna model (describing the Vector effective length VEL)
+        """
+        channel_info = self.__get_channel(
+            station_id, channel_id, with_signal_chain=True)
+        return channel_info["signal_chain"]["VEL"]
+        
 
     def get_number_of_samples(self, station_id, channel_id):
         """ Get number of samples per station / channel """
@@ -819,27 +846,38 @@ class Detector():
         """ Get sampling frequency per station / channel """
         sampling_frequency = self.__default_values["sampling_frequency"]
         self.logger.warn(
-            f"Return a hard-coded value of {sampling_frequency / units.GHz} GHz. This information is not (yet) implemented in the DB.")
+            f"Return a hard-coded value for the sampling frequency of {sampling_frequency / units.GHz} GHz. "
+            "This information is not (yet) implemented in the DB.")
         return sampling_frequency
 
     def get_noise_temperature(self, station_id, channel_id):
         """ Get noise temperture per station / channel """
         noise_temperature = self.__default_values["noise_temperature"]
         self.logger.warn(
-            f"Return a hard-coded value of {noise_temperature / units.kelvin} K. This information is not (yet) implemented in the DB.")
+            f"Return a hard-coded value for the noise temperature of {noise_temperature / units.kelvin} K. "
+            "This information is not (yet) implemented in the DB.")
         return noise_temperature
 
     def is_channel_noiseless(self, station_id, channel_id):
         is_noiseless = self.__default_values["is_noiseless"]
         self.logger.warn(
-            f"Return a hard-coded value of {is_noiseless}. This information is not (yet) implemented in the DB.")
+            f"Return a hard-coded value for \"is_noiseless\" of {is_noiseless}. "
+            "This information is not (yet) implemented in the DB.")
         return is_noiseless
 
     def get_cable_delay(self, station_id, channel_id):
-        self.logger.error("The cable delay is not yet implemented in the DB.")
-        raise NotImplementedError(
-            "The cable delay is not yet implemented in the DB.")
-
+        cable_delay = self.__default_values["cable_delay"]
+        if isinstance(cable_delay, float):    
+            self.logger.warn(
+                f"Return a hard-coded value for the cable delay of all channels of {cable_delay} ns. "
+                "This information is not (yet) implemented in the DB.")
+            return cable_delay
+        elif isinstance(cable_delay, dict):
+            self.logger.warn(
+                f"Return a hard-coded value for the cable delay for channel {channel_id} of {cable_delay[channel_id]} ns. "
+                "This information is not (yet) implemented in the DB.")
+            return cable_delay[channel_id]
+            
     def get_site(self, station_id):
         """
         This detector class is exclusive for the RNO-G detector at Summit Greenland.
@@ -982,6 +1020,7 @@ class Response:
 
 if __name__ == "__main__":
     det = Detector(log_level=logging.DEBUG, over_write_handset_values={
-                   "sampling_frequency": 2.4 * units.GHz}, always_query_entire_description=True)
+                   "sampling_frequency": 2.4 * units.GHz}, always_query_entire_description=False)
 
     det.update(datetime.datetime(2022, 8, 2, 0, 0))
+    det.get_antenna_model(11, 0)
