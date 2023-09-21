@@ -5,7 +5,6 @@ import NuRadioReco.modules.electricFieldResampler
 import NuRadioReco.modules.channelAddCableDelay
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.io.eventWriter
-import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.channelResampler
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import channelParameters as chp
@@ -27,8 +26,6 @@ class simulation_detector(NuRadioMC.simulation.simulation_base.simulation_base):
         self._efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
         self._efieldToVoltageConverter.begin(time_resolution=self._cfg['speedup']['time_res_efieldconverter'])
         self._channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
-        self._channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-        self._channelGenericNoiseAdder.begin(seed=self._cfg['seed'])
         self._channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
         self._electricFieldResampler = NuRadioReco.modules.electricFieldResampler.electricFieldResampler()
         if self._outputfilenameNuRadioReco is not None:
