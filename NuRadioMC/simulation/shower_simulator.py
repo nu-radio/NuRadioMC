@@ -108,6 +108,8 @@ class showerSimulator:
         efield_amplitude_list = np.full((n_channels, self.__n_raytracing_solutions), np.nan)
         raytracing_output_list = {}
         for i_channel, channel_id in enumerate(self.__channel_ids):
+            if not self.__channel_distance_cut(shower_vertex, channel_id):
+                continue
             efield_objects, launch_vectors, receive_vectors, travel_times, path_lenghts, polarization_directions, \
                 efield_amplitudes, raytracing_output = self.__channel_efield_simulator.simulate_efield_at_channel(
                 channel_id
@@ -147,6 +149,27 @@ class showerSimulator:
                 10. ** self.__distance_cut_polynomial(np.log10(shower_energy_sum))
             ]) + 100. * units.m
         return distance_to_station <= distance_cut_value
+
+    def __channel_distance_cut(
+        self,
+        shower_vertex,
+        channel_id
+    ):
+        if not self.__config['speedup']['distance_cut']:
+            return True
+        mask_shower_sum = np.abs(
+            self.__event_group_vertex_distances - self.__event_group_vertex_distances[0]
+        ) < self.__config['speedup']['distance_cut_sum_length']
+        shower_energy_sum = np.sum(self.__event_group_shower_energies[mask_shower_sum])
+        distance_to_channel = np.linalg.norm(shower_vertex - (self.__detector.get_absolute_position(self.__station_id) + self.__detector.get_relative_position(self.__station_id, channel_id)))
+        if shower_energy_sum <= 0:
+            distance_cut_value = 200. * units.m
+        else:
+            distance_cut_value = np.max([
+                100. * units.m,
+                10. ** self.__distance_cut_polynomial(np.log10(shower_energy_sum))
+            ]) + 100. * units.m
+        return distance_to_channel <= distance_cut_value
 
     def __in_fiducial_volume(
             self,
