@@ -78,7 +78,13 @@ class simulation(
         logger.status(f"Starting NuRadioMC simulation")
         self._t_start = time.time()
         t_last_update = self._t_start
-
+        """
+        TODO: Allow running stations with different numbers of channels
+        """
+        self._channel_ids = self._det.get_channel_ids(self._det.get_station_ids()[0])
+        sampling_rate_detector = self._det.get_sampling_frequency(self._det.get_station_ids()[0], self._channel_ids[0])
+        self._n_samples = self._det.get_number_of_samples(self._det.get_station_ids()[0], self._channel_ids[0]) / sampling_rate_detector / self._dt
+        self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)
         unique_event_group_ids = np.unique(self._fin['event_group_ids'])
         self._n_showers = len(self._fin['event_group_ids'])
         self._shower_ids = np.array(self._fin['shower_ids'])
@@ -123,6 +129,7 @@ class simulation(
             self._raytracer,
             self._evt_time
         )
+        self._Vrms = self.__hardware_response_simulator.get_noise_vrms()
 
         efield_v_rms_per_channel = self.__hardware_response_simulator.get_efield_v_rms_per_channel()
         self.__station_simulator = NuRadioMC.simulation.station_simulator.stationSimulator(
@@ -252,8 +259,6 @@ class simulation(
                     ray_tracing_performed = (self._raytracer.get_output_parameters()[0]['name'] in self._fin_stations['station_{:d}'.format(self._station_id)]) and self._was_pre_simulated
                 self._dummy_event = NuRadioReco.framework.event.Event(0, 0) # a dummy event object, which does nothing but is needed because some modules require an event to be passed
                 sim_showers = {}
-                self._create_sim_station()
-
                 station_output, efield_array, is_candidate_station = self.__station_simulator.simulate_station(self._station_id)
                 if not is_candidate_station:
                     continue
@@ -373,24 +378,6 @@ class simulation(
                 return True
         return False
 
-    def _increase_signal(self, station, channel_id, factor):
-        """
-        increase the signal of a simulated station by a factor of x
-        this is e.g. used to approximate a phased array concept with a single antenna
-
-        Parameters
-        ----------
-        channel_id: int or None
-            if None, all available channels will be modified
-        """
-        if channel_id is None:
-            for electric_field in station.get_sim_station().get_electric_fields():
-                electric_field.set_trace(electric_field.get_trace() * factor, sampling_rate=electric_field.get_sampling_rate())
-
-        else:
-            sim_channels = station.get_sim_station().get_electric_fields_for_channels([channel_id])
-            for sim_channel in sim_channels:
-                sim_channel.set_trace(sim_channel.get_trace() * factor, sampling_rate=sim_channel.get_sampling_rate())
 
 
     def _check_vertex_times(self):
@@ -403,29 +390,12 @@ class simulation(
             logger.warning(warn_msg)
             return False
 
-    def _calculate_signal_properties(
-            self,
-            event,
-            station
-    ):
-        if station.has_triggered():
-            self._channelSignalReconstructor.run(event, station, self._det)
-            amplitudes = np.zeros(station.get_number_of_channels())
-            amplitudes_envelope = np.zeros(station.get_number_of_channels())
-            for channel in station.iter_channels():
-                amplitudes[self._get_channel_index(channel.get_id())] = channel.get_parameter(chp.maximum_amplitude)
-                amplitudes_envelope[self._get_channel_index(channel.get_id())] = channel.get_parameter(chp.maximum_amplitude_envelope)
-            self._output_maximum_amplitudes[station.get_id()].append(amplitudes)
-            self._output_maximum_amplitudes_envelope[station.get_id()].append(amplitudes_envelope)
-
     def get_Vrms(self):
         return self._Vrms
 
     def get_sampling_rate(self):
         return 1. / self._dt
 
-    def get_bandwidth(self):
-        return self._bandwidth
 
     def _check_if_was_pre_simulated(self):
         """
@@ -440,34 +410,6 @@ class simulation(
         return self._was_pre_simulated
 
 
-    def _create_sim_station(self):
-        """
-        created an empyt sim_station object
-        """
-        # create NuRadioReco event structure
-        self._sim_station = NuRadioReco.framework.sim_station.SimStation(self._station_id)
-        self._sim_station.set_is_neutrino()
-
-    def _create_sim_shower(self):
-        """
-        creates a sim_shower object and saves the meta arguments such as neutrino direction, shower energy and self.input_particle[flavor]
-        """
-        # create NuRadioReco event structure
-        sim_shower = NuRadioReco.framework.radio_shower.RadioShower(self._shower_ids[self._shower_index])
-        # save relevant neutrino properties
-        sim_shower[shp.zenith] = self.input_particle[simp.zenith]
-        sim_shower[shp.azimuth] = self.input_particle[simp.azimuth]
-        sim_shower[shp.energy] = self._fin['shower_energies'][self._shower_index]
-        sim_shower[shp.flavor] = self.input_particle[simp.flavor]
-        sim_shower[shp.interaction_type] = self.input_particle[simp.interaction_type]
-        sim_shower[shp.vertex] = self.input_particle[simp.vertex]
-        sim_shower[shp.vertex_time] = self._vertex_time
-        sim_shower[shp.type] = self._fin['shower_type'][self._shower_index]
-        # TODO direct parent does not necessarily need to be the primary in general, but full
-        # interaction chain is currently not populated in the input files.
-        sim_shower[shp.parent_id] = self.primary.get_id()
-        return sim_shower
-
 
     def calculate_Veff(self):
         # calculate effective
@@ -481,23 +423,6 @@ class simulation(
         Veff = V * n_triggered_weighted / n_events
         logger.status(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
 
-    def _calculate_polarization_vector(self):
-        """ calculates the polarization vector in spherical coordinates (eR, eTheta, ePhi)
-        """
-        if self._cfg['signal']['polarization'] == 'auto':
-            polarization_direction = np.cross(self._launch_vector, np.cross(self._shower_axis, self._launch_vector))
-            polarization_direction /= np.linalg.norm(polarization_direction)
-            cs = cstrans.cstrafo(*hp.cartesian_to_spherical(*self._launch_vector))
-            return cs.transform_from_ground_to_onsky(polarization_direction)
-        elif self._cfg['signal']['polarization'] == 'custom':
-            ePhi = float(self._cfg['signal']['ePhi'])
-            eTheta = (1 - ePhi ** 2) ** 0.5
-            v = np.array([0, eTheta, ePhi])
-            return v / np.linalg.norm(v)
-        else:
-            msg = "{} for config.signal.polarization is not a valid option".format(self._cfg['signal']['polarization'])
-            logger.error(msg)
-            raise ValueError(msg)
 
     def _calculate_station_barycenter(self):
         station_barycenter = np.zeros((len(self._station_ids), 3))
@@ -536,38 +461,6 @@ class simulation(
         self._mout['weights'][evt_indices] = self.primary[simp.weight]
         return self.primary[simp.weight]
 
-    def _distance_cut_channel(
-            self,
-            shower_energy_sum,
-            x1,
-            x2
-    ):
-        """
-        Checks if the channel fulfills the distance cut criterium.
-        Returns True if the channel is within the maximum distance
-        (and should therefore be simulated) and False otherwise
-
-        Parameters
-        ----------
-        shower_energy_sum: flaot
-            sum of the energies of all sub-showers in this event
-        x1: array of floats
-            position of the shower
-        x2: array of floats
-            position of the channel
-
-        Returns
-        -------
-
-        """
-        distance_cut = self._get_distance_cut(shower_energy_sum)
-        distance = np.linalg.norm(x1 - x2)
-        if distance > distance_cut:
-            logger.debug('A distance speed up cut has been applied')
-            logger.debug('Shower energy: {:.2e} eV'.format(self._fin['shower_energies'][self._shower_index] / units.eV))
-            logger.debug('Distance cut: {:.2f} m'.format(distance_cut / units.m))
-            logger.debug('Distance to vertex: {:.2f} m'.format(distance / units.m))
-        return distance <= distance_cut
 
     def _distance_cut_station(
             self,
@@ -602,169 +495,3 @@ class simulation(
         self._distance_cut_time += time.time() - t_tmp
         return vertex_distances_to_station.min() <= distance_cut
 
-    def _distance_cut_shower(
-            self,
-            iSh,
-            iSt,
-            vertex_distances,
-            shower_energies
-    ):
-        if not self._cfg['speedup']['distance_cut']:
-            return True
-        t_tmp = time.time()
-
-        # calculate the sum of shower energies for all showers within self._cfg['speedup']['distance_cut_sum_length']
-        mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup'][
-            'distance_cut_sum_length']
-        shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
-
-        # quick speedup cut using barycenter of station as position
-        distance_to_station = np.linalg.norm(self._shower_vertex - self._station_barycenter[iSt])
-        distance_cut = self._get_distance_cut(
-            shower_energy_sum) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
-        logger.debug(
-            f"calculating distance cut. Current event has energy {self._fin['shower_energies'][self._shower_index]:.4g}, it is event number {iSh} and {np.sum(mask_shower_sum)} are within {self._cfg['speedup']['distance_cut_sum_length'] / units.m:.1f}m -> {shower_energy_sum:.4g}")
-        if distance_to_station > distance_cut:
-            logger.debug(
-                f"skipping station {self._station_id} because distance {distance_to_station / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {self._fin['shower_energies'][self._shower_index]:.2g}eV) between vertex {self._shower_vertex} and bary center of station {self._station_barycenter[iSt]}")
-            self._distance_cut_time += time.time() - t_tmp
-            self._distance_cut_time += time.time() - t_tmp
-            return False
-        self._distance_cut_time += time.time() - t_tmp
-        return True
-
-    def _simulate_event(
-            self,
-            iSh,
-            iSt,
-            output_data,
-            vertex_positions,
-            shower_energies,
-            pre_simulated,
-            ray_tracing_performed
-    ):
-        output_data['shower_id'][iSh] = self._shower_ids[self._shower_index]
-
-        self._read_input_shower_properties()
-        if self._particle_mode:
-            logger.debug(
-                f"simulating shower {self._shower_index}: {self._fin['shower_type'][self._shower_index]} with E = {self._fin['shower_energies'][self._shower_index] / units.eV:.2g}eV")
-
-        vertex_distances = np.linalg.norm(vertex_positions - vertex_positions[0], axis=1)
-
-        if not self._distance_cut_shower(
-                iSh,
-                iSt,
-                vertex_distances,
-                shower_energies
-        ):
-            return False, None
-        mask_shower_sum = np.abs(vertex_distances - vertex_distances[iSh]) < self._cfg['speedup'][
-            'distance_cut_sum_length']
-        shower_energy_sum = np.sum(shower_energies[mask_shower_sum])
-
-        sim_shower, cherenkov_angle, n_index = self._simulate_shower()
-        is_candidate_shower = False
-        t2 = time.time()
-        for i_channel,  channel_id in enumerate(self._channel_ids):
-            efield_objects, launch_vectors, receive_vectors, travel_times, path_lengths, polarization_directions,\
-                efield_amplitudes, raytracing_output = self.__channel_simulator.simulate_efield_at_channel(channel_id)
-            for i_ray in range(len(launch_vectors)):
-                for key, value in raytracing_output[i_ray].items():
-                    output_data[key][iSh, i_channel, i_ray] = value
-
-            for efield_object in efield_objects:
-                self._sim_station.add_electric_field(efield_object)
-            if len(efield_objects) > 0 and np.nanmax(efield_amplitudes) > float(self._cfg['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[self._station_id][channel_id]:
-                is_candidate_shower = True
-
-        t3 = time.time()
-        self._rayTracingTime += t3 - t2
-        return is_candidate_shower, sim_shower
-
-    def _simulate_shower(
-            self
-    ):
-
-        # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
-        # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
-        candidate_shower = False
-        if not self._is_in_fiducial_volume():
-            logger.debug(
-                f"event is not in fiducial volume, skipping simulation {self._fin['xx'][self._shower_index]}, {self._fin['yy'][self._shower_index]}, {self._fin['zz'][self._shower_index]}")
-            return False
-
-        # for special cases where only EM or HAD showers are simulated, skip all events that don't fulfill this criterion
-        if self._cfg['signal']['shower_type'] == "em":
-            if self._fin['shower_type'][self._shower_index] != "em":
-                return False
-        if self._cfg['signal']['shower_type'] == "had":
-            if self._fin['shower_type'][self._shower_index] != "had":
-                return False
-
-        if self._particle_mode:
-            sim_shower = self._create_sim_shower()  # create sim shower
-        else:
-            sim_shower = None
-        # generate unique and increasing event id per station
-        self._event_ids_counter[self._station_id] += 1
-        self._event_id = self._event_ids_counter[self._station_id]
-
-        # be careful, zenith/azimuth angle always refer to where the neutrino came from,
-        # i.e., opposite to the direction of propagation. We need the propagation direction here,
-        # so we multiply the shower axis with '-1'
-        if 'zeniths' in self._fin:
-            self._shower_axis = -1 * hp.spherical_to_cartesian(self._fin['zeniths'][self._shower_index],
-                                                               self._fin['azimuths'][self._shower_index])
-        else:
-            self._shower_axis = np.array([0, 0, 1])
-        # calculate correct Cherenkov angle for ice density at vertex position
-        n_index = self._ice.get_index_of_refraction(self._shower_vertex)
-        cherenkov_angle = np.arccos(1. / n_index)
-
-        # first step: perform raytracing to see if solution exists
-        return sim_shower, cherenkov_angle, n_index
-
-    def _simulate_channel(
-            self,
-            channel_id,
-            pre_simulated,
-            sim_shower,
-            cherenkov_angle,
-            n_index,
-            output_data,
-            iSh,
-            ray_tracing_performed,
-            shower_energy_sum
-    ):
-        ray_tracing_solution_found = self._perform_raytracing_for_channel(
-            channel_id,
-            pre_simulated,
-            ray_tracing_performed,
-            shower_energy_sum
-        )
-        if not ray_tracing_solution_found:
-            return False
-        delta_Cs, viewing_angles = self._calculate_viewing_angles(
-            output_data,
-            iSh,
-            self._get_channel_index(channel_id),
-            cherenkov_angle
-        )
-
-        # discard event if delta_C (angle off cherenkov cone) is too large
-        if min(np.abs(delta_Cs)) > self._cfg['speedup']['delta_C_cut']:
-            logger.debug('delta_C too large, event unlikely to be observed, skipping event')
-            return False
-        if ray_tracing_solution_found:
-            is_candidate_channel = self._calculate_polarization_angles(
-                sim_shower,
-                output_data,
-                iSh,
-                delta_Cs,
-                viewing_angles,
-                ray_tracing_performed,
-                channel_id, n_index)
-            return is_candidate_channel
-        else:
-            return False

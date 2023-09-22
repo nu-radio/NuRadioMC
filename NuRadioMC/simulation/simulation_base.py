@@ -224,7 +224,6 @@ class simulation_base:
             logger.status(f"input file {self._inputfilename} is empty")
             return
 
-        self._calculate_noise_rms()
 
 
         self._distance_cut_polynomial = None
