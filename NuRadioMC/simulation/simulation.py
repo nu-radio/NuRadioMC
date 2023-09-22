@@ -39,7 +39,6 @@ import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 import NuRadioMC.simulation.simulation_base
 import NuRadioMC.simulation.simulation_input_output
-import NuRadioMC.simulation.simulation_propagation
 import NuRadioMC.simulation.channel_efield_simulator
 import NuRadioMC.simulation.shower_simulator
 import NuRadioMC.simulation.station_simulator
@@ -64,7 +63,6 @@ assert isinstance(logger, NuRadioMC.simulation.simulation_base.NuRadioMCLogger)
 
 
 class simulation(
-    NuRadioMC.simulation.simulation_propagation.simulation_propagation,
     NuRadioMC.simulation.simulation_input_output.simulation_input_output
 ):
 
