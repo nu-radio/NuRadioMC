@@ -65,7 +65,7 @@ class showerSimulator:
             self.__event_group_vertices - self.__event_group_vertices[0], axis=1
         )
         if particle_mode:
-            self.__event_group_shower_energies = self.__input_data['energies'][event_indices]
+            self.__event_group_shower_energies = self.__input_data['shower_energies'][event_indices]
         self.__channel_efield_simulator.set_event_group(np.sum(self.__event_group_shower_energies))
 
     def simulate_shower(
@@ -136,8 +136,9 @@ class showerSimulator:
         if not self.__config['speedup']['distance_cut']:
             return True
 
+        shower_vertex_distance = np.linalg.norm(shower_vertex - self.__event_group_vertices[0])
         mask_shower_sum = np.abs(
-            self.__event_group_vertex_distances - self.__event_group_vertex_distances[0]
+            self.__event_group_vertex_distances - shower_vertex_distance
         ) < self.__config['speedup']['distance_cut_sum_length']
         shower_energy_sum = np.sum(self.__event_group_shower_energies[mask_shower_sum])
         distance_to_station = np.linalg.norm(shower_vertex - self.__station_barycenter)
@@ -148,6 +149,7 @@ class showerSimulator:
                 100. * units.m,
                 10. ** self.__distance_cut_polynomial(np.log10(shower_energy_sum))
             ]) + 100. * units.m
+
         return distance_to_station <= distance_cut_value
 
     def __channel_distance_cut(
@@ -168,7 +170,7 @@ class showerSimulator:
             distance_cut_value = np.max([
                 100. * units.m,
                 10. ** self.__distance_cut_polynomial(np.log10(shower_energy_sum))
-            ]) + 100. * units.m
+            ])
         return distance_to_channel <= distance_cut_value
 
     def __in_fiducial_volume(

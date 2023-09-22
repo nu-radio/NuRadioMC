@@ -245,13 +245,6 @@ class channelEfieldSimulator:
             self.__station_id
         )
 
-        if not self.__distance_cut_channel(
-                self.__shower_energy_sum,
-                self.__vertex_position,
-                channel_position
-        ):
-            return
-
         self.__raytracer.set_start_and_end_point(self.__vertex_position, channel_position)
         self.__raytracer.use_optional_function('set_shower_axis', self.__shower_axis)
         if self.__evt_pre_simulated and self.__evt_ray_tracing_performed and not self.__config['speedup'][
@@ -268,37 +261,6 @@ class channelEfieldSimulator:
             self.__raytracer.find_solutions()
 
         return self.__raytracer.get_results()
-
-    def __distance_cut_channel(
-            self,
-            shower_energy_sum,
-            shower_position,
-            channel_position
-    ):
-        """
-        Checks if the channel fulfills the distance cut criterium.
-        Returns True if the channel is within the maximum distance
-        (and should therefore be simulated) and False otherwise
-
-        Parameters
-        ----------
-        shower_energy_sum: flaot
-            sum of the energies of all sub-showers in this event
-        x1: array of floats
-            position of the shower
-        x2: array of floats
-            position of the channel
-
-        Returns
-        -------
-
-        """
-        if not self.__config['speedup']['distance_cut']:
-            return True
-
-        distance_cut = self.__get_distance_cut(shower_energy_sum)
-        distance = np.linalg.norm(shower_position - channel_position)
-        return distance <= distance_cut
 
     def __get_distance_cut(self, shower_energy):
         if shower_energy <= 0:
