@@ -58,3 +58,6 @@ class outputWriterNur:
                 self.__event_writer.run(
                     event
                 )
+    
+    def end(self):
+        self.__event_writer.end()

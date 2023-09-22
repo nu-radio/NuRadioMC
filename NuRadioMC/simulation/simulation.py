@@ -38,7 +38,6 @@ import os
 import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 import NuRadioMC.simulation.simulation_base
-import NuRadioMC.simulation.simulation_detector
 import NuRadioMC.simulation.simulation_emission
 import NuRadioMC.simulation.simulation_input_output
 import NuRadioMC.simulation.simulation_propagation
@@ -68,7 +67,6 @@ assert isinstance(logger, NuRadioMC.simulation.simulation_base.NuRadioMCLogger)
 class simulation(
     NuRadioMC.simulation.simulation_propagation.simulation_propagation,
     NuRadioMC.simulation.simulation_emission.simulation_emission,
-    NuRadioMC.simulation.simulation_detector.simulation_detector,
     NuRadioMC.simulation.simulation_input_output.simulation_input_output
 ):
 
@@ -253,7 +251,6 @@ class simulation(
                     iCounter += 1
                     continue
 
-                self._set_detector_properties()
                 ray_tracing_performed = False
                 if 'station_{:d}'.format(self._station_id) in self._fin_stations:
                     ray_tracing_performed = (self._raytracer.get_output_parameters()[0]['name'] in self._fin_stations['station_{:d}'.format(self._station_id)]) and self._was_pre_simulated
@@ -305,9 +302,8 @@ class simulation(
         t5 = time.time()
         # self._write_output_file()
         self.__output_writer_hdf5.save_output()
-        if self._outputfilenameNuRadioReco is not None:
-            self._eventWriter.end()
-            logger.debug("closing nur file")
+        if self.__output_writer_nur is not None:
+            self.__output_writer_nur.end()
 
         try:
             self.calculate_Veff()
