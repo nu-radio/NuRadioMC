@@ -4,7 +4,7 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 2.2.1-dev
 bugfix:
--in antennapattern.py, fixed line 1410; was masking frequencies <= 0 instead of frequencies < 0, causing NaN errors
+-in antennapattern.py, fixed line 1398; was masking frequencies >= 0 instead of frequencies > 0, causing NaN errors
 
 version 2.2.0-dev
 new features:
