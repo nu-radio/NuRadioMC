@@ -86,7 +86,7 @@ class Database(object):
         self.__get_collection_names = None
         
         self.__station_collection = "station_rnog"
-        
+                
         
     def set_database_time(self, time):
         ''' Set time for database. This affects which primary measurement is used.
@@ -590,245 +590,118 @@ class Database(object):
         return return_dic
 
 
-    def get_station_position_identifier(self, station_id, detector_time):
-        """ Get the station psoition identifier for the given station id and detector time. Access information in the main collection.
+    def get_identifier(self, station_id, channel_device_id=None, component="station", what="signal"):
+        """ 
+        Get the identifier for a station/channel/device measurement,
+    
+        For station and device returns position identifer. For channel returns
+        position and signal chain identifier.
+    
+        Access information in the main collection.
         
         Parameters
         ----------
         
         station id: int
-            Specify the station for which the position identifier is return
-        detector_time: datetime.datetime
-            Time to select the commissioned station
+            Specify the station for which the measurement identifier is return
+            
+        channel_device_id: int
+            Specify the channel/device id. Only necessary if component="channel" or "device. 
+            (Default: None) 
+
+        component: str
+            Specify for what you want to have the identifier(s): 
+            "station" (default), "channel", or "device"
+            
+        what: str
+            For what to return the identifier: "position" (default) or "signal_chain" (only available for "channel")
         
         Returns
         -------
         
-        station_position_id: str 
+        position_id: str 
+            Unique identifier to find measurement in different collection
         """
 
         # if the collection is empty, return None
         if self.db[self.__station_collection].count_documents({'id': station_id}) == 0:
             return None
+
+        detector_time = self.get_detector_time()
 
         # filter to get all information from one station with station_id and with active commission time
         time_filter = [{"$match": {
             'commission_time': {"$lte": detector_time},
             'decommission_time': {"$gte": detector_time},
             'id': station_id}}]
-
-        # get all stations which fit the filter (should only be one)
-        station_info = list(self.db[self.__station_collection].aggregate(time_filter))
         
-        if len(station_info) == 0:
-            logger.warning('No corresponding station found!')
-            return None
-        elif len(station_info) > 1:
-            err = f"Found to many stations (f{len(station_info)}) for: station_id = {station_id}, and time = {detector_time}"
-            logger.error(err)
+        if component == "channel" or component == "device":
+            if channel_device_id is None:
+                raise ValueError(f"Please provide a channel id.")
+            
+            comp_str = component + "s"
+            time_filter += [{'$unwind': f'${comp_str}'},
+                {"$match": {f'{comp_str}.commission_time': {"$lte": detector_time},
+                f'{comp_str}.decommission_time': {"$gte": detector_time},
+                f'{comp_str}.id': channel_device_id}}]
+        elif component == "station":
+            pass  # do nothing here
+        else:
+            err = (f"Requested identifer for unknown component: {component}. "
+                "Only valid components are \"station\", \"channel\", \"device\".")
+            logger.warning(err)
+            raise ValueError(err)
+        
+        # get all stations which fit the filter (should only be one)
+        info = list(self.db[self.__station_collection].aggregate(time_filter))
+        
+        if len(info) == 0:
+            err = (f"Could not find corresponding station/channel/device "
+                   f"({component}: station_id = {station_id}, channel/device id "
+                   f"= {channel_device_id}, time = {detector_time}")
+            logger.warning(err)
             raise ValueError(err)
 
-        return station_info[0]['id_position']
-    
-
-    def get_station_position(self, station_id=None, station_position_id=None, measurement_name=None,
-                             verbose=False, use_primary_time_with_measurement=False):
-        """ function to return the station position, returns primary unless measurement_name is not None """
-        
-        # if the station_position_id is given, the position is directly collected from the
-        # station position collection (no need to look into the main collection again)
-        if station_position_id is not None:
-            pass
-        # if station id is given, the station position identifier is collected from the main collection
-        elif station_id is not None:
-            # get the station_position_id
-            # # set the detector time to the current time
-            station_position_id = self.get_station_position_identifier(station_id, detector_time=self.get_detector_time())
-        else:
-            raise ValueError('Either the station_id or the station_position_id needes to be given!')
-
-        # if measurement name is None, the primary measurement is returned
-        collection_info = self.get_collection_information_by_id(
-            'station_position', station_position_id, measurement_name=measurement_name, 
-            use_primary_time_with_measurement=use_primary_time_with_measurement)
-
-        # raise an error if more than one value is returned
-        if len(collection_info) > 1:\
-            raise ValueError
-        
-        # return empty dict if no measurement is found
-        if len(collection_info) == 0:
-            return {}
-
-        # return the information
-        if verbose:
-            return collection_info[0]['measurements']
-        else:
-            return {'position': collection_info[0]['measurements']['position']}
-
-
-    def get_channel_identifier(self, station_id, channel_id, detector_time):
-        """ Get the channel position and signal identifier for the given station id, 
-        channel id and detector time. Access information in the main collection.
-        
-        Parameters
-        ----------
-        
-        station_id: int
-            Specify the station for which the position identifier is return
-        channel_id: int
-            Specify the channel for which the position identifier is return
-        detector_time: datetime.datetime
-            Time to select the commissioned station
-        
-        Returns
-        -------
-        
-        channel_position_id: str
-        channel_signal_id: str 
-        """
-
-        # if the collection is empty, return None
-        if self.db[self.__station_collection].count_documents({'id': station_id}) == 0:
-            return None
-
-        # filter to get all information from one channel with station_id and channel_id and active commission time
-        time_filter = [{"$match": {
-            'commission_time': {"$lte": detector_time},
-            'decommission_time': {"$gte": detector_time},
-            'id': station_id}},
-            {'$unwind': '$channels'},
-            {"$match": {'channels.commission_time': {"$lte": detector_time},
-            'channels.decommission_time': {"$gte": detector_time},
-            'channels.id': channel_id}}]
-
-        # get all stations which fit the filter (should only be one)
-        channel_info = list(self.db[self.__station_collection].aggregate(time_filter))
-
-        if len(channel_info) == 0:
-            logger.warning('No corresponding channel found!')
-            return None, None
-        elif len(channel_info) > 1:
-            err = (f"Found to many channels ({len(channel_info)}) for: station_id = {station_id}, "
-                   f"channel_id = {channel_id}, and time = {detector_time}")
+        elif len(info) > 1:
+            err = (f"Found to many stations/channels/devices (f{len(info)}) "
+                   f"({component}: station_id = {station_id}, channel/device id "
+                   f"= {channel_device_id}, time = {detector_time}")
             logger.error(err)
             raise ValueError(err)
         
-        # only return the channel information
-        return channel_info[0]['channels']['id_position'], channel_info[0]['channels']['id_signal']
-    
+        if component == "station":
+            return info[0]['id_position']
+        elif component == "channel":
+            return info[0]['channels'][f'id_{what}']
+        elif component == "device":
+            # only return the device position id
+            return info[0]['devices']['id_position']
 
-    def get_channel_position(self, station_id=None, channel_id=None, channel_position_id=None, 
-                             measurement_name=None, verbose=False, use_primary_time_with_measurement=False):
-        """ function to return the channel position, returns primary unless measurement_name is not None """
-        
-        # if the channel_position_id is given, the position is directly collected from the channel position 
-        # collection (no need to look into the main collection again)
-        if channel_position_id is not None:
-            pass
-        # if channel id and station_id is given, the channel position identifier is collected from the main collection
-        elif station_id is not None and channel_id is not None:
-            # get the channel_position_id
-            # # set the detector time to the current time
-            self.set_detector_time(datetime.datetime.utcnow())
-            channel_position_id, channel_signal_id = self.get_channel_identifier(
-                station_id, channel_id, detector_time=self.get_detector_time())
-        else:
-            raise ValueError('Either the station_id + channel_id or the channel_position_id needes to be given!')
 
-        # if measurement name is None, the primary measurement is returned
-        collection_info = self.get_collection_information_by_id(
-            'channel_position', channel_position_id, measurement_name=measurement_name, 
-            use_primary_time_with_measurement=use_primary_time_with_measurement)
-
-        # raise an error if more than one value is returned
-        if len(collection_info) > 1:\
-            raise ValueError
-        # return empty dict if no measurement is found
-        if len(collection_info) == 0:
-            return {}
-
-        # return the information
-        if verbose:
-            return collection_info[0]['measurements']
-        else:
-            return {k:collection_info[0]['measurements'][k] for k in ('position','rotation','orientation')}
-
-    
-    def get_device_position_identifier(self, station_id, device_id, detector_time):
+    def get_position(self, station_id=None, channel_device_id=None, position_id=None, 
+                     measurement_name=None, use_primary_time_with_measurement=False,
+                     component="station", verbose=False):
         """ 
-        Get the device position identifier for the given station id, device id and detector time. 
-        Access information in the main collection.
-        
-        Parameters
-        ----------
-        
-        station_id: int
-            Specify the station for which the position identifier is return
-        device_id: int
-            Specify the channel for which the position identifier is return
-        detector_time: datetime.datetime
-            Time to select the commissioned station
-        
-        Returns
-        -------
-        
-        device_position_id: str 
+        Function to return the channel position, 
+        returns primary unless measurement_name is not None 
         """
-        # if the collection is empty, return None
-        if self.db[self.__station_collection].count_documents({'id': station_id}) == 0:
-            return {}
-
-        # filter to get all information from one device with station_id and device_id and active commission time
-        time_filter = [{"$match": {
-            'commission_time': {"$lte": detector_time},
-            'decommission_time': {"$gte": detector_time},
-            'id': station_id}},
-            {'$unwind': '$devices'},
-            {"$match": {'devices.commission_time': {"$lte": detector_time},
-            'devices.decommission_time': {"$gte": detector_time},
-            'devices.id': device_id}}]
-
-        # get all stations which fit the filter (should only be one)
-        device_info = list(self.db[self.__station_collection].aggregate(time_filter))
-
-        if len(device_info) == 0:
-            logger.warning('No corresponding device found!')
-            return None
-        elif len(device_info) > 1:
-            err = (f"Found to many devices ({len(device_info)}) for: station_id = {station_id}, "  
-                  f"channel_id = {device_id}, and time = {detector_time}")
-            logger.error(err)
-            raise ValueError(err)
         
-        # only return the device position id
-        return device_info[0]['devices']['id_position']
+        # If the channel_position_id is given, the position is directly collected from the channel position 
+        # collection (no need to look into the main collection again)
+        if position_id is None:            
+            if station_id is None:
+                raise ValueError('Either the position_id or station_id (+ channel_id/device_id) needes to be given!')
 
-
-    def get_device_position(self, station_id=None, device_id=None, device_position_id=None, 
-                            measurement_name=None, verbose=False, use_primary_time_with_measurement=False):
-        """ function to return the device position, returns primary unless measurement_name is not None """
-        
-        # if the device_position_id is given, the position is directly collected from the device position collection 
-        # (no need to look into the main collection again)
-        if device_position_id is not None:
-            pass
-        # if device id and station_id is given, the device position identifier is collected from the main collection
-        elif station_id is not None and device_id is not None:
-            # get the device_position_id
-            # # set the detector time to the current time
-            self.set_detector_time(datetime.datetime.utcnow())
-            device_position_id = self.get_device_position_identifier(station_id, device_id, detector_time=self.get_detector_time())
-        else:
-            raise ValueError('Either the station_id + device_id or the device_position_id needes to be given!')
-
+            position_id = self.get_identifier(
+                station_id, channel_device_id, component=component)
+            
         # if measurement name is None, the primary measurement is returned
         collection_info = self.get_collection_information_by_id(
-            'device_position', device_position_id, measurement_name=measurement_name, 
+            f'{component}_position', position_id, measurement_name=measurement_name, 
             use_primary_time_with_measurement=use_primary_time_with_measurement)
 
         # raise an error if more than one value is returned
-        if len(collection_info) > 1:\
+        if len(collection_info) > 1:
             raise ValueError
         # return empty dict if no measurement is found
         if len(collection_info) == 0:
@@ -838,7 +711,8 @@ class Database(object):
         if verbose:
             return collection_info[0]['measurements']
         else:
-            return {k:collection_info[0]['measurements'][k] for k in ('position','rotation','orientation')}
+            return {k: collection_info[0]['measurements'][k] for k in 
+                    ['position', 'rotation', 'orientation'] if k in collection_info[0]['measurements']}
     
 
     def get_channel_signal_chain_measurement(self, station_id=None, channel_id=None, channel_signal_id=None, 
@@ -847,25 +721,22 @@ class Database(object):
 
         # if the channel_signal_id is given, the signal chain is directly collected from the signal chain collection 
         # (no need to look into the main collection again)
-        if channel_signal_id is not None:
-            pass
-        # if channel_id and station_id is given, the signal chain identifier is collected from the main collection
-        elif station_id is not None and channel_id is not None:
-            # get the channel_signal_id
-            # # set the detector time to the current time
-            self.set_detector_time(datetime.datetime.utcnow())
-            channel_position_id, channel_signal_id = self.get_channel_identifier(
-                station_id, channel_id, detector_time=self.get_detector_time())
-        else:
-            raise ValueError('Either the station_id + channel_id or the channel_position_id needes to be given!')
+        if channel_signal_id is None:
+            
+            if station_id is None :
+                raise ValueError('Either the channel_signal_id or station_id + channel_id needes to be given!')
+
+            channel_signal_id = self.get_identifier(
+                station_id, channel_id, component="chanel", what="signal")
 
         # if measurement name is None, the primary measurement is returned
         collection_info = self.get_collection_information_by_id(
             'signal_chain', channel_signal_id, measurement_name=measurement_name)
 
         # raise an error if more than one value is returned
-        if len(collection_info) > 1:\
+        if len(collection_info) > 1:
             raise ValueError
+        
         # return empty dict if no measurement is found
         if len(collection_info) == 0:
             return {}
@@ -874,7 +745,7 @@ class Database(object):
         if verbose:
             return collection_info[0]['measurements']
         else:
-            return {k:collection_info[0]['measurements'][k] for k in ('VEL','response_chain','primary_components')}
+            return {k:collection_info[0]['measurements'][k] for k in ('VEL', 'response_chain', 'primary_components')}
 
 
     def get_channel_signal_chain_component_data(self, component_type, component_id, supplementary_info, primary_time, verbose=True):
@@ -909,7 +780,7 @@ class Database(object):
         if verbose:
             return measurement
         else:
-            return {k:measurement[k] for k in ('name','channel_id','frequencies', 'mag', 'phase') if k in measurement.keys()}
+            return {k:measurement[k] for k in ('name', 'channel_id', 'frequencies', 'mag', 'phase') if k in measurement.keys()}
     
 
     def get_complete_station_information(
@@ -954,8 +825,8 @@ class Database(object):
         general_info[station_id].pop('_id')
 
         # get the station positions
-        station_position = self.get_station_position(
-            station_position_id=station_position_id, measurement_name=measurement_station_position, verbose=verbose)
+        station_position = self.get_position(
+            position_id=station_position_id, measurement_name=measurement_station_position, verbose=verbose)
         
         # remove 'id_measurement' object
         station_position.pop('id_measurement', None)
@@ -1077,8 +948,8 @@ class Database(object):
         signal_id = general_info['id_signal']
         
         # load the channel position information:
-        channel_pos_info = self.get_channel_position(
-            channel_position_id=position_id, measurement_name=measurement_position, verbose=verbose)
+        channel_pos_info = self.get_position(
+            position_id=position_id, measurement_name=measurement_position, verbose=verbose)
 
         # include the channel position into the final dict
         general_info['channel_position'] = channel_pos_info
@@ -1126,7 +997,7 @@ class Database(object):
         complete_info.update(general_info)
 
         # load the device position information:
-        device_pos_info = self.get_device_position(device_position_id=position_id, measurement_name=measurement_position, verbose=verbose)
+        device_pos_info = self.get_position(position_id=position_id, measurement_name=measurement_position, verbose=verbose)
         # remove 'id_measurement' and 'device_id' object
         device_pos_info.pop('id_measurement', None)
         device_pos_info.pop('device_id', None)
