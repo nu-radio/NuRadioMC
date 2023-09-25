@@ -123,85 +123,6 @@ class Database(object):
     
     def get_detector_time(self):
         return self.__detector_time
-
-    def find_primary_measurement_old(
-            self, type, name, primary_time, identification_label='name', _id=None, id_label='channel', 
-            breakout_id=None, breakout_channel_id=None):
-        """
-        Find the object_id of entry with name 'name' and gives the measurement_id of the primary measurement, 
-        return the id of the object and the measurement
-
-        Parameters
-        ----------
-        type: string
-            type of the input unit (HPol, VPol, surfCABLE, ...)
-        
-        name: string
-            the unique identifier of the input unit
-        
-        primary_time: datetime.datetime
-            timestamp for the primary measurement
-        
-        _id: int
-            if there is a channel or device id for the object, the id is used in the search filter mask
-        
-        id_label: string
-            sets if a channel id ('channel') or device id ('device) is used
-
-        """
-
-        # define search filter for the collection
-        filter_primary = [{'$match': {identification_label: name}},
-                            {'$unwind': '$measurements'},
-                            {'$unwind': '$measurements.primary_measurement'}]
-        
-        add_filter = {'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
-                                 'measurements.primary_measurement.end': {'$gte': primary_time}}}
-        if breakout_channel_id is not None and breakout_id is not None:
-            add_filter['$match'].update({'measurements.breakout': breakout_id,
-                                         'measurements.breakout_channel': breakout_channel_id})
-
-        elif _id is not None:
-            add_filter['$match'].update({f'measurements.{id_label}_id': _id})
-        
-        filter_primary.append(add_filter)
-
-        # get all entries matching the search filter
-        matching_entries = list(self.db[type].aggregate(filter_primary))
-
-        # extract the object and measurement id
-        if len(matching_entries) > 1:
-            # see if Sparameters are stored
-            if 'S_parameter' in matching_entries[0]['measurements'].keys():
-                # check if they are for different Sparameters
-                s_parameter = []
-                measurement_ids = []
-                for entries in matching_entries:
-                    s_parameter.append(entries['measurements']['S_parameter'])
-                    measurement_ids.append(entries['measurements']['id_measurement'])
-                if len(s_parameter) == len(set(s_parameter)):
-                    # all S_parameter are different
-                    object_id = matching_entries[0]['_id']
-                    measurement_id = measurement_ids
-                    return object_id, measurement_id
-                else:
-                    logger.error('More than one primary measurement found.')
-                    # some S_parameter are the same
-                    return None, [None]
-            else:
-                logger.error('More than one primary measurement found')
-                return None, [None]
-        elif len(matching_entries) > 4:
-            logger.error('More primary measurements than Sparameters are found.')
-            return None, [None]
-        elif len(matching_entries) == 0:
-            logger.error('No primary measurement found.')
-            # the last zero is the information that no primary measurement was found
-            return None, [0]
-        else:
-            object_id = matching_entries[0]['_id']
-            measurement_id = matching_entries[0]['measurements']['id_measurement']
-            return object_id, [measurement_id]
         
     def find_primary_measurement(self, type, name, primary_time, identification_label, data_dict):
         """
@@ -953,7 +874,7 @@ class Database(object):
         if verbose:
             return collection_info[0]['measurements']
         else:
-            return {k:collection_info[0]['measurements'][k] for k in ('VEL','sig_chain','primary_components')}
+            return {k:collection_info[0]['measurements'][k] for k in ('VEL','response_chain','primary_components')}
 
 
     def get_channel_signal_chain_component_data(self, component_type, component_id, supplementary_info, primary_time, verbose=True):
@@ -1097,7 +1018,7 @@ class Database(object):
                 
         # TODO: remove these hard-coded strings
         # get the component names 
-        component_dict = channel_sig_info.pop('sig_chain')
+        component_dict = channel_sig_info.pop('response_chain')
         components = []
         components_id = []
         endings = ('_board', '_chain', '_cable')
@@ -1154,9 +1075,6 @@ class Database(object):
         #extract and delete the position/signal identifier
         position_id = general_info['id_position']
         signal_id = general_info['id_signal']
-
-        # change name of signal chain entry to 'built_in_sig_chain'
-        general_info['installed_components'] = general_info.pop('signal_ch')
         
         # load the channel position information:
         channel_pos_info = self.get_channel_position(
