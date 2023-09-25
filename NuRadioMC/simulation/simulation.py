@@ -155,7 +155,6 @@ class simulation():
         logger.setLevel(log_level)
         if 'write_mode' in kwargs.keys():
             logger.warning('Parameter write_mode is deprecated. Define the output format in the config file instead.')
-        self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
         logger.status('reading default config from {}'.format(config_file_default))
@@ -202,10 +201,6 @@ class simulation():
         else:
             self._ice = NuRadioMC.utilities.medium.get_ice_model(self._cfg['propagation']['ice_model'])
 
-        self._mout = collections.OrderedDict()
-        self._mout_groups = collections.OrderedDict()
-        self._mout_attrs = collections.OrderedDict()
-
         # read in detector positions
         logger.status("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
         self._det = None
@@ -223,10 +218,7 @@ class simulation():
         self._det.update(evt_time)
 
         self._station_ids = self._det.get_station_ids()
-        self._event_ids_counter = {}
-        for station_id in self._station_ids:
-            self._event_ids_counter[station_id] = -1  # we initialize with -1 becaue we increment the counter before we use it the first time
-
+        
         # print noise information
         logger.status("running with noise {}".format(bool(self._cfg['noise'])))
         logger.status("setting signal to zero {}".format(bool(self._cfg['signal']['zerosignal'])))
@@ -305,7 +297,6 @@ class simulation():
         unique_event_group_ids = np.unique(self._fin['event_group_ids'])
         self._n_showers = len(self._fin['event_group_ids'])
         self._shower_ids = np.array(self._fin['shower_ids'])
-        self._shower_index_array = {}  # this array allows to convert the shower id to an index that starts from 0 to be used to access the arrays in the hdf5 file.
         self.__particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
         self._raytracer = self._prop(
             self._ice, self._cfg['propagation']['attenuation_model'],
@@ -363,10 +354,6 @@ class simulation():
         )
 
 
-        for shower_index, shower_id in enumerate(self._shower_ids):
-            self._shower_index_array[shower_id] = shower_index
-
-
         # check if the same detector was simulated before (then we can save the ray tracing part)
         pre_simulated = self._check_if_was_pre_simulated()
 
@@ -380,7 +367,6 @@ class simulation():
         self._weightTime = 0.0
         self._distance_cut_time = 0.0
 
-        iCounter = 0
 
         # calculate bary centers of station
         self._station_barycenter = self._calculate_station_barycenter()
@@ -466,7 +452,6 @@ class simulation():
                         shower_energies,
                         self._station_barycenter[iSt]
                 ):
-                    iCounter += 1
                     continue
 
                 ray_tracing_performed = False
@@ -555,11 +540,6 @@ class simulation():
     def _calculate_emitter_output(self):
         pass
 
-    def _get_shower_index(self, shower_id):
-        if hasattr(shower_id, "__len__"):
-            return np.array([self._shower_index_array[x] for x in shower_id])
-        else:
-            return self._shower_index_array[shower_id]
 
     def _get_channel_index(self, channel_id):
         index = self._channel_ids.index(channel_id)
