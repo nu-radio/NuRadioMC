@@ -6,22 +6,12 @@ import six
 import logging
 import yaml
 import time
-import NuRadioMC.simulation.simulation_base
 import NuRadioReco.framework.particle
 from NuRadioReco.framework.parameters import particleParameters as simp
 from NuRadioReco.framework.parameters import showerParameters as shp
 
 
-logger = logging.getLogger('NuRadioMC')
-
-
-class simulation_input_output(NuRadioMC.simulation.simulation_base.simulation_base):
-    def __init__(
-            self,
-            *args,
-            **kwargs
-    ):
-        super(simulation_input_output, self).__init__(*args, **kwargs)
+class simulation_input_output():
 
     def _read_input_hdf5(self):
         """
