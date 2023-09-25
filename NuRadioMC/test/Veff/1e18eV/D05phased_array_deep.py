@@ -64,8 +64,9 @@ class mySimulation(simulation.simulation):
 
         # run the 4 phased trigger
         # x2 for upsampling
-        window_4ant = int(16 * units.ns * self._sampling_rate_detector * 2.0)
-        step_4ant = int(8 * units.ns * self._sampling_rate_detector * 2.0)
+        sampling_rate_detector = det.get_sampling_frequency(station.get_id(), station.get_channel_ids()[0])
+        window_4ant = int(16 * units.ns * sampling_rate_detector * 2.0)
+        step_4ant = int(8 * units.ns * sampling_rate_detector * 2.0)
 
         phasedArrayTrigger.run(evt, station, det,
                                Vrms=Vrms,
