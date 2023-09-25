@@ -207,7 +207,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
                                    'ant_type': ant_type,
                                    'commission_time': commission_time,
                                    'decommission_time': decommission_time,
-                                   'signal_ch': signal_chain,
+                                   'installed_components': signal_chain,
                                    'channel_comment': channel_comment
                                    }}
                                })
