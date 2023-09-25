@@ -37,7 +37,6 @@ import yaml
 import os
 import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
-import NuRadioMC.simulation.simulation_input_output
 import NuRadioMC.simulation.channel_efield_simulator
 import NuRadioMC.simulation.shower_simulator
 import NuRadioMC.simulation.station_simulator
@@ -91,9 +90,7 @@ def merge_config(user, default):
 
 
 
-class simulation(
-    NuRadioMC.simulation.simulation_input_output.simulation_input_output
-):
+class simulation():
 
     def __init__(self, inputfilename,
                  outputfilename,
@@ -712,3 +709,51 @@ class simulation(
         self._distance_cut_time += time.time() - t_tmp
         return vertex_distances_to_station.min() <= distance_cut
 
+    def _read_input_hdf5(self):
+        """
+        reads input file into memory
+        """
+        fin = h5py.File(self._inputfilename, 'r')
+        self._fin = {}
+        self._fin_stations = {}
+        self._fin_attrs = {}
+        for key, value in iteritems(fin):
+            if isinstance(value, h5py._hl.group.Group):
+                self._fin_stations[key] = {}
+                for key2, value2 in iteritems(value):
+                    self._fin_stations[key][key2] = np.array(value2)
+            else:
+                if len(value) and type(value[0]) == bytes:
+                    self._fin[key] = np.array(value).astype('U')
+                else:
+                    self._fin[key] = np.array(value)
+        for key, value in iteritems(fin.attrs):
+            self._fin_attrs[key] = value
+
+        fin.close()
+
+    def _read_input_particle_properties(self, idx=None):
+        if idx is None:
+            idx = self._primary_index
+        self._event_group_id = self._fin['event_group_ids'][idx]
+
+        self.input_particle = NuRadioReco.framework.particle.Particle(0)
+        self.input_particle[simp.flavor] = self._fin['flavors'][idx]
+        self.input_particle[simp.energy] = self._fin['energies'][idx]
+        self.input_particle[simp.interaction_type] = self._fin['interaction_type'][idx]
+        self.input_particle[simp.inelasticity] = self._fin['inelasticity'][idx]
+        self.input_particle[simp.vertex] = np.array([self._fin['xx'][idx],
+                                                     self._fin['yy'][idx],
+                                                     self._fin['zz'][idx]])
+        self.input_particle[simp.zenith] = self._fin['zeniths'][idx]
+        self.input_particle[simp.azimuth] = self._fin['azimuths'][idx]
+        self.input_particle[simp.inelasticity] = self._fin['inelasticity'][idx]
+        self.input_particle[simp.n_interaction] = self._fin['n_interaction'][idx]
+        if self._fin['n_interaction'][idx] <= 1:
+            # parents before the neutrino and outgoing daughters without shower are currently not
+            # simulated. The parent_id is therefore at the moment only rudimentarily populated.
+            self.input_particle[simp.parent_id] = None  # primary does not have a parent
+
+        self.input_particle[simp.vertex_time] = 0
+        if 'vertex_times' in self._fin:
+            self.input_particle[simp.vertex_time] = self._fin['vertex_times'][idx]
