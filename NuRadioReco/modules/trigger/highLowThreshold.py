@@ -2,6 +2,7 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.trigger import HighLowTrigger
+from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 import numpy as np
 import time
 import logging
@@ -11,7 +12,7 @@ logger = logging.getLogger('HighLowTriggerSimulator')
 def get_high_low_triggers(trace, high_threshold, low_threshold,
                           time_coincidence=5 * units.ns, dt=1 * units.ns):
     """
-    calculats a high low trigger in a time coincidence window
+    calculates a high low trigger in a time coincidence window
 
     Parameters
     ----------
@@ -106,7 +107,12 @@ class triggerSimulator:
             number_concidences=2,
             triggered_channels=None,
             trigger_name="default_high_low",
-            set_not_triggered=False):
+            set_not_triggered=False,
+            Vrms=None,
+            trigger_adc=False,  # by default, assumes the trigger ADC is the same as the channels ADC
+            clock_offset=0,
+            adc_output='voltage',
+            use_digitization=False):
         """
         simulate ARIANNA trigger logic
 
@@ -140,6 +146,10 @@ class triggerSimulator:
         """
         t = time.time()
         sampling_rate = station.get_channel(station.get_channel_ids()[0]).get_sampling_rate()
+
+        if use_digitization:
+            ADC = analogToDigitalConverter()
+
         channels_that_passed_trigger = []
         if not set_not_triggered:
             triggerd_bins_channels = []
@@ -156,7 +166,19 @@ class triggerSimulator:
                     continue
                 if channel.get_trace_start_time() != channel_trace_start_time:
                     logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
-                trace = channel.get_trace()
+
+                trace = np.array(channel.get_trace())
+
+                if use_digitization:
+                    trace = ADC.get_digital_trace(station, det, channel,
+                                                  Vrms=Vrms,
+                                                  trigger_adc=trigger_adc,
+                                                  clock_offset=clock_offset,
+                                                  return_sampling_frequency=False,
+                                                  adc_type='perfect_floor_comparator',
+                                                  adc_output=adc_output,
+                                                  trigger_filter=None)
+
                 if(isinstance(threshold_high, dict)):
                     threshold_high_tmp = threshold_high[channel_id]
                 else:
