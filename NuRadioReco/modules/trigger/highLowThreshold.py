@@ -100,6 +100,7 @@ class triggerSimulator:
 
     @register_run()
     def run(self, evt, station, det,
+            use_digitization=False,  # Only active if use_digitization is set to True
             threshold_high=60 * units.mV,
             threshold_low=-60 * units.mV,
             high_low_window=5 * units.ns,
@@ -111,8 +112,7 @@ class triggerSimulator:
             Vrms=None,
             trigger_adc=True,
             clock_offset=0,
-            adc_output='voltage',
-            use_digitization=False):
+            adc_output='voltage'):
         """
         simulate ARIANNA trigger logic
 
@@ -124,6 +124,8 @@ class triggerSimulator:
             The station to run the module on
         det: Detector
             The detector description
+        use_digitization: bool
+            If True, traces will be digitized
         threshold_high: float or dict of floats
             the threshold voltage that needs to be crossed on a single channel on the high side
             a dict can be used to specify a different threshold per channel where the key is the channel id
@@ -153,9 +155,6 @@ class triggerSimulator:
             Options:
             * 'voltage' to store the ADC output as discretised voltage trace
             * 'counts' to store the ADC output in ADC counts
-
-        use_digitization: bool
-            If True, traces will be digitized
         """
         t = time.time()
         sampling_rate = station.get_channel(station.get_channel_ids()[0]).get_sampling_rate()
