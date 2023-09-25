@@ -27,39 +27,45 @@ class hardwareResponseIncorporator:
     def begin(self, debug=False):
         self.__debug = debug
 
-    def get_filter(
-            self, frequencies, station_id, channel_id, det,
-            temp=293.15, sim_to_data=False, phase_only=False, mode=None, mingainlin=None):
+    def get_filter(self, frequencies, station_id, channel_id, det,
+                   temp=293.15, sim_to_data=False, phase_only=False,
+                   mode=None, mingainlin=None):
         """
-        helper function to return the filter that the module applies.
+        Helper function to return the filter that the module applies.
 
         Parameters
         ----------
+
         frequencies: array of floats
             the frequency array for which the filter should be returned
+
         station_id: int
             the station id
+
         channel_id: int
             the channel id
+
         det: detector instance
             the detector
-        temp: temperature in Kelvin, better in the range [223.15 K , 323.15 K]
-        sim_to_data: bool (default False)
 
-            * if False, deconvolve the hardware response
-            * if True, convolve with the hardware response
+        temp: float
+            temperature in Kelvin, better in the range [223.15 K , 323.15 K]
+
+        sim_to_data: bool (default False)
+            If False, deconvolve the hardware response.
+            If True, convolve with the hardware response
 
         phase_only: bool (default False)
             if True, only the phases response is applied but not the amplitude response
+
         mode: {None, 'phase_only', 'relative'}, default None
             Options:
-
-            * 'phase_only': only the phases response is applied but not the amplitude response
-              (identical to phase_only=True )
-            * 'relative': gain of amp is divided by maximum of the gain, i.e. at the maximum of the
-              filter response is 1 (before applying cable response). This makes it easier
-              to compare the filtered to unfiltered signal
-            * None : default, gain and phase effects are applied 'normally'
+                * 'phase_only': only the phases response is applied but not the amplitude response 
+                  (identical to phase_only=True )
+                * 'relative': gain of amp is divided by maximum of the gain, i.e. at the maximum of the 
+                  filter response is 1 (before applying cable response). This makes it easier
+                  to compare the filtered to unfiltered signal
+                * None : default, gain and phase effects are applied 'normally'
 
         mingainlin: float
             In frequency ranges where the gain gets very small, the reconstruction of the original signal (obtained by
