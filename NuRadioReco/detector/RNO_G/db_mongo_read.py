@@ -36,6 +36,7 @@ def filtered_keys(dict, exclude_keys):
     
     return set(list(dict.keys())) - set(exclude_keys)
 
+
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class Database(object):
 
@@ -455,17 +456,12 @@ class Database(object):
             return search_result
         
         # The following code block is necessary if the "primary_measurement" has several entries. Right now we always do that.
-        
-        # extract the measurement and object id
-        object_id = []
-        measurement_id = []
-        for dic in search_result:
-            object_id.append(dic['_id'])
-            measurement_id.append(dic['measurements']['id_measurement'])
-        # extract the information using the object and measurements id
-        id_filter = [{'$match': {'_id': {'$in': object_id}}},
+        # Extract the information using the object and measurements id
+        id_filter = [{'$match': {'_id': {'$in': [dic['_id'] for dic in search_result]}}},
                      {'$unwind': '$measurements'},
-                     {'$match': {'measurements.id_measurement': {'$in': measurement_id}}}]
+                     {'$match': {'measurements.id_measurement': 
+                         {'$in': [dic['measurements']['id_measurement'] for dic in search_result]}}}]
+        
         info = list(self.db[collection_name].aggregate(id_filter))
 
         return info
@@ -529,19 +525,14 @@ class Database(object):
         
         if search_result == []:
             return search_result
-        
+                
         # The following code block is necessary if the "primary_measurement" has several entries. Right now we always do that.
-        
-        # extract the measurement and object id
-        object_id = []
-        measurement_id = []
-        for dic in search_result:
-            object_id.append(dic['_id'])
-            measurement_id.append(dic['measurements']['id_measurement'])
-        # extract the information using the object and measurements id
-        id_filter = [{'$match': {'_id': {'$in': object_id}}},
+        # Extract the information using the object and measurements id
+        id_filter = [{'$match': {'_id': {'$in': [dic['_id'] for dic in search_result]}}},
                      {'$unwind': '$measurements'},
-                     {'$match': {'measurements.id_measurement': {'$in': measurement_id}}}]
+                     {'$match': {'measurements.id_measurement': 
+                         {'$in': [dic['measurements']['id_measurement'] for dic in search_result]}}}]
+        
         info = list(self.db[collection_name].aggregate(id_filter))
 
         return info
