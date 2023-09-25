@@ -76,12 +76,12 @@ class channelBlockOffsets:
             channel = station.get_channel(channel_id)
             if isinstance(offsets, dict):
                 add_offsets = offsets[channel_id]
-            elif len(np.atleast_1d(offsets)) == 1:
-                add_offsets = np.random.normal(
-                    0, offsets, (channel.get_number_of_samples() // self.block_size)
-                )
             else:
                 add_offsets = offsets
+            if len(np.atleast_1d(add_offsets)) == 1:
+                add_offsets = np.random.normal(
+                    0, add_offsets, (channel.get_number_of_samples() // self.block_size)
+                )
 
             # save the added offsets as a channelParameter
             if channel.has_parameter(channelParameters.block_offsets):
