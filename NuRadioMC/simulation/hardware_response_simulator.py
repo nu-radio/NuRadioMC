@@ -364,6 +364,9 @@ class hardwareResponseSimulator:
 
     def get_noise_vrms(self):
         return self.__noise_vrms
+    
+    def get_noise_vrms_per_channel(self):
+        return self.__v_rms_per_channel
 
     def get_bandwidth(self):
         return self.__bandwidth

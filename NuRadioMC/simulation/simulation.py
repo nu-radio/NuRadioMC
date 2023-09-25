@@ -192,10 +192,8 @@ class simulation(
         self._evt_time = evt_time
         self._write_detector = write_detector
         logger.status("setting event time to {}".format(evt_time))
-        self._event_group_list = event_list
-        self._evt = None
-        self._antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
-
+        self.__event_group_list = event_list
+        
         # initialize propagation module
         self._prop = NuRadioMC.SignalProp.propagation.get_propagation_module(self._cfg['propagation']['module'])
 
@@ -352,7 +350,7 @@ class simulation(
             self._evt_time
         )
         self._Vrms = self.__hardware_response_simulator.get_noise_vrms()
-
+        self._Vrms_per_channel = self.__hardware_response_simulator.get_noise_vrms_per_channel()
         efield_v_rms_per_channel = self.__hardware_response_simulator.get_efield_v_rms_per_channel()
         self.__station_simulator = NuRadioMC.simulation.station_simulator.stationSimulator(
             self._det,
@@ -371,7 +369,6 @@ class simulation(
         for shower_index, shower_id in enumerate(self._shower_ids):
             self._shower_index_array[shower_id] = shower_index
 
-        self._create_meta_output_datastructures()
 
         # check if the same detector was simulated before (then we can save the ray tracing part)
         pre_simulated = self._check_if_was_pre_simulated()
@@ -414,7 +411,7 @@ class simulation(
                 print('breaking')
                 break
             logger.debug(f"simulating event group id {event_group_id}")
-            if self._event_group_list is not None and event_group_id not in self._event_group_list:
+            if self.__event_group_list is not None and event_group_id not in self.__event_group_list:
                 logger.debug(f"skipping event group {event_group_id} because it is not in the event group list provided to the __init__ function")
                 continue
             event_indices = np.atleast_1d(np.squeeze(np.argwhere(self._fin['event_group_ids'] == event_group_id)))
@@ -426,7 +423,6 @@ class simulation(
             t1 = time.time()
             self._primary_index = event_indices[0]
             # determine if a particle (neutrinos, or a secondary interaction of a neutrino, or surfaec muons) is simulated
-            self._mout['weights'][event_indices] = np.ones(len(event_indices))  # for a pulser simulation, every event has the same weight
             if self._particle_mode:
                 event_group_weight = self._calculate_particle_weights(event_indices)
             else:
@@ -680,7 +676,6 @@ class simulation(
                                                    vertex_position=self.primary[simp.vertex],
                                                    phi_nu=self.primary[simp.azimuth])
         # all entries for the event for this primary get the calculated primary's weight
-        self._mout['weights'][evt_indices] = self.primary[simp.weight]
         return self.primary[simp.weight]
 
 
