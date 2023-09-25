@@ -109,7 +109,7 @@ class triggerSimulator:
             trigger_name="default_high_low",
             set_not_triggered=False,
             Vrms=None,
-            trigger_adc=False,  # by default, assumes the trigger ADC is the same as the channels ADC
+            trigger_adc=True,
             clock_offset=0,
             adc_output='voltage',
             use_digitization=False):
@@ -142,7 +142,20 @@ class triggerSimulator:
             a unique name of this particular trigger
         set_not_triggered: bool (default: False)
             if True not trigger simulation will be performed and this trigger will be set to not_triggered
+        Vrms: float
+            If supplied, overrides adc_reference_voltage as supplied in the detector description file
+        trigger_adc: bool
+            If True, the relevant ADC parameters in the config file are the ones
+            that start with `'trigger_'`
+        clock_offset: float
 
+        adc_output: string
+            Options:
+            * 'voltage' to store the ADC output as discretised voltage trace
+            * 'counts' to store the ADC output in ADC counts
+
+        use_digitization: bool
+            If True, traces will be digitized
         """
         t = time.time()
         sampling_rate = station.get_channel(station.get_channel_ids()[0]).get_sampling_rate()
