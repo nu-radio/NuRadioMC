@@ -647,9 +647,9 @@ class readRNOGData:
                 if self._apply_baseline_correction == 'median':
                     # correct baseline
                     wf, offsets = baseline_correction(wf, return_offsets=True)
+                    channel.set_parameter(NuRadioReco.framework.parameters.channelParameters.block_offsets, offsets)
 
                 channel.set_trace(wf, sampling_rate * units.GHz)
-                channel.set_parameter(NuRadioReco.framework.parameters.channelParameters.block_offsets, offsets)
             
             time_offset = get_time_offset(event_info.triggerType)
             channel.set_trace_start_time(-time_offset)  # relative to event/trigger time
