@@ -73,7 +73,7 @@ class NuRadioRecoio(object):
         self.__fail_on_version_mismatch = fail_on_version_mismatch
         self.__fail_on_minor_version_mismatch = fail_on_minor_version_mismatch
         self.__parse_header = parse_header
-        self.__parse_detector = parse_detector
+        self._parse_detector = parse_detector
         self.__read_lock = False
         self.__max_open_files = max_open_files
         self.__buffer_size = buffer_size
@@ -215,18 +215,18 @@ class NuRadioRecoio(object):
         iF_prev = None
         while True:
             if iF_prev != iF:
-                self.logger.info(f"Start scanning file {iF} ...")
+                self.logger.debug(f"Start scanning file {iF} ...")
                 iF_prev = iF
 
             self._get_file(iF).seek(current_byte)
             continue_loop, iF, current_byte = self.__scan_files_versioned(self, iF, current_byte)
 
             if iF_prev != iF:
-                self.logger.info(f"Finished scanning file {iF_prev}.")
+                self.logger.debug(f"Finished scanning file {iF_prev}.")
 
             if not continue_loop:
                 break
-        self.logger.info(f"Finished scanning file {iF}. Finished all")
+        self.logger.debug(f"Finished scanning file {iF}. Finished all")
 
         self.__event_ids = np.array(self.__event_ids)
         self.__file_scanned = True
@@ -341,7 +341,7 @@ class NuRadioRecoio(object):
         event is given.
         """
 
-        if not self.__parse_detector:
+        if not self._parse_detector:
             self.logger.warn(f"You called \"get_detector\", however, \"parse_detector\" is set to false. Return None!")
             return None
 
@@ -354,7 +354,8 @@ class NuRadioRecoio(object):
                     self.__scan_files()  # Maybe we just forgot to scan the file
 
                 if self._current_file_id not in self._detector_dicts:
-                    raise AttributeError('The current file does not contain a detector description.')
+                    self.logger.warn('The current file does not contain a detector description. Return None')
+                    return None
 
             detector_dict = self._detector_dicts[self._current_file_id]
             if 'generic_detector' in detector_dict.keys():

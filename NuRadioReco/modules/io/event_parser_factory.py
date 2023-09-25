@@ -10,7 +10,7 @@ def scan_files_function(version_major, version_minor):
     """
     def scan_files_2_0(self, iF, current_byte):
         
-        if self.__parse_detector:
+        if self._parse_detector:
             self.logger(f"Scanning a file of version 2.0 which does not contain a detector object. "
                         f"However, \"parse_detector\" is true.")
         
@@ -90,7 +90,7 @@ def scan_files_function(version_major, version_minor):
             self._bytes_start[iF].append(current_byte)
             self._bytes_length[iF].append(bytes_to_read)
         
-        elif object_type == 1 and self.__parse_detector:  # object is detector info
+        elif object_type == 1 and self._parse_detector:  # object is detector info
             self.logger.debug("Read detector ...")
 
             detector_dict = pickle.loads(self._get_file(iF).read(bytes_to_read))
