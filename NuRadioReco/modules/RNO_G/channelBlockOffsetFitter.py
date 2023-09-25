@@ -205,10 +205,7 @@ def fit_block_offsets(
     filtered_trace = fft.freq2time(filtered_trace_fft, sampling_rate)
 
     # obtain guesses for block offsets
-    a_guess = np.array([
-        np.mean(filtered_trace[i*block_size:(i+1)*block_size])
-        for i in range(n_blocks)
-    ])
+    a_guess = np.mean(np.split(filtered_trace, n_blocks), axis=1)
     if mode == 'approximate':
         block_offsets = a_guess
     elif mode == 'fit':
