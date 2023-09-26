@@ -8,6 +8,7 @@ import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.utilities.version
 from six import itervalues
 import collections
+import copy
 import logging
 logger = logging.getLogger('Event')
 
@@ -45,7 +46,7 @@ class Event:
         kwargs:
             the key word arguments of the run method
         """
-        
+        kwargs = copy.deepcopy(kwargs)
         # Not every kwargs argument passed to a run(..) method is serializable. Example is a detector object. 
         # Drop all arguments for which this is the case
         keys_to_be_dropped = [key for key in kwargs 
@@ -72,6 +73,8 @@ class Event:
         kwargs:
             the key word arguments of the run method
         """
+        kwargs = copy.deepcopy(kwargs)
+
         if station_id not in self.__modules_station:
             self.__modules_station[station_id] = []
             
