@@ -122,7 +122,7 @@ class simulation():
             path to the json file containing the detector description
         station_id: int
             the station id for which the simulation is performed. Must match a station
-            deself._fined in the detector description
+            defined in the detector description
         outputfilenameNuRadioReco: string or None
             outputfilename of NuRadioReco detector sim file, this file contains all
             waveforms of the triggered events
@@ -159,19 +159,19 @@ class simulation():
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
         logger.status('reading default config from {}'.format(config_file_default))
         with open(config_file_default, 'r') as ymlfile:
-            self._cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
+            self.__cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
         if config_file is not None:
             logger.status('reading local config overrides from {}'.format(config_file))
             with open(config_file, 'r') as ymlfile:
                 local_config = yaml.load(ymlfile, Loader=yaml.FullLoader)
-                new_cfg = merge_config(local_config, self._cfg)
-                self._cfg = new_cfg
+                new_cfg = merge_config(local_config, self.__cfg)
+                self.__cfg = new_cfg
 
-        if self._cfg['seed'] is None:
+        if self.__cfg['seed'] is None:
             # the config seeting None means a random seed. To have the simulation be reproducable, we generate a new
             # random seed once and save this seed to the config setting. If the simulation is rerun, we can get
             # the same random sequence.
-            self._cfg['seed'] = np.random.randint(0, 2 ** 32 - 1)
+            self.__cfg['seed'] = np.random.randint(0, 2 ** 32 - 1)
 
         self._outputfilename = outputfilename
         if os.path.exists(self._outputfilename):
@@ -182,7 +182,7 @@ class simulation():
             else:
                 logger.warning(msg)
         self._detectorfile = detectorfile
-        self._n_reflections = int(self._cfg['propagation']['n_reflections'])
+        self._n_reflections = int(self.__cfg['propagation']['n_reflections'])
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
         self._debug = debug
         self._evt_time = evt_time
@@ -191,15 +191,15 @@ class simulation():
         self.__event_group_list = event_list
         
         # initialize propagation module
-        self._prop = NuRadioMC.SignalProp.propagation.get_propagation_module(self._cfg['propagation']['module'])
+        self.__prop = NuRadioMC.SignalProp.propagation.get_propagation_module(self.__cfg['propagation']['module'])
 
-        if self._cfg['propagation']['ice_model'] == "custom":
+        if self.__cfg['propagation']['ice_model'] == "custom":
             if ice_model is None:
                 logger.error("ice model is set to 'custom' in config file but no custom ice model is provided.")
                 raise AttributeError("ice model is set to 'custom' in config file but no custom ice model is provided.")
             self._ice = ice_model
         else:
-            self._ice = NuRadioMC.utilities.medium.get_ice_model(self._cfg['propagation']['ice_model'])
+            self._ice = NuRadioMC.utilities.medium.get_ice_model(self.__cfg['propagation']['ice_model'])
 
         # read in detector positions
         logger.status("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
@@ -220,13 +220,13 @@ class simulation():
         self._station_ids = self._det.get_station_ids()
         
         # print noise information
-        logger.status("running with noise {}".format(bool(self._cfg['noise'])))
-        logger.status("setting signal to zero {}".format(bool(self._cfg['signal']['zerosignal'])))
-        if bool(self._cfg['propagation']['focusing']):
+        logger.status("running with noise {}".format(bool(self.__cfg['noise'])))
+        logger.status("setting signal to zero {}".format(bool(self.__cfg['signal']['zerosignal'])))
+        if bool(self.__cfg['propagation']['focusing']):
             logger.status("simulating signal amplification due to focusing of ray paths in the firn.")
 
         # read sampling rate from config (this sampling rate will be used internally)
-        self._dt = 1. / (self._cfg['sampling_rate'] * units.GHz)
+        self._dt = 1. / (self.__cfg['sampling_rate'] * units.GHz)
 
         if isinstance(inputfilename, str):
             logger.status(f"reading input from {inputfilename}")
@@ -235,9 +235,9 @@ class simulation():
         else:
             logger.status("getting input on-the-fly")
             self._inputfilename = "on-the-fly"
-            self._fin = inputfilename[0]
-            self._fin_attrs = inputfilename[1]
-            self._fin_stations = {}
+            self.__fin = inputfilename[0]
+            self.__fin_attrs = inputfilename[1]
+            self.__fin_stations = {}
         # store all relevant attributes of the input file in a dictionary
         self._generator_info = {}
         self._particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
@@ -254,8 +254,8 @@ class simulation():
 
 
         self._distance_cut_polynomial = None
-        if self._cfg['speedup']['distance_cut']:
-            coef = self._cfg['speedup']['distance_cut_coefficients']
+        if self.__cfg['speedup']['distance_cut']:
+            coef = self.__cfg['speedup']['distance_cut_coefficients']
             self.__distance_cut_polynomial = np.polynomial.polynomial.Polynomial(coef)
 
             def get_distance_cut(shower_energy):
@@ -298,19 +298,19 @@ class simulation():
         self._n_showers = len(self._fin['event_group_ids'])
         self._shower_ids = np.array(self._fin['shower_ids'])
         self.__particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
-        self._raytracer = self._prop(
-            self._ice, self._cfg['propagation']['attenuation_model'],
+        self.__raytracer = self.__prop(
+            self._ice, self.__cfg['propagation']['attenuation_model'],
             log_level=self._log_level_ray_propagation,
-            n_frequencies_integration=int(self._cfg['propagation']['n_freq']),
+            n_frequencies_integration=int(self.__cfg['propagation']['n_freq']),
             n_reflections=self._n_reflections,
-            config=self._cfg,
+            config=self.__cfg,
             detector=self._det
         )
         self.__channel_simulator = NuRadioMC.simulation.channel_efield_simulator.channelEfieldSimulator(
             self._det,
-            self._raytracer,
+            self.__raytracer,
             self._channel_ids,
-            self._cfg,
+            self.__cfg,
             self._fin,
             self._fin_attrs,
             self._ice,
@@ -320,21 +320,21 @@ class simulation():
         self.__shower_simulator = NuRadioMC.simulation.shower_simulator.showerSimulator(
             self._det,
             self._channel_ids,
-            self._cfg,
+            self.__cfg,
             self._fin,
             self._fin_attrs,
             self.__channel_simulator,
-            self._raytracer.get_number_of_raytracing_solutions()
+            self.__raytracer.get_number_of_raytracing_solutions()
         )
         self.__hardware_response_simulator = NuRadioMC.simulation.hardware_response_simulator.hardwareResponseSimulator(
             self._det,
-            self._cfg,
+            self.__cfg,
             self._station_ids,
             self._fin,
             self._fin_attrs,
             self._detector_simulation_trigger,
             self._detector_simulation_filter_amp,
-            self._raytracer,
+            self.__raytracer,
             self._evt_time
         )
         self._Vrms = self.__hardware_response_simulator.get_noise_vrms()
@@ -343,12 +343,12 @@ class simulation():
         self.__station_simulator = NuRadioMC.simulation.station_simulator.stationSimulator(
             self._det,
             self._channel_ids,
-            self._cfg,
+            self.__cfg,
             self._fin,
             self._fin_attrs,
             self._fin_stations,
             self.__shower_simulator,
-            self._raytracer,
+            self.__raytracer,
             self._check_if_was_pre_simulated(),
             efield_v_rms_per_channel
         )
@@ -372,10 +372,10 @@ class simulation():
         self._station_barycenter = self._calculate_station_barycenter()
         self.__output_writer_hdf5 = NuRadioMC.simulation.output_writer_hdf5.outputWriterHDF5(
             self._outputfilename,
-            self._cfg,
+            self.__cfg,
             self._det,
             self._station_ids,
-            self._raytracer,
+            self.__raytracer,
             self.__hardware_response_simulator,
             self._inputfilename,
             self._particle_mode
@@ -417,8 +417,8 @@ class simulation():
             )
             # skip all events where neutrino weights is zero, i.e., do not
             # simulate neutrino that propagate through the Earth
-            if event_group_weight < self._cfg['speedup']['minimum_weight_cut']:
-                logger.debug("neutrino weight is smaller than {}, skipping event".format(self._cfg['speedup']['minimum_weight_cut']))
+            if event_group_weight < self.__cfg['speedup']['minimum_weight_cut']:
+                logger.debug("neutrino weight is smaller than {}, skipping event".format(self.__cfg['speedup']['minimum_weight_cut']))
                 continue
 
 
@@ -456,7 +456,7 @@ class simulation():
 
                 ray_tracing_performed = False
                 if 'station_{:d}'.format(self._station_id) in self._fin_stations:
-                    ray_tracing_performed = (self._raytracer.get_output_parameters()[0]['name'] in self._fin_stations['station_{:d}'.format(self._station_id)]) and self._was_pre_simulated
+                    ray_tracing_performed = (self.__raytracer.get_output_parameters()[0]['name'] in self._fin_stations['station_{:d}'.format(self._station_id)]) and self._was_pre_simulated
                 self._dummy_event = NuRadioReco.framework.event.Event(0, 0) # a dummy event object, which does nothing but is needed because some modules require an event to be passed
                 sim_showers = {}
                 station_output, efield_array, is_candidate_station = self.__station_simulator.simulate_station(self._station_id)
@@ -528,7 +528,7 @@ class simulation():
         logger.status("{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}% askaryan, {:.1f}% detector simulation, {:.1f}% output, {:.1f}% weights calculation)".format(self._n_showers,
                                                                                          pretty_time_delta(t_total), 1.e3 * t_total / self._n_showers,
                                                                                          100 * self._input_time / t_total,
-                                                                                         100 * (self._rayTracingTime - self._askaryan_time) / t_total,
+                                                                                         100 * (self.__rayTracingTime - self._askaryan_time) / t_total,
                                                                                          100 * self._askaryan_time / t_total,
                                                                                          100 * self._detSimTime / t_total,
                                                                                          100 * self._outputTime / t_total,
@@ -550,7 +550,7 @@ class simulation():
         """
         returns True if noise should be added
         """
-        return bool(self._cfg['noise'])
+        return bool(self.__cfg['noise'])
 
     def _is_in_fiducial_volume(self):
         """
@@ -636,20 +636,20 @@ class simulation():
             self._primary_index)  # this sets the self.input_particle for self._primary_index
         # calculate the weight for the primary particle
         self.primary = self.input_particle
-        if self._cfg['weights']['weight_mode'] == "existing":
+        if self.__cfg['weights']['weight_mode'] == "existing":
             if "weights" in self._fin:
                 self._mout['weights'] = self._fin["weights"]
             else:
                 logger.error(
                     "config file specifies to use weights from the input hdf5 file but the input file does not contain this information.")
-        elif self._cfg['weights']['weight_mode'] is None:
+        elif self.__cfg['weights']['weight_mode'] is None:
             self.primary[simp.weight] = 1.
         else:
             self.primary[simp.weight] = get_weight(self.primary[simp.zenith],
                                                    self.primary[simp.energy],
                                                    self.primary[simp.flavor],
-                                                   mode=self._cfg['weights']['weight_mode'],
-                                                   cross_section_type=self._cfg['weights']['cross_section_type'],
+                                                   mode=self.__cfg['weights']['weight_mode'],
+                                                   cross_section_type=self.__cfg['weights']['cross_section_type'],
                                                    vertex_position=self.primary[simp.vertex],
                                                    phi_nu=self.primary[simp.azimuth])
         # all entries for the event for this primary get the calculated primary's weight
@@ -677,7 +677,7 @@ class simulation():
         -------
 
         """
-        if not self._cfg['speedup']['distance_cut']:
+        if not self.__cfg['speedup']['distance_cut']:
             return True
         t_tmp = time.time()
         vertex_distances_to_station = np.linalg.norm(vertex_positions.T - station_barycenter, axis=1)
