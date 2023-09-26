@@ -60,12 +60,13 @@ class hardwareResponseIncorporator:
 
         mode: {None, 'phase_only', 'relative'}, default None
             Options:
-                * 'phase_only': only the phases response is applied but not the amplitude response 
-                  (identical to phase_only=True )
-                * 'relative': gain of amp is divided by maximum of the gain, i.e. at the maximum of the 
-                  filter response is 1 (before applying cable response). This makes it easier
-                  to compare the filtered to unfiltered signal
-                * None : default, gain and phase effects are applied 'normally'
+
+            * 'phase_only': only the phases response is applied but not the amplitude response 
+              (identical to phase_only=True )
+            * 'relative': gain of amp is divided by maximum of the gain, i.e. at the maximum of the 
+              filter response is 1 (before applying cable response). This makes it easier
+              to compare the filtered to unfiltered signal
+            * None : default, gain and phase effects are applied 'normally'
 
         mingainlin: float
             In frequency ranges where the gain gets very small, the reconstruction of the original signal (obtained by
@@ -145,6 +146,7 @@ class hardwareResponseIncorporator:
 
         mode: string or None, default None
             Options:
+
             * 'phase_only': only the phases response is applied but not the amplitude response
               (identical to phase_only=True )
             * 'relative': gain of amp is divided by maximum of the gain, i.e. at the maximum of the
