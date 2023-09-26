@@ -13,7 +13,7 @@ from NuRadioReco.utilities import units, fft
 from NuRadioReco.framework.base_trace import BaseTrace
 from NuRadioReco.framework.parameters import channelParameters
 import numpy as np
-import scipy
+import scipy.optimize
 
 class channelBlockOffsets:
 
@@ -95,7 +95,7 @@ class channelBlockOffsets:
                 channel.get_sampling_rate()
             )
 
-    def remove_offsets(self, event, station, mode='fit', channel_ids=None):
+    def remove_offsets(self, event, station, mode='fit', channel_ids=None, maxiter=2):
         """
         Remove block offsets from an event
 
@@ -120,6 +120,11 @@ class channelBlockOffsets:
         channel_ids: list | None
             List of channel ids to remove offsets from. If None (default),
             remove offsets from all channels in ``station``
+        maxiter: int, default 2
+            (Only if mode=='fit') The maximum number of fit iterations.
+            This can be increased to more accurately remove the block offsets
+            at the cost of performance. (The default value removes 'most' offsets
+            to about 1%)
 
         """
         if channel_ids  is None:
@@ -138,7 +143,7 @@ class channelBlockOffsets:
                 block_offsets = fit_block_offsets(
                     trace, self.block_size,
                     channel.get_sampling_rate(), self._max_frequency,
-                    mode=mode
+                    mode=mode, maxiter=maxiter
                 )
                 offsets[channel_id] = -block_offsets
         
@@ -148,7 +153,7 @@ class channelBlockOffsets:
 def fit_block_offsets(
         trace, block_size=128, sampling_rate=3.2*units.GHz,
         max_frequency=50*units.MHz, mode='fit', return_trace = False,
-        tol=1e-6,):
+        maxiter=2, tol=1e-6):
     """
     Fit 'block' offsets for a voltage trace
 
@@ -175,6 +180,11 @@ def fit_block_offsets(
         if True, return the tuple (offsets, output_trace)
         where the output_trace is the input trace with
         fitted block offsets removed
+    maxiter: int (default: 2)
+        (Only if mode=='fit') The maximum number of fit iterations.
+        This can be increased to more accurately remove the block offsets
+        at the cost of performance. (The default value removes 'most' offsets
+        to about 1%)
 
     Returns
     -------
@@ -235,7 +245,7 @@ def fit_block_offsets(
             chi2 = np.sum(np.abs(fit-spectrum_oob)**2)
             return chi2
 
-        res = scipy.optimize.minimize(pedestal_fit, a_guess, tol=tol).x
+        res = scipy.optimize.minimize(pedestal_fit, a_guess, tol=tol, options=dict(maxiter=maxiter)).x
 
         block_offsets = np.zeros(len(res) + 1)
         block_offsets[:-1] = res
