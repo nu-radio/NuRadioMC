@@ -651,11 +651,6 @@ class readRNOGData:
                     # convert adc to voltage
                     wf = wf * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
     
-                if self._apply_baseline_correction == 'median': #TODO: deprecate / remove
-                    # correct baseline
-                    wf, offsets = baseline_correction(wf, return_offsets=True)
-                    channel.set_parameter(NuRadioReco.framework.parameters.channelParameters.block_offsets, offsets)
-
                 channel.set_trace(wf, sampling_rate * units.GHz)
             
             time_offset = get_time_offset(event_info.triggerType)
