@@ -20,8 +20,13 @@ import mattak.Dataset
 
 def baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
     """
-    Simple baseline correction function. Determines baseline in discrete chuncks of "n_bins" with
+    Simple baseline correction function. 
+    
+    Determines baseline in discrete chuncks of "n_bins" with
     the function specified (i.e., mean or median).
+
+    .. Warning:: This function has been deprecated, use :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
+      instead
     
     Parameters
     ----------
@@ -47,7 +52,10 @@ def baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
     baseline_values: np.array of shape (n_samples // n_bins, n_events, n_channels)
         (Only if return_offsets==True) The baseline offsets
     """
-     
+    import warnings
+    warnings.warn(
+        'baseline_correction is deprecated, use NuRadioReco.modules.RNO_G.channelBlockOffsetFitter instead',
+        DeprecationWarning)
     # Example: Get baselines in chunks of 128 bins
     # wfs in (n_events, n_channels, 2048)
     # np.split -> (16, n_events, n_channels, 128) each waveform split in 16 chuncks
@@ -187,7 +195,7 @@ class readRNOGData:
             read_calibrated_data=False,
             select_triggers=None,
             select_runs=False,
-            apply_baseline_correction='median',
+            apply_baseline_correction='approximate',
             convert_to_voltage=True,
             selectors=[],
             run_types=["physics"],
@@ -218,16 +226,15 @@ class readRNOGData:
         Other Parameters
         ----------------
         
-        apply_baseline_correction: 'median' | 'approximate' | 'fit' | 'none'
+        apply_baseline_correction: 'approximate' | 'fit' | 'none'
             Only applies when non-calibrated data are read. Removes the DC (baseline)
             block offsets (pedestals).
             Options are:
 
-            * 'median' (Default) - subtract the median of each block
-            * 'approximate' - apply a bandpass filter before calculating the median of each block
+            * 'approximate' (default) - estimate block offsets by looking at the low-pass filtered trace
             * 'fit' - do a full out-of-band fit to determine the block offsets; for more details,
               see ``NuRadioReco.modules.RNO_G.channelBlockOffsetFitter``
-            * 'none' - do not apply a baseline correction
+            * 'none' - do not apply a baseline correction (faster)
 
         convert_to_voltage: bool
             Only applies when non-calibrated data are read. If true, convert ADC to voltage.
@@ -264,7 +271,7 @@ class readRNOGData:
         t0 = time.time()
         
         self._read_calibrated_data = read_calibrated_data
-        baseline_correction_valid_options = ['median', 'approximate', 'fit', 'none']
+        baseline_correction_valid_options = ['approximate', 'fit', 'none']
         if apply_baseline_correction.lower() not in baseline_correction_valid_options:
             raise ValueError(
                 f"Value for apply_baseline_correction ({apply_baseline_correction}) not recognized. "
@@ -644,7 +651,7 @@ class readRNOGData:
                     # convert adc to voltage
                     wf = wf * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
     
-                if self._apply_baseline_correction == 'median':
+                if self._apply_baseline_correction == 'median': #TODO: deprecate / remove
                     # correct baseline
                     wf, offsets = baseline_correction(wf, return_offsets=True)
                     channel.set_parameter(NuRadioReco.framework.parameters.channelParameters.block_offsets, offsets)
