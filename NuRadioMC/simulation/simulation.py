@@ -240,14 +240,14 @@ class simulation():
             self.__fin_stations = {}
         # store all relevant attributes of the input file in a dictionary
         self._generator_info = {}
-        self._particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
+        self._particle_mode = "simulation_mode" not in self.__fin_attrs or self.__fin_attrs['simulation_mode'] != "emitter"
 
         for enum_entry in genattrs:
-            if enum_entry.name in self._fin_attrs:
-                self._generator_info[enum_entry] = self._fin_attrs[enum_entry.name]
+            if enum_entry.name in self.__fin_attrs:
+                self._generator_info[enum_entry] = self.__fin_attrs[enum_entry.name]
 
         # check if the input file contains events, if not save empty output file (for book keeping) and terminate simulation
-        if len(self._fin['xx']) == 0:
+        if len(self.__fin['xx']) == 0:
             logger.status(f"input file {self._inputfilename} is empty")
             return
 
@@ -279,7 +279,7 @@ class simulation():
         """
         run the NuRadioMC simulation
         """
-        if len(self._fin['xx']) == 0:
+        if len(self.__fin['xx']) == 0:
             logger.status(f"writing empty hdf5 output file")
             self._write_output_file(empty=True)
             logger.status(f"terminating simulation")
@@ -294,10 +294,10 @@ class simulation():
         sampling_rate_detector = self._det.get_sampling_frequency(self._det.get_station_ids()[0], self._channel_ids[0])
         self._n_samples = self._det.get_number_of_samples(self._det.get_station_ids()[0], self._channel_ids[0]) / sampling_rate_detector / self._dt
         self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)
-        unique_event_group_ids = np.unique(self._fin['event_group_ids'])
-        self._n_showers = len(self._fin['event_group_ids'])
-        self._shower_ids = np.array(self._fin['shower_ids'])
-        self.__particle_mode = "simulation_mode" not in self._fin_attrs or self._fin_attrs['simulation_mode'] != "emitter"
+        unique_event_group_ids = np.unique(self.__fin['event_group_ids'])
+        self._n_showers = len(self.__fin['event_group_ids'])
+        self._shower_ids = np.array(self.__fin['shower_ids'])
+        self.__particle_mode = "simulation_mode" not in self.__fin_attrs or self.__fin_attrs['simulation_mode'] != "emitter"
         self.__raytracer = self.__prop(
             self._ice, self.__cfg['propagation']['attenuation_model'],
             log_level=self._log_level_ray_propagation,
@@ -311,8 +311,8 @@ class simulation():
             self.__raytracer,
             self._channel_ids,
             self.__cfg,
-            self._fin,
-            self._fin_attrs,
+            self.__fin,
+            self.__fin_attrs,
             self._ice,
             self._n_samples,
             1. / self._dt
@@ -321,8 +321,8 @@ class simulation():
             self._det,
             self._channel_ids,
             self.__cfg,
-            self._fin,
-            self._fin_attrs,
+            self.__fin,
+            self.__fin_attrs,
             self.__channel_simulator,
             self.__raytracer.get_number_of_raytracing_solutions()
         )
@@ -330,8 +330,8 @@ class simulation():
             self._det,
             self.__cfg,
             self._station_ids,
-            self._fin,
-            self._fin_attrs,
+            self.__fin,
+            self.__fin_attrs,
             self._detector_simulation_trigger,
             self._detector_simulation_filter_amp,
             self.__raytracer,
@@ -344,8 +344,8 @@ class simulation():
             self._det,
             self._channel_ids,
             self.__cfg,
-            self._fin,
-            self._fin_attrs,
+            self.__fin,
+            self.__fin_attrs,
             self._fin_stations,
             self.__shower_simulator,
             self.__raytracer,
@@ -397,7 +397,7 @@ class simulation():
             if self.__event_group_list is not None and event_group_id not in self.__event_group_list:
                 logger.debug(f"skipping event group {event_group_id} because it is not in the event group list provided to the __init__ function")
                 continue
-            event_indices = np.atleast_1d(np.squeeze(np.argwhere(self._fin['event_group_ids'] == event_group_id)))
+            event_indices = np.atleast_1d(np.squeeze(np.argwhere(self.__fin['event_group_ids'] == event_group_id)))
 
             # the weight calculation is independent of the station, so we do this calculation only once
             # the weight also depends just on the "mother" particle, i.e. the incident neutrino which determines
@@ -426,13 +426,13 @@ class simulation():
             # these quantities get computed to apply the distance cut as a function of shower energies
             # the shower energies of closeby showers will be added as they can constructively interfere
             t_tmp = time.time()
-            if 'shower_energies' in self._fin.keys():
-                shower_energies = np.array(self._fin['shower_energies'])[event_indices]
+            if 'shower_energies' in self.__fin.keys():
+                shower_energies = np.array(self.__fin['shower_energies'])[event_indices]
             else:
                 shower_energies = np.zeros(event_indices.shape)
-            vertex_positions = np.array([np.array(self._fin['xx'])[event_indices],
-                                         np.array(self._fin['yy'])[event_indices],
-                                         np.array(self._fin['zz'])[event_indices]])
+            vertex_positions = np.array([np.array(self.__fin['xx'])[event_indices],
+                                         np.array(self.__fin['yy'])[event_indices],
+                                         np.array(self.__fin['zz'])[event_indices]])
             self.__station_simulator.set_event_group(
                 i_event_group_id,
                 event_group_id,
@@ -533,7 +533,7 @@ class simulation():
                                                                                          100 * self._detSimTime / t_total,
                                                                                          100 * self._outputTime / t_total,
                                                                                          100 * self._weightTime / t_total))
-        triggered = remove_duplicate_triggers(self._mout['triggered'], self._fin['event_group_ids'])
+        triggered = remove_duplicate_triggers(self._mout['triggered'], self.__fin['event_group_ids'])
         n_triggered = np.sum(triggered)
         return n_triggered
 
@@ -562,14 +562,14 @@ class simulation():
         tt = ['fiducial_rmin', 'fiducial_rmax', 'fiducial_zmin', 'fiducial_zmax']
         has_fiducial = True
         for t in tt:
-            if not t in self._fin_attrs:
+            if not t in self.__fin_attrs:
                 has_fiducial = False
         if not has_fiducial:
             return True
 
         r = (self._shower_vertex[0] ** 2 + self._shower_vertex[1] ** 2) ** 0.5
-        if r >= self._fin_attrs['fiducial_rmin'] and r <= self._fin_attrs['fiducial_rmax']:
-            if self._shower_vertex[2] >= self._fin_attrs['fiducial_zmin'] and self._shower_vertex[2] <= self._fin_attrs['fiducial_zmax']:
+        if r >= self.__fin_attrs['fiducial_rmin'] and r <= self.__fin_attrs['fiducial_rmax']:
+            if self._shower_vertex[2] >= self.__fin_attrs['fiducial_zmin'] and self._shower_vertex[2] <= self.__fin_attrs['fiducial_zmax']:
                 return True
         return False
 
@@ -577,7 +577,7 @@ class simulation():
 
     def _check_vertex_times(self):
 
-        if 'vertex_times' in self._fin:
+        if 'vertex_times' in self.__fin:
             return True
         else:
             warn_msg = 'The input file does not include vertex times. '
@@ -597,9 +597,9 @@ class simulation():
         checks if the same detector was simulated before (then we can save the ray tracing part)
         """
         self._was_pre_simulated = False
-        if 'detector' in self._fin_attrs:
+        if 'detector' in self.__fin_attrs:
             with open(self._detectorfile, 'r') as fdet:
-                if fdet.read() == self._fin_attrs['detector']:
+                if fdet.read() == self.__fin_attrs['detector']:
                     self._was_pre_simulated = True
                     logger.debug("the simulation was already performed with the same detector")
         return self._was_pre_simulated
@@ -608,13 +608,13 @@ class simulation():
 
     def calculate_Veff(self):
         # calculate effective
-        triggered = remove_duplicate_triggers(self._mout['triggered'], self._fin['event_group_ids'])
+        triggered = remove_duplicate_triggers(self._mout['triggered'], self.__fin['event_group_ids'])
         n_triggered = np.sum(triggered)
         n_triggered_weighted = np.sum(self._mout['weights'][triggered])
-        n_events = self._fin_attrs['n_events']
+        n_events = self.__fin_attrs['n_events']
         logger.status(f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} = {n_triggered / self._n_showers:.3f} (sum of weights = {n_triggered_weighted:.2f})')
 
-        V = self._fin_attrs['volume']
+        V = self.__fin_attrs['volume']
         Veff = V * n_triggered_weighted / n_events
         logger.status(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
 
@@ -637,8 +637,8 @@ class simulation():
         # calculate the weight for the primary particle
         self.primary = self.input_particle
         if self.__cfg['weights']['weight_mode'] == "existing":
-            if "weights" in self._fin:
-                self._mout['weights'] = self._fin["weights"]
+            if "weights" in self.__fin:
+                self._mout['weights'] = self.__fin["weights"]
             else:
                 logger.error(
                     "config file specifies to use weights from the input hdf5 file but the input file does not contain this information.")
@@ -694,9 +694,9 @@ class simulation():
         reads input file into memory
         """
         fin = h5py.File(self._inputfilename, 'r')
-        self._fin = {}
+        self.__fin = {}
         self._fin_stations = {}
-        self._fin_attrs = {}
+        self.__fin_attrs = {}
         for key, value in iteritems(fin):
             if isinstance(value, h5py._hl.group.Group):
                 self._fin_stations[key] = {}
@@ -704,36 +704,36 @@ class simulation():
                     self._fin_stations[key][key2] = np.array(value2)
             else:
                 if len(value) and type(value[0]) == bytes:
-                    self._fin[key] = np.array(value).astype('U')
+                    self.__fin[key] = np.array(value).astype('U')
                 else:
-                    self._fin[key] = np.array(value)
+                    self.__fin[key] = np.array(value)
         for key, value in iteritems(fin.attrs):
-            self._fin_attrs[key] = value
+            self.__fin_attrs[key] = value
 
         fin.close()
 
     def _read_input_particle_properties(self, idx=None):
         if idx is None:
             idx = self._primary_index
-        self._event_group_id = self._fin['event_group_ids'][idx]
+        self._event_group_id = self.__fin['event_group_ids'][idx]
 
         self.input_particle = NuRadioReco.framework.particle.Particle(0)
-        self.input_particle[simp.flavor] = self._fin['flavors'][idx]
-        self.input_particle[simp.energy] = self._fin['energies'][idx]
-        self.input_particle[simp.interaction_type] = self._fin['interaction_type'][idx]
-        self.input_particle[simp.inelasticity] = self._fin['inelasticity'][idx]
-        self.input_particle[simp.vertex] = np.array([self._fin['xx'][idx],
-                                                     self._fin['yy'][idx],
-                                                     self._fin['zz'][idx]])
-        self.input_particle[simp.zenith] = self._fin['zeniths'][idx]
-        self.input_particle[simp.azimuth] = self._fin['azimuths'][idx]
-        self.input_particle[simp.inelasticity] = self._fin['inelasticity'][idx]
-        self.input_particle[simp.n_interaction] = self._fin['n_interaction'][idx]
-        if self._fin['n_interaction'][idx] <= 1:
+        self.input_particle[simp.flavor] = self.__fin['flavors'][idx]
+        self.input_particle[simp.energy] = self.__fin['energies'][idx]
+        self.input_particle[simp.interaction_type] = self.__fin['interaction_type'][idx]
+        self.input_particle[simp.inelasticity] = self.__fin['inelasticity'][idx]
+        self.input_particle[simp.vertex] = np.array([self.__fin['xx'][idx],
+                                                     self.__fin['yy'][idx],
+                                                     self.__fin['zz'][idx]])
+        self.input_particle[simp.zenith] = self.__fin['zeniths'][idx]
+        self.input_particle[simp.azimuth] = self.__fin['azimuths'][idx]
+        self.input_particle[simp.inelasticity] = self.__fin['inelasticity'][idx]
+        self.input_particle[simp.n_interaction] = self.__fin['n_interaction'][idx]
+        if self.__fin['n_interaction'][idx] <= 1:
             # parents before the neutrino and outgoing daughters without shower are currently not
             # simulated. The parent_id is therefore at the moment only rudimentarily populated.
             self.input_particle[simp.parent_id] = None  # primary does not have a parent
 
         self.input_particle[simp.vertex_time] = 0
-        if 'vertex_times' in self._fin:
-            self.input_particle[simp.vertex_time] = self._fin['vertex_times'][idx]
+        if 'vertex_times' in self.__fin:
+            self.input_particle[simp.vertex_time] = self.__fin['vertex_times'][idx]
