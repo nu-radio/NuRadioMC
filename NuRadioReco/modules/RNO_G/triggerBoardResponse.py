@@ -134,6 +134,9 @@ class triggerBoardResponse:
         vrms_after_gain : float
             the RMS voltage of the waveforms after the gain has been applied
 
+        ideal_vrms: float
+            the ideal vrms, as measured on the ADC capacitors
+
         """
 
         if avg_vrms is None:
@@ -167,7 +170,7 @@ class triggerBoardResponse:
         eff_noise_bits = np.log2(vrms_after_gain / volts_per_adc) + 1
         self.logger.debug(f"\t Eff noise bits: {eff_noise_bits:0.2f}\tRequested: {noise_bits}")
 
-        return vrms_after_gain
+        return vrms_after_gain, ideal_vrms
 
     def get_trigger_values(self, station, det, requested_channels=[]):
         """
@@ -302,7 +305,7 @@ class triggerBoardResponse:
 
         """
 
-        logger.debug(f"Applying the RNO-G trigger board response")
+        self.logger.debug(f"Applying the RNO-G trigger board response")
 
         trigger_channels, trigger_amp_response = self.get_trigger_values(station, det, requested_channels)
         self.apply_trigger_filter(station, trigger_channels, trigger_amp_response)
@@ -311,12 +314,13 @@ class triggerBoardResponse:
             vrms = self.get_avg_vrms(station, trigger_channels)
 
         if apply_adc_gain:
-            trigger_board_vrms = self.apply_adc_gain(station, det, trigger_channels, vrms)
+            trigger_board_vrms, ideal_vrms = self.apply_adc_gain(station, det, trigger_channels, vrms)
         else:
             trigger_board_vrms = vrms
+            ideal_vrms = vrms
 
         if digitize_trace:
-            self.digitize_trace(station, det, trigger_channels, trigger_board_vrms)
+            self.digitize_trace(station, det, trigger_channels, ideal_vrms)
 
         return trigger_board_vrms
 
