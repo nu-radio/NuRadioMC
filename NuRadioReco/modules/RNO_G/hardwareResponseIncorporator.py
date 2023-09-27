@@ -80,12 +80,16 @@ class hardwareResponseIncorporator:
             iamp_gain_low = np.where(np.abs(amp_response) < (mingainlin * ampmax))
             amp_response[iamp_gain_low] = (mingainlin * ampmax) * np.exp(1j * np.angle(amp_response[iamp_gain_low]))
         cable_response = 1
-        if(mode == 'phase_only'):
+        if mode is None:
+            pass
+        elif mode == 'phase_only':
             cable_response = np.ones_like(cable_response) * np.exp(1j * np.angle(cable_response))
             amp_response = np.ones_like(amp_response) * np.angle(amp_response)
-        elif(mode == 'relative'):
+        elif mode == 'relative':
             ampmax = np.max(np.abs(amp_response))
             amp_response /= ampmax
+        else:
+            raise NotImplementedError(f"Operating mode \"{mode}\" has not been implemented.")
 
         if sim_to_data:
             return amp_response * cable_response
