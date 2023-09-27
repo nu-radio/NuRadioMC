@@ -277,7 +277,9 @@ class triggerSimulator:
                        trigger_filter=None,
                        upsampling_factor=1,
                        window=32,
-                       step=16):
+                       step=16,
+                       apply_digitization=True,
+                       ):
         """
         simulates phased array trigger for each event
 
@@ -303,27 +305,35 @@ class triggerSimulator:
             if None, all channels are taken
         phasing_angles: array of float
             pointing angles for the primary beam
-        ref_index: float
+        ref_index: float (default 1.75)
             refractive index for beam forming
-        trigger_adc: bool, default True
-            If True, analog to digital conversion is performed. It must be specified in the
+        trigger_adc: bool (default True)
+            If True, uses the ADC settings from the trigger. It must be specified in the
             detector file. See analogToDigitalConverter module for information
-        clock_offset: float
-            Overall clock offset, for adc clock jitter reasons
-        trigger_filter: array floats
+            (see option `apply_digitization`)
+        clock_offset: float (default 0)
+            Overall clock offset, for adc clock jitter reasons (see `apply_digitization`)
+        adc_output: string (default 'voltage')
+
+            - 'voltage' to store the ADC output as discretised voltage trace
+            - 'counts' to store the ADC output in ADC counts
+        trigger_filter: array floats (default None)
             Freq. domain of the response to be applied to post-ADC traces
             Must be length for "MC freq"
-        upsampling_factor: integer
+        upsampling_factor: integer (default 1)
             Upsampling factor. The trace will be a upsampled to a
             sampling frequency int_factor times higher than the original one
             after conversion to digital
-        window: int
+        window: int (default 32)
             Power integral window
             Units of ADC time ticks
-        step: int
+        step: int (default 16)
             Time step in power integral. If equal to window, there is no time overlap
             in between neighboring integration windows.
             Units of ADC time ticks
+        apply_digitization: bool (default True)
+            Perform the quantization of the ADC. If set to true, should also set options
+            `trigger_adc`, `adc_output`, `clock_offset`
 
         Returns
         -------
@@ -358,7 +368,8 @@ class triggerSimulator:
 
             trace = np.array(channel.get_trace())
 
-            trace, adc_sampling_frequency = ADC.get_digital_trace(station, det, channel,
+            if apply_digitization:
+                trace, adc_sampling_frequency = ADC.get_digital_trace(station, det, channel,
                                                                   Vrms=Vrms,
                                                                   trigger_adc=trigger_adc,
                                                                   clock_offset=clock_offset,
@@ -366,6 +377,8 @@ class triggerSimulator:
                                                                   adc_type='perfect_floor_comparator',
                                                                   adc_output=adc_output,
                                                                   trigger_filter=None)
+            else:
+                adc_sampling_frequency = channel.get_sampling_rate()
 
             # Upsampling here, linear interpolate to mimic an FPGA internal upsampling
             if not isinstance(upsampling_factor, int):
@@ -464,7 +477,9 @@ class triggerSimulator:
             trigger_filter=None,
             upsampling_factor=1,
             window=32,
-            step=16):
+            step=16,
+            apply_digitization=True,
+            ):
 
         """
         simulates phased array trigger for each event
@@ -495,34 +510,37 @@ class triggerSimulator:
             name for the trigger
         phasing_angles: array of float
             pointing angles for the primary beam
-        set_not_triggered: bool (default: False)
+        set_not_triggered: bool (default False)
             if True not trigger simulation will be performed and this trigger will be set to not_triggered
-        ref_index: float
+        ref_index: float (default 1.75)
             refractive index for beam forming
-        trigger_adc: bool, default True
-            If True, analog to digital conversion is performed. It must be specified in the
+        trigger_adc: bool, (default True)
+            If True, uses the ADC settings from the trigger. It must be specified in the
             detector file. See analogToDigitalConverter module for information
-        clock_offset: float
+        clock_offset: float (default 0)
             Overall clock offset, for adc clock jitter reasons
-        adc_output: string
+        adc_output: string (default 'voltage')
 
             - 'voltage' to store the ADC output as discretised voltage trace
             - 'counts' to store the ADC output in ADC counts
 
-        trigger_filter: array floats
+        trigger_filter: array floats (default None)
             Freq. domain of the response to be applied to post-ADC traces
             Must be length for "MC freq"
-        upsampling_factor: integer
+        upsampling_factor: integer (default 1)
             Upsampling factor. The trace will be a upsampled to a
             sampling frequency int_factor times higher than the original one
             after conversion to digital
-        window: int
+        window: int (default 32)
             Power integral window
             Units of ADC time ticks
-        step: int
+        step: int (default 16)
             Time step in power integral. If equal to window, there is no time overlap
             in between neighboring integration windows.
             Units of ADC time ticks
+        apply_digitization: bool (default True)
+            Perform the quantization of the ADC. If set to true, should also set options
+            `trigger_adc`, `adc_output`, `clock_offset`
         
         Returns
         -------
@@ -557,7 +575,9 @@ class triggerSimulator:
                                                                              trigger_filter=trigger_filter,
                                                                              upsampling_factor=upsampling_factor,
                                                                              window=window,
-                                                                             step=step)
+                                                                             step=step,
+                                                                             apply_digitization=apply_digitization,
+                                                                             )
 
         # Create a trigger object to be returned to the station
         trigger = SimplePhasedTrigger(trigger_name, threshold, channels=triggered_channels,
