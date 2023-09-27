@@ -199,17 +199,6 @@ class outputWriterHDF5:
         output_file.attrs['n_samples'] = n_samples
         output_file.attrs['config'] = yaml.dump(self.__config)
 
-        # copy over data from input file
-        # for key in self.__input_data.keys():
-        #     print('!', key)
-        #     
-        #     if not key.startswith('station_') and not key in output_file.keys():
-        #         if np.array(self.__input_data[key]).dtype.char == 'U':
-        #             output_file[key] = np.array(self.__input_data[key], dtype=h5py.string_dtype(encoding='utf-8'))[saved_events_mask]
-# 
-        #         else:
-        #             output_file[key] = np.array(self.__input_data[key])[saved_events_mask]
-        #             
         for key in self.__input_attributes.keys():
             if not key in output_file.attrs.keys():  # only save atrributes sets that havn't been recomputed and saved already
                 if key not in ["trigger_names", "Tnoise", "Vrms", "bandwidth", "n_samples", "dt", "detector", "config"]:  # don't write trigger names from input to output file, this will lead to problems with incompatible trigger names when merging output files
@@ -379,6 +368,9 @@ class outputWriterHDF5:
             )
         self.__output_triggered_station[station_id].append(np.any(multiple_triggers))
 
+    def get_trigger_status(self):
+        return self.__output['triggered']
 
-
+    def get_weights(self):
+        return self.__output['weights']
 

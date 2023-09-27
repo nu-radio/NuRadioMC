@@ -608,12 +608,14 @@ class simulation():
 
     def calculate_Veff(self):
         # calculate effective
-        triggered = remove_duplicate_triggers(self._mout['triggered'], self.__fin['event_group_ids'])
+        trigger_status = self.__output_writer_hdf5.get_trigger_status()
+        triggered = remove_duplicate_triggers(trigger_status, self.__fin['event_group_ids'])
         n_triggered = np.sum(triggered)
-        n_triggered_weighted = np.sum(self._mout['weights'][triggered])
+        weights = self.__output_writer_hdf5.get_weights()
+        n_triggered_weighted = np.sum(weights[triggered])
         n_events = self.__fin_attrs['n_events']
         logger.status(f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} = {n_triggered / self._n_showers:.3f} (sum of weights = {n_triggered_weighted:.2f})')
-
+        print(self.__fin_attrs.keys())
         V = self.__fin_attrs['volume']
         Veff = V * n_triggered_weighted / n_events
         logger.status(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
