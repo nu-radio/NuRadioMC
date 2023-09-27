@@ -266,9 +266,9 @@ class Detector():
 
         if any_update:
             for key in self.__buffered_stations:
-                if update_buffer_for_station[station_id]:
+                if update_buffer_for_station[key]:
                     # remove everything (could be handled smarter ...)
-                    self.__buffered_stations[station_id] = {}
+                    self.__buffered_stations[key] = {}
 
             for station_id, need_update in update_buffer_for_station.items():
                 if need_update and self.has_station(station_id):
