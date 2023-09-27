@@ -106,6 +106,11 @@ class channelGenericNoiseAdder:
         *   Add 'multi_white' noise option on 20-Sept-2018 (RL)
 
         """
+        if sampling_rate > 100:
+            raise ValueError(f"The sampling rate can not be set to values larger than 100 (is set to {sampling_rate}). "
+                             "The sampling rate is interpreted as giga samples per second (since the base unit for "
+                             "time in NuRadioReco is nano second).")
+        
         frequencies = np.fft.rfftfreq(n_samples, 1. / sampling_rate)
 
         n_samples_freq = len(frequencies)
@@ -124,6 +129,7 @@ class channelGenericNoiseAdder:
         selection = (frequencies >= min_freq) & (frequencies <= max_freq)
 
         nbinsactive = np.sum(selection)
+        print(nbinsactive)
         self.logger.debug('Total number of frequency bins (bilateral spectrum) : {} , of those active: {} '.format(n_samples, nbinsactive))
 
         # Debug plots
