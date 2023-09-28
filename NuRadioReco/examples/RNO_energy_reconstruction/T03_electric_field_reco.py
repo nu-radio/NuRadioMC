@@ -22,7 +22,6 @@ current_date = datetime.now().strftime("%Y-%m-%d %H:%M")
 plot_folder = f'plots/efield_reco/{current_date}'
 
 channels_to_be_used = [[0, 1, 2, 3, 4, 5],
-                       [6,7],
                        [9,10,11],
                        [21,22,23]]
 """

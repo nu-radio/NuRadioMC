@@ -62,7 +62,8 @@ class IftElectricFieldReconstructor:
         n_iterations=5,
         n_samples=20,
         polarization='pol',
-        relative_tolerance=1.e-7,
+        relative_tolerance=1.e-5,
+        #TODO relative_tolerance=1.e-7,
         convergence_level=3,
         energy_fluence_passbands=None,
         slope_passbands=None,
@@ -412,6 +413,7 @@ class IftElectricFieldReconstructor:
         for time differences between channels, cutting them to the
         right size and locating the radio pulse.
         """
+        print("prepare traces", self.__used_channel_ids)
         if self.__debug:
             plt.close('all')
             fig1 = plt.figure(figsize=(18, 12))
@@ -547,6 +549,20 @@ class IftElectricFieldReconstructor:
         self.__data_traces /= self.__scaling_factor
         self.__noise_levels /= self.__scaling_factor
 
+        fig=plt.figure(figsize=(12,12))
+        ax = fig.add_subplot(1,1,1)
+        t = np.arange(len(self.__data_traces[0])) / channel.get_sampling_rate()
+        i_channel = -1
+        for i_channel_group, channel_group in enumerate(self.__used_grouped_channel_ids):
+            for channel_id in channel_group:
+                i_channel += 1
+                trace = self.__data_traces[i_channel]
+                ax.plot(t, trace, c=f"C{i_channel_group}", alpha=0.7, label=f"group {i_channel_group}")
+        ax.legend()
+        ax.set_xlim(25,40)
+        ax.set_xlabel("time")
+        fig.savefig(f"{self.__plot_folder}/{event.get_run_number()}_{event.get_id()}_trace_comparison.jpg")
+
         if self.__debug:
             ax1_2.plot(correlation_sum)
 
@@ -665,14 +681,17 @@ class IftElectricFieldReconstructor:
             'target': power_space
 
         }
-        with open(f"{self.__plot_folder}/delta_params.txt", "a") as file:
-            for key in delta_params_dct:
-                file.write(str(key))
-                file.write(" : ")
-                file.write(str(delta_params_dct[key]))
-                file.write("\n")
+
+        if self.__debug:
+            with open(f"{self.__plot_folder}/delta_params.txt", "a") as file:
+                for key in delta_params_dct:
+                    file.write(str(key))
+                    file.write(" : ")
+                    file.write(str(delta_params_dct[key]))
+                    file.write("\n")
 
         #np.save_txt(self.__plot_folder )
+
         n_groups = len(self.__used_grouped_channel_ids)
         self.__spec_difference = [ift.NullOperator(mag_S_h.domain, mag_S_h.target)]
         self.__mag_S_h = mag_S_h
@@ -1250,7 +1269,7 @@ class IftElectricFieldReconstructor:
         freqs = np.fft.rfftfreq(self.__data_traces.shape[1], 1. / sampling_rate)
         classic_mean_efield_spec = np.zeros_like(freqs)
         classic_mean_efield_spec /= len(self.__used_channel_ids)
-        colors = ("C0","C1","C2","C3")
+        colors = ("C0","C1","C2","C3","C4","C5","C6")
         i_channel = -1
         for i_channel_group, channel_group in enumerate(self.__used_grouped_channel_ids):
             c=colors[i_channel_group]
