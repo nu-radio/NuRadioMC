@@ -16,11 +16,13 @@ import os
 import argparse
 import NuRadioReco.eventbrowser.dataprovider
 import NuRadioReco.eventbrowser.dataprovider_root
-import logging
 import webbrowser
-from NuRadioReco.modules.base import module
+import time
 
+import logging
+from NuRadioReco.modules.base import module
 logger = module.setup_logger(level=logging.INFO)
+
 
 argparser = argparse.ArgumentParser(description="Starts the Event Display, which then can be accessed via a webbrowser")
 argparser.add_argument('file_location', type=str, help="Path of folder or filename.")
@@ -202,6 +204,7 @@ def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, event_i
     if filename is None:
         return 0, None, None
     user_id = json.loads(juser_id)
+
     number_of_events = provider.get_file_handler(user_id, filename).get_n_events()
     event_ids = provider.get_file_handler(user_id, filename).get_event_ids()
     if context.triggered[0]['prop_id'] == 'filename.value':
@@ -266,14 +269,27 @@ def update_slider_marks(filename, juser_id):
     if filename is None:
         return {}
     user_id = json.loads(juser_id)
-    nurio = provider.get_file_handler(user_id, filename)
+
+    # Wait until the reader is ready!
+    i = 0
+    while i < 10:
+        nurio = provider.get_file_handler(user_id, filename)
+        if nurio is not None:
+            break
+        i += 1
+        logger.debug(f"Wait {i} seconds until the reader is ready.")
+        time.sleep(1)
+        
     n_events = nurio.get_n_events()
     step_size = int(np.power(10., int(np.log10(n_events))))
     marks = {}
     for i in range(0, n_events, step_size):
-        marks[i] = str(i)
+        marks[int(i)] = str(i)
+        
+    # int(..) because json can not handle numpy.int types
     if n_events % step_size != 0:
-        marks[n_events] = str(n_events)
+        marks[int(n_events)] = str(n_events)
+        
     return marks
 
 
@@ -305,6 +321,7 @@ def get_station_dropdown_options(filename, i_event, juser_id):
     if filename is None:
         return []
     user_id = json.loads(juser_id)
+
     nurio = provider.get_file_handler(user_id, filename)
     event = nurio.get_event_i(i_event)
     dropdown_options = []
@@ -416,6 +433,7 @@ def update_event_info_time(event_i, filename, station_id, juser_id):
     if filename is None or station_id is None:
         return ""
     user_id = json.loads(juser_id)
+
     nurio = provider.get_file_handler(user_id, filename)
     evt = nurio.get_event_i(event_i)
     if evt.get_station(station_id).get_station_time() is None:

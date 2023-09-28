@@ -164,7 +164,7 @@ def all_files_in_directory(mattak_dir):
 
 class readRNOGData:
     
-    def __init__(self, run_table_path=None, log_level=logging.INFO):
+    def __init__(self, run_table_path=None, try_loading_runtable=True, log_level=logging.INFO):
         """
         Parameters
         ----------
@@ -172,6 +172,9 @@ class readRNOGData:
         run_table_path: str
             Path to a run_table.cvs file. If None, the run table is queried from the DB. (Default: None)
             
+        try_loading_runtable: bool
+            If False does not even try loading the run table. (Default: True)
+                        
         log_level: enum
             Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).
             (Default: logging.INFO) 
@@ -185,17 +188,18 @@ class readRNOGData:
         self.__temporary_dirs = []
 
         if run_table_path is None:
-            try:
-                from rnog_data.runtable import RunTable
-                self.logger.debug("Access RunTable database ...")
+            if try_loading_runtable:
                 try:
-                    self.__run_table = RunTable().get_table()
-                except:
-                    self.logger.warn("No connect to RunTable database could be established. "
-                                      "Runs can not be filtered.")
-            except ImportError:
-                self.logger.warn("Import of run table failed. Runs can not be filtered.! \n" 
-                        "You can get the interface from GitHub: git@github.com:RNO-G/rnog-runtable.git")
+                    from rnog_data.runtable import RunTable
+                    self.logger.debug("Access RunTable database ...")
+                    try:
+                        self.__run_table = RunTable().get_table()
+                    except:
+                        self.logger.warn("No connect to RunTable database could be established. "
+                                        "Runs can not be filtered.")
+                except ImportError:
+                    self.logger.warn("Import of run table failed. Runs can not be filtered.! \n" 
+                            "You can get the interface from GitHub: git@github.com:RNO-G/rnog-runtable.git")
         else:
             import pandas
             self.__run_table = pandas.read_csv(run_table_path)
@@ -315,14 +319,15 @@ class readRNOGData:
         self._events_information = None
         self._datasets = []
         self.__n_events_per_dataset = []
-        
-        self.logger.info(f"Parse through / read-in {len(dirs_files)} directory(ies) / file(s).")
-        
+                
         self.__skipped_runs = 0
         self.__n_runs = 0
         
         if not isinstance(dirs_files, (list, np.ndarray)):
             dirs_files = [dirs_files]
+        
+        self.logger.info(f"Parse through / read-in {len(dirs_files)} directory(ies) / file(s).")    
+        self.dirs_files = dirs_files
 
         # Set verbose for mattak
         if "verbose" in mattak_kwargs:
@@ -394,6 +399,36 @@ class readRNOGData:
             self.logger.error(err)
             raise ValueError(err)
         
+        
+    def get_filenames(self):
+        """ Returns all files. Required by the eventbrowser 
+        
+        Returns:
+        
+        files: list of str
+            Path to all files provided.
+        """
+        return self.dirs_files
+    
+    
+    def get_n_events(self):
+        """ Returns total number of events in all files. Required by the eventbrowser 
+            
+            Returns:
+            
+            n_events: int
+                Number of events accross all files
+        """
+        return self._n_events_total
+    
+    
+    def get_detector(self):
+        """ Interface needed for eventbrowser """
+        return None
+
+    def get_header(self):
+        """ Interface needed for eventbrowser """
+        return None   
     
     def set_selectors(self, selectors, select_triggers=None):
         """
@@ -589,6 +624,12 @@ class readRNOGData:
         return self._events_information
     
     
+    def get_event_ids(self):
+        """ Return a tuble of (run number, event number) for each event """
+        event_infos = self.get_events_information(keys=["eventNumber", "run"])
+        return np.array([[ele["run"], ele["eventNumber"]] for ele in event_infos.values()])
+
+    
     def _check_for_valid_information_in_event_info(self, event_info):
         """
         Checks if certain information (sampling rate, trigger time) in mattak.Dataset.EventInfo are valid
@@ -725,6 +766,10 @@ class readRNOGData:
                                     
                 yield evt
 
+
+    def get_event_i(self, event_index):
+        """ Returns get_event_by_index. Interface for eventbrowser """
+        return self.get_event_by_index(event_index)
 
 
     def get_event_by_index(self, event_index):
