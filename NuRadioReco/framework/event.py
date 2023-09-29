@@ -8,13 +8,8 @@ import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.utilities.version
 from six import itervalues
 import collections
-import copy
 import logging
 logger = logging.getLogger('Event')
-
-
-def is_serializable(obj):
-    return obj.__class__.__module__ == 'builtins' or obj.__class__.__module__ == "numpy"
 
 
 class Event:
@@ -46,15 +41,6 @@ class Event:
         kwargs:
             the key word arguments of the run method
         """
-        kwargs = copy.deepcopy(kwargs)
-        # Not every kwargs argument passed to a run(..) method is serializable. Example is a detector object. 
-        # Drop all arguments for which this is the case
-        keys_to_be_dropped = [key for key in kwargs 
-                             if not is_serializable(kwargs[key])]
-        
-        for key in keys_to_be_dropped:
-            logger.warn(f"Dropping \"{key}\" of type {type(kwargs[key])} from kwargs of __modules_event")
-            kwargs.pop(key)
                 
         self.__modules_event.append([name, instance, kwargs])
 
@@ -73,20 +59,9 @@ class Event:
         kwargs:
             the key word arguments of the run method
         """
-        kwargs = copy.deepcopy(kwargs)
-
         if station_id not in self.__modules_station:
             self.__modules_station[station_id] = []
             
-        # Not every kwargs argument passed to a run(..) method is serializable. Example is a detector object. 
-        # Drop all arguments for which this is the case
-        keys_to_be_dropped = [key for key in kwargs 
-                             if not is_serializable(kwargs[key])]
-        
-        for key in keys_to_be_dropped:
-            logger.warn(f"Dropping \"{key}\" of type {type(kwargs[key])} from kwargs of __modules_station")
-            kwargs.pop(key)
-        
         iE = len(self.__modules_event)
         self.__modules_station[station_id].append([iE, name, instance, kwargs])
 
