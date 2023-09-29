@@ -271,9 +271,9 @@ def update_slider_marks(filename, juser_id):
     step_size = int(np.power(10., int(np.log10(n_events))))
     marks = {}
     for i in range(0, n_events, step_size):
-        marks[i] = str(i)
+        marks[int(i)] = str(i)
     if n_events % step_size != 0:
-        marks[n_events] = str(n_events)
+        marks[int(n_events)] = str(n_events)
     return marks
 
 
