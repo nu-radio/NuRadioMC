@@ -9,7 +9,7 @@ class DataProvider(object):
 
     def __new__(cls):
         if DataProvider.__instance is None:
-           DataProvider.__instance = object.__new__(cls)
+            DataProvider.__instance = object.__new__(cls)
         return DataProvider.__instance
 
     def __init__(self):
