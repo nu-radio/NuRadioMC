@@ -64,7 +64,7 @@ def register_run(level=None):
             for key,value in parameters.items():
                 if key not in all_kwargs.keys():
                     if value.default is not inspect.Parameter.empty:
-                        all_kwargs[key] = value
+                        all_kwargs[key] = value.default
 
             for key,value in all_kwargs.items():
                 if isinstance(value, NuRadioReco.framework.event.Event):
