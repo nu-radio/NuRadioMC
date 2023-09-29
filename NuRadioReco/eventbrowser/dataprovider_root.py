@@ -2,6 +2,11 @@ from NuRadioReco.modules.io.RNO_G.readRNOGDataMattak import readRNOGData
 import os
 import time
 import numpy as np
+import logging
+import threading
+logging.basicConfig()
+logger = logging.getLogger('eventbrowser')
+logger.setLevel(logging.DEBUG)
 
 ### we create a wrapper for readRNOGData to mirror the interface of the .nur reader
 class readRNOG_wrapper(readRNOGData):
@@ -40,6 +45,7 @@ class DataProviderRoot(object):
             requests for new readers drop older readers.
                 
         """
+        logger.info("Creating new DataProviderRoot instance")
         self.__max_user_instances = max_user_instances
         self.__user_instances = {}
 
@@ -47,7 +53,6 @@ class DataProviderRoot(object):
         if filename is None:
             return
         if user_id not in self.__user_instances:
-            # create new reader for the new user
             reader = readRNOG_wrapper()
             self.__user_instances[user_id] = dict(
                 reader=reader, filename=None,
@@ -56,6 +61,7 @@ class DataProviderRoot(object):
             # user is requesting new file -> close current file and open new one
             reader = self.__user_instances[user_id]['reader']
             reader.begin([os.path.dirname(filename)], overwrite_sampling_rate=3.2) #TODO - remove hardcoded sampling rate
+            reader.get_event_ids() # 
             self.__user_instances[user_id] = dict(
                 reader=reader, filename=filename,
             )
@@ -72,5 +78,5 @@ class DataProviderRoot(object):
             users_by_access_time = sorted(users)
             # drop oldest session
             self.__user_instances.pop(users_by_access_time[0])
-
+            
         return self.__user_instances[user_id]['reader']
