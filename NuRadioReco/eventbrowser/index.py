@@ -15,7 +15,6 @@ from NuRadioReco.eventbrowser.apps import simulation
 import os
 import argparse
 import NuRadioReco.eventbrowser.dataprovider
-import NuRadioReco.eventbrowser.dataprovider_root
 import webbrowser
 import time
 
@@ -38,12 +37,14 @@ if os.path.isfile(parsed_args.file_location):
     starting_filename = parsed_args.file_location
 else:
     starting_filename = None
+
 if parsed_args.open_window:
     webbrowser.open('http://127.0.0.1:{}/'.format(parsed_args.port))
 
 
 provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
 provider.set_filetype(parsed_args.rnog_file)
+provider.set_logger(logger)
 
 app.title = 'NuRadioViewer'
 
@@ -167,7 +168,6 @@ app.layout = html.Div([
     html.Div('', id='content')
 ])
 
-
 @app.callback(
     Output('content', 'children'),
     [Input('content-selector', 'value')]
@@ -270,15 +270,17 @@ def update_slider_marks(filename, juser_id):
         return {}
     user_id = json.loads(juser_id)
 
+    nurio = provider.get_file_handler(user_id, filename)
+
     # Wait until the reader is ready!
-    i = 0
-    while i < 10:
-        nurio = provider.get_file_handler(user_id, filename)
-        if nurio is not None:
-            break
-        i += 1
-        logger.debug(f"Wait {i} seconds until the reader is ready.")
-        time.sleep(1)
+    # i = 0
+    # while i < 10:
+    #     nurio = provider.get_file_handler(user_id, filename)
+    #     if nurio is not None:
+    #         break
+    #     i += 1
+    #     logger.debug(f"Wait {i} seconds until the reader is ready.")
+    #     time.sleep(1)
         
     n_events = nurio.get_n_events()
     step_size = int(np.power(10., int(np.log10(n_events))))

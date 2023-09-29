@@ -596,12 +596,16 @@ class readRNOGData:
         do_read = self._events_information is None
         
         if not do_read:
-            # ... or when it does not have the desired information
-            first_event_info = self._events_information[list(self._events_information.keys())[0]]
+            # When using the NuRadioReco eventbrowser it happens that self._events_information is not None anymore but still empty ...
+            if len(self._events_information):
+                # ... or when it does not have the desired information
+                first_event_info = self._events_information[list(self._events_information.keys())[0]]
 
-            for key in keys:
-                if key not in list(first_event_info.keys()):
-                    do_read = True
+                for key in keys:
+                    if key not in list(first_event_info.keys()):
+                        do_read = True
+            else:
+                do_read = True
         
         if do_read:
         
