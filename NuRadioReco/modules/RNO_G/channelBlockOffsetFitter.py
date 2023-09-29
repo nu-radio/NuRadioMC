@@ -95,7 +95,7 @@ class channelBlockOffsets:
                 channel.get_sampling_rate()
             )
 
-    def remove_offsets(self, event, station, mode='fit', channel_ids=None, maxiter=2):
+    def remove_offsets(self, event, station, mode='fit', channel_ids=None, maxiter=5):
         """
         Remove block offsets from an event
 
@@ -120,7 +120,7 @@ class channelBlockOffsets:
         channel_ids: list | None
             List of channel ids to remove offsets from. If None (default),
             remove offsets from all channels in ``station``
-        maxiter: int, default 2
+        maxiter: int, default 5
             (Only if mode=='fit') The maximum number of fit iterations.
             This can be increased to more accurately remove the block offsets
             at the cost of performance. (The default value removes 'most' offsets
@@ -153,7 +153,7 @@ class channelBlockOffsets:
 def fit_block_offsets(
         trace, block_size=128, sampling_rate=3.2*units.GHz,
         max_frequency=50*units.MHz, mode='fit', return_trace = False,
-        maxiter=2, tol=1e-6):
+        maxiter=5, tol=1e-6):
     """
     Fit 'block' offsets for a voltage trace
 
@@ -180,7 +180,7 @@ def fit_block_offsets(
         if True, return the tuple (offsets, output_trace)
         where the output_trace is the input trace with
         fitted block offsets removed
-    maxiter: int (default: 2)
+    maxiter: int (default: 5)
         (Only if mode=='fit') The maximum number of fit iterations.
         This can be increased to more accurately remove the block offsets
         at the cost of performance. (The default value removes 'most' offsets

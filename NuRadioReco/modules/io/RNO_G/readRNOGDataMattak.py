@@ -17,6 +17,7 @@ import NuRadioReco.framework.parameters
 from NuRadioReco.utilities import units
 import mattak.Dataset
 
+blockoffsetfitter = channelBlockOffsets()
 
 def baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
     """
@@ -78,7 +79,6 @@ def baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
     
     return wfs - baseline_traces
 
-blockoffsetfitter = channelBlockOffsets()
 
 def get_time_offset(trigger_type):
     """ 
