@@ -17,7 +17,6 @@ import NuRadioReco.framework.parameters
 from NuRadioReco.utilities import units
 import mattak.Dataset
 
-blockoffsetfitter = channelBlockOffsets()
 
 def baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
     """
@@ -169,6 +168,8 @@ class readRNOGData:
         """
         self.logger = logging.getLogger('NuRadioReco.readRNOGData')
         self.logger.setLevel(log_level)
+
+        self._blockoffsetfitter = channelBlockOffsets()
      
         # Initialize run table for run selection
         self.__run_table = None
@@ -233,7 +234,7 @@ class readRNOGData:
 
             * 'approximate' (default) - estimate block offsets by looking at the low-pass filtered trace
             * 'fit' - do a full out-of-band fit to determine the block offsets; for more details,
-              see ``NuRadioReco.modules.RNO_G.channelBlockOffsetFitter``
+              see :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
             * 'none' - do not apply a baseline correction (faster)
 
         convert_to_voltage: bool
@@ -660,7 +661,7 @@ class readRNOGData:
         
         evt.set_station(station)
         if self._apply_baseline_correction in ['fit', 'approximate'] and not self._read_calibrated_data:
-            blockoffsetfitter.remove_offsets(evt, station, mode=self._apply_baseline_correction)
+            self._blockoffsetfitter.remove_offsets(evt, station, mode=self._apply_baseline_correction)
                 
         return evt      
 
