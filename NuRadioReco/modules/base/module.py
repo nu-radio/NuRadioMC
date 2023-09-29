@@ -3,7 +3,7 @@ from timeit import default_timer as timer
 import NuRadioReco.framework.event
 import NuRadioReco.framework.base_station
 import logging
-
+import inspect
 
 def setup_logger(name="NuRadioReco", level=logging.WARNING):
 
@@ -23,6 +23,20 @@ def register_run(level=None):
     which module is executed in which order and with what parameters. Also the execution time of each
     module is tracked.
     """
+    
+    def is_serializable(obj):
+        """
+        Check that the object consists of builtins or numpy objects only
+
+        If this is not the case, this may lead to errors when attempting to
+        serialize it.
+        """
+        if isinstance(obj, dict): # check that all objects inside are serializable
+            return all([is_serializable(value) for value in obj.values()])
+        elif isinstance(obj, list):
+            return all([is_serializable(value) for value in obj])
+
+        return obj.__class__.__module__ == 'builtins' or obj.__class__.__module__ == "numpy"
 
     def run_decorator(run):
 
@@ -40,40 +54,40 @@ def register_run(level=None):
             evt = None
             station = None
             
-            # find out type of module automatically
-            if len(args) == 1:
-                if isinstance(args[0], NuRadioReco.framework.event.Event):
-                    module_level = "event"
-                    evt = args[0]
-                else:
-                    # this is a module that creats events
-                    module_level = "reader"
-            elif len(args) >= 2:
-                if isinstance(args[0], NuRadioReco.framework.event.Event) and isinstance(args[1], NuRadioReco.framework.base_station.BaseStation):
-                    module_level = "station"
-                    evt = args[0]
-                    station = args[1]
-                elif isinstance(args[0], NuRadioReco.framework.event.Event):
-                    module_level = "event"
-                    evt = args[0]
-                else:
-                    # this is a module that creates events
-                    module_level = "reader"
-                    raise AttributeError("first argument of run method is not of type NuRadioReco.framework.event.Event")
+            signature = inspect.signature(run)
+            parameters = signature.parameters
+            # convert args to kwargs to facilitate easier bookkeeping
+            all_kwargs = {key:value for key,value in zip(parameters.keys(), args)}
+            all_kwargs.update(kwargs) # this silently overwrites positional args with kwargs, but this is probably okay as we still raise an error later
+
+            # include parameters with default values
+            for key,value in parameters.items():
+                if key not in all_kwargs.keys():
+                    if value.default is not inspect.Parameter.empty:
+                        all_kwargs[key] = value
+
+            for key,value in all_kwargs.items():
+                if isinstance(value, NuRadioReco.framework.event.Event):
+                    evt = value
+                elif isinstance(value, NuRadioReco.framework.base_station.BaseStation):
+                    station = value
+
+            if station is not None:
+                module_level = "station"
+            elif evt is not None:
+                module_level = "event"
             else:
-                # this is a module that creats events
                 module_level = "reader"
 
+            # we only store serializable objects to avoid errors
+            store_kwargs = {key:value for key,value in all_kwargs.items() if is_serializable(value)}
+            
             start = timer()
-
-            # Currently we are not storing the args with which the module is called. Typically those are the event and/or station
-            # on which the module is run which should not be stored here. The danger is if other data is passed as args
-            # kwargs["args"] = args  # otherwise we do not store the args 
             
             if module_level == "event":
-                evt.register_module_event(self, self.__class__.__name__, kwargs)
+                evt.register_module_event(self, self.__class__.__name__, store_kwargs)
             elif module_level == "station":
-                evt.register_module_station(station.get_id(), self, self.__class__.__name__, kwargs)
+                evt.register_module_station(station.get_id(), self, self.__class__.__name__, store_kwargs)
             elif module_level == "reader":
                 # not sure what to do... function returns generator, not sure how to access the event...
                 pass
