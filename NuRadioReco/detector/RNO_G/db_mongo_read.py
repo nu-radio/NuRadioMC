@@ -385,10 +385,8 @@ class Database(object):
         # only return the channel information
         return device_info[0]['devices']
 
-        
     @check_database_time
-    def get_collection_information_by_station_id(self, collection_name, station_id, measurement_name=None, channel_id=None, 
-                                                 use_primary_time_with_measurement=False):
+    def get_collection_information(self, collection_name, search_by, id, measurement_name=None, channel_id=None, use_primary_time_with_measurement=False):
         """
         Get the information for a specified collection (will only work for 'station_position', 'channel_position' and 'signal_chain')
         if the station does not exist, {} will be returned. Return primary measurement unless measurement_name is specified.
@@ -400,16 +398,19 @@ class Database(object):
             Specify the collection, from which the information should be extracted (will only work for 'station_position', 
             'channel_position' and 'signal_chain')
         
-        station_id: int
-            The unique identifier of the station
+        search_by: string
+            Specify if the collection is searched by 'station_id' or 'id'. The latter is a position or signal chain identifier
         
+        id: string or int
+            station id or position/signal_chain identifier
+
         measurement_name: string
             Use the measurement name to select the requested data (not database time / primary time).
             If "use_primary_time_with_measurement" is True, use measurement_name and primary time to 
             find matching objects. (Default: None -> return measurement based on primary time)
         
         channel_id: int
-            Unique identifier of the channel
+            Unique identifier of the channel. Only allowed if searched by 'station_id'
             
         use_primary_time_with_measurement: bool
             If True (and measurement_name is not None), use measurement name and primary time to select objects.
@@ -420,14 +421,22 @@ class Database(object):
         
         info: list(dict)
         """
+
+        if search_by == 'station_id':
+            id_dict = {'id': {'$regex': f'_stn{id}_'}}
+        elif search_by == 'id':
+            id_dict = {'id': id}
+        else:
+            raise ValueError('Only "station_id" and "id" are valid options for the "search_by" argument.')
         
         # if the collection is empty, return an empty dict
-        if self.db[collection_name].count_documents({'id': {'$regex': f'_stn{station_id}_'}}) == 0:
+        if self.db[collection_name].count_documents(id_dict) == 0:
             return {}
-        
-        # define the search filter
-        search_filter = [{'$match': {'id': {'$regex': f'_stn{station_id}_'}}}, {'$unwind': '$measurements'}]
 
+        # define the search filter
+        search_filter = [{'$match': id_dict},
+                         {'$unwind': '$measurements'}]
+        
         if measurement_name is not None or channel_id is not None:
             search_filter.append({'$match': {}})
 
@@ -437,81 +446,12 @@ class Database(object):
                 {'measurements.measurement_name': measurement_name})
             
         if channel_id is not None :
+            if search_by == 'id':
+                raise ValueError('channel_id can only be used if the collection is searched by "station_id"')
+            
             # add {'measurements.channel_id': channel_id} to dict in '$match'
             search_filter[-1]['$match'].update({'measurements.channel_id': channel_id})
         
-
-        if measurement_name is None or use_primary_time_with_measurement:
-            search_filter += [
-                {'$unwind': '$measurements.primary_measurement'},
-                {'$match': {'measurements.primary_measurement.start': {'$lte': self.__database_time},
-                            'measurements.primary_measurement.end': {'$gte': self.__database_time}}}]
-        else:
-            # measurement/object identified by soley by "measurement_name"
-            pass
-         
-        search_result = list(self.db[collection_name].aggregate(search_filter))
-        
-        if search_result == []:
-            return search_result
-        
-        # The following code block is necessary if the "primary_measurement" has several entries. Right now we always do that.
-        # Extract the information using the object and measurements id
-        id_filter = [{'$match': {'_id': {'$in': [dic['_id'] for dic in search_result]}}},
-                     {'$unwind': '$measurements'},
-                     {'$match': {'measurements.id_measurement': 
-                         {'$in': [dic['measurements']['id_measurement'] for dic in search_result]}}}]
-        
-        info = list(self.db[collection_name].aggregate(id_filter))
-
-        return info
-
-
-    @check_database_time
-    def get_collection_information_by_id(self, collection_name, id, measurement_name=None, use_primary_time_with_measurement=False):
-        """
-        Get the information for a specified collection (will only work for 'station_position', 'channel_position' and 'signal_chain')
-        if the id does not exist, {} will be returned. Return primary measurement unless measurement_name is specified.
-
-        Parameters
-        ----------
-        
-        collection_name: string
-            Specify the collection, from which the information should be extracted (will only work for 'station_position', 
-            'channel_position' and 'signal_chain')
-        
-        station_id: int
-            The unique identifier of the station
-        
-        measurement_name: string
-            Use the measurement name to select the requested data (not database time / primary time).
-            If "use_primary_time_with_measurement" is True, use measurement_name and primary time to 
-            find matching objects. (Default: None -> return measurement based on primary time)
-        
-        channel_id: int
-            Unique identifier of the channel
-            
-        use_primary_time_with_measurement: bool
-            If True (and measurement_name is not None), use measurement name and primary time to select objects.
-            (Default: False)
-
-        Returns
-        -------
-        
-        info: list(dict)
-        """
-        
-        # if the collection is empty, return an empty dict
-        if self.db[collection_name].count_documents({'id': id}) == 0:
-            return {}
-                
-        # define the search filter
-        search_filter = [{'$match': {'id': id}},
-                         {'$unwind': '$measurements'}]
-        
-        if measurement_name is not None:
-            search_filter.append({'$match': {'measurements.measurement_name': measurement_name}})
-                                
         if measurement_name is None or use_primary_time_with_measurement:
             search_filter += [
                 {'$unwind': '$measurements.primary_measurement'},
@@ -535,7 +475,7 @@ class Database(object):
         
         info = list(self.db[collection_name].aggregate(id_filter))
 
-        return info
+        return info     
         
 
     def get_quantity_names(self, collection_name, wanted_quantity):
@@ -684,11 +624,12 @@ class Database(object):
                 raise ValueError('Either the position_id or station_id (+ channel_id/device_id) needes to be given!')
 
             position_id = self.get_identifier(
-                station_id, channel_device_id, component=component)
+                station_id, channel_device_id, component=component, what='position')
+            print(position_id)
             
         # if measurement name is None, the primary measurement is returned
-        collection_info = self.get_collection_information_by_id(
-            f'{component}_position', position_id, measurement_name=measurement_name, 
+        collection_info = self.get_collection_information(
+            f'{component}_position', search_by='id', id=position_id, measurement_name=measurement_name, 
             use_primary_time_with_measurement=use_primary_time_with_measurement)
 
         # raise an error if more than one value is returned
@@ -718,11 +659,11 @@ class Database(object):
                 raise ValueError('Either the channel_signal_id or station_id + channel_id needes to be given!')
 
             channel_signal_id = self.get_identifier(
-                station_id, channel_id, component="chanel", what="signal")
+                station_id, channel_id, component="channel", what="signal")
 
         # if measurement name is None, the primary measurement is returned
-        collection_info = self.get_collection_information_by_id(
-            'signal_chain', channel_signal_id, measurement_name=measurement_name)
+        collection_info = self.get_collection_information(
+            'signal_chain', search_by='id',id=channel_signal_id, measurement_name=measurement_name)
 
         # raise an error if more than one value is returned
         if len(collection_info) > 1:
