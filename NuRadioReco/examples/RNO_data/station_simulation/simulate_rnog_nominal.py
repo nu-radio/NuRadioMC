@@ -116,7 +116,7 @@ def task(q, iSim, energy_min, energy_max, detectordescription, config, output_fi
 
             station_copy = copy.deepcopy(station)
 
-            # Calculate the effective bandwidth recorded by the main digitizer
+            # Calculate the effective bandwidth of the "full band"
             channel = station_copy.get_channel(channel_id)
             spectrum = channel.get_frequency_spectrum()
             spectrum = np.ones_like(spectrum).astype(complex)
@@ -137,18 +137,18 @@ def task(q, iSim, energy_min, energy_max, detectordescription, config, output_fi
             filt_trigband = channel.get_frequency_spectrum() * trigger_filter(freqs_trigband)
             eff_bandwitdth_trigband = np.trapz(np.abs(filt_trigband) ** 2, freqs_trigband)
 
-            vrms_scaling_ratio = (eff_bandwitdth_trigband / eff_bandwitdth_fullband) **0.5
+            # V^2 is prop. to the bandwidth
+            vrms_scaling_ratio = (eff_bandwitdth_trigband / eff_bandwitdth_fullband) ** 0.5
 
             return vrms_scaling_ratio
-
 
         def _detector_simulation_trigger(self, evt, station, det):
 
             # Make a copy so that the "RADIANT waveforms" for the PA channels will be retained
             station_copy = copy.deepcopy(station)
 
-            ratio = self.GetTriggerBandVrmsRatio(pa_channels[0], evt, station, det)
-            vrms_input_to_adc = self._Vrms_per_channel[station.get_id()][pa_channels[0]] * ratio
+            ratio = self.GetTriggerBandVrmsRatio(pa_channels[0], evt, station_copy, det)
+            vrms_input_to_adc = self._Vrms_per_channel[station_copy.get_id()][pa_channels[0]] * ratio
 
             # Runs the FLOWER board response
             vrms_after_gain = rnogADCResponse.run(
@@ -183,7 +183,7 @@ def task(q, iSim, energy_min, energy_max, detectordescription, config, output_fi
                     upsampling_factor=upsampling_factor,
                     window=pa_window,
                     step=pa_step,
-                    apply_digitization=False
+                    apply_digitization=False,
                 )
 
             # write the triggers back into the original copy of the station
@@ -193,8 +193,6 @@ def task(q, iSim, energy_min, energy_max, detectordescription, config, output_fi
             # run the adjustment on the full-band waveforms
             triggerTimeAdjuster.begin(pre_trigger_time=100 * units.ns)
             triggerTimeAdjuster.run(evt, station, det)
-
-
 
     flavor_ids = {"e": [12, -12], "mu": [14, -14], "tau": [16, -16]}
     r_max = get_max_radius_shallow(energy_max)
@@ -240,6 +238,10 @@ def task(q, iSim, energy_min, energy_max, detectordescription, config, output_fi
 
 
 if __name__ == "__main__":
+
+    ABS_PATH_HERE = str(os.path.dirname(os.path.realpath(__file__)))
+    def_data_dir = os.path.join(ABS_PATH_HERE, "data")
+
     parser = argparse.ArgumentParser(description="Run NuRadioMC simulation")
     # Sim steering arguments
     parser.add_argument("detectordescription", type=str, help="path to file containing the detector description")
@@ -256,18 +258,14 @@ if __name__ == "__main__":
     parser.add_argument("--n_cpus", type=int, default=1, help="Number of cores for parallel running")
     parser.add_argument("--n_triggers", type=int, default=3e4, help="Number of total events to generate")
     parser.add_argument("--n_events_per_file", type=int, default=1e3, help="Number of nu-interactions per file")
+    parser.add_argument("--data_dir", type=str, default=def_data_dir, help="directory name where the library will be created")
 
     args = parser.parse_args()
-
     kwargs = args.__dict__
 
     filename = (os.path.splitext(os.path.basename(__file__))[0]).split(".")[0]
-    ABS_PATH_HERE = str(os.path.dirname(os.path.realpath(__file__)))
-
-    # This ends up the best if the file structure matches the job-submission script
     output_path = os.path.join(
-        ABS_PATH_HERE,
-        "data",
+        args.data_dir,
         os.path.splitext(os.path.basename(args.detectordescription))[0],
         os.path.splitext(os.path.basename(args.config))[0],
         filename,
@@ -286,6 +284,6 @@ if __name__ == "__main__":
                 self.output_path, f"{np.log10(args.energy_min):.2f}_{self.kwargs['index']:06d}_{self.i_task:06d}.hdf5"
             )
 
-    # start a simulation on two 10-core cpus with a runtime of 23h
-    r = myrunner(args.n_cpus, task, output_path, max_runtime=3600 * 24 * 4, n_triggers_max=args.n_triggers, kwargs=kwargs)
+    # start simulating a library across the chosen number of cpus. Each CPU will only run for 1 day
+    r = myrunner(args.n_cpus, task, output_path, max_runtime=3600 * 24, n_triggers_max=args.n_triggers, kwargs=kwargs)
     r.run()
