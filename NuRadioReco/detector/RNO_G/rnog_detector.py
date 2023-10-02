@@ -79,10 +79,7 @@ class Detector():
         # Define default values for parameter not (yet) implemented in DB. Those values are taken for all channels.
         self.__default_values = {
             "noise_temperature": 300 * units.kelvin,
-            "sampling_frequency": 3.2 * units.GHz,
-            "number_of_samples": 2048,
             "is_noiseless": False,
-            "cable_delay": 0.
         }
 
         if pickle_file is None:
@@ -272,8 +269,7 @@ class Detector():
 
             for station_id, need_update in update_buffer_for_station.items():
                 if need_update and self.has_station(station_id):
-                    self._query_station_information(
-                        station_id, all=self._query_all)
+                    self._query_station_information(station_id)
 
     @check_detector_time
     def get_station_ids(self):
@@ -333,7 +329,7 @@ class Detector():
         self.logger.debug(f"Station {station_id} not commissioned!")
         return False
 
-    def _query_station_information(self, station_id, all=True):
+    def _query_station_information(self, station_id):
         """ 
         Query information about a specific station from the database via the db_mongo_read interface.
         You can query only information from the station_list collection (all=False) or the complete 
@@ -361,7 +357,7 @@ class Detector():
 
         self.logger.info(
             f"Query information for station {station_id} at {self.get_detector_time()}")
-        if all:
+        if self._query_all:
             station_information = self.__db.get_complete_station_information(
                 station_id)
         else:
@@ -400,9 +396,14 @@ class Detector():
         channel_info: dict
             Dict of channel information
         """
+        if not self.has_station(station_id):
+            err = f"Station id {station_id} not commission at {self.get_detector_time()}"
+            self.logger.error(err)
+            raise ValueError(err)
+        
         if keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id]):
             raise KeyError(
-                f"Could not find channel {channel_id} in detector description for station {station_id}.")
+                f"Could not find channel {channel_id} in detector description for station {station_id}. Did you call det.update(...)?")
 
         if with_position and keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "channel_position"]):
 
@@ -410,13 +411,13 @@ class Detector():
                 raise KeyError(
                     f"\"id_position\" not in buffer for station.channel {station_id}.{channel_id}. Did you call det.update(..)")
 
-            channel_position_id = self.__buffered_stations[
+            position_id = self.__buffered_stations[
                 station_id]["channels"][channel_id]["id_position"]
             self.logger.debug(
-                f"Query position of station.channel {station_id}.{channel_id} with id {channel_position_id}")
+                f"Query position of station.channel {station_id}.{channel_id} with id {position_id}")
 
-            channel_position_dict = self.__db.get_channel_position(
-                channel_position_id=channel_position_id)
+            channel_position_dict = self.__db.get_position(
+                position_id=position_id, component="channel")
             self.__buffered_stations[station_id]["channels"][channel_id]['channel_position'] = channel_position_dict
 
         if with_signal_chain and keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "signal_chain"]):
@@ -426,6 +427,9 @@ class Detector():
                     f"\"id_signal\" not in buffer for station.channel {station_id}.{channel_id}. Did you call det.update(..)")
 
             signal_id = self.__buffered_stations[station_id]["channels"][channel_id]['id_signal']
+            self.logger.debug(
+                f"Query signal chain of station.channel {station_id}.{channel_id} with id {signal_id}")
+
             channel_sig_info = self.__db.get_channel_signal_chain(signal_id)
             channel_sig_info.pop('channel_id', None)
 
@@ -788,28 +792,85 @@ class Detector():
         return channel_info["signal_chain"]["VEL"]
         
 
-    def get_number_of_samples(self, station_id, channel_id):
-        """ Get number of samples per station / channel """
-        number_of_samples = self.__default_values["number_of_samples"]
-        self.logger.warn(
-            f"Return a hard-coded value of {number_of_samples} samples. This information is not (yet) implemented in the DB.")
-        return number_of_samples
+    def get_number_of_samples(self, station_id, channel_id=None):
+        """ Get number of samples for recorded waveforms
+        
+        All RNO-G channels have the same number of samples, the argument channel_id is not used but we keep
+        it here for consistency with outer detector classes.
+        
+        Parameters
+        ----------
+        
+        station_id: int
+            Station id
+
+        Returns
+        -------
+        
+        number_of_samples: int
+            Number of samples with which each waveform is recorded
+        """
+        
+        if not self.has_station(station_id):
+            err = f"Station id {station_id} not commission at {self.get_detector_time()}"
+            self.logger.error(err)
+            raise ValueError(err)
+        
+        if keys_not_in_dict(self.__buffered_stations, [station_id, "number_of_samples"]):
+            raise KeyError(
+                f"Could not find \"number_of_samples\" for station {station_id} in buffer. Did you call det.update(...)?")
+
+        station_info = self.__buffered_stations[station_id]
+        return station_info[station_id]['number_of_samples']
+
 
     def get_sampling_frequency(self, station_id, channel_id):
-        """ Get sampling frequency per station / channel """
-        sampling_frequency = self.__default_values["sampling_frequency"]
-        self.logger.warn(
-            f"Return a hard-coded value for the sampling frequency of {sampling_frequency / units.GHz} GHz. "
-            "This information is not (yet) implemented in the DB.")
-        return sampling_frequency
+        """ Get sampling frequency per station / channel
+        
+        All RNO-G channels have the same sampling frequency, the argument channel_id is not used but we keep
+        it here for consistency with outer detector classes.
+        
+        Parameters
+        ----------
+        
+        station_id: int
+            Station id
+
+        Returns
+        -------
+        
+        sampling_rate: int
+            Sampling frequency
+        """
+        if not self.has_station(station_id):
+            err = f"Station id {station_id} not commission at {self.get_detector_time()}"
+            self.logger.error(err)
+            raise ValueError(err)
+        
+        if keys_not_in_dict(self.__buffered_stations, [station_id, "sampling_rate"]):
+            raise KeyError(
+                f"Could not find \"sampling_rate\" for station {station_id} in buffer. Did you call det.update(...)?")
+
+        station_info = self.__buffered_stations[station_id]
+        return station_info[station_id]['sampling_rate']
+
 
     def get_noise_temperature(self, station_id, channel_id):
         """ Get noise temperture per station / channel """
         noise_temperature = self.__default_values["noise_temperature"]
-        self.logger.warn(
-            f"Return a hard-coded value for the noise temperature of {noise_temperature / units.kelvin} K. "
-            "This information is not (yet) implemented in the DB.")
-        return noise_temperature
+        if isinstance(noise_temperature, float):    
+            self.logger.warn(
+                f"Return a hard-coded value for the noise temperature of {noise_temperature / units.kelvin} K. "
+                "This information is not (yet) implemented in the DB.")
+            return noise_temperature
+        elif isinstance(noise_temperature, dict):
+            self.logger.warn(
+                f"Return a hard-coded value for the noise temperature of {noise_temperature / units.kelvin} K for channel {channel_id}. "
+                "This information is not (yet) implemented in the DB.")
+            return noise_temperature[channel_id]
+        else:
+            raise ValueError("Unkown type for hard-coded value")
+
 
     def is_channel_noiseless(self, station_id, channel_id):
         is_noiseless = self.__default_values["is_noiseless"]
@@ -819,17 +880,36 @@ class Detector():
         return is_noiseless
 
     def get_cable_delay(self, station_id, channel_id):
-        cable_delay = self.__default_values["cable_delay"]
-        if isinstance(cable_delay, float):    
-            self.logger.warn(
-                f"Return a hard-coded value for the cable delay of all channels of {cable_delay} ns. "
-                "This information is not (yet) implemented in the DB.")
-            return cable_delay
-        elif isinstance(cable_delay, dict):
-            self.logger.warn(
-                f"Return a hard-coded value for the cable delay for channel {channel_id} of {cable_delay[channel_id]} ns. "
-                "This information is not (yet) implemented in the DB.")
-            return cable_delay[channel_id]
+        """ Return the sum of the time delay of all components in the signal chain 
+        
+        Parameters
+        ----------
+        
+        station_id: int
+            The station id
+
+        channel_id: int
+            The channel id
+            
+        Returns
+        -------
+        
+        time_delay: float
+            Sum of the time delays of all components in the signal chain for one channel
+        """
+        
+        signal_chain_dict = self.get_channel_signal_chain(
+            station_id, channel_id)
+
+        time_delay = 0
+        for key, value in signal_chain_dict["response_chain"].items():
+            if not "time_delay" in value:
+                self.logger.warning(f"The signal chain component \"{key}\" of station.channel {station_id}.{channel_id} has not time delay stored...")
+                continue
+            time_delay += value["time_delay"]
+
+        return time_delay
+
             
     def get_site(self, station_id):
         """
@@ -976,4 +1056,5 @@ if __name__ == "__main__":
                    "sampling_frequency": 2.4 * units.GHz}, always_query_entire_description=False)
 
     det.update(datetime.datetime(2022, 8, 2, 0, 0))
-    det.get_antenna_model(11, 0)
+    # det.get_antenna_model(11, 0)
+    det.get_cable_delay(11, 0)
