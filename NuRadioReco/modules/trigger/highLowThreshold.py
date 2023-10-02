@@ -2,7 +2,6 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.trigger import HighLowTrigger
-from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 import numpy as np
 import time
 import logging
@@ -100,7 +99,6 @@ class triggerSimulator:
 
     @register_run()
     def run(self, evt, station, det,
-            use_digitization=False,  # Only active if use_digitization is set to True
             threshold_high=60 * units.mV,
             threshold_low=-60 * units.mV,
             high_low_window=5 * units.ns,
@@ -108,11 +106,7 @@ class triggerSimulator:
             number_concidences=2,
             triggered_channels=None,
             trigger_name="default_high_low",
-            set_not_triggered=False,
-            Vrms=None,
-            trigger_adc=True,
-            clock_offset=0,
-            adc_output='voltage'):
+            set_not_triggered=False):
         """
         simulate ARIANNA trigger logic
 
@@ -124,8 +118,6 @@ class triggerSimulator:
             The station to run the module on
         det: Detector
             The detector description
-        use_digitization: bool
-            If True, traces will be digitized
         threshold_high: float or dict of floats
             the threshold voltage that needs to be crossed on a single channel on the high side
             a dict can be used to specify a different threshold per channel where the key is the channel id
@@ -144,24 +136,10 @@ class triggerSimulator:
             a unique name of this particular trigger
         set_not_triggered: bool (default: False)
             if True not trigger simulation will be performed and this trigger will be set to not_triggered
-        Vrms: float
-            If supplied, overrides adc_reference_voltage as supplied in the detector description file
-        trigger_adc: bool
-            If True, the relevant ADC parameters in the config file are the ones
-            that start with `'trigger_'`
-        clock_offset: float
 
-        adc_output: string
-            Options:
-            * 'voltage' to store the ADC output as discretised voltage trace
-            * 'counts' to store the ADC output in ADC counts
         """
         t = time.time()
         sampling_rate = station.get_channel(station.get_channel_ids()[0]).get_sampling_rate()
-
-        if use_digitization:
-            ADC = analogToDigitalConverter()
-
         channels_that_passed_trigger = []
         if not set_not_triggered:
             triggerd_bins_channels = []
@@ -178,19 +156,7 @@ class triggerSimulator:
                     continue
                 if channel.get_trace_start_time() != channel_trace_start_time:
                     logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
-
-                trace = np.array(channel.get_trace())
-
-                if use_digitization:
-                    trace = ADC.get_digital_trace(station, det, channel,
-                                                  Vrms=Vrms,
-                                                  trigger_adc=trigger_adc,
-                                                  clock_offset=clock_offset,
-                                                  return_sampling_frequency=False,
-                                                  adc_type='perfect_floor_comparator',
-                                                  adc_output=adc_output,
-                                                  trigger_filter=None)
-
+                trace = channel.get_trace()
                 if(isinstance(threshold_high, dict)):
                     threshold_high_tmp = threshold_high[channel_id]
                 else:
