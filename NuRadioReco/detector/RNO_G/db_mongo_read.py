@@ -196,8 +196,8 @@ class Database(object):
             self.__get_collection_names =  self.db.list_collection_names()
         return self.__get_collection_names
 
-    def get_station_ids_of_collection(self, collection):
-        return self.db[collection].distinct('id')
+    def get_station_ids(self):
+        return self.db[self.__station_collection].distinct('id')
 
     def load_board_information(self, type, board_name, info_names):
         """ For IGLU / DRAB """
