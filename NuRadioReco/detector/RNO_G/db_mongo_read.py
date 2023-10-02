@@ -824,9 +824,9 @@ class Database(object):
         component_dict = channel_sig_info.pop('response_chain')
         components = []
         components_id = []
-        endings = ('_board', '_chain', '_cable')
+        additional_info_keys = ['channel', 'breakout']
         for key in component_dict.keys():
-            if key.endswith(endings):
+            if not any([aik in key for aik in additional_info_keys]):
                 components.append(key)
                 components_id.append(component_dict[key])
         
