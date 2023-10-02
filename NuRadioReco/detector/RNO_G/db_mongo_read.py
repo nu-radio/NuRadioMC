@@ -881,7 +881,7 @@ class Database(object):
         
         # load the channel position information:
         channel_pos_info = self.get_position(
-            position_id=position_id, measurement_name=measurement_position, verbose=verbose)
+            position_id=position_id, measurement_name=measurement_position, verbose=verbose, component="channel")
 
         # include the channel position into the final dict
         general_info['channel_position'] = channel_pos_info
@@ -929,7 +929,7 @@ class Database(object):
         complete_info.update(general_info)
 
         # load the device position information:
-        device_pos_info = self.get_position(position_id=position_id, measurement_name=measurement_position, verbose=verbose)
+        device_pos_info = self.get_position(position_id=position_id, measurement_name=measurement_position, verbose=verbose, component="device")
         # remove 'id_measurement' and 'device_id' object
         device_pos_info.pop('id_measurement', None)
         device_pos_info.pop('device_id', None)
