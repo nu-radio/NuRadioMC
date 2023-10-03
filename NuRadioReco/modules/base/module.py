@@ -4,6 +4,7 @@ import NuRadioReco.framework.event
 import NuRadioReco.framework.base_station
 import logging
 import inspect
+import pickle
 
 def setup_logger(name="NuRadioReco", level=logging.WARNING):
 
@@ -24,20 +25,6 @@ def register_run(level=None):
     module is tracked.
     """
     
-    def is_serializable(obj):
-        """
-        Check that the object consists of builtins or numpy objects only
-
-        If this is not the case, this may lead to errors when attempting to
-        serialize it.
-        """
-        if isinstance(obj, dict): # check that all objects inside are serializable
-            return all([is_serializable(value) for value in obj.values()])
-        elif isinstance(obj, list):
-            return all([is_serializable(value) for value in obj])
-
-        return obj.__class__.__module__ == 'builtins' or obj.__class__.__module__ == "numpy"
-
     def run_decorator(run):
 
         @wraps(run)
@@ -66,21 +53,25 @@ def register_run(level=None):
                     if value.default is not inspect.Parameter.empty:
                         all_kwargs[key] = value.default
 
-            for key,value in all_kwargs.items():
-                if isinstance(value, NuRadioReco.framework.event.Event):
+            store_kwargs = {}
+            for idx, (key,value) in enumerate(all_kwargs.items()):
+                if isinstance(value, NuRadioReco.framework.event.Event) and idx == 0: # event should be the first argument
                     evt = value
-                elif isinstance(value, NuRadioReco.framework.base_station.BaseStation):
+                elif isinstance(value, NuRadioReco.framework.base_station.BaseStation) and idx == 1: # station should be second argument
                     station = value
-
+                else: # we try to store other arguments IF they are pickleable
+                    try:
+                        pickle.dumps(value, protocol=4)
+                        store_kwargs[key] = value
+                    except TypeError as e: # object couldn't be pickled - we store the error instead
+                        store_kwargs[key] = e
+                        
             if station is not None:
                 module_level = "station"
             elif evt is not None:
                 module_level = "event"
             else:
                 module_level = "reader"
-
-            # we only store serializable objects to avoid errors
-            store_kwargs = {key:value for key,value in all_kwargs.items() if is_serializable(value)}
             
             start = timer()
             
