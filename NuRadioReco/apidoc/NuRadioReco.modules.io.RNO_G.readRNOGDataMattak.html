@@ -578,6 +578,28 @@
   <section id="module-NuRadioReco.modules.io.RNO_G.readRNOGDataMattak">
 <span id="nuradioreco-modules-io-rno-g-readrnogdatamattak-module"></span><h1>NuRadioReco.modules.io.RNO_G.readRNOGDataMattak module<a class="headerlink" href="#module-NuRadioReco.modules.io.RNO_G.readRNOGDataMattak" title="Permalink to this heading"></a></h1>
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.create_random_directory_path">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.</span></span><span class="sig-name descname"><span class="pre">create_random_directory_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/tmp/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#create_random_directory_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.create_random_directory_path" title="Permalink to this definition"></a></dt>
+<dd><p>Produces a path for a temporary directory with a n letter random suffix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>prefix: str</strong></dt><dd><p>Path prefix, i.e., root directory. (Defaut: /tmp/)</p>
+</dd>
+<dt><strong>n: int</strong></dt><dd><p>Number of letters for the random suffix. (Default: 7)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>path: str</dt><dd><p>Return path (e.g, /tmp/readRNOGData_XXXXXXX)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.baseline_correction">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.</span></span><span class="sig-name descname"><span class="pre">baseline_correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wfs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bins=128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func=&lt;function</span> <span class="pre">median&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#baseline_correction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.baseline_correction" title="Permalink to this definition"></a></dt>
 <dd><p>Simple baseline correction function. Determines baseline in discrete chuncks of “n_bins” with

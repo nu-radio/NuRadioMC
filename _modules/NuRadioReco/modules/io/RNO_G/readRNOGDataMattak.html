@@ -585,6 +585,35 @@
 <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
 <span class="kn">import</span> <span class="nn">mattak.Dataset</span>
 
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+
+<div class="viewcode-block" id="create_random_directory_path"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.create_random_directory_path">[docs]</a><span class="k">def</span> <span class="nf">create_random_directory_path</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/tmp/&quot;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Produces a path for a temporary directory with a n letter random suffix</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    prefix: str</span>
+<span class="sd">        Path prefix, i.e., root directory. (Defaut: /tmp/)</span>
+<span class="sd">        </span>
+<span class="sd">    n: int</span>
+<span class="sd">        Number of letters for the random suffix. (Default: 7)</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    </span>
+<span class="sd">    path: str</span>
+<span class="sd">        Return path (e.g, /tmp/readRNOGData_XXXXXXX)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># generating random strings</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_lowercase</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">n</span><span class="p">))</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="s2">&quot;readRNOGData_&quot;</span> <span class="o">+</span> <span class="n">res</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">path</span></div>
+    
 
 <div class="viewcode-block" id="baseline_correction"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.baseline_correction">[docs]</a><span class="k">def</span> <span class="nf">baseline_correction</span><span class="p">(</span><span class="n">wfs</span><span class="p">,</span> <span class="n">n_bins</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -722,6 +751,8 @@
      
         <span class="c1"># Initialize run table for run selection</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__run_table</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">__temporary_dirs</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">if</span> <span class="n">run_table_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -880,15 +911,31 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">all_files_in_directory</span><span class="p">(</span><span class="n">dir_file</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Incomplete directory: </span><span class="si">{</span><span class="n">dir_file</span><span class="si">}</span><span class="s2">. Skip ...&quot;</span><span class="p">)</span>
                     <span class="k">continue</span>
-                
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">dataset</span> <span class="o">=</span> <span class="n">mattak</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">station</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">run</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">data_dir</span><span class="o">=</span><span class="n">dir_file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="o">**</span><span class="n">mattak_kwargs</span><span class="p">)</span>
-                <span class="k">except</span> <span class="p">(</span><span class="ne">ReferenceError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The following exeption was raised reading in the run: </span><span class="si">{</span><span class="n">dir_file</span><span class="si">}</span><span class="s2">. Skip that run ...:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
-                    <span class="k">continue</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;The option to read in files is not implemented yet&quot;</span><span class="p">)</span>
+                <span class="c1"># Providing direct paths to a Mattak combined.root file is not supported by the mattak library yet. </span>
+                <span class="c1"># It only accepts directry paths in which it will look for a file called `combined.root` (or waveforms.root if </span>
+                <span class="c1"># it is not a combined file). To work around this: Create a tmp directory under `/tmp/`, link the file you want to</span>
+                <span class="c1"># read into this directory with the the name `combined.root`, use this path to read the run.</span>
+                
+                <span class="n">path</span> <span class="o">=</span> <span class="n">create_random_directory_path</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Create temporary directory: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Temporary directory </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> already exists.&quot;</span><span class="p">)</span>
+                
+                <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__temporary_dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>  <span class="c1"># for housekeeping</span>
+                
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Create symlink for </span><span class="si">{</span><span class="n">dir_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">dir_file</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;combined.root&quot;</span><span class="p">))</span>
+                
+                <span class="n">dir_file</span> <span class="o">=</span> <span class="n">path</span>  <span class="c1"># set path to e.g. /tmp/NuRadioReco_XXXXXXX/combined.root</span>
+                
 
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">dataset</span> <span class="o">=</span> <span class="n">mattak</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">station</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">run</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">data_dir</span><span class="o">=</span><span class="n">dir_file</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="o">**</span><span class="n">mattak_kwargs</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">ReferenceError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The following exeption was raised reading in the run: </span><span class="si">{</span><span class="n">dir_file</span><span class="si">}</span><span class="s2">. Skip that run ...:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">continue</span>
 
             <span class="c1"># filter runs/datasets based on </span>
             <span class="k">if</span> <span class="n">select_runs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__run_table</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__select_run</span><span class="p">(</span><span class="n">dataset</span><span class="p">):</span>
@@ -1127,8 +1174,7 @@
 <span class="sd">        is_valid: bool</span>
 <span class="sd">            Returns True if all information valid, false otherwise</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-
+        
         <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">event_info</span><span class="o">.</span><span class="n">triggerTime</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Event </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">eventNumber</span><span class="si">}</span><span class="s2"> (st </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">station</span><span class="si">}</span><span class="s2">, run </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">run</span><span class="si">}</span><span class="s2">) &quot;</span>
                                      <span class="s2">&quot;has inf trigger time. Skip event...&quot;</span><span class="p">)</span>
@@ -1138,7 +1184,7 @@
 
         <span class="k">if</span> <span class="p">(</span><span class="n">event_info</span><span class="o">.</span><span class="n">sampleRate</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">event_info</span><span class="o">.</span><span class="n">sampleRate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_overwrite_sampling_rate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Event </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">eventNumber</span><span class="si">}</span><span class="s2"> (st </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">station</span><span class="si">}</span><span class="s2">, run </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">run</span><span class="si">}</span><span class="s2">) &quot;</span>
-                              <span class="sa">f</span><span class="s2">&quot;has a sampling rate of </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">sampleRate</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> GHz. Event is skipped ... &quot;</span>
+                              <span class="sa">f</span><span class="s2">&quot;has a sampling rate of </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">sampleRate</span><span class="si">}</span><span class="s2"> GHz. Event is skipped ... &quot;</span>
                               <span class="sa">f</span><span class="s2">&quot;You can avoid this by setting &#39;overwrite_sampling_rate&#39; in the begin() method.&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__invalid</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">return</span> <span class="kc">False</span>
@@ -1359,7 +1405,13 @@
                 <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Read </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_runs</span><span class="si">}</span><span class="s2"> runs, skipped </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__skipped_runs</span><span class="si">}</span><span class="s2"> runs.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Read </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="si">}</span><span class="s2"> events (skipped </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__skipped</span><span class="si">}</span><span class="s2"> events, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__invalid</span><span class="si">}</span><span class="s2"> invalid events)&quot;</span><span class="p">)</span></div></div>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Read </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="si">}</span><span class="s2"> events   (skipped </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__skipped</span><span class="si">}</span><span class="s2"> events, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__invalid</span><span class="si">}</span><span class="s2"> invalid events)&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Clean up links and temporary directories.</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__temporary_dirs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Remove temporary folder: </span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s2">&quot;combined.root&quot;</span><span class="p">))</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">rmdir</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>

@@ -579,11 +579,16 @@
 <span class="sd">    specifying the first version that function is for</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">scan_files_2_0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iF</span><span class="p">,</span> <span class="n">current_byte</span><span class="p">):</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_detector</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scanning a file of version 2.0 which does not contain a detector object. &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;However, </span><span class="se">\&quot;</span><span class="s2">parse_detector</span><span class="se">\&quot;</span><span class="s2"> is true.&quot;</span><span class="p">)</span>
+        
         <span class="n">bytes_to_read_hex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_file</span><span class="p">(</span><span class="n">iF</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
         <span class="n">bytes_to_read</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">bytes_to_read_hex</span><span class="p">,</span> <span class="s1">&#39;little&#39;</span><span class="p">)</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">bytes_to_read</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">bytes_to_read</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># we are at the end of the file</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">iF</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filenames</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)):</span>  <span class="c1"># are there more files to be parsed?</span>
+            <span class="k">if</span> <span class="n">iF</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filenames</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>  <span class="c1"># are there more files to be parsed?</span>
                 <span class="n">iF</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">current_byte</span> <span class="o">=</span> <span class="mi">12</span>  <span class="c1"># skip datafile header</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_get_file</span><span class="p">(</span><span class="n">iF</span><span class="p">)</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">current_byte</span><span class="p">)</span>
@@ -595,6 +600,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_bytes_length</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="n">iF</span><span class="p">,</span> <span class="n">current_byte</span>
+        
         <span class="n">current_byte</span> <span class="o">+=</span> <span class="mi">6</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bytes_start_header</span><span class="p">[</span><span class="n">iF</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_byte</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bytes_length_header</span><span class="p">[</span><span class="n">iF</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bytes_to_read</span><span class="p">)</span>
@@ -618,9 +624,9 @@
         <span class="n">current_byte</span> <span class="o">+=</span> <span class="mi">6</span>
         <span class="n">bytes_to_read_hex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_file</span><span class="p">(</span><span class="n">iF</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
         <span class="n">bytes_to_read</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">bytes_to_read_hex</span><span class="p">,</span> <span class="s1">&#39;little&#39;</span><span class="p">)</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">bytes_to_read</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">bytes_to_read</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># we are at the end of the file</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">iF</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filenames</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)):</span>  <span class="c1"># are there more files to be parsed?</span>
+            <span class="k">if</span> <span class="n">iF</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filenames</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>  <span class="c1"># are there more files to be parsed?</span>
                 <span class="n">iF</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">current_byte</span> <span class="o">=</span> <span class="mi">12</span>  <span class="c1"># skip datafile header</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_get_file</span><span class="p">(</span><span class="n">iF</span><span class="p">)</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">current_byte</span><span class="p">)</span>
@@ -635,8 +641,11 @@
                 <span class="n">current_byte</span> <span class="o">+=</span> <span class="mi">6</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="n">iF</span><span class="p">,</span> <span class="n">current_byte</span>
+        
         <span class="n">current_byte</span> <span class="o">+=</span> <span class="mi">6</span>
         <span class="k">if</span> <span class="n">object_type</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>    <span class="c1"># object is an event</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Read Event ...&quot;</span><span class="p">)</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">_bytes_start_header</span><span class="p">[</span><span class="n">iF</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_byte</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_bytes_length_header</span><span class="p">[</span><span class="n">iF</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bytes_to_read</span><span class="p">)</span>
             <span class="n">current_byte</span> <span class="o">+=</span> <span class="n">bytes_to_read</span>
@@ -650,18 +659,23 @@
             <span class="n">bytes_to_read</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">bytes_to_read_hex</span><span class="p">,</span> <span class="s1">&#39;little&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_bytes_start</span><span class="p">[</span><span class="n">iF</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_byte</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_bytes_length</span><span class="p">[</span><span class="n">iF</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bytes_to_read</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">object_type</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># object is detector info</span>
+        
+        <span class="k">elif</span> <span class="n">object_type</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_detector</span><span class="p">:</span>  <span class="c1"># object is detector info</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Read detector ...&quot;</span><span class="p">)</span>
+
             <span class="n">detector_dict</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_file</span><span class="p">(</span><span class="n">iF</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">bytes_to_read</span><span class="p">))</span>
             <span class="k">if</span> <span class="s1">&#39;generic_detector&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">detector_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="n">is_generic_detector</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">is_generic_detector</span> <span class="o">=</span> <span class="n">detector_dict</span><span class="p">[</span><span class="s1">&#39;generic_detector&#39;</span><span class="p">]</span>
+            
             <span class="k">if</span> <span class="n">iF</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detector_dicts</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_detector_dicts</span><span class="p">[</span><span class="n">iF</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
                     <span class="s1">&#39;generic_detector&#39;</span><span class="p">:</span> <span class="n">is_generic_detector</span><span class="p">,</span>
                     <span class="s1">&#39;channels&#39;</span><span class="p">:</span> <span class="p">{},</span>
                     <span class="s1">&#39;stations&#39;</span><span class="p">:</span> <span class="p">{}</span>
                 <span class="p">}</span>
+                
             <span class="k">if</span> <span class="n">is_generic_detector</span><span class="p">:</span>
                 <span class="c1"># add default_station and default_channel to the dict to support older files using these</span>
                 <span class="k">if</span> <span class="s1">&#39;default_station&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">detector_dict</span><span class="p">:</span>
@@ -670,24 +684,28 @@
                     <span class="n">detector_dict</span><span class="p">[</span><span class="s1">&#39;default_channel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>                    
                 <span class="bp">self</span><span class="o">.</span><span class="n">_detector_dicts</span><span class="p">[</span><span class="n">iF</span><span class="p">][</span><span class="s1">&#39;default_station&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">detector_dict</span><span class="p">[</span><span class="s1">&#39;default_station&#39;</span><span class="p">]</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_detector_dicts</span><span class="p">[</span><span class="n">iF</span><span class="p">][</span><span class="s1">&#39;default_channel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">detector_dict</span><span class="p">[</span><span class="s1">&#39;default_channel&#39;</span><span class="p">]</span>
+            
             <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">detector_dict</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_detector_dicts</span><span class="p">[</span><span class="n">iF</span><span class="p">][</span><span class="s1">&#39;stations&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">index</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_detector_dicts</span><span class="p">[</span><span class="n">iF</span><span class="p">][</span><span class="s1">&#39;stations&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="mi">1</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_detector_dicts</span><span class="p">[</span><span class="n">iF</span><span class="p">][</span><span class="s1">&#39;stations&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">station</span>
+            
             <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">detector_dict</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_detector_dicts</span><span class="p">[</span><span class="n">iF</span><span class="p">][</span><span class="s1">&#39;channels&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">index</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_detector_dicts</span><span class="p">[</span><span class="n">iF</span><span class="p">][</span><span class="s1">&#39;channels&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="mi">1</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_detector_dicts</span><span class="p">[</span><span class="n">iF</span><span class="p">][</span><span class="s1">&#39;channels&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">channel</span>
+        
         <span class="k">elif</span> <span class="n">object_type</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>   <span class="c1"># object is list of event-specific changes to the detector</span>
             <span class="n">changes_dict</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_file</span><span class="p">(</span><span class="n">iF</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">bytes_to_read</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">iF</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_specific_detector_changes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_event_specific_detector_changes</span><span class="p">[</span><span class="n">iF</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">change</span> <span class="ow">in</span> <span class="n">changes_dict</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_event_specific_detector_changes</span><span class="p">[</span><span class="n">iF</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">change</span><span class="p">)</span>
+        
         <span class="n">current_byte</span> <span class="o">+=</span> <span class="n">bytes_to_read</span>
         <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">iF</span><span class="p">,</span> <span class="n">current_byte</span>
 
@@ -696,10 +714,12 @@
             <span class="k">return</span> <span class="n">scan_files_2_0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">scan_files_2_2</span>
+    
     <span class="k">elif</span> <span class="n">version_major</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;File version is </span><span class="si">{</span><span class="n">version_major</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">version_major</span><span class="si">}</span><span class="s1"> which might indicate the file is empty&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;File version </span><span class="si">{}</span><span class="s1">.</span><span class="si">{}</span><span class="s1"> is not supported. Major version needs to be 2 but is </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">version_major</span><span class="p">,</span> <span class="n">version_minor</span><span class="p">,</span> <span class="n">version_major</span><span class="p">))</span></div>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;File version </span><span class="si">{}</span><span class="s1">.</span><span class="si">{}</span><span class="s1"> is not supported. Major version needs to be 2 but is </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">version_major</span><span class="p">,</span> <span class="n">version_minor</span><span class="p">,</span> <span class="n">version_major</span><span class="p">))</span></div>
 
 
 
