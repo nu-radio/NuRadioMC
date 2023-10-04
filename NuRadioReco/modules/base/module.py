@@ -44,7 +44,7 @@ def register_run(level=None):
             signature = inspect.signature(run)
             parameters = signature.parameters
             # convert args to kwargs to facilitate easier bookkeeping
-            all_kwargs = {key:value for key,value in zip(parameters.keys(), args)}
+            all_kwargs = {key:value for key,value in zip(parameters.keys(), args) if key is not 'self'}
             all_kwargs.update(kwargs) # this silently overwrites positional args with kwargs, but this is probably okay as we still raise an error later
 
             # include parameters with default values
@@ -63,9 +63,8 @@ def register_run(level=None):
                     try:
                         pickle.dumps(value, protocol=4)
                         store_kwargs[key] = value
-                    except TypeError as e: # object couldn't be pickled - we store the error instead
+                    except (TypeError, AttributeError) as e: # object couldn't be pickled - we store the error instead
                         store_kwargs[key] = e
-                        
             if station is not None:
                 module_level = "station"
             elif evt is not None:

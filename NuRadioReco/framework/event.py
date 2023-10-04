@@ -443,7 +443,7 @@ class Event:
         modules_out_event = []
         for value in self.__modules_event:  # remove module instances (this will just blow up the file size)
             modules_out_event.append([value[0], None, value[2]])
-            invalid_keys = [key for key,val in value[2].items() if isinstance(val, TypeError)]
+            invalid_keys = [key for key,val in value[2].items() if isinstance(val, BaseException)]
             if len(invalid_keys):
                 logger.warning(f"The following arguments to module {value[0]} could not be serialized and will not be stored: {invalid_keys}")
 
@@ -452,7 +452,7 @@ class Event:
             modules_out_station[key] = []
             for value in self.__modules_station[key]:
                 modules_out_station[key].append([value[0], value[1], None, value[3]])
-                invalid_keys = [key for key,val in value[3].items() if isinstance(val, TypeError)]
+                invalid_keys = [key for key,val in value[3].items() if isinstance(val, BaseException)]
                 if len(invalid_keys):
                     logger.warning(f"The following arguments to module {value[0]} could not be serialized and will not be stored: {invalid_keys}")
 
