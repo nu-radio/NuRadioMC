@@ -59,6 +59,7 @@ class Trigger:
         self._trigger_times = None
         self._trigger_type = trigger_type
         self._triggered_channels = []
+        self._pre_trigger_times = None
 
     def has_triggered(self):
         """
@@ -118,6 +119,39 @@ class Trigger:
 
     def set_triggered_channels(self, triggered_channels):
         self._triggered_channels = triggered_channels
+
+    def set_pre_trigger_times(self, pre_trigger_times):
+        """
+        Set the pre-trigger times
+
+        This parameter should only be set if this trigger 
+        determines the readout windows (e.g. by :py:`NuRadioReco.modules.triggerTimeAdjuster`)
+
+        Parameters
+        ----------
+        pre_trigger_times: dict
+            keys are the channel_ids, and the value is the pre_trigger_time between the 
+            start of the trace and the trigger time.
+        """
+        self._pre_trigger_times = pre_trigger_times
+
+    def get_pre_trigger_times(self):
+        """
+        Return the pre_trigger_time between the start of the trace and the (global) trigger time
+
+        If this trigger has not been used to adjust the readout windows, returns None instead
+
+        Returns
+        -------
+        pre_trigger_times: dict | None
+            If this trigger has been used to set the readout windows, returns a
+            dictionary where the keys are the channel ids and the values are the
+            time between the start of the channel trace and the trigger time. Otherwise,
+            returns None
+
+        """
+
+        return self._pre_trigger_times
 
     def serialize(self):
         return pickle.dumps(self.__dict__, protocol=4)
