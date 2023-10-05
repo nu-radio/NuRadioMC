@@ -143,7 +143,10 @@ class channelGenericNoiseAdder:
         else:
             ampl[selection] = amplitude
 
-        sigscale = (1. * n_samples) / np.sqrt(nbinsactive)
+        if callable(amplitude):
+            sigscale = sampling_rate
+        else:    
+            sigscale = (1. * n_samples) / np.sqrt(nbinsactive)
         if type == 'perfect_white':
             ampl *= sigscale
         elif type == 'rayleigh':
