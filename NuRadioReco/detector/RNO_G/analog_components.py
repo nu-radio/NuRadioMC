@@ -56,7 +56,7 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
         amp_gain_discrete = np.loadtxt(ph, delimiter=',', skiprows=1, usecols=1)
         amp_phase_discrete = np.loadtxt(ph, delimiter=',', skiprows=1, usecols=2)
         correction_function = iglu_correction_func
-    elif amp_type == 'phased_array' or amp_type == 'flower_lp':
+    elif amp_type == 'phased_array' or amp_type == 'ULP_216':
         ph = os.path.join(path, 'HardwareResponses/ULP-216+_Plus25DegC.s2p')
         ff, S11gain, S21deg, S21gain, S21deg, S12gain, S12deg, S22gain, S22deg = np.loadtxt(ph, comments=['#', '!'], unpack=True)
         ff *= units.MHz
@@ -91,4 +91,4 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
 
 
 def get_available_amplifiers():
-    return ['iglu', 'rno_surface', 'phased_array', 'flower_lp']
+    return ['iglu', 'rno_surface', 'phased_array', 'ULP_216']
