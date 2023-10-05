@@ -63,7 +63,7 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
         amp_gain_discrete = hp.dB_to_linear(S21gain)
         amp_phase_discrete = S21deg * units.deg
     else:
-        msg = f"Amp type `{amp_type}` not recognized"
+        msg = f"Amp type `{amp_type}` not recognized. possible values are {get_available_amplifiers()}"
         logger.error(msg)
         raise ValueError(msg)
 
