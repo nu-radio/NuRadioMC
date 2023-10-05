@@ -84,8 +84,11 @@ class channelGenericNoiseAdder:
             number of samples in the time domain
         sampling_rate: float
             desired sampling rate of data
-        amplitude: float
-            desired voltage of noise as V_rms (only roughly, since bandpass limited)
+        amplitude: float | function
+            desired voltage of noise as V_rms (only roughly, since bandpass limited).
+            Can also be given as a function; in this case, it should take the frequency as an argument
+            and return the desired amplitude for each frequency bin. This allows to simulate arbitrary
+            (non-flat) noise spectra.
         type: string
             perfect_white: flat frequency spectrum
             rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
@@ -97,6 +100,7 @@ class channelGenericNoiseAdder:
             if this parameter is specified, the amplitude is interpreted as the amplitude for the bandwidth specified here
             Otherwise the amplitude is interpreted for the bandwidth of min(max_freq, 0.5 * sampling rate) - min_freq
             If `bandwidth` is larger then (min(max_freq, 0.5 * sampling rate) - min_freq) it has the same effect as `None`
+            Note that this parameter is ignored if ``amplitude`` is given as a function.
 
         Notes
         -----
@@ -130,18 +134,21 @@ class channelGenericNoiseAdder:
 #         f1 = plt.figure()
 #         plt.plot (frequencies/max(frequencies))
 #         plt.plot(fbinsactive,'kx')
-
-        if(bandwidth is not None):
-            sampling_bandwidth = min(0.5 * sampling_rate, max_freq) - min_freq
-            amplitude *= 1. / (bandwidth / (sampling_bandwidth)) ** 0.5  # normalize noise level to the bandwidth its generated for
-
         ampl = np.zeros(n_samples_freq)
+        if callable(amplitude):
+            ampl[selection] = amplitude(frequencies[selection])
+        elif (bandwidth is not None):
+            sampling_bandwidth = min(0.5 * sampling_rate, max_freq) - min_freq
+            ampl[selection] = amplitude / (bandwidth / (sampling_bandwidth)) ** 0.5  # normalize noise level to the bandwidth its generated for
+        else:
+            ampl[selection] = amplitude
+
         sigscale = (1. * n_samples) / np.sqrt(nbinsactive)
         if type == 'perfect_white':
-            ampl[selection] = amplitude * sigscale
+            ampl *= sigscale
         elif type == 'rayleigh':
-            fsigma = amplitude * sigscale / np.sqrt(2.)
-            ampl[selection] = self.__random_generator.rayleigh(fsigma, nbinsactive)
+            ampl *= sigscale / np.sqrt(2.)
+            ampl[selection] = self.__random_generator.rayleigh(ampl[selection])
 #         elif type == 'white':
 # FIXME: amplitude normalization is not correct for 'white'
 #             ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)
@@ -335,7 +342,10 @@ class channelGenericNoiseAdder:
 
         amplitude: float or dict of floats
             desired voltage of noise as V_rms for the specified bandwidth
-            a dict can be used to specify a different amplitude per channel, the key is the channel_id
+            a dict can be used to specify a different amplitude per channel, the key is the channel_id.
+            Can also be given as a (dict of) function; in this case, it should take the frequency as an argument
+            and return the desired amplitude for each frequency bin. This allows to simulate arbitrary
+            (non-flat) noise spectra.
         min_freq: float
             Minimum frequency of passband for noise generation
         max_freq: float
@@ -350,6 +360,7 @@ class channelGenericNoiseAdder:
             if this parameter is specified, the amplitude is interpreted as the amplitude for the bandwidth specified here
             Otherwise the amplitude is interpreted for the bandwidth of min(max_freq, 0.5 * sampling rate) - min_freq
             If `bandwidth` is larger then (min(max_freq, 0.5 * sampling rate) - min_freq) it has the same effect as `None`
+            Note that this parameter is ignored if ``amplitude`` is given as a function.
 
         """
         if excluded_channels is None:
