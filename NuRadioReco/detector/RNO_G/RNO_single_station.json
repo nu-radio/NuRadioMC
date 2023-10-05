@@ -15,8 +15,8 @@
       "ant_type": "RNOG_vpol_4inch_center_n1.73",
       "trigger_adc_sampling_frequency": 0.472,
       "trigger_adc_nbits": 8,
-      "trigger_adc_noise_nbits": 5,
-      "trigger_amp_type": "flower_lp",
+      "trigger_adc_noise_nbits": 3.321,
+      "trigger_amp_type": "ULP_216",
       "cab_time_delay": 0.0,
       "channel_id": 0,
       "station_id": 11
@@ -34,8 +34,8 @@
       "ant_type": "RNOG_vpol_4inch_center_n1.73",
       "trigger_adc_sampling_frequency": 0.472,
       "trigger_adc_nbits": 8,
-      "trigger_adc_noise_nbits": 5,
-      "trigger_amp_type": "flower_lp",
+      "trigger_adc_noise_nbits": 3.321,
+      "trigger_amp_type": "ULP_216",
       "reference_channel": 0,
       "channel_id": 1,
       "station_id": 11
@@ -53,8 +53,8 @@
       "ant_type": "RNOG_vpol_4inch_center_n1.73",
       "trigger_adc_sampling_frequency": 0.472,
       "trigger_adc_nbits": 8,
-      "trigger_adc_noise_nbits": 5,
-      "trigger_amp_type": "flower_lp",
+      "trigger_adc_noise_nbits": 3.321,
+      "trigger_amp_type": "ULP_216",
       "reference_channel": 0,
       "channel_id": 2,
       "station_id": 11
@@ -72,8 +72,8 @@
       "ant_type": "RNOG_vpol_4inch_center_n1.73",
       "trigger_adc_sampling_frequency": 0.472,
       "trigger_adc_nbits": 8,
-      "trigger_adc_noise_nbits": 5,
-      "trigger_amp_type": "flower_lp",
+      "trigger_adc_noise_nbits": 3.321,
+      "trigger_amp_type": "ULP_216",
       "reference_channel": 0,
       "channel_id": 3,
       "station_id": 11
