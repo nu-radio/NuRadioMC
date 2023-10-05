@@ -27,7 +27,8 @@ class hardwareResponseSimulator:
             detector_simulation_trigger,
             detector_simulation_filter_amp,
             raytracer,
-            event_time
+            event_time,
+            time_logger
     ):
         self.__detector = detector
         self.__station_ids = station_ids
@@ -49,6 +50,7 @@ class hardwareResponseSimulator:
         self.__detector_simulation_filter_amp = detector_simulation_filter_amp
         self.__raytracer = raytracer
         self.__event_time = event_time
+        self.__time_logger = time_logger
         self.__event_group_id = None
         self.__channel_add_cable_delay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
         self.__channel_signal_reconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
@@ -79,7 +81,7 @@ class hardwareResponseSimulator:
             efield_objects,
             shower_indices
     ):
-
+        self.__time_logger.start_time('detector simulation')
         channel_ids = list(self.__detector.get_channel_ids(station_id))
         sampling_rate_detector = self.__detector.get_sampling_frequency(station_id, channel_ids[0])
         n_samples = self.__detector.get_number_of_samples(station_id, channel_ids[0]) / sampling_rate_detector  * self.__sampling_rate_simulation
@@ -96,6 +98,7 @@ class hardwareResponseSimulator:
             efield_objects
         )
         if dummy_station is None:
+            self.__time_logger.stop_time('detector simulation')
             return None, None, None, None, None
         if self.__config['speedup']['amp_per_ray_solution']:
             self.__channel_signal_reconstructor.run(self.__dummy_event, sim_station, self.__detector)
@@ -148,6 +151,7 @@ class hardwareResponseSimulator:
             station_has_triggered[i_sub_event] = new_station.has_triggered()
             station_objects[i_sub_event] = new_station
             event_objects[i_sub_event] = new_event
+        self.__time_logger.stop_time('detector simulation')
         return event_objects, station_objects, sub_event_shower_ids, station_has_triggered, output_data
     
     def __simulate_station_detector_response(

@@ -9,7 +9,6 @@ from NuRadioReco.utilities import fft
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
 import h5py
-import time
 import six
 import copy
 import json
@@ -43,6 +42,7 @@ import NuRadioMC.simulation.station_simulator
 import NuRadioMC.simulation.hardware_response_simulator
 import NuRadioMC.simulation.output_writer_hdf5
 import NuRadioMC.simulation.output_writer_nur
+import NuRadioMC.simulation.time_logger
 
 # logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 
@@ -192,7 +192,7 @@ class simulation():
         
         # initialize propagation module
         self.__prop = NuRadioMC.SignalProp.propagation.get_propagation_module(self.__cfg['propagation']['module'])
-
+        self.__time_logger = NuRadioMC.simulation.time_logger.timeLogger(logger)
         if self.__cfg['propagation']['ice_model'] == "custom":
             if ice_model is None:
                 logger.error("ice model is set to 'custom' in config file but no custom ice model is provided.")
@@ -265,16 +265,6 @@ class simulation():
 
             self._get_distance_cut = get_distance_cut
 
-        # initialize parameters to measure run times
-        self._input_time = 0.0
-        self._askaryan_time = 0.0
-        self._rayTracingTime = 0.0
-        self._detSimTime = 0.0
-        self._outputTime = 0.0
-        self._weightTime = 0.0
-        self._distance_cut_time = 0.0
-
-
     def run(self):
         """
         run the NuRadioMC simulation
@@ -285,8 +275,6 @@ class simulation():
             logger.status(f"terminating simulation")
             return 0
         logger.status(f"Starting NuRadioMC simulation")
-        self._t_start = time.time()
-        t_last_update = self._t_start
         """
         TODO: Allow running stations with different numbers of channels
         """
@@ -315,7 +303,8 @@ class simulation():
             self.__fin_attrs,
             self._ice,
             self._n_samples,
-            1. / self._dt
+            1. / self._dt,
+            self.__time_logger
         )
         self.__shower_simulator = NuRadioMC.simulation.shower_simulator.showerSimulator(
             self._det,
@@ -335,7 +324,8 @@ class simulation():
             self._detector_simulation_trigger,
             self._detector_simulation_filter_amp,
             self.__raytracer,
-            self._evt_time
+            self._evt_time,
+            self.__time_logger
         )
         self._Vrms = self.__hardware_response_simulator.get_noise_vrms()
         self._Vrms_per_channel = self.__hardware_response_simulator.get_noise_vrms_per_channel()
@@ -352,21 +342,10 @@ class simulation():
             self._check_if_was_pre_simulated(),
             efield_v_rms_per_channel
         )
-
+        self.__time_logger.reset_times(['ray tracing', 'askaryan', 'detector simulation', ])
 
         # check if the same detector was simulated before (then we can save the ray tracing part)
         pre_simulated = self._check_if_was_pre_simulated()
-
-        # Check if vertex_times exists:
-        self._check_vertex_times()
-        self._input_time = 0.0
-        self._askaryan_time = 0.0
-        self._rayTracingTime = 0.0
-        self._detSimTime = 0.0
-        self._outputTime = 0.0
-        self._weightTime = 0.0
-        self._distance_cut_time = 0.0
-
 
         # calculate bary centers of station
         self._station_barycenter = self._calculate_station_barycenter()
@@ -403,14 +382,12 @@ class simulation():
             # the weight also depends just on the "mother" particle, i.e. the incident neutrino which determines
             # the propability of arriving at our simulation volume. All subsequent showers have the same weight. So
             # we calculate it just once and save it to all subshowers.
-            t1 = time.time()
             self._primary_index = event_indices[0]
             # determine if a particle (neutrinos, or a secondary interaction of a neutrino, or surfaec muons) is simulated
             if self._particle_mode:
                 event_group_weight = self._calculate_particle_weights(event_indices)
             else:
                 event_group_weight = 1
-            self._weightTime += time.time() - t1
             self.__output_writer_hdf5.store_event_group_weight(
                 event_group_weight,
                 event_indices
@@ -425,7 +402,6 @@ class simulation():
 
             # these quantities get computed to apply the distance cut as a function of shower energies
             # the shower energies of closeby showers will be added as they can constructively interfere
-            t_tmp = time.time()
             if 'shower_energies' in self.__fin.keys():
                 shower_energies = np.array(self.__fin['shower_energies'])[event_indices]
             else:
@@ -494,13 +470,13 @@ class simulation():
                         self.__output_writer_nur.save_event(
                             event_objects
                         )
+                    self.__time_logger.show_time(len(unique_event_group_ids), i_event_group_id)
         # Create trigger structures if there are no triggering events.
         # This is done to ensure that files with no triggering n_events
         # merge properly.
 #         self._create_empty_multiple_triggers()
 
         # save simulation run in hdf5 format (only triggered events)
-        t5 = time.time()
         # self._write_output_file()
         self.__output_writer_hdf5.save_output()
         if self.__output_writer_nur is not None:
@@ -511,32 +487,7 @@ class simulation():
         except:
             logger.error("error in calculating effective volume")
 
-        t_total = time.time() - self._t_start
-        self._outputTime = time.time() - t5
-        return
-        output_NuRadioRecoTime = "Timing of NuRadioReco modules \n"
-        ts = []
-        for iM, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station.get_id())):
-            ts.append(instance.run.time[instance])
-        ttot = np.sum(np.array(ts))
-        for i, (name, instance, kwargs) in enumerate(self._evt.iter_modules(self._station.get_id())):
-            t = pretty_time_delta(ts[i])
-            trel = 100.*ts[i] / ttot
-            output_NuRadioRecoTime += f"{name}: {t} {trel:.1f}%\n"
-        logger.status(output_NuRadioRecoTime)
-
-        logger.status("{:d} events processed in {} = {:.2f}ms/event ({:.1f}% input, {:.1f}% ray tracing, {:.1f}% askaryan, {:.1f}% detector simulation, {:.1f}% output, {:.1f}% weights calculation)".format(self._n_showers,
-                                                                                         pretty_time_delta(t_total), 1.e3 * t_total / self._n_showers,
-                                                                                         100 * self._input_time / t_total,
-                                                                                         100 * (self.__rayTracingTime - self._askaryan_time) / t_total,
-                                                                                         100 * self._askaryan_time / t_total,
-                                                                                         100 * self._detSimTime / t_total,
-                                                                                         100 * self._outputTime / t_total,
-                                                                                         100 * self._weightTime / t_total))
-        triggered = remove_duplicate_triggers(self._mout['triggered'], self.__fin['event_group_ids'])
-        n_triggered = np.sum(triggered)
-        return n_triggered
-
+        
     def _calculate_emitter_output(self):
         pass
 
@@ -615,7 +566,6 @@ class simulation():
         n_triggered_weighted = np.sum(weights[triggered])
         n_events = self.__fin_attrs['n_events']
         logger.status(f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} = {n_triggered / self._n_showers:.3f} (sum of weights = {n_triggered_weighted:.2f})')
-        print(self.__fin_attrs.keys())
         V = self.__fin_attrs['volume']
         Veff = V * n_triggered_weighted / n_events
         logger.status(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
@@ -681,14 +631,12 @@ class simulation():
         """
         if not self.__cfg['speedup']['distance_cut']:
             return True
-        t_tmp = time.time()
         vertex_distances_to_station = np.linalg.norm(vertex_positions.T - station_barycenter, axis=1)
         distance_cut = self._get_distance_cut(np.sum(
             shower_energies)) + 100 * units.m  # 100m safety margin is added to account for extent of station around bary center.
         if vertex_distances_to_station.min() > distance_cut:
             logger.debug(
                 f"skipping station {self._station_id} because minimal distance {vertex_distances_to_station.min() / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {station_barycenter}")
-        self._distance_cut_time += time.time() - t_tmp
         return vertex_distances_to_station.min() <= distance_cut
 
     def _read_input_hdf5(self):

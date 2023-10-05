@@ -22,7 +22,8 @@ class channelEfieldSimulator:
             input_attributes,
             medium,
             trace_length,
-            sampling_rate
+            sampling_rate,
+            time_logger
     ):
         self.__detector = detector
         self.__raytracer = raytracer
@@ -33,6 +34,7 @@ class channelEfieldSimulator:
         self.__medium = medium
         self.__trace_length = trace_length
         self.__sampling_rate = sampling_rate
+        self.__time_logger = time_logger
         self.__shower_id = None
         self.__vertex_position = None
         self.__shower_axis = None
@@ -122,9 +124,11 @@ class channelEfieldSimulator:
             self,
             channel_id
     ):
+        self.__time_logger.start_time('ray tracing')
         raytracing_solutions = self.__perform_raytracing_for_channel(channel_id)
         if raytracing_solutions is None:
             return [], [], [], [], [], [], [], []
+        self.__time_logger.stop_time('ray tracing')
         n_solutions = len(raytracing_solutions)
         launch_vectors = np.zeros((n_solutions, 3))
         viewing_angles = np.zeros(n_solutions)
@@ -150,6 +154,7 @@ class channelEfieldSimulator:
         channel_relative_position = self.__detector.get_relative_position(self.__station_id, channel_id)
         efield_objects = []
         raytracing_output = {}
+        self.__time_logger.start_time('askaryan')
         for i_solution, solution in enumerate(raytracing_solutions):
             rt_output = self.__raytracer.get_raytracing_output(i_solution)
             for key in rt_output:
@@ -211,6 +216,7 @@ class channelEfieldSimulator:
             efield[efp.nu_viewing_angle] = viewing_angles[i_solution]
             efield_objects.append(efield)
             efield_amplitudes[i_solution] = np.max(np.abs(efield.get_trace()))
+        self.__time_logger.stop_time('askaryan')
         return efield_objects, launch_vectors, receive_vectors, travel_times, path_lenghts, \
             polarization_directions, efield_amplitudes, raytracing_output
 
