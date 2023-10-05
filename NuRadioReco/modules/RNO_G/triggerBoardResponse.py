@@ -115,7 +115,7 @@ class triggerBoardResponse:
         """
         Calculates and applies the gain adjustment such that the correct number
         of "noise bits" are realized. The ADC has fixed possible gain values and
-        this module sets the one that is closest-to-but-less-than the ideal value
+        this module sets the one that is closest-to-but-greater-than the ideal value
 
         Parameters
         ----------
@@ -159,9 +159,9 @@ class triggerBoardResponse:
             # find the ADC gain from the possible values that makes the realized
             # vrms as-close-to-yet-smaller-than the ideal value
             amplified_vrms_values = avg_vrms * self._triggerBoardAmplifications
-            mask = amplified_vrms_values < ideal_vrms
-            gain_to_use = self._triggerBoardAmplifications[mask][-1]
-            vrms_after_gain = amplified_vrms_values[mask][-1]
+            mask = amplified_vrms_values > ideal_vrms
+            gain_to_use = self._triggerBoardAmplifications[mask][0]
+            vrms_after_gain = amplified_vrms_values[mask][0]
 
             channel = station.get_channel(channel_id)
             channel.set_trace(channel.get_trace() * gain_to_use, channel.get_sampling_rate())
@@ -242,7 +242,9 @@ class triggerBoardResponse:
         # Sanity check for the expected channels
         for channel_id in requested_channels:
             if channel_id not in found_trigger_channels:
-                self.logger.warn(f"Channel {channel_id} was requested but was not found with the proper the mandatory fields set")
+                msg = f"Channel {channel_id} was requested to participlate in the trigger but was not found with the proper the mandatory"
+                msg += f" fields set. Ensure that the following settings are in your Detector configuration {self._mandatory_fields}"
+                self.logger.warn(msg)
 
         self.logger.debug(f"Found trigger channels {found_trigger_channels}")
         self.logger.debug(f"Found trigger amps {trigger_amp_response_name}")
