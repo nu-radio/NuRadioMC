@@ -60,12 +60,13 @@ class readCoREASShower:
         Reads in a CoREAS file and returns an event containing all simulated stations
 
         """
-        while (self.__current_input_file < len(self.__input_files)):
+        while self.__current_input_file < len(self.__input_files):
             t = time.time()
             t_per_event = time.time()
 
-            filesize = os.path.getsize(self.__input_files[self.__current_input_file])
-            if(filesize < 18456 * 2):  # based on the observation that a file with such a small filesize is corrupt
+            filesize = os.path.getsize(
+                self.__input_files[self.__current_input_file])
+            if filesize < 18456 * 2:  # based on the observation that a file with such a small filesize is corrupt
                 logger.warning(
                     "file {} seems to be corrupt, skipping to next file".format(
                         self.__input_files[self.__current_input_file]
@@ -74,9 +75,11 @@ class readCoREASShower:
                 self.__current_input_file += 1
                 continue
 
-            logger.info('Reading %s ...' % self.__input_files[self.__current_input_file])
+            logger.info('Reading %s ...' %
+                        self.__input_files[self.__current_input_file])
 
-            corsika = h5py.File(self.__input_files[self.__current_input_file], "r")
+            corsika = h5py.File(
+                self.__input_files[self.__current_input_file], "r")
             logger.info("using coreas simulation {} with E={:2g} theta = {:.0f}".format(
                 self.__input_files[self.__current_input_file], corsika['inputs'].attrs["ERANGE"][0] * units.GeV,
                 corsika['inputs'].attrs["THETAP"][0]))
@@ -88,13 +91,15 @@ class readCoREASShower:
                                                         self.__ascending_run_and_event_number)
                 self.__ascending_run_and_event_number += 1
             else:
-                evt = NuRadioReco.framework.event.Event(corsika['inputs'].attrs['RUNNR'], corsika['inputs'].attrs['EVTNR'])
+                evt = NuRadioReco.framework.event.Event(
+                    corsika['inputs'].attrs['RUNNR'], corsika['inputs'].attrs['EVTNR'])
 
             evt.__event_time = f_coreas.attrs["GPSSecs"]
 
             # create sim shower, no core is set since no external detector description is given
             sim_shower = coreas.make_sim_shower(corsika)
-            sim_shower.set_parameter(shp.core, np.array([0, 0, f_coreas.attrs["CoreCoordinateVertical"] / 100]))  # set core
+            sim_shower.set_parameter(shp.core, np.array(
+                [0, 0, f_coreas.attrs["CoreCoordinateVertical"] / 100]))  # set core
             evt.add_sim_shower(sim_shower)
 
             # initialize coordinate transformation
@@ -103,20 +108,26 @@ class readCoREASShower:
 
             # add simulated pulses as sim station
             for idx, (name, observer) in enumerate(f_coreas['observers'].items()):
-                station_id = antenna_id(name, idx)  # returns proper station id if possible
+                # returns proper station id if possible
+                station_id = antenna_id(name, idx)
 
                 station = NuRadioReco.framework.station.Station(station_id)
                 if self.__det is None:
-                    sim_station = coreas.make_sim_station(station_id, corsika, observer, channel_ids=[0, 1, 2])
+                    sim_station = coreas.make_sim_station(
+                        station_id, corsika, observer, channel_ids=[0, 1, 2])
                 else:
-                    sim_station = coreas.make_sim_station(station_id, corsika, observer, channel_ids=self.__det.get_channel_ids(self.__det.get_default_station_id()))
+                    sim_station = coreas.make_sim_station(
+                        station_id, corsika, observer, 
+                        channel_ids=self.__det.get_channel_ids(self.__det.get_default_station_id()))
+                
                 station.set_sim_station(sim_station)
                 evt.set_station(station)
+                
                 if self.__det is not None:
                     position = observer.attrs['position']
-                    antenna_position = np.zeros(3)
-                    antenna_position[0], antenna_position[1], antenna_position[2] = -position[1] * units.cm, position[0] * units.cm, position[2] * units.cm
+                    antenna_position = np.array([-position[1], position[0], position[2]]) * units.cm
                     antenna_position = cs.transform_from_magnetic_to_geographic(antenna_position)
+                    
                     if not self.__det.has_station(station_id):
                         self.__det.add_generic_station({
                             'station_id': station_id,
@@ -147,8 +158,10 @@ class readCoREASShower:
         logger.setLevel(logging.INFO)
         dt = timedelta(seconds=self.__t)
         logger.info("total time used by this module is {}".format(dt))
-        logger.info("\tcreate event structure {}".format(timedelta(seconds=self.__t_event_structure)))
-        logger.info("per event {}".format(timedelta(seconds=self.__t_per_event)))
+        logger.info("\tcreate event structure {}".format(
+            timedelta(seconds=self.__t_event_structure)))
+        logger.info("per event {}".format(
+            timedelta(seconds=self.__t_per_event)))
         return dt
 
 
