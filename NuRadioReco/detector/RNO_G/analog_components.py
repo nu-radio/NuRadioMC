@@ -63,8 +63,9 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
         amp_gain_discrete = hp.dB_to_linear(S21gain)
         amp_phase_discrete = S21deg * units.deg
     else:
-        logger.error("Amp type not recognized")
-        return amp_response
+        msg = f"Amp type `{amp_type}` not recognized"
+        logger.error(msg)
+        raise ValueError(msg)
 
     amp_gain_f = interp1d(ff, amp_gain_discrete, bounds_error=False, fill_value=0)
     # all requests outside of measurement range are set to 1
