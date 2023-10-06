@@ -6,6 +6,7 @@ import numpy as np
 from functools import wraps
 import collections
 import copy
+import re
 
 from pymongo import MongoClient
 # from bson import json_util  # bson dicts are used by pymongo
@@ -822,17 +823,15 @@ class Database(object):
         # TODO: remove these hard-coded strings
         # get the component names 
         component_dict = channel_sig_info.pop('response_chain')
-        components = []
-        components_id = []
         additional_info_keys = ['channel', 'breakout']
-        for key in component_dict.keys():
-            if not any([aik in key for aik in additional_info_keys]):
-                components.append(key)
-                components_id.append(component_dict[key])
+
+        regex_search_string = '*|'.join(['\w*' + aik for aik in additional_info_keys]) + '*'
+
+        filtered_component_dict = {key:component_dict[key] for key in component_dict.keys() if not re.match(regex_search_string,key)}
         
         # get components data
         components_data = {}
-        for component, component_id in zip(components, components_id):
+        for component, component_id in filtered_component_dict.items():
             supp_info = {k[len(component)+1:]: component_dict[k] for k in component_dict.keys() if component in k and component != k}
             component_data = self.get_channel_signal_chain_component_data(
                 component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
