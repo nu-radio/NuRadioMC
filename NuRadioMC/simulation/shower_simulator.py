@@ -88,16 +88,6 @@ class showerSimulator:
             self.__input_data['yy'][shower_index],
             self.__input_data['zz'][shower_index]
         ])
-        if not self.__distance_cut(shower_vertex):
-            return [], [], [], [], [], [], [], []
-        if not self.__in_fiducial_volume(shower_vertex):
-            return [], [], [], [], [], [], [], []
-        if self.__config['signal']['shower_type'] == "em":
-            if self.__config['shower_type'][shower_index] != "em":
-                return [], [], [], [], [], [], [], []
-        if self.__config['signal']['shower_type'] == "had":
-            if self.__config['shower_type'][shower_index] != "had":
-                return [], [], [], [], [], [], [], []
         n_channels = len(self.__channel_ids)
         efield_list = []
         launch_vector_list = np.full((n_channels, self.__n_raytracing_solutions, 3), np.nan)
@@ -107,6 +97,20 @@ class showerSimulator:
         polarization_direction_list = np.full((n_channels, self.__n_raytracing_solutions, 3), np.nan)
         efield_amplitude_list = np.full((n_channels, self.__n_raytracing_solutions), np.nan)
         raytracing_output_list = {}
+        if not self.__distance_cut(shower_vertex):
+            return efield_list, launch_vector_list, receive_vector_list, travel_time_list, path_length_list, \
+                    polarization_direction_list, efield_amplitude_list, raytracing_output_list
+        if not self.__in_fiducial_volume(shower_vertex):
+            return efield_list, launch_vector_list, receive_vector_list, travel_time_list, path_length_list, \
+                    polarization_direction_list, efield_amplitude_list, raytracing_output_list
+        if self.__config['signal']['shower_type'] == "em":
+            if self.__config['shower_type'][shower_index] != "em":
+                return efield_list, launch_vector_list, receive_vector_list, travel_time_list, path_length_list, \
+                    polarization_direction_list, efield_amplitude_list, raytracing_output_list
+        if self.__config['signal']['shower_type'] == "had":
+            if self.__config['shower_type'][shower_index] != "had":
+                return efield_list, launch_vector_list, receive_vector_list, travel_time_list, path_length_list, \
+                    polarization_direction_list, efield_amplitude_list, raytracing_output_list
         for i_channel, channel_id in enumerate(self.__channel_ids):
             if not self.__channel_distance_cut(shower_vertex, channel_id):
                 continue

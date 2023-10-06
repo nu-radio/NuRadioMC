@@ -143,7 +143,6 @@ class outputWriterHDF5:
                     self.__output_station[station_id][property_name].append(hardware_response_sim_results[property_name][i_sub_shower])
             self.__add_trigger_to_output_per_shower(
                 station_objects[len(station_objects.keys())-1],
-                sub_event_shower_id[0][i_sub_shower],
                 simulation_results['launch_vectors'].shape[0]                
             )
 
@@ -302,7 +301,6 @@ class outputWriterHDF5:
     def __add_trigger_to_output_per_shower(
         self,
         station,
-        sub_event_shower_id,
         n_showers
     ):
         multiple_triggers = np.zeros(len(self.__output_attributes['trigger_names']), dtype=np.bool)
