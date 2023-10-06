@@ -677,7 +677,7 @@ class IftElectricFieldReconstructor:
             'a': .01,
             'k0': 2.,
             # Power-law part of spectrum:
-            'sm': -5.5,
+            'sm': -5,
             'sv': .5,
             'im': -4.,
             'iv': 1,
@@ -697,6 +697,8 @@ class IftElectricFieldReconstructor:
 
         n_groups = len(self.__used_grouped_channel_ids)
         self.__spec_difference = [ift.NullOperator(mag_S_h.domain, mag_S_h.target)]
+        #self.__spec_difference = [ift.Adder(0)]
+
         self.__mag_S_h = mag_S_h
         correlated_fields_delta = [0,0,0]
         i_channel = -1
@@ -959,7 +961,7 @@ class IftElectricFieldReconstructor:
         ax1_2 = fig1.add_subplot(324)
         ax1_3 = fig1.add_subplot(325)
         ax1_4 = fig1.add_subplot(326)
-        sampling_rate = station.get_channel(self.__used_channel_ids[6]).get_sampling_rate()
+        sampling_rate = station.get_channel(self.__used_channel_ids[n_ch]).get_sampling_rate()
         times = np.arange(self.__data_traces.shape[1]) / sampling_rate
         freqs = freq_space.get_k_length_array().val / self.__data_traces.shape[1] * sampling_rate
         print(len(freqs))
@@ -1136,7 +1138,7 @@ class IftElectricFieldReconstructor:
         n_channels = len(self.__used_channel_ids)
         median = KL.position
         sampling_rate = station.get_channel(self.__used_channel_ids[0]).get_sampling_rate()
-        fig1 = plt.figure(figsize=(16, 4 * n_channels))
+        fig1 = plt.figure(figsize=(16, 2 * n_channels))
         fig2 = plt.figure(figsize=(16, 4 * n_channels))
         freqs = np.fft.rfftfreq(self.__data_traces.shape[1], 1. / sampling_rate)
         classic_mean_efield_spec = np.zeros_like(freqs)
@@ -1149,14 +1151,14 @@ class IftElectricFieldReconstructor:
             efield_stat_calculators = [ift.StatCalculator(), ift.StatCalculator()]
             amp_efield_stat_calculators = [ift.StatCalculator(), ift.StatCalculator()]
             if self.__polarization == 'pol':
-                ax1_1 = fig1.add_subplot(n_channels, 3, 3 * i_channel + 1)
-                ax1_2 = fig1.add_subplot(n_channels, 3, 3 * i_channel + 2)
-                ax1_3 = fig1.add_subplot(n_channels, 3, 3 * i_channel + 3, sharey=ax1_2)
-                ax1_2.set_title(r'$\theta$ component', fontsize=fontsize)
-                ax1_3.set_title(r'$\varphi$ component', fontsize=fontsize)
+                ax1_1 = fig1.add_subplot(int(n_channels/2), 2, i_channel+1)
+                #ax1_2 = fig1.add_subplot(n_channels, 3, 3 * i_channel + 2)
+                #ax1_3 = fig1.add_subplot(n_channels, 3, 3 * i_channel + 3, sharey=ax1_2)
+                #ax1_2.set_title(r'$\theta$ component', fontsize=fontsize)
+                #ax1_3.set_title(r'$\varphi$ component', fontsize=fontsize)
             else:
                 ax1_1 = fig1.add_subplot(n_channels, 2, 2 * i_channel + 1)
-                ax1_2 = fig1.add_subplot(n_channels, 2, 2 * i_channel + 2)
+                #ax1_2 = fig1.add_subplot(n_channels, 2, 2 * i_channel + 2)
             ax2_1 = fig2.add_subplot(n_channels, 1, i_channel + 1)
 
             for sample in KL.samples:
@@ -1174,13 +1176,13 @@ class IftElectricFieldReconstructor:
                         efield_stat_calculator.add(efield_sample_trace)
                         amp_efield = np.abs(fft.time2freq(efield_sample_trace, sampling_rate))
                         amp_efield_stat_calculators[i_pol].add(amp_efield)
-                        if self.__polarization == 'pol':
-                            if i_pol == 0:
-                                ax1_2.plot(freqs / units.MHz, amp_efield * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='k', alpha=.2)
-                            else:
-                                ax1_3.plot(freqs / units.MHz, amp_efield * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='k', alpha=.2)
-                        else:
-                            ax1_2.plot(freqs / units.MHz, amp_efield * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='k', alpha=.2)
+                        #if self.__polarization == 'pol':
+                        #    if i_pol == 0:
+                                #ax1_2.plot(freqs / units.MHz, amp_efield * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='k', alpha=.2)
+                        #    else:
+                                #ax1_3.plot(freqs / units.MHz, amp_efield * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='k', alpha=.2)
+                        #else:
+                            #ax1_2.plot(freqs / units.MHz, amp_efield * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='k', alpha=.2)
 
             ax1_1.plot(freqs / units.MHz, np.abs(fft.time2freq(self.__data_traces[i_channel], sampling_rate)) * self.__scaling_factor / units.mV, c='C0', label='data')
             sim_efield_max = None
@@ -1226,25 +1228,25 @@ class IftElectricFieldReconstructor:
                     efield_sum = None
                     for efield in station.get_sim_station().get_electric_fields_for_channels([channel_id]):
                         if efield.get_ray_tracing_solution_id() == ray_tracing_id:
-                            if self.__polarization == 'theta':
-                                ax1_2.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1', alpha=.2, linestyle='--')
-                            if self.__polarization == 'phi':
-                                ax1_2.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1', alpha=.2, linestyle='--')
-                            if self.__polarization == 'pol':
-                                ax1_2.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1', alpha=.2, linestyle='--')
-                                ax1_3.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1', alpha=.2, linestyle='--')
+                            #if self.__polarization == 'theta':
+                                #ax1_2.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1', alpha=.2, linestyle='--')
+                            #if self.__polarization == 'phi':
+                                #ax1_2.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1', alpha=.2, linestyle='--')
+                            #if self.__polarization == 'pol':
+                                #ax1_2.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1', alpha=.2, linestyle='--')
+                                #ax1_3.plot(efield.get_frequencies() / units.MHz, np.abs(efield.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1', alpha=.2, linestyle='--')
                             if efield_sum is None:
                                 efield_sum = efield
                             else:
                                 efield_sum += efield
                     if efield_sum is not None:
-                        if self.__polarization == 'theta':
-                            ax1_2.plot(efield_sum.get_frequencies() / units.MHz, np.abs(efield_sum.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1', alpha=1.)
-                        if self.__polarization == 'phi':
-                            ax1_2.plot(efield_sum.get_frequencies() / units.MHz, np.abs(efield_sum.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1', alpha=1.)
-                        if self.__polarization == 'pol':
-                            ax1_2.plot(efield_sum.get_frequencies() / units.MHz, np.abs(efield_sum.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1', alpha=1.)
-                            ax1_3.plot(efield_sum.get_frequencies() / units.MHz, np.abs(efield_sum.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1', alpha=1.)
+                        #if self.__polarization == 'theta':
+                            #ax1_2.plot(efield_sum.get_frequencies() / units.MHz, np.abs(efield_sum.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1', alpha=1.)
+                        #if self.__polarization == 'phi':
+                            #ax1_2.plot(efield_sum.get_frequencies() / units.MHz, np.abs(efield_sum.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1', alpha=1.)
+                        #if self.__polarization == 'pol':
+                            #ax1_2.plot(efield_sum.get_frequencies() / units.MHz, np.abs(efield_sum.get_frequency_spectrum()[1]) / (units.mV / units.m / units.GHz), c='C1', alpha=1.)
+                            #ax1_3.plot(efield_sum.get_frequencies() / units.MHz, np.abs(efield_sum.get_frequency_spectrum()[2]) / (units.mV / units.m / units.GHz), c='C1', alpha=1.)
                         if sim_efield_max is None or np.max(np.abs(efield_sum.get_frequency_spectrum())) > sim_efield_max:
                             sim_efield_max = np.max(np.abs(efield_sum.get_frequency_spectrum()))
             else:
@@ -1257,37 +1259,37 @@ class IftElectricFieldReconstructor:
             if channel_snr is not None:
                 textbox = dict(boxstyle='round', facecolor='white', alpha=.5)
                 ax2_1.text(.9, .05, 'SNR={:.1f}'.format(channel_snr), transform=ax2_1.transAxes, bbox=textbox, fontsize=18)
-            if self.__polarization == 'theta':
-                ax1_2.plot(freqs / units.MHz, amp_efield_stat_calculators[0].mean * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='C2', alpha=.6)
-            if self.__polarization == 'phi':
-                ax1_2.plot(freqs / units.MHz, amp_efield_stat_calculators[1].mean * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='C2', alpha=.6)
-            if self.__polarization == 'pol':
-                ax1_2.plot(freqs / units.MHz, np.abs(fft.time2freq(efield_stat_calculators[0].mean, sampling_rate)) * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='C2', alpha=.6)
-                ax1_3.plot(freqs / units.MHz, np.abs(fft.time2freq(efield_stat_calculators[1].mean, sampling_rate)) * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='C2', alpha=.6)
+            #if self.__polarization == 'theta':
+                #ax1_2.plot(freqs / units.MHz, amp_efield_stat_calculators[0].mean * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='C2', alpha=.6)
+            #if self.__polarization == 'phi':
+                #ax1_2.plot(freqs / units.MHz, amp_efield_stat_calculators[1].mean * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='C2', alpha=.6)
+            #if self.__polarization == 'pol':
+                #ax1_2.plot(freqs / units.MHz, np.abs(fft.time2freq(efield_stat_calculators[0].mean, sampling_rate)) * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='C2', alpha=.6)
+                #ax1_3.plot(freqs / units.MHz, np.abs(fft.time2freq(efield_stat_calculators[1].mean, sampling_rate)) * self.__scaling_factor / self.__gain_scaling / (units.mV / units.m / units.GHz), c='C2', alpha=.6)
             ax1_1.axvline(self.__passband[0] / units.MHz, c='k', alpha=.5, linestyle=':')
             ax1_1.axvline(self.__passband[1] / units.MHz, c='k', alpha=.5, linestyle=':')
-            ax1_2.axvline(self.__passband[0] / units.MHz, c='k', alpha=.5, linestyle=':')
-            ax1_2.axvline(self.__passband[1] / units.MHz, c='k', alpha=.5, linestyle=':')
+            #ax1_2.axvline(self.__passband[0] / units.MHz, c='k', alpha=.5, linestyle=':')
+            #ax1_2.axvline(self.__passband[1] / units.MHz, c='k', alpha=.5, linestyle=':')
             ax1_1.grid()
-            ax1_2.grid()
+            #ax1_2.grid()
             ax2_1.grid()
-            if self.__polarization == 'pol':
-                ax1_3.axvline(self.__passband[0] / units.MHz, c='k', alpha=.5, linestyle=':')
-                ax1_3.axvline(self.__passband[1] / units.MHz, c='k', alpha=.5, linestyle=':')
-                ax1_3.grid()
-                ax1_3.set_xlim([self.__passband[0] / units.MHz - 50, self.__passband[1] / units.MHz + 50])
-                ax1_3.set_xlabel('f [MHz]')
+            #if self.__polarization == 'pol':
+                #ax1_3.axvline(self.__passband[0] / units.MHz, c='k', alpha=.5, linestyle=':')
+                #ax1_3.axvline(self.__passband[1] / units.MHz, c='k', alpha=.5, linestyle=':')
+                #ax1_3.grid()
+                #ax1_3.set_xlim([self.__passband[0] / units.MHz - 50, self.__passband[1] / units.MHz + 50])
+                #ax1_3.set_xlabel('f [MHz]')
             if i_channel == 0:
                 ax2_1.legend(fontsize=fontsize)
                 ax1_1.legend(fontsize=fontsize)
             ax1_1.set_xlim([self.__passband[0] / units.MHz - 50, self.__passband[1] / units.MHz + 50])
-            ax1_2.set_xlim([self.__passband[0] / units.MHz - 50, self.__passband[1] / units.MHz + 50])
+            #ax1_2.set_xlim([self.__passband[0] / units.MHz - 50, self.__passband[1] / units.MHz + 50])
             ax1_1.set_title('Channel {}'.format(channel_id), fontsize=fontsize)
             ax2_1.set_title('Channel {}'.format(channel_id), fontsize=fontsize)
             ax1_1.set_xlabel('f [MHz]', fontsize=fontsize)
-            ax1_2.set_xlabel('f [MHz]', fontsize=fontsize)
+            #ax1_2.set_xlabel('f [MHz]', fontsize=fontsize)
             ax1_1.set_ylabel('channel voltage [mV/GHz]', fontsize=fontsize)
-            ax1_2.set_ylabel('E-Field [mV/m/GHz]', fontsize=fontsize)
+            #ax1_2.set_ylabel('E-Field [mV/m/GHz]', fontsize=fontsize)
             ax2_1.set_xlabel('t [ns]', fontsize=fontsize)
             ax2_1.set_ylabel('U [mV]', fontsize=fontsize)
             ax2_1_dummy = ax2_1.twiny()
@@ -1298,12 +1300,12 @@ class IftElectricFieldReconstructor:
                 return ['{:.0f}'.format(tick) for tick in np.arange(times[0], times[-1], 10) - times[0]]
             ax2_1_dummy.set_xticklabels(get_ticklabels(np.arange(times[0], times[-1], 10)), fontsize=fontsize)
             ax1_1.tick_params(axis='both', labelsize=fontsize)
-            ax1_2.tick_params(axis='both', labelsize=fontsize)
+            #ax1_2.tick_params(axis='both', labelsize=fontsize)
             ax2_1.tick_params(axis='both', labelsize=fontsize)
-            if self.__polarization == 'pol':
-                ax1_3.tick_params(axis='both', labelsize=fontsize)
-            if sim_efield_max is not None:
-                ax1_2.set_ylim([0, 1.2 * sim_efield_max / (units.mV / units.m / units.GHz)])
+            #if self.__polarization == 'pol':
+                #ax1_3.tick_params(axis='both', labelsize=fontsize)
+            #if sim_efield_max is not None:
+                #ax1_2.set_ylim([0, 1.2 * sim_efield_max / (units.mV / units.m / units.GHz)])
         fig1.tight_layout()
         fig1.savefig('{}/{}_{}_spec_reco_{}_{}_{}.png'.format(self.__plot_folder, event.get_run_number(), event.get_id(), suffix, self.__ray_type, self.__plot_title))
         fig2.tight_layout()
@@ -1526,8 +1528,10 @@ class IftElectricFieldReconstructor:
                 #ax2_1.set_title('Channel {}'.format(channel_id), fontsize=fontsize)
                 ax1_1.set_xlabel('f [MHz]', fontsize=fontsize)
                 ax1_2.set_xlabel('f [MHz]', fontsize=fontsize)
+                ax1_3.set_xlabel('f [MHz]', fontsize=fontsize)
                 ax1_1.set_ylabel('channel voltage [mV/GHz]', fontsize=fontsize)
-                ax1_2.set_ylabel('E-Field [mV/m/GHz]', fontsize=fontsize)
+                ax1_2.set_ylabel('channel voltage [mV/GHz]', fontsize=fontsize)
+                ax1_3.set_ylabel('channel voltage [mV/GHz]', fontsize=fontsize)
                 #ax2_1.set_xlabel('t [ns]', fontsize=fontsize)
                 #ax2_1.set_ylabel('U [mV]', fontsize=fontsize)
                 #ax2_1_dummy = ax2_1.twiny()
