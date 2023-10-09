@@ -66,7 +66,6 @@ class showerSimulator:
         )
         if particle_mode:
             self.__event_group_shower_energies = self.__input_data['shower_energies'][event_indices]
-        self.__channel_efield_simulator.set_event_group(np.sum(self.__event_group_shower_energies))
 
     def simulate_shower(
             self,

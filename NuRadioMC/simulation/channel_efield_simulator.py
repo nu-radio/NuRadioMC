@@ -24,6 +24,33 @@ class channelEfieldSimulator:
             trace_length,
             time_logger
     ):
+        """
+        Initialize class
+
+        Parameters
+        ----------
+        detector: NuRadioReco.detector.detector.Detector or NuRadioReco.detector.generic_detector.GenericDetector object
+            Object conaining the detector description
+        raytracer: NuRadioMC.SignalProp.analyticraytracing.ray_tracing object or similar
+            Object that can perform the propagation fromt the shower to the detector. Has to follow the template
+            specified in NuRadioMC.SignalProp.propagation_base_class. Options are the analytic raytracer, RadioPropa of the 
+            direct line raytracer.
+        channel_ids: numpy.array of integers
+            An array containing the IDs of the channels that are to be simulated.
+        config: dict
+            A dictionary containing the settings specified in the configuration yaml file
+        input_data: dict
+            The data from the input HDF5 file containing the showers to be simulated
+        input_attributes: dict 
+            The attributes from the input HDF5 file
+        medium: NuRadioMC.utilities.medium class
+            A class containing the index of refraction profile of the ice. Needs to be compatible with the chosen raytracer
+        trace_length: integer
+            The number of samples of the electric field and voltage waveforms that are simulated
+        time_logger:
+            NuRadioMC/simulation.time_logger.timeLogger object
+            This class is used to keep track of the simulation progress and print updates in regular intervals.
+        """
         self.__detector = detector
         self.__raytracer = raytracer
         self.__channel_ids = channel_ids
@@ -57,11 +84,6 @@ class channelEfieldSimulator:
         if shower_model not in shower_random:
             self.__shower_generators[shower_model] = np.random.RandomState(self.__config['seed'])
         self.__is_neutrino_simulation = 'simulation_mode' not in self.__input_attributes or self.__input_attributes['simulation_mode'] == 'neutrino'
-    def set_event_group(
-            self,
-            shower_energy_sum
-    ):
-        self.__shower_energy_sum = shower_energy_sum
 
     def set_shower(
             self,
@@ -71,8 +93,29 @@ class channelEfieldSimulator:
             evt_pre_simulated,
             evt_ray_tracing_performed,
     ):
+        """
+        Updates information about the shower that is currently simulated
+
+        Parameters:
+        -----------
+        station_id: integer
+            The ID of the station that is being simulated
+        shower_id: integer
+            The ID of the shower that is being simulated
+        shower_index: integer
+            The index of the shower that is being simulated, i.e. its position in the HDF5 input file
+        event_pre_simulated: bool
+            Specifies if simulation results for this shower are already available from the input file
+        event_ray_tracing_performed: bool
+            Specifies if raytracing results for this shower are already available from the input file
+        """
+
         self.__station_id = station_id
         self.__shower_id = shower_id
+        self.__shower_index = shower_index
+        self.__evt_pre_simulated = evt_pre_simulated
+        self.__evt_ray_tracing_performed = evt_ray_tracing_performed
+
         self.__vertex_position = np.array([
             self.__input_data['xx'][shower_index],
             self.__input_data['yy'][shower_index],
@@ -87,12 +130,8 @@ class channelEfieldSimulator:
             self.__shower_energy = self.__input_data['shower_energies'][shower_index]
 
         self.__index_of_refraction = self.__medium.get_index_of_refraction(self.__vertex_position)
-        self.__shower_index = shower_index
-        self.__evt_pre_simulated = evt_pre_simulated
-        self.__evt_ray_tracing_performed = evt_ray_tracing_performed
         self.__cherenkov_angle = np.arccos(1. / self.__medium.get_index_of_refraction(self.__vertex_position))
         self.__shower_parameters = {}
-        # print('shower type: ', self.__shower_type)
         if self.__config['signal']['model'] in ["ARZ2019", "ARZ2020"] and "shower_realization_ARZ" in self.__input_data:
             self.__shower_parameters['iN'] = self.__input_data['shower_realization_ARZ'][self.__shower_index]
         elif self.__config['signal']['model'] == "Alvarez2009":
@@ -112,6 +151,12 @@ class channelEfieldSimulator:
 
     # TODO: Remove function, it's only here to make sure the same random variables are drawn as in the unit tests
     def set_alvarez_k_L(self):
+        """
+        This function is only supposed to be temporary. Because the new implementation of the simulation
+        code gets rid of some unnecessary calls to this function, different random numbers are generated,
+        which causes the tests to fail. This function is only used to generate these additional
+        random numbers to make sure the same showers are still being simulated.
+        """
         self.__shower_parameters['k_L'] = NuRadioMC.SignalGen.parametrizations.get_Alvarez2009_k_L(
             False,
             False,
@@ -123,6 +168,39 @@ class channelEfieldSimulator:
             self,
             channel_id
     ):
+        """
+        Performs the raytracing and radio emission simulation for a single channel.
+
+        Parameters
+        ----------
+        channel_id: integer
+            The ID of the channel that is being simulated
+        
+        Returns
+        -------
+        Tupel of 8 lists or arrays with sizes depending on the number n_rays of raytracing solutions
+        Entries are as follows:
+            0: List of NuRadioReco.framework.electric_field.ElectricField objects of length n_rays
+                E-Field objects containing the simulated waveforms and signal properties
+                for each raytracing solution
+            1: numpy.array of floats with shape (n_rays, 3)
+                Directions (in cartesian coordinates) that the radio signals are emitted in
+            2: numpy.array of floats with shape (n_rays, 3)
+                Directions (in cartesian coordinates) at which the radio signals arrive at the channel
+            3: numpy.array of floats with shape (n_rays,)
+                Travel times of the radio signals from the emitter to the channel
+            4: numpy.array of floats with shape (n_rays,)
+                Distance the radio signals travel from the emitter to the channel
+            5: numpy.array of floats with shape (n_rays, 3)
+                Direction (in cartesian coordinates) of the polrization vectors of the radio signals
+            6: numpy.array of floats with shape (n_rays,)
+                Maximum amplitudes of the electric fields
+            7: dict
+                Output that is given by the raytracer class. See the get_raytracing_output method of
+                the used raytracer for details.
+
+
+        """
         self.__time_logger.start_time('ray tracing')
         raytracing_solutions = self.__perform_raytracing_for_channel(channel_id)
         if raytracing_solutions is None:
@@ -186,7 +264,7 @@ class channelEfieldSimulator:
 
 
             elif self.__input_attributes['simulation_mode'] == 'emitter':
-                efield_spectrum, polarization_angle = self.__simulate_pulser_emission(
+                efield_spectrum = self.__simulate_pulser_emission(
                     launch_vectors[i_solution],
                     path_lenghts[i_solution]
                 )
@@ -228,19 +306,12 @@ class channelEfieldSimulator:
 
         Parameters
         ----------
-        channel_id: int
+        channel_id: integer
             ID of the channel
-        pre_simulated: bool
-            Specifies if this shower has already been simulated for the same detector
-        ray_tracing_performed: bool
-            Specifies if a raytracing solution is already available from the input data, and can be used instead
-            of resimulating
-        shower_energy_sum: float
-            The sum of the energies of all sub-showers in the event
-
         Returns
-            boolean: True is a valid raytracing solution was found, False if no solution has been found or the
-            channel is too far away to have a realistic chance of seeing the shower.
+            list of dicts
+            A list with the raytracing solutions. Details depend on the raytracer used.
+            If no solution was found, an empty list is returned.
         -------
 
         """
@@ -269,6 +340,18 @@ class channelEfieldSimulator:
 
 
     def __get_channel_index(self, channel_id):
+        """
+        Find the index of a channel in the list of simulated channels
+
+        Parameters
+        ----------
+        channel_id: integer
+            The ID of channel
+        Returns
+        -------
+            integer
+            The index of the channel among the simulated channel IDs
+        """
         index = self.__channel_ids.index(channel_id)
         if index < 0:
             raise ValueError('Channel with ID {} not found in station {} of detector description!'.format(channel_id, self._station_id))
@@ -281,6 +364,30 @@ class channelEfieldSimulator:
             viewing_angle,
             propagation_distance
     ):
+        """
+        Simulates the emission from a neutrino-induced shower
+
+        Parameters
+        ----------
+        launch_vector: numpy.array of floats with shape (3,)
+            The direction (in cartesian coordinates) into which the radio signal is emitted
+        receive_vector: numpy.array of floats with shape (3,)
+            The direction (in cartesian coordinates) at which the radio signal arrives at the detector
+        viewing_angle: float
+            The angle between the shower axis and the direction into which the radio signal is emitted
+        propagation_distance: float
+            The distance over which the radio signal propagates before it arrives at the detector
+
+        Returns
+        -------
+        tuple of length 2
+        Entries are as follows:
+            0: numpy.array of floats with shape (3, n_frequency_bins)
+            The spectrum of the radio signal in the 3 polarization components (e_r, e_theta, e_phi)
+            1: numpy.array of floats with shape (3,)
+            The direction (in cartesian coordinates) of the polarization vector of the radio signal at the detector
+        """
+
         if self.__config['signal']['model'] == 'Alvarez2009' and 'k_L' not in self.__shower_parameters.keys():
             self.set_alvarez_k_L()
         spectrum, additional_output = NuRadioMC.SignalGen.askaryan.get_frequency_spectrum(
@@ -305,6 +412,21 @@ class channelEfieldSimulator:
             launch_vector,
             propagation_distance
     ):
+        """
+        Simulates the emission from a radio pulser
+
+        Parameters
+        ----------
+        launch_vector: numpy.array of floats with shape (3,)
+            The direction (in cartesian coordinates) into which the radio signal is emitted
+        propagation_distance: float
+            The distance over which the radio signal propagates before it arrives at the detector
+
+        Returns
+        -------
+        numpy.array of floats with shape (3, n_frequency_bins)
+            The spectrum of the radio signal in the 3 polarization components (e_r, e_theta, e_phi)
+        """
         amplitude = self.__input_data['emitter_amplitudes'][self.__shower_index]
         emitter_frequency = self.__input_data['emitter_frequency'][self.__shower_index]
         emitter_half_width = self.__input_data['emitter_half_width'][self.__shower_index]
@@ -333,7 +455,7 @@ class channelEfieldSimulator:
         pulser_spectrum[2] = VEL['phi'] * (-1j) * voltage_spectrum_emitter * frequencies * self.__index_of_refraction / c
         # rescale amplitudes by 1/R, for emitters this is not part of the "SignalGen" class
         pulser_spectrum /= propagation_distance
-        return pulser_spectrum, None
+        return pulser_spectrum
 
     def __get_polarization_vector(
             self,
