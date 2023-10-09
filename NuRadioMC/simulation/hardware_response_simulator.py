@@ -139,7 +139,7 @@ class hardwareResponseSimulator:
                 channel_identifiers
             )
 
-            sub_event_shower_ids = sub_event_shower_ids + sub_shower_ids
+            sub_event_shower_ids.append(sub_shower_ids)
             new_station = NuRadioReco.framework.station.Station(station_id)
             new_station.set_sim_station(new_sim_station)
             new_event = NuRadioReco.framework.event.Event(self.__event_group_id, i_sub_event)
