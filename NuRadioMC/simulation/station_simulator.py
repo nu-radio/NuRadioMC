@@ -88,7 +88,8 @@ class stationSimulator:
                 self.__input_data['shower_ids'][shower_index],
                 shower_index,
                 self.__was_pre_simulated,
-                ray_tracing_performed
+                ray_tracing_performed,
+                i_shower
             )
             efield_array.append(efield_objects)
             output_structure['launch_vectors'][i_shower] = launch_vectors

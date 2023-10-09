@@ -73,8 +73,8 @@ class showerSimulator:
             shower_id,
             shower_index,
             pre_simulated,
-            ray_tracing_performed
-
+            ray_tracing_performed,
+            i_shower
     ):
         self.__channel_efield_simulator.set_shower(
             self.__station_id,
@@ -112,7 +112,7 @@ class showerSimulator:
                 return efield_list, launch_vector_list, receive_vector_list, travel_time_list, path_length_list, \
                     polarization_direction_list, efield_amplitude_list, raytracing_output_list
         for i_channel, channel_id in enumerate(self.__channel_ids):
-            if not self.__channel_distance_cut(shower_vertex, channel_id):
+            if not self.__channel_distance_cut(shower_vertex, i_shower, channel_id):
                 continue
             efield_objects, launch_vectors, receive_vectors, travel_times, path_lenghts, polarization_directions, \
                 efield_amplitudes, raytracing_output = self.__channel_efield_simulator.simulate_efield_at_channel(
@@ -159,12 +159,13 @@ class showerSimulator:
     def __channel_distance_cut(
         self,
         shower_vertex,
+        i_shower,
         channel_id
     ):
         if not self.__config['speedup']['distance_cut']:
             return True
         mask_shower_sum = np.abs(
-            self.__event_group_vertex_distances - self.__event_group_vertex_distances[0]
+            self.__event_group_vertex_distances - self.__event_group_vertex_distances[i_shower]
         ) < self.__config['speedup']['distance_cut_sum_length']
         shower_energy_sum = np.sum(self.__event_group_shower_energies[mask_shower_sum])
         distance_to_channel = np.linalg.norm(shower_vertex - (self.__detector.get_absolute_position(self.__station_id) + self.__detector.get_relative_position(self.__station_id, channel_id)))
