@@ -819,20 +819,25 @@ class Database(object):
         # load the signal chain information:
         channel_sig_info = self.get_channel_signal_chain_measurement(
             channel_signal_id=channel_signal_id, measurement_name=measurement_name, verbose=verbose)
-                
-        # TODO: remove these hard-coded strings
-        # get the component names 
+
         component_dict = channel_sig_info.pop('response_chain')
-        additional_info_keys = ['channel', 'breakout']
 
-        regex_search_string = '*|'.join(['\w*' + aik for aik in additional_info_keys]) + '*'
-
-        filtered_component_dict = {key:component_dict[key] for key in component_dict.keys() if not re.match(regex_search_string,key)}
-        
-        # get components data
+        # Certain keys in the response chain only carry additional information of other components
+        # and do not describe own components on their own ("channel" and "breakout")
+        filtered_component_dict = {}
+        additional_information = {}
+        for key, ele in component_dict.items():
+            if re.search("(channel|breakout)", key) is None:
+                filtered_component_dict[key] = ele
+            else:
+                additional_information[key] = ele
+            
         components_data = {}
         for component, component_id in filtered_component_dict.items():
-            supp_info = {k[len(component)+1:]: component_dict[k] for k in component_dict.keys() if component in k and component != k}
+            # Add the additional informatio which were filtered out above to the correct components
+            supp_info = {k.replace(component, ""): component_dict[k] for k in component_dict 
+                         if component in k and component != k}
+            
             component_data = self.get_channel_signal_chain_component_data(
                 component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
 
