@@ -1,30 +1,15 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-from radiotools import helper as hp
-from radiotools import coordinatesystems as cstrans
-from NuRadioMC.SignalGen import askaryan
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities import medium
-from NuRadioReco.utilities import fft
 from NuRadioMC.utilities.earth_attenuation import get_weight
 from NuRadioMC.SignalProp import propagation
 import h5py
-import six
-import copy
-import json
-from scipy import constants
 # import detector simulation modules
-import NuRadioReco.detector.detector as detector
-import NuRadioReco.detector.generic_detector as gdetector
-import NuRadioReco.framework.sim_station
-import NuRadioReco.framework.electric_field
+import NuRadioReco.detector.detector
+import NuRadioReco.detector.generic_detector
 import NuRadioReco.framework.particle
-import NuRadioReco.framework.event
 from NuRadioReco.detector import antennapattern
-from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.framework.parameters import channelParameters as chp
-from NuRadioReco.framework.parameters import electricFieldParameters as efp
-from NuRadioReco.framework.parameters import showerParameters as shp
 # parameters describing simulated Monte Carlo particles
 from NuRadioReco.framework.parameters import particleParameters as simp
 # parameters set in the event generator
@@ -34,7 +19,6 @@ import logging
 from six import iteritems
 import yaml
 import os
-import collections
 from NuRadioMC.utilities.Veff import remove_duplicate_triggers
 import NuRadioMC.simulation.channel_efield_simulator
 import NuRadioMC.simulation.shower_simulator
@@ -43,8 +27,6 @@ import NuRadioMC.simulation.hardware_response_simulator
 import NuRadioMC.simulation.output_writer_hdf5
 import NuRadioMC.simulation.output_writer_nur
 import NuRadioMC.simulation.time_logger
-
-# logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 
 
 
@@ -59,7 +41,6 @@ class NuRadioMCLogger(logging.Logger):
 logging.setLoggerClass(NuRadioMCLogger)
 logging.addLevelName(STATUS, 'STATUS')
 logger = logging.getLogger("NuRadioMC")
-print(logger.__class__)
 assert isinstance(logger, NuRadioMCLogger)
 
 
