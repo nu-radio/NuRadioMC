@@ -182,7 +182,6 @@ class simulation():
             else:
                 logger.warning(msg)
         self._detectorfile = detectorfile
-        self._n_reflections = int(self.__cfg['propagation']['n_reflections'])
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
         self._debug = debug
         self._evt_time = evt_time
@@ -226,12 +225,11 @@ class simulation():
             logger.status("simulating signal amplification due to focusing of ray paths in the firn.")
 
         # read sampling rate from config (this sampling rate will be used internally)
-        self._dt = 1. / (self.__cfg['sampling_rate'] * units.GHz)
 
         if isinstance(inputfilename, str):
             logger.status(f"reading input from {inputfilename}")
             self._inputfilename = inputfilename
-            self._read_input_hdf5()  # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
+            self.__read_input_hdf5()  # we read in the full input file into memory at the beginning to limit io to the beginning and end of the run
         else:
             logger.status("getting input on-the-fly")
             self._inputfilename = "on-the-fly"
@@ -278,10 +276,10 @@ class simulation():
         """
         TODO: Allow running stations with different numbers of channels
         """
-        self._channel_ids = self._det.get_channel_ids(self._det.get_station_ids()[0])
-        sampling_rate_detector = self._det.get_sampling_frequency(self._det.get_station_ids()[0], self._channel_ids[0])
-        self._n_samples = self._det.get_number_of_samples(self._det.get_station_ids()[0], self._channel_ids[0]) / sampling_rate_detector / self._dt
-        self._n_samples = int(np.ceil(self._n_samples / 2.) * 2)
+        self.__channel_ids = self._det.get_channel_ids(self._det.get_station_ids()[0])
+        sampling_rate_detector = self._det.get_sampling_frequency(self._det.get_station_ids()[0], self.__channel_ids[0])
+        n_samples = self._det.get_number_of_samples(self._det.get_station_ids()[0], self.__channel_ids[0]) / sampling_rate_detector * self.__cfg['sampling_rate'] * units.GHz
+        n_samples = int(np.ceil(n_samples / 2.) * 2)
         unique_event_group_ids = np.unique(self.__fin['event_group_ids'])
         self._n_showers = len(self.__fin['event_group_ids'])
         self._shower_ids = np.array(self.__fin['shower_ids'])
@@ -290,25 +288,24 @@ class simulation():
             self._ice, self.__cfg['propagation']['attenuation_model'],
             log_level=self._log_level_ray_propagation,
             n_frequencies_integration=int(self.__cfg['propagation']['n_freq']),
-            n_reflections=self._n_reflections,
+            n_reflections=int(self.__cfg['propagation']['n_reflections']),
             config=self.__cfg,
             detector=self._det
         )
         self.__channel_simulator = NuRadioMC.simulation.channel_efield_simulator.channelEfieldSimulator(
             self._det,
             self.__raytracer,
-            self._channel_ids,
+            self.__channel_ids,
             self.__cfg,
             self.__fin,
             self.__fin_attrs,
             self._ice,
-            self._n_samples,
-            1. / self._dt,
+            n_samples,
             self.__time_logger
         )
         self.__shower_simulator = NuRadioMC.simulation.shower_simulator.showerSimulator(
             self._det,
-            self._channel_ids,
+            self.__channel_ids,
             self.__cfg,
             self.__fin,
             self.__fin_attrs,
@@ -330,25 +327,26 @@ class simulation():
         self._Vrms = self.__hardware_response_simulator.get_noise_vrms()
         self._Vrms_per_channel = self.__hardware_response_simulator.get_noise_vrms_per_channel()
         efield_v_rms_per_channel = self.__hardware_response_simulator.get_efield_v_rms_per_channel()
+        # check if the same detector was simulated before (then we can save the ray tracing part)
+        pre_simulated = self.__check_if_was_pre_simulated()
+
         self.__station_simulator = NuRadioMC.simulation.station_simulator.stationSimulator(
             self._det,
-            self._channel_ids,
+            self.__channel_ids,
             self.__cfg,
             self.__fin,
             self.__fin_attrs,
             self._fin_stations,
             self.__shower_simulator,
             self.__raytracer,
-            self._check_if_was_pre_simulated(),
+            pre_simulated,
             efield_v_rms_per_channel
         )
         self.__time_logger.reset_times(['ray tracing', 'askaryan', 'detector simulation', ])
 
-        # check if the same detector was simulated before (then we can save the ray tracing part)
-        pre_simulated = self._check_if_was_pre_simulated()
 
         # calculate bary centers of station
-        self._station_barycenter = self._calculate_station_barycenter()
+        self._station_barycenter = self.__calculate_station_barycenter()
         self.__output_writer_hdf5 = NuRadioMC.simulation.output_writer_hdf5.outputWriterHDF5(
             self._outputfilename,
             self.__cfg,
@@ -382,10 +380,10 @@ class simulation():
             # the weight also depends just on the "mother" particle, i.e. the incident neutrino which determines
             # the propability of arriving at our simulation volume. All subsequent showers have the same weight. So
             # we calculate it just once and save it to all subshowers.
-            self._primary_index = event_indices[0]
+            self.__primary_index = event_indices[0]
             # determine if a particle (neutrinos, or a secondary interaction of a neutrino, or surfaec muons) is simulated
             if self._particle_mode:
-                event_group_weight = self._calculate_particle_weights(event_indices)
+                event_group_weight = self.__calculate_particle_weights(event_indices)
             else:
                 event_group_weight = 1
             self.__output_writer_hdf5.store_event_group_weight(
@@ -423,7 +421,7 @@ class simulation():
                 logger.debug(f"simulating station {self._station_id}")
 
                 # perform a quick cut to reject event group completely if no shower is close enough to the station
-                if not self._distance_cut_station(
+                if not self.__distance_cut_station(
                         vertex_positions,
                         shower_energies,
                         self._station_barycenter[iSt]
@@ -432,7 +430,7 @@ class simulation():
 
                 ray_tracing_performed = False
                 if 'station_{:d}'.format(self._station_id) in self._fin_stations:
-                    ray_tracing_performed = (self.__raytracer.get_output_parameters()[0]['name'] in self._fin_stations['station_{:d}'.format(self._station_id)]) and self._was_pre_simulated
+                    ray_tracing_performed = (self.__raytracer.get_output_parameters()[0]['name'] in self._fin_stations['station_{:d}'.format(self._station_id)]) and self.__was_pre_simulated
                 self._dummy_event = NuRadioReco.framework.event.Event(0, 0) # a dummy event object, which does nothing but is needed because some modules require an event to be passed
                 sim_showers = {}
                 station_output, efield_array, is_candidate_station = self.__station_simulator.simulate_station(self._station_id)
@@ -493,7 +491,7 @@ class simulation():
 
 
     def _get_channel_index(self, channel_id):
-        index = self._channel_ids.index(channel_id)
+        index = self.__channel_ids.index(channel_id)
         if index < 0:
             raise ValueError('Channel with ID {} not found in station {} of detector description!'.format(channel_id, self._station_id))
         return index
@@ -526,34 +524,24 @@ class simulation():
 
 
 
-    def _check_vertex_times(self):
-
-        if 'vertex_times' in self.__fin:
-            return True
-        else:
-            warn_msg = 'The input file does not include vertex times. '
-            warn_msg += 'Vertices from the same event will not be time-ordered.'
-            logger.warning(warn_msg)
-            return False
-
     def get_Vrms(self):
         return self._Vrms
 
     def get_sampling_rate(self):
-        return 1. / self._dt
+        return self.__cfg['sampling_rate'] * units.GHz
 
 
-    def _check_if_was_pre_simulated(self):
+    def __check_if_was_pre_simulated(self):
         """
         checks if the same detector was simulated before (then we can save the ray tracing part)
         """
-        self._was_pre_simulated = False
+        self.__was_pre_simulated = False
         if 'detector' in self.__fin_attrs:
             with open(self._detectorfile, 'r') as fdet:
                 if fdet.read() == self.__fin_attrs['detector']:
-                    self._was_pre_simulated = True
+                    self.__was_pre_simulated = True
                     logger.debug("the simulation was already performed with the same detector")
-        return self._was_pre_simulated
+        return self.__was_pre_simulated
 
 
 
@@ -571,7 +559,7 @@ class simulation():
         logger.status(f"Veff = {Veff / units.km ** 3:.4g} km^3, Veffsr = {Veff * 4 * np.pi/units.km**3:.4g} km^3 sr")
 
 
-    def _calculate_station_barycenter(self):
+    def __calculate_station_barycenter(self):
         station_barycenter = np.zeros((len(self._station_ids), 3))
         for iSt, station_id in enumerate(self._station_ids):
             pos = []
@@ -580,14 +568,12 @@ class simulation():
             station_barycenter[iSt] = np.mean(np.array(pos), axis=0) + self._det.get_absolute_position(station_id)
         return station_barycenter
 
-    def _calculate_particle_weights(
+    def __calculate_particle_weights(
             self,
             evt_indices
     ):
-        self._read_input_particle_properties(
-            self._primary_index)  # this sets the self.input_particle for self._primary_index
+        primary = self.__read_input_particle_properties(self.__primary_index)  # this sets the self.input_particle for self.__primary_index
         # calculate the weight for the primary particle
-        self.primary = self.input_particle
         if self.__cfg['weights']['weight_mode'] == "existing":
             if "weights" in self.__fin:
                 self._mout['weights'] = self.__fin["weights"]
@@ -595,20 +581,20 @@ class simulation():
                 logger.error(
                     "config file specifies to use weights from the input hdf5 file but the input file does not contain this information.")
         elif self.__cfg['weights']['weight_mode'] is None:
-            self.primary[simp.weight] = 1.
+            primary[simp.weight] = 1.
         else:
-            self.primary[simp.weight] = get_weight(self.primary[simp.zenith],
-                                                   self.primary[simp.energy],
-                                                   self.primary[simp.flavor],
+            primary[simp.weight] = get_weight(primary[simp.zenith],
+                                                   primary[simp.energy],
+                                                   primary[simp.flavor],
                                                    mode=self.__cfg['weights']['weight_mode'],
                                                    cross_section_type=self.__cfg['weights']['cross_section_type'],
-                                                   vertex_position=self.primary[simp.vertex],
-                                                   phi_nu=self.primary[simp.azimuth])
+                                                   vertex_position=primary[simp.vertex],
+                                                   phi_nu=primary[simp.azimuth])
         # all entries for the event for this primary get the calculated primary's weight
-        return self.primary[simp.weight]
+        return primary[simp.weight]
 
 
-    def _distance_cut_station(
+    def __distance_cut_station(
             self,
             vertex_positions,
             shower_energies,
@@ -639,7 +625,7 @@ class simulation():
                 f"skipping station {self._station_id} because minimal distance {vertex_distances_to_station.min() / units.km:.1f}km > {distance_cut / units.km:.1f}km (shower energy = {shower_energies.max():.2g}eV) bary center of station {station_barycenter}")
         return vertex_distances_to_station.min() <= distance_cut
 
-    def _read_input_hdf5(self):
+    def __read_input_hdf5(self):
         """
         reads input file into memory
         """
@@ -662,28 +648,28 @@ class simulation():
 
         fin.close()
 
-    def _read_input_particle_properties(self, idx=None):
+    def __read_input_particle_properties(self, idx=None):
         if idx is None:
-            idx = self._primary_index
-        self._event_group_id = self.__fin['event_group_ids'][idx]
-
-        self.input_particle = NuRadioReco.framework.particle.Particle(0)
-        self.input_particle[simp.flavor] = self.__fin['flavors'][idx]
-        self.input_particle[simp.energy] = self.__fin['energies'][idx]
-        self.input_particle[simp.interaction_type] = self.__fin['interaction_type'][idx]
-        self.input_particle[simp.inelasticity] = self.__fin['inelasticity'][idx]
-        self.input_particle[simp.vertex] = np.array([self.__fin['xx'][idx],
+            idx = self.__primary_index
+        
+        input_particle = NuRadioReco.framework.particle.Particle(0)
+        input_particle[simp.flavor] = self.__fin['flavors'][idx]
+        input_particle[simp.energy] = self.__fin['energies'][idx]
+        input_particle[simp.interaction_type] = self.__fin['interaction_type'][idx]
+        input_particle[simp.inelasticity] = self.__fin['inelasticity'][idx]
+        input_particle[simp.vertex] = np.array([self.__fin['xx'][idx],
                                                      self.__fin['yy'][idx],
                                                      self.__fin['zz'][idx]])
-        self.input_particle[simp.zenith] = self.__fin['zeniths'][idx]
-        self.input_particle[simp.azimuth] = self.__fin['azimuths'][idx]
-        self.input_particle[simp.inelasticity] = self.__fin['inelasticity'][idx]
-        self.input_particle[simp.n_interaction] = self.__fin['n_interaction'][idx]
+        input_particle[simp.zenith] = self.__fin['zeniths'][idx]
+        input_particle[simp.azimuth] = self.__fin['azimuths'][idx]
+        input_particle[simp.inelasticity] = self.__fin['inelasticity'][idx]
+        input_particle[simp.n_interaction] = self.__fin['n_interaction'][idx]
         if self.__fin['n_interaction'][idx] <= 1:
             # parents before the neutrino and outgoing daughters without shower are currently not
             # simulated. The parent_id is therefore at the moment only rudimentarily populated.
-            self.input_particle[simp.parent_id] = None  # primary does not have a parent
+            input_particle[simp.parent_id] = None  # primary does not have a parent
 
-        self.input_particle[simp.vertex_time] = 0
+        input_particle[simp.vertex_time] = 0
         if 'vertex_times' in self.__fin:
-            self.input_particle[simp.vertex_time] = self.__fin['vertex_times'][idx]
+            input_particle[simp.vertex_time] = self.__fin['vertex_times'][idx]
+        return input_particle

@@ -22,7 +22,6 @@ class channelEfieldSimulator:
             input_attributes,
             medium,
             trace_length,
-            sampling_rate,
             time_logger
     ):
         self.__detector = detector
@@ -33,7 +32,7 @@ class channelEfieldSimulator:
         self.__input_attributes = input_attributes
         self.__medium = medium
         self.__trace_length = trace_length
-        self.__sampling_rate = sampling_rate
+        self.__sampling_rate = self.__config['sampling_rate'] * units.GHz
         self.__time_logger = time_logger
         self.__shower_id = None
         self.__vertex_position = None
@@ -268,10 +267,6 @@ class channelEfieldSimulator:
 
         return self.__raytracer.get_results()
 
-    def __get_distance_cut(self, shower_energy):
-        if shower_energy <= 0:
-            return 100 * units.m
-        return max(100 * units.m, 10 ** self.__distance_cut_polynomial(np.log10(shower_energy)))
 
     def __get_channel_index(self, channel_id):
         index = self.__channel_ids.index(channel_id)
