@@ -39,6 +39,8 @@ new features:
 bugfixes:
 - fix bug in NuRadioProposal which pervented muons from tau decays to be propagated
 - update proposal version to 6.1.8 to avoid problems with pypi
+- updated reference channel check in GenericDetector to look into the reference station when the channel
+is not found in the current station
 
 version 2.1.6
 bugfixes:
