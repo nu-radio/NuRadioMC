@@ -21,8 +21,11 @@ from datetime import datetime
 current_date = datetime.now().strftime("%Y-%m-%d %H:%M")
 plot_folder = f'plots/efield_reco/{current_date}'
 
-channels_to_be_used = [[9,10,11],
-                       [0, 1, 2, 3, 4, 5],
+channels_to_be_used = [[0, 1, 2, 3, 4, 5],
+                       [6],
+                       [7],
+                       [8],
+                       [9,10,11],
                        [21,22,23]]
 """
 channels_to_be_used = [[2, 3, 4, 5],
@@ -103,7 +106,7 @@ ift_efield_reconstructor.begin(
 
     passband=efield_reco_passband,
     n_samples=10,
-    n_iterations=2,
+    n_iterations=5,
     phase_slope='negative',
     energy_fluence_passbands=[
         [.13, .2],
