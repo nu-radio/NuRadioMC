@@ -1052,8 +1052,12 @@ class Response:
 
 
 if __name__ == "__main__":
-    det = Detector(log_level=logging.DEBUG, over_write_handset_values={
-                   "sampling_frequency": 2.4 * units.GHz}, always_query_entire_description=False)
+    
+    from NuRadioReco.detector import detector
+    # det = Detector(log_level=logging.DEBUG, over_write_handset_values={
+    #                "sampling_frequency": 2.4 * units.GHz}, always_query_entire_description=False)
+    det = detector.Detector(source="mongo", log_level=logging.DEBUG, always_query_entire_description=False,
+                            database_connection='RNOG_test_public')
 
     det.update(datetime.datetime(2022, 8, 2, 0, 0))
     # det.get_antenna_model(11, 0)
