@@ -686,7 +686,7 @@ class Database(object):
         
         # define a search filter
         search_filter = [{'$match': {'name': component_id}}, {'$unwind': '$measurements'}, {'$match': {}}]
-    
+
         # if supplemenatry information exsits (like channel id, etc ...), update the search filter
         if supplementary_info != {}:
             for supp_info in supplementary_info.keys():
@@ -699,7 +699,6 @@ class Database(object):
         search_filter.append({'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
                                          'measurements.primary_measurement.end': {'$gte': primary_time}}})
         
-
         search_result = list(self.db[component_type].aggregate(search_filter))
 
         if len(search_result) != 1:
@@ -826,6 +825,7 @@ class Database(object):
         # and do not describe own components on their own ("channel" and "breakout")
         filtered_component_dict = {}
         additional_information = {}
+
         for key, ele in component_dict.items():
             if re.search("(channel|breakout)", key) is None:
                 filtered_component_dict[key] = ele
@@ -835,9 +835,9 @@ class Database(object):
         components_data = {}
         for component, component_id in filtered_component_dict.items():
             # Add the additional informatio which were filtered out above to the correct components
-            supp_info = {k.replace(component, ""): component_dict[k] for k in component_dict 
+            supp_info = {k.replace(component + "_", ""): component_dict[k] for k in component_dict 
                          if component in k and component != k}
-            
+
             component_data = self.get_channel_signal_chain_component_data(
                 component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
 
