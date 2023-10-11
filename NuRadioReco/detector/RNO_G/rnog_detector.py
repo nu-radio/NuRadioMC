@@ -820,8 +820,7 @@ class Detector():
             raise KeyError(
                 f"Could not find \"number_of_samples\" for station {station_id} in buffer. Did you call det.update(...)?")
 
-        station_info = self.__buffered_stations[station_id]
-        return station_info[station_id]['number_of_samples']
+        return int(self.__buffered_stations[station_id]['number_of_samples'])
 
 
     def get_sampling_frequency(self, station_id, channel_id):
@@ -850,9 +849,8 @@ class Detector():
         if keys_not_in_dict(self.__buffered_stations, [station_id, "sampling_rate"]):
             raise KeyError(
                 f"Could not find \"sampling_rate\" for station {station_id} in buffer. Did you call det.update(...)?")
-
-        station_info = self.__buffered_stations[station_id]
-        return station_info[station_id]['sampling_rate']
+        print(float(self.__buffered_stations[station_id]['sampling_rate']))
+        return float(self.__buffered_stations[station_id]['sampling_rate'])
 
 
     def get_noise_temperature(self, station_id, channel_id):
