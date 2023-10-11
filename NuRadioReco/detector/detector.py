@@ -63,7 +63,7 @@ def Detector(*args, **kwargs):
             if len(args):
                 json_filename = args[0]  # used to be passed as positional argument
             elif "json_filename" in kwargs:
-                json_filename = kwargs["json_filename"]
+                json_filename = kwargs.pop("json_filename")
             else:
                 raise ValueError("Argument \"json_filename\" was not passed.")
             
