@@ -30,13 +30,42 @@ class hardwareResponseSimulator:
             event_time,
             time_logger
     ):
+        """
+        Initialize class
+
+        Parameters
+        ----------
+        detector: NuRadioReco.detector.detector.Detector or NuRadioReco.detector.generic_detector.GenericDetector object
+            Object conaining the detector description
+        config: dict
+            A dictionary containing the settings specified in the configuration yaml file
+        station_ids: numpy.array of integers
+            An array containing the IDs of the stations to be simulated
+        input_data: dict
+            The data from the input HDF5 file containing the showers to be simulated
+        input_attributes: dict 
+            The attributes from the input HDF5 file
+        detector_simulation_trigger: method
+            A method that simulates the trigger
+        detector_simulation_filter_amp: method
+            A method that simulates the signal chain response
+        raytracer: NuRadioMC.SignalProp.analyticraytracing.ray_tracing object or similar
+            Object that can perform the propagation fromt the shower to the detector. Has to follow the template
+            specified in NuRadioMC.SignalProp.propagation_base_class. Options are the analytic raytracer, RadioPropa of the 
+            direct line raytracer.
+        event_time: datetime.datetime object
+            The time at which the simulation occurs. This mainly affects the detector description.
+        time_logger:
+            NuRadioMC/simulation.time_logger.timeLogger object
+            This class is used to keep track of the simulation progress and print updates in regular intervals.
+        """
         self.__detector = detector
         self.__station_ids = station_ids
         self.__config = config
         self.__input_data = input_data
         self.__input_attributes = input_attributes
         self.__sampling_rate_simulation = self.__config['sampling_rate']
-        # some module require passing an event, so we pass this dummy. It doesn't actually do anything
+        # some modules require passing an event, so we pass this dummy. It doesn't actually do anything
         self.__dummy_event = NuRadioReco.framework.event.Event(-1, -1)
         self.__efield_to_voltage_converter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
         self.__efield_to_voltage_converter.begin(self.__config['speedup']['time_res_efieldconverter'])
@@ -73,6 +102,14 @@ class hardwareResponseSimulator:
             self,
             event_group_id
     ):
+        """
+        Updates information about the event group that is currently simulated.
+
+        Parameters:
+        -----------
+        event_group_id: integer
+            The ID of the event group that is currently simulated.
+        """
         self.__event_group_id = event_group_id
 
     def simulate_detector_response(
@@ -81,6 +118,37 @@ class hardwareResponseSimulator:
             efield_objects,
             shower_indices
     ):
+        """
+        Applies the detector response to simulated electric fields. It also divides events into sub-events
+        if the difference in signal arrival times at the detector is above a certain value.
+
+        Parameters:
+        station_id : integer
+            The ID of the station that is being simulated
+        efield_objects: list of NuRadioReco.framework.electric_field.ElectricField objects with shape (n_showers, n_channels, n_rays)
+            A list containing the simulated electric field objects
+        shower_indices: numpy.array of integers
+            Indices of the showers that are simulated, i.e. their position in the input file
+        Returns
+        -------
+        Tupel of 5 lists or arrays
+        Entries are as follows:
+            0: Dict of NuRadioReco.framework.event.Event objects
+                A dictionary of events containing the simulation results. If the delay in arrival times 
+                between E-field objects (see input) is above a certain value, the E-fields will be split
+                up into multiple events to simulate multiple triggers caused by the same neutrino interaction.
+            1: Dict of NuRadioReco.framework.station.Station objects
+                A dictionary of station objects containing the simulation results. These are the same
+                stations contained in the returned event objects
+            2: List of integers with shape (n_events, n_showers)
+                A list containing the IDs of the showers contained in each returned event.
+            3: numpy.array of bools with shape (n_events,)
+                Specifies if the returned events/stations have triggered or not.
+            4: Dict of numpy.arrays of floats with shape (n_showers, n_channels, n_rays)
+                A dictionary containing the maximum amplitudes and the signal arrival times of the simulated
+                events. Note that these correspond to the simulated showers do not consider if events
+                have been split up due to large differences in arrival times.
+        """
         self.__time_logger.start_time('detector simulation')
         channel_ids = list(self.__detector.get_channel_ids(station_id))
         sampling_rate_detector = self.__detector.get_sampling_frequency(station_id, channel_ids[0])
@@ -160,6 +228,16 @@ class hardwareResponseSimulator:
             event,
             station
     ):
+        """
+        Applies the detector response to a station.
+
+        Parameters
+        ----------
+        event: NuRadioReco.framework.event.Event object
+            The event containing the station that the detector response is applied to
+        station: NuRadioReco.framework.station.Station object
+            The station that the detector response is applied to
+        """
         self.__efield_to_voltage_converter.run(
             event,
             station,
@@ -204,6 +282,21 @@ class hardwareResponseSimulator:
             station,
             efield_array
     ):
+        """
+        Simulates the detector response on the SimStation level
+
+        Parameters
+        ----------
+        station: NuRadioReco.framework.station.Station object
+            The station (NOT SimStation) containing the SimStation to which the detector response is applied
+        efield_array: list of NuRadioReco.framework.electric_field.ElectricField objects with shape (n_showers, n_channels, n_rays)
+            A list containing the simulated electric field objects
+
+        Returns
+        -------
+        NuRadioReco.framework.station.Station object
+            The station (same object as the station in the inputs) with the detector response applied
+        """
         n_efields = 0
         for efields_for_shower in efield_array:
             for efields_for_channel in efields_for_shower:
@@ -222,6 +315,20 @@ class hardwareResponseSimulator:
         return station
 
     def __get_output_structure(self, shower_indices, station_id):
+        """
+        Builds an empty dictionary that is used to store results of the hardware response simulation.
+
+        Parameters
+        ----------
+        shower_indices: numpy.array of integers with shape (n_showers,)
+            The indices of the showers that are simulated, i.e. their positions in the input HDF5 file
+        station_id: integer
+            The ID of the station that is being simulated
+
+        Returns
+        Dict of numpy.arrays with shape (n_showers, n_channels, n_rays)
+            A dictionary containing the empty (i.e. initialized with 0) arrays to write the sim output into.
+        """
         station_output_structure = {}
         n_showers = len(shower_indices)
         n_antennas = len(self.__detector.get_channel_ids(station_id))
@@ -237,6 +344,27 @@ class hardwareResponseSimulator:
             channel_indices,
             channel_identifiers
     ):
+        """
+        Selects the electric fields from the dummy station based on the channel identifiers and creates a new staition.
+
+        Parameters:
+        -----------
+        dummy_station: NuRadioReco.framework.station.Station object
+            The station object containing the electric fields for this event group.
+        channel_indices: numpy.array of integers
+            The indices (i.e. their positions in the channel_identifiers) of the channel identifiers that are 
+            added to the new station object.
+        channel_identifiers: list of tupels of integers
+            The unique identifiers of all SimChannels in this event for this station.
+
+        Returns
+        -------
+        Tupel of a NuRadioReco.framework.station.sim_station.SimStation object and a list of integers
+            0: NuRadioReco.framework.station.sim_station.SimStation object
+                A new SimStation object containing the E-fields belonging to the sub-event
+            1: List of integers
+                The IDs of the showers that are part of this sub-event
+        """
         new_sim_station = NuRadioReco.framework.sim_station.SimStation(dummy_station.get_id())
         new_sim_station.set_is_neutrino()
         sub_event_shower_ids = []
@@ -258,8 +386,12 @@ class hardwareResponseSimulator:
 
         Parameters
         ----------
+        station: NuRadioReco.framework.station.Station
+            The station whose signal is changed
         channel_id: int or None
             if None, all available channels will be modified
+        factor: float
+            The factor by which the signal is multiplied.
         """
         if channel_id is None:
             for electric_field in station.get_sim_station().get_electric_fields():
@@ -327,6 +459,9 @@ class hardwareResponseSimulator:
                 self.__bandwidth_per_channel[station_id][channel_id] = bandwidth
 
     def __calculate_noise_rms(self):
+        """
+        Calculates the noise RMS that is used if noise simulation is turned on.
+        """
         noise_temp = self.__config['trigger']['noise_temperature']
         v_rms = self.__config['trigger']['Vrms']
         if noise_temp is not None and v_rms is not None:

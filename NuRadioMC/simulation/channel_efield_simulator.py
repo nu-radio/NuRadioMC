@@ -198,8 +198,6 @@ class channelEfieldSimulator:
             7: dict
                 Output that is given by the raytracer class. See the get_raytracing_output method of
                 the used raytracer for details.
-
-
         """
         self.__time_logger.start_time('ray tracing')
         raytracing_solutions = self.__perform_raytracing_for_channel(channel_id)
