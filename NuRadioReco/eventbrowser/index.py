@@ -271,9 +271,9 @@ def update_slider_marks(filename, juser_id):
     step_size = int(np.power(10., int(np.log10(n_events))))
     marks = {}
     for i in range(0, n_events, step_size):
-        marks[i] = str(i)
+        marks[int(i)] = str(i)
     if n_events % step_size != 0:
-        marks[n_events] = str(n_events)
+        marks[int(n_events)] = str(n_events)
     return marks
 
 
@@ -424,9 +424,11 @@ def update_event_info_time(event_i, filename, station_id, juser_id):
 
 
 if __name__ == '__main__':
-    if int(dash.__version__.split('.')[0]) < 2:
-        print(
-            'WARNING: Dash version 2.0.0 or newer is required, you are running version {}. Please update.'.format(
+    dash_version = [int(i) for i in dash.__version__.split('.')]
+    if dash_version[0] <= 2:
+        if (dash_version[1] < 9) or (dash_version[0] < 2):
+            print(
+                'WARNING: Dash version 2.9.2 or newer is required, you are running version {}. Please update.'.format(
                 dash.__version__))
     if not parsed_args.debug:
         werkzeug_logger = logging.getLogger('werkzeug')
