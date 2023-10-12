@@ -95,9 +95,9 @@ class outputWriterHDF5:
                 self.__output_station[station_id]['event_group_ids'].append(event_group_id)
                 self.__output_station[station_id]['event_ids'].append(event_objects[event_key].get_id())
                 self.__add_trigger_to_output(
-                    event_objects[trigger_indices[-1]],
-                    station_objects[trigger_indices[-1]],
-                    sub_event_shower_id[trigger_indices[-1]],
+                    event_objects[trigger_indices[0]],
+                    station_objects[trigger_indices[0]],
+                    sub_event_shower_id[trigger_indices[0]],
                     event_indices,
                     simulation_results['launch_vectors'].shape[0],
                     station_has_triggered
@@ -122,6 +122,14 @@ class outputWriterHDF5:
     ):
         if station_id not in self.__output_station.keys():
             self.__create_station_output_structure()
+        # If there are multiple triggers, only the trigger times of the last station that triggered is stored.
+        trigger_station = None
+        for station_key in station_objects.keys():
+            stn = station_objects[station_key]
+            if stn.has_triggered():
+                trigger_station = stn
+        if trigger_station is None:
+            trigger_station = station_objects[station_objects.keys()[-1]]
         for i_sub_shower in range(simulation_results['shower_id'].shape[0]):
             if 'event_group_id_per_shower' not in self.__output_station[station_id].keys():
                 self.__output_station[station_id]['event_group_id_per_shower'] = [event_group_id]
@@ -142,7 +150,7 @@ class outputWriterHDF5:
                 else:
                     self.__output_station[station_id][property_name].append(hardware_response_sim_results[property_name][i_sub_shower])
             self.__add_trigger_to_output_per_shower(
-                station_objects[len(station_objects.keys())-1],
+                trigger_station,
                 simulation_results['launch_vectors'].shape[0]                
             )
 
