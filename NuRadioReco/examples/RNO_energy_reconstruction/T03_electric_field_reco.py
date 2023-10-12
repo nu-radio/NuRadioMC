@@ -21,11 +21,8 @@ from datetime import datetime
 current_date = datetime.now().strftime("%Y-%m-%d %H:%M")
 plot_folder = f'plots/efield_reco/{current_date}'
 
-channels_to_be_used = [[0, 1, 2, 3, 4, 5],
-                       [6],
-                       [7],
-                       [8],
-                       [9,10,11],
+channels_to_be_used = [
+                       [9,10,11],[0, 1, 2, 3, 4, 5],
                        [21,22,23]]
 """
 channels_to_be_used = [[2, 3, 4, 5],
