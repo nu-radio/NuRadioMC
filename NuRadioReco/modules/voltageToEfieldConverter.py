@@ -47,7 +47,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
     tmax = time_shifts.max()
     logger.debug("adding relative station time = {:.0f}ns".format((t_cables.min() + t_geos.max()) / units.ns))
     logger.debug("delta t is {:.2f}".format(delta_t / units.ns))
-    trace_length = station.get_channel(0).get_times()[-1] - station.get_channel(0).get_times()[0]
+    trace_length = station.get_channel(use_channels[0]).get_times()[-1] - station.get_channel(use_channels[0]).get_times()[0]
     debug_cut = 0
     if(debug_cut):
         fig, ax = plt.subplots(len(use_channels), 1)
