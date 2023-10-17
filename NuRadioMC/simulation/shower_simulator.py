@@ -3,6 +3,9 @@ import radiotools.helper
 from NuRadioReco.utilities import units
 
 class showerSimulator:
+    """
+    Class to perform simulation tasks at shower level
+    """
     def __init__(
             self,
             detector,
@@ -13,6 +16,26 @@ class showerSimulator:
             channel_efield_simulator,
             n_raytracing_solutions
     ):
+        """
+        Initialize the class
+
+        Parameters
+        ----------
+        detector: NuRadioReco.detector.detector.Detector object
+            The detector description
+        channel_ids: list of integers
+            The IDs of the channels used in the simulation
+        config: dict
+            A dictionary containing the simulation configuration
+        input_data: dict:
+            A dictionary containing the input data from the HDF5 file
+        input_attributes:
+            A dictionary containing the attributes from the HDF5 input file
+        channel_efield_simulator: NuRadioMC.simulation.channel_efield_simulator.channelEfieldSimulator object
+            An instance of the eFieldSimulator to be used in the simulation
+        n_raytracing_solutions: integer
+            The maximum number of raytracing solutions the raytracer can produce
+        """
         self.__detector = detector
         self.__channel_ids = channel_ids
         self.__config = config
@@ -38,6 +61,14 @@ class showerSimulator:
             self,
             station_id
     ):
+        """
+        Set information about the station that is currently simulated.
+
+        Parameters
+        -----------
+        station_id: integer
+            The ID of the station that is being simulated.
+        """
         self.__station_id = station_id
         self.__station_barycenter = np.zeros(3)
         for channel_id in self.__detector.get_channel_ids(station_id):
@@ -53,6 +84,20 @@ class showerSimulator:
             event_indices,
             particle_mode
     ):
+        """
+        Set information about the event group that is currently simulated
+
+        Parameters
+        ----------
+        i_event_group: integer
+            The index of the current event group, i.e. its position in the input data
+        event_group_id: integer
+            The ID of the event group that is simulated
+        event_indices: numpy.array of integers
+            The indices (i.e. their position in the input file) of the events in the current event group
+        particle_mode: boolean
+            Specifies if the event currently simulated is a particle shower
+        """
         self.__i_event_group = i_event_group
         self.__event_group_id = event_group_id
         self.__event_indices = event_indices
@@ -75,6 +120,22 @@ class showerSimulator:
             ray_tracing_performed,
             i_shower
     ):
+        """
+        Perform the simulation for a specific shower
+
+        Parameters
+        ----------
+        shower_id: integer
+            THe ID of the shower that is simulated
+        shower_index: integer
+            The index (i.e. its position in the input data) of the shower that is simulated.
+        pre_simulated: boolean
+            Specifies if simulation results for this event are already available from the input file
+        ray_tracing_performed: boolean
+            Specifies if raytracing results for this event are already available from the input file
+        i_shower: integer
+            Index of the shower that is simulated (i.e. its position in the input file)
+        """
         self.__channel_efield_simulator.set_shower(
             self.__station_id,
             shower_id,
@@ -136,6 +197,20 @@ class showerSimulator:
             self,
             shower_vertex
     ):
+        """
+        Checks if the shower is so far away from the detector that there is no chance of a trigger.
+
+        Parameters
+        ----------
+        shower_vertex: numpy.array of float
+            The coordinates of the shower
+        
+        Returns
+        -------
+        boolean
+            False if the shower is too far away to trigger, True if it is close enough or
+            distance cuts have been disabled.
+        """
         if not self.__config['speedup']['distance_cut']:
             return True
 
@@ -161,6 +236,23 @@ class showerSimulator:
         i_shower,
         channel_id
     ):
+        """
+        Checks if the shower is so far away from an individual channel that there is no chance of a trigger.
+
+        Parameters
+        ----------
+        shower_vertex: numpy.array of float
+            The coordinates of the shower
+        i_shower: integer
+            The index of the shower (i.e. its position in the input file)
+        channel_id: integer
+            The ID of the channel whose distance to the shower is checked
+        Returns
+        -------
+        boolean
+            False if the shower is too far away to trigger, True if it is close enough or
+            distance cuts have been disabled.
+        """
         if not self.__config['speedup']['distance_cut']:
             return True
         mask_shower_sum = np.abs(
@@ -186,6 +278,11 @@ class showerSimulator:
 
         if the fiducial volume is not specified in the input file, True is returned (this is required
         for the simulation of pulser calibration measuremens)
+
+        Parameters
+        ----------
+        shower_vertex: numpy.array of float
+            The coordinates of the shower
         """
         parameter_names = ['fiducial_rmin', 'fiducial_rmax', 'fiducial_zmin', 'fiducial_zmax']
         for parameter_name in parameter_names:

@@ -4,12 +4,27 @@ import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.electricFieldResampler
 
 class outputWriterNur:
+    """
+    Class to write simulation results into a .nur file
+    """
     def __init__(
             self,
             output_filename,
             save_detector,
             detector
     ):
+        """
+        Initialize class
+
+        Parameters
+        ----------
+        output_filename: string
+            Name of the file the simulation results are written in.
+        save_detector: boolean
+            Specifies if the detector description is written into the .nur file
+        detector: NuRadioReco.detector.detector.Detector class
+            The detector description used in the simulation
+        """
         self.__output_filename = output_filename
         self.__save_detector = save_detector
         self.__detector = detector
@@ -24,6 +39,14 @@ class outputWriterNur:
         self,
         events
     ):
+        """
+        Save an event
+
+        Parameters
+        ----------
+        events: dict of NuRadioReco.framework.event.Event objects
+            A dictionary containint the events that are saved
+        """
         for key in events:
             event = events[key]
             for station in event.get_stations():

@@ -2,6 +2,9 @@ import numpy as np
 from NuRadioReco.utilities import units
 
 class stationSimulator:
+    """
+    Performs the simulation at station level
+    """
     def __init__(
             self,
             detector,
@@ -15,6 +18,32 @@ class stationSimulator:
             was_pre_simulated,
             efield_v_rms_per_channel
     ):
+        """
+        Initialize the class
+
+        Parameters
+        ----------
+        detector: NuRadioReco.detector.detector.Detector object
+            The detector description
+        channel_ids: list of integers
+            The IDs of the channels that are simulated
+        config: dict
+            The content of the config .yaml file
+        input_data: dict
+            The content of the input HDF5 file
+        input_attributes: dict
+            The attributes of the input HDF5 file
+        input_stations: dict or None
+            Station information in the input HDF5 file
+        shower_simulator: NuRadioMC.simulation.shower_simulator.showerSimulator object
+            The shower simulation class
+        raytracer: NuRadioMC.SignalProp.propagation class
+            A class to do raytracing. Has to follow the template in NuRadioMC/SignalProp/propagation_base_class.py
+        was_pre_simulated: boolean
+            Specifies if simulation results for this event are already available from the input file
+        efield_v_rms_per_channel: dict
+            Dictionary containing the RMS of the E-field noise for each channel
+        """
         self.__detector = detector
         self.__channel_ids = channel_ids
         self.__config = config
@@ -42,6 +71,21 @@ class stationSimulator:
             shower_indices,
             particle_mode
     ):
+        """
+        Sets the event group that is currently simulated
+        
+        Parameters
+        ----------
+        i_event_group: integer
+            The index (i.e. its position in the input file) of the event group that is simulated
+        event_group_id: integer
+            The ID of the event group that is simulated
+        shower_indices: numpy.array
+            The indices (i.e. their positions in the input file) of the showers
+            that are part of the current event group
+        particle_mode: boolean
+            Specifies if the events being simulated are from particle showers
+        """
         self.__shower_simulator.set_event_group(
             i_event_group,
             event_group_id,
@@ -61,6 +105,24 @@ class stationSimulator:
             self,
             station_id
     ):
+        """
+        Perform the simulation for a station
+
+        Parameters
+        ----------
+        station_id: integer
+            The ID of the station that is simulated
+        
+        Returns
+        -------
+        tupel of 3 elements
+            0: dict of numpy.arrays
+            A dictionray containing the simulation results
+            1: list of NuRadioReco.framework.electric_field.ElectricField objects
+            The electric fields that are results of the simulation
+            2: boolean
+            Returns true if the station may be able to trigger
+        """
         if not self.__distance_cut(
             station_id
         ):
@@ -112,6 +174,21 @@ class stationSimulator:
             self,
             station_id
     ):
+        """
+        Checks if any of the showers in the current event group are close enough to the station
+        to have a chance of triggering it.
+
+        Parameters
+        ----------
+        station_id: integer
+            The ID of the station for which the distance cut is performed
+
+        Returns
+        -------
+        boolean
+            False if the station is too far away to trigger, True if it is close enough or
+            the distance cut has been turned off
+        """
         if not self.__config['speedup']['distance_cut']:
             return True
         channel_ids = self.__detector.get_channel_ids(station_id)
@@ -135,6 +212,19 @@ class stationSimulator:
         return vertex_distances_to_station.min() <= distance_cut_value
 
     def __get_output_structure(self, station_id):
+        """
+        Creates an empty dictionary that the simulationnresults are written into.
+
+        Parameters
+        ----------
+        station_id: integer
+            The ID of the station for which to create the output structure
+        
+        Returns
+        -------
+        dict of numpy.arrays
+            A dictionary containing arrays that the simulation results can be written into
+        """
         n_showers = len(self.__shower_indices)
         n_antennas = len(self.__detector.get_channel_ids(station_id))
         n_raytracing_solutions = self.__raytracer.get_number_of_raytracing_solutions()  # number of possible ray-tracing solutions
