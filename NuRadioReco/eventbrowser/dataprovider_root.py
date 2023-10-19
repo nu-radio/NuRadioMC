@@ -23,6 +23,14 @@ class readRNOG_wrapper(readRNOGData):
 
     def get_n_events(self):
         return self._n_events_total
+    
+    def get_detector(self):
+        """Not implemented in mattak reader"""
+        return None
+    
+    def get_header(self):
+        """Not implemented in mattak reader"""
+        return None
 
 
 class DataProviderRoot(object):
