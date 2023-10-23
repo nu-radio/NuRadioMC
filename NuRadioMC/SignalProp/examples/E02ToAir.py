@@ -33,7 +33,7 @@ fig, ax = plt.subplots(1, 1)
 ax.plot(x1[0], x1[2], 'ko')
 for i, x in enumerate([x2, x3, x4, x5]):
     print('finding solutions for ', x)
-    r = ray.ray_tracing(ice, log_level=logging.DEBUG, use_cpp=False)
+    r = ray.ray_tracing(ice, log_level=logging.WARNING, use_cpp=False)
     r.set_start_and_end_point(x1, x)
     r.find_solutions()
     if(r.has_solution()):
@@ -50,6 +50,10 @@ for i, x in enumerate([x2, x3, x4, x5]):
             receive_vectors[i, iS] = receive_vector
             zenith, azimuth = hp.cartesian_to_spherical(*receive_vector)
             print("     Receiving Zenith %.3f and Azimuth %.3f " % (zenith / units.deg, azimuth / units.deg))
+            
+            # get focussing factor
+            focusing = r.get_focusing(0)
+            print(f"     focusing factor = {focusing:.8f}")
 
             att = r.get_attenuation(iS, np.array([100, 200]) * units.MHz)
             print(att)
@@ -65,7 +69,7 @@ for i, x in enumerate([x2, x3, x4, x5]):
             x2_2d = np.array([X2r[0], X2r[2]])
             r_2d = ray.ray_tracing_2D(ice)
             yy, zz = r_2d.get_path(x1_2d, x2_2d, ray_tracing_C0[i, iS])
-            ax.plot(yy, zz, '{}'.format(php.get_color_linestyle(i)), label='{} C0 = {:.4f}'.format(ray_tracing_solution_type[i, iS], ray_tracing_C0[i, iS]))
+            ax.plot(yy, zz, '{}'.format(php.get_color_linestyle(i)), label='{} C0 = {:.4f}, f = {:.2f}'.format(ray_tracing_solution_type[i, iS], ray_tracing_C0[i, iS], focusing))
             ax.plot(x2_2d[0], x2_2d[1], '{}{}-'.format('d', php.get_color(i)))
 
 ax.legend()
