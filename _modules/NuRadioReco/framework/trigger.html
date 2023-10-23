@@ -783,7 +783,10 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">secondary_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">primary_angles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">secondary_angles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">trigger_delays</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sec_trigger_delays</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                 <span class="n">trigger_delays</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sec_trigger_delays</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">window_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">maximum_amps</span><span class="o">=</span><span class="kc">None</span>
+                <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        initialize trigger class</span>
 
@@ -808,6 +811,12 @@
 <span class="sd">        sec_trigger_delays: dictionary</span>
 <span class="sd">            the delays for the secondary channels that have caused a trigger.</span>
 <span class="sd">            If there is no trigger or no secondary channels, it&#39;s an empty dictionary</span>
+<span class="sd">        window_size: int</span>
+<span class="sd">            the size of the integration window (units of ADC time ticks)</span>
+<span class="sd">        step_size: int</span>
+<span class="sd">            the size of the stride between calculating the phasing (units of ADC time ticks)</span>
+<span class="sd">        maximum_amps: list of floats (length equal to that of `phasing_angles`)</span>
+<span class="sd">            the maximum value of all the integration windows for each of the phased waveforms</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">&#39;simple_phased&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_primary_channels</span> <span class="o">=</span> <span class="n">channels</span>
@@ -816,7 +825,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_secondary_angles</span> <span class="o">=</span> <span class="n">secondary_angles</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="n">threshold</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_delays</span> <span class="o">=</span> <span class="n">trigger_delays</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_sec_trigger_delays</span> <span class="o">=</span> <span class="n">sec_trigger_delays</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sec_trigger_delays</span> <span class="o">=</span> <span class="n">sec_trigger_delays</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_window_size</span> <span class="o">=</span> <span class="n">window_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_step_side</span> <span class="o">=</span> <span class="n">step_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maximum_amps</span> <span class="o">=</span> <span class="n">maximum_amps</span></div>
 
 
 <div class="viewcode-block" id="HighLowTrigger"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.HighLowTrigger">[docs]</a><span class="k">class</span> <span class="nc">HighLowTrigger</span><span class="p">(</span><span class="n">Trigger</span><span class="p">):</span>

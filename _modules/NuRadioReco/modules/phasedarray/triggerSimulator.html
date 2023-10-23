@@ -906,6 +906,8 @@
 <span class="sd">            the earliest trigger time with respect to first interaction time.</span>
 <span class="sd">        trigger_times: dictionary</span>
 <span class="sd">            all time bins that fulfil the trigger condition per beam. The key is the beam number. Time with respect to first interaction time.</span>
+<span class="sd">        maximum_amps: list of floats (length equal to that of `phasing_angles`)</span>
+<span class="sd">            the maximum value of all the integration windows for each of the phased waveforms</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span><span class="p">(</span><span class="n">triggered_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
@@ -945,29 +947,9 @@
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Could not convert upsampling_factor to integer. Exiting.&quot;</span><span class="p">)</span>
 
             <span class="k">if</span><span class="p">(</span><span class="n">upsampling_factor</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">):</span>
-<span class="w">                </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">                # Zero inserting and filtering</span>
-<span class="sd">                upsampled_trace = upsampling_fir(trace, adc_sampling_frequency,</span>
-<span class="sd">                                                 int_factor=upsampling_factor, ntaps=1)</span>
-
-<span class="sd">                channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()</span>
-<span class="sd">                ff = np.fft.rfftfreq(len(upsampled_trace), 1.0 / adc_sampling_frequency / upsampling_factor)</span>
-<span class="sd">                filt = channelBandPassFilter.get_filter(ff, 0, 0, None, passband=[0, 240 * units.MHz], filter_type=&quot;cheby1&quot;, order=9, rp=.1)</span>
-
-<span class="sd">                upsampled_trace = np.fft.irfft(np.fft.rfft(upsampled_trace) * filt)</span>
-<span class="sd">                &#39;&#39;&#39;</span>
-
                 <span class="c1"># FFT upsampling</span>
                 <span class="n">new_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">*</span> <span class="n">upsampling_factor</span>
                 <span class="n">upsampled_trace</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">new_len</span><span class="p">)</span>
-
-<span class="w">                </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">                # Linear interpolation</span>
-<span class="sd">                x = np.arange(len(trace))</span>
-<span class="sd">                f_trace = interp1d(x, trace, kind=&#39;linear&#39;, fill_value=(trace[0], trace[-1]), bounds_error=False)</span>
-<span class="sd">                x_new = np.arange(len(trace) * upsampling_factor) / upsampling_factor</span>
-<span class="sd">                upsampled_trace = f_trace(x_new)</span>
-<span class="sd">                &#39;&#39;&#39;</span>
 
                 <span class="c1">#  If upsampled is performed, the final sampling frequency changes</span>
                 <span class="n">trace</span> <span class="o">=</span> <span class="n">upsampled_trace</span><span class="p">[:]</span>
@@ -994,10 +976,14 @@
         <span class="n">channel_trace_start_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel_trace_start_time</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">)</span>
 
         <span class="n">trigger_delays</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">maximum_amps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">phased_traces</span><span class="p">)</span>
+
         <span class="k">for</span> <span class="n">iTrace</span><span class="p">,</span> <span class="n">phased_trace</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phased_traces</span><span class="p">):</span>
 
             <span class="c1"># Create a sliding window</span>
             <span class="n">squared_mean</span><span class="p">,</span> <span class="n">num_frames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_sum</span><span class="p">(</span><span class="n">coh_sum</span><span class="o">=</span><span class="n">phased_trace</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">,</span> <span class="n">adc_output</span><span class="o">=</span><span class="n">adc_output</span><span class="p">)</span>
+
+            <span class="n">maximum_amps</span><span class="p">[</span><span class="n">iTrace</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">squared_mean</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="kc">True</span> <span class="ow">in</span> <span class="p">(</span><span class="n">squared_mean</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">):</span>
                 <span class="n">trigger_delays</span><span class="p">[</span><span class="n">iTrace</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1006,18 +992,19 @@
                     <span class="n">trigger_delays</span><span class="p">[</span><span class="n">iTrace</span><span class="p">][</span><span class="n">channel_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">beam_rolls</span><span class="p">[</span><span class="n">iTrace</span><span class="p">][</span><span class="n">channel_id</span><span class="p">]</span> <span class="o">*</span> <span class="n">time_step</span>
 
                 <span class="n">triggered_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">squared_mean</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">)))</span>
-                <span class="c1"># logger.debug(f&quot;Station has triggered, at bins {triggered_bins}&quot;)</span>
-                <span class="c1"># logger.debug(trigger_delays)</span>
-                <span class="c1"># logger.debug(f&quot;trigger_delays {trigger_delays[iTrace][triggered_channels[0]]}&quot;)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Station has triggered, at bins </span><span class="si">{</span><span class="n">triggered_bins</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">trigger_delays</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;trigger_delays </span><span class="si">{</span><span class="n">trigger_delays</span><span class="p">[</span><span class="n">iTrace</span><span class="p">][</span><span class="n">triggered_channels</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">is_triggered</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="n">trigger_times</span><span class="p">[</span><span class="n">iTrace</span><span class="p">]</span> <span class="o">=</span> <span class="n">trigger_delays</span><span class="p">[</span><span class="n">iTrace</span><span class="p">][</span><span class="n">triggered_channels</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+</span> <span class="n">triggered_bins</span> <span class="o">*</span> <span class="n">step</span> <span class="o">*</span> <span class="n">time_step</span> <span class="o">+</span> <span class="n">channel_trace_start_time</span>
-                <span class="c1"># logger.debug(f&quot;trigger times  = {trigger_times[iTrace]}&quot;)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;trigger times  = </span><span class="si">{</span><span class="n">trigger_times</span><span class="p">[</span><span class="n">iTrace</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">is_triggered</span><span class="p">:</span>
-            <span class="c1"># logger.debug(trigger_times)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Trigger condition satisfied!&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;all trigger times&quot;</span><span class="p">,</span> <span class="n">trigger_times</span><span class="p">)</span>
             <span class="n">trigger_time</span> <span class="o">=</span> <span class="nb">min</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">trigger_times</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
-            <span class="c1"># logger.debug(f&quot;minimum trigger time is {trigger_time:.0f}ns&quot;)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;minimum trigger time is </span><span class="si">{</span><span class="n">trigger_time</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">ns&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">is_triggered</span><span class="p">,</span> <span class="n">trigger_delays</span><span class="p">,</span> <span class="n">trigger_time</span><span class="p">,</span> <span class="n">trigger_times</span></div>
+        <span class="k">return</span> <span class="n">is_triggered</span><span class="p">,</span> <span class="n">trigger_delays</span><span class="p">,</span> <span class="n">trigger_time</span><span class="p">,</span> <span class="n">trigger_times</span><span class="p">,</span> <span class="n">maximum_amps</span></div>
 
 <div class="viewcode-block" id="triggerSimulator.run"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.triggerSimulator.html#NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span>
@@ -1113,25 +1100,36 @@
         <span class="k">if</span><span class="p">(</span><span class="n">set_not_triggered</span><span class="p">):</span>
             <span class="n">is_triggered</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">trigger_delays</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">triggered_beams</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">is_triggered</span><span class="p">,</span> <span class="n">trigger_delays</span><span class="p">,</span> <span class="n">trigger_time</span><span class="p">,</span> <span class="n">trigger_times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phased_trigger</span><span class="p">(</span><span class="n">station</span><span class="o">=</span><span class="n">station</span><span class="p">,</span>
-                                                                             <span class="n">det</span><span class="o">=</span><span class="n">det</span><span class="p">,</span>
-                                                                             <span class="n">Vrms</span><span class="o">=</span><span class="n">Vrms</span><span class="p">,</span>
-                                                                             <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
-                                                                             <span class="n">triggered_channels</span><span class="o">=</span><span class="n">triggered_channels</span><span class="p">,</span>
-                                                                             <span class="n">phasing_angles</span><span class="o">=</span><span class="n">phasing_angles</span><span class="p">,</span>
-                                                                             <span class="n">ref_index</span><span class="o">=</span><span class="n">ref_index</span><span class="p">,</span>
-                                                                             <span class="n">trigger_adc</span><span class="o">=</span><span class="n">trigger_adc</span><span class="p">,</span>
-                                                                             <span class="n">clock_offset</span><span class="o">=</span><span class="n">clock_offset</span><span class="p">,</span>
-                                                                             <span class="n">adc_output</span><span class="o">=</span><span class="n">adc_output</span><span class="p">,</span>
-                                                                             <span class="n">trigger_filter</span><span class="o">=</span><span class="n">trigger_filter</span><span class="p">,</span>
-                                                                             <span class="n">upsampling_factor</span><span class="o">=</span><span class="n">upsampling_factor</span><span class="p">,</span>
-                                                                             <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span>
-                                                                             <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">)</span>
+            <span class="n">is_triggered</span><span class="p">,</span> <span class="n">trigger_delays</span><span class="p">,</span> <span class="n">trigger_time</span><span class="p">,</span> <span class="n">trigger_times</span><span class="p">,</span> <span class="n">maximum_amps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phased_trigger</span><span class="p">(</span>
+                <span class="n">station</span><span class="o">=</span><span class="n">station</span><span class="p">,</span>
+                <span class="n">det</span><span class="o">=</span><span class="n">det</span><span class="p">,</span>
+                <span class="n">Vrms</span><span class="o">=</span><span class="n">Vrms</span><span class="p">,</span>
+                <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
+                <span class="n">triggered_channels</span><span class="o">=</span><span class="n">triggered_channels</span><span class="p">,</span>
+                <span class="n">phasing_angles</span><span class="o">=</span><span class="n">phasing_angles</span><span class="p">,</span>
+                <span class="n">ref_index</span><span class="o">=</span><span class="n">ref_index</span><span class="p">,</span>
+                <span class="n">trigger_adc</span><span class="o">=</span><span class="n">trigger_adc</span><span class="p">,</span>
+                <span class="n">clock_offset</span><span class="o">=</span><span class="n">clock_offset</span><span class="p">,</span>
+                <span class="n">adc_output</span><span class="o">=</span><span class="n">adc_output</span><span class="p">,</span>
+                <span class="n">trigger_filter</span><span class="o">=</span><span class="n">trigger_filter</span><span class="p">,</span>
+                <span class="n">upsampling_factor</span><span class="o">=</span><span class="n">upsampling_factor</span><span class="p">,</span>
+                <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span>
+                <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">,</span>
+            <span class="p">)</span>
 
         <span class="c1"># Create a trigger object to be returned to the station</span>
-        <span class="n">trigger</span> <span class="o">=</span> <span class="n">SimplePhasedTrigger</span><span class="p">(</span><span class="n">trigger_name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="n">triggered_channels</span><span class="p">,</span>
-                                      <span class="n">primary_angles</span><span class="o">=</span><span class="n">phasing_angles</span><span class="p">,</span> <span class="n">trigger_delays</span><span class="o">=</span><span class="n">trigger_delays</span><span class="p">)</span>
+        <span class="n">trigger</span> <span class="o">=</span> <span class="n">SimplePhasedTrigger</span><span class="p">(</span>
+            <span class="n">trigger_name</span><span class="p">,</span> 
+            <span class="n">threshold</span><span class="p">,</span> 
+            <span class="n">channels</span><span class="o">=</span><span class="n">triggered_channels</span><span class="p">,</span>
+            <span class="n">primary_angles</span><span class="o">=</span><span class="n">phasing_angles</span><span class="p">,</span> 
+            <span class="n">trigger_delays</span><span class="o">=</span><span class="n">trigger_delays</span><span class="p">,</span>
+            <span class="n">window_size</span><span class="o">=</span><span class="n">window</span><span class="p">,</span> 
+            <span class="n">step_size</span><span class="o">=</span><span class="n">step</span><span class="p">,</span>
+            <span class="n">maximum_amps</span><span class="o">=</span><span class="n">maximum_amps</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">(</span><span class="n">is_triggered</span><span class="p">)</span>
         
