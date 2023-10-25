@@ -52,8 +52,8 @@ def update_time_trace(trigger, evt_counter, filename, station_id, juser_id):
                 'color': colors[i % len(colors)],
                 'line': {'color': colors[i % len(colors)]}
             },
-            name='Channel {}'.format(i),
-            uid='Channel {}'.format(i)
+            name='Channel {}'.format(channel.get_id()),
+            uid='Channel {}'.format(channel.get_id())
         ), 1, 1)
     fig['layout'].update(default_layout)
     fig['layout']['legend']['uirevision'] = filename # only update channel selection on changing files.
