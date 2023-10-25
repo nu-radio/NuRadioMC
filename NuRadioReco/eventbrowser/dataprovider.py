@@ -2,12 +2,15 @@ import NuRadioReco.eventbrowser.dataprovider_root
 import NuRadioReco.eventbrowser.dataprovider_nur
 import threading
 import logging
+import six
+import NuRadioReco.utilities.metaclasses
 logging.basicConfig()
 logger = logging.getLogger('eventbrowser.dataprovider')
 logger.setLevel(logging.INFO)
 
 LOCK = threading.Lock()
 
+@six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class DataProvider(object):
     __instance = None
 
@@ -18,12 +21,16 @@ class DataProvider(object):
 
     def __init__(self):
         self.__data_provider = None
+        self._use_root = None
 
     def set_filetype(self, use_root):
+        if self._use_root == use_root:
+            return None
         if use_root:
             self.__data_provider = NuRadioReco.eventbrowser.dataprovider_root.DataProviderRoot()
         else:
             self.__data_provider = NuRadioReco.eventbrowser.dataprovider_nur.DataProvider()
+        self._use_root = use_root
 
     def get_file_handler(self, user_id, filename):
         thread = threading.get_ident()
