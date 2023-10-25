@@ -3,35 +3,34 @@ import os
 import time
 import numpy as np
 import logging
-import threading
+
 logging.basicConfig()
 logger = logging.getLogger('eventbrowser')
 logger.setLevel(logging.DEBUG)
 
 ### we create a wrapper for readRNOGData to mirror the interface of the .nur reader
 class readRNOG_wrapper(readRNOGData):
-    
+
     def get_event_ids(self):
         event_infos = self.get_events_information()
         return np.array([(i['run'], i['eventNumber']) for i in event_infos.values()])
-    
+
     def get_event_i(self, i):
         return self.get_event_by_index(i)
-    
+
     def get_event(self, event_id):
         return super().get_event(*event_id)
 
     def get_n_events(self):
         return self._n_events_total
-    
+
     def get_detector(self):
         """Not implemented in mattak reader"""
         return None
-    
+
     def get_header(self):
         """Not implemented in mattak reader"""
         return None
-
 
 class DataProviderRoot(object):
     __instance = None
@@ -51,7 +50,7 @@ class DataProviderRoot(object):
             Each unique session id gets its own reader, up to a maximum
             of ``max_user_instances`` concurrent readers. Subsequent
             requests for new readers drop older readers.
-                
+
         """
         logger.info("Creating new DataProviderRoot instance")
         self.__max_user_instances = max_user_instances
@@ -65,15 +64,17 @@ class DataProviderRoot(object):
             self.__user_instances[user_id] = dict(
                 reader=reader, filename=None,
             )
+        if isinstance(filename, str):
+            filename = [filename]
         if filename != self.__user_instances[user_id]['filename']:
             # user is requesting new file -> close current file and open new one
             reader = self.__user_instances[user_id]['reader']
-            reader.begin([os.path.dirname(filename)], overwrite_sampling_rate=3.2) #TODO - remove hardcoded sampling rate
-            reader.get_event_ids() # 
+            reader.begin([os.path.dirname(f) for f in filename], overwrite_sampling_rate=3.2) #TODO - remove hardcoded sampling rate
+            reader.get_event_ids() #
             self.__user_instances[user_id] = dict(
                 reader=reader, filename=filename,
             )
-        
+
         # update last access time
         self.__user_instances[user_id]['last_access_time'] = time.time()
 
@@ -86,5 +87,5 @@ class DataProviderRoot(object):
             users_by_access_time = sorted(users)
             # drop oldest session
             self.__user_instances.pop(users_by_access_time[0])
-            
+
         return self.__user_instances[user_id]['reader']
