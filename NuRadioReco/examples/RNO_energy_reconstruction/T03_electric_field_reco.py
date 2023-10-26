@@ -21,9 +21,10 @@ from datetime import datetime
 current_date = datetime.now().strftime("%Y-%m-%d %H:%M")
 plot_folder = f'plots/efield_reco/{current_date}'
 
-channels_to_be_used = [
-                       [9,10,11],[0, 1, 2, 3, 4, 5],
-                       [21,22,23]]
+channels_to_be_used = [[0, 1, 2, 3, 4, 5],
+                        #[6],[7],[8],
+                        [9,10,11],
+                        [21,22,23]]
 """
 channels_to_be_used = [[2, 3, 4, 5],
                        [6,7],
@@ -126,8 +127,8 @@ time_offset_calculator.begin(
 channel_props_from_neighbor = NuRadioReco.modules.channelSignalPropertiesFromNeighbors.channelSignalPropertiesFromNeighbors()
 
 for i_event, event in enumerate(event_reader.get_events()):
-    if event.get_run_number() != 3176:
-        continue
+    #if event.get_run_number() != 3176:
+    #    continue
 
     print(f"Event {i_event}, Run={event.get_run_number()}, ID={event.get_id()}")
     station = event.get_station(11)

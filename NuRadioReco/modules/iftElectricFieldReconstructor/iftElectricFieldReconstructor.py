@@ -299,7 +299,8 @@ class IftElectricFieldReconstructor:
                 filter_operator
             )
             self.__draw_priors(event, station, frequency_domain)
-            self.__draw_priors_delta(event, station, frequency_domain)
+            if len(self.__used_grouped_channel_ids) > 1:
+                self.__draw_priors_delta(event, station, frequency_domain)
 
             ic_sampling = ift.GradientNormController(1E-8, iteration_limit=min(1000, likelihood.domain.size))
             H = ift.StandardHamiltonian(likelihood, ic_sampling)
@@ -352,7 +353,8 @@ class IftElectricFieldReconstructor:
                 filter_operator
             )
             self.__draw_priors(event, station, frequency_domain)
-            self.__draw_priors_delta(event, station, frequency_domain)
+            if len(self.__used_grouped_channel_ids) > 1:
+                self.__draw_priors_delta(event, station, frequency_domain)
             ic_sampling = ift.GradientNormController(1E-8, iteration_limit=min(1000, likelihood.domain.size))
             H = ift.StandardHamiltonian(likelihood, ic_sampling)
 
@@ -552,7 +554,7 @@ class IftElectricFieldReconstructor:
         self.__data_traces /= self.__scaling_factor
         self.__noise_levels /= self.__scaling_factor
 
-        fig=plt.figure(figsize=(12,12))
+        fig=plt.figure(figsize=(13,8))
         ax = fig.add_subplot(1,1,1)
         t = np.arange(len(self.__data_traces[0])) / channel.get_sampling_rate()
 
@@ -565,8 +567,8 @@ class IftElectricFieldReconstructor:
                 i_channel += 1
                 ls = lss[j_channel]
                 trace = self.__data_traces[i_channel]
-                ax.plot(t, trace, c=f"C{i_channel_group}", alpha=0.7, label=f"ch {channel_id:>2}, gr {i_channel_group}", ls=ls)
-        ax.legend()
+                ax.plot(t, trace, c=f"C{i_channel_group}", alpha=0.7, label=f"ch {channel_id:>2}, gr {i_channel_group}", ls=ls, lw=3)
+        ax.legend(ncol=2, loc="upper left")
         ax.set_xlim(25,40)
         ax.set_xlabel("time [ns]")
         ax.set_ylabel("U [mV]")
@@ -669,14 +671,32 @@ class IftElectricFieldReconstructor:
 
         polarization_domain = ift.UnstructuredDomain(1)
         likelihood = None
+        polarization_inserter = NuRadioReco.modules.iftElectricFieldReconstructor.operators.Inserter(mag_S_h.target)
+        polarization_field = realizer2 @ polarization_inserter @ (2. * ift.FieldAdapter(polarization_domain, 'pol'))
+
         self.__efield_trace_operators = []
         self.__efield_spec_operators = []
         self.__channel_trace_operators = []
         self.__channel_spec_operators = []
-        polarization_inserter = NuRadioReco.modules.iftElectricFieldReconstructor.operators.Inserter(mag_S_h.target)
-        polarization_field = realizer2 @ polarization_inserter @ (2. * ift.FieldAdapter(polarization_domain, 'pol'))
 
 
+
+
+        '''
+        delta_params_dct = {
+            'n_pix': 64,  # spectral bins
+            # Spectral smoothness (affects Gaussian process part)
+            'a': .01,
+            'k0': 2.,
+            # Power-law part of spectrum:
+            'sm': -4,
+            'sv': .5,
+            'im': -50.,
+            'iv': 2,
+            'target': power_space
+
+        }
+        '''
         delta_params_dct = {
             'n_pix': 64,  # spectral bins
             # Spectral smoothness (affects Gaussian process part)
@@ -690,6 +710,8 @@ class IftElectricFieldReconstructor:
             'target': power_space
 
         }
+        scaling_factor = 1e-6
+
 
         if self.__debug:
             with open(f"{self.__plot_folder}/delta_params.txt", "a") as file:
@@ -698,15 +720,16 @@ class IftElectricFieldReconstructor:
                     file.write(" : ")
                     file.write(str(delta_params_dct[key]))
                     file.write("\n")
+                file.write("scaling factor : ")
+                file.write(str( scaling_factor))
+                file.write("\n")
 
-        #np.save_txt(self.__plot_folder )
 
         n_groups = len(self.__used_grouped_channel_ids)
         self.__spec_difference = [ift.NullOperator(mag_S_h.domain, mag_S_h.target)]
         #self.__spec_difference = [ift.Adder(0)]
 
         self.__mag_S_h = mag_S_h
-        correlated_fields_delta = [0,0,0]
         correlated_fields_delta = [0]*n_groups
         i_channel = -1
 
@@ -715,6 +738,9 @@ class IftElectricFieldReconstructor:
         self.__delta_channel_trace = []
         self.__delta_channel_spec = []
 
+        B = ift.SLAmplitude(**delta_params_dct)
+        self.__delta_power_spectrum_operator = B
+
 
         for i_channel_group, channel_group in enumerate(self.__used_grouped_channel_ids):
 
@@ -722,6 +748,7 @@ class IftElectricFieldReconstructor:
                 print("channel group", i_channel_group)
                 B = ift.SLAmplitude(**delta_params_dct)
                 self.__delta_power_spectrum_operator = B
+
                 correlated_fields_delta[i_channel_group-1] = ift.CorrelatedField(large_frequency_domain.get_default_codomain(), B)
 
                 self.__spec_difference.append(0)
@@ -734,7 +761,9 @@ class IftElectricFieldReconstructor:
                                                                       @ self.__spec_difference[i_channel_group])
 
                 self.__spec_difference[i_channel_group] = realizer2.adjoint @ (self.__spec_difference[i_channel_group])
-                self.__spec_difference[i_channel_group] *= 0.01
+
+
+                self.__spec_difference[i_channel_group] *= scaling_factor
 
                 #current_mag_S_h = mag_S_h + self.__efield_spec_group_delta_operators[-1]
 
@@ -781,16 +810,17 @@ class IftElectricFieldReconstructor:
 
                 #for plotting delta priors
 
-                delta_spec_theta = ((filter_operator
-                                    @ (((self.__spec_difference[i_channel_group])
-                                    * polarization_field.cos())
-                                    * (1.j * phi_S_h).exp())))
-                delta_spec_phi = ((filter_operator
-                                 @ (((self.__spec_difference[i_channel_group] )
-                                 * polarization_field.sin()) * (1.j * phi_S_h).exp())))
-                delta_efield_spec_ops = [delta_spec_theta, delta_spec_phi]
-                self.__delta_efield_spec.append(delta_efield_spec_ops)
-                self.__delta_channel_spec.append((hardware_operators[i_channel][0] @ delta_spec_theta) + (hardware_operators[i_channel][1] @ delta_spec_phi))
+                if i_channel_group != 0:
+                    delta_spec_theta = ((filter_operator
+                                        @ (((self.__spec_difference[i_channel_group])
+                                        * polarization_field.cos())
+                                        * (1.j * phi_S_h).exp())))
+                    delta_spec_phi = ((filter_operator
+                                     @ (((self.__spec_difference[i_channel_group] )
+                                     * polarization_field.sin()) * (1.j * phi_S_h).exp())))
+                    delta_efield_spec_ops = [delta_spec_theta, delta_spec_phi]
+                    self.__delta_efield_spec.append(delta_efield_spec_ops)
+                    self.__delta_channel_spec.append((hardware_operators[i_channel][0] @ delta_spec_theta) + (hardware_operators[i_channel][1] @ delta_spec_phi))
 
                #contd
 
@@ -815,11 +845,12 @@ class IftElectricFieldReconstructor:
                     channel_trace_operator = ((realizer @ fft_operator.inverse @ (channel_spec_operator)))
 
                 #for plotting delta_priors
-                delta_efield_trace_ops= []
-                for efield_spec_operator in delta_efield_spec_ops:
-                    delta_efield_trace_ops.append(((realizer @ fft_operator.inverse @ efield_spec_operator)))
-                self.__delta_efield_trace.append(delta_efield_trace_ops)
-                self.__delta_channel_trace.append(((realizer @ fft_operator.inverse @ (self.__delta_channel_spec[-1]))))
+                if i_channel_group != 0:
+                    delta_efield_trace_ops= []
+                    for efield_spec_operator in delta_efield_spec_ops:
+                        delta_efield_trace_ops.append(((realizer @ fft_operator.inverse @ efield_spec_operator)))
+                    self.__delta_efield_trace.append(delta_efield_trace_ops)
+                    self.__delta_channel_trace.append(((realizer @ fft_operator.inverse @ (self.__delta_channel_spec[-1]))))
 
                 #cont'd
 
@@ -1015,7 +1046,7 @@ class IftElectricFieldReconstructor:
         ax1_3.set_title('Channel Spectrum')
         ax1_4.set_title('Channel Trace')
         fig1.tight_layout()
-        fig1.savefig(f'{self.__plot_folder}/priors_{event.get_id()}_{event.get_run_number()}.png')
+        fig1.savefig(f'{self.__plot_folder}/{event.get_run_number()}_priors_{event.get_id()}.png')
 
 
         #--------------------------------------------
@@ -1068,7 +1099,7 @@ class IftElectricFieldReconstructor:
         Draws samples from the prior distribution of the electric field spectrum.
         """
         print("draw priors delta")
-        channel = 6
+        channel = 0
 
         plt.close('all')
         fig1 = plt.figure(figsize=(12, 8))
@@ -1077,11 +1108,13 @@ class IftElectricFieldReconstructor:
         ax1_2 = fig1.add_subplot(324)
         ax1_3 = fig1.add_subplot(325)
         ax1_4 = fig1.add_subplot(326)
-        sampling_rate = station.get_channel(self.__used_channel_ids[channel]).get_sampling_rate()
+        sampling_rate = station.get_channel(self.__used_channel_ids[0]).get_sampling_rate()
         times = np.arange(self.__data_traces.shape[1]) / sampling_rate
         freqs = freq_space.get_k_length_array().val / self.__data_traces.shape[1] * sampling_rate
         print(len(freqs))
         alpha = .8
+        min=[]
+        max=[]
         for i in range(8):
             x = ift.from_random('normal', self.__delta_efield_trace[channel][0].domain)
             efield_spec_sample = self.__delta_efield_spec[channel][0].force(x)
@@ -1092,12 +1125,21 @@ class IftElectricFieldReconstructor:
             ax1_3.plot(freqs / units.MHz, np.abs(channel_spec_sample.val))  # / np.max(np.abs(channel_spec_sample.val)), c='C{}'.format(i), alpha=alpha)
             channel_trace_sample = self.__delta_channel_spec[channel].force(x)
             ax1_4.plot(times, channel_trace_sample.val / np.max(np.abs(channel_trace_sample.val)), c='C{}'.format(i), alpha=alpha)
-            a = self.__power_spectrum_operator.force(x).val
+            a = self.__delta_power_spectrum_operator.force(x).val
             power_freqs = self.__delta_power_spectrum_operator.target[0].k_lengths / self.__data_traces.shape[1] * sampling_rate
             ax1_0.plot(power_freqs, a, c='C{}'.format(i), alpha=alpha)
+
+            min.append(a[-1])
+            max.append(a[1])
+
+
+        min = np.min(min) * 0.1
+        max = np.max(max) * 10
+        print("min, max", min, max)
         ax1_0.grid()
         ax1_0.set_xscale('log')
         ax1_0.set_yscale('log')
+        ax1_0.set_ylim(min,max)
         ax1_0.set_title('Power Spectrum')
         ax1_0.set_xlabel('k')
         ax1_0.set_ylabel('A')
@@ -1124,7 +1166,7 @@ class IftElectricFieldReconstructor:
         ax1_3.set_title('Channel Spectrum')
         ax1_4.set_title('Channel Trace')
         fig1.tight_layout()
-        fig1.savefig(f'{self.__plot_folder}/priors_delta_{event.get_id()}_{event.get_run_number()}.png')
+        fig1.savefig(f'{self.__plot_folder}/{event.get_run_number()}_priors_delta_{event.get_id()}.png')
 
 
     def __draw_reconstruction(
@@ -1145,8 +1187,12 @@ class IftElectricFieldReconstructor:
         n_channels = len(self.__used_channel_ids)
         median = KL.position
         sampling_rate = station.get_channel(self.__used_channel_ids[0]).get_sampling_rate()
-        fig1 = plt.figure(figsize=(16, 4+(2 * n_channels)))
+        fig1 = plt.figure(figsize=(16, (4.5 * n_channels)))
+        #fig1 = plt.figure(figsize=((8*3), (5 * 0.33 * n_channels)))
+        #plotting
         dummy_fig = plt.figure(figsize=(16, 4))
+        dummy_fig = fig1
+
         fig2 = plt.figure(figsize=(16, 4 * n_channels))
         freqs = np.fft.rfftfreq(self.__data_traces.shape[1], 1. / sampling_rate)
         classic_mean_efield_spec = np.zeros_like(freqs)
@@ -1159,7 +1205,14 @@ class IftElectricFieldReconstructor:
             efield_stat_calculators = [ift.StatCalculator(), ift.StatCalculator()]
             amp_efield_stat_calculators = [ift.StatCalculator(), ift.StatCalculator()]
             if self.__polarization == 'pol':
-                ax1_1 = fig1.add_subplot(int(n_channels/2), 2, i_channel+1)
+                #n_columns = 2
+                #n_rows = int(np.ceil(n_channels/n_columns))
+
+                step_size = 3 # = 1
+                n_rows = (n_channels)
+                n_columns = 3
+
+                ax1_1 = fig1.add_subplot(n_rows, n_columns, step_size * i_channel + 1)
                 ax1_2 = dummy_fig.add_subplot(n_channels, 3, 3 * i_channel + 2)
                 ax1_3 = dummy_fig.add_subplot(n_channels, 3, 3 * i_channel + 3, sharey=ax1_2)
                 ax1_2.set_title(r'$\theta$ component', fontsize=fontsize)
@@ -1178,7 +1231,7 @@ class IftElectricFieldReconstructor:
                     amp_trace = np.abs(fft.time2freq(channel_sample_trace, sampling_rate))
                     amp_trace_stat_calculator.add(amp_trace)
                     ax2_1.plot(times, channel_sample_trace * self.__scaling_factor / units.mV, c='k', alpha=.2)
-                    #ax1_1.plot(freqs / units.MHz, amp_trace * self.__scaling_factor / units.mV, c='k', alpha=0.2)
+                    ax1_1.plot(freqs / units.MHz, amp_trace * self.__scaling_factor / units.mV, c='k', alpha=0.2)
                     #ICHANCGED THIS
                     ax1_1.plot(freqs / units.MHz, amp_trace * self.__scaling_factor / units.mV, c='k', alpha=0)
 
@@ -1466,9 +1519,10 @@ class IftElectricFieldReconstructor:
         def get_ticklabels(ticks):
             return ['{:.0f}'.format(tick) for tick in np.arange(times[0], times[-1], 10) - times[0]]
 
+        n_groups = len(self.__used_grouped_channel_ids)
         i = -1
-        for j in range(len(self.__used_grouped_channel_ids)):
-            for k in range(j):
+        for j in range(n_groups):
+            for k in np.arange(j+1,n_groups):
                 i += 1
                 trace = group_traces[j] - group_traces[k]
                 ax[i].plot(freqs / units.MHz, trace * self.__scaling_factor / units.mV, c=colors[0], linewidth=3, alpha=1, label=i_channel_group)
