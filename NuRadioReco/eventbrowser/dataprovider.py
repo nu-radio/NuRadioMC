@@ -23,18 +23,25 @@ except ImportError as e:
 
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class DataProvider(object):
-    _use_root = None
+    __lock = threading.Lock()
 
-    def __init__(self, use_root=False, max_user_instances=12):
+    def __init__(self, filetype='auto', max_user_instances=6):
         """"
         Interface to .nur or .root file IO for the eventbrowser
 
         Parameters
         ----------
-        use_root: bool, default False
-            If True, use the the RNO-G specific root file reader. Otherwise,
-            use the NuRadioMC
-        max_user_instances: int, default=12
+        filetype: 'auto' | 'nur' | 'root'
+            Which IO module to use:
+
+            * 'nur': The standard `NuRadioRecoio` module for reading `.nur` files
+            * 'root': Read RNO-G root files with the
+              :mod:`NuRadioReco.modules.io.RNO_G.readRNOGDataMattak` module (requires
+              `mattak` to be installed from https://github.com/RNO-G/mattak)
+            * 'auto' (default): determine the appropriate file reader based on the
+              file endings
+
+        max_user_instances: int (default: 6)
             Each unique session id gets its own reader, up to a maximum
             of ``max_user_instances`` concurrent readers. Subsequent
             requests for new readers drop older readers.
@@ -43,11 +50,12 @@ class DataProvider(object):
         logger.info("Creating new DataProvider instance")
         self.__max_user_instances = max_user_instances
         self.__user_instances = {}
-        self.__lock = threading.Lock()
-        self.set_filetype(use_root=use_root)
+        self.__filetype = filetype
 
     def set_filetype(self, use_root):
         """
+        DEPRECATED - we use the file endings to determine file type now
+
         Set the filetype to read in.
 
         Parameters
@@ -57,19 +65,10 @@ class DataProvider(object):
             to read in RNO-G ROOT files. Otherwise, use the 'standard' NuRadioMC `.nur` file
             reader.
         """
-        if self._use_root == use_root:
-            return None
         if use_root:
-            if _readRNOGData_eventbrowser is None:
-                raise ImportError(
-                    "The .root reading interface `NuRadioReco.modules.io.RNO_G.readRNOGDataMattak`"
-                    " is not available, so .root files can not be read. Make sure you have a working installation"
-                    " of mattak (https://github.com/RNO-G/mattak)."
-                )
-            self.__file_handler = _readRNOGData_eventbrowser # we only initialize once, maybe this saves some time?
+            self.__filetype = 'root'
         else:
-            self.__file_handler = NuRadioRecoio.NuRadioRecoio # need to initialize for every file
-        self._use_root = use_root
+            self.__filetype = 'nur'
 
     def get_file_handler(self, user_id, filename):
         """
@@ -97,21 +96,31 @@ class DataProvider(object):
             if filename is None:
                 return None
             if user_id not in self.__user_instances:
-                reader = self.__file_handler
                 self.__user_instances[user_id] = dict(
-                    reader=reader, filename=None,
+                    reader=None, filename=None,
                 )
             if isinstance(filename, str):
                 filename = [filename]
+
+            # determine which reader to use
+            use_root = self.__filetype == 'root'
+            if (self.__filetype == 'auto') and any([f.endswith('.root') for f in filename]):
+                use_root = True
+
             if filename != self.__user_instances[user_id]['filename']:
                 # user is requesting new file -> close current file and open new one
-                reader = self.__user_instances[user_id]['reader']
-                if self._use_root:
-                    reader = self.__file_handler(load_run_table=False)
+                if use_root:
+                    if _readRNOGData_eventbrowser is None:
+                        raise ImportError(
+                            "The .root reading interface `NuRadioReco.modules.io.RNO_G.readRNOGDataMattak`"
+                            " is not available, so .root files can not be read. Make sure you have a working installation"
+                            " of mattak (https://github.com/RNO-G/mattak)."
+                        )
+                    reader = _readRNOGData_eventbrowser(load_run_table=False)
                     reader.begin([os.path.dirname(f) for f in filename], overwrite_sampling_rate=3.2)
                     reader.get_event_ids()
                 else:
-                    reader = self.__file_handler(filename) # NuRadioRecoio takes filenames as argument to __init__
+                    reader = NuRadioRecoio.NuRadioRecoio(filename) # NuRadioRecoio takes filenames as argument to __init__
                 self.__user_instances[user_id] = dict(
                     reader=reader, filename=filename,
                 )
