@@ -18,6 +18,8 @@ new features:
 bugfixes:
 - fixed/improved C++ raytracer not finding solutions for some near-horizontal or near-shadowzone vertices
 - fixed wrong number in Feldman-Cousins upper limit
+- in antennapattern.py, fixed line 1398; was masking frequencies >= 0 instead of frequencies > 0, causing NaN errors
+
 
 version 2.1.8
 bugfixes:
