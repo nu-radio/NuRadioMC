@@ -123,7 +123,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
     return weights
 
 
-def make_sim_station(station_id, corsika, observer, channel_ids, weight=None)
+def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
     """
     creates an NuRadioReco sim station from the (interpolated) observer object of the coreas hdf5 file
 
