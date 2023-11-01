@@ -51,7 +51,7 @@ class MuonFlux:
         altitude *= self.mc_m
         mceq = MCEqRun(interaction_model=interaction_model,
                        primary_model=primary_model,
-                       theta_deg=theta * self.mc_rad)
+                       theta_deg=theta/units.deg)
 
         h_grid = np.linspace(50 * 1e3 * 1e2, 0, 500)
         X_grid = mceq.density_model.h2X(h_grid)
@@ -157,7 +157,7 @@ class MuonFlux:
         return self.__buffer[params]
     
 
-    def get_e_grid(self, theta_deg=50, interaction_model='SIBYLL23C', primary_model=(crf.GlobalSplineFitBeta, None)):
+    def get_e_grid(self, theta=50*units.deg, interaction_model='SIBYLL23C', primary_model=(crf.GlobalSplineFitBeta, None)):
         """
         Returns the energy grid for a given interaction model and primary model. Usually this is the same for all zenith angles.
             
@@ -175,6 +175,6 @@ class MuonFlux:
         energies: array of floats
             energy grid in eV
         """
-        mceq = MCEqRun(interaction_model=interaction_model, primary_model=primary_model, theta_deg=theta_deg)
+        mceq = MCEqRun(interaction_model=interaction_model, primary_model=primary_model, theta_deg=theta/units.deg)
         e_grid = mceq.e_grid / self.mc_eV
         return e_grid
