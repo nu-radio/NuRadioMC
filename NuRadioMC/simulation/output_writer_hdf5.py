@@ -110,8 +110,8 @@ class outputWriterHDF5:
         Writes simulation results for a station into the output data structure.
         This method writes properties that are stored per triggered event.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         station_id: integer
             The ID of the simulated station
         event_objects: dict 
@@ -175,8 +175,8 @@ class outputWriterHDF5:
         Writes simulation results for a station into the output data structure.
         This method writes properties that are stored per shower.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         station_id: integer
             The ID of the simulated station
         event_objects: dict 

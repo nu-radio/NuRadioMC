@@ -96,8 +96,8 @@ class channelEfieldSimulator:
         """
         Updates information about the shower that is currently simulated
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         station_id: integer
             The ID of the station that is being simulated
         shower_id: integer

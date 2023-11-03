@@ -105,8 +105,8 @@ class hardwareResponseSimulator:
         """
         Updates information about the event group that is currently simulated.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         event_group_id: integer
             The ID of the event group that is currently simulated.
         """
@@ -122,7 +122,8 @@ class hardwareResponseSimulator:
         Applies the detector response to simulated electric fields. It also divides events into sub-events
         if the difference in signal arrival times at the detector is above a certain value.
 
-        Parameters:
+        Parameters
+        ----------
         station_id : integer
             The ID of the station that is being simulated
         efield_objects: list of NuRadioReco.framework.electric_field.ElectricField objects with shape (n_showers, n_channels, n_rays)
@@ -347,8 +348,8 @@ class hardwareResponseSimulator:
         """
         Selects the electric fields from the dummy station based on the channel identifiers and creates a new staition.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         dummy_station: NuRadioReco.framework.station.Station object
             The station object containing the electric fields for this event group.
         channel_indices: numpy.array of integers

@@ -65,7 +65,7 @@ class showerSimulator:
         Set information about the station that is currently simulated.
 
         Parameters
-        -----------
+        ----------
         station_id: integer
             The ID of the station that is being simulated.
         """

@@ -586,6 +586,7 @@ class simulation():
         Returns True if the station barycenter is within the
         maximum distance (and should therefore be simulated)
         and False otherwise.
+        
         Parameters
         ----------
         vertex_positions: array of float
