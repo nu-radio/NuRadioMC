@@ -49,6 +49,7 @@ def tbb_filetag_from_utc(timestamp):
     return radio_file_tag
 
 
+# TODO: make reader only read certain stations
 class readLOFARData:
     """
     This class reads in the data from the TBB files and puts them into an Event structure. It relies on the KRATOS
@@ -127,7 +128,7 @@ class readLOFARData:
             The ID of the event to load.
         """
         # Set the internal variables
-        self.__event_id = event_id
+        self.__event_id = int(event_id)  # ID might be provided as str
         self.__stations = self.__new_stations()
 
         # Check LORA file for parameters
@@ -194,7 +195,7 @@ class readLOFARData:
                 continue
             station = NuRadioReco.framework.station.Station(station_id)
 
-            # Use KRATOS io functions to access trace (TODO: import these or make a dedicated repo)
+            # Use KRATOS io functions to access trace (TODO: import these into NRR)
             lofar_trace_access = lofar_io.GetLOFARTraces(
                 station_files,
                 self.meta_dir,
@@ -203,7 +204,7 @@ class readLOFARData:
                 trace_length
             )
             for channel_id in detector.get_channel_ids(station_id):
-                if detector.get_channel(station_id, channel_id)['ant_orientation_phi'] == 45.0:
+                if detector.get_channel(station_id, channel_id)['ant_orientation_phi'] == 225.0:
                     channel_group = 0
                 elif detector.get_channel(station_id, channel_id)['ant_orientation_phi'] == 135.0:
                     channel_group = 1

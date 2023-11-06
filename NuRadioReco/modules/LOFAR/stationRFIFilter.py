@@ -399,6 +399,7 @@ def FindRFI(
     return output_dict
 
 
+# TODO: make stationRFIFilter take keyword to only process certain station
 class stationRFIFilter:
     """
     Remove the RFI from all stations in an Event, by using the phase-variance method described in
