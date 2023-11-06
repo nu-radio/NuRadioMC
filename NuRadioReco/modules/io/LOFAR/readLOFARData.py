@@ -53,23 +53,23 @@ def tbb_filetag_from_utc(timestamp):
 class readLOFARData:
     """
     This class reads in the data from the TBB files and puts them into an Event structure. It relies on the KRATOS
-    package.
+    package. If the directory paths are not provided, they default to the ones on COMA.
 
     Parameters
     ----------
-    tbb_directory: Path-like str
+    tbb_directory: Path-like str, optional
         The path to the directory containing the TBB files.
-    json_directory: Path-like str
+    json_directory: Path-like str, optional
         The path to the directory containing the JSON files from LORA.
-    metadata_directory: Path-like str
+    metadata_directory: Path-like str, optional
         The path to the directory containing the LOFAR metadata (antenna positions and timing calibrations).
     """
-    def __init__(self, tbb_directory, json_directory, metadata_directory):
+    def __init__(self, tbb_directory=None, json_directory=None, metadata_directory=None):
         self.logger = logging.getLogger('NuRadioReco.readLOFARData')
 
-        self.tbb_dir = tbb_directory
-        self.json_dir = json_directory
-        self.meta_dir = metadata_directory
+        self.tbb_dir = '/vol/astro3/lofar/vhecr/lora_triggered/data/' if tbb_directory is None else tbb_directory
+        self.json_dir = '/vol/astro7/lofar/kratos_files/json' if json_directory is None else json_directory
+        self.meta_dir = '/vol/astro7/lofar/vhecr/kratos/data/' if metadata_directory is None else metadata_directory
 
         self.__event_id = None
         self.__stations = None
