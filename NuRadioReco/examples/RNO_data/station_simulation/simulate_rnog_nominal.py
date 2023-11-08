@@ -210,6 +210,7 @@ def task(q, iSim, energy_min, energy_max, detectordescription, config, output_fi
         phimin=0.0 * units.rad,
         phimax=2 * np.pi * units.rad,
         start_event_id=1,
+        flavor=flavor_ids[flavor],
         n_events_per_file=None,
         spectrum="log_uniform",
         deposited=True,
