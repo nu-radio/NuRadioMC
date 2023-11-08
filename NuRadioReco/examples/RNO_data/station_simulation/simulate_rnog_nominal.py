@@ -31,9 +31,9 @@ rnogADCResponse.begin(adc_input_range=2 * units.volt, clock_offset=0.0, adc_outp
 #############################
 
 
-def RNO_G_PA_Thresh(lgR):
+def RNO_G_PA_Thresh(lgRate_per_hz):
     # Thresholds calculated using the RNO-G hardware (iglu + flower_lp)
-    return 0.0282 * lgR**2 - 4.607 * lgR + 46.24
+    return 0.0282 * lgRate_per_hz**2 - 4.607 * lgRate_per_hz + 46.24
 
 
 pa_channels = [0, 1, 2, 3]
