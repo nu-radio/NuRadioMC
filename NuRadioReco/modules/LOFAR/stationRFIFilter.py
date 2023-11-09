@@ -4,11 +4,26 @@ import numpy as np
 
 from NuRadioReco.modules.base import module
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities.signal_processing import half_hann_window, num_double_zeros
+from NuRadioReco.utilities.signal_processing import half_hann_window
 
 from kratos.data_io import lofar_io
 
 logger = module.setup_logger(level=logging.WARNING)
+
+
+def num_double_zeros(data, threshold=None, ave_shift=False):
+    """if data is a numpy array, give number of points that have  zero preceded by a zero"""
+
+    if ave_shift:
+        data = data - np.average(data)
+
+    if threshold is None:
+        is_zero = data == 0
+    else:
+        is_zero = np.abs(data) < threshold
+
+    bad = np.logical_and(is_zero[:-1], is_zero[1:])
+    return np.sum(bad)
 
 
 def median_sorted_by_power(psort):
@@ -80,7 +95,7 @@ def FindRFI_LOFAR(
         If the `target_trace_length` is not a multiple of the `rfi_cleaning_trace_length`.
     """
     # Hardcoded values for LOFAR
-    # TODO: fix units with utilities module
+    # FIXME: fix units with utilities module
     lower_frequency_bound_Hz = 0.0
     upper_frequency_bound_Hz = 100e6
     initial_block = 0
@@ -103,7 +118,7 @@ def FindRFI_LOFAR(
     num_blocks = np.median(tbb_file.get_nominal_data_lengths() // rfi_cleaning_trace_length)  # should all be the same
     num_blocks -= initial_block  # FIXME: initial block is hardcoded to 0?
 
-    # TODO: what if one bad antenna in Station? Currently FindRFI crashes
+    # FIXME: what if one bad antenna in Station? Currently FindRFI crashes
 
     logger.info(f"Running find RFI with {num_blocks} blocks")
     output = FindRFI(tbb_file, rfi_cleaning_trace_length, initial_block, int(num_blocks),
