@@ -2,6 +2,7 @@ import numpy as np
 from scipy.signal.windows import hann
 
 
+# TODO: put functions that are module specific into that module
 def num_double_zeros(data, threshold=None, ave_shift=False):
     """if data is a numpy array, give number of points that have  zero preceded by a zero"""
 
