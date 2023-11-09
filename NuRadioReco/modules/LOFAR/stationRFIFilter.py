@@ -101,7 +101,7 @@ def FindRFI_LOFAR(
     tbb_file = lofar_io.open_TBB(tbb_filename, metadata_dir=metadata_dir)
 
     num_blocks = np.median(tbb_file.get_nominal_data_lengths() // rfi_cleaning_trace_length)  # should all be the same
-    num_blocks -= initial_block  # initial block is hardcoded to 0?
+    num_blocks -= initial_block  # FIXME: initial block is hardcoded to 0?
 
     # TODO: what if one bad antenna in Station? Currently FindRFI crashes
 
