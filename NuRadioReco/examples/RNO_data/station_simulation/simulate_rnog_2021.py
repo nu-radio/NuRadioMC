@@ -31,7 +31,20 @@ rnogADCResponse.begin(adc_input_range=2 * units.volt, clock_offset=0.0, adc_outp
 ## Set up trigger definitions
 #############################
 
-pa_channels = [0, 1, 2, 3]
+
+def RNO_G_HighLow_Thresh(lgRate_per_hz):
+    # Thresholds calculated using the RNO-G hardware (iglu + flower_lp)
+    # This applies for the VPol antennas
+    return (-859 + np.sqrt(39392706 - 3602500 * lgRate_per_hz)) / 1441.0
+
+
+deep_trigger_channels = [0, 1, 2, 3]
+high_low_trigger_thresholds = {}
+high_low_trigger_thresholds["1Hz"] = RNO_G_HighLow_Thresh(0)
+high_low_trigger_thresholds["10Hz"] = RNO_G_HighLow_Thresh(1)
+high_low_trigger_thresholds["100Hz"] = RNO_G_HighLow_Thresh(2)
+high_low_trigger_thresholds["1kHz"] = RNO_G_HighLow_Thresh(3)
+
 
 def task(q, iSim, energy_min, energy_max, detectordescription, config, output_filename, flavor, interaction_type, **kwargs):
     def get_max_radius_shallow(
@@ -116,7 +129,7 @@ def task(q, iSim, energy_min, energy_max, detectordescription, config, output_fi
             sampling_rate = det_channel["trigger_adc_sampling_frequency"]
             mask = freqs_fullband <= sampling_rate
             channel.resample(sampling_rate)
-            _, trigger_filter = rnogADCResponse.get_trigger_values(station_copy, det, requested_channels=pa_channels)
+            _, trigger_filter = rnogADCResponse.get_trigger_values(station_copy, det, requested_channels=deep_trigger_channels)
             freqs_trigband = channel.get_frequencies()
             filt_trigband = channel.get_frequency_spectrum() * trigger_filter(freqs_trigband)
             eff_bandwitdth_trigband = np.trapz(np.abs(filt_trigband) ** 2, freqs_trigband)
@@ -131,35 +144,31 @@ def task(q, iSim, energy_min, energy_max, detectordescription, config, output_fi
             # Make a copy so that the "RADIANT waveforms" for the PA channels will be retained
             station_copy = copy.deepcopy(station)
 
-            ratio = self.GetTriggerBandVrmsRatio(pa_channels[0], evt, station_copy, det)
-            vrms_input_to_adc = self._Vrms_per_channel[station_copy.get_id()][pa_channels[0]] * ratio
+            ratio = self.GetTriggerBandVrmsRatio(deep_trigger_channels[0], evt, station_copy, det)
+            vrms_input_to_adc = self._Vrms_per_channel[station_copy.get_id()][deep_trigger_channels[0]] * ratio
 
             # Runs the FLOWER board response
             vrms_after_gain = rnogADCResponse.run(
-                evt, station_copy, det, requested_channels=pa_channels, vrms=vrms_input_to_adc, digitize_trace=True
-            )  # Digitization will be done in the trigger module
-
-            pa_sampling_rate = station_copy.get_channel(pa_channels[0]).get_sampling_rate()
-
-            # integration window size and stride
-            # Warning: if you change these, you must also recalculate the thresholds!
-            upsampling_factor = 2
-            pa_window = int(16 * units.ns * pa_sampling_rate * upsampling_factor)
-            pa_step = int(8 * units.ns * pa_sampling_rate * upsampling_factor)
-
-            highLowThreshold.run(
-                evt,
-                station_copy,
-                det,
-                threshold_high=3.731 * vrms_after_gain,
-                threshold_low=-3.731 * vrms_after_gain,
-                high_low_window=6/pa_sampling_rate,
-                coinc_window=4/pa_sampling_rate,
-                number_concidences=2,
-                triggered_channels=pa_channels,
-                trigger_name='default_high_low',
-                set_not_triggered=False
+                evt, station_copy, det, requested_channels=deep_trigger_channels, vrms=vrms_input_to_adc, digitize_trace=True
             )
+
+            pa_sampling_rate = station_copy.get_channel(deep_trigger_channels[0]).get_sampling_rate()
+
+            for thresh_key in high_low_trigger_thresholds.keys():
+                threshold = high_low_trigger_thresholds[thresh_key]
+
+                highLowThreshold.run(
+                    evt,
+                    station_copy,
+                    det,
+                    threshold_high=threshold * vrms_after_gain,
+                    threshold_low=-threshold * vrms_after_gain,
+                    high_low_window=6 / pa_sampling_rate,
+                    coinc_window=20 / pa_sampling_rate,
+                    number_concidences=2,
+                    triggered_channels=deep_trigger_channels,
+                    trigger_name=f"deep_high_low_{thresh_key}",
+                )
 
             # write the triggers back into the original copy of the station
             for trigger in station_copy.get_triggers().values():
