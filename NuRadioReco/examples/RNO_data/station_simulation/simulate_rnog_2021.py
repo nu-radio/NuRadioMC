@@ -40,10 +40,10 @@ def RNO_G_HighLow_Thresh(lgRate_per_hz):
 
 deep_trigger_channels = [0, 1, 2, 3]
 high_low_trigger_thresholds = {}
+high_low_trigger_thresholds["10mHz"] = RNO_G_HighLow_Thresh(-2)
+high_low_trigger_thresholds["100mHz"] = RNO_G_HighLow_Thresh(-1)
 high_low_trigger_thresholds["1Hz"] = RNO_G_HighLow_Thresh(0)
-high_low_trigger_thresholds["10Hz"] = RNO_G_HighLow_Thresh(1)
-high_low_trigger_thresholds["100Hz"] = RNO_G_HighLow_Thresh(2)
-high_low_trigger_thresholds["1kHz"] = RNO_G_HighLow_Thresh(3)
+high_low_trigger_thresholds["3Hz"] = RNO_G_HighLow_Thresh(np.log10(3))
 
 
 def task(q, iSim, energy_min, energy_max, detectordescription, config, output_filename, flavor, interaction_type, **kwargs):
