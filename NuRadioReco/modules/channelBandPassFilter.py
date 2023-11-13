@@ -9,9 +9,21 @@ class channelBandPassFilter:
     """
     Band pass filters the channels using different band-pass filters.
     """
+    __filter_cached = None
+    __filter_args = None
 
-    def __init__(self):
+    def __init__(self, caching=True):
+        """
+        Parameters
+        ----------
+        caching: bool, default True
+            If True (default), internally caches the filter. This speeds up
+            the (common) case where the same filter is applied to multiple
+            channels.
+
+        """
         self.__t = 0
+        self.__caching = caching
         self.begin()
         self.logger = logging.getLogger('NuRadioReco.channelBandPassFilter')
 
@@ -177,9 +189,17 @@ class channelBandPassFilter:
         """
         tmp_passband, tmp_order, tmp_filter_type, tmp_rp, tmp_roll_width, _ = \
             self.get_filter_arguments(channel_id, passband, filter_type, order, rp, roll_width)
-        return bandpass_filter.get_filter_response(
-            frequencies, tmp_passband, tmp_filter_type, tmp_order, tmp_rp, tmp_roll_width
-        )
+        filter_args = frequencies, tmp_passband, tmp_order, tmp_filter_type, tmp_rp, tmp_roll_width
+        if self.__filter_args is not None:
+            if not test_equality(filter_args, self.__filter_args):
+                self.__filter_cached = None
+        if (self.__filter_cached is None) or (not self.__caching):
+            self.__filter_args = filter_args
+            self.__filter_cached = bandpass_filter.get_filter_response(
+                frequencies, tmp_passband, tmp_filter_type, tmp_order, tmp_rp, tmp_roll_width
+            )
+
+        return self.__filter_cached
 
     def _apply_filter(self, channel, passband, filter_type, order,
                       rp=None, roll_width=None, half_hann_percent=None, is_efield=False):
@@ -264,3 +284,45 @@ class channelBandPassFilter:
 
     def end(self):
         pass
+
+def test_equality(a, b):
+    """
+    Test if two things are equal.
+
+    Generalizes a==b to support lists, lists of lists and arrays etc.
+    Will return True if and only if a and b are equal.
+
+    Parameters
+    ----------
+    a: object | list | array
+    b: object | list | array
+
+    Returns
+    -------
+    is_equal: bool
+        True if and only if a == b
+
+    """
+
+    if not isinstance(a, list):
+        a = list(a)
+    if not isinstance(b, list):
+        b = list(b)
+    if len(a) != len(b):
+        return False
+
+    isequal = True
+    for i in range(len(a)):
+        if hasattr(a[i], '__len__'):
+            if not hasattr(b[i], '__len__'):
+                return False
+            elif len(a[i]) != len(b[i]):
+                return False
+            elif isinstance(a[i], np.ndarray):
+                isequal &= (np.all(a[i] == b[i]))
+            else:
+                isequal &= all([u == v for u, v in zip(a[i], b[i])])
+        else:
+            isequal &= a[i] == b[i]
+
+    return isequal
