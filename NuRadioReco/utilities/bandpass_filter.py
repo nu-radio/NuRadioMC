@@ -81,7 +81,8 @@ def get_filter_response(frequencies, passband, filter_type, order, rp=None, roll
             len(frequencies), int(round(roll_width / (frequencies[1] - frequencies[0])))
         )
 
-        f = np.convolve(f, gaussian_weights, mode="same")
+        #f = np.convolve(f, gaussian_weights, mode="same")
+        f = scipy.signal.fftconvolve(f, gaussian_weights, mode="same") # much much faster for large-ish N
         f /= np.max(f)  # convolution changes peak value
         return f
     elif filter_type.find('FIR') >= 0:
