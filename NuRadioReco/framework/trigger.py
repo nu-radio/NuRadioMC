@@ -247,7 +247,10 @@ class SimplePhasedTrigger(Trigger):
 
     def __init__(self, name, threshold, channels=None, secondary_channels=None,
                  primary_angles=None, secondary_angles=None,
-                 trigger_delays=None, sec_trigger_delays=None):
+                 trigger_delays=None, sec_trigger_delays=None,
+                 window_size=None, step_size=None,
+                 maximum_amps=None
+                ):
         """
         initialize trigger class
 
@@ -272,6 +275,12 @@ class SimplePhasedTrigger(Trigger):
         sec_trigger_delays: dictionary
             the delays for the secondary channels that have caused a trigger.
             If there is no trigger or no secondary channels, it's an empty dictionary
+        window_size: int
+            the size of the integration window (units of ADC time ticks)
+        step_size: int
+            the size of the stride between calculating the phasing (units of ADC time ticks)
+        maximum_amps: list of floats (length equal to that of `phasing_angles`)
+            the maximum value of all the integration windows for each of the phased waveforms
         """
         Trigger.__init__(self, name, channels, 'simple_phased')
         self._primary_channels = channels
@@ -281,6 +290,9 @@ class SimplePhasedTrigger(Trigger):
         self._threshold = threshold
         self._trigger_delays = trigger_delays
         self._sec_trigger_delays = sec_trigger_delays
+        self._window_size = window_size
+        self._step_side = step_size
+        self._maximum_amps = maximum_amps
 
 
 class HighLowTrigger(Trigger):
