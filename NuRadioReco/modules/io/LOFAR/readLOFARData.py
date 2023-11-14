@@ -358,6 +358,9 @@ class readLOFARData:
 
         self.__lora_timestamp = lora_dict["LORA"]["utc_time_stamp"]
         self.__lora_timestamp_ns = lora_dict["LORA"]["time_stamp_ns"]
+        
+        self.__lora_zenith = lora_dict["LORA"]["zenith_rad"] * units.radian
+        self.__lora_azimuth = lora_dict["LORA"]["azimuth_rad"] * units.radian
 
         # Go through TBB directory and identify all files for this event
         tbb_filename_pattern = tbb_filetag_from_utc(self.__event_id + 1262304000)  # event id is based on timestamp
@@ -449,6 +452,9 @@ class readLOFARData:
 
             station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids) # store set of flagged channel ids as station parameter
             evt.set_station(station)
+
+            station.set_parameter(stationParameters.zenith, self.__lora_zenith)
+            station.set_parameter(stationParameters.azimuth, self.__lora_azimuth)
 
             lofar_trace_access.close_file()
 
