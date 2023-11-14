@@ -5,8 +5,8 @@ import numpy as np
 from NuRadioReco.modules.base import module
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities.signal_processing import half_hann_window
+from NuRadioReco.modules.io.LOFAR.rawTBBio import MultiFile_Dal1
 
-from kratos.data_io import lofar_io
 
 logger = module.setup_logger(level=logging.WARNING)
 
@@ -113,7 +113,7 @@ def FindRFI_LOFAR(
         )
 
     # Open the TBB file and pass it to FindRFI()
-    tbb_file = lofar_io.open_TBB(tbb_filename, metadata_dir=metadata_dir)
+    tbb_file = MultiFile_Dal1(tbb_filename, metadata_dir=metadata_dir)
 
     num_blocks = np.median(tbb_file.get_nominal_data_lengths() // rfi_cleaning_trace_length)  # should all be the same
     num_blocks -= initial_block  # FIXME: initial block is hardcoded to 0?

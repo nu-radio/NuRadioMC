@@ -3,6 +3,7 @@ import os
 import glob
 import json
 import logging
+import numpy as np
 
 from datetime import datetime
 from NuRadioReco.modules.base.module import register_run
@@ -13,10 +14,103 @@ import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.channel
 
-from kratos.data_io import lofar_io
+import NuRadioReco.modules.io.LOFAR.rawTBBio as rawTBBio
+import NuRadioReco.modules.io.LOFAR.rawTBBio_metadata as rawTBBio_metadata
 
 
 logger = module.setup_logger(level=logging.WARNING)
+
+
+def get_metadata(filenames, metadata_dir):
+    """
+    Get metadata from TBB file.
+
+    Parameters
+    ----------
+    filenames : list[str]
+        List of TBB file paths to read in
+    metadata_dir : str
+        Path to the TBB metadata directory
+
+    """
+    logger.info("Getting metadata from filename: %s" % filenames)
+    tbb_file = rawTBBio.MultiFile_Dal1(filenames, metadata_dir=metadata_dir)
+    station_name = tbb_file.get_station_name()
+    antenna_set = tbb_file.get_antenna_set()
+    clock_frequency = tbb_file.SampleFrequency
+
+    ns_per_sample = 1.0e9 / clock_frequency
+    logger.info("The file contains %3.2f ns per sample" % ns_per_sample)  # test
+    time_s = tbb_file.get_timestamp()
+    time_ns = ns_per_sample * tbb_file.get_nominal_sample_number()
+
+    positions = tbb_file.get_LOFAR_centered_positions()
+    dipole_ids = tbb_file.get_antenna_names()
+
+    # Try to extract calibration delays from TBB metadata
+    calibration_delays = tbb_file.get_timing_callibration_delays(force_file_delays=True)
+
+    tbb_file.close_file()
+
+    return (
+        station_name,
+        antenna_set,
+        time_s,
+        time_ns,
+        clock_frequency,
+        positions,
+        dipole_ids,
+        calibration_delays,
+    )  # switch to dict? But have to choose keys and read the m out again...
+
+
+def lora_timestamp_to_blocknumber(
+    lora_seconds,
+    lora_nanoseconds,
+    start_time,
+    sample_number,
+    clock_offset_ns=1e4,
+    block_size=2**16,
+    sampling_frequency=200,
+):
+    """
+    Calculates block number corresponding to LORA timestamp and the sample number within that block
+
+    Parameters
+    ----------
+    lora_seconds : int
+        LORA timestamp in seconds (UTC timestamp, second after 1st January 1970)
+    lora_nanoseconds : int
+        LORA timestamp in nanoseconds
+    start_time : int
+        LOFAR TBB timestamp
+    sample_number : int
+        Sample number in the block where the trace starts
+    clock_offset_ns : int
+        Clock offset between LORA and LOFAR, in nanoseconds
+    block_size : int
+        Block size of the LOFAR data
+    sampling_frequency : float
+        Sampling frequency of LOFAR, in MHz
+
+
+    Returns
+    -------
+    A tuple containing `blocknumber` and `samplenumber`, in this order.
+    """
+
+    lora_samplenumber = (
+            (lora_nanoseconds - clock_offset_ns) * sampling_frequency * 1e-3
+    )  # MHz to nanoseconds
+
+    value = (lora_samplenumber - sample_number) + (
+            lora_seconds - start_time
+    ) * sampling_frequency * 1e6
+
+    if value < 0:
+        raise ValueError("Event not in file.")
+
+    return int(value / block_size), int(value % block_size)
 
 
 def tbb_filetag_from_utc(timestamp):
@@ -47,6 +141,132 @@ def tbb_filetag_from_utc(timestamp):
     radio_file_tag += str(sec).zfill(2)
 
     return radio_file_tag
+
+
+class getLOFARtraces:
+    def __init__(
+        self, tbb_h5_filename, metadata_dir, time_s, time_ns, trace_length_nbins
+    ):
+        """
+        A Class to facilitate getting traces from LOFAR TBB HDF5 Files
+
+        Parameters
+        ----------
+        time_s: int
+            Event trigger timestamp in UTC seconds
+        time_ns: int
+            Event trigger timestamp in ns past UTC second
+        trace_length_nbins : int
+            Desired length of trace to be loaded from TBB HDF5 files.
+            This does not affect trace size read-in for RFI cleaning
+
+        """
+        self.metadata_dir = metadata_dir
+        self.data_filename = tbb_h5_filename
+        self.trace_length_nbins = trace_length_nbins
+        self.block_number = None
+        self.sample_number_in_block = None
+        self.tbb_file = None
+        self.time_s = time_s
+        self.time_ns = time_ns
+        self.alignment_shift = None
+
+        self.setup_trace_loading()
+
+    def setup_trace_loading(self):
+        """
+        Opens the file and sets some variables.
+        so that get_trace() can be called repeatedly for different dipoles.
+        """
+        self.tbb_file = rawTBBio.MultiFile_Dal1(self.data_filename, metadata_dir=self.metadata_dir)
+        sample_number = self.tbb_file.get_nominal_sample_number()
+        timestamp = self.tbb_file.get_timestamp()
+        station_clock_offsets = rawTBBio_metadata.getClockCorrections(metadata_dir=self.metadata_dir)
+        this_station_name = self.tbb_file.get_station_name()
+
+        logger.info("Getting clock offset for station %s" % this_station_name)
+        this_clock_offset_ns = 1.0e9 * station_clock_offsets[this_station_name]
+        logger.info("Clock offset is %1.4e ns" % this_clock_offset_ns)
+
+        packet = lora_timestamp_to_blocknumber(self.time_s, self.time_ns, timestamp, sample_number,
+                                               clock_offset_ns=this_clock_offset_ns, block_size=self.trace_length_nbins)
+
+        self.block_number, self.sample_number_in_block = packet
+
+        self.alignment_shift = -(
+            self.trace_length_nbins // 2 - self.sample_number_in_block
+        )  # minus sign, apparently...
+
+        logger.info(
+            "Block number = %d, sample number in block = %d, alignment shift = %d"
+            % (self.block_number, self.sample_number_in_block, self.alignment_shift)
+        )
+
+    def check_trace_quality(self):
+        """
+        Check all traces recorded from the TBB against quality requirements.
+        """
+        dipole_names = np.array(self.tbb_file.get_antenna_names())
+
+        # Find the dipoles whose starting sample number and/or number of samples recorded deviates from the median
+        sample_number_per_antenna = self.tbb_file.get_all_sample_numbers()
+        data_length_per_antenna = self.tbb_file.get_full_data_lengths()
+
+        median_sample_number = np.median(sample_number_per_antenna)
+        median_data_length = np.median(data_length_per_antenna)
+
+        deviating_dipole_sample_number = np.where(
+            np.abs(
+                sample_number_per_antenna - median_sample_number
+            ) > median_data_length / 4
+        )[0]
+
+        deviating_dipole_starting_later = np.where(
+            sample_number_per_antenna > median_sample_number
+        )[0]
+
+        deviating_dipole_data_length = np.where(
+            np.abs(
+                data_length_per_antenna - median_data_length
+            ) > median_data_length / 10
+        )[0]
+
+        deviating_dipoles = np.unique(
+            np.concatenate(
+                (
+                    deviating_dipole_sample_number,
+                    deviating_dipole_starting_later,
+                    deviating_dipole_data_length
+                )
+            )
+        )
+
+        # Also check if some dipoles are missing their counterpart
+        all_dipoles = [int(x) % 100 for x in self.tbb_file.get_antenna_names()]
+        dipoles_missing_counterpart = [x for x in all_dipoles if (x + (1 - 2 * (x % 2))) not in all_dipoles]
+
+        # Use sets for superior search performance
+        # Index with lists to make it work for empty arrays
+        return set(dipole_names[list(deviating_dipoles)]), set(dipole_names[dipoles_missing_counterpart])
+
+    def get_trace(self, dipole_id):
+        """
+        :param dipole_id: dipole id string
+        :type dipole_id: str
+        """
+
+        start_sample = self.trace_length_nbins * self.block_number
+        start_sample += self.alignment_shift
+
+        trace = self.tbb_file.get_data(
+            start_sample, self.trace_length_nbins, antenna_ID=dipole_id
+        )
+
+        return trace
+
+    def close_file(self):
+        self.tbb_file.close_file()
+        return
 
 
 # TODO: make reader only read certain stations
@@ -155,10 +375,7 @@ class readLOFARData:
 
             # Save the metadata only once (in case there are multiple files for a station)
             if 'metadata' not in self.__stations[station_name]:
-                self.__stations[station_name]['metadata'] = lofar_io.get_metadata(
-                    [tbb_filename],  # get_metadata() makes use of MultiFile, which expects a list of filenames
-                    self.meta_dir
-                )
+                self.__stations[station_name]['metadata'] = get_metadata([tbb_filename], self.meta_dir)
                 # Metadata is a list containing:
                 # station name, antenna set, tbb timestamp (seconds), tbb timestamp (nanoseconds),
                 # station clock frequency (Hz), positions of antennas, dipole IDs and calibration delays per dipole
@@ -196,7 +413,7 @@ class readLOFARData:
             station = NuRadioReco.framework.station.Station(station_id)
 
             # Use KRATOS io functions to access trace (TODO: import these into NRR)
-            lofar_trace_access = lofar_io.GetLOFARTraces(
+            lofar_trace_access = getLOFARtraces(
                 station_files,
                 self.meta_dir,
                 self.__lora_timestamp,
