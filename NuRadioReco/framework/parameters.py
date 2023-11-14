@@ -38,7 +38,7 @@ class stationParameters(Enum):
     distance_correlations = 30
     shower_energy = 31 #: the energy of the shower 
     viewing_angles = 32 #: reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float
-
+    flagged_channels = 33 #: a set of flagged channel ids
 
 class channelParameters(Enum):
     zenith = 1  #: zenith angle of the incoming signal direction
