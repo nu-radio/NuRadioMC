@@ -1,24 +1,24 @@
-import copy
-import matplotlib.pyplot as plt
-import numpy as np
-import scipy.optimize as opt
-from scipy import constants
 import logging
-import NuRadioReco.framework.base_trace
+import numpy as np
+import matplotlib.pyplot as plt
 import radiotools.helper as hp
 
-from NuRadioReco.utilities import ice, fft
-from NuRadioReco.utilities import geometryUtilities as geo_utl
+from scipy import constants
+
+from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import units
-from NuRadioReco.framework.parameters import stationParameters as stnp
-import NuRadioReco.modules.voltageToEfieldConverterPerChannel
-import NuRadioReco.modules.electricFieldBandPassFilter
-from scipy.optimize import fmin_powell
+from NuRadioReco.modules.base import module
+from NuRadioReco.modules.base.module import register_run
+from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
+
+
+logger = module.setup_logger(level=logging.WARNING)
+
 
 lightspeed=constants.c * units.m / units.s
 
 
-class beamFormer:
+class beamFormingDirectionFitter:
     """
     Fits the direction using interferometry between desired channels.
     """
@@ -37,6 +37,7 @@ class beamFormer:
             self.logger.setLevel(log_level)
         self.__debug = debug
 
+    @register_run
     def run(self, evt, station, det, polarisation):
         """
         reconstruct signal arrival direction for all events through beam forming.
@@ -84,7 +85,7 @@ class beamFormer:
         direction_cartesian=hp.spherical_to_cartesian(direction[0],direction[1])
         print(direction_cartesian)
         
-        beamed_fft=minibeamformer(fft_array,freqs,position_array,direction_cartesian)
+        beamed_fft=mini_beamformer(fft_array,freqs,position_array,direction_cartesian)
         print('done beamforming')
         beamformed_timeseries=np.fft.irfft(beamed_fft)
 
@@ -108,85 +109,6 @@ class beamFormer:
         '''
 
     # steps from pycrtools
-    
-
-
-
 
     def end(self):
         pass
-
-
-
-def minibeamformer(fft_data,frequencies,positions,direction):
-    #adapted from pycrtools hBeamformBlock
-    nantennas=len(positions)
-    nfreq=len(frequencies)
-    output=np.zeros([len(frequencies)],dtype=complex)
-
-    norm = np.sqrt(direction[0]*direction[0]+direction[1]*direction[1]+direction[2]*direction[2])
-    
-    for a in np.arange(nantennas):
-        delay = GeometricDelayFarField(positions[a], direction, norm)
-
-        real = 1.0 * np.cos(2*np.pi*frequencies*delay)
-        imag = 1.0 * np.sin(2*np.pi*frequencies*delay)
-        #de = complex(real,imag)
-        de = real+1j*imag
-        output=output+fft_data[a]*de
-        #for j in np.arange(nfreq):
-        #    real = 1.0 * np.cos(2*np.pi*frequencies[j]*delay)
-        #    imag = 1.0 * np.sin(2*np.pi*frequencies[j]*delay)
-        #    de=complex(real,imag)
-        #    output[j]=output[j]+fft_data[a][j]*de
-              #*it_out += (*it_fft) * polar(1.0, (2*np.pi)*((*it_freq) * delay));
-    
-    return output
-
-def geometric_delays(antpos,sky):
-    distance=np.sqrt(sky[0]**2+sky[1]**2+sky[2]**2)
-    delays=(np.sqrt((sky[0]-antpos[0])**2+(sky[1]-antpos[1])**2+(sky[2]-antpos[2])**2)-distance)/lightspeed
-    return delays
-
-def GeometricDelayFarField(position, direction, length):
-    delay=(direction[0]*position[0] + direction[1]*position[1]+direction[2]*position[2])/length/lightspeed
-    return delay
-    
-    
-def beamformer(fft_data,frequencies,delay):
-    nantennas=len(delay)
-    nfreq=len(frequencies)
-    output=np.zeros([len(frequencies)],dtype=complex)
-
-    for a in np.arange(nantennas):
-        for j in np.arange(nfreq):
-            real = 1.0 * np.cos(2*np.pi*frequencies[j]*delay[a])
-            imag = 1.0 * np.sin(2*np.pi*frequencies[j]*delay[a])
-            de=complex(real,imag)
-            output[j]=output[j]+fft_data[a][j]*de
-    return output
-
-def directionFitBF(fft_data,frequencies,antpos,start_direction,maxiter):
-    def negative_beamed_signal(direction):
-        print('direction: ',direction)
-
-        theta=direction[0]
-        phi=direction[1]
-        direction_cartesian=hp.spherical_to_cartesian(theta,phi)
-        delays=geometric_delays(antpos,direction_cartesian)
-        out=beamformer(fft_data,frequencies,delays)
-        timeseries=np.fft.irfft(out)
-        return -100*np.max(timeseries**2)
-    
-    
-    fit_direction = fmin_powell(negative_beamed_signal, np.asarray(start_direction), maxiter=maxiter, xtol=1.0)
-    
-    theta=fit_direction[0]
-    phi=fit_direction[1]
-    direction_cartesian=hp.spherical_to_cartesian(theta,phi)
-    delays=geometric_delays(antpos,direction_cartesian)
-    out=beamformer(fft_data,frequencies,delays)
-    timeseries=np.fft.irfft(out)
-    
-    return fit_direction, timeseries
-
