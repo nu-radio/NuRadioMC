@@ -168,7 +168,6 @@ class stationGalacticCalibrator:
 
         # Calculate Galactic power noise
         # the local sidereal time runs from 0 to 24 (it is calculated from the Earth angle), so normalise it to 2 * pi
-        # TODO: does the galactic_noise_power have the correct units?
         galactic_noise_power = fourier_series(local_sidereal_time / 24.0 * 2 * np.pi,
                                               self.__rel_calibration_coefficients[channel_polarisation])
 
@@ -220,10 +219,8 @@ class stationGalacticCalibrator:
         """
         timestamp = event.get_id() + 1262304000
         for station in event.get_stations():
-            # TODO: is this step necessary?
-            for polarisation in self.__rel_calibration_coefficients.keys():
-                for channel in station.iter_channel_group(polarisation):
-                    self._calibrate_channel(channel, timestamp)
+            for channel in station.iter_channels():
+                self._calibrate_channel(channel, timestamp)
 
     def end(self):
         pass
