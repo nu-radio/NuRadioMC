@@ -13,6 +13,7 @@ from NuRadioReco.modules.base import module
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.channel
+from NuRadioReco.framework.parameters import stationParameters
 
 import NuRadioReco.modules.io.LOFAR.rawTBBio as rawTBBio
 import NuRadioReco.modules.io.LOFAR.rawTBBio_metadata as rawTBBio_metadata
@@ -185,7 +186,7 @@ class getLOFARtraces:
         this_station_name = self.tbb_file.get_station_name()
 
         logger.info("Getting clock offset for station %s" % this_station_name)
-        this_clock_offset_ns = 1.0e9 * station_clock_offsets[this_station_name]
+        this_clock_offset_ns = 1.0e9 * station_clock_offsets[this_station_name] # was kept constant at 1e4 at read-in in pycrtools
         logger.info("Clock offset is %1.4e ns" % this_clock_offset_ns)
 
         packet = lora_timestamp_to_blocknumber(self.time_s, self.time_ns, timestamp, sample_number,
@@ -420,21 +421,33 @@ class readLOFARData:
                 self.__lora_timestamp_ns,
                 trace_length
             )
+            channels_deviating, channels_missing_counterpart = lofar_trace_access.check_trace_quality()
+            #print("Channels deviating: %s" % channels_deviating)
+            #print("Channels no counterpart: %s" % channels_missing_counterpart)
+            # done here as it needs median timing values over all traces in the station
+            flagged_channel_ids = channels_deviating.union(channels_missing_counterpart) # TODO make station parameter
             for channel_id in detector.get_channel_ids(station_id):
+                if channel_id in flagged_channel_ids:
+                    continue                 
                 if detector.get_channel(station_id, channel_id)['ant_orientation_phi'] == 225.0:
                     channel_group = 0
                 elif detector.get_channel(station_id, channel_id)['ant_orientation_phi'] == 135.0:
                     channel_group = 1
                 else:
                     raise ValueError('Orientation not implemented')
-                # TODO: check trace quality
+                # read in trace, see if that works. Needed or overly careful?
+                try:
+                    this_trace = lofar_trace_access.get_trace(str(channel_id).zfill(9))  # channel ID is 9 digits
+                except:
+                    flagged_channel_ids.add(channel_id)                    
+                    logger.warning("Could not read data for channel id %s" % channel_id)
+                    continue 
+                
                 channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id=channel_group)
-                channel.set_trace(
-                    lofar_trace_access.get_trace(str(channel_id).zfill(9)),  # channel ID is 9 digits
-                    station_dict['metadata'][4] * units.Hz
-                )
+                channel.set_trace(this_trace, station_dict['metadata'][4] * units.Hz)
                 station.add_channel(channel)
 
+            station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids) # store set of flagged channel ids as station parameter
             evt.set_station(station)
 
             lofar_trace_access.close_file()
