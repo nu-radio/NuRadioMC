@@ -491,6 +491,11 @@ class stationRFIFilter:
                 trace_fft = channel.get_frequency_spectrum()
                 sample_rate = channel.get_sampling_rate()
 
+                # Reject DC and first harmonic
+                trace_fft[0] *= 0.0
+                trace_fft[1] *= 0.0
+
+                # Remove dirty channels
                 trace_fft[dirty_channels] *= 0.0
 
                 channel.set_frequency_spectrum(trace_fft, sample_rate)
