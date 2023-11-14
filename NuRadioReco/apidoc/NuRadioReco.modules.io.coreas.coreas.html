@@ -594,7 +594,7 @@ Note: The volume of a 2d convex hull is the area.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.make_sim_station">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">make_sim_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corsika</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#make_sim_station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.make_sim_station" title="Permalink to this definition"></a></dt>
-<dd><p>creates an NuRadioReco sim station from the observer object of the coreas hdf5 file</p>
+<dd><p>creates an NuRadioReco sim station from the (interpolated) observer object of the coreas hdf5 file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -610,7 +610,7 @@ Note: The volume of a 2d convex hull is the area.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>sim_station: sim station</dt><dd><p>ARIANNA simulated station object</p>
+<dt>sim_station: sim station</dt><dd><p>simulated station object</p>
 </dd>
 </dl>
 </dd>
@@ -620,7 +620,25 @@ Note: The volume of a 2d convex hull is the area.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.coreas.coreas.make_sim_shower">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.coreas.coreas.</span></span><span class="sig-name descname"><span class="pre">make_sim_shower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corsika</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/coreas/coreas.html#make_sim_shower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.coreas.coreas.make_sim_shower" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>creates an NuRadioReco sim shower from the coreas hdf5 file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>corsika</strong><span class="classifier">hdf5 file object</span></dt><dd><p>the open hdf5 file object of the corsika hdf5 file</p>
+</dd>
+<dt><strong>observer</strong><span class="classifier">hdf5 observer object</span></dt><dd></dd>
+<dt><strong>detector</strong><span class="classifier">detector object</span></dt><dd></dd>
+<dt><strong>station_id</strong><span class="classifier">station id of the station relativ to which the shower core is given</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>sim_shower: sim shower</dt><dd><p>simulated shower object</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 

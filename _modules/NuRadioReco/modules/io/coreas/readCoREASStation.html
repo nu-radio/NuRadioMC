@@ -575,7 +575,6 @@
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.station</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.modules.io.coreas</span> <span class="kn">import</span> <span class="n">coreas</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
-
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;readCoREASStation&#39;</span><span class="p">)</span>
 
@@ -604,13 +603,13 @@
 <div class="viewcode-block" id="readCoREASStation.run"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASStation.html#NuRadioReco.modules.io.coreas.readCoREASStation.readCoREASStation.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detector</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Reads in all observers in the CoREAS files and returns a new simulated</span>
-<span class="sd">        event for each.</span>
+<span class="sd">        Reads in all observers in the CoREAS files and returns a new simulated event for each observer with </span>
+<span class="sd">        respect to a given detector with a single station.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        detector: Detector object</span>
-<span class="sd">            Detector description of the detector that shall be simulated</span>
+<span class="sd">            Detector description of the detector that shall be simulated containing one station</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">input_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__input_files</span><span class="p">:</span>

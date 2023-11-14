@@ -570,21 +570,17 @@
   <h1>Source code for NuRadioReco.modules.io.coreas.coreas</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-
 <span class="kn">from</span> <span class="nn">radiotools</span> <span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
 <span class="kn">from</span> <span class="nn">radiotools</span> <span class="kn">import</span> <span class="n">coordinatesystems</span>
-
 <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.sim_station</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.base_trace</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.electric_field</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.radio_shower</span>
 <span class="kn">import</span> <span class="nn">radiotools.coordinatesystems</span>
-
 <span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">electricFieldParameters</span> <span class="k">as</span> <span class="n">efp</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">showerParameters</span> <span class="k">as</span> <span class="n">shp</span>
-
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;coreas&#39;</span><span class="p">)</span>
 
@@ -640,7 +636,7 @@
         <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Position in $\vec</span><span class="si">{v}</span><span class="s1"> \times \vec</span><span class="si">{v}</span><span class="s1"> \times \vec</span><span class="si">{B}</span><span class="s1">$ - direction [m]&#39;</span><span class="p">)</span>
 
     <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">positions</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
-    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>  <span class="c1"># loop over all 240 station positions</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>  <span class="c1"># loop over all observer positions</span>
         <span class="n">vertices_shower_2d</span> <span class="o">=</span> <span class="n">vor</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="n">vor</span><span class="o">.</span><span class="n">regions</span><span class="p">[</span><span class="n">vor</span><span class="o">.</span><span class="n">point_region</span><span class="p">[</span><span class="n">p</span><span class="p">]]]</span>
 
         <span class="c1"># x_vertice_ground = x_trafo_from_shower[0] * x_vertice_shower + y_trafo_from_shower[0] * y_vertice_shower + z_trafo_from_shower[0] * z_vertice_shower</span>
@@ -657,7 +653,7 @@
         <span class="n">vertices_shower_3d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vertices_shower_3d</span><span class="p">)</span>
         <span class="n">vertices_ground</span> <span class="o">=</span> <span class="n">cstrafo</span><span class="o">.</span><span class="n">transform_from_vxB_vxvxB</span><span class="p">(</span><span class="n">station_position</span><span class="o">=</span><span class="n">vertices_shower_3d</span><span class="p">)</span>
 
-        <span class="n">n_arms</span> <span class="o">=</span> <span class="mi">8</span>  <span class="c1"># mask last stations of each arm</span>
+        <span class="n">n_arms</span> <span class="o">=</span> <span class="mi">8</span>  <span class="c1"># mask last observer position of each arm</span>
         <span class="n">length_shower</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">shower</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">shower</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argpartition</span><span class="p">(</span><span class="n">length_shower</span><span class="p">,</span> <span class="o">-</span><span class="n">n_arms</span><span class="p">)[</span><span class="o">-</span><span class="n">n_arms</span><span class="p">:]</span>
 
@@ -669,7 +665,7 @@
             <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">vertices_ground</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">vertices_ground</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;grey&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">ax2</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">vertices_ground</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">vertices_ground</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;tab:orange&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
-        <span class="n">ax2</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">positions</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">positions</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;tab:blue&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Position of stations&#39;</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">positions</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">positions</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;tab:blue&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Position of observer&#39;</span><span class="p">)</span>
         <span class="n">ax2</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">vertices_ground</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">vertices_ground</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;tab:orange&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Vertices of cell&#39;</span><span class="p">)</span>
         <span class="n">ax2</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
         <span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;On ground, total area </span><span class="si">{:.2f}</span><span class="s1"> $km^2$&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
@@ -687,7 +683,7 @@
         <span class="n">ax4</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
         <span class="n">ax4</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Weight distribution&#39;</span><span class="p">)</span>
         <span class="n">ax4</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Weights (here area) $[m^2]$&#39;</span><span class="p">)</span>
-        <span class="n">ax4</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Number of stations&#39;</span><span class="p">)</span>
+        <span class="n">ax4</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Number of observer&#39;</span><span class="p">)</span>
 
         <span class="n">ax5</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">length_shower</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span>
         <span class="n">ax5</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$Length^2 [m^2]$&#39;</span><span class="p">)</span>
@@ -699,7 +695,7 @@
 
 <div class="viewcode-block" id="make_sim_station"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.make_sim_station">[docs]</a><span class="k">def</span> <span class="nf">make_sim_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">corsika</span><span class="p">,</span> <span class="n">observer</span><span class="p">,</span> <span class="n">channel_ids</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    creates an NuRadioReco sim station from the observer object of the coreas hdf5 file</span>
+<span class="sd">    creates an NuRadioReco sim station from the (interpolated) observer object of the coreas hdf5 file</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -715,10 +711,11 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    sim_station: sim station</span>
-<span class="sd">        ARIANNA simulated station object</span>
+<span class="sd">        simulated station object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># loop over all coreas stations, rotate to ARIANNA CS and save to simulation branch</span>
+
     <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">magnetic_field_vector</span> <span class="o">=</span> <span class="n">get_angles</span><span class="p">(</span><span class="n">corsika</span><span class="p">)</span>
+
     <span class="k">if</span><span class="p">(</span><span class="n">observer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">512</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
         <span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span>
@@ -771,6 +768,22 @@
 
 
 <div class="viewcode-block" id="make_sim_shower"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreas.html#NuRadioReco.modules.io.coreas.coreas.make_sim_shower">[docs]</a><span class="k">def</span> <span class="nf">make_sim_shower</span><span class="p">(</span><span class="n">corsika</span><span class="p">,</span> <span class="n">observer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">detector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    creates an NuRadioReco sim shower from the coreas hdf5 file</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    corsika : hdf5 file object</span>
+<span class="sd">        the open hdf5 file object of the corsika hdf5 file</span>
+<span class="sd">    observer : hdf5 observer object</span>
+<span class="sd">    detector : detector object</span>
+<span class="sd">    station_id : station id of the station relativ to which the shower core is given</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sim_shower: sim shower</span>
+<span class="sd">        simulated shower object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">sim_shower</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">radio_shower</span><span class="o">.</span><span class="n">RadioShower</span><span class="p">()</span>
 
     <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">magnetic_field_vector</span> <span class="o">=</span> <span class="n">get_angles</span><span class="p">(</span><span class="n">corsika</span><span class="p">)</span>
