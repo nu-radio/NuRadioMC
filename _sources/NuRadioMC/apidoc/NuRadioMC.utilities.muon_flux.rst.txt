@@ -1,0 +1,7 @@
+NuRadioMC.utilities.muon\_flux module
+=====================================
+
+.. automodule:: NuRadioMC.utilities.muon_flux
+   :members:
+   :undoc-members:
+   :show-inheritance:

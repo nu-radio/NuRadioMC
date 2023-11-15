@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioMC.EvtGen.generate_unforced module &mdash; NuRadio 2.2.0-dev documentation</title>
+  <title>NuRadioMC.utilities.muon_flux module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
@@ -21,8 +21,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioMC.EvtGen.generator module" href="NuRadioMC.EvtGen.generator.html" />
-    <link rel="prev" title="NuRadioMC.EvtGen.generate_cylinder module" href="NuRadioMC.EvtGen.generate_cylinder.html" /> 
+    <link rel="next" title="NuRadioMC.utilities.plotting module" href="NuRadioMC.utilities.plotting.html" />
+    <link rel="prev" title="NuRadioMC.utilities.merge_hdf5 module" href="NuRadioMC.utilities.merge_hdf5.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -387,13 +387,13 @@
 </ul>
 </li>
 <li class="toctree-l2 current"><a class="reference internal" href="../pages/code_documentation.html">Code Documentation</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a><ul class="current">
-<li class="toctree-l4 current"><a class="reference internal" href="NuRadioMC.EvtGen.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.EvtGen.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.EvtGen.NuRadioMCtoAraSim.html">NuRadioMC.EvtGen.NuRadioMCtoAraSim module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.EvtGen.NuRadioProposal.html">NuRadioMC.EvtGen.NuRadioProposal module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.EvtGen.create_tau_tab.html">NuRadioMC.EvtGen.create_tau_tab module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.EvtGen.generate_cylinder.html">NuRadioMC.EvtGen.generate_cylinder module</a></li>
-<li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioMC.EvtGen.generate_unforced module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC.EvtGen.generate_unforced.html">NuRadioMC.EvtGen.generate_unforced module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.EvtGen.generator.html">NuRadioMC.EvtGen.generator module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.EvtGen.generator_ASCII.html">NuRadioMC.EvtGen.generator_ASCII module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.EvtGen.generator_skeleton.html">NuRadioMC.EvtGen.generator_skeleton module</a></li>
@@ -437,8 +437,8 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioMC.utilities.html">NuRadioMC.utilities package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="NuRadioMC.utilities.html#submodules">Submodules</a><ul>
+<li class="toctree-l3 current"><a class="reference internal" href="NuRadioMC.utilities.html">NuRadioMC.utilities package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="NuRadioMC.utilities.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.Veff.html">NuRadioMC.utilities.Veff module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.attenuation.html">NuRadioMC.utilities.attenuation module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.cross_sections.html">NuRadioMC.utilities.cross_sections module</a></li>
@@ -449,7 +449,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.medium.html">NuRadioMC.utilities.medium module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.medium_base.html">NuRadioMC.utilities.medium_base module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.merge_hdf5.html">NuRadioMC.utilities.merge_hdf5 module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.muon_flux.html">NuRadioMC.utilities.muon_flux module</a></li>
+<li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioMC.utilities.muon_flux module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.plotting.html">NuRadioMC.utilities.plotting module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.runner.html">NuRadioMC.utilities.runner module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC.utilities.runner_example.html">NuRadioMC.utilities.runner_example module</a></li>
@@ -563,10 +563,10 @@
       <li><a href="../../main.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioMC Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
-          <li class="breadcrumb-item"><a href="NuRadioMC.EvtGen.html">NuRadioMC.EvtGen package</a></li>
-      <li class="breadcrumb-item active">NuRadioMC.EvtGen.generate_unforced module</li>
+          <li class="breadcrumb-item"><a href="NuRadioMC.utilities.html">NuRadioMC.utilities package</a></li>
+      <li class="breadcrumb-item active">NuRadioMC.utilities.muon_flux module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/NuRadioMC/apidoc/NuRadioMC.EvtGen.generate_unforced.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -574,82 +574,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioMC.EvtGen.generate_unforced">
-<span id="nuradiomc-evtgen-generate-unforced-module"></span><h1>NuRadioMC.EvtGen.generate_unforced module<a class="headerlink" href="#module-NuRadioMC.EvtGen.generate_unforced" title="Permalink to this heading"></a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="NuRadioMC.EvtGen.generate_unforced.generate_eventlist_cylinder">
-<span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.generate_unforced.</span></span><span class="sig-name descname"><span class="pre">generate_eventlist_cylinder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Emin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Emax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_rmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_zmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_zmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thetamin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thetamax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.141592653589793</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phimin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phimax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.283185307179586</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_event_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flavor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[12,</span> <span class="pre">-12,</span> <span class="pre">14,</span> <span class="pre">-14,</span> <span class="pre">16,</span> <span class="pre">-16]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_events_per_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectrum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log_uniform'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_file_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/generate_unforced.html#generate_eventlist_cylinder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.generate_unforced.generate_eventlist_cylinder" title="Permalink to this definition"></a></dt>
-<dd><p>Event generator</p>
-<p>Generates neutrino interactions, i.e., vertex positions, neutrino directions,
-neutrino flavor, charged currend/neutral current and inelastiviy distributions.
-All events are saved in an hdf5 file.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>filename: string</strong></dt><dd><p>the output filename of the hdf5 file</p>
-</dd>
-<dt><strong>n_events: int</strong></dt><dd><p>number of events to generate</p>
-</dd>
-<dt><strong>Emin: float</strong></dt><dd><p>the minimum neutrino energy (energies are randomly chosen assuming a
-uniform distribution in the logarithm of the energy)</p>
-</dd>
-<dt><strong>Emax: float</strong></dt><dd><p>the maximum neutrino energy (energies are randomly chosen assuming a
-uniform distribution in the logarithm of the energy)</p>
-</dd>
-<dt><strong>full_rmin: float (default None)</strong></dt><dd><p>lower r coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)</p>
-</dd>
-<dt><strong>full_rmax: float (default None)</strong></dt><dd><p>upper r coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)</p>
-</dd>
-<dt><strong>full_zmin: float (default None)</strong></dt><dd><p>lower z coordinate of simulated volume (if None it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)</p>
-</dd>
-<dt><strong>full_zmax: float (default None)</strong></dt><dd><p>upper z coordinate of simulated volume (if None it is set to 5x the fiducial volume, if second vertices are not activated it is set to the fiducial volume)</p>
-</dd>
-<dt><strong>thetamin: float</strong></dt><dd><p>lower zenith angle for neutrino arrival direction</p>
-</dd>
-<dt><strong>thetamax: float</strong></dt><dd><p>upper zenith angle for neutrino arrival direction</p>
-</dd>
-<dt><strong>phimin: float</strong></dt><dd><p>lower azimuth angle for neutrino arrival direction</p>
-</dd>
-<dt><strong>phimax: float</strong></dt><dd><p>upper azimuth angle for neutrino arrival direction</p>
-</dd>
-<dt><strong>start_event: int</strong></dt><dd><p>default: 1
-event number of first event</p>
-</dd>
-<dt><strong>flavor: array of ints</strong></dt><dd><p>default: [12, -12, 14, -14, 16, -16]
-specify which neutrino flavors to generate. A uniform distribution of
-all specified flavors is assumed.
-The neutrino flavor (integer) encoded as using PDF numbering scheme,
-particles have positive sign, anti-particles have negative sign,
-relevant for us are:
-* 12: electron neutrino
-* 14: muon neutrino
-* 16: tau neutrino</p>
-</dd>
-<dt><strong>n_events_per_file: int or None</strong></dt><dd><p>the maximum number of events per output files. Default is None, which
-means that all events are saved in one file. If ‘n_events_per_file’ is
-smaller than ‘n_events’ the event list is split up into multiple files.
-This is useful to split up the computing on multiple cores.</p>
-</dd>
-<dt><strong>spectrum: string</strong></dt><dd><p>defines the probability distribution for which the neutrino energies are generated
-* ‘log_uniform’: uniformly distributed in the logarithm of energy</p>
-</dd>
-<dt><strong>start_file_id: int (default 0)</strong></dt><dd><p>in case the data set is distributed over several files, this number specifies the id of the first file
-(useful if an existing data set is extended)
-if True, generate deposited energies instead of primary neutrino energies</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
+  <section id="nuradiomc-utilities-muon-flux-module">
+<h1>NuRadioMC.utilities.muon_flux module<a class="headerlink" href="#nuradiomc-utilities-muon-flux-module" title="Permalink to this heading"></a></h1>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioMC.EvtGen.generate_cylinder.html" class="btn btn-neutral float-left" title="NuRadioMC.EvtGen.generate_cylinder module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioMC.EvtGen.generator.html" class="btn btn-neutral float-right" title="NuRadioMC.EvtGen.generator module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioMC.utilities.merge_hdf5.html" class="btn btn-neutral float-left" title="NuRadioMC.utilities.merge_hdf5 module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioMC.utilities.plotting.html" class="btn btn-neutral float-right" title="NuRadioMC.utilities.plotting module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
