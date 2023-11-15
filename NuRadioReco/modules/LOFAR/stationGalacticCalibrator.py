@@ -60,6 +60,8 @@ class stationGalacticCalibrator:
     `paper <https://arxiv.org/pdf/1903.05988.pdf>`_ .
     """
     def __init__(self, experiment='LOFAR_LBA'):
+        self.logger = logging.getLogger('NuRadioReco.stationGalacticCalibrator')
+
         self.__experiment = experiment
 
         self.__experiment_parameters = None
@@ -165,6 +167,8 @@ class stationGalacticCalibrator:
         channel_polarisation = channel.get_group_id()
         channel_bandwidth = channel.get_sampling_rate() / channel.get_number_of_samples() / units.s  # 1 / period
         channel_power = np.sum(np.abs(channel.get_frequency_spectrum()) ** 2) * channel_bandwidth
+
+        self.logger.debug(f"Channel power of channel {channel.get_id()} is {channel_power}")
 
         # Calculate Galactic power noise
         # the local sidereal time runs from 0 to 24 (it is calculated from the Earth angle), so normalise it to 2 * pi

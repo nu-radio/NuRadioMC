@@ -460,8 +460,7 @@ class stationRFIFilter:
             station_files = stations_dict[station_name]['files']
 
             # Find the length of a trace in the station (assume all channels have been loaded with same length)
-            station_trace_length = len(station.get_channel(station.get_channel_ids()[0]).get_trace())
-            # TODO: when time_trace is set, can replace this with channel.get_number_of_samples()
+            station_trace_length = station.get_channel(station.get_channel_ids()[0]).get_number_of_samples()
 
             # Do some checks
             if len(station_files) < 1:
@@ -481,7 +480,7 @@ class stationRFIFilter:
 
             # Extract the necessary information from FindRFI
             avg_power_spectrum = packet[0]
-            dirty_channels = packet[1]
+            dirty_channels = packet[1]  # TODO: save dirty channels as station parameter
             dirty_channels_block_size = packet[2]
 
             # TODO: implement outlier detection in cleaned power
