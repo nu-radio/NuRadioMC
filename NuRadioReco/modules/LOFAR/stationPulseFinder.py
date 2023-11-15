@@ -49,6 +49,11 @@ def find_snr_of_timeseries(timeseries, window_start=0, window_end=-1, noise_star
 
 
 class stationPulseFinder:
+    """
+    Look for significant pulses in every station. The module uses beamforming to enhance the sensitivity in
+    direction estimated from the LORA particle data. It also identifies the channels which have an SNR good
+    enough to use for direction fitting later.
+    """
     def __init__(self):
         self.logger = logging.getLogger('NuRadioReco.stationPulseFinder')
 
@@ -58,12 +63,48 @@ class stationPulseFinder:
         self.__min_good_channels = None
 
     def begin(self, window=500, noise_window=10000, cr_snr=3, good_channels=6):
+        """
+        Sets the window size to use for pulse finding, as well as the number of samples away from the pulse
+        to use for noise measurements. The function also defines what an acceptable SNR is to consider a
+        cosmic-ray signal to be in the trace, as well as the number of good channels a station should have
+        to be kept for further processing.
+
+        Parameters
+        ----------
+        window : int
+            Size of the window to look for pulse
+        noise_window : int
+            The trace used for noise characterisation goes from sample 0 to the start of the pulse searching
+            window minus this number.
+        cr_snr : float
+            The minimum SNR a channel should have to be considered having a CR signal.
+        good_channels : int
+            The minimum number of good channels a station should have in order be "triggered".
+        """
         self.__window_size = window
         self.__noise_away_from_pulse = noise_window
         self.__snr_cr = cr_snr  # TODO: do we need different SNR levels for station and antenna
         self.__min_good_channels = good_channels
 
     def _signal_windows_polarisation(self, station, channel_positions, polarisation_ids=None):
+        """
+        Considers all polarisations given by `polarisation_ids` one by one and beamforms the traces
+        in the direction of the LORA direction. It then saves the maximum of the amplitude envelope
+        together with the corresponding indices for pulse finding in a list, which it returns.
+
+        Parameters
+        ----------
+        station : Station object
+            The station to analyse.
+        channel_positions : np.ndarray
+            The array of channels positions, to be extracted from the detector description.
+        polarisation_ids : list, default=[0,1]
+            The `channel_group_id` of the polarisations to consider.
+
+        Returns
+        -------
+
+        """
         if polarisation_ids is None:
             polarisation_ids = [0, 1]
 
@@ -183,6 +224,7 @@ class stationPulseFinder:
                                  noise_window=noise_window
                                  )
 
+            # TODO: save good channels to use for direction fitting later
             good_channels_station = self._find_good_channels(station,
                                                              signal_window=signal_window,
                                                              noise_window=noise_window
