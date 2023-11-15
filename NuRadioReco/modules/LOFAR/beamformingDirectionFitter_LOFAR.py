@@ -26,11 +26,12 @@ def geometric_delays(ant_positions, sky):
 
     :param ant_positions: antenna positions
     :type ant_positions: np.ndarray
-    :param sky: position in the sky
+    :param sky: unit vector pointing to the arrival direction in cartesian coordinates
     :type sky: np.ndarray
     :return: delays
     :type: np.ndarray
     """
+    sky *= 1e6
     distance = np.sqrt(np.sum(sky ** 2))
     delays = np.sqrt(np.sum((sky - ant_positions) ** 2, axis=1)) - distance
     delays /= lightspeed
@@ -57,18 +58,14 @@ class beamformingDirectionFitter:
 
     def _direction_fit(self, fft_traces, freq, ant_positions):
         def negative_beamed_signal(direction):
-            # TODO: why the rotations?
-            theta = 90 * units.deg - direction[0] * units.rad
-            phi = 360 * units.deg - direction[1] * units.rad
-            direction_cartesian = hp.spherical_to_cartesian(theta / units.rad,
-                                                            phi / units.rad)
+            theta = direction[0]
+            phi = direction[1]
+            direction_cartesian = hp.spherical_to_cartesian(theta, phi)
 
             delays = geometric_delays(ant_positions, direction_cartesian)
-            print(ant_positions)
-            print(delays)
 
             out = beamformer(fft_traces, freq, delays)
-            timeseries = np.fft.irfft(out)  # TODO: is this really necessary?
+            timeseries = fft.freq2time(out, 200 * units.MHz)  # TODO: is this really necessary?
 
             return -100 * np.max(timeseries ** 2)
 
@@ -77,9 +74,8 @@ class beamformingDirectionFitter:
                                     start_direction,
                                     maxiter=self.__max_iter, xtol=1.0)
 
-        # TODO: why 2pi - answer?
-        theta = (2 * np.pi) - np.radians(fit_direction[0])
-        phi = (2 * np.pi) - np.radians(fit_direction[1])
+        theta = fit_direction[0]
+        phi = fit_direction[1]
         direction_cartesian = hp.spherical_to_cartesian(theta, phi)
 
         delays = geometric_delays(ant_positions, direction_cartesian)
@@ -110,9 +106,10 @@ class beamformingDirectionFitter:
             if not station.get_parameter(stationParameters.triggered):
                 # Not triggered means to reliable pulse found or not enough antennas to do the fit
                 continue
+            # TODO: need to obtain good channels and only use those
 
             zenith = station.get_parameter(stationParameters.zenith)
-            azimuth = station.get_parameter(stationParameters.azimuth) + np.pi  # TODO: coordinate transformation?
+            azimuth = station.get_parameter(stationParameters.azimuth)
 
             position_array = [
                 det.get_absolute_position(station.get_id()) +
@@ -124,6 +121,7 @@ class beamformingDirectionFitter:
             for channel0, channel1 in zip(station.iter_channel_group(0), station.iter_channel_group(1)):
                 converter.run(evt, station, det, use_channels=[channel0.get_id(), channel1.get_id()])
 
+            # TODO: does the dominant polarisation needs to be updated during loop?
             dominant_pol = station.get_parameter(stationParameters.cr_dominant_polarisation)
 
             # The e-field from the converter has eR as [0] component -> do +1 in index
@@ -136,15 +134,15 @@ class beamformingDirectionFitter:
             self.__azimuth.append(azimuth)
 
             direction_difference = np.asarray([100, 100])
-            while direction_difference[0] > 1 and direction_difference[1] > 1:
+            while direction_difference[0] > 0.1 * units.deg and direction_difference[1] > 0.1 * units.deg:
                 direction_fit, freq_spectrum = self._direction_fit(
                     e_field_traces_fft, frequencies, position_array
                 )
 
-                zenith_diff = self.__zenith[-1] - direction_fit[0]
-                azimuth_diff = self.__azimuth[-1] - direction_fit[1]
+                zenith_diff = np.abs(self.__zenith[-1] - direction_fit[0])
+                azimuth_diff = np.abs(self.__azimuth[-1] - direction_fit[1])
 
-                direction_difference = np.abs(np.asarray([zenith_diff, azimuth_diff]))
+                direction_difference = np.asarray([zenith_diff, azimuth_diff])
 
                 # Bookkeeping
                 self.__zenith.append(direction_fit[0])
@@ -155,6 +153,15 @@ class beamformingDirectionFitter:
 
                 self.logger.debug('Difference after another fit iteration is %s;' % direction_difference)
                 self.logger.debug('Direction after this fit iteration is %s;' % direction_fit)
+
+            print(station.get_id())
+            print(self.__zenith)
+            print(self.__azimuth)
+
+            self.__zenith = []
+            self.__azimuth = []
+            self.__delta_zenith = []
+            self.__delta_azimuth = []
 
     def end(self):
         pass
