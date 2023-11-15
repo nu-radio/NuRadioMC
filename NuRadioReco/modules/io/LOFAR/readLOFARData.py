@@ -416,7 +416,7 @@ class readLOFARData:
                 continue
             station = NuRadioReco.framework.station.Station(station_id)
 
-            # Use KRATOS io functions to access trace (TODO: import these into NRR)
+            # Use KRATOS io functions to access trace
             lofar_trace_access = getLOFARtraces(
                 station_files,
                 self.meta_dir,
@@ -425,10 +425,12 @@ class readLOFARData:
                 trace_length
             )
             channels_deviating, channels_missing_counterpart = lofar_trace_access.check_trace_quality()
-            #print("Channels deviating: %s" % channels_deviating)
-            #print("Channels no counterpart: %s" % channels_missing_counterpart)
+
+            self.logger.debug("Channels deviating: %s" % channels_deviating)
+            self.logger.debug("Channels no counterpart: %s" % channels_missing_counterpart)
+
             # done here as it needs median timing values over all traces in the station
-            flagged_channel_ids = channels_deviating.union(channels_missing_counterpart) # TODO make station parameter
+            flagged_channel_ids = channels_deviating.union(channels_missing_counterpart)
             for channel_id in detector.get_channel_ids(station_id):
                 if channel_id in flagged_channel_ids:
                     continue                 
@@ -441,7 +443,7 @@ class readLOFARData:
                 # read in trace, see if that works. Needed or overly careful?
                 try:
                     this_trace = lofar_trace_access.get_trace(str(channel_id).zfill(9))  # channel ID is 9 digits
-                except:
+                except:  # FIXME: Too general except statement
                     flagged_channel_ids.add(channel_id)                    
                     logger.warning("Could not read data for channel id %s" % channel_id)
                     continue 
@@ -450,7 +452,8 @@ class readLOFARData:
                 channel.set_trace(this_trace, station_dict['metadata'][4] * units.Hz)
                 station.add_channel(channel)
 
-            station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids) # store set of flagged channel ids as station parameter
+            # store set of flagged channel ids as station parameter
+            station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids)
             evt.set_station(station)
 
             station.set_parameter(stationParameters.zenith, self.__lora_zenith)
