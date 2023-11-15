@@ -24,8 +24,7 @@ def get_angles(corsika):
     Converting angles in corsika coordinates to local coordinates
     """
     zenith = np.deg2rad(corsika['inputs'].attrs["THETAP"][0])
-    azimuth = hp.get_normalized_angle(3 * np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]))
-
+    azimuth = hp.get_normalized_angle(np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]))
     Bx, Bz = corsika['inputs'].attrs["MAGNET"]
     B_inclination = np.arctan2(Bz, Bx)
 
@@ -33,7 +32,6 @@ def get_angles(corsika):
 
     # in local coordinates north is + 90 deg
     magnetic_field_vector = B_strength * hp.spherical_to_cartesian(np.pi * 0.5 + B_inclination, 0 + np.pi * 0.5)
-
     return zenith, azimuth, magnetic_field_vector
 
 
@@ -123,7 +121,7 @@ def calculate_simulation_weights(positions, zenith, azimuth, site='summit', debu
     return weights
 
 
-def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
+def make_sim_station(station_id, corsika, observer, channel_ids, weight=None,  interpFlag = False):
     """
     creates an NuRadioReco sim station from the (interpolated) observer object of the coreas hdf5 file
 
@@ -147,21 +145,25 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
     zenith, azimuth, magnetic_field_vector = get_angles(corsika)
 
     if(observer is None):
-        data = np.zeros((512, 4))
-        data[:, 0] = np.arange(0, 512) * units.ns / units.second
-    else:
+        observer = np.zeros((512, 4))
+        observer[:, 0] = np.arange(0, 512) * units.ns / units.second
+        efield = observer
+    elif interpFlag == False and observer is not None:
         data = np.copy(observer)
         data[:, 1], data[:, 2] = -observer[:, 2], observer[:, 1]
 
-    # convert to SI units
-    data[:, 0] *= units.second
-    data[:, 1] *= conversion_fieldstrength_cgs_to_SI
-    data[:, 2] *= conversion_fieldstrength_cgs_to_SI
-    data[:, 3] *= conversion_fieldstrength_cgs_to_SI
+        # convert to SI units
+        data[:, 0] *= units.second
+        data[:, 1] *= conversion_fieldstrength_cgs_to_SI
+        data[:, 2] *= conversion_fieldstrength_cgs_to_SI
+        data[:, 3] *= conversion_fieldstrength_cgs_to_SI
 
-    cs = coordinatesystems.cstrafo(zenith, azimuth, magnetic_field_vector=magnetic_field_vector)
-    efield = cs.transform_from_magnetic_to_geographic(data[:, 1:].T)
-    efield = cs.transform_from_ground_to_onsky(efield)
+        cs = coordinatesystems.cstrafo(zenith, azimuth, magnetic_field_vector=magnetic_field_vector)
+        efield = cs.transform_from_magnetic_to_geographic(data[:, 1:].T)
+        efield = cs.transform_from_ground_to_onsky(efield)
+
+    elif interpFlag == True and observer is not None:
+        efield = observer
 
     # prepend trace with zeros to not have the pulse directly at the start
     n_samples_prepend = efield.shape[1]
@@ -174,7 +176,7 @@ def make_sim_station(station_id, corsika, observer, channel_ids, weight=None):
     sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
     electric_field = NuRadioReco.framework.electric_field.ElectricField(channel_ids)
     electric_field.set_trace(efield2, sampling_rate)
-    electric_field.set_trace_start_time(data[0, 0])
+    electric_field.set_trace_start_time(observer[0, 0])
     electric_field.set_parameter(efp.ray_path_type, 'direct')
     electric_field.set_parameter(efp.zenith, zenith)
     electric_field.set_parameter(efp.azimuth, azimuth)
