@@ -285,7 +285,7 @@ class readLOFARData:
     metadata_directory: Path-like str, optional
         The path to the directory containing the LOFAR metadata (antenna positions and timing calibrations).
     """
-    def __init__(self, tbb_directory=None, json_directory=None, metadata_directory=None):
+    def __init__(self, restricted_station_set=None, tbb_directory=None, json_directory=None, metadata_directory=None):
         self.logger = logging.getLogger('NuRadioReco.readLOFARData')
 
         self.tbb_dir = '/vol/astro3/lofar/vhecr/lora_triggered/data/' if tbb_directory is None else tbb_directory
@@ -296,6 +296,7 @@ class readLOFARData:
         self.__stations = None
         self.__lora_timestamp = None
         self.__lora_timestamp_ns = None
+        self.__restricted_station_set = restricted_station_set
 
     @staticmethod
     def __new_stations():
@@ -374,6 +375,8 @@ class readLOFARData:
 
         for tbb_filename in all_tbb_files:
             station_name = re.findall("CS\d\d\d", tbb_filename)[0]
+            if (self.__restricted_station_set is not None) and (station_name not in self.__restricted_station_set):
+                continue # only process stations in the given set
             self.logger.info(f'Found file {tbb_filename} for station {station_name}...')
             self.__stations[station_name]['files'].append(tbb_filename)
 
