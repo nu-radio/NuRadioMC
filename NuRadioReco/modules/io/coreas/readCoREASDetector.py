@@ -1,23 +1,21 @@
-from NuRadioReco.modules.base.module import register_run
+from datetime import timedelta
+import logging
+import os
+import time
 import h5py
+import numpy as np
+from radiotools import coordinatesystems as cstrafo
+import cr_pulse_interpolator.signal_interpolation_fourier
+import matplotlib.pyplot as plt
+from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
-from radiotools import coordinatesystems as cstrafo
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.utilities import units
-import numpy as np
-import numpy.random
-import logging
-import time
-import os
-import cr_pulse_interpolator.interpolation_fourier
-import cr_pulse_interpolator.signal_interpolation_fourier
-import matplotlib.pyplot as plt
 
-conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter 
-
+conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / units.meter
 debug = True
 
 class readCoREASDetector:
@@ -40,10 +38,11 @@ class readCoREASDetector:
             self.__random_generator = None
             self.__interp_lowfreq = None
             self.__interp_highfreq = None
-            self.logger = logging.getLogger('NuRadioReco.readCoREAS')
+            self.logger = logging.getLogger('NuRadioReco.readCoREASDetector')
 
-    def begin(self, input_files, xmin, xmax, ymin, ymax, n_cores=10, seed=None,  
-              interp_lowfreq = 30, interp_highfreq = 500, sampling_period = 0.2e-9, log_level=logging.INFO, efield_for_station = False):
+    def begin(self, input_files, xmin, xmax, ymin, ymax, n_cores=10, seed=None,
+                interp_lowfreq=30, interp_highfreq=500, sampling_period=0.2e-9, log_level=logging.INFO, efield_for_station=True):
+            
         """
         begin method
         initialize readCoREAS module
@@ -78,9 +77,9 @@ class readCoREASDetector:
         self.__interp_highfreq = interp_highfreq
         self.__sampling_period = sampling_period
         self.__efield_for_station = efield_for_station
-        self.__random_generator = numpy.random.RandomState(seed)
+        self.__random_generator = np.random.RandomState(seed)
         self.logger.setLevel(log_level)
-
+     
     @register_run()
     def run(self, detector, output_mode=0):
         """
@@ -175,6 +174,32 @@ class readCoREASDetector:
 
             station_ids = detector.get_station_ids()
 
+            def get_interpolated_efield(position, core, ddmax, efield_interpolator):
+                antenna_position = position
+                antenna_position[2] = 0
+
+                # transform antenna position into shower plane with respect to core position
+                antenna_pos_vBvvB = cs.transform_to_vxB_vxvxB(antenna_position, core=core)
+                # calculate distance between core position and antenna positions in shower plane
+                if debug:
+                    ax.plot(antenna_position[0], antenna_position[1], '+')
+                    ax2.plot(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1], '.')
+
+                dcore_vBvvB = np.sqrt((core_vBvvB[0] - antenna_pos_vBvvB[0])**2
+                    +(core_vBvvB[1] - antenna_pos_vBvvB[1])**2
+                    +(core_vBvvB[2] - antenna_pos_vBvvB[2])**2)
+
+                # interpolate electric field at antenna position in shower plane which are inside star pattern
+                if dcore_vBvvB > ddmax:
+                    res_efield = None
+                else:
+                    if debug:
+                        print(dcore_vBvvB, 'inside')
+                    efield_interp = efield_interpolator(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1])
+                    res_efield = [efield_interp[:,0], efield_interp[:,1], efield_interp[:,2]]
+                    res_efield = np.array(res_efield)
+                return res_efield  
+
             for iCore, core in enumerate(cores):
                 t = time.time()
                 evt = NuRadioReco.framework.event.Event(self.__current_input_file, iCore)  # create empty event
@@ -183,7 +208,7 @@ class readCoREASDetector:
                 evt.add_sim_shower(sim_shower)
                 rd_shower = NuRadioReco.framework.radio_shower.RadioShower(station_ids=station_ids)
                 evt.add_shower(rd_shower)
-                # basically core is always at (0,0,0) in shower plane
+                # the core is always at (0,0,0) in shower plane
                 core_vBvvB = cs.transform_to_vxB_vxvxB(core, core=core) 
                 for station_id in station_ids:
                     if debug:
@@ -198,57 +223,19 @@ class readCoREASDetector:
                     channel_ids = detector.get_channel_ids(station_id)       
 
                     if self.__efield_for_station:
-                        antenna_position = det_station_position
-                        antenna_position[2] = 0
-
-                        # transform antenna position into shower plane with respect to core position
-                        antenna_pos_vBvvB = cs.transform_to_vxB_vxvxB(antenna_position, core=core)
-                        # calculate distance between core position and antenna positions in shower plane
-                        if debug:
-                            ax.plot(antenna_position[0], antenna_position[1], '+')
-                            ax2.plot(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1], '.')
-
-                        dcore_vBvvB = np.sqrt((core_vBvvB[0] - antenna_pos_vBvvB[0])**2
-                            +(core_vBvvB[1] - antenna_pos_vBvvB[1])**2
-                            +(core_vBvvB[2] - antenna_pos_vBvvB[2])**2)
-
-                        # interpolate electric field at antenna position in shower plane which are inside star pattern
-                        if dcore_vBvvB > ddmax:
-                            res_efield = None
-                        else:
-                            if debug:
-                                print(dcore_vBvvB, 'inside')
-                            efield_interp = efield_interpolator(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1])
-                            res_efield = [efield_interp[:,0], efield_interp[:,1], efield_interp[:,2]]
-                            res_efield = np.array(res_efield)
+                        res_efield = get_interpolated_efield(det_station_position, core, ddmax, efield_interpolator)
                         sim_station = coreas.make_sim_station(station_id, corsika, res_efield, channel_ids, interpFlag=True)
+                        station.set_sim_station(sim_station)
+                        evt.set_station(station)    
                     else:
                         self.logger.debug('interpolate efield at antenna position instead of station')
                         for channel_id in channel_ids:
                             antenna_position_rel = detector.get_relative_position(station_id, channel_id)
                             antenna_position = det_station_position + antenna_position_rel
-                            antenna_pos_vBvvB = cs.transform_to_vxB_vxvxB(antenna_position, core=core)
-                            
-                            if debug:
-                                ax.plot(antenna_position[0], antenna_position[1], '+')
-                                ax2.plot(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1], '.')
-
-                            # calculate distance between core position and antenna positions in shower plane
-                            dcore_vBvvB = np.sqrt((core_vBvvB[0] - antenna_pos_vBvvB[0])**2
-                                +(core_vBvvB[1] - antenna_pos_vBvvB[1])**2
-                                +(core_vBvvB[2] - antenna_pos_vBvvB[2])**2)
-
-                            # interpolate electric field at antenna position in shower plane which are inside star pattern
-                            if dcore_vBvvB > ddmax:
-                                res_efield = None
-                            else:
-                                efield_interp = efield_interpolator(antenna_pos_vBvvB[0], antenna_pos_vBvvB[1])
-                                res_efield = [efield_interp[:,0], efield_interp[:,1], efield_interp[:,2]]
-                                res_efield = np.array(res_efield)
+                            res_efield = get_interpolated_efield(antenna_position, core, ddmax, efield_interpolator)
                             sim_station = coreas.make_sim_station(station_id, corsika, res_efield, channel_id, interpFlag=True)
-       
-                    station.set_sim_station(sim_station)
-                    evt.set_station(station)            
+                            station.set_sim_station(sim_station)
+                            evt.set_station(station)            
                     t_event_structure = time.time()
                 if debug:
                     ax.set_xlabel('east [m]')
