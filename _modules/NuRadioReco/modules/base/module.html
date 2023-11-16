@@ -573,8 +573,10 @@
 <span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">default_timer</span> <span class="k">as</span> <span class="n">timer</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.event</span>
 <span class="kn">import</span> <span class="nn">NuRadioReco.framework.base_station</span>
+<span class="kn">import</span> <span class="nn">NuRadioReco.detector.detector_base</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
 
 <div class="viewcode-block" id="setup_logger"><a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.base.module.html#NuRadioReco.modules.base.module.setup_logger">[docs]</a><span class="k">def</span> <span class="nf">setup_logger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;NuRadioReco&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">):</span>
 
@@ -610,43 +612,59 @@
             <span class="c1"># generator, so not sure how to access the event.</span>
             <span class="n">evt</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">station</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="c1"># find out type of module automatically</span>
-            <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
-                <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">)):</span>
-                    <span class="n">module_level</span> <span class="o">=</span> <span class="s2">&quot;event&quot;</span>
-                    <span class="n">evt</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># this is a module that creats events</span>
-                    <span class="n">module_level</span> <span class="o">=</span> <span class="s2">&quot;reader&quot;</span>
-            <span class="k">elif</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">):</span>
-                <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="p">)):</span>
-                    <span class="n">module_level</span> <span class="o">=</span> <span class="s2">&quot;station&quot;</span>
-                    <span class="n">evt</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="n">station</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-                <span class="k">elif</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">)):</span>
-                    <span class="n">module_level</span> <span class="o">=</span> <span class="s2">&quot;event&quot;</span>
-                    <span class="n">evt</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># this is a module that creates events</span>
-                    <span class="n">module_level</span> <span class="o">=</span> <span class="s2">&quot;reader&quot;</span>
-                    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;first argument of run method is not of type NuRadioReco.framework.event.Event&quot;</span><span class="p">)</span>
+
+            <span class="n">signature</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
+            <span class="n">parameters</span> <span class="o">=</span> <span class="n">signature</span><span class="o">.</span><span class="n">parameters</span>
+            <span class="c1"># convert args to kwargs to facilitate easier bookkeeping</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;self&#39;</span><span class="p">]</span>
+            <span class="n">all_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span><span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">args</span><span class="p">)}</span>
+            <span class="n">all_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="c1"># this silently overwrites positional args with kwargs, but this is probably okay as we still raise an error later</span>
+
+            <span class="c1"># include parameters with default values</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">value</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                        <span class="n">all_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">default</span>
+
+            <span class="n">store_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span><span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">)</span> <span class="ow">and</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># event should be the first argument</span>
+                    <span class="n">evt</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="p">)</span> <span class="ow">and</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># station should be second argument</span>
+                    <span class="n">station</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">detector_base</span><span class="o">.</span><span class="n">DetectorBase</span><span class="p">):</span>
+                    <span class="k">pass</span> <span class="c1"># we don&#39;t try to store detectors</span>
+                <span class="k">else</span><span class="p">:</span> <span class="c1"># we try to store other arguments IF they are pickleable</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+                        <span class="n">store_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span> <span class="c1"># object couldn&#39;t be pickled - we store the error instead</span>
+                        <span class="n">store_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2"> could not be serialized&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">station</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">module_level</span> <span class="o">=</span> <span class="s2">&quot;station&quot;</span>
+            <span class="k">elif</span> <span class="n">evt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">module_level</span> <span class="o">=</span> <span class="s2">&quot;event&quot;</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># this is a module that creats events</span>
                 <span class="n">module_level</span> <span class="o">=</span> <span class="s2">&quot;reader&quot;</span>
 
             <span class="n">start</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
-            <span class="n">res</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">module_level</span> <span class="o">==</span> <span class="s2">&quot;event&quot;</span><span class="p">):</span>
-                <span class="n">evt</span><span class="o">.</span><span class="n">register_module_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
-            <span class="k">elif</span><span class="p">(</span><span class="n">module_level</span> <span class="o">==</span> <span class="s2">&quot;station&quot;</span><span class="p">):</span>
-                <span class="n">evt</span><span class="o">.</span><span class="n">register_module_station</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
-            <span class="k">elif</span><span class="p">(</span><span class="n">module_level</span> <span class="o">==</span> <span class="s2">&quot;reader&quot;</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="n">module_level</span> <span class="o">==</span> <span class="s2">&quot;event&quot;</span><span class="p">:</span>
+                <span class="n">evt</span><span class="o">.</span><span class="n">register_module_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">store_kwargs</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">module_level</span> <span class="o">==</span> <span class="s2">&quot;station&quot;</span><span class="p">:</span>
+                <span class="n">evt</span><span class="o">.</span><span class="n">register_module_station</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">store_kwargs</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">module_level</span> <span class="o">==</span> <span class="s2">&quot;reader&quot;</span><span class="p">:</span>
                 <span class="c1"># not sure what to do... function returns generator, not sure how to access the event...</span>
                 <span class="k">pass</span>
+
+            <span class="n">res</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
             <span class="n">end</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
+
             <span class="k">if</span> <span class="bp">self</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">register_run_method</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>  <span class="c1"># keep track of timing of modules. We use the module instance as key to time different module instances separately.</span>
                 <span class="n">register_run_method</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="bp">self</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">register_run_method</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="bp">self</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
+
             <span class="k">return</span> <span class="n">res</span>
 
         <span class="n">register_run_method</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="p">{}</span>
