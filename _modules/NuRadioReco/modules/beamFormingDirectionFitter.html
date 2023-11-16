@@ -609,7 +609,7 @@
     <span class="n">time_shifts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
     <span class="n">t_geos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
 
-    <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
+    <span class="n">sampling_rate</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">())</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
     <span class="n">station_id</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
     <span class="n">site</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_site</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">iCh</span><span class="p">,</span> <span class="n">channel</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">()):</span>
@@ -756,7 +756,7 @@
         <span class="n">positions</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">chan</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
             <span class="n">positions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">det</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">chan</span><span class="p">))</span>
-        <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
+        <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
 
         <span class="n">ll</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">brute</span><span class="p">(</span>
             <span class="n">ll_regular_station</span><span class="p">,</span>
