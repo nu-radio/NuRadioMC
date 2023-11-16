@@ -49,7 +49,7 @@ class sphericalWaveFitter:
                 self.__channel_pairs.append([self.__channel_ids[i], self.__channel_ids[j]])
 
 
-        self.__sampling_rate = station.get_channel(0).get_sampling_rate()
+        self.__sampling_rate = station.get_channel(self.__channel_ids[0]).get_sampling_rate()
         if debug:
             fig, ax = plt.subplots( len(self.__channel_pairs), 2)
 

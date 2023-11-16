@@ -2,8 +2,10 @@ from functools import wraps
 from timeit import default_timer as timer
 import NuRadioReco.framework.event
 import NuRadioReco.framework.base_station
+import NuRadioReco.detector.detector_base
 import logging
-
+import inspect
+import pickle
 
 def setup_logger(name="NuRadioReco", level=logging.WARNING):
 
@@ -39,43 +41,59 @@ def register_run(level=None):
             # generator, so not sure how to access the event.
             evt = None
             station = None
-            # find out type of module automatically
-            if(len(args) == 1):
-                if(isinstance(args[0], NuRadioReco.framework.event.Event)):
-                    module_level = "event"
-                    evt = args[0]
-                else:
-                    # this is a module that creats events
-                    module_level = "reader"
-            elif(len(args) >= 2):
-                if(isinstance(args[0], NuRadioReco.framework.event.Event) and isinstance(args[1], NuRadioReco.framework.base_station.BaseStation)):
-                    module_level = "station"
-                    evt = args[0]
-                    station = args[1]
-                elif(isinstance(args[0], NuRadioReco.framework.event.Event)):
-                    module_level = "event"
-                    evt = args[0]
-                else:
-                    # this is a module that creates events
-                    module_level = "reader"
-                    raise AttributeError("first argument of run method is not of type NuRadioReco.framework.event.Event")
+
+            signature = inspect.signature(run)
+            parameters = signature.parameters
+            # convert args to kwargs to facilitate easier bookkeeping
+            keys = [key for key in parameters.keys() if key != 'self']
+            all_kwargs = {key:value for key,value in zip(keys, args)}
+            all_kwargs.update(kwargs) # this silently overwrites positional args with kwargs, but this is probably okay as we still raise an error later
+
+            # include parameters with default values
+            for key,value in parameters.items():
+                if key not in all_kwargs.keys():
+                    if value.default is not inspect.Parameter.empty:
+                        all_kwargs[key] = value.default
+
+            store_kwargs = {}
+            for idx, (key,value) in enumerate(all_kwargs.items()):
+                if isinstance(value, NuRadioReco.framework.event.Event) and idx == 0: # event should be the first argument
+                    evt = value
+                elif isinstance(value, NuRadioReco.framework.base_station.BaseStation) and idx == 1: # station should be second argument
+                    station = value
+                elif isinstance(value, NuRadioReco.detector.detector_base.DetectorBase):
+                    pass # we don't try to store detectors
+                else: # we try to store other arguments IF they are pickleable
+                    try:
+                        pickle.dumps(value, protocol=4)
+                        store_kwargs[key] = value
+                    except (TypeError, AttributeError): # object couldn't be pickled - we store the error instead
+                        store_kwargs[key] = TypeError(f"Argument of type {type(value)} could not be serialized")
+            if station is not None:
+                module_level = "station"
+            elif evt is not None:
+                module_level = "event"
             else:
-                # this is a module that creats events
                 module_level = "reader"
 
             start = timer()
-            res = run(self, *args, **kwargs)
-            if(module_level == "event"):
-                evt.register_module_event(self, self.__class__.__name__, kwargs)
-            elif(module_level == "station"):
-                evt.register_module_station(station.get_id(), self, self.__class__.__name__, kwargs)
-            elif(module_level == "reader"):
+
+            if module_level == "event":
+                evt.register_module_event(self, self.__class__.__name__, store_kwargs)
+            elif module_level == "station":
+                evt.register_module_station(station.get_id(), self, self.__class__.__name__, store_kwargs)
+            elif module_level == "reader":
                 # not sure what to do... function returns generator, not sure how to access the event...
                 pass
+
+            res = run(self, *args, **kwargs)
+
             end = timer()
+
             if self not in register_run_method.time:  # keep track of timing of modules. We use the module instance as key to time different module instances separately.
                 register_run_method.time[self] = 0
             register_run_method.time[self] += (end - start)
+
             return res
 
         register_run_method.time = {}
