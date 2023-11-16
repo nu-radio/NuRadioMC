@@ -57,6 +57,12 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
     def add_channel(self, channel):
         self.__channels[channel.get_id()] = channel
 
+    def remove_channel_id(self, channel_id):
+        del self.__channels[channel_id] # deletes element from dict
+        # no longer needed to delete the channel object explicitly when it has been removed from the dict - right?
+        # channel = self.get_channel(channel_id)
+        # del channel # 
+
     def set_reference_reconstruction(self, reference):
         if reference not in ['RD', 'MC']:
             import sys
