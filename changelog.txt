@@ -14,6 +14,9 @@ new features:
 - added ability to generate high-low-triggered noise on a narrow band but return full-band waveforms
 - phased array noise generation utility class: calculate trigger time and cut trace accordingly
 - use Philox noise generator in noise adder module (this changes the default random sequence)
+- added LOFAR modules for reading data, removing RFI, beamforming and fitting the arrival direction
+- added functionality to remove Channel from Station
+- added LOFAR antenna pattern
 
 bugfixes:
 - fixed/improved C++ raytracer not finding solutions for some near-horizontal or near-shadowzone vertices
