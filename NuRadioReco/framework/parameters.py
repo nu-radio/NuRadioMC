@@ -36,11 +36,11 @@ class stationParameters(Enum):
     cr_xmax = 28  #: Depth of shower maximum of the air shower
     vertex_2D_fit = 29  #: horizontal distance and z coordinate of the reconstructed vertex of the neutrino
     distance_correlations = 30
-    shower_energy = 31 #: the energy of the shower 
+    shower_energy = 31 #: the energy of the shower
     viewing_angles = 32 #: reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float
-    dirty_fft_channels = 50 #: a list of FFT channels flagged as RFI
-    flagged_channels = 60 #: a set of flagged channel ids
-    cr_dominant_polarisation = 61  # int denoting the group_id of the dominant polarisation in the cosmic ray signal
+    flagged_channels = 60  #: a set of flagged channel ids
+    cr_dominant_polarisation = 61  #: int denoting the group_id of the dominant polarisation in the cosmic ray signal
+    dirty_fft_channels = 62  #: a list of FFT channels flagged as RFI
 
 class channelParameters(Enum):
     zenith = 1  #: zenith angle of the incoming signal direction
