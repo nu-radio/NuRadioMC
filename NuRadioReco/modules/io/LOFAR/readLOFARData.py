@@ -87,7 +87,7 @@ def lora_timestamp_to_blocknumber(
         LOFAR TBB timestamp
     sample_number : int
         Sample number in the block where the trace starts
-    clock_offset_ns : int
+    clock_offset_ns : float
         Clock offset between LORA and LOFAR, in nanoseconds
     block_size : int
         Block size of the LOFAR data
@@ -189,8 +189,10 @@ class getLOFARtraces:
         this_clock_offset_ns = 1.0e9 * station_clock_offsets[this_station_name] # was kept constant at 1e4 at read-in in pycrtools
         logger.info("Clock offset is %1.4e ns" % this_clock_offset_ns)
 
-        packet = lora_timestamp_to_blocknumber(self.time_s, self.time_ns, timestamp, sample_number,
-                                               clock_offset_ns=this_clock_offset_ns, block_size=self.trace_length_nbins)
+        packet = lora_timestamp_to_blocknumber(self.time_s, self.time_ns,
+                                               timestamp, sample_number,
+                                               clock_offset_ns=this_clock_offset_ns,
+                                               block_size=self.trace_length_nbins)
 
         self.block_number, self.sample_number_in_block = packet
 
