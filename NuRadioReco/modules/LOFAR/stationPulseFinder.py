@@ -10,7 +10,6 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.framework.parameters import stationParameters, channelParameters
 from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
 
-
 logger = module.setup_logger(level=logging.DEBUG)
 
 
@@ -54,6 +53,7 @@ class stationPulseFinder:
     direction estimated from the LORA particle data. It also identifies the channels which have an SNR good
     enough to use for direction fitting later.
     """
+
     def __init__(self):
         self.logger = logging.getLogger('NuRadioReco.stationPulseFinder')
 
@@ -81,9 +81,10 @@ class stationPulseFinder:
         good_channels : int
             The minimum number of good channels a station should have in order be "triggered".
         """
+        # TODO: find window size used in PyCRTools
         self.__window_size = window
         self.__noise_away_from_pulse = noise_window
-        self.__snr_cr = cr_snr  # TODO: do we need different SNR levels for station and antenna
+        self.__snr_cr = cr_snr
         self.__min_good_channels = good_channels
 
     def _signal_windows_polarisation(self, station, channel_positions, polarisation_ids=None):
@@ -140,6 +141,23 @@ class stationPulseFinder:
         return np.asarray(values_per_pol)
 
     def _station_has_cr(self, station, channel_positions, signal_window=None, noise_window=None, polarisation_ids=None):
+        """
+        Beamform the station towards the LORA direction and check if there is any significant signal in the trace.
+        If this is the case, the `stationParameter.triggered` value is set to `True`.
+
+        Parameters
+        ----------
+        station : Station object
+            The station to process
+        channel_positions : np.ndarray
+            The array of channels positions, to be extracted from the detector description
+        signal_window : array-like, default=[0, -1]
+            A list containing the first and last index of the trace where to look for a pulse
+        noise_window : array-like, default=[0, -1]
+            A list containing the first and last index of the trace to use for noise characterisation
+        polarisation_ids : array-like, default=[0, 1]
+            A list of `channel_group_id` contained in the `station`
+        """
         if polarisation_ids is None:
             polarisation_ids = [0, 1]
         if signal_window is None:
@@ -169,6 +187,20 @@ class stationPulseFinder:
                 break  # no need to check second polarisation if CR found
 
     def _find_good_channels(self, station, signal_window=None, noise_window=None):
+        """
+        Loop over all channels in the station and return an array which contains booleans indicating whether
+        the channel at that index has an SNR higher than the minimum required one
+        (set in the `stationPulseFinder.begin()` function).
+
+        Parameters
+        ----------
+        station : Station object
+            The station to process
+        signal_window : array-like, default=[0, -1]
+            A list containing the first and last index of the trace where to look for a pulse
+        noise_window : array-like, default=[0, -1]
+            A list containing the first and last index of the trace to use for noise characterisation
+        """
         if signal_window is None:
             signal_window = [0, -1]
         if noise_window is None:
@@ -230,10 +262,11 @@ class stationPulseFinder:
                                                              noise_window=noise_window
                                                              )
 
+            self.logger.debug(f'Station {station.get_id()} has {len(good_channels_station)} good antennas')
             if len(good_channels_station) < self.__min_good_channels:
-                self.logger.error(f'There are only {len(good_channels_station)} antennas '
-                                  f'with an SNR higher than {self.__snr_cr}, while there '
-                                  f'are at least {self.__min_good_channels} required')
+                self.logger.warning(f'There are only {len(good_channels_station)} antennas '
+                                    f'with an SNR higher than {self.__snr_cr}, while there '
+                                    f'are at least {self.__min_good_channels} required')
                 station.set_parameter(stationParameters.triggered, False)  # stop from further processing
 
     def end(self):
