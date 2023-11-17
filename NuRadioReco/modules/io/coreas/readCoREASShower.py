@@ -4,13 +4,11 @@ from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.utilities import units
 from radiotools import coordinatesystems
-
 import h5py
 import numpy as np
 import time
 import re
 import os
-
 import logging
 logger = logging.getLogger('readCoREASShower')
 
@@ -57,8 +55,9 @@ class readCoREASShower:
 
     def run(self):
         """
-        Reads in a CoREAS file and returns an event containing all simulated stations
-
+        Reads in a CoREAS file and returns one event containing all simulated observer positions as stations.
+        A detector description is not needed to run this module. If a genericDetector is passed to the begin method, 
+        the stations are added to it and the run method returns both the event and the detector.
         """
         while self.__current_input_file < len(self.__input_files):
             t = time.time()
