@@ -1,15 +1,3 @@
-import datetime
-import os
-import logging
-
-import h5py
-import numpy as np
-
-from NuRadioReco.modules.base import module
-
-import NuRadioReco.modules.io.LOFAR.rawTBBio_metadata as md
-import NuRadioReco.modules.io.LOFAR.rawTBBio_utilities as util
-
 """
 This module implements an interface for reading LOFAR TBB data.
 
@@ -62,6 +50,18 @@ There are a few complications with reading the data.
     is flipped for LBA_OUTER antenna set. X-polarization is NE-SW, and Y-polarization is NW-SE. antenna_response.py,
     which handles the antenna function, assumes the data is LBA_OUTER.
 """
+
+import datetime
+import os
+import logging
+
+import h5py
+import numpy as np
+
+from NuRadioReco.modules.base import module
+
+import NuRadioReco.modules.io.LOFAR.rawTBBio_metadata as md
+import NuRadioReco.modules.io.LOFAR.rawTBBio_utilities as util
 
 
 logger = module.setup_logger(level=logging.WARNING)
@@ -418,7 +418,9 @@ class TBBData_Dal1:
 
 
 class MultiFile_Dal1:
-    """A class for reading the data from one station from multiple files"""
+    """
+    A class for reading the data from one station from multiple files
+    """
 
     def __init__(
             self,
@@ -432,21 +434,37 @@ class MultiFile_Dal1:
             only_complete_pairs=True,
             pol_flips_are_bad=False,
     ):
-        """filename_list:  list of filenames for this station for this event. force_metadata_ant_pos -if True,
-        then load antenna positions from a metadata file and not the raw data file. Default False polarization_flips
-           -list of even antennas where it is known that even and odd antenna names are flipped in file. This is
-           assumed to apply both to data and timing calibration bad_antennas           -list of antennas that should
-           not be used. Each item in the list is a tuple, first item of tuple is name of even antenna, second item is
-           a 0 or 1 indicating if even or odd antenna is bad. assumed to be BEFORE antenna flips are accounted for
-           additional_ant_delays  -a dictionary. Each key is name of even antenna, each value is a tuple with
-           additional even and odd antenna delays. This should rarely be needed. assumed to be found BEFORE antenna
-           flips are accounted for station_delay          -a single number that represents the clock offset of this
-           station, as a delay NOTE: polarization_flips, bad_antennas, additional_ant_delays, and station_delay can
-           now be strings that are file names. If this is the case, they will be read automatically
-           only_complete_pairs    -if True, discards antenna if the other in pair is not present or is bad. If False,
-           keeps all good antennas with a 'none' value if other antenna in pair is missing pol_flips_are_bad      -if
-           True, antennas that are in pol-flips are included in 'bad_antennas' NOTE: This always defaults to using
-           antenna timing calibration from metadata. """
+        """
+        Parameters
+        ----------
+        filename_list: list
+            List of filenames for this station for this event
+        force_metadata_ant_pos : bool,default=False
+            If True, then load antenna positions from a metadata file and not the raw data file
+        polarization_flips : list
+            List of even antennas where it is known that even and odd antenna names are flipped in file. This is
+           assumed to apply both to data and timing calibration
+        bad_antennas : list
+            Antennas that should not be used. Each item in the list is a tuple, first item of tuple is name of even
+            antenna, second item is a 0 or 1 indicating if even or odd antenna is bad. assumed to be BEFORE antenna flips are accounted for
+        additional_ant_delays : dict
+            Each key is name of even antenna, each value is a tuple with additional even and odd antenna delays.
+            This should rarely be needed. assumed to be found BEFORE antenna flips are accounted for
+        station_delay : float
+            A single number that represents the clock offset of this station, as a delay
+        only_complete_pairs : bool
+            If True, discards antenna if the other in pair is not present or is bad.
+            If False, keeps all good antennas with a 'none' value if other antenna in pair is missing
+        pol_flips_are_bad : bool
+            If True, antennas that are in pol-flips are included in `bad_antennas`
+
+        Notes
+        -----
+        This module always defaults to using antenna timing calibration from metadata.
+
+        Also, polarization_flips, bad_antennas, additional_ant_delays, and station_delay can now be strings
+        that are file names. If this is the case, they will be read automatically
+        """
 
         self.metadata_dir = metadata_dir
         self.files = [
