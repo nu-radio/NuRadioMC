@@ -85,5 +85,9 @@ def get_filter_response(frequencies, passband, filter_type, order, rp=None, roll
         return f
     elif filter_type.find('FIR') >= 0:
         raise NotImplementedError("FIR filter not yet implemented")
+    elif filter_type == 'hann_tapered':
+        raise NotImplementedError(
+            "'hann_tapered' is a time-domain filter, cannot return frequency response"
+        )
     else:
         return filterresponse.get_filter_response(frequencies, filter_type)

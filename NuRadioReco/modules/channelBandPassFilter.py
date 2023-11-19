@@ -78,17 +78,20 @@ class channelBandPassFilter:
             Event, Station, Detector
         passband: list or dict of lists, (default: [55 * units.MHz, 1000 * units.MHz])
             passband[0]: lower boundary of filter, passband[1]: upper boundary of filter
+
             a dict can be used to specify a different bandwidth per channel, the key is the channel_id
         filter_type: string or dict
-            'rectangular': perfect straight line filter
-            'butter': butterworth filter from scipy
-            'butterabs': absolute of butterworth filter from scipy
-            'gaussian_tapered' : a rectangular bandpass filter convolved with a Gaussian
-            or any filter that is implemented in NuRadioReco.detector.filterresponse. In this case the
+
+            * 'rectangular': perfect straight line filter
+            * 'butter': butterworth filter from scipy
+            * 'butterabs': absolute of butterworth filter from scipy
+            * 'gaussian_tapered' : a rectangular bandpass filter convolved with a Gaussian
+            * 'hann_tapered' : a rectangular bandpass filter with the ends replaced by a half-Hann window to applied
+              in the time domain. In this case the passband parameter is ignored
+            * 'FIR <type> <parameter>' - see below for FIR filter options
+
+            or any filter that is implemented in :mod:`NuRadioReco.detector.filterresponse`. In this case the
             passband parameter is ignored
-            or 'hann_tapered' : a rectangular bandpass filter with the ends replaced by a half-Hann window to applied
-            in the time domain. In this case the passband parameter is ignored
-            or 'FIR <type> <parameter>' - see below for FIR filter options
 
             a dict can be used to specify a different bandwidth per channel, the key is the channel_id
         order: int (optional, default 2) or dict
@@ -112,19 +115,21 @@ class channelBandPassFilter:
         see https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.get_window.html
         for window types; some windows need additional parameters; Default window is hamming
         (does not need parameters). Examples:
-        filter_type='FIR' : use hamming window
-        filter_type='FIR hamming': same as above
-        filter_type='FIR kaiser 10' : Use Kaiser window with beta parameter 10
-        filter_type='FIR kaiser' : Use Kaiser window with default beta parameter 6
+
+        * filter_type='FIR' : use hamming window
+        * filter_type='FIR hamming': same as above
+        * filter_type='FIR kaiser 10' : Use Kaiser window with beta parameter 10
+        * filter_type='FIR kaiser' : Use Kaiser window with default beta parameter 6
 
         In principle, window names are just passed on to signal.firwin(), but if parameters
         are required, then these cases must be explicitly implemented in the code below.
 
         The four main filter types can be implemented:
-        LP: passband[0]=None, passband[1]  = f_cut
-        HP: passband[0]=f_cut, passband[1] = None
-        BP: passband[0]=f_cut_low, passband[1] = f_cut_high
-        BS: passband[0]=f_cut_high, passband[1] = f_cut_low (i.e. passband[0] > passband[1])
+
+        * LP: passband[0]=None, passband[1]  = f_cut
+        * HP: passband[0]=f_cut, passband[1] = None
+        * BP: passband[0]=f_cut_low, passband[1] = f_cut_high
+        * BS: passband[0]=f_cut_high, passband[1] = f_cut_low (i.e. passband[0] > passband[1])
 
         """
         if passband is None:
@@ -138,12 +143,16 @@ class channelBandPassFilter:
                                tmp_half_hann_percent, False)
 
     def get_filter(self, frequencies, station_id, channel_id, det, passband, filter_type,
-                   order=2, rp=None, roll_width=2.5 * units.MHz):
+                   order=2, rp=None, roll_width=2.5 * units.MHz, half_hann_percent=None):
         """
         helper function to return the filter that the module applies.
 
         The unused parameters station_id, channel_id, det are needed to have the same signature as the
-        `get_filter` functions of other modules, e.g. the hardwareResponseIncorporator.
+        ``get_filter`` functions of other modules, e.g. the hardwareResponseIncorporator.
+
+        Note that this function returns the filter response in the **frequency domain**. Filters
+        which are applied in the time domain (e.g. 'FIR', 'hann_tapered') will raise a
+        ``NotImplementedError``
 
         Parameters
         ----------
@@ -159,20 +168,18 @@ class channelBandPassFilter:
             passband[0]: lower boundary of filter, passband[1]: upper boundary of filter
             a dict can be used to specify a different bandwidth per channel, the key is the channel_id
         filter_type: string or dict
-            'rectangular': perfect straight line filter
-            'butter': butterworth filter from scipy
-            'butterabs': absolute of butterworth filter from scipy
-            'gaussian_tapered' : Gaussian tapered version of the rectangular filter
-            or any filter that is implemented in NuRadioReco.detector.filterresponse. In this case the
+
+            * 'rectangular': perfect straight line filter
+            * 'butter': butterworth filter from scipy
+            * 'butterabs': absolute of butterworth filter from scipy
+            * 'gaussian_tapered' : Gaussian tapered version of the rectangular filter
+
+            or any filter that is implemented in :mod:`NuRadioReco.detector.filterresponse`. In this case the
             passband parameter is ignored
-            or 'hann_tapered' : a rectangular bandpass filter with the ends replaced by a half-Hann window to applied
-            in the time domain. In this case the passband parameter is ignored
-            or 'FIR <type> <parameter>' - see below for FIR filter options
 
             a dict can be used to specify a different bandwidth per channel, the key is the channel_id
         order: int (optional, default 2) or dict
             for a butterworth filter: specifies the order of the filter
-
         rp: float
             The maximum ripple allowed below unity gain in the passband. Specified in decibels, as a positive number.
             (for chebyshev filter)
@@ -182,9 +189,15 @@ class channelBandPassFilter:
             Determines the sigma of the Gaussian to be used in the convolution of the rectangular filter.
             (Relevant for the Gaussian tapered filter)
 
+        Other Parameters
+        ----------------
+        half_hann_percent: None
+            This parameter is included to have the same signature as the :func:`run` method.
+            As it is only relevant for the hann_tapered filter it is not actually used here.
+
         Returns
         -------
-         array of complex floats
+        array of complex floats
             the complex filter amplitudes
         """
         tmp_passband, tmp_order, tmp_filter_type, tmp_rp, tmp_roll_width, _ = \
