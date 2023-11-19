@@ -8,47 +8,51 @@ Author: Brian Hare
 
 Definitions:
 LOFAR is split into a number of different stations. There are three main types:
+
 #. Core Stations (CS)
-#. Remote Stations (RS),
-and international stations
+#. Remote Stations (RS)
+#. international stations
+
+
 Each station contains 96 low band antennas (LBA) and 48 high band antennas (HBA). Each antenna is dual polarized.
 
 Each station is referred to by its name (e.g. "CS001"), which is a string, or its ID (e.g. 1), which is an integer. In
 general, these are different! The mapping, however, is unique and is given in `utilities.py`.
 
 There are a few complications with reading the data.
-1) The data from each station is often spread over multiple files
-    There is a class below that can combine multiple files (even from different stations)
-2) It is entirely possible that one file could contain multiple stations
-    This feature is not used, so I assume that it isn't a problem (for now)
-3) Each Station has unknown clock offsets. Technically the core stations are all on one clock, but there are some
-    unknown cable delays. This is a difficult  problem, not handled here
-4) Each Antenna doesn't necessarily start reading data at precisely the same time.
-    The code below picks the latest start time so this problem can be ignored by the end user
-5) The software that inserts metadata (namely antenna positions and calibrations) sometimes "forgets" to do its job
-    The code below will automatically read the metadata from other files when necessary
-6) LOFAR is constantly changing
-    So..keeping code up-to-date and still backwards compatible will be an interesting challenge
 
-7) LOFAR only has 96 RCUs (receiver control units) per station (at the moment).
-    Each RCU is essentially one digitizer. Each antenna needs two RCS to record both polarizations. The result is only
-    1/3 of the antennas can be read out each time.
+#. The data from each station is often spread over multiple files
+   There is a class below that can combine multiple files (even from different stations)
+#. It is entirely possible that one file could contain multiple stations
+   This feature is not used, so I assume that it isn't a problem (for now)
+#. Each Station has unknown clock offsets. Technically the core stations are all on one clock, but there are some
+   unknown cable delays. This is a difficult  problem, not handled here
+#. Each Antenna doesn't necessarily start reading data at precisely the same time.
+   The code below picks the latest start time so this problem can be ignored by the end user
+#. The software that inserts metadata (namely antenna positions and calibrations) sometimes "forgets" to do its job
+   The code below will automatically read the metadata from other files when necessary
+#. LOFAR is constantly changing
+   So..keeping code up-to-date and still backwards compatible will be an interesting challenge
+#. LOFAR only has 96 RCUs (receiver control units) per station (at the moment).
+   Each RCU is essentially one digitizer. Each antenna needs two RCS to record both polarizations. The result is only
+   1/3 of the antennas can be read out each time.
 
-    LOFAR keeps track of things with two ways. First, the data is all referred to by its RCUid. 0 is the 0th RCU, ect...
-    However, which antenna corresponds to which RCU depends on the antennaSet. For LOFAR-LIM the antenna set will
-    generally be "LBA_OUTER". This could change, and sometimes the antenna set is spelled wrong in the data files. (This
-    should be handled here though)
+   LOFAR keeps track of things with two ways. First, the data is all referred to by its RCUid. 0 is the 0th RCU, ect...
+   However, which antenna corresponds to which RCU depends on the antennaSet. For LOFAR-LIM the antenna set will
+   generally be "LBA_OUTER". This could change, and sometimes the antenna set is spelled wrong in the data files. (This
+   should be handled here though)
 
-    In the code below each RCU is referred to by ANTENNA_NAME or antennaID. These are the same thing (I think). They are
-    however, a misnomer, as they actually refer to the RCU, not antenna. The specific antenna depends on the antenna
-    set. For the same antenna set, however, the ANTENNA_NAME will always refer to the same antenna.
+   In the code below each RCU is referred to by ANTENNA_NAME or antennaID. These are the same thing (I think). They are
+   however, a misnomer, as they actually refer to the RCU, not antenna. The specific antenna depends on the antenna
+   set. For the same antenna set, however, the ANTENNA_NAME will always refer to the same antenna.
 
-    Each ANTENNA_NAME is a string of 9 digits. First three is the station ID (not name!), next three is the group (no
-    idea, don't ask), final 3 is the RCU id
+   Each ANTENNA_NAME is a string of 9 digits. First three is the station ID (not name!), next three is the group (no
+   idea, don't ask), final 3 is the RCU id
 
-    For LBA_INNER data set, even RCU ids refer to X-polarized dipoles and odd RCU ids refer to Y-polarized dipoles. This
-    is flipped for LBA_OUTER antenna set. X-polarization is NE-SW, and Y-polarization is NW-SE. antenna_response.py,
-    which handles the antenna function, assumes the data is LBA_OUTER.
+   For LBA_INNER data set, even RCU ids refer to X-polarized dipoles and odd RCU ids refer to Y-polarized dipoles. This
+   is flipped for LBA_OUTER antenna set. X-polarization is NE-SW, and Y-polarization is NW-SE. antenna_response.py,
+   which handles the antenna function, assumes the data is LBA_OUTER.
+
 """
 
 import datetime
@@ -176,8 +180,10 @@ def decode_if_needed(input_decode):
 
 class TBBData_Dal1:
     """
-    A class for reading one station from one file. However, since one station is often spread between different files,
-    use filePaths_by_stationName combined with MultiFile_Dal1 below.
+    A class for reading one station from one file.
+
+    However, since one station is often spread between different files,
+    use filePaths_by_stationName combined with :class:`MultiFile_Dal1` below.
     """
 
     def __init__(
@@ -315,8 +321,11 @@ class TBBData_Dal1:
         return self.StationName
 
     def get_station_ID(self):
-        """returns the ID of the station, as an integer. This is not the same as StationName. Mapping is given in
-        utilities """
+        """
+        returns the ID of the station, as an integer.
+
+        This is not the same as StationName. Mapping is given in utilities
+        """
         return self.StationID
 
     def get_antenna_names(self):
@@ -399,10 +408,15 @@ class TBBData_Dal1:
             )
 
     def get_data(self, start_index, num_points, antenna_index=None, antenna_ID=None):
-        """return the raw data for a specific antenna, as an 1D int16 numpy array, of length num_points. First point
-        returned is start_index past get_nominal_sample_number(). Specify the antenna by giving the antenna_ID (which
+        """
+        return the raw data for a specific antenna, as an 1D int16 numpy array, of length num_points.
+
+        First point returned is start_index past get_nominal_sample_number().
+        Specify the antenna by giving the antenna_ID (which
         is a string, same as output from get_antenna_names(), or as an integer antenna_index. An antenna_index of 0
-        is the first antenna in get_antenna_names(). """
+        is the first antenna in get_antenna_names().
+
+        """
 
         if antenna_index is None:
             if antenna_ID is None:
@@ -420,6 +434,7 @@ class TBBData_Dal1:
 class MultiFile_Dal1:
     """
     A class for reading the data from one station from multiple files
+
     """
 
     def __init__(
@@ -439,11 +454,11 @@ class MultiFile_Dal1:
         ----------
         filename_list: list
             List of filenames for this station for this event
-        force_metadata_ant_pos : bool,default=False
+        force_metadata_ant_pos : bool, default=False
             If True, then load antenna positions from a metadata file and not the raw data file
         polarization_flips : list
             List of even antennas where it is known that even and odd antenna names are flipped in file. This is
-           assumed to apply both to data and timing calibration
+            assumed to apply both to data and timing calibration
         bad_antennas : list
             Antennas that should not be used. Each item in the list is a tuple, first item of tuple is name of even
             antenna, second item is a 0 or 1 indicating if even or odd antenna is bad. assumed to be BEFORE antenna flips are accounted for
@@ -831,8 +846,11 @@ class MultiFile_Dal1:
         return np.array(out)
 
     def get_timing_callibration_delays(self, out=None, force_file_delays=False):
-        """return the timing calibration of the antennas, as a 1D np array. If not included in the metadata,
-        will look for a data file in the same directory as this file. Otherwise returns None. if out is a numpy
+        """
+        return the timing calibration of the antennas, as a 1D np array.
+
+        If not included in the metadata, will look for a data file in the same directory as this file.
+        Otherwise returns None. If out is a numpy
         array, it is used to store the antenna delays, otherwise a new array is allocated. This takes polarization
         flips, and additional_ant_delays into account (assuming that both were found BEFORE the pol flip was found).
         Also can account for a timing difference between even and odd antennas, if it is set. """
@@ -889,11 +907,15 @@ class MultiFile_Dal1:
         return out
 
     def get_geometric_delays(self, source_location, out=None, antenna_locations=None):
-        """Calculate travel time from a XYZ location to each antenna. out can be an array of length equal to number
+        """
+        Calculate travel time from a XYZ location to each antenna.
+
+        out can be an array of length equal to number
         of antennas. antenna_locations is the table of antenna locations, given by get_LOFAR_centered_positions(). If
         None, it is calculated. Note that antenna_locations CAN be modified in this function. If antenna_locations is
         less then all antennas, then the returned array will be correspondingly shorter. The output of this function
-        plus??? get_total_delays plus emission time of the source is the time the source is seen on each antenna. """
+        plus??? get_total_delays plus emission time of the source is the time the source is seen on each antenna.
+        """
 
         if antenna_locations is None:
             antenna_locations = self.get_LOFAR_centered_positions()
@@ -913,10 +935,13 @@ class MultiFile_Dal1:
         return out
 
     def get_data(self, start_index, num_points, antenna_index=None, antenna_ID=None):
-        """return the raw data for a specific antenna, as an 1D int16 numpy array, of length num_points. First point
-        returned is start_index past get_nominal_sample_number(). Specify the antenna by giving the antenna_ID (which
+        """
+        return the raw data for a specific antenna, as an 1D int16 numpy array, of length num_points.
+
+        First point returned is start_index past get_nominal_sample_number(). Specify the antenna by giving the antenna_ID (which
         is a string, same as output from get_antenna_names()) or as an integer antenna_index. An antenna_index of 0
-        is the first antenna in get_antenna_names(). """
+        is the first antenna in get_antenna_names().
+        """
 
         if antenna_index is None:
             if antenna_ID is None:

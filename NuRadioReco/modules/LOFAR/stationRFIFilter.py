@@ -99,10 +99,10 @@ def FindRFI_LOFAR(
         If the `target_trace_length` is not a multiple of the `rfi_cleaning_trace_length`.
     """
     # Hardcoded values for LOFAR
-    lower_frequency_bound = 0.0 * units.Hz 
-    upper_frequency_bound = 100e6 * units.Hz 
+    lower_frequency_bound = 0.0 * units.Hz
+    upper_frequency_bound = 100e6 * units.Hz
     print('Upper frequency bound = %1.4e' % upper_frequency_bound)
-    
+
     # Some checks to make sure variables are correctly matched with each other
     if target_trace_length % rfi_cleaning_trace_length != 0:
         logger.error(
@@ -119,14 +119,14 @@ def FindRFI_LOFAR(
     tbb_file = MultiFile_Dal1(tbb_filename, metadata_dir=metadata_dir)
 
     num_blocks = np.median(tbb_file.get_nominal_data_lengths() // rfi_cleaning_trace_length)  # should all be the same
-    
+
     # FIXME: -- should be fixed, needs explicit testing -- what if one bad antenna in Station? Currently FindRFI crashes
 
     logger.info(f"Running find RFI with {num_blocks} blocks")
 
     ############
 
-    initial_block = 0 
+    initial_block = 0
     num_blocks = int(num_blocks)  # make sure the number of blocks in an integer (as its used as a shape parameter)
     max_blocks = num_blocks
 
@@ -134,7 +134,7 @@ def FindRFI_LOFAR(
     antenna_ids = tbb_file.get_antenna_names()
     antenna_ids = [id for id in antenna_ids if id not in flagged_antenna_ids]
     num_antennas = len(antenna_ids)
-    
+
     # step one: find which blocks are good, and find average power
     oneAnt_data = np.zeros(rfi_cleaning_trace_length, dtype=np.double) # initialize at zero
 
@@ -152,7 +152,7 @@ def FindRFI_LOFAR(
                 )
             except: # TODO: more specific exception
                 logger.warning('Could not read data for antenna %s block %d' % (antenna_ids[ant_i], block_i))
-                # proceed with zeros in the block               
+                # proceed with zeros in the block
             #oneAnt_data[:] = tbb_file.get_data(
             #    rfi_cleaning_trace_length * block, rfi_cleaning_trace_length, antenna_index=ant_i
             #)
@@ -214,7 +214,7 @@ def FindRFI_LOFAR(
     # Process data
     num_processed_blocks = np.zeros(num_antennas, dtype=int)
     frequencies = np.fft.fftfreq(rfi_cleaning_trace_length, 1.0 / tbb_file.get_sample_frequency())
-    frequencies *= units.Hz 
+    frequencies *= units.Hz
     lower_frequency_index = np.searchsorted(
         frequencies[: int(len(frequencies) / 2)], lower_frequency_bound
     )
@@ -332,7 +332,7 @@ def FindRFI_LOFAR(
     # plot and return data
     frequencies = frequencies[lower_frequency_index:upper_frequency_index]
 
-    ave_spectrum_magnitude = spectrum_mean 
+    ave_spectrum_magnitude = spectrum_mean
 
     cleaned_spectrum = np.array(spectrum_mean)
     cleaned_spectrum[:, dirty_channels] = 0.0
@@ -342,9 +342,9 @@ def FindRFI_LOFAR(
     # Calculate the required output variables
     avg_power_spectrum = np.sum(ave_spectrum_magnitude, axis=0)
     avg_antenna_power = ave_spectrum_magnitude
-    
+
     cleaned_power = 2 * np.sum(cleaned_spectrum, axis=1)
-    antenna_names = antenna_ids 
+    antenna_names = antenna_ids
     dirty_channels += lower_frequency_index # = output["dirty_channels"][0]
     dirty_channels = dirty_channels[0]
     multiplied_channels = []
@@ -357,7 +357,7 @@ def FindRFI_LOFAR(
     dirty_channels = np.sort(np.array(multiplied_channels))
     dirty_channels_block_size = target_trace_length
 
-    return avg_power_spectrum, dirty_channels, dirty_channels_block_size, antenna_names, avg_antenna_power, cleaned_power 
+    return avg_power_spectrum, dirty_channels, dirty_channels_block_size, antenna_names, avg_antenna_power, cleaned_power
 
 
     # TODO: add description of algorithm to notes section
@@ -367,7 +367,7 @@ def FindRFI_LOFAR(
 class stationRFIFilter:
     """
     Remove the RFI from all stations in an Event, by using the phase-variance method described in
-    :py:func:`.FindRFI`. This function returns the frequency channels which are contaminated, which are
+    :py:func:`FindRFI_LOFAR`. This function returns the frequency channels which are contaminated, which are
     subsequently put to zero in the traces.
 
     **Note**: currently the class uses hardcoded values for LOFAR, this needs to be improved later.
@@ -392,7 +392,7 @@ class stationRFIFilter:
     def run(self, event, reader):
         """
         Run the filter on the `event`. The `reader` object is required to retrieve the filenames associated with
-        the loaded stations. The method currently uses :py:func:`.FindRFI_LOFAR` to find the contaminated channels
+        the loaded stations. The method currently uses :py:func:`FindRFI_LOFAR` to find the contaminated channels
         and then puts the corresponding frequency bands to zero in every channel (in place).
 
         Parameters
@@ -432,7 +432,7 @@ class stationRFIFilter:
 
             # Extract the necessary information from FindRFI
             avg_power_spectrum = packet[0]
-            dirty_channels = packet[1]  
+            dirty_channels = packet[1]
             dirty_channels_block_size = packet[2]
             station.set_parameter(stationParameters.dirty_fft_channels, dirty_channels)
 
@@ -443,13 +443,13 @@ class stationRFIFilter:
             bad_dipole_indices = np.where(
                 np.logical_or(
                     cleaned_power < 0.5 * median_dipole_power, cleaned_power > 2.0 * median_dipole_power))[0]
-            # which dipole ids are these 
+            # which dipole ids are these
             print('There are %d outliers in cleaned power (dipole ids): %s' % (len(bad_dipole_indices), antenna_ids[bad_dipole_indices])) # remove
             self.logger.info('There are %d outliers in cleaned power (dipole ids): %s' % (len(bad_dipole_indices), antenna_ids[bad_dipole_indices]))
-            # remove from station, add to flagged list 
+            # remove from station, add to flagged list
             for id in antenna_ids[bad_dipole_indices]:
                 station.remove_channel_id(int(id)) # are channel ids integers?
-            
+
             flagged_channel_ids.update([id for id in antenna_ids[bad_dipole_indices]]) # is set, not list
             station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids)
 
