@@ -95,16 +95,16 @@ class DataProvider(object):
 
             if filename is None:
                 return None
+            
             if user_id not in self.__user_instances:
                 # Occasionally, this gets called before the user_id is initialized (user_id=None).
                 # We can save a bit of memory by re-using this instance for the first initialized user.
                 if None in self.__user_instances:
-                    self.__user_instances[user_id] = self.__user_instances[None]
-                    self.__user_instances.pop(None)
+                    self.__user_instances[user_id] = self.__user_instances.pop(None)
                 else:
                     self.__user_instances[user_id] = dict(
-                        reader=None, filename=None,
-                    )
+                        reader=None, filename=None)
+            
             if isinstance(filename, str):
                 filename = [filename]
 
