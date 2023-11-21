@@ -53,12 +53,12 @@ class voltageToEfieldConverterPerChannel:
             zenith = station[stnp.zenith]
             azimuth = station[stnp.azimuth]
 
-        frequencies = station.get_channel(0).get_frequencies()  # assuming that all channels have the  same sampling rate and length
         use_channels = det.get_channel_ids(station.get_id())
+        frequencies = station.get_channel(use_channels[0]).get_frequencies()  # assuming that all channels have the  same sampling rate and length
         efield_antenna_factor = trace_utilities.get_efield_antenna_factor(station, frequencies, use_channels, det,
                                                                           zenith, azimuth, self.antenna_provider)
 
-        sampling_rate = station.get_channel(0).get_sampling_rate()
+        sampling_rate = station.get_channel(use_channels[0]).get_sampling_rate()
 
         for iCh, channel in enumerate(station.iter_channels()):
             efield = ef.ElectricField([iCh])

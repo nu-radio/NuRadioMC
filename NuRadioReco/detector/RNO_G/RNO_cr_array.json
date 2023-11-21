@@ -1,0 +1,341 @@
+{
+    "channels": {
+      "0": {
+          "amp_type": "rno_surface",
+          "ant_comment": "upward LPDA north from DAQ",
+          "ant_orientation_phi": 0.0,
+          "ant_orientation_theta": 0.0,
+          "ant_position_x": 0.0,
+          "ant_position_y": -11,
+          "ant_position_z": -2.0,
+          "ant_rotation_phi": 90.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz_InfFirn",
+          "cab_time_delay": 19.8,
+          "commission_time": "{TinyDate}:2017-10-01T00:00:00",
+          "decommission_time": "{TinyDate}:2020-11-01T00:00:00",
+          "channel_id": 0,
+          "station_id": 11
+        },
+  
+      "1": {
+          "amp_type": "rno_surface",
+          "ant_comment": "upward LPDA south-east from DAQ",
+          "ant_orientation_phi": 0.0,
+          "ant_orientation_theta": 0.0,
+          "ant_position_x": -9.526,
+          "ant_position_y": 5.5,
+          "ant_position_z": -2.0,
+          "ant_rotation_phi": 330.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz_InfFirn",
+          "cab_time_delay": 19.8,
+          "commission_time": "{TinyDate}:2017-10-01T00:00:00",
+          "decommission_time": "{TinyDate}:2020-11-01T00:00:00",
+          "channel_id": 1,
+          "station_id": 11
+        },
+  
+  
+      "2": {
+          "amp_type": "rno_surface",
+          "ant_comment": "upward LPDA south-west from DAQ",
+          "ant_orientation_phi": 0.0,
+          "ant_orientation_theta": 0.0,
+          "ant_position_x": 9.526,
+          "ant_position_y": 5.5,
+          "ant_position_z": -2.0,
+          "ant_rotation_phi": 210.0,
+          "ant_rotation_theta": 90.0,
+          "ant_type": "createLPDA_100MHz_InfFirn",
+          "cab_time_delay": 19.8,
+          "commission_time": "{TinyDate}:2017-10-01T00:00:00",
+          "decommission_time": "{TinyDate}:2020-11-01T00:00:00",
+          "channel_id": 2,
+          "station_id": 11
+        }
+    },
+    "stations": {
+      "01": {
+        "pos_easting": -1401.32,
+        "pos_northing": 1154.08,
+        "pos_altitude": 3200,
+        "pos_site": "summit",
+        "station_id": 11,
+        "station_type": "Nanoq",
+        "reference_station": 11
+      },
+      "02": {
+        "pos_easting": -1197.62,
+        "pos_northing": 2366.47,
+        "pos_site": "summit",
+        "station_id": 12,
+        "station_type": "Terianniaq",
+        "reference_station": 11
+      },
+      "03": {
+        "pos_easting": -993.895,
+        "pos_northing":  	3578.9,
+        "pos_site": "summit",
+        "station_id": 13,
+        "station_type": "Ukaleq",
+        "reference_station": 11
+      },
+      "04": {
+        "pos_easting": -790.163,
+        "pos_northing":  	4791.36,
+        "pos_site": "summit",
+        "station_id": 14,
+        "station_type": "Tuttu",
+        "reference_station": 11
+      },
+      "05": {
+        "pos_easting": -586.42,
+        "pos_northing": 6003.86,
+        "pos_site": "summit",
+        "station_id": 15,
+        "station_type": "Umimmak",
+        "reference_station": 11
+      },
+      "06": {
+        "pos_easting": -382.664,
+        "pos_northing": 7216.39,
+        "pos_site": "summit",
+        "station_id": 16,
+        "station_type": "Aarluk",
+        "reference_station": 11
+      },
+      "07": {
+        "pos_easting": -178.897,
+        "pos_northing": 8428.95,
+        "pos_site": "summit",
+        "station_id": 17,
+        "station_type": "Ussuk",
+        "reference_station": 11
+      },
+      "08": {
+        "pos_easting": -188.953,
+        "pos_northing": 950.358,
+        "pos_site": "summit",
+        "station_id": 21,
+        "station_type": "Amaroq",
+        "reference_station": 11
+      },
+      "09": {
+        "pos_easting": 14.789,
+        "pos_northing": 2162.74,
+        "pos_site": "summit",
+        "station_id": 22,
+        "station_type": "Avinngaq",
+        "reference_station": 11
+      },
+      "10": {
+        "pos_easting": 218.543,
+        "pos_northing": 3375.16,
+        "pos_site": "summit",
+        "station_id": 23,
+        "station_type": "Ukaliatsiaq",
+        "reference_station": 11
+      },
+      "11": {
+        "pos_easting": 422.309,
+        "pos_northing": 4587.61,
+        "pos_site": "summit",
+        "station_id": 24,
+        "station_type": "Qappik",
+        "reference_station": 11
+      },
+      "12": {
+        "pos_easting": 626.087,
+        "pos_northing": 5800.09,
+        "pos_site": "summit",
+        "station_id": 25,
+        "station_type": "Aataaq",
+        "reference_station": 11
+      },
+      "13": {
+        "pos_easting": 829.877,
+        "pos_northing": 7012.61,
+        "pos_site": "summit",
+        "station_id": 26,
+        "station_type": "Aaveq",
+        "reference_station": 11
+      },
+      "14": {
+        "pos_easting": 1033.68,
+        "pos_northing": 8225.16,
+        "pos_site": "summit",
+        "station_id": 27,
+        "station_type": "Eqalussuaq",
+        "reference_station": 11
+      },
+      "15": {
+        "pos_easting": 1430.97,
+        "pos_northing": 3171.38,
+        "pos_site": "summit",
+        "station_id": 33,
+        "station_type": "Ippernaq",
+        "reference_station": 11
+      },
+      "16": {
+        "pos_easting": 1634.77,
+        "pos_northing": 4383.82,
+        "pos_site": "summit",
+        "station_id": 34,
+        "station_type": "Isunngaq",
+        "reference_station": 11
+      },
+      "17": {
+        "pos_easting": 1838.58,
+        "pos_northing": 5596.29,
+        "pos_site": "summit",
+        "station_id": 35,
+        "station_type": "Natseq",
+        "reference_station": 11
+      },
+      "18": {
+        "pos_easting": 2042.41,
+        "pos_northing": 6808.79,
+        "pos_site": "summit",
+        "station_id": 36,
+        "station_type": "Niisa",
+        "reference_station": 11
+      },
+      "19": {
+        "pos_easting": 2246.24,
+        "pos_northing": 8021.33,
+        "pos_site": "summit",
+        "station_id": 37,
+        "station_type": "Uppik",
+        "reference_station": 11
+      },
+      "20": {
+        "pos_easting": 2847.22,
+        "pos_northing": 4179.99,
+        "pos_site": "summit",
+        "station_id": 44,
+        "station_type": "Nattoralik",
+        "reference_station": 11
+      },
+      "21": {
+        "pos_easting":  3051.07,
+        "pos_northing": 5392.45,
+        "pos_site": "summit",
+        "station_id": 45,
+        "station_type": "Qilanngaq",
+        "reference_station": 11
+      },
+      "22": {
+        "pos_easting": 3254.92,
+        "pos_northing": 6604.95,
+        "pos_site": "summit",
+        "station_id": 46,
+        "station_type": "Aqisseq",
+        "reference_station": 11
+      },
+      "23": {
+        "pos_easting": 3458.79,
+        "pos_northing": 7817.48,
+        "pos_site": "summit",
+        "station_id": 47,
+        "station_type": "Natsersuaq",
+        "reference_station": 11
+      },
+      "24": {
+        "pos_easting": 4059.66,
+        "pos_northing": 3976.14,
+        "pos_site": "summit",
+        "station_id": 54,
+        "station_type": "Qipoqqaq",
+        "reference_station": 11
+      },
+      "25": {
+        "pos_easting": 4263.54,
+        "pos_northing": 5188.58,
+        "pos_site": "summit",
+        "station_id": 55,
+        "station_type": "Arfiviit",
+        "reference_station": 11
+      },
+      "26": {
+        "pos_easting": 4467.43,
+        "pos_northing": 6401.07,
+        "pos_site": "summit",
+        "station_id": 56,
+        "station_type": "Alleq",
+        "reference_station": 11
+      },
+      "27": {
+        "pos_easting": 4671.33,
+        "pos_northing": 7613.58,
+        "pos_site": "summit",
+        "station_id": 57,
+        "station_type": "Qarsaaq",
+        "reference_station": 11
+      },
+      "28": {
+        "pos_easting": 5272.08,
+        "pos_northing": 3772.24,
+        "pos_site": "summit",
+        "station_id": 64,
+        "station_type": "Tikaagullik",
+        "reference_station": 11
+      },
+      "29": {
+        "pos_easting": 5476,
+        "pos_northing": 4984.68,
+        "pos_site": "summit",
+        "station_id": 65,
+        "station_type": "Kapisillik",
+        "reference_station": 11
+      },
+      "30": {
+        "pos_easting": 5679.92,
+        "pos_northing": 6197.15,
+        "pos_site": "summit",
+        "station_id": 66,
+        "station_type": "Eqaluk",
+        "reference_station": 11
+      },
+      "31": {
+        "pos_easting": 5883.86,
+        "pos_northing": 7409.66,
+        "pos_site": "summit",
+        "station_id": 67,
+        "station_type": "Qeeraq",
+        "reference_station": 11
+      },
+      "32": {
+        "pos_easting": 6484.5,
+        "pos_northing": 3568.32,
+        "pos_site": "summit",
+        "station_id": 74,
+        "station_type": "Qaleralik",
+        "reference_station": 11
+      },
+      "33": {
+        "pos_easting": 6688.44,
+        "pos_northing": 4780.74,
+        "pos_site": "summit",
+        "station_id": 75,
+        "station_type": "Uugaq",
+        "reference_station": 11
+      },
+      "34": {
+        "pos_easting": 6892.4,
+        "pos_northing": 5993.2,
+        "pos_site": "summit",
+        "station_id": 76,
+        "station_type": "Amiqok",
+        "reference_station": 11
+      },
+      "35": {
+        "pos_easting": 7096.38,
+        "pos_northing": 7205.69,
+        "pos_site": "summit",
+        "station_id": 77,
+        "station_type": "Nerleq",
+        "reference_station": 11
+      }
+    }
+  }
