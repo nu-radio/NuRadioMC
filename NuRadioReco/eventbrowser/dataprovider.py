@@ -95,7 +95,7 @@ class DataProvider(object):
 
             if filename is None:
                 return None
-            
+
             if user_id not in self.__user_instances:
                 # Occasionally, this gets called before the user_id is initialized (user_id=None).
                 # We can save a bit of memory by re-using this instance for the first initialized user.
@@ -104,7 +104,7 @@ class DataProvider(object):
                 else:
                     self.__user_instances[user_id] = dict(
                         reader=None, filename=None)
-            
+
             if isinstance(filename, str):
                 filename = [filename]
 
@@ -140,9 +140,9 @@ class DataProvider(object):
                     self.__user_instances[k]['last_access_time']:k
                     for k in self.__user_instances.keys()
                 }
-                users_by_access_time = sorted(users)
+                oldest_user = users[min(users)]
                 # drop oldest session
-                self.__user_instances.pop(users_by_access_time[0])
+                self.__user_instances.pop(oldest_user)
 
         logger.debug(f"Returning file_handler and releasing lock")
         return self.__user_instances[user_id]['reader']
