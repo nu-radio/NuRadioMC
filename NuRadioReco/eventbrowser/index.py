@@ -15,7 +15,10 @@ from NuRadioReco.eventbrowser.apps import simulation
 import os
 import argparse
 import NuRadioReco.eventbrowser.dataprovider
-import NuRadioReco.eventbrowser.dataprovider_root
+try:
+    import NuRadioReco.eventbrowser.dataprovider_root
+except:
+    print("can't import RNO-G root reader")
 import logging
 import webbrowser
 from NuRadioReco.modules.base import module

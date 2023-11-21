@@ -1,4 +1,7 @@
-import NuRadioReco.eventbrowser.dataprovider_root
+try:
+    import NuRadioReco.eventbrowser.dataprovider_root
+except:
+    print("can't import RNO-G root reader")
 import NuRadioReco.eventbrowser.dataprovider_nur
 
 
