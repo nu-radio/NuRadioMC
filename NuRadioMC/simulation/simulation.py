@@ -312,9 +312,11 @@ class simulation:
                         filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
 
                 self._amplification_per_channel[self._station_id][channel_id] = np.abs(filt).max()
-                bandwidth = np.trapz(np.abs(filt) ** 2, ff)
+                in_bandwith_lim = self._amplification_per_channel[self._station_id][channel_id] / 100  # a factor of 100 corresponds to -40 dB in amplitude
+                ff_in_bandwith = ff[np.abs(filt) > in_bandwith_lim]
+                bandwidth = ff_in_bandwith[-1] - ff_in_bandwith[0]
                 self._bandwidth_per_channel[self._station_id][channel_id] = bandwidth
-                logger.status(f"bandwidth of station {self._station_id} channel {channel_id} is {bandwidth/units.MHz:.1f}MHz")
+                logger.status(f"bandwidth of station {self._station_id} channel {channel_id} is {bandwidth / units.MHz:.1f} MHz")
 
         ################################
 
@@ -851,7 +853,7 @@ class simulation:
                 self._station = NuRadioReco.framework.station.Station(self._station_id)
                 self._station.set_sim_station(self._sim_station)
                 self._station.get_sim_station().set_station_time(self._evt_time)
-                
+
                 # convert efields to voltages at digitizer
                 if hasattr(self, '_detector_simulation_part1'):
                     # we give the user the opportunity to define a custom detector simulation
