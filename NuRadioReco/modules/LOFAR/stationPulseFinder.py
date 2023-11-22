@@ -211,8 +211,9 @@ class stationPulseFinder:
             snr = find_snr_of_timeseries(channel.get_trace(),
                                          window_start=signal_window[0], window_end=signal_window[1],
                                          noise_start=noise_window[0], noise_end=noise_window[1])
+
+            channel.set_parameter(channelParameters.SNR, snr)
             if snr > self.__snr_cr:
-                channel.set_parameter(channelParameters.SNR, snr)
                 good_channels.append(channel.get_id())
 
         return good_channels
@@ -256,7 +257,6 @@ class stationPulseFinder:
                                  noise_window=noise_window
                                  )
 
-            # TODO: save good channels to use for direction fitting later
             good_channels_station = self._find_good_channels(station,
                                                              signal_window=signal_window,
                                                              noise_window=noise_window

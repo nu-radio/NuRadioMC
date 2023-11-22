@@ -75,7 +75,7 @@ def FindRFI_LOFAR(
         metadata_dir,
         target_trace_length=65536,
         rfi_cleaning_trace_length=8192,
-        flagged_antenna_ids=[],
+        flagged_antenna_ids=None,
         num_dbl_z=1000,
 ):
     """
@@ -90,18 +90,46 @@ def FindRFI_LOFAR(
         The path to the directory containing the LOFAR metadata (required to open TBB file correctly).
     target_trace_length : int
         Size of total block of trace to be evaluated for finding dirty rfi channels.
-    rfi_cleaning_trace_length: int
+    rfi_cleaning_trace_length : int
         Size of one chunk of trace to be evaluated at a time for calculating spectrum from.
+    flagged_antenna_ids : list, default=[]
+        List of antennas which are already flagged. These will not be considered for the RFI detection process.
+    num_dbl_z : int, default=100
+        The number of double zeros allowed in a block, if there are too many, then there could be data loss.
 
     Raises
     ------
     ValueError
         If the `target_trace_length` is not a multiple of the `rfi_cleaning_trace_length`.
+
+    Returns
+    -------
+    output_dict : dict
+        A dictionary with the following key-value pairs:
+
+           * "avg_power_spectrum": array that contains the average of the magnitude for each frequency channel over all
+             antennas.
+
+           * "avg_antenna_power": array that contains the average power in frequency domain for each antenna.
+
+           * "antenna_names": the antenna IDs of which the data was used.
+
+           * "cleaned_power": array containing the power in each antenna after contaminated channels have been removed.
+             Note that the result is multiplied by a factor of 2 to account for the negative frequencies.
+
+           * "phase_stability": 2-dimensional array with the average phase for every frequency channel in each antenna.
+
+           * "dirty_channels": array of indices indicating the channels that are contaminated with RFI.
+
+           * "dirty_channels_block_size": the number of samples per block used to detect phase stability.
     """
+    if flagged_antenna_ids is None:
+        flagged_antenna_ids = []
+
     # Hardcoded values for LOFAR
     lower_frequency_bound = 0.0 * units.Hz
     upper_frequency_bound = 100e6 * units.Hz
-    print('Upper frequency bound = %1.4e' % upper_frequency_bound)
+    logger.info('Upper frequency bound = %1.4e' % upper_frequency_bound)
 
     # Some checks to make sure variables are correctly matched with each other
     if target_trace_length % rfi_cleaning_trace_length != 0:
@@ -111,7 +139,7 @@ def FindRFI_LOFAR(
         raise ValueError
 
     if (rfi_cleaning_trace_length < 4096) or (rfi_cleaning_trace_length > 16384):
-        logger.warning( # WHY 6 times this warning? No self.logger available here
+        logger.warning(  # WHY 6 times this warning? No self.logger available here
             "RFI cleaning may not work optimally at block sizes < 4096 or > 16384; %s" % tbb_filename
         )
 
@@ -329,23 +357,22 @@ def FindRFI_LOFAR(
     dirty_channels = np.where(extend_dirty_channels)
 
     antenna_is_good[ref_antenna] = True  # cause'.... ya know.... it is
-    # plot and return data
-    frequencies = frequencies[lower_frequency_index:upper_frequency_index]
 
     ave_spectrum_magnitude = spectrum_mean
-
-    cleaned_spectrum = np.array(spectrum_mean)
-    cleaned_spectrum[:, dirty_channels] = 0.0
 
     tbb_file.close_file()
 
     # Calculate the required output variables
-    avg_power_spectrum = np.sum(ave_spectrum_magnitude, axis=0)
-    avg_antenna_power = ave_spectrum_magnitude
+    avg_power_spectrum = np.sum(ave_spectrum_magnitude, axis=0) / ave_spectrum_magnitude.shape[0]
+    avg_antenna_power = np.sum(ave_spectrum_magnitude, axis=1) / ave_spectrum_magnitude.shape[1]
 
-    cleaned_power = 2 * np.sum(cleaned_spectrum, axis=1)
     antenna_names = antenna_ids
-    dirty_channels += lower_frequency_index # = output["dirty_channels"][0]
+
+    cleaned_spectrum = np.array(ave_spectrum_magnitude)
+    cleaned_spectrum[:, dirty_channels] = 0.0
+    cleaned_power = 2 * np.sum(cleaned_spectrum, axis=1)
+
+    dirty_channels += lower_frequency_index
     dirty_channels = dirty_channels[0]
     multiplied_channels = []
     multiplied_blocks = target_trace_length // rfi_cleaning_trace_length
@@ -357,20 +384,34 @@ def FindRFI_LOFAR(
     dirty_channels = np.sort(np.array(multiplied_channels))
     dirty_channels_block_size = target_trace_length
 
-    return avg_power_spectrum, dirty_channels, dirty_channels_block_size, antenna_names, avg_antenna_power, cleaned_power
+    # Use dictionary to avoid indexing mistakes
+    output_dict = {
+        "avg_power_spectrum": avg_power_spectrum,
+        "avg_antenna_power": avg_antenna_power,
+        "antenna_names": antenna_names,
+        "cleaned_power": cleaned_power,
+        "phase_stability": phase_stability,
+        "dirty_channels": dirty_channels,
+        "dirty_channels_block_size": dirty_channels_block_size,
+    }
+
+    return output_dict
 
 
-    # TODO: add description of algorithm to notes section
-
-
-# TODO: -- stationRFI filter works on station selection made earlier at event read-in -- make stationRFIFilter take keyword to only process certain stations?
+# TODO: make stationRFIFilter take keyword to only process certain stations -> already implemented in reader?
 class stationRFIFilter:
     """
     Remove the RFI from all stations in an Event, by using the phase-variance method described in
-    :py:func:`FindRFI_LOFAR`. This function returns the frequency channels which are contaminated, which are
+    the notes section. This algorithm returns the frequency channels which are contaminated, which are
     subsequently put to zero in the traces.
 
     **Note**: currently the class uses hardcoded values for LOFAR, this needs to be improved later.
+
+    Notes
+    -----
+    The algorithm compares the phase stability of each frequency channel between a reference antenna and every
+    other antenna in the station. If the phase is stable, this indicates a constant source contaminating the data.
+    More information can be found in Section 3.2.2 of `this paper <https://arxiv.org/pdf/1311.1399.pdf>`_ .
     """
     def __init__(self):
         self.logger = logger # logging.getLogger('NuRadioReco.channelRFIFilter')
@@ -431,14 +472,12 @@ class stationRFIFilter:
                                    )
 
             # Extract the necessary information from FindRFI
-            avg_power_spectrum = packet[0]
-            dirty_channels = packet[1]
-            dirty_channels_block_size = packet[2]
+            dirty_channels = packet['dirty_channels']
             station.set_parameter(stationParameters.dirty_fft_channels, dirty_channels)
 
             # implement outlier detection in cleaned power
-            antenna_ids = np.array(packet[3])
-            cleaned_power = packet[5]
+            antenna_ids = np.array(packet['antenna_names'])
+            cleaned_power = packet['cleaned_power']
             median_dipole_power = np.median(cleaned_power)
             bad_dipole_indices = np.where(
                 np.logical_or(
