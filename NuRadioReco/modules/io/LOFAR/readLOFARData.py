@@ -186,7 +186,7 @@ class getLOFARtraces:
         this_station_name = self.tbb_file.get_station_name()
 
         logger.info("Getting clock offset for station %s" % this_station_name)
-        this_clock_offset_ns = 1.0e9 * station_clock_offsets[this_station_name] # was kept constant at 1e4 at read-in in pycrtools
+        this_clock_offset_ns = 1.0e9 * station_clock_offsets[this_station_name]  # kept constant at 1e4 in PyCRTools
         logger.info("Clock offset is %1.4e ns" % this_clock_offset_ns)
 
         packet = lora_timestamp_to_blocknumber(self.time_s, self.time_ns,
@@ -296,8 +296,12 @@ class readLOFARData:
 
         self.__event_id = None
         self.__stations = None
+
         self.__lora_timestamp = None
         self.__lora_timestamp_ns = None
+        self.__lora_azimuth = None
+        self.__lora_zenith = None
+
         self.__restricted_station_set = restricted_station_set
 
     @staticmethod
@@ -330,6 +334,8 @@ class readLOFARData:
             'CS031': {'files': []},
             'CS032': {'files': []},
             'CS101': {'files': []},
+            'CS103': {'files': []},
+            'CS201': {'files': []},
             'CS301': {'files': []},
             'CS302': {'files': []},
             'CS401': {'files': []},
@@ -361,9 +367,10 @@ class readLOFARData:
 
         self.__lora_timestamp = lora_dict["LORA"]["utc_time_stamp"]
         self.__lora_timestamp_ns = lora_dict["LORA"]["time_stamp_ns"]
-        
+
+        # Read in data from LORA file
         self.__lora_zenith = lora_dict["LORA"]["zenith_rad"] * units.radian
-        self.__lora_azimuth = lora_dict["LORA"]["azimuth_rad"] * units.radian
+        self.__lora_azimuth = lora_dict["LORA"]["azimuth_rad"] * units.radian  # with respect to x pointing East
 
         # Go through TBB directory and identify all files for this event
         tbb_filename_pattern = tbb_filetag_from_utc(self.__event_id + 1262304000)  # event id is based on timestamp
@@ -376,7 +383,7 @@ class readLOFARData:
         # TODO: save paths of files per event in some kind of database
 
         for tbb_filename in all_tbb_files:
-            station_name = re.findall("CS\d\d\d", tbb_filename)[0]
+            station_name = re.findall(r"CS\d\d\d", tbb_filename)[0]
             if (self.__restricted_station_set is not None) and (station_name not in self.__restricted_station_set):
                 continue # only process stations in the given set
             self.logger.info(f'Found file {tbb_filename} for station {station_name}...')
