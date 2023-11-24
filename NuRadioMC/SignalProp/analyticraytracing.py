@@ -685,6 +685,7 @@ class ray_tracing_2D(ray_tracing_base):
                 z_turn = 0
                 y_turn = self.get_y(self.get_gamma(z_turn), C_0, self.get_C_1(x1, C_0))
                 x2 = [y_turn, z_turn]
+                self.__logger.warning(f"transmission coefficient of propagation from ice into air, or air into ice is not taken into account in attenuation calculation!")
 
             if self.use_cpp:
                 mask = frequency > 0
