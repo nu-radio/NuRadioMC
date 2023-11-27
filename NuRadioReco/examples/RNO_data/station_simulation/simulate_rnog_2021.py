@@ -75,7 +75,7 @@ def task(q, iSim, energy_min, energy_max, detectordescription, config, output_fi
         elif E <= 10**19.0 * units.eV:
             return 5.6 * units.km
         else:
-            return 6.1 * units.km
+            return 7.0 * units.km
 
     def get_min_z_shallow(E):  # estimated min z-pos from noiseless 1 sigma triggers (for PA trigger), E = shower energy
         if E <= 10**16.25 * units.eV:
@@ -98,8 +98,12 @@ def task(q, iSim, energy_min, energy_max, detectordescription, config, output_fi
             return -2.4 * units.km
         elif E <= 10**18.50 * units.eV:
             return -2.55 * units.km
+        elif E <= 10**18.75 * units.eV:
+            return -2.8 * units.km
+        elif E <= 10**19.00 * units.eV:
+            return -3.2 * units.km
         else:
-            return -2.7 * units.km
+            return -4.7 * units.km
 
     class mySimulation(simulation.simulation):
         def _detector_simulation_filter_amp(self, evt, station, det):
