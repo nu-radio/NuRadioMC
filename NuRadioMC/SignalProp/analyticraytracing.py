@@ -2309,19 +2309,37 @@ class ray_tracing(ray_tracing_base):
         for zenith_reflection in zenith_reflections:  # loop through all possible reflections
             if (zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
                 continue
-            r_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(
-                zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-            r_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(
-                zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
-            efield[efp.reflection_coefficient_theta] = r_theta
-            efield[efp.reflection_coefficient_phi] = r_phi
-
-            spec[1] *= r_theta
-            spec[2] *= r_phi
-            self.__logger.debug(
-                "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
-                    zenith_reflection / units.deg,
-                    r_theta, r_phi))
+            if(self._x2[1] > 0):  # we need to treat the case of air to ice/ice to air propagation sepatately:
+                # air/ice propagation
+                if(not self._swap):  # ice to air case
+                    t_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_p(
+                        zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+                    t_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_s(
+                        zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+                    self.__logger.warning(f"propagating from ice to air: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
+                else:   # air to ice
+                    t_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_p(
+                        zenith_reflection, n_1=1., n_2=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+                    t_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_t_s(
+                        zenith_reflection, n_1=1., n_2=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+                    self.__logger.warning(f"propagating from air to ice: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
+                spec[1] *= t_theta
+                spec[2] *= t_phi
+            else:
+                #in-ice propagation
+                r_theta = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_p(
+                    zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+                r_phi = NuRadioReco.utilities.geometryUtilities.get_fresnel_r_s(
+                    zenith_reflection, n_2=1., n_1=self._medium.get_index_of_refraction([self._X2[0], self._X2[1], -1 * units.cm]))
+                efield[efp.reflection_coefficient_theta] = r_theta
+                efield[efp.reflection_coefficient_phi] = r_phi
+    
+                spec[1] *= r_theta
+                spec[2] *= r_phi
+                self.__logger.warning(
+                    "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
+                        zenith_reflection / units.deg,
+                        r_theta, r_phi))
         i_reflections = self.get_results()[i_solution]['reflection']
         if (i_reflections > 0):  # take into account possible bottom reflections
             # each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift
