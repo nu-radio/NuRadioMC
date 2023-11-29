@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NuRadioReco.modules.io.RNO_G.readRNOGDataMattak module &mdash; NuRadio 2.2.0-dev documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/styling.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/styling.css" />
+
+  
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -628,9 +630,9 @@ the function specified (i.e., mean or median).</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.get_time_offset">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.</span></span><span class="sig-name descname"><span class="pre">get_time_offset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#get_time_offset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.get_time_offset" title="Permalink to this definition"></a></dt>
-<dd><p>Mapping the offset between trace start time and trigger time (~ signal time). 
+<dd><p>Mapping the offset between trace start time and trigger time (~ signal time).
 Temporary use hard-coded values for each trigger type. In the future this
-information might be time, station, and channel dependent and should come 
+information might be time, station, and channel dependent and should come
 from a database (or is already calibrated in mattak)</p>
 <p>Current values motivated by figures posted in PR <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/pull/519">https://github.com/nu-radio/NuRadioMC/pull/519</a></p>
 <dl class="field-list simple">
@@ -674,12 +676,14 @@ apparently empty but are missing the daqstatus, pedestal, and header file.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.</span></span><span class="sig-name descname"><span class="pre">readRNOGData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_table_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.</span></span><span class="sig-name descname"><span class="pre">readRNOGData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_table_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_run_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>run_table_path: str</strong></dt><dd><p>Path to a run_table.cvs file. If None, the run table is queried from the DB. (Default: None)</p>
+<dt><strong>run_table_path: str | None</strong></dt><dd><p>Path to a run_table.cvs file. If None, the run table is queried from the DB. (Default: None)</p>
+</dd>
+<dt><strong>load_run_table: bool</strong></dt><dd><p>If True, try to load the run_table from run_table_path. Otherwise, skip this.</p>
 </dd>
 <dt><strong>log_level: enum</strong></dt><dd><p>Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).
 (Default: logging.INFO)</p>
@@ -740,7 +744,7 @@ apparently empty but are missing the daqstatus, pedestal, and header file.</p>
 (see “selectors” below). (Default: None)</p>
 </dd>
 <dt><strong>select_runs: bool</strong></dt><dd><p>If True, use information in run_table to select runs (based on run_type, run_time, trigger_rate, …).
-If the run_table is not available no selection is performed (and the programm is not interrupted, 
+If the run_table is not available no selection is performed (and the programm is not interrupted,
 only an error message is raised). See parameters to configure run selection. (Default: False)</p>
 </dd>
 </dl>
@@ -758,8 +762,8 @@ Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == “FORCE�
 </dd>
 <dt><strong>run_types: list</strong></dt><dd><p>Used to select/reject runs from information in the RNO-G RunTable. List of run_types to be used. (Default: [‘physics’])</p>
 </dd>
-<dt><strong>run_time_range: tuple</strong></dt><dd><p>Specify a time range to select runs (it is sufficient that runs cover the time range partially). 
-Each value of the tuple has to be in a format which astropy.time.Time understands. A value can be None 
+<dt><strong>run_time_range: tuple</strong></dt><dd><p>Specify a time range to select runs (it is sufficient that runs cover the time range partially).
+Each value of the tuple has to be in a format which astropy.time.Time understands. A value can be None
 which means that the lower or upper bound is unconstrained. If run_time_range is None no time selection is
 applied. (Default: None)</p>
 </dd>
@@ -767,7 +771,7 @@ applied. (Default: None)</p>
 If 0, no cut is applied. (Default: 1 Hz)</p>
 </dd>
 <dt><strong>mattak_kwargs: dict</strong></dt><dd><p>Dictionary of arguments for mattak.Dataset.Dataset. (Default: {})
-Example: Select a mattak “backend”. Options are “auto”, “pyroot”, “uproot”. If “auto” is selected, 
+Example: Select a mattak “backend”. Options are “auto”, “pyroot”, “uproot”. If “auto” is selected,
 pyroot is used if available otherwise a “fallback” to uproot is used. (Default: “auto”)</p>
 </dd>
 <dt><strong>overwrite_sampling_rate: float</strong></dt><dd><p>Set sampling rate of the imported waveforms. This overwrites what is read out from runinfo (i.e., stored in the mattak files).
@@ -799,7 +803,7 @@ Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == “FORCE�
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_events_information">
 <span class="sig-name descname"><span class="pre">get_events_information</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['station',</span> <span class="pre">'run',</span> <span class="pre">'eventNumber']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.get_events_information"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_events_information" title="Permalink to this definition"></a></dt>
 <dd><p>Return information of all events from the EventInfo</p>
-<p>This function is useful to make a pre-selection of events before actually reading them in combination with 
+<p>This function is useful to make a pre-selection of events before actually reading them in combination with
 self.read_event().</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -812,7 +816,7 @@ of the mattak.Dataset.EventInfo class (examples are “station”, “run”, �
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>data: dict</dt><dd><p>Keys of the dict are the event indecies (as used in self.read_event(event_index)). The values are dictinaries 
+<dt>data: dict</dt><dd><p>Keys of the dict are the event indecies (as used in self.read_event(event_index)). The values are dictinaries
 them self containing the information specified with “keys” parameter.</p>
 </dd>
 </dl>
@@ -840,7 +844,7 @@ them self containing the information specified with “keys” parameter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>event_index: int</strong></dt><dd><p>The index of a particluar event. The index is the chronological number from 0 to 
+<dt><strong>event_index: int</strong></dt><dd><p>The index of a particluar event. The index is the chronological number from 0 to
 number of total events (across all datasets).</p>
 </dd>
 </dl>
