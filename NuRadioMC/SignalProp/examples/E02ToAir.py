@@ -14,8 +14,8 @@ logger = logging.getLogger('raytracing')
 
 x1 = np.array([0, 0., -149.]) * units.m
 
-x2 = np.array([200, 0., 100]) * units.m
-x3 = np.array([500, 0., 100]) * units.m
+x2 = np.array([0, 0., 100]) * units.m
+x3 = np.array([200, 0., 100]) * units.m
 x4 = np.array([1000, 0., 100]) * units.m
 x5 = np.array([10000, 0., 100]) * units.m
 
@@ -31,6 +31,15 @@ travel_times = np.zeros((N, 2)) * np.nan
 travel_distances = np.zeros((N, 2)) * np.nan
 
 ice = medium.southpole_simple()
+
+if 0:  # for debug purpuses, plot the objective function
+    fig2, ax2 = plt.subplots(1, 1)
+    for i, (x_start, x_stop) in enumerate(zip(x_starts, x_stops)):
+        r2d = ray.ray_tracing_2D(ice, log_level=logging.WARNING)
+        logC0s = np.linspace(-0.9, 10, 10)
+        oo = [r2d.obj_delta_y(t, x_start[np.array([0,2])], x_stop[np.array([0,2])]) for t in logC0s]
+        ax2.plot(logC0s, oo, "-o")
+        plt.show()
 
 fig, ax = plt.subplots(1, 1)
 for i, (x_start, x_stop) in enumerate(zip(x_starts, x_stops)):
@@ -59,7 +68,7 @@ for i, (x_start, x_stop) in enumerate(zip(x_starts, x_stops)):
             print(f"     focusing factor = {focusing:.8f}")
 
             att = r.get_attenuation(iS, np.array([100, 200]) * units.MHz)
-            print(att)
+            print(f"     attenuation: {att}")
             
             
             efield=NuRadioReco.framework.electric_field.ElectricField([0])
