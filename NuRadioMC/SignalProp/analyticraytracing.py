@@ -1139,12 +1139,32 @@ class ray_tracing_2D(ray_tracing_base):
             # between the turning point and the target point + 10 x the distance between the z position of the turning points
             # and the target position. This results in a objective function that has the solutions as the only minima and
             # is smooth in C_0
+            
             diff = ((z_turn - x2[1]) ** 2 + (y_turn - x2[0]) ** 2) ** 0.5 + 10 * np.abs(z_turn - x2[1])
             self.__logger.debug(
-                "turning points (zturn = {:.0f} is deeper than x2 positon z2 = {:.0f}, setting distance to target position to {:.1f}".format(z_turn, x2[1], -diff))
+                "turning points (zturn = {:.4g} is deeper than x2 positon z2 = {:.0f}, setting distance to target position to {:.1f}".format(z_turn, x2[1], -diff))
             return -diff
 #             return -np.inf
         self.__logger.debug('turning points is z = {:.1f}, y =  {:.1f}'.format(z_turn, y_turn))
+        
+        if(x2[1] > 0):  # first treat the ice to air case
+            # Do nothing if ray is refracted. If ray is reflected, don't mirror but do straight line upwards
+            if(z_turn == 0):
+                zenith_reflection = self.get_reflection_angle(x1, x2, C_0, reflection, reflection_case)
+                if(zenith_reflection == None):
+                    diff = x2[1]
+                    self.__logger.debug(f"not refracting into air")
+                    return diff
+                n_1 = self.medium.get_index_of_refraction([y_turn, 0, z_turn])
+                zenith_air = NuRadioReco.utilities.geometryUtilities.get_fresnel_angle(zenith_reflection, n_1=n_1, n_2=1)
+                if(zenith_air is None):
+                    diff = x2[1]
+                    self.__logger.debug(f"not refracting into air")
+                    return diff
+                z = (x2[0] - y_turn) / np.tan(zenith_air)
+                diff = x2[1] - z
+                self.__logger.debug(f"touching surface at {zenith_reflection/units.deg:.1f}deg -> {zenith_air/units.deg:.1f}deg -> x2 = {x2} diff {diff:.2f}")
+                return diff
         if(y_turn > x2[0]):  # we always propagate from left to right
             # direct ray
             y2_fit = self.get_y(self.get_gamma(x2[1]), C_0, C_1)  # calculate y position at get_path position
@@ -1158,35 +1178,19 @@ class ray_tracing_2D(ray_tracing_base):
                 'we have a direct ray, y({:.1f}) = {:.1f} -> {:.1f} away from {:.1f}, turning point = y={:.1f}, z={:.2f}, x0 = {:.1f} {:.1f}'.format(x2[1], y2_fit, diff, x2[0], y_turn, z_turn, x1[0], x1[1]))
             return diff
         else:
+            # now it's a bit more complicated. we need to transform the coordinates to
+            # be on the mirrored part of the function
+            z_mirrored = x2[1]
+            gamma = self.get_gamma(z_mirrored)
+            self.__logger.debug("get_y( {}, {}, {})".format(gamma, C_0, C_1))
+            y2_raw = self.get_y(gamma, C_0, C_1)
+            y2_fit = 2 * y_turn - y2_raw
+            diff = (x2[0] - y2_fit)
 
-            if(x2[1] > 0):  # first treat the ice to air case
-                # Do nothing if ray is refracted. If ray is reflected, don't mirror but do straight line upwards
-                if(z_turn == 0):
-                    zenith_reflection = self.get_reflection_angle(x1, x2, C_0, reflection, reflection_case)
-                    n_1 = self.medium.get_index_of_refraction([y_turn, 0, z_turn])
-                    zenith_air = NuRadioReco.utilities.geometryUtilities.get_fresnel_angle(zenith_reflection, n_1=n_1, n_2=1)
-                    if(zenith_air is None):
-                        diff = x2[0]
-                        self.__logger.debug(f"not refracting into air")
-                        return diff
-                    z = (x2[0] - y_turn) / np.tan(zenith_air)
-                    diff = x2[1] - z
-                    self.__logger.debug(f"touching surface at {zenith_reflection/units.deg:.1f}deg -> {zenith_air/units.deg:.1f}deg -> x2 = {x2} diff {diff:.2f}")
-                    return diff
-            else:
-                # now it's a bit more complicated. we need to transform the coordinates to
-                # be on the mirrored part of the function
-                z_mirrored = x2[1]
-                gamma = self.get_gamma(z_mirrored)
-                self.__logger.debug("get_y( {}, {}, {})".format(gamma, C_0, C_1))
-                y2_raw = self.get_y(gamma, C_0, C_1)
-                y2_fit = 2 * y_turn - y2_raw
-                diff = (x2[0] - y2_fit)
-    
-                self.__logger.debug('we have a reflected/refracted ray, y({:.1f}) = {:.1f} ({:.1f}) -> {:.1f} away from {:.1f} (gamma = {:.5g})'.format(
-                    z_mirrored, y2_fit, y2_raw, diff, x2[0], gamma))
-    
-                return -1 * diff
+            self.__logger.debug('we have a reflected/refracted ray, y({:.1f}) = {:.1f} ({:.1f}) -> {:.1f} away from {:.1f} (gamma = {:.5g})'.format(
+                z_mirrored, y2_fit, y2_raw, diff, x2[0], gamma))
+
+            return -1 * diff
 
     def determine_solution_type(self, x1, x2, C_0):
         """ returns the type of the solution
@@ -1264,19 +1268,21 @@ class ray_tracing_2D(ray_tracing_base):
             if(x2[1] > 0):
                 # special case of ice to air ray tracing. There is always one unique solution between C_0 = inf and C_0 that
                 # skims the surface. Therefore, we can find the solution using an efficient root finding algorithm.
-                logC0_start = 1  # infinity is bad, 1 is steep enough
+                logC0_start = 100  # infinity is bad, 100 is steep enough
                 C_0_stop = self.get_C_0_from_angle(np.arcsin(1/self.medium.get_index_of_refraction([0, x1[0], x1[1]])), x1[1]).x[0]
                 logC0_stop = np.log(C_0_stop - 1/self.medium.n_ice)
-                self.__logger.debug(
-                    "Looking for ice-air solutions between C0 ({}, {}) with delta_y ({}, {})".format(
-                        logC0_start, logC0_stop, *[self.obj_delta_y(logC0, x1, x2, reflection, reflection_case) for logC0 in [logC0_start, logC0_stop]]
-                    ))
+                delta_ys = [self.obj_delta_y(logC0, x1, x2, reflection, reflection_case) for logC0 in [logC0_start, logC0_stop]]
+                self.__logger.debug("Looking for ice-air solutions between log(C0) ({}, {}) with delta_y ({}, {})".format(logC0_start, logC0_stop, *delta_ys))
+                if(np.sign(delta_ys[0]) == np.sign(delta_ys[1])):
+                    self.__logger.warning(f"can't find a solution for ice/air propagation. The trajectory might be too vertical! This is currently not"\
+                                          " supported because of numerical instabilities.")
+                    return results
                 result = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
 
                 C_0 = self.get_C0_from_log(result)
                 C0s.append(C_0)
                 solution_type = self.determine_solution_type(x1, x2, C_0)
-                self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
+                self.__logger.info("found {} solution C0 = {:.2f} (internal logC = {:.2f})".format(solution_types[solution_type], C_0, result))
                 results.append({'type': solution_type,
                                 'C0': C_0,
                                 'C1': self.get_C_1(x1, C_0),
