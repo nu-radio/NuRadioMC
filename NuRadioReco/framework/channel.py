@@ -19,7 +19,7 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
         channel_id: int
             the id of the channel
         channel_group_id: int (default None)
-            optionally, severl channels can belong to a "channel group". Use case is to identify
+            optionally, several channels can belong to a "channel group". Use case is to identify
             the channels of a single dual or triple polarized antenna as common in air shower arrays. 
         
         """
@@ -61,8 +61,8 @@ class Channel(NuRadioReco.framework.base_trace.BaseTrace):
     def get_group_id(self):
         """
         channel group id
-        If no group id is specified, the channel id is returned. This allows using modules that use the `group_id` feature
-        also on detector setups that don't use this feature. 
+        If no group id is specified, the channel id is returned. This allows using modules that use the `group_id`
+        feature also on detector setups that don't use this feature.
         """
         if self._group_id is None:
             return self._id
