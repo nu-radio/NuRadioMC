@@ -45,7 +45,6 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
                 yield channel
         if found_channel_group == False:
             msg = f"channel group id {channel_group_id} is not present"
-            logger.errpr(msg)
             raise ValueError(msg)
             
     def get_number_of_channels(self):
