@@ -13,7 +13,9 @@ from NuRadioReco.modules.base import module
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.channel
-from NuRadioReco.framework.parameters import stationParameters
+import NuRadioReco.framework.hybrid_shower
+import NuRadioReco.framework.radio_shower
+from NuRadioReco.framework.parameters import stationParameters, showerParameters
 
 import NuRadioReco.modules.io.LOFAR.rawTBBio as rawTBBio
 import NuRadioReco.modules.io.LOFAR.rawTBBio_metadata as rawTBBio_metadata
@@ -299,8 +301,7 @@ class readLOFARData:
 
         self.__lora_timestamp = None
         self.__lora_timestamp_ns = None
-        self.__lora_azimuth = None
-        self.__lora_zenith = None
+        self.__hybrid_shower = None
 
         self.__restricted_station_set = restricted_station_set
 
@@ -343,9 +344,34 @@ class readLOFARData:
         }  # Dictionary containing list of TBB files for every station in event
 
     def get_stations(self):
-        return self.__stations
+        """
+        Return the internal dictionary which contains the paths to the TBB event files and the extracted metadata
+        per stations.
 
-    def begin(self, event_id):
+        Returns
+        -------
+            stations : dict
+                Dictionary with station names as keys and dictionaries as values, who have a `files` key with as
+                value a list of TBB filepaths and a `metadata` key which has a list with metadat as value.
+
+        Notes
+        -----
+        The metadata key is only set in the `readLOFARData.begin()` function, to avoid setting it multiple times if
+        there is more than 1 TBB file for a given station.
+
+        Metadata is a list containing (in this order):
+            1. station name
+            2. antenna set
+            3. tbb timestamp (seconds)
+            4. tbb timestamp (nanoseconds)
+            5. station clock frequency (Hz)
+            6. positions of antennas
+            7. dipole IDs
+            8. calibration delays per dipole
+        """
+        return np.copy(self.__stations)
+
+    def begin(self, event_id, logger_level=logging.WARNING):
         """
         Prepare the reader to ingest the event with ID `event_id`. This resets the internal representation of the
         stations as well as the event ID. The timestamps are read from the LORA JSON file corresponding to the event.
@@ -356,7 +382,11 @@ class readLOFARData:
         ----------
         event_id: int
             The ID of the event to load.
+        logger_level : int, default=logging.WARNING
+            The logging level to use for the module.
         """
+        self.logger.setLevel(logger_level)
+
         # Set the internal variables
         self.__event_id = int(event_id)  # ID might be provided as str
         self.__stations = self.__new_stations()
@@ -368,9 +398,14 @@ class readLOFARData:
         self.__lora_timestamp = lora_dict["LORA"]["utc_time_stamp"]
         self.__lora_timestamp_ns = lora_dict["LORA"]["time_stamp_ns"]
 
-        # Read in data from LORA file
-        self.__lora_zenith = lora_dict["LORA"]["zenith_rad"] * units.radian
-        self.__lora_azimuth = lora_dict["LORA"]["azimuth_rad"] * units.radian  # with respect to x pointing East
+        # Read in data from LORA file and save it in a HybridShower
+        self.__hybrid_shower = NuRadioReco.framework.hybrid_shower.HybridShower("LORA")
+
+        # The LORA coordinate system has x pointing East -> set this through magnetic field vector (values from 2015)
+        self.__hybrid_shower.set_parameter(showerParameters.magnetic_field_vector,
+                                           np.array([0.004675, 0.186270, -0.456412]))
+        self.__hybrid_shower.set_parameter(showerParameters.zenith, lora_dict["LORA"]["zenith_rad"] * units.radian)
+        self.__hybrid_shower.set_parameter(showerParameters.azimuth, lora_dict["LORA"]["azimuth_rad"] * units.radian)
 
         # Go through TBB directory and identify all files for this event
         tbb_filename_pattern = tbb_filetag_from_utc(self.__event_id + 1262304000)  # event id is based on timestamp
@@ -392,9 +427,6 @@ class readLOFARData:
             # Save the metadata only once (in case there are multiple files for a station)
             if 'metadata' not in self.__stations[station_name]:
                 self.__stations[station_name]['metadata'] = get_metadata([tbb_filename], self.meta_dir)
-                # Metadata is a list containing:
-                # station name, antenna set, tbb timestamp (seconds), tbb timestamp (nanoseconds),
-                # station clock frequency (Hz), positions of antennas, dipole IDs and calibration delays per dipole
 
     @register_run()
     def run(self, detector, trace_length=65536):
@@ -419,6 +451,9 @@ class readLOFARData:
         # Create an empty with 1 run, as only 1 shower per event
         evt = NuRadioReco.framework.event.Event(1, self.__event_id)
 
+        # Add HybridShower to HybridInformation
+        evt.get_hybrid_information().add_hybrid_shower(self.__hybrid_shower)
+
         # Add all Detector stations to Event
         for station_name, station_dict in self.__stations.items():
             station_id = int(station_name[2:])
@@ -426,7 +461,10 @@ class readLOFARData:
 
             if len(station_files) == 0:
                 continue
+
             station = NuRadioReco.framework.station.Station(station_id)
+            radio_shower = NuRadioReco.framework.radio_shower.RadioShower(shower_id=station_id,
+                                                                          station_ids=[station_id])
 
             # Use KRATOS io functions to access trace
             lofar_trace_access = getLOFARtraces(
@@ -466,10 +504,10 @@ class readLOFARData:
 
             # store set of flagged channel ids as station parameter
             station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids)
-            evt.set_station(station)
 
-            station.set_parameter(stationParameters.zenith, self.__lora_zenith)
-            station.set_parameter(stationParameters.azimuth, self.__lora_azimuth)
+            # Add station to Event, together with RadioShower to store reconstruction values later on
+            evt.set_station(station)
+            evt.add_shower(radio_shower)
 
             lofar_trace_access.close_file()
 

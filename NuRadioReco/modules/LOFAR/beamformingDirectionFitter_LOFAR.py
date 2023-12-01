@@ -14,7 +14,7 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.voltageToEfieldConverter import voltageToEfieldConverter
 from NuRadioReco.modules.LOFAR.beamforming_utilities import beamformer
 
-logger = module.setup_logger(level=logging.DEBUG)
+logger = module.setup_logger(level=logging.WARNING)
 
 lightspeed = constants.c * units.m / units.s
 
@@ -55,7 +55,7 @@ class beamformingDirectionFitter:
         self.__max_iter = None
         self.__cr_snr = None
 
-    def begin(self, max_iter, cr_snr=3):
+    def begin(self, max_iter, cr_snr=3, logger_level=logging.WARNING):
         """
         Set the values for the fitting procedures.
 
@@ -63,11 +63,15 @@ class beamformingDirectionFitter:
         ----------
         max_iter : int
             The maximum number of iterations to use during the fitting procedure
-        cr_snr : float
+        cr_snr : float, default=3
             The minimum SNR a channel should have to be considered having a CR signal.
+        logger_level : int, default=logging.WARNING
+            The logging level to use for the module.
         """
         self.__max_iter = max_iter
         self.__cr_snr = cr_snr
+
+        self.logger.setLevel(logger_level)
 
     def _direction_fit(self, fft_traces, freq, ant_positions):
         """

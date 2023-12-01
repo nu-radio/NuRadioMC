@@ -418,7 +418,7 @@ class stationRFIFilter:
 
         self.__rfi_trace_length = None
 
-    def begin(self, rfi_cleaning_trace_length=65536):
+    def begin(self, rfi_cleaning_trace_length=65536, logger_level=logging.WARNING):
         """
         Set the variables used for RFI detection.
 
@@ -426,8 +426,12 @@ class stationRFIFilter:
         ----------
         rfi_cleaning_trace_length : int
             The number of samples to use per block to construct the frequency spectrum.
+        logger_level : int, default=logging.WARNING
+            The logging level to use for the module.
         """
         self.__rfi_trace_length = rfi_cleaning_trace_length
+
+        self.logger.setLevel(logger_level)
 
     @register_run()
     def run(self, event, reader):
