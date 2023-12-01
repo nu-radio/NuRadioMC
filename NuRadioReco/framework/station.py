@@ -44,7 +44,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
                 found_channel_group = True
                 yield channel
         if found_channel_group == False:
-            msg = "channel group id {channel_group_id} is not present"
+            msg = f"channel group id {channel_group_id} is not present"
             logger.errpr(msg)
             raise ValueError(msg)
             
