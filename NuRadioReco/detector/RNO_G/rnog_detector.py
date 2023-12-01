@@ -212,7 +212,7 @@ class Detector():
         Parameters
         ----------
 
-        time: datetime.datetime 
+        time: datetime.datetime
             UTC time.
         '''
         if not isinstance(time, datetime.datetime):
@@ -236,15 +236,15 @@ class Detector():
         return self.__detector_time
 
     def update(self, time):
-        """ 
-        Updates the detector. If configure in constructor this function with trigger the 
-        database query.    
+        """
+        Updates the detector. If configure in constructor this function with trigger the
+        database query.
 
         Parameters
         ----------
 
-        time: datetime.datetime 
-            Unix time of measurement.        
+        time: datetime.datetime
+            Unix time of measurement.
         """
         self.logger.debug(f"Update detector to {time}")
 
@@ -274,7 +274,7 @@ class Detector():
     @check_detector_time
     def get_station_ids(self):
         """
-        Returns the list of all commissioned stations. 
+        Returns the list of all commissioned stations.
         Returns
         -------
 
@@ -291,12 +291,12 @@ class Detector():
                     commissioned_stations.append(station_id)
 
         return commissioned_stations
-    
+
     @check_detector_time
     def has_station(self, station_id):
         """
         Returns true if the station is commission. First checks buffer. If not in buffer, queries (and buffers)
-        the basic information of all stations and checks if station is among them. 
+        the basic information of all stations and checks if station is among them.
 
         Parameters
         ----------
@@ -330,9 +330,9 @@ class Detector():
         return False
 
     def _query_station_information(self, station_id):
-        """ 
+        """
         Query information about a specific station from the database via the db_mongo_read interface.
-        You can query only information from the station_list collection (all=False) or the complete 
+        You can query only information from the station_list collection (all=False) or the complete
         information of the station (all=True).
 
         Parameters
@@ -343,7 +343,7 @@ class Detector():
 
         all: bool
             If true, query all relevant information form a station including its channel and devices (position, signal chain, ...).
-            If false, query only the information from the station list collection (describes a station with all channels and devices 
+            If false, query only the information from the station list collection (describes a station with all channels and devices
             with their (de)commissioning timestamps but not data like position, signal chain, ...)
 
         Returns
@@ -372,8 +372,8 @@ class Detector():
 
     def __get_channel(self, station_id, channel_id, with_position=False, with_signal_chain=False):
         """
-        Get most basic channel information from buffer. If not in buffer query DB for all channels. 
-        In particular this will query and buffer position information  
+        Get most basic channel information from buffer. If not in buffer query DB for all channels.
+        In particular this will query and buffer position information
 
         Parameters
         ----------
@@ -400,7 +400,7 @@ class Detector():
             err = f"Station id {station_id} not commission at {self.get_detector_time()}"
             self.logger.error(err)
             raise ValueError(err)
-        
+
         if keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id]):
             raise KeyError(
                 f"Could not find channel {channel_id} in detector description for station {station_id}. Did you call det.update(...)?")
@@ -451,7 +451,7 @@ class Detector():
         Returns
         -------
 
-        pos: np.array(3,) 
+        pos: np.array(3,)
             3-dim array of absolute station position in easting, northing and depth wrt. to snow level at
             time of measurement
         """
@@ -554,7 +554,7 @@ class Detector():
         -------
 
         channel_signal_chain: dict
-            Returns dictionary which contains a list ("signal_chain") which contains 
+            Returns dictionary which contains a list ("signal_chain") which contains
             (the names of) components/response which are used to describe the signal
             chain of the channel
         """
@@ -585,15 +585,15 @@ class Detector():
             station_id, channel_id)
 
         measurement_components_dic = signal_chain_dict["response_chain"]
-        
+
         # Here comes a HACK
         components = list(measurement_components_dic.keys())
         is_equal = False
         if "drab_board" in components and "iglu_board" in components:
-            
+
             is_equal = np.allclose(measurement_components_dic["drab_board"]["mag"],
                                    measurement_components_dic["iglu_board"]["mag"])
-            
+
             if is_equal:
                 self.logger.warn("Currently both, iglu and drab board are configured in the signal chain but their"
                                  " responses are the same (because we measure them together in the lab). Drop the drab board response.")
@@ -602,7 +602,7 @@ class Detector():
         for key, value in measurement_components_dic.items():
             if is_equal and key == "drab_board":
                 continue
-            
+
             ydata = [value["mag"], value["phase"]]
             responses.append(
                 Response(value["frequencies"], ydata, value["y-axis_units"], name=key))
@@ -618,7 +618,7 @@ class Detector():
         ----------
 
         station_id: int
-            Station id 
+            Station id
 
         Returns
         -------
@@ -715,8 +715,8 @@ class Detector():
     @check_detector_time
     def get_number_of_channels(self, station_id):
         """
-        Get number of channels for a particlular station. It will query the basic information of all stations in the 
-        Database if necessary. Raises an error if the station is not commission. 
+        Get number of channels for a particlular station. It will query the basic information of all stations in the
+        Database if necessary. Raises an error if the station is not commission.
 
         Parameters
         ----------
@@ -744,8 +744,8 @@ class Detector():
     @check_detector_time
     def get_channel_ids(self, station_id):
         """
-        Get channel ids for a particlular station. It will query the basic information of all stations in the 
-        Database if necessary. Raises an error if the station is not commission. 
+        Get channel ids for a particlular station. It will query the basic information of all stations in the
+        Database if necessary. Raises an error if the station is not commission.
 
         Parameters
         ----------
@@ -769,7 +769,7 @@ class Detector():
         channels = self.__buffered_stations[station_id]["channels"]
 
         return [ele["id"] for ele in channels.values()]
-    
+
     def get_antenna_model(self, station_id, channel_id, zenith=None):
         """
 
@@ -777,45 +777,45 @@ class Detector():
         ----------
         station_id: int
             Station id
-            
+
         channel_id: int
             Channel id
 
         Returns
         -------
-        
+
         antenna_model: string
             Name of the antenna model (describing the Vector effective length VEL)
         """
         channel_info = self.__get_channel(
             station_id, channel_id, with_signal_chain=True)
         return channel_info["signal_chain"]["VEL"]
-        
+
 
     def get_number_of_samples(self, station_id, channel_id=None):
         """ Get number of samples for recorded waveforms
-        
+
         All RNO-G channels have the same number of samples, the argument channel_id is not used but we keep
         it here for consistency with outer detector classes.
-        
+
         Parameters
         ----------
-        
+
         station_id: int
             Station id
 
         Returns
         -------
-        
+
         number_of_samples: int
             Number of samples with which each waveform is recorded
         """
-        
+
         if not self.has_station(station_id):
             err = f"Station id {station_id} not commission at {self.get_detector_time()}"
             self.logger.error(err)
             raise ValueError(err)
-        
+
         if keys_not_in_dict(self.__buffered_stations, [station_id, "number_of_samples"]):
             raise KeyError(
                 f"Could not find \"number_of_samples\" for station {station_id} in buffer. Did you call det.update(...)?")
@@ -825,19 +825,19 @@ class Detector():
 
     def get_sampling_frequency(self, station_id, channel_id):
         """ Get sampling frequency per station / channel
-        
+
         All RNO-G channels have the same sampling frequency, the argument channel_id is not used but we keep
         it here for consistency with outer detector classes.
-        
+
         Parameters
         ----------
-        
+
         station_id: int
             Station id
 
         Returns
         -------
-        
+
         sampling_rate: int
             Sampling frequency
         """
@@ -845,7 +845,7 @@ class Detector():
             err = f"Station id {station_id} not commission at {self.get_detector_time()}"
             self.logger.error(err)
             raise ValueError(err)
-        
+
         if keys_not_in_dict(self.__buffered_stations, [station_id, "sampling_rate"]):
             raise KeyError(
                 f"Could not find \"sampling_rate\" for station {station_id} in buffer. Did you call det.update(...)?")
@@ -856,7 +856,7 @@ class Detector():
     def get_noise_temperature(self, station_id, channel_id):
         """ Get noise temperture per station / channel """
         noise_temperature = self.__default_values["noise_temperature"]
-        if isinstance(noise_temperature, float):    
+        if isinstance(noise_temperature, float):
             self.logger.warn(
                 f"Return a hard-coded value for the noise temperature of {noise_temperature / units.kelvin} K. "
                 "This information is not (yet) implemented in the DB.")
@@ -878,24 +878,24 @@ class Detector():
         return is_noiseless
 
     def get_cable_delay(self, station_id, channel_id):
-        """ Return the sum of the time delay of all components in the signal chain 
-        
+        """ Return the sum of the time delay of all components in the signal chain
+
         Parameters
         ----------
-        
+
         station_id: int
             The station id
 
         channel_id: int
             The channel id
-            
+
         Returns
         -------
-        
+
         time_delay: float
             Sum of the time delays of all components in the signal chain for one channel
         """
-        
+
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
 
@@ -908,7 +908,7 @@ class Detector():
 
         return time_delay
 
-            
+
     def get_site(self, station_id):
         """
         This detector class is exclusive for the RNO-G detector at Summit Greenland.
@@ -933,7 +933,7 @@ class Detector():
 class Response:
     """
     This class provides an interface to read-in and apply the complex response functions of the
-    various components of the signal chain of a RNO-G channel. The class allows to combine the 
+    various components of the signal chain of a RNO-G channel. The class allows to combine the
     response of several components into one response by multiplying them.
     """
 
@@ -954,7 +954,7 @@ class Response:
             The second entry specifies the unit of the measured phase. Options are "rad" and "deg".
 
         name: str
-            Give the response a name. This is only use for printing purposes. (Default: "default")        
+            Give the response a name. This is only use for printing purposes. (Default: "default")
         """
 
         self.__names = [name]
@@ -1014,8 +1014,8 @@ class Response:
         return self.__names
 
     def __mul__(self, other):
-        """ 
-        Define multiplication operator for 
+        """
+        Define multiplication operator for
             - Other objects of the same class
             - Objects of type NuRadioReco.framework.base_trace
 
@@ -1050,7 +1050,7 @@ class Response:
 
 
 if __name__ == "__main__":
-    
+
     from NuRadioReco.detector import detector
     # det = Detector(log_level=logging.DEBUG, over_write_handset_values={
     #                "sampling_frequency": 2.4 * units.GHz}, always_query_entire_description=False)
