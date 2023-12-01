@@ -32,7 +32,7 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
             appending e.g. '_InfFirn' to the antenna model name.
             if False, the antenna model as specified in the database is used.
         """
-        NuRadioReco.detector.detector.Detector.__init__(self, source, json_filename, dictionary, assume_inf, antenna_by_depth)
+        self = NuRadioReco.detector.detector.Detector(json_filename, source, dictionary, assume_inf, antenna_by_depth)
         self._antenna_orientation_override = {}
         self._antenna_position_override = {}
 
@@ -61,6 +61,7 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
                 key = (station_id, channel_id)
             else:
                 key = station_id
+
         self._antenna_orientation_override[key] = [ori_theta, ori_phi, rot_theta, rot_phi]
 
     def reset_antenna_orientation_offsets(self):
@@ -91,14 +92,17 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
             tmp = self._antenna_orientation_override["any"]
             ori += tmp
             logger.info(f"adding orientation theta = {tmp[0]/units.deg:.1f} deg, phi = {tmp[1]/units.deg:.1f} deg, rotation theta = {tmp[2]/units.deg:.1f} deg, phi = {tmp[3]/units.deg:.1f} deg to all channels of any station")
+
         if station_id in self._antenna_orientation_override:
             tmp = self._antenna_orientation_override[station_id]
             ori += tmp
             logger.info(f"adding orientation theta = {tmp[0]/units.deg:.1f} deg, phi = {tmp[1]/units.deg:.1f} deg, rotation theta = {tmp[2]/units.deg:.1f} deg, phi = {tmp[3]/units.deg:.1f} deg to all channels of station {station_id}")
+
         if (station_id, channel_id) in self._antenna_orientation_override:
             tmp = self._antenna_orientation_override[(station_id, channel_id)]
             logger.info(f"adding orientation theta = {tmp[0]/units.deg:.1f} deg, phi = {tmp[1]/units.deg:.1f} deg, rotation theta = {tmp[2]/units.deg:.1f} deg, phi = {tmp[3]/units.deg:.1f} deg to channel {channel_id} of station {station_id}")
             ori += tmp
+
         return ori
 
     def set_antenna_position_offsets(self, x, y, z, station_id=None, channel_id=None):
@@ -153,12 +157,15 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
             tmp = self._antenna_position_override["any"]
             pos += tmp
             logger.info(f"adding position x = {tmp[0]/units.m:.1f} m, y = {tmp[1]/units.m:.1f} m, z = {tmp[2]/units.m:.1f} m to all channels of any station")
+
         if station_id in self._antenna_position_override:
             tmp = self._antenna_position_override[station_id]
             pos += tmp
             logger.info(f"adding position x = {tmp[0]/units.m:.1f} m, y = {tmp[1]/units.m:.1f} m, z = {tmp[2]/units.m:.1f} m to all channels of station {station_id}")
+
         if (station_id, channel_id) in self._antenna_position_override:
             tmp = self._antenna_position_override[(station_id, channel_id)]
             logger.info(f"adding position x = {tmp[0]/units.m:.1f} m, y = {tmp[1]/units.m:.1f} m, z = {tmp[2]/units.m:.1f} m to channel {channel_id} of station {station_id}")
             pos += tmp
+
         return pos

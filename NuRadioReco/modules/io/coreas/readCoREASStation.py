@@ -5,7 +5,6 @@ import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 from NuRadioReco.modules.io.coreas import coreas
 from NuRadioReco.utilities import units
-
 import logging
 logger = logging.getLogger('readCoREASStation')
 
@@ -34,13 +33,13 @@ class readCoREASStation:
     @register_run()
     def run(self, detector):
         """
-        Reads in all observers in the CoREAS files and returns a new simulated
-        event for each.
+        Reads in all observers in the CoREAS files and returns a new simulated event for each observer with 
+        respect to a given detector with a single station.
 
         Parameters
         ----------
         detector: Detector object
-            Detector description of the detector that shall be simulated
+            Detector description of the detector that shall be simulated containing one station
 
         """
         for input_file in self.__input_files:
