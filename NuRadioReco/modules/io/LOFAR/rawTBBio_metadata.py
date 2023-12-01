@@ -1,10 +1,3 @@
-import logging
-import numpy as np
-
-from NuRadioReco.modules.base import module
-from NuRadioReco.modules.io.LOFAR.rawTBBio_utilities import SId_to_Sname
-
-
 """
 This module reads in calibration metadata from file in the early phases of LOFAR. In the future this should be replaced
 by reading the metadata from the files.
@@ -14,11 +7,17 @@ by reading the metadata from the files.
 Modified by Brian Hare for use with LOFAR for Lightning Imaging.
 """
 
+import logging
+import numpy as np
+
+from NuRadioReco.modules.base import module
+from NuRadioReco.modules.io.LOFAR.rawTBBio_utilities import SId_to_Sname
+
 
 logger = module.setup_logger(level=logging.WARNING)
 
 
-def make_antennaID_filter(antennaIDs):
+def make_antennaID_filter(antenna_ids):
     """
     For a list of antennaIDs, return a filter to filter data by antenna.
 
@@ -33,18 +32,18 @@ def make_antennaID_filter(antennaIDs):
     Assumes that the array you want to filter includes ALL antennas in the appropriate antenna set.
     """
 
-    RCU_id = np.array([int(ID[-3:]) for ID in antennaIDs])
+    RCU_id = np.array([int(ID[-3:]) for ID in antenna_ids])
     return RCU_id
 
 
-def mapAntennasetKeyword(antennaset):
+def mapAntennasetKeyword(antenna_set):
     """
     Ugly fix to map correct antenna names in input to wrong antenna names
     for metadata module.
     """
 
     # Strip whitespace
-    antennaset = antennaset.strip()
+    antenna_set = antenna_set.strip()
 
     allowed = ["LBA_OUTER", "LBA_INNER",
                "LBA_SPARSE_EVEN", "LBA_SPARSE_ODD",
@@ -66,16 +65,16 @@ def mapAntennasetKeyword(antennaset):
         "HBA_JOINED_INNER": "HBA",
     }  # Only true for core stations
 
-    if antennaset in incorrect:
-        antennaset = incorrect[antennaset]
-    elif antennaset == "HBA_BOTH":
+    if antenna_set in incorrect:
+        antenna_set = incorrect[antenna_set]
+    elif antenna_set == "HBA_BOTH":
         # This keyword is also wrong but present in file headers
-        print("Keyword " + antennaset + " does not comply with ICD, mapping...")
-        antennaset = "HBA"
+        print("Keyword " + antenna_set + " does not comply with ICD, mapping...")
+        antenna_set = "HBA"
 
-    assert antennaset in allowed, f"Antenna set {antennaset} is not allowed!"
+    assert antenna_set in allowed, f"Antenna set {antenna_set} is not allowed!"
 
-    return antennaset
+    return antenna_set
 
 
 def getItrfAntennaPosition(station, antenna_set, metadata_dir):

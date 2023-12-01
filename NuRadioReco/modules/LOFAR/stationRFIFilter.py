@@ -84,8 +84,8 @@ def FindRFI_LOFAR(
 
     Parameters
     ----------
-    tbb_filename : Path-like str
-        The path to the TBB file to be analysed.
+    tbb_filename : list[Path-like str]
+        A list of paths to the TBB file to be analysed.
     metadata_dir : Path-like str
         The path to the directory containing the LOFAR metadata (required to open TBB file correctly).
     target_trace_length : int
