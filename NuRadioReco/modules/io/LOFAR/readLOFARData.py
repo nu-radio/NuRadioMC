@@ -72,9 +72,9 @@ def lora_timestamp_to_blocknumber(
     lora_nanoseconds,
     start_time,
     sample_number,
-    clock_offset_ns=1e4,
+    clock_offset=1e4 * units.ns,
     block_size=2**16,
-    sampling_frequency=200,
+    sampling_frequency=200 * units.MHz,
 ):
     """
     Calculates block number corresponding to LORA timestamp and the sample number within that block
@@ -89,12 +89,12 @@ def lora_timestamp_to_blocknumber(
         LOFAR TBB timestamp
     sample_number : int
         Sample number in the block where the trace starts
-    clock_offset_ns : float
-        Clock offset between LORA and LOFAR, in nanoseconds
-    block_size : int
+    clock_offset : float, default=1e4 * units.ns
+        Clock offset between LORA and LOFAR
+    block_size : int, default=2**16
         Block size of the LOFAR data
-    sampling_frequency : float
-        Sampling frequency of LOFAR, in MHz
+    sampling_frequency : float, default=200 * units.MHz
+        Sampling frequency of LOFAR
 
 
     Returns
@@ -103,12 +103,10 @@ def lora_timestamp_to_blocknumber(
     """
 
     lora_samplenumber = (
-            (lora_nanoseconds - clock_offset_ns) * sampling_frequency * 1e-3
+            (lora_nanoseconds - clock_offset / units.ns) * sampling_frequency / units.MHz * 1e-3
     )  # MHz to nanoseconds
 
-    value = (lora_samplenumber - sample_number) + (
-            lora_seconds - start_time
-    ) * sampling_frequency * 1e6
+    value = (lora_samplenumber - sample_number) + (lora_seconds - start_time) * (sampling_frequency / units.Hz)
 
     if value < 0:
         raise ValueError("Event not in file.")
@@ -188,13 +186,11 @@ class getLOFARtraces:
         this_station_name = self.tbb_file.get_station_name()
 
         logger.info("Getting clock offset for station %s" % this_station_name)
-        this_clock_offset_ns = 1.0e9 * station_clock_offsets[this_station_name]  # kept constant at 1e4 in PyCRTools
-        logger.info("Clock offset is %1.4e ns" % this_clock_offset_ns)
+        this_clock_offset = station_clock_offsets[this_station_name] * units.s  # kept constant at 1e4 in PyCRTools
+        logger.info("Clock offset is %1.4e ns" % (this_clock_offset / units.ns))
 
-        packet = lora_timestamp_to_blocknumber(self.time_s, self.time_ns,
-                                               timestamp, sample_number,
-                                               clock_offset_ns=this_clock_offset_ns,
-                                               block_size=self.trace_length_nbins)
+        packet = lora_timestamp_to_blocknumber(self.time_s, self.time_ns, timestamp, sample_number,
+                                               clock_offset=this_clock_offset, block_size=self.trace_length_nbins)
 
         self.block_number, self.sample_number_in_block = packet
 
@@ -256,8 +252,10 @@ class getLOFARtraces:
 
     def get_trace(self, dipole_id):
         """
-        :param dipole_id: dipole id string
-        :type dipole_id: str
+        Parameters
+        ----------
+        dipole_id: str
+            The dipole id
         """
 
         start_sample = self.trace_length_nbins * self.block_number
@@ -282,11 +280,11 @@ class readLOFARData:
 
     Parameters
     ----------
-    tbb_directory: Path-like str, optional
+    tbb_directory: Path-like str, default="/vol/astro3/lofar/vhecr/lora_triggered/data/"
         The path to the directory containing the TBB files.
-    json_directory: Path-like str, optional
+    json_directory: Path-like str, default="/vol/astro7/lofar/kratos_files/json"
         The path to the directory containing the JSON files from LORA.
-    metadata_directory: Path-like str, optional
+    metadata_directory: Path-like str, default="/vol/astro7/lofar/vhecr/kratos/data/"
         The path to the directory containing the LOFAR metadata (antenna positions and timing calibrations).
     """
     def __init__(self, restricted_station_set=None, tbb_directory=None, json_directory=None, metadata_directory=None):
