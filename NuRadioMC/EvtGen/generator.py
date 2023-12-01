@@ -30,6 +30,7 @@ assert isinstance(logger, NuRadioMCLogger)
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 logger.setLevel(logging.INFO)
 
+
 VERSION_MAJOR = 3
 VERSION_MINOR = 0
 

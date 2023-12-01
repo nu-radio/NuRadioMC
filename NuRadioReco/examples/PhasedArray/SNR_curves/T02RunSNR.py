@@ -137,7 +137,6 @@ class mySimulation(simulation.simulation):
 
     def _detector_simulation_trigger(self, evt, station, det):
         # Start detector simulation
-
         orig_traces = {}
         for channel in station.iter_channels():
             orig_traces[channel.get_id()] = channel.get_trace()
