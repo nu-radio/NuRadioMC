@@ -414,40 +414,67 @@ class stationRFIFilter:
     More information can be found in Section 3.2.2 of `this paper <https://arxiv.org/pdf/1311.1399.pdf>`_ .
     """
     def __init__(self):
-        self.logger = logger # logging.getLogger('NuRadioReco.channelRFIFilter')
+        self.logger = logger  # logging.getLogger('NuRadioReco.channelRFIFilter')
 
         self.__rfi_trace_length = None
+        self.__station_list = None
+        self.__metadata_dir = None
 
-    def begin(self, rfi_cleaning_trace_length=65536, logger_level=logging.WARNING):
+    @property
+    def station_list(self):
+        return self.__station_list
+
+    @station_list.setter
+    def station_list(self, new_list):
+        self.__station_list = new_list
+
+    @property
+    def metadata_dir(self):
+        return self.__metadata_dir
+
+    @metadata_dir.setter
+    def metadata_dir(self, new_dir):
+        self.__metadata_dir = new_dir
+
+    def begin(self, rfi_cleaning_trace_length=65536, reader=None, logger_level=logging.WARNING):
         """
-        Set the variables used for RFI detection.
+        Set the variables used for RFI detection. The `reader` object can be used to retrieve the filenames associated
+        with the loaded stations, as well as the metadata directory.
 
         Parameters
         ----------
         rfi_cleaning_trace_length : int
             The number of samples to use per block to construct the frequency spectrum.
+        reader : readLOFARData object, default=None
+            If provided, the reader will be used to set the metadata directory and find the TBB files paths.
         logger_level : int, default=logging.WARNING
             The logging level to use for the module.
+
+        Notes
+        -----
+        If no reader is provided here, the user should set the `self.station_list` and `self.metadata_dir` variables
+        manually before attempting to execute the `stationRFIFilter.run()` function.
         """
         self.__rfi_trace_length = rfi_cleaning_trace_length
+
+        if reader is not None:
+            self.station_list = reader.get_stations()
+            self.metadata_dir = reader.meta_dir
 
         self.logger.setLevel(logger_level)
 
     @register_run()
-    def run(self, event, reader):
+    def run(self, event):
         """
-        Run the filter on the `event`. The `reader` object is required to retrieve the filenames associated with
-        the loaded stations. The method currently uses :py:func:`FindRFI_LOFAR` to find the contaminated channels
-        and then puts the corresponding frequency bands to zero in every channel (in place).
+        Run the filter on the `event`. The method currently uses :py:func:`FindRFI_LOFAR` to find the contaminated
+        channels and then puts the corresponding frequency bands to zero in every channel (in place).
 
         Parameters
         ----------
         event : Event object
             The event on which to run the filter.
-        reader : readLOFARData object
-            The reader used to read in the data of the event.
         """
-        stations_dict = reader.get_stations()
+        stations_dict = self.station_list
 
         for station in event.get_stations():
             station_name = f'CS{station.get_id():03}'
@@ -469,7 +496,7 @@ class stationRFIFilter:
 
             # TODO: replace this with FindRFI() as to allow other experiments to use the same code
             packet = FindRFI_LOFAR(station_files,
-                                   reader.meta_dir,
+                                   self.metadata_dir,
                                    station_trace_length,
                                    self.__rfi_trace_length,
                                    flagged_antenna_ids=flagged_channel_ids
@@ -491,7 +518,7 @@ class stationRFIFilter:
             self.logger.info('There are %d outliers in cleaned power (dipole ids): %s' % (len(bad_dipole_indices), antenna_ids[bad_dipole_indices]))
             # remove from station, add to flagged list
             for id in antenna_ids[bad_dipole_indices]:
-                station.remove_channel_id(int(id)) # are channel ids integers?
+                station.remove_channel_id(int(id))  # are channel ids integers?
 
             flagged_channel_ids.update([id for id in antenna_ids[bad_dipole_indices]]) # is set, not list
             station.set_parameter(stationParameters.flagged_channels, flagged_channel_ids)
