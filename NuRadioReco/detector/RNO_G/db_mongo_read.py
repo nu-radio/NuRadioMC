@@ -702,6 +702,7 @@ class Database(object):
         search_result = list(self.db[component_type].aggregate(search_filter))
 
         if len(search_result) != 1:
+            print(search_result)
             raise ValueError('No or more than one measurement found!')
 
         measurement = search_result[0]['measurements']
@@ -825,25 +826,34 @@ class Database(object):
         # and do not describe own components on their own ("channel" and "breakout")
         filtered_component_dict = {}
         additional_information = {}
+        weight_dict = {}
 
         for key, ele in component_dict.items():
-            if re.search("(channel|breakout)", key) is None:
+            if re.search("(channel|breakout|weight)", key) is None:
                 filtered_component_dict[key] = ele
+            elif re.search("weight", key) is not None:
+                weight_dict[key.replace("_weight", "")] = ele
             else:
                 additional_information[key] = ele
             
         components_data = {}
         for component, component_id in filtered_component_dict.items():
             # Add the additional informatio which were filtered out above to the correct components
-            supp_info = {k.replace(component + "_", ""): component_dict[k] for k in component_dict 
-                         if component in k and component != k}
+            supp_info = {k.replace(component + "_", ""): additional_information[k] for k in additional_information 
+                         if re.search(component, k)}
 
-            component_data = self.get_channel_signal_chain_component_data(
-                component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
+            if re.search("golden", component, re.IGNORECASE):
+                collection_component = component.replace("_1", "").replace("_2", "")
+                component_data = self.get_channel_signal_chain_component_data(
+                    collection_component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
+            else:
+                component_data = self.get_channel_signal_chain_component_data(
+                    component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
 
             components_data[component] = {'name': component_id}
+            components_data[component].update({'weight':weight_dict[component]})
             components_data[component].update(component_data)
-
+                
         # add/update the signal chain to the channel data
         channel_sig_info['response_chain'] = components_data
         
