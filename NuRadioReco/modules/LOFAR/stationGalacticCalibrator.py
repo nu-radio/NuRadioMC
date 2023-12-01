@@ -70,11 +70,18 @@ class stationGalacticCalibrator:
 
         self.begin()
 
-    def begin(self):
+    def begin(self, logger_level=logging.WARNING):
         """
         Loads the experimental parameters (such as longitude and latitude) as well as the Galactic calibration
         curves and Fourier coefficients from the directory `NuRadioReco/utilities/data/`.
+
+        Parameters
+        ----------
+        logger_level : int, default=logging.WARNING
+            The logging level to use for the module.
         """
+        self.logger.setLevel(logger_level)
+
         # The files are stored in the data folder of the utilities module, which sits 3 folders up
         data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'utilities', 'data')
 

@@ -10,7 +10,7 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.framework.parameters import stationParameters, channelParameters
 from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
 
-logger = module.setup_logger(level=logging.DEBUG)
+logger = module.setup_logger(level=logging.WARNING)
 
 
 def find_snr_of_timeseries(timeseries, window_start=0, window_end=-1, noise_start=0, noise_end=-1):
@@ -62,7 +62,7 @@ class stationPulseFinder:
         self.__snr_cr = None
         self.__min_good_channels = None
 
-    def begin(self, window=500, noise_window=10000, cr_snr=3, good_channels=6):
+    def begin(self, window=500, noise_window=10000, cr_snr=3, good_channels=6, logger_level=logging.WARNING):
         """
         Sets the window size to use for pulse finding, as well as the number of samples away from the pulse
         to use for noise measurements. The function also defines what an acceptable SNR is to consider a
@@ -71,21 +71,25 @@ class stationPulseFinder:
 
         Parameters
         ----------
-        window : int
+        window : int, default=500
             Size of the window to look for pulse
-        noise_window : int
+        noise_window : int, default=10000
             The trace used for noise characterisation goes from sample 0 to the start of the pulse searching
             window minus this number.
-        cr_snr : float
+        cr_snr : float, default=3
             The minimum SNR a channel should have to be considered having a CR signal.
-        good_channels : int
+        good_channels : int, default=6
             The minimum number of good channels a station should have in order be "triggered".
+        logger_level : int, default=logging.WARNING
+            The logging level to use for the module.
         """
         # TODO: find window size used in PyCRTools
         self.__window_size = window
         self.__noise_away_from_pulse = noise_window
         self.__snr_cr = cr_snr
         self.__min_good_channels = good_channels
+
+        self.logger.setLevel(logger_level)
 
     def _signal_windows_polarisation(self, station, channel_positions, polarisation_ids=None):
         """
