@@ -2245,12 +2245,17 @@ class ray_tracing(ray_tracing_base):
             focusing = limit
 
         # now also correct for differences in refractive index between emitter and receiver position
+        # for ice-to-air transmission, the fresnel coefficients account for this at the boundary already,
+        # so in that case we only take the difference up to the ice-air boundary
+        z_max = -0.01 * units.m
+        z1 = np.min([self._X1[-1], z_max])
+        z2 = np.min([self._X2[-1], z_max])
         if self._swap:
-            n1 = self._medium.get_index_of_refraction(self._X2)  # emitter
-            n2 = self._medium.get_index_of_refraction(self._X1)  # receiver
+            n1 = self._medium.get_index_of_refraction([0, 0, z2])  # emitter
+            n2 = self._medium.get_index_of_refraction([0, 0, z1])  # receiver
         else:
-            n1 = self._medium.get_index_of_refraction(self._X1)  # emitter
-            n2 = self._medium.get_index_of_refraction(self._X2)  # receiver
+            n1 = self._medium.get_index_of_refraction([0, 0, z1])  # emitter
+            n2 = self._medium.get_index_of_refraction([0, 0, z2])  # receiver
         return focusing * (n1 / n2) ** 0.5
 
     def get_ray_path(self, iS):
