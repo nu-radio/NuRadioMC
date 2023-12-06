@@ -327,9 +327,9 @@
     "18": {
       "station_id": 11,
       "channel_id": 12,
-      "ant_rotation_phi": 243.0,
+      "ant_rotation_phi": 220.0,
       "ant_rotation_theta": 90.0,
-      "ant_orientation_phi": 333.0,
+      "ant_orientation_phi": 310.0,
       "ant_orientation_theta": 120.0,
       "ant_position_x": 25.245374429777485,
       "ant_position_y": -9.271898202581497,
@@ -345,7 +345,7 @@
     "19": {
       "station_id": 11,
       "channel_id": 13,
-      "ant_rotation_phi": 243.0,
+      "ant_rotation_phi": 220.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 0.0,
       "ant_orientation_theta": 0.0,
@@ -363,9 +363,9 @@
     "20": {
       "station_id": 11,
       "channel_id": 14,
-      "ant_rotation_phi": 243.0,
+      "ant_rotation_phi": 220.0,
       "ant_rotation_theta": 90.0,
-      "ant_orientation_phi": 153.0,
+      "ant_orientation_phi": 130.0,
       "ant_orientation_theta": 120.0,
       "ant_position_x": 23.709240577868513,
       "ant_position_y": -4.359449327425068,
@@ -381,9 +381,9 @@
     "21": {
       "station_id": 11,
       "channel_id": 15,
-      "ant_rotation_phi": 351.0,
+      "ant_rotation_phi": 328.0,
       "ant_rotation_theta": 90.0,
-      "ant_orientation_phi": 81.0,
+      "ant_orientation_phi": 58.0,
       "ant_orientation_theta": 120.0,
       "ant_position_x": 13.659226614984846,
       "ant_position_y": -4.116966752974577,
@@ -399,7 +399,7 @@
     "22": {
       "station_id": 11,
       "channel_id": 16,
-      "ant_rotation_phi": 351.0,
+      "ant_rotation_phi": 328.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 0.0,
       "ant_orientation_theta": 0.0,
@@ -417,9 +417,9 @@
     "23": {
       "station_id": 11,
       "channel_id": 17,
-      "ant_rotation_phi": 351.0,
+      "ant_rotation_phi": 328.0,
       "ant_rotation_theta": 90.0,
-      "ant_orientation_phi": 261.0,
+      "ant_orientation_phi": 238.0,
       "ant_orientation_theta": 120.0,
       "ant_position_x": 11.212162270289355,
       "ant_position_y": -9.197601282929554,
@@ -1569,9 +1569,9 @@
     "87": {
       "station_id": 21,
       "channel_id": 15,
-      "ant_rotation_phi": 254.0,
+      "ant_rotation_phi": 277.0,
       "ant_rotation_theta": 90.0,
-      "ant_orientation_phi": 164.0,
+      "ant_orientation_phi": 187.0,
       "ant_orientation_theta": 120.0,
       "ant_position_x": -20.913616334864287,
       "ant_position_y": 16.537611216532184,
@@ -1587,7 +1587,7 @@
     "88": {
       "station_id": 21,
       "channel_id": 16,
-      "ant_rotation_phi": 254.0,
+      "ant_rotation_phi": 277.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 0.0,
       "ant_orientation_theta": 0.0,
@@ -1605,9 +1605,9 @@
     "89": {
       "station_id": 21,
       "channel_id": 17,
-      "ant_rotation_phi": 254.0,
+      "ant_rotation_phi": 277.0,
       "ant_rotation_theta": 90.0,
-      "ant_orientation_phi": 344.0,
+      "ant_orientation_phi": 7.0,
       "ant_orientation_theta": 120.0,
       "ant_position_x": -15.404148418065631,
       "ant_position_y": 17.46318633982372,
@@ -1623,9 +1623,9 @@
     "90": {
       "station_id": 21,
       "channel_id": 14,
-      "ant_rotation_phi": 65.0,
+      "ant_rotation_phi": 42.0,
       "ant_rotation_theta": 90.0,
-      "ant_orientation_phi": 155.0,
+      "ant_orientation_phi": 132.0,
       "ant_orientation_theta": 120.0,
       "ant_position_x": -25.02971666518448,
       "ant_position_y": 7.293175091846081,
@@ -1641,7 +1641,7 @@
     "91": {
       "station_id": 21,
       "channel_id": 13,
-      "ant_rotation_phi": 65.0,
+      "ant_rotation_phi": 42.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 0.0,
       "ant_orientation_theta": 0.0,
@@ -1659,9 +1659,9 @@
     "92": {
       "station_id": 21,
       "channel_id": 12,
-      "ant_rotation_phi": 65.0,
+      "ant_rotation_phi": 42.0,
       "ant_rotation_theta": 90.0,
-      "ant_orientation_phi": 335.0,
+      "ant_orientation_phi": 312.0,
       "ant_orientation_theta": 120.0,
       "ant_position_x": -22.479689741668324,
       "ant_position_y": 2.80783833285102,
@@ -1677,9 +1677,9 @@
     "93": {
       "station_id": 21,
       "channel_id": 20,
-      "ant_rotation_phi": 118.0,
+      "ant_rotation_phi": 141.0,
       "ant_rotation_theta": 90.0,
-      "ant_orientation_phi": 208.0,
+      "ant_orientation_phi": 231.0,
       "ant_orientation_theta": 120.0,
       "ant_position_x": -11.266588048738129,
       "ant_position_y": 2.9011467712219314,
@@ -1695,7 +1695,7 @@
     "94": {
       "station_id": 21,
       "channel_id": 19,
-      "ant_rotation_phi": 118.0,
+      "ant_rotation_phi": 141.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 0.0,
       "ant_orientation_theta": 0.0,
@@ -1713,9 +1713,9 @@
     "95": {
       "station_id": 21,
       "channel_id": 18,
-      "ant_rotation_phi": 118.0,
+      "ant_rotation_phi": 141.0,
       "ant_rotation_theta": 90.0,
-      "ant_orientation_phi": 28.0,
+      "ant_orientation_phi": 51.0,
       "ant_orientation_theta": 120.0,
       "ant_position_x": -8.513397338379718,
       "ant_position_y": 7.724537269470318,
@@ -2270,7 +2270,7 @@
     },
     "126": {
       "station_id": 23,
-      "channel_id": 7,
+      "channel_id": 6,
       "ant_rotation_phi": 90.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 0.0,
@@ -2288,7 +2288,7 @@
     },
     "127": {
       "station_id": 23,
-      "channel_id": 6,
+      "channel_id": 7,
       "ant_rotation_phi": 90.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 0.0,
@@ -2468,6 +2468,24 @@
     },
     "137": {
       "station_id": 23,
+      "channel_id": 12,
+      "ant_rotation_phi": 270.0,
+      "ant_rotation_theta": 90.0,
+      "ant_orientation_phi": 0.0,
+      "ant_orientation_theta": 120.0,
+      "ant_position_x": -13.716551579004388,
+      "ant_position_y": 17.24043830214714,
+      "ant_position_z": -0.5,
+      "amp_type": "rno_surface",
+      "cab_time_delay": 45.78713480723031,
+      "adc_n_samples": 2048,
+      "adc_sampling_frequency": 3.2,
+      "commission_time": "{TinyDate}:2022-06-24T00:00:00",
+      "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
+      "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
+    },
+    "138": {
+      "station_id": 23,
       "channel_id": 20,
       "ant_rotation_phi": 150.0,
       "ant_rotation_theta": 90.0,
@@ -2484,7 +2502,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
     },
-    "138": {
+    "139": {
       "station_id": 23,
       "channel_id": 19,
       "ant_rotation_phi": 150.0,
@@ -2502,7 +2520,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
     },
-    "139": {
+    "140": {
       "station_id": 23,
       "channel_id": 18,
       "ant_rotation_phi": 150.0,
@@ -2520,7 +2538,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
     },
-    "140": {
+    "141": {
       "station_id": 23,
       "channel_id": 17,
       "ant_rotation_phi": 30.0,
@@ -2538,7 +2556,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
     },
-    "141": {
+    "142": {
       "station_id": 23,
       "channel_id": 16,
       "ant_rotation_phi": 30.0,
@@ -2556,7 +2574,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
     },
-    "142": {
+    "143": {
       "station_id": 23,
       "channel_id": 15,
       "ant_rotation_phi": 30.0,
@@ -2574,7 +2592,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
     },
-    "143": {
+    "144": {
       "station_id": 24,
       "channel_id": 9,
       "ant_rotation_phi": 90.0,
@@ -2592,7 +2610,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
     },
-    "144": {
+    "145": {
       "station_id": 24,
       "channel_id": 10,
       "ant_rotation_phi": 90.0,
@@ -2610,7 +2628,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
     },
-    "145": {
+    "146": {
       "station_id": 24,
       "channel_id": 11,
       "ant_rotation_phi": 90.0,
@@ -2628,7 +2646,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
     },
-    "146": {
+    "147": {
       "station_id": 24,
       "channel_id": 0,
       "ant_rotation_phi": 90.0,
@@ -2646,7 +2664,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
     },
-    "147": {
+    "148": {
       "station_id": 24,
       "channel_id": 1,
       "ant_rotation_phi": 90.0,
@@ -2664,7 +2682,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
     },
-    "148": {
+    "149": {
       "station_id": 24,
       "channel_id": 2,
       "ant_rotation_phi": 90.0,
@@ -2682,7 +2700,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
     },
-    "149": {
+    "150": {
       "station_id": 24,
       "channel_id": 3,
       "ant_rotation_phi": 90.0,
@@ -2700,7 +2718,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
     },
-    "150": {
+    "151": {
       "station_id": 24,
       "channel_id": 4,
       "ant_rotation_phi": 90.0,
@@ -2718,7 +2736,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
     },
-    "151": {
+    "152": {
       "station_id": 24,
       "channel_id": 5,
       "ant_rotation_phi": 90.0,
@@ -2736,7 +2754,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
     },
-    "152": {
+    "153": {
       "station_id": 24,
       "channel_id": 6,
       "ant_rotation_phi": 90.0,
@@ -2754,7 +2772,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
     },
-    "153": {
+    "154": {
       "station_id": 24,
       "channel_id": 7,
       "ant_rotation_phi": 90.0,
@@ -2772,7 +2790,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
     },
-    "154": {
+    "155": {
       "station_id": 24,
       "channel_id": 8,
       "ant_rotation_phi": 90.0,
@@ -2790,7 +2808,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
     },
-    "155": {
+    "156": {
       "station_id": 24,
       "channel_id": 21,
       "ant_rotation_phi": 90.0,
@@ -2808,7 +2826,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_quadslot_v3_air_rescaled_to_n1.74"
     },
-    "156": {
+    "157": {
       "station_id": 24,
       "channel_id": 22,
       "ant_rotation_phi": 90.0,
@@ -2826,7 +2844,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
     },
-    "157": {
+    "158": {
       "station_id": 24,
       "channel_id": 23,
       "ant_rotation_phi": 90.0,
@@ -2844,7 +2862,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "RNOG_vpol_4inch_center_n1.73"
     },
-    "158": {
+    "159": {
       "station_id": 24,
       "channel_id": 15,
       "ant_rotation_phi": 330.0,
@@ -2862,7 +2880,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
     },
-    "159": {
+    "160": {
       "station_id": 24,
       "channel_id": 16,
       "ant_rotation_phi": 330.0,
@@ -2880,7 +2898,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
     },
-    "160": {
+    "161": {
       "station_id": 24,
       "channel_id": 17,
       "ant_rotation_phi": 330.0,
@@ -2898,7 +2916,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
     },
-    "161": {
+    "162": {
       "station_id": 24,
       "channel_id": 18,
       "ant_rotation_phi": 90.0,
@@ -2916,7 +2934,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
     },
-    "162": {
+    "163": {
       "station_id": 24,
       "channel_id": 19,
       "ant_rotation_phi": 90.0,
@@ -2934,7 +2952,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
     },
-    "163": {
+    "164": {
       "station_id": 24,
       "channel_id": 20,
       "ant_rotation_phi": 90.0,
@@ -2952,7 +2970,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
     },
-    "164": {
+    "165": {
       "station_id": 24,
       "channel_id": 12,
       "ant_rotation_phi": 210.0,
@@ -2970,7 +2988,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
     },
-    "165": {
+    "166": {
       "station_id": 24,
       "channel_id": 13,
       "ant_rotation_phi": 210.0,
@@ -2988,7 +3006,7 @@
       "decommission_time": "{TinyDate}:2035-11-01T00:00:00",
       "ant_type": "createLPDA_100MHz_InfFirn_n1.4"
     },
-    "166": {
+    "167": {
       "station_id": 24,
       "channel_id": 14,
       "ant_rotation_phi": 210.0,
