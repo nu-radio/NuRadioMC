@@ -50,7 +50,7 @@ def perfect_comparator(trace, adc_n_bits, adc_ref_voltage, mode='floor', output=
     digital_trace = round_to_int(digital_trace)
 
     if (output == 'voltage'):
-        digital_trace = lsb_voltage * digital_trace.astype(np.float)
+        digital_trace = lsb_voltage * digital_trace.astype(float)
     elif (output == 'counts'):
         pass
     else:
@@ -296,7 +296,7 @@ class analogToDigitalConverter:
         if trigger_filter is not None:
 
             trace_fft = np.fft.rfft(trace)
-            if(len(trace_fft) != trigger_filter):
+            if len(trace_fft) != len(trigger_filter):
                 raise ValueError("Wrong filter length to apply to traces")
 
             trace = np.fft.irfft(trace_fft * trigger_filter)

@@ -145,7 +145,7 @@ These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's 
 
 .. code-block:: bash
 
-  pip install uproot==4.1.1
+  pip install uproot==4.1.1 'awkward<2'
 
 - To access some detector databases:
 
@@ -189,7 +189,7 @@ These packages are recommended to be able to use all of NuRadioMC/NuRadioReco's 
 
   .. code-block:: bash
 
-    pip install proposal==7.5.1
+    pip install proposal==7.6.2
 
   Note that the pip installation for this version of proposal may not work on all systems, in particular:
 
