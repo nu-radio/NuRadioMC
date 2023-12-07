@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioReco.modules.RNO_G package &mdash; NuRadio 2.2.0-dev documentation</title>
+  <title>NuRadioReco.modules.RNO_G.channelBlockOffsetFitter module &mdash; NuRadio 2.2.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
       <link rel="stylesheet" type="text/css" href="../../_static/styling.css" />
@@ -23,8 +23,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter module" href="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html" />
-    <link rel="prev" title="NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator module" href="NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.html" /> 
+    <link rel="next" title="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator module" href="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html" />
+    <link rel="prev" title="NuRadioReco.modules.RNO_G package" href="NuRadioReco.modules.RNO_G.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -268,7 +268,7 @@
 <li class="toctree-l4 current"><a class="reference internal" href="NuRadioReco.modules.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARA.html">NuRadioReco.modules.ARA package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.ARIANNA.html">NuRadioReco.modules.ARIANNA package</a></li>
-<li class="toctree-l5 current"><a class="current reference internal" href="#">NuRadioReco.modules.RNO_G package</a></li>
+<li class="toctree-l5 current"><a class="reference internal" href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.base.html">NuRadioReco.modules.base package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.custom.html">NuRadioReco.modules.custom package</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.modules.iftElectricFieldReconstructor.html">NuRadioReco.modules.iftElectricFieldReconstructor package</a></li>
@@ -566,9 +566,10 @@
           <li class="breadcrumb-item"><a href="../pages/welcome_page.html">NuRadioReco Documentation</a></li>
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioReco.modules.html">NuRadioReco.modules package</a></li>
-      <li class="breadcrumb-item active">NuRadioReco.modules.RNO_G package</li>
+          <li class="breadcrumb-item"><a href="NuRadioReco.modules.RNO_G.html">NuRadioReco.modules.RNO_G package</a></li>
+      <li class="breadcrumb-item active">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -576,44 +577,173 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioReco.modules.RNO_G">
-<span id="nuradioreco-modules-rno-g-package"></span><h1>NuRadioReco.modules.RNO_G package<a class="headerlink" href="#module-NuRadioReco.modules.RNO_G" title="Permalink to this heading"></a></h1>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets"><code class="docutils literal notranslate"><span class="pre">channelBlockOffsets</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.add_offsets"><code class="docutils literal notranslate"><span class="pre">channelBlockOffsets.add_offsets()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets"><code class="docutils literal notranslate"><span class="pre">channelBlockOffsets.remove_offsets()</span></code></a></li>
+  <section id="module-NuRadioReco.modules.RNO_G.channelBlockOffsetFitter">
+<span id="nuradioreco-modules-rno-g-channelblockoffsetfitter-module"></span><h1>NuRadioReco.modules.RNO_G.channelBlockOffsetFitter module<a class="headerlink" href="#module-NuRadioReco.modules.RNO_G.channelBlockOffsetFitter" title="Permalink to this heading"></a></h1>
+<p>Module to remove ‘block offsets’ from RNO-G voltage traces.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">fit_block_offsets</span></code> can be used standalone to perform an out-of-band 
+fit to the block offsets. Alternatively, the <code class="docutils literal notranslate"><span class="pre">channelBlockOffsets</span></code> class contains convenience 
+<code class="docutils literal notranslate"><span class="pre">add_offsets</span></code> (to add block offsets in simulation) and <code class="docutils literal notranslate"><span class="pre">remove_offsets</span></code> methods that can be run 
+directly on a NuRadioMC/imported <code class="docutils literal notranslate"><span class="pre">Event</span></code>. The added/removed block offsets are stored per channel
+in the <a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.channelParameters.block_offsets" title="NuRadioReco.framework.parameters.channelParameters.block_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.parameters.channelParameters.block_offsets</span></code></a> parameter.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.</span></span><span class="sig-name descname"><span class="pre">channelBlockOffsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.051000000000000004</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelBlockOffsetFitter.html#channelBlockOffsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Add or remove block offsets to channel traces</p>
+<p>This module adds, fits or removes ‘block offsets’ by fitting
+them in a specified out-of-band region in frequency space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>block_size: int (default: 128)</strong></dt><dd><p>The size (in samples) of the blocks</p>
+</dd>
+<dt><strong>max_frequency: float (default: 51 MHz)</strong></dt><dd><p>The maximum frequency to include in the out-of-band
+block offset fit</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.add_offsets" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.add_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_offsets</span></code></a>(event, station[, offsets, ...])</p></td>
+<td><p>Add (simulated or reconstructed) block offsets to an event.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_offsets</span></code></a>(event, station[, mode, ...])</p></td>
+<td><p>Remove block offsets from an event</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.add_offsets">
+<span class="sig-name descname"><span class="pre">add_offsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offsets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelBlockOffsetFitter.html#channelBlockOffsets.add_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.add_offsets" title="Permalink to this definition"></a></dt>
+<dd><p>Add (simulated or reconstructed) block offsets to an event.</p>
+<p>Added block offsets for each channel are stored in the 
+<code class="docutils literal notranslate"><span class="pre">channelParameters.block_offsets</span></code> parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>event: Event object | None</strong></dt><dd></dd>
+<dt><strong>station: Station</strong></dt><dd><p>The station to add block offsets to</p>
+</dd>
+<dt><strong>offsets: float | array | dict</strong></dt><dd><p>offsets to add to the event. Default: 1 mV</p>
+<ul class="simple">
+<li><p>if a float, add gaussian-distributed of amplitude <code class="docutils literal notranslate"><span class="pre">offsets</span></code>
+to all channels specified;</p></li>
+<li><p>if an array, the length should be the same as the number
+of blocks in a single trace, and the entries will be
+interpreted as the amplitudes of the offsets;</p></li>
+<li><p>if a dict, the keys should be the channel ids, and each
+value should contain either a float or an array to add to
+each channel as specified above.</p></li>
 </ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.fit_block_offsets"><code class="docutils literal notranslate"><span class="pre">fit_block_offsets()</span></code></a></li>
+</dd>
+<dt><strong>channel_ids: list | None</strong></dt><dd><p>either a list of channel ids to apply the offsets to, or
+None to apply the offsets to all channels in the station
+(default: None).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets">
+<span class="sig-name descname"><span class="pre">remove_offsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fit'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelBlockOffsetFitter.html#channelBlockOffsets.remove_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.remove_offsets" title="Permalink to this definition"></a></dt>
+<dd><p>Remove block offsets from an event</p>
+<p>Fits and removes the block offsets from an event. The removed
+offsets are stored in the <code class="docutils literal notranslate"><span class="pre">channelParameters.block_offsets</span></code>
+parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>event: NuRadioReco.framework.event.Event | None</strong></dt><dd></dd>
+<dt><strong>station: NuRadioReco.framework.station.Station</strong></dt><dd><p>The station to remove the block offsets from</p>
+</dd>
+<dt><strong>mode: ‘fit’ | ‘approximate’ | ‘stored’</strong></dt><dd><ul class="simple">
+<li><p>‘fit’ (default): fit the block offsets with a minimizer</p></li>
+<li><p>‘approximate’ : use the first guess from the out-of-band component,
+without any fitting (slightly faster)</p></li>
+<li><p>‘stored’: use the block offsets already stored in the 
+<code class="docutils literal notranslate"><span class="pre">channelParameters.block_offsets</span></code> parameter. Will raise an error 
+if this parameter is not present.</p></li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html">NuRadioReco.modules.RNO_G.hardwareResponseIncorporator module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator"><code class="docutils literal notranslate"><span class="pre">hardwareResponseIncorporator</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.begin"><code class="docutils literal notranslate"><span class="pre">hardwareResponseIncorporator.begin()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter"><code class="docutils literal notranslate"><span class="pre">hardwareResponseIncorporator.get_filter()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.run"><code class="docutils literal notranslate"><span class="pre">hardwareResponseIncorporator.run()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.end"><code class="docutils literal notranslate"><span class="pre">hardwareResponseIncorporator.end()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.get_time_delay"><code class="docutils literal notranslate"><span class="pre">hardwareResponseIncorporator.get_time_delay()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.get_mingainlin"><code class="docutils literal notranslate"><span class="pre">hardwareResponseIncorporator.get_mingainlin()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</div>
-</section>
+</dd>
+<dt><strong>channel_ids: list | None</strong></dt><dd><p>List of channel ids to remove offsets from. If None (default),
+remove offsets from all channels in <code class="docutils literal notranslate"><span class="pre">station</span></code></p>
+</dd>
+<dt><strong>maxiter: int, default 5</strong></dt><dd><p>(Only if mode==’fit’) The maximum number of fit iterations.
+This can be increased to more accurately remove the block offsets
+at the cost of performance. (The default value removes ‘most’ offsets
+to about 1%)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.fit_block_offsets">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.</span></span><span class="sig-name descname"><span class="pre">fit_block_offsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fit'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_trace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelBlockOffsetFitter.html#fit_block_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.fit_block_offsets" title="Permalink to this definition"></a></dt>
+<dd><p>Fit ‘block’ offsets for a voltage trace</p>
+<p>Fit block offsets (‘rect’-shaped offsets from a baseline)
+using a fit to the out-of-band spectrum of a voltage trace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace: numpy Array</strong></dt><dd><p>the voltage trace</p>
+</dd>
+<dt><strong>block_size: int (default: 128)</strong></dt><dd><p>the number of samples in one block</p>
+</dd>
+<dt><strong>sampling_rate: float (default: 3.2 GHz)</strong></dt><dd><p>the sampling rate of the trace</p>
+</dd>
+<dt><strong>max_frequency: float (default: 50 MHz)</strong></dt><dd><p>the fit to the block offsets is performed
+in the frequency domain, in the band up to
+max_frequency</p>
+</dd>
+<dt><strong>mode: ‘fit’ | ‘approximate’</strong></dt><dd><p>Whether to fit the block offsets (default)
+or just use the first guess from the out-of-band
+component (faster)</p>
+</dd>
+<dt><strong>return_trace: bool (default: False)</strong></dt><dd><p>if True, return the tuple (offsets, output_trace)
+where the output_trace is the input trace with
+fitted block offsets removed</p>
+</dd>
+<dt><strong>maxiter: int (default: 5)</strong></dt><dd><p>(Only if mode==’fit’) The maximum number of fit iterations.
+This can be increased to more accurately remove the block offsets
+at the cost of performance. (The default value removes ‘most’ offsets
+to about 1%)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>block_offsets: numpy array</dt><dd><p>The fitted block offsets.</p>
+</dd>
+<dt>output_trace: numpy array or None</dt><dd><p>The input trace with the fitted block offsets removed.
+Returned only if return_trace=True</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Other Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>tol: float (default: 1e-6)</strong></dt><dd><p>tolerance parameter passed on to scipy.optimize.minimize</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioReco.modules.RNO_G.html" class="btn btn-neutral float-left" title="NuRadioReco.modules.RNO_G package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html" class="btn btn-neutral float-right" title="NuRadioReco.modules.RNO_G.hardwareResponseIncorporator module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

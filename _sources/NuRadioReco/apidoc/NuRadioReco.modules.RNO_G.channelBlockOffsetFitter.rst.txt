@@ -1,0 +1,7 @@
+NuRadioReco.modules.RNO\_G.channelBlockOffsetFitter module
+==========================================================
+
+.. automodule:: NuRadioReco.modules.RNO_G.channelBlockOffsetFitter
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -604,9 +604,15 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.baseline_correction">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.</span></span><span class="sig-name descname"><span class="pre">baseline_correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wfs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bins=128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func=&lt;function</span> <span class="pre">median&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#baseline_correction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.baseline_correction" title="Permalink to this definition"></a></dt>
-<dd><p>Simple baseline correction function. Determines baseline in discrete chuncks of “n_bins” with
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.</span></span><span class="sig-name descname"><span class="pre">baseline_correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wfs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bins=128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func=&lt;function</span> <span class="pre">median&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_offsets=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#baseline_correction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.baseline_correction" title="Permalink to this definition"></a></dt>
+<dd><p>Simple baseline correction function.</p>
+<p>Determines baseline in discrete chuncks of “n_bins” with
 the function specified (i.e., mean or median).</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This function has been deprecated, use <a class="reference internal" href="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#module-NuRadioReco.modules.RNO_G.channelBlockOffsetFitter" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter</span></code></a>
+instead</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -616,11 +622,15 @@ the function specified (i.e., mean or median).</p>
 </dd>
 <dt><strong>func: np.mean or np.median</strong></dt><dd><p>Function to calculate pedestal</p>
 </dd>
+<dt><strong>return_offsets: bool, default False</strong></dt><dd><p>if True, additionally return the baseline offsets</p>
+</dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>wfs_corrected: np.array(n_events, n_channels, n_samples)</dt><dd><p>Baseline/pedestal corrected waveforms</p>
+</dd>
+<dt>baseline_values: np.array of shape (n_samples // n_bins, n_events, n_channels)</dt><dd><p>(Only if return_offsets==True) The baseline offsets</p>
 </dd>
 </dl>
 </dd>
@@ -731,7 +741,7 @@ apparently empty but are missing the daqstatus, pedestal, and header file.</p>
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.begin">
-<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dirs_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_calibrated_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_triggers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_baseline_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_to_voltage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selectors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['physics']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_time_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_trigger_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mattak_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_sampling_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.begin" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dirs_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_calibrated_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_triggers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_baseline_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'approximate'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_to_voltage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selectors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['physics']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_time_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_trigger_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mattak_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_sampling_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/RNO_G/readRNOGDataMattak.html#readRNOGData.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.begin" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -751,8 +761,15 @@ only an error message is raised). See parameters to configure run selection. (De
 </dd>
 <dt class="field-even">Other Parameters<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>apply_baseline_correction: bool</strong></dt><dd><p>Only applies when non-calibrated data are read. If true, correct for DC offset.
-(Default: True)</p>
+<dt><strong>apply_baseline_correction: ‘approximate’ | ‘fit’ | ‘none’</strong></dt><dd><p>Only applies when non-calibrated data are read. Removes the DC (baseline)
+block offsets (pedestals).
+Options are:</p>
+<ul class="simple">
+<li><p>‘approximate’ (default) - estimate block offsets by looking at the low-pass filtered trace</p></li>
+<li><p>‘fit’ - do a full out-of-band fit to determine the block offsets; for more details,
+see <a class="reference internal" href="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#module-NuRadioReco.modules.RNO_G.channelBlockOffsetFitter" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter</span></code></a></p></li>
+<li><p>‘none’ - do not apply a baseline correction (faster)</p></li>
+</ul>
 </dd>
 <dt><strong>convert_to_voltage: bool</strong></dt><dd><p>Only applies when non-calibrated data are read. If true, convert ADC to voltage.
 (Default: True)</p>
