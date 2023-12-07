@@ -7,7 +7,7 @@ from scipy.signal import hilbert
 from NuRadioReco.utilities import fft
 from NuRadioReco.modules.base import module
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.framework.parameters import stationParameters, channelParameters
+from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
 from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
 
 logger = module.setup_logger(level=logging.WARNING)
@@ -62,6 +62,8 @@ class stationPulseFinder:
         self.__snr_cr = None
         self.__min_good_channels = None
 
+        self.direction_cartesian = None  # The zenith and azimuth pointing towards where to beamform.
+
     def begin(self, window=500, noise_window=10000, cr_snr=3, good_channels=6, logger_level=logging.WARNING):
         """
         Sets the window size to use for pulse finding, as well as the number of samples away from the pulse
@@ -91,11 +93,12 @@ class stationPulseFinder:
 
         self.logger.setLevel(logger_level)
 
-    def _signal_windows_polarisation(self, station, channel_positions, polarisation_ids=None):
+    def _signal_windows_polarisation(self, station, channel_positions, channel_ids_per_pol):
         """
-        Considers all polarisations given by `polarisation_ids` one by one and beamforms the traces
-        in the direction of the LORA direction. It then saves the maximum of the amplitude envelope
-        together with the corresponding indices for pulse finding in a list, which it returns.
+        Considers the channel groups given by `channel_ids_per_pol` one by one and beamforms the traces
+        in the direction of `stationPulseFinder.direction_cartesian`. It then calculates the maximum of the
+        amplitude envelope, and saves the corresponding index with the indices for pulse finding in a tuple,
+        which it returns.
 
         Parameters
         ----------
@@ -103,30 +106,27 @@ class stationPulseFinder:
             The station to analyse.
         channel_positions : np.ndarray
             The array of channels positions, to be extracted from the detector description.
-        polarisation_ids : list, default=[0,1]
-            The `channel_group_id` of the polarisations to consider.
+        channel_ids_per_pol : list[list]
+            A list of channel IDs grouped per polarisation. The IDs in each sublist will be used together for
+            beamforming in the direction given by `beamform_direction`.
 
         Returns
         -------
-
+        tuple of floats
+            * The index in `channel_ids_per_pol` which contains the strongest signal
+            * The start index of the pulse window
+            * The stop index of the pulse window
         """
-        if polarisation_ids is None:
-            polarisation_ids = [0, 1]
-
-        frequencies = station.get_channel(station.get_channel_ids()[0]).get_frequencies()
-        sampling_rate = station.get_channel(station.get_channel_ids()[0]).get_sampling_rate()
-
-        direction_cartesian = hp.spherical_to_cartesian(
-            station.get_parameter(stationParameters.zenith),
-            station.get_parameter(stationParameters.azimuth)
-        )
+        # Assume all the channels have the same frequency content and sampling rate
+        frequencies = station.get_channel(channel_ids_per_pol[0][0]).get_frequencies()
+        sampling_rate = station.get_channel(channel_ids_per_pol[0][0]).get_sampling_rate()
 
         values_per_pol = []
 
-        for pol in polarisation_ids:
-            all_traces = np.array([channel.get_frequency_spectrum() for channel in station.iter_channel_group(pol)])
+        for channel_ids in channel_ids_per_pol:
+            all_traces = np.array([station.get_channel(channel).get_frequency_spectrum() for channel in channel_ids])
 
-            beamed_fft = mini_beamformer(all_traces, frequencies, channel_positions, direction_cartesian)
+            beamed_fft = mini_beamformer(all_traces, frequencies, channel_positions, self.direction_cartesian)
             beamed_timeseries = fft.freq2time(beamed_fft, sampling_rate, n=all_traces.shape[1])
 
             analytic_signal = hilbert(beamed_timeseries)
@@ -139,15 +139,19 @@ class stationPulseFinder:
                 np.argmax(amplitude_envelope) + self.__window_size / 2
             )
 
-            # find dominant polarization
             values_per_pol.append([np.max(amplitude_envelope), signal_window_start, signal_window_end])
 
-        return np.asarray(values_per_pol)
+        values_per_pol = np.asarray(values_per_pol)
+        dominant = np.argmax(values_per_pol[:, 0])
+        window_start, window_end = values_per_pol[dominant][1:]
 
-    def _station_has_cr(self, station, channel_positions, signal_window=None, noise_window=None, polarisation_ids=None):
+        return dominant, window_start, window_end
+
+    def _station_has_cr(self, station, channel_positions, channel_ids_per_pol, signal_window=None, noise_window=None):
         """
-        Beamform the station towards the LORA direction and check if there is any significant signal in the trace.
-        If this is the case, the `stationParameter.triggered` value is set to `True`.
+        Beamform the station towards the direction given by `stationPulseFinder.direction_cartesian`
+        and check if there is any significant signal in the trace. If this is the case,
+        the `stationParameter.triggered` value is set to `True`.
 
         Parameters
         ----------
@@ -155,32 +159,25 @@ class stationPulseFinder:
             The station to process
         channel_positions : np.ndarray
             The array of channels positions, to be extracted from the detector description
+        channel_ids_per_pol : list[list]
+            A list of channel IDs grouped per polarisation.
         signal_window : array-like, default=[0, -1]
             A list containing the first and last index of the trace where to look for a pulse
         noise_window : array-like, default=[0, -1]
             A list containing the first and last index of the trace to use for noise characterisation
-        polarisation_ids : array-like, default=[0, 1]
-            A list of `channel_group_id` contained in the `station`
         """
-        if polarisation_ids is None:
-            polarisation_ids = [0, 1]
         if signal_window is None:
             signal_window = [0, -1]
         if noise_window is None:
             noise_window = [0, -1]
 
-        frequencies = station.get_channel(station.get_channel_ids()[0]).get_frequencies()
-        sampling_rate = station.get_channel(station.get_channel_ids()[0]).get_sampling_rate()
+        frequencies = station.get_channel(channel_ids_per_pol[0][0]).get_frequencies()
+        sampling_rate = station.get_channel(channel_ids_per_pol[0][0]).get_sampling_rate()
 
-        direction_cartesian = hp.spherical_to_cartesian(
-            station.get_parameter(stationParameters.zenith),
-            station.get_parameter(stationParameters.azimuth)
-        )
+        for channel_ids in channel_ids_per_pol:
+            all_traces = np.array([station.get_channel(channel).get_frequency_spectrum() for channel in channel_ids])
 
-        for pol in polarisation_ids:
-            all_traces = np.array([channel.get_frequency_spectrum() for channel in station.iter_channel_group(pol)])
-
-            beamed_fft = mini_beamformer(all_traces, frequencies, channel_positions, direction_cartesian)
+            beamed_fft = mini_beamformer(all_traces, frequencies, channel_positions, self.direction_cartesian)
             beamed_timeseries = fft.freq2time(beamed_fft, sampling_rate, n=all_traces.shape[1])
 
             snr = find_snr_of_timeseries(beamed_timeseries,
@@ -188,7 +185,9 @@ class stationPulseFinder:
                                          noise_start=noise_window[0], noise_end=noise_window[1])
             if snr > self.__snr_cr:
                 station.set_parameter(stationParameters.triggered, True)
-                break  # no need to check second polarisation if CR found
+                return True  # no need to check second polarisation if CR found
+
+        return False
 
     def _find_good_channels(self, station, signal_window=None, noise_window=None):
         """
@@ -222,6 +221,36 @@ class stationPulseFinder:
 
         return good_channels
 
+    def _check_station_triggered(self, station, channel_positions, channel_ids_per_pol, signal_window, noise_window):
+        """
+        Check if the station has been triggered by a radio signal. This functions verifies there is a significant
+        pulse in the radio signal after beamforming, and also checks if there enough channels (i.e. LOFAR dipoles)
+        that contain a good signal.
+
+        Parameters
+        ----------
+        station : Station object
+            The station to analyse
+        """
+        self.logger.debug(f'Looking for signal in indices {signal_window}')
+        self.logger.debug(f'Using {noise_window} as noise trace')
+
+        cr_found = self._station_has_cr(
+            station, channel_positions, channel_ids_per_pol, signal_window=signal_window, noise_window=noise_window
+        )
+
+        if cr_found:
+            good_channels_station = self._find_good_channels(
+                station, signal_window=signal_window, noise_window=noise_window
+            )
+
+            self.logger.debug(f'Station {station.get_id()} has {len(good_channels_station)} good antennas')
+            if len(good_channels_station) < self.__min_good_channels:
+                self.logger.warning(f'There are only {len(good_channels_station)} antennas '
+                                    f'with an SNR higher than {self.__snr_cr}, while there '
+                                    f'are at least {self.__min_good_channels} required')
+                station.set_parameter(stationParameters.triggered, False)  # stop from further processing
+
     @register_run()
     def run(self, event, detector):
         """
@@ -234,44 +263,41 @@ class stationPulseFinder:
         detector : Detector object
             The detector related to the event.
         """
+        zenith = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.zenith)
+        azimuth = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.azimuth)
+
+        self.direction_cartesian = hp.spherical_to_cartesian(
+            zenith, azimuth
+        )
+
         for station in event.get_stations():
+            station_id = station.get_id()
+
+            # Get the channel IDs grouped per polarisation (i.e. dipole orientation)
+            ant_same_orientation = detector.get_parallel_channels(station_id)
+
+            # Find the antenna positions by only looking at the channels from a given polarisation
             position_array = [
-                detector.get_absolute_position(station.get_id()) +
-                detector.get_relative_position(station.get_id(), channel.get_id())
-                for channel in station.iter_channel_group(0)
-            ]  # the position are the same for every polarisation
+                detector.get_absolute_position(station_id) +
+                detector.get_relative_position(station_id, channel_id)
+                for channel_id in ant_same_orientation[0]
+            ]
             position_array = np.asarray(position_array)
 
-            # FIXME: hardcoded polarisation values
-            values_per_pol = self._signal_windows_polarisation(station, position_array, polarisation_ids=[0, 1])
+            # Find polarisation with max envelope amplitude and calculate pulse search window from it
+            dominant_pol, pulse_window_start, pulse_window_end = self._signal_windows_polarisation(
+                station, position_array, ant_same_orientation
+            )
 
-            dominant_pol = np.argmax(values_per_pol[:, 0])
-            pulse_window_start, pulse_window_end = values_per_pol[dominant_pol][1:]
+            # Save the antenna orientation which contains the strongest pulse
+            station.set_parameter(stationParameters.cr_dominant_polarisation,
+                                  detector.get_antenna_orientation(station_id, ant_same_orientation[dominant_pol][0]))
 
-            station.set_parameter(stationParameters.cr_dominant_polarisation, dominant_pol)
-
+            # Check if the station has a strong enough signal
             signal_window = [int(pulse_window_start), int(pulse_window_end)]
             noise_window = [0, int(pulse_window_start - self.__noise_away_from_pulse)]
 
-            self.logger.debug(f'Looking for signal in indices {signal_window}')
-            self.logger.debug(f'Using {noise_window} as noise trace')
-
-            self._station_has_cr(station, position_array,
-                                 signal_window=signal_window,
-                                 noise_window=noise_window
-                                 )
-
-            good_channels_station = self._find_good_channels(station,
-                                                             signal_window=signal_window,
-                                                             noise_window=noise_window
-                                                             )
-
-            self.logger.debug(f'Station {station.get_id()} has {len(good_channels_station)} good antennas')
-            if len(good_channels_station) < self.__min_good_channels:
-                self.logger.warning(f'There are only {len(good_channels_station)} antennas '
-                                    f'with an SNR higher than {self.__snr_cr}, while there '
-                                    f'are at least {self.__min_good_channels} required')
-                station.set_parameter(stationParameters.triggered, False)  # stop from further processing
+            self._check_station_triggered(station, position_array, ant_same_orientation, signal_window, noise_window)
 
     def end(self):
         pass
