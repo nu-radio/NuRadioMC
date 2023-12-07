@@ -7,7 +7,7 @@ from scipy import constants
 from NuRadioReco.utilities import units
 
 
-lightspeed=constants.c * units.m / units.s
+lightspeed = constants.c * units.m / units.s
 
 
 def mini_beamformer(fft_data, frequencies, positions, direction):
@@ -54,30 +54,5 @@ def geometric_delays(ant_pos, sky):
 
 
 def GeometricDelayFarField(position, direction, length):
-    delay = (direction[0] * position[0] + direction[1] * position[1] + direction[2] * position[2]) / length / lightspeed
+    delay = np.sum(np.asarray(direction) * np.asarray(position)) / length / lightspeed
     return delay
-
-
-def directionFitBF(fft_data, frequencies, antpos, start_direction, maxiter):
-    def negative_beamed_signal(direction):
-        print('direction: ', direction)
-
-        theta = direction[0]
-        phi = direction[1]
-        direction_cartesian = hp.spherical_to_cartesian(theta, phi)
-        delays = geometric_delays(antpos, direction_cartesian)
-        out = beamformer(fft_data, frequencies, delays)
-        timeseries = np.fft.irfft(out)
-        return -100 * np.max(timeseries ** 2)
-
-    fit_direction = fmin_powell(negative_beamed_signal, np.asarray(start_direction), maxiter=maxiter, xtol=1.0)
-
-    theta = fit_direction[0]
-    phi = fit_direction[1]
-    direction_cartesian = hp.spherical_to_cartesian(theta, phi)
-    delays = geometric_delays(antpos, direction_cartesian)
-    out = beamformer(fft_data, frequencies, delays)
-    timeseries = np.fft.irfft(out)
-
-    return fit_direction, timeseries
-
