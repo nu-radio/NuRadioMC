@@ -2270,7 +2270,7 @@
     },
     "126": {
       "station_id": 23,
-      "channel_id": 6,
+      "channel_id": 7,
       "ant_rotation_phi": 90.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 0.0,
@@ -2288,7 +2288,7 @@
     },
     "127": {
       "station_id": 23,
-      "channel_id": 7,
+      "channel_id": 6,
       "ant_rotation_phi": 90.0,
       "ant_rotation_theta": 90.0,
       "ant_orientation_phi": 0.0,
