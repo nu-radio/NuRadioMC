@@ -367,7 +367,7 @@ class readLOFARData:
             7. dipole IDs
             8. calibration delays per dipole
         """
-        return np.copy(self.__stations)
+        return self.__stations.copy()
 
     def begin(self, event_id, logger_level=logging.WARNING):
         """
@@ -482,19 +482,19 @@ class readLOFARData:
             for channel_id in detector.get_channel_ids(station_id):
                 if channel_id in flagged_channel_ids:
                     continue                 
-                if detector.get_channel(station_id, channel_id)['ant_orientation_phi'] == 225.0:
-                    channel_group = 0
-                elif detector.get_channel(station_id, channel_id)['ant_orientation_phi'] == 135.0:
-                    channel_group = 1
-                else:
-                    raise ValueError('Orientation not implemented')
+
                 # read in trace, see if that works. Needed or overly careful?
                 try:
                     this_trace = lofar_trace_access.get_trace(str(channel_id).zfill(9))  # channel ID is 9 digits
                 except:  # FIXME: Too general except statement
                     flagged_channel_ids.add(channel_id)                    
                     logger.warning("Could not read data for channel id %s" % channel_id)
-                    continue 
+                    continue
+
+                # The channel_group_id should be interpreted as an antenna index
+                # dipoles '001000000' and '001000001' -> 'a1000000'
+                # TODO: implement channel_group_id as parameter in Detector file
+                channel_group = 'a' + str(channel_id - channel_id % 2)
                 
                 channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id=channel_group)
                 channel.set_trace(this_trace, station_dict['metadata'][4] * units.Hz)

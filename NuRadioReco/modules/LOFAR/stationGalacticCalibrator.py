@@ -170,8 +170,8 @@ class stationGalacticCalibrator:
         calibrated to observe the same value of the Galactic noise.
         """
 
-        # Get channel parameters
-        channel_polarisation = channel.get_group_id()
+        # Get channel parameters -> group_id = a(even_id), odd_id = even_id + 1
+        channel_polarisation = channel.get_id() - int(channel.get_group_id()[1:])  # TODO: need clear function?
         channel_bandwidth = channel.get_sampling_rate() / channel.get_number_of_samples() / units.s  # 1 / period
         channel_power = np.sum(np.abs(channel.get_frequency_spectrum()) ** 2) * channel_bandwidth
 
