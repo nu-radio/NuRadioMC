@@ -21,15 +21,22 @@ conversion_fieldstrength_cgs_to_SI = 2.99792458e10 * units.micro * units.volt / 
 
 def get_angles(corsika):
     """
-    Converting angles in corsika coordinates to local coordinates
+    Converting angles in corsika coordinates to local coordinates. 
+    
+    Corsika positiv x-axis points to the magnetic north, NuRadio coordinates positiv x-axis points to the geographic east.
+    Corsika positiv y-axis points to the west, and the z-axis upwards. NuRadio coordinates positiv y-axis points to the geographic north, and the z-axis upwards.
+    Corsikas zenith angle of a particle trajectory is defined between the particle momentum vector and the negativ z-axis, meaning that
+    the particle is described in the direction where it is going to. The azimuthal angle is described between the positive X-axis and the horizontal component of the particle momentum vector (i.e. with respect to North) 
+    proceeding counterclockwise. NuRadio describes the particle zenith and azimuthal angle in the direction where the particle is coming from. Therefore 
+    the zenith angle is the same, but the azimuthal angle has to be shifted by 180 + 90 degrees. The north has to be shifted by 90 degrees plus difference in geomagetic and magnetic north.
+
     """
     zenith = np.deg2rad(corsika['inputs'].attrs["THETAP"][0])
-    azimuth = hp.get_normalized_angle(np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]))
+    azimuth = hp.get_normalized_angle(3 * np.pi / 2. + np.deg2rad(corsika['inputs'].attrs["PHIP"][0]))
     Bx, Bz = corsika['inputs'].attrs["MAGNET"]
     B_inclination = np.arctan2(Bz, Bx)
 
     B_strength = (Bx ** 2 + Bz ** 2) ** 0.5 * units.micro * units.tesla
-
     # in local coordinates north is + 90 deg
     magnetic_field_vector = B_strength * hp.spherical_to_cartesian(np.pi * 0.5 + B_inclination, 0 + np.pi * 0.5)
     return zenith, azimuth, magnetic_field_vector
