@@ -7,14 +7,16 @@ import logging
 import inspect
 import pickle
 
-def setup_logger(name="NuRadioReco", level=logging.WARNING):
 
+def setup_logger(name="NuRadioReco", level=logging.WARNING):
     logger = logging.getLogger(name)
     logger.setLevel(level=level)
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter('\033[93m%(levelname)s - \033[0m%(name)s - %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    logger.propagate = False
+    if not logger.hasHandlers():
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('\033[93m%(levelname)s - \033[0m%(name)s - %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
 
     return logger
 
