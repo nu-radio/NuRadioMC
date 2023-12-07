@@ -9,12 +9,8 @@ from astropy.coordinates import EarthLocation
 from astropy.time import Time
 from astropy import units as u
 
-from NuRadioReco.modules.base import module
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
-
-
-logger = module.setup_logger(level=logging.WARNING)
 
 
 def fourier_series(x, p):

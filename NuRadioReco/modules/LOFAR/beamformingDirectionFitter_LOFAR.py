@@ -10,12 +10,10 @@ from scipy.optimize import fmin_powell
 from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
-from NuRadioReco.modules.base import module
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.voltageToEfieldConverter import voltageToEfieldConverter
 from NuRadioReco.modules.LOFAR.beamforming_utilities import beamformer
 
-logger = module.setup_logger(level=logging.WARNING)
 
 lightspeed = constants.c * units.m / units.s
 

@@ -5,12 +5,9 @@ import radiotools.helper as hp
 from scipy.signal import hilbert
 
 from NuRadioReco.utilities import fft
-from NuRadioReco.modules.base import module
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
 from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
-
-logger = module.setup_logger(level=logging.WARNING)
 
 
 def find_snr_of_timeseries(timeseries, window_start=0, window_end=-1, noise_start=0, noise_end=-1):

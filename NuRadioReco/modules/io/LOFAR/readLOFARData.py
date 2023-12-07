@@ -8,7 +8,6 @@ import numpy as np
 from datetime import datetime
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
-from NuRadioReco.modules.base import module
 
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
@@ -21,7 +20,7 @@ import NuRadioReco.modules.io.LOFAR.rawTBBio as rawTBBio
 import NuRadioReco.modules.io.LOFAR.rawTBBio_metadata as rawTBBio_metadata
 
 
-logger = module.setup_logger(level=logging.WARNING)
+logger = logging.getLogger('NuRadioReco.readLOFARData')
 
 
 def get_metadata(filenames, metadata_dir):

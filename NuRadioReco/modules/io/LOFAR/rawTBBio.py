@@ -62,13 +62,11 @@ import logging
 import h5py
 import numpy as np
 
-from NuRadioReco.modules.base import module
-
 import NuRadioReco.modules.io.LOFAR.rawTBBio_metadata as md
 import NuRadioReco.modules.io.LOFAR.rawTBBio_utilities as util
 
 
-logger = module.setup_logger(level=logging.WARNING)
+logger = logging.getLogger('NuRadioReco.LOFAR.rawTBBio')
 
 
 # nyquist_zone = {'LBA_10_90' : 1, 'LBA_30_90' : 1, 'HBA_110_190' : 2, 'HBA_170_230' : 3, 'HBA_210_250' : 3}

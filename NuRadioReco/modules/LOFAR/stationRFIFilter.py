@@ -2,7 +2,6 @@ import logging
 
 import numpy as np
 
-from NuRadioReco.modules.base import module
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities.signal_processing import half_hann_window
 from NuRadioReco.modules.io.LOFAR.rawTBBio import MultiFile_Dal1
@@ -10,7 +9,7 @@ from NuRadioReco.modules.io.LOFAR.rawTBBio import MultiFile_Dal1
 from NuRadioReco.framework.parameters import stationParameters
 from NuRadioReco.utilities import units
 
-logger = module.setup_logger(level=logging.WARNING)
+logger = logging.getLogger('NuRadioReco.stationRFIFilter')
 
 
 def num_double_zeros(data, threshold=None, ave_shift=False):

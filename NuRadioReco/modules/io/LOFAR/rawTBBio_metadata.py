@@ -10,11 +10,10 @@ Modified by Brian Hare for use with LOFAR for Lightning Imaging.
 import logging
 import numpy as np
 
-from NuRadioReco.modules.base import module
 from NuRadioReco.modules.io.LOFAR.rawTBBio_utilities import SId_to_Sname
 
 
-logger = module.setup_logger(level=logging.WARNING)
+logger = logging.getLogger('NuRadioReco.LOFAR.rawTBBio_metadata')
 
 
 def make_antennaID_filter(antenna_ids):
