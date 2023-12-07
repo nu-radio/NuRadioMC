@@ -272,9 +272,8 @@ class eventWriter:
         for entry in self.__stored_stations:
             if entry['station_id'] == station_id:
                 # if there is no commission and decommission time it is a generic detector and we don't have to check
-                if ('commission_time' not in entry.keys() or
-                        'decommission_time' not in entry.keys() or
-                        station_time is None):
+                if ('commission_time' not in entry.keys() or 'decommission_time' not in entry.keys()
+                        or station_time is None):
                     return True
                 # it's a normal detector and we have to check commission/decommission times
                 if entry['commission_time'] < station_time < entry['decommission_time']:
@@ -284,15 +283,17 @@ class eventWriter:
     def __is_channel_already_in_file(self, station_id, channel_id, station_time):
         for entry in self.__stored_channels:
             if entry['station_id'] == station_id and entry['channel_id'] == channel_id:
-                if ('commission_time' not in entry.keys() or
-                        'decommission_time' not in entry.keys() or
-                        station_time is None):
+                if ('commission_time' not in entry.keys() or 'decommission_time' not in entry.keys()
+                        or station_time is None):
                     return True
                 # it's a normal detector and we have to check commission/decommission times
                 if entry['commission_time'] < station_time < entry['decommission_time']:
                     return True
         return False
 
+    # The staticmethod decorator allows to add a member function which does not need any reference arguments. This
+    # means that `self` is not passed as the first argument. It also allows for the function to be called without
+    # instantiating the class first, next to the usual calling procedure through an instance.
     @staticmethod
     def __get_detector_changes_byte_array(event, det):
         changes = det.get_station_properties_for_event(event.get_run_number(), event.get_id())
