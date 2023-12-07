@@ -847,7 +847,7 @@ station triggered, with which amplitude, etc. The same approach works for <code 
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">polarization</span></code></p></td>
 <td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>, <code class="docutils literal notranslate"><span class="pre">3</span></code>)</p></td>
-<td><p>3D (Cartesian) coordinates of the polarization vector</p></td>
+<td><p>3D coordinates of the polarization vector at the antenna in cartesian coordinates. (The receive vector (which is opposite to the propagation direction) was used to rotate from spherical/on-sky coordinates to cartesian coordinates). The polarization vector does not include any propagation effects that could change the polarization, such as different reflectivities at the surface for the p and s polarization component.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ray_tracing_C0</span></code></p></td>
 <td><p>(<code class="docutils literal notranslate"><span class="pre">m_showers</span></code>, <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, <code class="docutils literal notranslate"><span class="pre">n_ray_tracing_solutions</span></code>)</p></td>
