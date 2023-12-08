@@ -7,11 +7,13 @@ import math
 from functools import lru_cache
 
 from NuRadioReco.modules.base.module import register_run
+from NuRadioReco.modules.RNO_G.channelBlockOffsetFitter import channelBlockOffsets
 
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.trigger
+import NuRadioReco.framework.parameters
 
 from NuRadioReco.utilities import units
 import mattak.Dataset
@@ -46,11 +48,16 @@ def create_random_directory_path(prefix="/tmp/", n=7):
     return path
 
 
-def baseline_correction(wfs, n_bins=128, func=np.median):
+def baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
     """
-    Simple baseline correction function. Determines baseline in discrete chuncks of "n_bins" with
+    Simple baseline correction function. 
+    
+    Determines baseline in discrete chuncks of "n_bins" with
     the function specified (i.e., mean or median).
 
+    .. Warning:: This function has been deprecated, use :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
+      instead
+    
     Parameters
     ----------
 
@@ -62,14 +69,23 @@ def baseline_correction(wfs, n_bins=128, func=np.median):
 
     func: np.mean or np.median
         Function to calculate pedestal
-
+    
+    return_offsets: bool, default False
+        if True, additionally return the baseline offsets
+    
     Returns
     -------
 
     wfs_corrected: np.array(n_events, n_channels, n_samples)
         Baseline/pedestal corrected waveforms
-    """
 
+    baseline_values: np.array of shape (n_samples // n_bins, n_events, n_channels)
+        (Only if return_offsets==True) The baseline offsets
+    """
+    import warnings
+    warnings.warn(
+        'baseline_correction is deprecated, use NuRadioReco.modules.RNO_G.channelBlockOffsetFitter instead',
+        DeprecationWarning)
     # Example: Get baselines in chunks of 128 bins
     # wfs in (n_events, n_channels, 2048)
     # np.split -> (16, n_events, n_channels, 128) each waveform split in 16 chuncks
@@ -86,7 +102,10 @@ def baseline_correction(wfs, n_bins=128, func=np.median):
 
     # np.moveaxis -> (n_events, n_channels, 2048)
     baseline_traces = np.moveaxis(baseline_traces, 0, -1)
-
+     
+    if return_offsets:
+        return wfs - baseline_traces, baseline_values
+    
     return wfs - baseline_traces
 
 
@@ -183,6 +202,8 @@ class readRNOGData:
         self.logger = logging.getLogger('NuRadioReco.readRNOGData')
         self.logger.setLevel(log_level)
 
+        self._blockoffsetfitter = channelBlockOffsets()
+     
         # Initialize run table for run selection
         self.__run_table = None
 
@@ -210,7 +231,7 @@ class readRNOGData:
             read_calibrated_data=False,
             select_triggers=None,
             select_runs=False,
-            apply_baseline_correction=True,
+            apply_baseline_correction='approximate',
             convert_to_voltage=True,
             selectors=[],
             run_types=["physics"],
@@ -240,10 +261,16 @@ class readRNOGData:
 
         Other Parameters
         ----------------
+        
+        apply_baseline_correction: 'approximate' | 'fit' | 'none'
+            Only applies when non-calibrated data are read. Removes the DC (baseline)
+            block offsets (pedestals).
+            Options are:
 
-        apply_baseline_correction: bool
-            Only applies when non-calibrated data are read. If true, correct for DC offset.
-            (Default: True)
+            * 'approximate' (default) - estimate block offsets by looking at the low-pass filtered trace
+            * 'fit' - do a full out-of-band fit to determine the block offsets; for more details,
+              see :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
+            * 'none' - do not apply a baseline correction (faster)
 
         convert_to_voltage: bool
             Only applies when non-calibrated data are read. If true, convert ADC to voltage.
@@ -280,6 +307,12 @@ class readRNOGData:
         t0 = time.time()
 
         self._read_calibrated_data = read_calibrated_data
+        baseline_correction_valid_options = ['approximate', 'fit', 'none']
+        if apply_baseline_correction.lower() not in baseline_correction_valid_options:
+            raise ValueError(
+                f"Value for apply_baseline_correction ({apply_baseline_correction}) not recognized. "
+                f"Valid options are {baseline_correction_valid_options}"
+            )
         self._apply_baseline_correction = apply_baseline_correction
         self._convert_to_voltage = convert_to_voltage
 
@@ -665,14 +698,9 @@ class readRNOGData:
                 channel.set_trace(wf * units.mV, sampling_rate * units.GHz)
             else:
                 # wf stores ADC counts
-
-                if self._apply_baseline_correction:
-                    # correct baseline
-                    wf = baseline_correction(wf)
-
                 if self._convert_to_voltage:
                     # convert adc to voltage
-                    wf *= (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
+                    wf = wf * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
 
                 channel.set_trace(wf, sampling_rate * units.GHz)
 
@@ -682,6 +710,8 @@ class readRNOGData:
             station.add_channel(channel)
 
         evt.set_station(station)
+        if self._apply_baseline_correction in ['fit', 'approximate'] and not self._read_calibrated_data:
+            self._blockoffsetfitter.remove_offsets(evt, station, mode=self._apply_baseline_correction)
 
         return evt
 
