@@ -265,7 +265,7 @@ class simulation:
 
         ################################
         # perfom a dummy detector simulation to determine how the signals are filtered
-        self._bandwidth_per_channel = {}
+        self._filter_response_per_channel = {}
         self._amplification_per_channel = {}
         self.__noise_adder_normalization = {}
 
@@ -302,7 +302,7 @@ class simulation:
             self._evt.set_station(self._station)
 
             self._detector_simulation_filter_amp(self._evt, self._station, self._det)
-            self._bandwidth_per_channel[self._station_id] = {}
+            self._filter_response_per_channel[self._station_id] = {}
             self._amplification_per_channel[self._station_id] = {}
             for channel_id in range(self._det.get_number_of_channels(self._station_id)):
                 ff = np.linspace(0, 0.5 / self._dt, 10000)
@@ -311,16 +311,15 @@ class simulation:
                     if hasattr(instance, "get_filter"):
                         filt *= instance.get_filter(ff, self._station_id, channel_id, self._det, **kwargs)
 
-                self._amplification_per_channel[self._station_id][channel_id] = np.abs(filt).max()
-                in_bandwith_lim = self._amplification_per_channel[self._station_id][channel_id] / 100  # a factor of 100 corresponds to -40 dB in amplitude
-                ff_in_bandwith = ff[np.abs(filt) > in_bandwith_lim]
-                bandwidth = ff_in_bandwith[-1] - ff_in_bandwith[0]
-                self._bandwidth_per_channel[self._station_id][channel_id] = bandwidth
-                logger.status(f"bandwidth of station {self._station_id} channel {channel_id} is {bandwidth / units.MHz:.1f} MHz")
+                self._amplification_per_channel[self._station_id][channel_id] = np.mean(
+                    np.abs(filt)[np.abs(filt) > np.abs(filt).max() / 100])  # a factor of 100 corresponds to -40 dB in amplitude
+                filter_response = np.trapz(np.abs(filt) ** 2, ff)
+                self._filter_response_per_channel[self._station_id][channel_id] = filter_response
+                logger.debug(f"Estimated bandwidth of station {self._station_id} channel {channel_id} is {filter_response / self._amplification_per_channel[self._station_id][channel_id] ** 2 / units.MHz:.1f} MHz")
 
         ################################
 
-        self._bandwidth = next(iter(next(iter(self._bandwidth_per_channel.values())).values()))
+        self._bandwidth = next(iter(next(iter(self._filter_response_per_channel.values())).values()))
         amplification = next(iter(next(iter(self._amplification_per_channel.values())).values()))
         noise_temp = self._cfg['trigger']['noise_temperature']
         Vrms = self._cfg['trigger']['Vrms']
@@ -333,10 +332,10 @@ class simulation:
                 self._noise_temp = float(noise_temp)
             self._Vrms_per_channel = {}
             self._noiseless_channels = {}
-            for station_id in self._bandwidth_per_channel:
+            for station_id in self._filter_response_per_channel:
                 self._Vrms_per_channel[station_id] = {}
                 self._noiseless_channels[station_id] = []
-                for channel_id in self._bandwidth_per_channel[station_id]:
+                for channel_id in self._filter_response_per_channel[station_id]:
                     if self._noise_temp is None:
                         noise_temp_channel = self._det.get_noise_temperature(station_id, channel_id)
                     else:
@@ -344,11 +343,15 @@ class simulation:
                     if self._det.is_channel_noiseless(station_id, channel_id):
                         self._noiseless_channels[station_id].append(channel_id)
 
+                    # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
                     self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k *
-                           self._bandwidth_per_channel[station_id][channel_id] / units.Hz) ** 0.5  # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
-                    logger.status(f'station {station_id} channel {channel_id} noise temperature = {noise_temp_channel}, bandwidth = {self._bandwidth_per_channel[station_id][channel_id]/ units.MHz:.2f} MHz -> Vrms = {self._Vrms_per_channel[station_id][channel_id]/ units.V / units.micro:.2f} muV')
+                           self._filter_response_per_channel[station_id][channel_id] / units.Hz) ** 0.5
+                    logger.debug(f'station {station_id} channel {channel_id} noise temperature = {noise_temp_channel} K -> Vrms = '
+                                  f'{self._Vrms_per_channel[station_id][channel_id]/ units.mV:.2f} mV')
+
             self._Vrms = next(iter(next(iter(self._Vrms_per_channel.values())).values()))
-            logger.status('(if same bandwidth for all stations/channels is assumed:) noise temperature = {}, bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV'.format(self._noise_temp, self._bandwidth / units.MHz, self._Vrms / units.V / units.micro))
+            logger.status('(if same filter response for all stations/channels is assumed:) noise temperature = {}, est. bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV'.format(
+                self._noise_temp, self._bandwidth / amplification ** 2 / units.MHz, self._Vrms / units.V / units.micro))
         elif Vrms is not None:
             self._Vrms = float(Vrms) * units.V
             self._noise_temp = None
@@ -356,13 +359,15 @@ class simulation:
             raise AttributeError(f"noise temperature and Vrms are both set to None")
 
         self._Vrms_efield_per_channel = {}
-        for station_id in self._bandwidth_per_channel:
+        for station_id in self._filter_response_per_channel:
             self._Vrms_efield_per_channel[station_id] = {}
-            for channel_id in self._bandwidth_per_channel[station_id]:
+            for channel_id in self._filter_response_per_channel[station_id]:
                 self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / self._amplification_per_channel[station_id][channel_id] / units.m
         self._Vrms_efield = next(iter(next(iter(self._Vrms_efield_per_channel.values())).values()))
         tmp_cut = float(self._cfg['speedup']['min_efield_amplitude'])
-        logger.status(f"final Vrms {self._Vrms/units.V:.2g}V corresponds to an efield of {self._Vrms_efield/units.V/units.m/units.micro:.2g} muV/m for a VEL = 1m (amplification factor of system is {amplification:.1f}).\n -> all signals with less then {tmp_cut:.1f} x Vrms_efield = {tmp_cut * self._Vrms_efield/units.m/units.V/units.micro:.2g}muV/m will be skipped")
+        logger.status(f"final Vrms {self._Vrms/units.V:.2g}V corresponds to an efield of {self._Vrms_efield/units.V/units.m/units.micro:.2g} "
+                      f"muV/m for a VEL = 1m (amplification factor of system is {amplification:.1f}).\n -> all signals with less then "
+                      f"{tmp_cut:.1f} x Vrms_efield = {tmp_cut * self._Vrms_efield/units.m/units.V/units.micro:.2g}muV/m will be skipped")
 
         self._distance_cut_polynomial = None
         if self._cfg['speedup']['distance_cut']:
@@ -956,7 +961,7 @@ class simulation:
                             channel_ids = self._det.get_channel_ids(self._station.get_id())
                             Vrms = {}
                             for channel_id in channel_ids:
-                                norm = self._bandwidth_per_channel[self._station.get_id()][channel_id]
+                                norm = self._filter_response_per_channel[self._station.get_id()][channel_id]
                                 Vrms[channel_id] = self._Vrms_per_channel[self._station.get_id()][channel_id] / (norm / max_freq) ** 0.5  # normalize noise level to the bandwidth its generated for
                             channelGenericNoiseAdder.run(self._evt, self._station, self._det, amplitude=Vrms, min_freq=0 * units.MHz,
                                                          max_freq=max_freq, type='rayleigh', excluded_channels=self._noiseless_channels[station_id])
@@ -1452,7 +1457,7 @@ class simulation:
                     positions[channel_id] = self._det.get_relative_position(station_id, channel_id) + self._det.get_absolute_position(station_id)
                 fout["station_{:d}".format(station_id)].attrs['antenna_positions'] = positions
                 fout["station_{:d}".format(station_id)].attrs['Vrms'] = list(self._Vrms_per_channel[station_id].values())
-                fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._bandwidth_per_channel[station_id].values())
+                fout["station_{:d}".format(station_id)].attrs['bandwidth'] = list(self._filter_response_per_channel[station_id].values())
 
             fout.attrs.create("Tnoise", self._noise_temp, dtype=float)
             fout.attrs.create("Vrms", self._Vrms, dtype=float)
