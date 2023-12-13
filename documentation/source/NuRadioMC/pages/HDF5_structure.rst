@@ -114,8 +114,12 @@ is the number of showers (which may be larger than the number of events), and ``
 Station data
 ____________
 In addition, the HDF5 file contains a key for each station in the simulation.
-The station contains more detailed information for each event that triggered it:
-``m_events`` and ``m_showers`` refer to the number of events and showers that triggered the station.
+The station contains more detailed information for each station. Some parameters are per event and 
+some parameters are per shower. See https://doi.org/10.22323/1.395.1231 for a description of how showers relate to events. 
+``m_events`` and ``m_showers`` refer to the number of events and showers that triggered the station. NOTE: The simple table
+structure of hdf5 files can not capture the complex relation between events and showers in all cases. Some fields can be ambiguous
+(e.g. `trigger_times` that only lists the last trigger that a shower generated).
+For more advanced analyses, please use the ``*.nur`` files. 
 The ``event_group_id`` is the same as in the global dictionary. Therefore you can check for one event with
 an ``event_group_id`` which stations contain the same ``event_group_id`` and retrieve the information, which
 station triggered, with which amplitude, etc. The same approach works for ``shower_id``.
@@ -138,7 +142,7 @@ station triggered, with which amplitude, etc. The same approach works for ``show
             ``maximum_amplitudes_envelope`` | (``m_events``, ``n_channels``) | Maximum amplitude of the hilbert envelope for each event and channel
             ``multiple_triggers`` | (``m_showers``, ``n_triggers``) | A boolean array that specifies if a shower contributed to an event that fulfills a certain trigger. The index of the trigger can be translated to the trigger name via the attribute ``trigger_names``.
             ``multiple_triggers_per_event`` | (``m_events``, ``n_triggers``) | A boolean array that specifies if each event fulfilled a certain trigger. The index of the trigger can be translated to the trigger name via the attribute ``trigger_names``.
-            ``polarization`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D (Cartesian) coordinates of the polarization vector
+            ``polarization`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D coordinates of the polarization vector at the antenna in cartesian coordinates. (The receive vector (which is opposite to the propagation direction) was used to rotate from spherical/on-sky coordinates to cartesian coordinates). The polarization vector does not include any propagation effects that could change the polarization, such as different reflectivities at the surface for the p and s polarization component.   
             ``ray_tracing_C0`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | One of two parameters specifying the **analytic** ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.
             ``ray_tracing_C1`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | One of two parameters specifying the **analytic** ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.
             ``ray_tracing_reflection`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
@@ -151,4 +155,5 @@ station triggered, with which amplitude, etc. The same approach works for ``show
             ``travel_times`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The time travelled by each ray tracing solution to a specific channel
             ``triggered`` | (``m_showers``) | Whether each shower contributed to an event that satisfied any trigger condition
             ``triggered_per_event`` | (``m_events``) | Whether each event fulfilled any trigger condition.
-            ``trigger_times`` | (``m_showers``, ``n_triggers``) | The trigger times for each shower and trigger.
+            ``trigger_times`` | (``m_showers``, ``n_triggers``) | The trigger times for each shower and trigger. IMPORTANT: A shower can potentially generate multiple events. Then this field is ambiguous, as only a single trigger time per shower can be saved. In that case, the latest trigger time is saved into this field.
+            ``trigger_times_per_event`` | (``m_events``, ``n_triggers``) | The trigger times per event.

@@ -75,10 +75,11 @@ class channelParameters(Enum):
     signal_receiving_zenith = 15    #: the zenith angle of direction at which the radio signal arrived at the antenna
     signal_ray_type = 16        #: type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted
     signal_receiving_azimuth = 17   #: the azimuth angle of direction at which the radio signal arrived at the antenna
-    pulse_times = 18            #: list of times where the waveform contains radio pulses
-    signal_region_snrs = 19
-    receive_zenith_vertex = 20
-    receive_azimuth_vertex = 21
+    block_offsets = 18 #: 'block' or pedestal offsets. See `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
+    pulse_times = 19            #: list of times where the waveform contains radio pulses
+    signal_region_snrs = 20
+    receive_zenith_vertex = 21
+    receive_azimuth_vertex = 22
     #signal_receiving_zenith = 22
     #signal_receiving_zenith = 23
 

@@ -13,11 +13,11 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 class sphericalWaveFitter:
     " Fits position x,y, z of a source using spherical fit to channels "
-    
+
     def __init__(self):
         pass
-        
-        
+
+
     def begin(self, channel_ids = [0, 3, 9, 10]):
         self.__channel_ids = channel_ids
         pass
@@ -59,11 +59,11 @@ class sphericalWaveFitter:
         """
         print("channels used for this reconstruction:", self.__channel_ids)
 
-        
+
         def get_distance(x, y):
             return np.sqrt((x[0] - y[0])**2+ (x[1] - y[1])**2 + (x[2] - y[2])**2)
-        
-        
+
+
         def get_time_delay_spherical_wave(position, ch_pair, n=n_index):
             T0 = get_distance(position, det.get_relative_position(station_id, ch_pair[0]))/(constants.c/n_index)*units.s
             T1 = get_distance(position, det.get_relative_position(station_id, ch_pair[1]))/(constants.c/n_index)*units.s
@@ -84,9 +84,9 @@ class sphericalWaveFitter:
                     - station.get_channel(id2).get_trace_start_time()
                 )
                 self.__channel_pairs.append([self.__channel_ids[i], self.__channel_ids[j]])
-                
-       
-        self.__sampling_rate = station.get_channel(0).get_sampling_rate()
+
+
+        self.__sampling_rate = station.get_channel(self.__channel_ids[0]).get_sampling_rate()
         if debug:
             fig, ax = plt.subplots( len(self.__channel_pairs), 2)
 
@@ -111,16 +111,16 @@ class sphericalWaveFitter:
                     ax.set_ylim((0, max(self.__correlation[ich])))
                     ax.axvline(pos, label = 'reconstruction', lw = 1, color = 'orange')
                     ax.axvline(self._pos_starting[ich], label = 'starting pos', lw = 1, color = 'green')
-                    ax.set_title("channel pair {}".format( ch_pair), fontsize = 5) 
+                    ax.set_title("channel pair {}".format( ch_pair), fontsize = 5)
                     ax.legend(fontsize = 5)
- 
+
             if debug_corr:
                 fig.tight_layout()
                 fig.savefig("{}/debug.pdf".format(debugplots_path))
 
             return -1*corr
-            
-            
+
+
 
         trace = np.copy(station.get_channel(self.__channel_pairs[0][0]).get_trace())
         self.__correlation = np.zeros((len(self.__channel_pairs), len(np.abs(scipy.signal.correlate(trace, trace))) ))
@@ -128,7 +128,7 @@ class sphericalWaveFitter:
         for ich, ch_pair in enumerate(self.__channel_pairs):
             trace1 = np.copy(station.get_channel(self.__channel_pairs[ich][0]).get_trace())
             trace2 = np.copy(station.get_channel(self.__channel_pairs[ich][1]).get_trace())
-       
+
             t_max1 = station.get_channel(self.__channel_pairs[ich][0]).get_times()[np.argmax(np.abs(trace1))]
             t_max2 = station.get_channel(self.__channel_pairs[ich][1]).get_times()[np.argmax(np.abs(trace2))]
             corr_range = 50 * units.ns
@@ -141,7 +141,7 @@ class sphericalWaveFitter:
             self.__correlation[ich] = np.abs(scipy.signal.correlate(trace1, trace2))
             if mode == 'add_normalize_correlation':
                 self.__correlation[ich] /= np.max(self.__correlation[ich])
-          
+
 
 
         #### set positions for starting position ####
@@ -213,7 +213,7 @@ class sphericalWaveFitter:
                     c = opt.minimize(likelihood, x0 = (start_pulser_position[2]), args = (x_i, y_i, False), method = method)
                     zz[ix, iy] = c.fun
                     zz_values[ix, iy] = c.x[0]
-            
+
             fig = plt.figure(figsize = (10, 5))
             ax1 = fig.add_subplot(121)
             pax1 = ax1.pcolor(xx, yy,  zz.T)
@@ -246,4 +246,4 @@ class sphericalWaveFitter:
 
     def end(self):
         pass
-        
+

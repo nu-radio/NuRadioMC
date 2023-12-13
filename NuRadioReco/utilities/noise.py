@@ -232,7 +232,11 @@ class thermalNoiseGeneratorPhasedArray():
     def __init__(self, detector_filename, station_id, triggered_channels,
                  Vrms, threshold, ref_index,
                  noise_type="rayleigh", log_level=logging.WARNING,
-                 pre_trigger_time=100 * units.ns, trace_length=512 * units.ns):
+                 pre_trigger_time=100 * units.ns, trace_length=512 * units.ns, filt=None,
+                 upsampling=2, window_length=16 * units.ns, step_size=8 * units.ns,
+                 main_low_angle=np.deg2rad(-59.54968597864437), 
+                 main_high_angle=np.deg2rad(59.54968597864437),
+                 n_beams=11, quantize=True):
         """
         Efficient algorithms to generate thermal noise fluctuations that fulfill a phased array trigger
 
@@ -248,24 +252,44 @@ class thermalNoiseGeneratorPhasedArray():
             the RMS noise
         threshold: float
             the trigger threshold (assuming a symmetric high and low threshold)
-        trigger_time: float
-            the trigger time (time when the trigger completes)
-        filt: array of floats
-            the filter that should be applied after noise generation (needs to match frequency binning)
+        ref_index: float
+            reference refractive index for calculating time delays of the beams
+
+        Other Parameters
+        ----------------
         noise_type: string
             the type of the noise, can be
             * "rayleigh" (default)
             * "noise"
-        pre_trigger_time: float
+        log_level: logging enum, default warn 
+            the print level for this module
+        pre_trigger_time: float, default 100 ns
             the time in the trace before the trigger happens
-        trace_length: float
+        trace_length: float, default 512 ns
             the total trace length
+        filt: array of complex values, default None
+            the filter that should be applied after noise generation (needs to match frequency binning in upsampled domain)
+            if `None`, a default filter is calculated from 96 to 220 MHz
+        upsampling: int, default 2
+            factor by which the waveforms will be upsampled before calculating time delays and beamforming
+        window_length: float, default 16 ns
+            time interval of the integration window
+        step_size: float, default 8 ns
+            duration of a stride between window calcuations
+        main_low_angle: float, default -59.5 deg
+            angle (radians) of the lowest beam
+        main_high_angle: float 59.5 deg
+            angle (radians) of the highest beam
+        n_beams: int, default 11
+            number of beams to calculate
+        quantize: bool, default True
+            If set to true, the conversion to and from ADC will be performed to mimic digitizations
         """
         logger.setLevel(log_level)
         self.debug = False
         self.max_amp = 0
 
-        self.upsampling = 2
+        self.upsampling = upsampling
         self.det = detector.GenericDetector(json_filename=detector_filename)
         self.det.update(datetime.datetime(2018, 10, 1))
         self.n_samples = self.det.get_number_of_samples(station_id, triggered_channels[0])  # assuming same settings for all channels
@@ -273,9 +297,16 @@ class thermalNoiseGeneratorPhasedArray():
 
         self.pre_trigger_bins = int(pre_trigger_time * self.sampling_rate)
         self.n_samples_trigger = int(trace_length * self.sampling_rate)
-        det_channel = self.det.get_channel(station_id, triggered_channels[0])
-        self.adc_n_bits = det_channel["trigger_adc_nbits"]
-        self.adc_noise_n_bits = det_channel["trigger_adc_noise_nbits"]
+
+        if self.n_samples_trigger > self.n_samples:
+            raise ValueError(f"Requested `trace_length` of {trace_length/units.ns:.1f}ns ({self.n_samples_trigger} bins)" +
+                             f" is longer than the number of samples specified in the detector file ({self.n_samples} bins)")
+
+        self.quantize = quantize
+        if self.quantize:
+            det_channel = self.det.get_channel(station_id, triggered_channels[0])
+            self.adc_n_bits = det_channel["trigger_adc_nbits"]
+            self.adc_noise_n_bits = det_channel["trigger_adc_noise_nbits"]
 
         self.n_channels = len(triggered_channels)
         self.triggered_channels = triggered_channels
@@ -288,12 +319,10 @@ class thermalNoiseGeneratorPhasedArray():
         for channel_id in triggered_channels:
             cable_delays[channel_id] = self.det.get_cable_delay(station_id, channel_id)
 
-        main_low_angle = np.deg2rad(-59.54968597864437)
-        main_high_angle = np.deg2rad(59.54968597864437)
-        phasing_angles_4ant = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), 11))
+        phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), n_beams))
         cspeed = constants.c * units.m / units.s
-        self.beam_time_delays = np.zeros((len(phasing_angles_4ant), self.n_channels), dtype=np.int)
-        for iBeam, angle in enumerate(phasing_angles_4ant):
+        self.beam_time_delays = np.zeros((len(phasing_angles), self.n_channels), dtype=np.int)
+        for iBeam, angle in enumerate(phasing_angles):
 
             delays = []
             for key in self.ant_z:
@@ -312,21 +341,36 @@ class thermalNoiseGeneratorPhasedArray():
         self.max_freq = 0.5 * self.sampling_rate * self.upsampling
         self.dt = 1. / self.sampling_rate
         self.ff = np.fft.rfftfreq(self.n_samples * self.upsampling, 1. / (self.sampling_rate * self.upsampling))
-        import NuRadioReco.modules.channelBandPassFilter
-        channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
-        self.filt = channelBandPassFilter.get_filter(self.ff, station_id, channel_id, self.det,
-                          passband=[96 * units.MHz, 100 * units.GHz], filter_type='cheby1', order=4, rp=0.1)
-        self.filt *= channelBandPassFilter.get_filter(self.ff, station_id, channel_id, self.det,
-                          passband=[1 * units.MHz, 220 * units.MHz], filter_type='cheby1', order=7, rp=0.1)
+
+        # Construct a default filter if one is not supplied
+        if filt is None:
+            import NuRadioReco.modules.channelBandPassFilter
+            channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
+            self.filt = channelBandPassFilter.get_filter(self.ff, station_id, channel_id, self.det,
+                              passband=[96 * units.MHz, 100 * units.GHz], filter_type='cheby1', order=4, rp=0.1)
+            self.filt *= channelBandPassFilter.get_filter(self.ff, station_id, channel_id, self.det,
+                              passband=[1 * units.MHz, 220 * units.MHz], filter_type='cheby1', order=7, rp=0.1)
+        else:
+            if len(filt) != len(self.ff):
+                raise ValueError(f"Frequency filter supplied has {len(filt)} bins. It should match the upsampled" +
+                                 f" frequency binning of {len(self.ff)} bins from {self.ff[0] / units.MHz:.0f} to {self.ff[-1] / units.MHz:.0f} MHz")
+            self.filt = np.array(filt)
+
         self.norm = np.trapz(np.abs(self.filt) ** 2, self.ff)
         self.amplitude = (self.max_freq - self.min_freq) ** 0.5 / self.norm ** 0.5 * self.Vrms
-        print(f"Vrms = {self.Vrms:.3g}V, noise amplitude = {self.amplitude:.3g}V, bandwidth = {self.norm/units.MHz:.0f}MHz")
-        print(f"frequency range {self.min_freq/units.MHz}MHz - {self.max_freq/units.MHz}MHz")
+        logger.info(f"Vrms = {self.Vrms:.3g}V, noise amplitude = {self.amplitude:.3g}V, bandwidth = {self.norm / units.MHz:.0f}MHz")
+        logger.info(f"frequency range {self.min_freq / units.MHz}MHz - {self.max_freq / units.MHz}MHz")
 
-        self.adc_ref_voltage = self.Vrms * (2 ** (self.adc_n_bits - 1) - 1) / (2 ** (self.adc_noise_n_bits - 1) - 1)
+        if self.quantize:
+            self.adc_ref_voltage = self.Vrms * (2 ** (self.adc_n_bits - 1) - 1) / (2 ** (self.adc_noise_n_bits - 1) - 1)
 
-        self.window = int(16 * units.ns * self.sampling_rate * 2.0)
-        self.step = int(8 * units.ns * self.sampling_rate * 2.0)
+        self.window = int(window_length * self.sampling_rate * self.upsampling)
+        self.step = int(step_size * self.sampling_rate * self.upsampling)
+
+        if self.window >= self.pre_trigger_bins:
+            logger.warning(f"Pre-trigger time ({pre_trigger_time / units.ns:0.2} ns, {self.pre_trigger_bins} bins)" +
+                           f" is within one window ({self.window} bins) of the beginning of the waveform" +
+                           " it is recommended to choose a larger value to avoid clipping effects")
 
         self.noise = channelGenericNoiseAdder.channelGenericNoiseAdder()
 
@@ -348,7 +392,10 @@ class thermalNoiseGeneratorPhasedArray():
             spec *= self.filt
             trace = fft.freq2time(spec, self.sampling_rate * self.upsampling)
 
-            self._traces[iCh] = perfect_floor_comparator(trace, self.adc_n_bits, self.adc_ref_voltage)
+            if self.quantize:
+                self._traces[iCh] = perfect_floor_comparator(trace, self.adc_n_bits, self.adc_ref_voltage)
+            else:
+                self._traces[iCh] = trace
 
     def __phasing(self):
         """ separated phasing part for PA noise trigger """
@@ -391,8 +438,8 @@ class thermalNoiseGeneratorPhasedArray():
         if self.max_amp > self.threshold:
             sliding_windows = np.array(sliding_windows)
             tmp = np.argwhere(sliding_windows > self.threshold)
-            triggered_step = tmp[0][0]
-            triggered_bin = tmp[0][2] * (self.window + triggered_step * steps_per_window)
+            triggered_step, triggered_beam, triggered_bin = tmp[0]
+            triggered_bin *= (self.window + triggered_step * steps_per_window)
             if(self.debug):
                 # check in which beam the trigger condition was fulfilled
                 sliding_windows = np.concatenate(sliding_windows, axis=1)
@@ -402,15 +449,15 @@ class thermalNoiseGeneratorPhasedArray():
                     if is_triggered:
                         logger.info(f"triggered at beam {iBeam}")
                 import matplotlib.pyplot as plt
-                fig, ax = plt.subplots(5, 1, sharex=True)
+                fig, ax = plt.subplots(self.n_channels + 1, 1, sharex=True)
                 for iCh in range(self.n_channels):
                     ax[iCh].plot(self._traces[iCh])
                     logger.info(f"{self._traces[iCh].std():.2f}")
-                ax[4].plot(self._phased_traces[iBeam])
+                ax[self.n_channels].plot(self._phased_traces[iBeam])
                 fig.tight_layout()
                 plt.show()
-            return True, triggered_bin
-        return False, None
+            return True, triggered_bin, triggered_beam
+        return False, None, None
 
     def __triggering_strided(self):
         """ separated trigger part for PA noise trigger using np.lib.stride_tricks.as_strided """
@@ -426,18 +473,19 @@ class thermalNoiseGeneratorPhasedArray():
             # self.max_amp = max(squared_mean.max(), self.max_amp)
             self.max_amp = max(squared_mean.max(), self.max_amp)
             if True in (squared_mean > self.threshold):
-                logger.info(f"triggered at beam {iBeam}")
+                triggered_bin = np.where(squared_mean > self.threshold)[0,0]
+                logger.debug(f"triggered at beam {iBeam}")
                 if(self.debug):
                     import matplotlib.pyplot as plt
-                    fig, ax = plt.subplots(5, 1, sharex=True)
+                    fig, ax = plt.subplots(self.n_channels+1, 1, sharex=True)
                     for iCh in range(self.n_channels):
                         ax[iCh].plot(self._traces[iCh])
                         logger.info(f"{self._traces[iCh].std():.2f}")
-                    ax[4].plot(self._phased_traces[iBeam])
+                    ax[self.n_channels].plot(self._phased_traces[iBeam])
                     fig.tight_layout()
                     plt.show()
-                return True
-        return False
+                return True, triggered_bin, iBeam
+        return False, None, None
 
     def generate_noise(self, phasing_mode="slice", trigger_mode="binned_sum", debug=False):
         """
@@ -455,7 +503,7 @@ class thermalNoiseGeneratorPhasedArray():
             generate debug plot
         Returns
         -------
-        np.array of shape (n_channels, n_samples)
+        np.array of shape (n_channels, n_samples), index of triggered bin, index of triggered beam
         """
         self.debug = debug
 
@@ -496,10 +544,10 @@ class thermalNoiseGeneratorPhasedArray():
             tstart = time.process_time()
 
             if trigger_mode == "binned_sum":
-                is_triggered, triggered_bin = self.__triggering()
+                is_triggered, triggered_bin, triggered_beam = self.__triggering()
             elif trigger_mode == "stride":
                 # more time consuming attempt to do triggering compared to taking binned sums
-                is_triggered = self.__triggering_strided()
+                is_triggered, triggered_bin, triggered_beam = self.__triggering_strided()
             else:
                 logger.error(f"Requested trigger_mode {trigger_mode}. Only 'binned_sum' and 'stride' are allowed")
                 raise NotImplementedError(f"Requested trigger_mode {trigger_mode}. Only 'binned_sum'  and 'stride' are supported")
@@ -508,14 +556,21 @@ class thermalNoiseGeneratorPhasedArray():
             dt_triggering += time.process_time() - tstart
 
             if is_triggered:
-                triggered_bin = triggered_bin // 2  # the trace is cut in the downsampled version. Therefore, triggered bin is factor of two smaller. 
+                triggered_bin = triggered_bin // self.upsampling  # the trace is cut in the downsampled version. Therefore, triggered bin is factor of two smaller. 
                 i_low = triggered_bin - self.pre_trigger_bins
                 i_high = i_low + self.n_samples_trigger
-                if (i_low >= 0) and (i_high < self.n_samples):
-                    # traces need to be downsampled
-                    # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
-                    self._traces = scipy.signal.resample(self._traces, np.shape(self._traces)[-1] // self.upsampling, axis=-1)
-                    return self._traces[:, i_low:i_high], self._phased_traces
+
+                # traces need to be downsampled
+                # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
+                self._traces = scipy.signal.resample(self._traces, np.shape(self._traces)[-1] // self.upsampling, axis=-1)
+
+                if (i_low >= 0) and (i_high < self.n_samples): # If range is directly a subset of the waveform
+                    return self._traces[:, i_low:i_high], self._phased_traces, triggered_beam
+
+                # Otherwise, roll the waveforms. Safe as long as noise is generated in the freq domain
+                self._phased_traces = np.roll(self._phased_traces, -i_low * self.upsampling, axis=-1)
+                self._traces = np.roll(self._traces, -i_low, axis=-1)
+                return self._traces[:, :self.n_samples_trigger], self._phased_traces, triggered_beam
 
     def generate_noise2(self, debug=False):
         """
@@ -538,7 +593,10 @@ class thermalNoiseGeneratorPhasedArray():
                 spec *= self.filt
                 trace = fft.freq2time(spec, self.sampling_rate * self.upsampling)
 
-                traces[iCh] = perfect_floor_comparator(trace, self.adc_n_bits, self.adc_ref_voltage)
+                if self.quantize:
+                    self._traces[iCh] = perfect_floor_comparator(trace, self.adc_n_bits, self.adc_ref_voltage)
+                else:
+                    self._traces[iCh] = trace
 
             shifts = np.zeros(self.n_channels, dtype=np.int)
             shifted_traces = copy.copy(traces)
