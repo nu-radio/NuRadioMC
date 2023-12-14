@@ -74,6 +74,17 @@ setting the logging level:
             if logging_level is not None:
                 logger.setLevel(logging_level)
 
+Next to the standard logging levels that Python provides, NuRadioReco implements
+an additional level called STATUS. Its value is 25, which is between WARNING and
+INFO (meaning that it will only be printed if the logging level is set to STATUS,
+INFO or DEBUG). In order to log a message with the STATUS level, you can use the
+``logger.status()`` function.
+
+This behaviour is achieved using the ``addLoggingLevel()`` function implemented
+in the ``NuRadioReco/modules/base/module.py`` module, which can also be used in
+custom scripts to add additional logging levels together with corresponding logging
+method to any logging class (this should also work with custom logging classes).
+
 Another interesting feature of the Python logging module, is the option to add
 multiple handlers which each output to a different location. Each of these can have
 a different logging level. For example, if you wanted to only have the WARNING
