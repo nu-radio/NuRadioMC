@@ -8,6 +8,62 @@ import inspect
 import pickle
 
 
+def addLoggingLevel(levelName, levelNum, methodName=None):
+    """
+    Comprehensively adds a new logging level to the `logging` module and the
+    currently configured logging class.
+
+    `levelName` becomes an attribute of the `logging` module with the value
+    `levelNum`. `methodName` becomes a convenience method for both `logging`
+    itself and the class returned by `logging.getLoggerClass()` (usually just
+    `logging.Logger`). If `methodName` is not specified, `levelName.lower()` is
+    used.
+
+    To avoid accidental clobberings of existing attributes, this method will
+    raise an `AttributeError` if the level name is already an attribute of the
+    `logging` module or if the method name is already present
+
+    Example
+    -------
+    >>> addLoggingLevel('TRACE', logging.DEBUG - 5)
+    >>> logging.getLogger(__name__).setLevel("TRACE")
+    >>> logging.getLogger(__name__).trace('that worked')
+    >>> logging.trace('so did this')
+    >>> logging.TRACE
+    5
+
+    Notes
+    -----
+    This function was taken from
+    `this answer  <https://stackoverflow.com/questions/2183233/how-to-add-a-custom-loglevel-to-pythons-logging-facility/35804945#35804945>`_
+
+    """
+    if not methodName:
+        methodName = levelName.lower()
+
+    if hasattr(logging, levelName):
+       raise AttributeError('{} already defined in logging module'.format(levelName))
+    if hasattr(logging, methodName):
+       raise AttributeError('{} already defined in logging module'.format(methodName))
+    if hasattr(logging.getLoggerClass(), methodName):
+       raise AttributeError('{} already defined in logger class'.format(methodName))
+
+    # This method was inspired by the answers to Stack Overflow post
+    # http://stackoverflow.com/q/2183233/2988730, especially
+    # http://stackoverflow.com/a/13638084/2988730
+    def logForLevel(self, message, *args, **kwargs):
+        if self.isEnabledFor(levelNum):
+            self._log(levelNum, message, args, **kwargs)
+
+    def logToRoot(message, *args, **kwargs):
+        logging.log(levelNum, message, *args, **kwargs)
+
+    logging.addLevelName(levelNum, levelName)
+    setattr(logging, levelName, levelNum)
+    setattr(logging.getLoggerClass(), methodName, logForLevel)
+    setattr(logging, methodName, logToRoot)
+
+
 def setup_logger(name="NuRadioReco", level=logging.WARNING):
     logger = logging.getLogger(name)
     logger.setLevel(level=level)
@@ -17,6 +73,9 @@ def setup_logger(name="NuRadioReco", level=logging.WARNING):
         formatter = logging.Formatter('\033[93m%(levelname)s - \033[0m%(name)s - %(message)s')
         handler.setFormatter(formatter)
         logger.addHandler(handler)
+
+    # Add the STATUS log level
+    addLoggingLevel('STATUS', 25)
 
     return logger
 
@@ -33,7 +92,7 @@ def register_run(level=None):
         @wraps(run)
         def register_run_method(self, *args, **kwargs):
 
-            # the following if/else part finds out if this is a module that operates on full events or a specific station
+            # the following if/else part finds out if this module operates on full events or on a specific station
             # In principle, different modules can be executed on different stations, so we keep it general and save the
             # modules station specific.
             # The logic is: If the first two arguments are event and station -> station module
@@ -48,8 +107,8 @@ def register_run(level=None):
             parameters = signature.parameters
             # convert args to kwargs to facilitate easier bookkeeping
             keys = [key for key in parameters.keys() if key != 'self']
-            all_kwargs = {key:value for key,value in zip(keys, args)}
-            all_kwargs.update(kwargs) # this silently overwrites positional args with kwargs, but this is probably okay as we still raise an error later
+            all_kwargs = {key: value for key, value in zip(keys, args)}
+            all_kwargs.update(kwargs)  # this silently overwrites positional args with kwargs, but this is probably okay as we still raise an error later
 
             # include parameters with default values
             for key,value in parameters.items():
@@ -58,18 +117,20 @@ def register_run(level=None):
                         all_kwargs[key] = value.default
 
             store_kwargs = {}
-            for idx, (key,value) in enumerate(all_kwargs.items()):
-                if isinstance(value, NuRadioReco.framework.event.Event) and idx == 0: # event should be the first argument
+            for idx, (key, value) in enumerate(all_kwargs.items()):
+                # event should be the first argument
+                if isinstance(value, NuRadioReco.framework.event.Event) and idx == 0:
                     evt = value
-                elif isinstance(value, NuRadioReco.framework.base_station.BaseStation) and idx == 1: # station should be second argument
+                # station should be second argument
+                elif isinstance(value, NuRadioReco.framework.base_station.BaseStation) and idx == 1:
                     station = value
                 elif isinstance(value, NuRadioReco.detector.detector_base.DetectorBase):
-                    pass # we don't try to store detectors
-                else: # we try to store other arguments IF they are pickleable
+                    pass  # we don't try to store detectors
+                else:  # we try to store other arguments IF they are pickleable
                     try:
                         pickle.dumps(value, protocol=4)
                         store_kwargs[key] = value
-                    except (TypeError, AttributeError): # object couldn't be pickled - we store the error instead
+                    except (TypeError, AttributeError):  # object couldn't be pickled - we store the error instead
                         store_kwargs[key] = TypeError(f"Argument of type {type(value)} could not be serialized")
             if station is not None:
                 module_level = "station"
@@ -92,7 +153,8 @@ def register_run(level=None):
 
             end = timer()
 
-            if self not in register_run_method.time:  # keep track of timing of modules. We use the module instance as key to time different module instances separately.
+            if self not in register_run_method.time:
+                # keep track of timing of modules. We use the module instance as key to time different module instances separately.
                 register_run_method.time[self] = 0
             register_run_method.time[self] += (end - start)
 
