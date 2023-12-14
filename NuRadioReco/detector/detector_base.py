@@ -909,6 +909,31 @@ class DetectorBase(object):
             antenna_model = antenna_type
         return antenna_model
 
+    def get_channel_group_id(self, station_id, channel_id):
+        """
+        returns the group ID of a channel
+
+        Parameters
+        ----------
+        station_id: int
+            the station id
+        channel_id: int
+            the channel id
+
+        Returns
+        -------
+        group_id : int
+            the channel group ID
+        """
+        res = self.__get_channel(station_id, channel_id)
+        if 'channel_group_id' not in res.keys():
+            logger.warning(
+                'Channel group ID not set for channel {} in station {}, returning -1'.format(
+                    channel_id, station_id))
+            return -1
+        else:
+            return res['channel_group_id']
+
     def get_noise_RMS(self, station_id, channel_id, stage='amp'):
         """
         returns the noise RMS that was precomputed from forced triggers
