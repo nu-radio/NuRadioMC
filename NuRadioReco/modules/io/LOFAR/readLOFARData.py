@@ -492,8 +492,7 @@ class readLOFARData:
 
                 # The channel_group_id should be interpreted as an antenna index
                 # dipoles '001000000' and '001000001' -> 'a1000000'
-                # TODO: implement channel_group_id as parameter in Detector file
-                channel_group = 'a' + str(channel_id - channel_id % 2)
+                channel_group = 'a' + str(detector.get_channel_group_id(station_id, channel_id))
                 
                 channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id=channel_group)
                 channel.set_trace(this_trace, station_dict['metadata'][4] * units.Hz)
