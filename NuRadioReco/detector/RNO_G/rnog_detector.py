@@ -1058,6 +1058,24 @@ class Response:
     def __str__(self):
         return "Response of " + ", ".join(self.get_names()) + f": R(0.5 GHz) = {self(0.5 * units.GHz)}"
 
+    def plot(self, show=False):
+        import matplotlib.pyplot as plt
+
+        freqs = np.linspace(0, 1.4) * units.GHz
+
+        fig, ax = plt.subplots()
+        for gain, name in zip(self.__gains, self.__names):
+            ax.plot(freqs / units.MHz, gain(freqs), label=name)
+
+        ax.set_xlabel("frequency / MHz")
+        ax.set_ylabel("gain")
+        ax.legend()
+        ax.set_yscale("log")
+
+        if show:
+            plt.show()
+        else:
+            return fig, ax
 
 if __name__ == "__main__":
 
