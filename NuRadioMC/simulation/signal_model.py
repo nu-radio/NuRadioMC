@@ -13,7 +13,34 @@ antenna_pattern_provider = antennapattern.AntennaPatternProvider()
 mylog = logging.getLogger("SignalModel")
 
 
-def get_signal(N, dt, shower_energy, zenith, azimuth, vertex, observer, antenna_type):
+def get_signal(N, dt, shower_energy, zenith, azimuth, vertex, observer, antenna_type, antenna_orientation=[0, 0, 90 * units.deg, 0]):
+    """
+    This function calculates the Askaryan signal as observed in an antenna 
+    for a given shower energy, shower direction (zenith, azimuth), interaction vertex, 
+    observer/antenna position, antenna type and orientation. 
+
+    Parameters:
+    N (int): The number of samples in the time domain signal.
+    dt (float): The time step size.
+    shower_energy (float): The energy of the shower in eV.
+    zenith (float): The zenith angle of the shower in radians.
+    azimuth (float): The azimuth angle of the shower in radians.
+    vertex (numpy.ndarray): The 3D position of the shower vertex.
+    observer (numpy.ndarray): The 3D position of the observer.
+    antenna_type (str): The type of the antenna.
+    antenna_orientation (list, optional): The orientation of the antenna. Defaults to [0, 0, 90 * units.deg, 0].
+        orientation_theta: float
+            orientation of the antenna, as a zenith angle (0deg is the zenith, 180deg is straight down); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+        orientation_phi: float
+            orientation of the antenna, as an azimuth angle (counting from East counterclockwise); for LPDA: outward along boresight; for dipoles: upward along axis of azimuthal symmetry
+        rotation_theta: float
+            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+        rotation_phi: float
+            rotation of the antenna, is perpendicular to 'orientation', for LPDAs: vector perpendicular to the plane containing the the tines
+
+    Returns:
+    numpy.ndarray: The time domain signal at the observer position.
+    """    
     mylog.setLevel(10)
     shower_type = "had"
 
@@ -42,11 +69,11 @@ def get_signal(N, dt, shower_energy, zenith, azimuth, vertex, observer, antenna_
     eR, eTheta, ePhi = np.outer(polarization_direction_onsky, spectrum)
 
     
-    ori = [0, 0, 90 * units.deg, 0]
+    
     frequencies = np.fft.rfftfreq(N, dt)
     antenna_pattern = antenna_pattern_provider.load_antenna_pattern(antenna_type)
     zenith_ant, azimuth_ant = hp.cartesian_to_spherical(*receive_vector)
-    VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_ant, azimuth_ant, *ori)
+    VEL = antenna_pattern.get_antenna_response_vectorized(frequencies, zenith_ant, azimuth_ant, *antenna_orientation)
     voltage_fft = VEL['theta'] *eTheta + VEL['phi'] * ePhi
     voltage_fft[np.where(frequencies < 5 * units.MHz)] = 0.
     return fft.freq2time(voltage_fft, sampling_rate=1/dt, n=N)
@@ -69,4 +96,17 @@ if __name__ == "__main__":
     ax.legend()
     fig.tight_layout()
     plt.show()
+
+    # generate a signal for 12 different antennas
+    antenna_types = ["RNOG_vpol_4inch_center_n1.73"] * 6 + ["RNOG_quadslot_v3_air_rescaled_to_n1.74"] * 6
+    antenna_orientations = [[0, 0, 90 * units.deg, 0]] * 6 + [[0, 0, 90 * units.deg, 0]] * 6
+    antenna_positions = [[0,0,-100], [0,0,-80],
+                         [20,0,-100], [20,0,-80],
+                         [0,20,-100], [0,20,-80]] * 2
+    antenna_positions = np.array(antenna_positions)
+    signals = np.zeros((12, N))
+    for i in range(12):
+        signals[i] = get_signal(N, dt, 1e18*units.eV, 90*units.deg, 0, np.array([500., 0., -500.]),
+                                antenna_positions[i], antenna_types[i], antenna_orientations[i])
+        
     
