@@ -851,7 +851,9 @@ class Database(object):
                     component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
 
             components_data[component] = {'name': component_id}
-            components_data[component].update({'weight': weight_dict[component]})
+            if component in weight_dict:
+                components_data[component].update({'weight': weight_dict[component]})
+
             components_data[component].update(component_data)
 
         # add/update the signal chain to the channel data
