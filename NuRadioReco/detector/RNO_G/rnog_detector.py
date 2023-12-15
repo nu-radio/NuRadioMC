@@ -469,8 +469,8 @@ class Detector():
             self.logger.debug(
                 f"Query position for id \"{station_position_id}\"")
 
-            station_position = self.__db.get_station_position(
-                station_position_id=station_position_id)
+            station_position = self.__db.get_position(
+                position_id=station_position_id)
             self.__buffered_stations[station_id]["station_position"] = station_position
 
         return np.array(self.__buffered_stations[station_id]["station_position"]["position"])
