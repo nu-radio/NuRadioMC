@@ -603,9 +603,11 @@ class Detector():
             if is_equal and key == "drab_board":
                 continue
 
+            weight = value.get("weigth", 1)
             ydata = [value["mag"], value["phase"]]
-            responses.append(
-                Response(value["frequencies"], ydata, value["y-axis_units"], name=key))
+            response = Response(value["frequencies"], ydata, value["y-axis_units"], weight=weight, name=key)
+
+            responses.append(response)
 
         return np.prod(responses)
 
@@ -953,6 +955,11 @@ class Response:
             The first entry specifies the unit of the measured amplitude. Options are "dB", "MAG" and "mag".
             The second entry specifies the unit of the measured phase. Options are "rad" and "deg".
 
+        weight: float
+            Specifies the weight with which this component reponse "adds" to the total signal-chain response or data.
+            Its the exponent of the complex multiplicitive gain. That means that a value of 1 means to linear multiply this
+            reponse while a value of -1 means to divide by this reponse. (Default: 1)
+
         name: str
             Give the response a name. This is only use for printing purposes. (Default: "default")
         """
@@ -987,6 +994,8 @@ class Response:
         self.__phases = [interpolate.interp1d(
             self.__frequency, y_phase, kind="linear", bounds_error=False, fill_value=0)]
 
+        self.__weights = [weight]
+
     def __call__(self, freq):
         """
         Returns the complex response for a given frequency.
@@ -1003,9 +1012,9 @@ class Response:
             The complex response at the desired frequencies
         """
         response = np.ones_like(freq, dtype=np.complex128)
-        for gain, phase in zip(self.__gains, self.__phases):
-            response *= gain(freq / units.GHz) * \
-                np.exp(1j * phase(freq / units.GHz))
+
+        for gain, phase, weight in zip(self.__gains, self.__phases, self.__weights):
+            response *= (gain(freq / units.GHz) * np.exp(1j * phase(freq / units.GHz))) ** weight
 
         return response
 
@@ -1030,6 +1039,7 @@ class Response:
             self.__names += other.__names
             self.__gains += other.__gains
             self.__phases += other.__phases
+            self.__weights += other.__weights
             return self
 
         elif isinstance(other, NuRadioReco.framework.base_trace):
