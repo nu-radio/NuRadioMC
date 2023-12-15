@@ -104,7 +104,6 @@ def Detector(*args, **kwargs):
                 assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
 
         elif source == "mongo":
-            kwargs.pop("source")
             return NuRadioReco.detector.RNO_G.rnog_detector.Detector(*args, **kwargs)
 
         elif source == "dictionary":
