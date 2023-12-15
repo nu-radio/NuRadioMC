@@ -14,6 +14,7 @@ import datetime
 import numpy as np
 import collections
 import pickle
+import re
 
 
 def keys_not_in_dict(d, keys):
@@ -851,7 +852,7 @@ class Detector():
         if keys_not_in_dict(self.__buffered_stations, [station_id, "sampling_rate"]):
             raise KeyError(
                 f"Could not find \"sampling_rate\" for station {station_id} in buffer. Did you call det.update(...)?")
-        print(float(self.__buffered_stations[station_id]['sampling_rate']))
+
         return float(self.__buffered_stations[station_id]['sampling_rate'])
 
 
@@ -871,16 +872,15 @@ class Detector():
         else:
             raise ValueError("Unkown type for hard-coded value")
 
-
     def is_channel_noiseless(self, station_id, channel_id):
         is_noiseless = self.__default_values["is_noiseless"]
         self.logger.warn(
-            f"Return a hard-coded value for \"is_noiseless\" of {is_noiseless}. "
+            f"Return a hard-coded value for \"is_noiseless\" of {is_noiseless} for all stations / channels. "
             "This information is not (yet) implemented in the DB.")
         return is_noiseless
 
-    def get_cable_delay(self, station_id, channel_id):
-        """ Return the sum of the time delay of all components in the signal chain
+    def get_time_delay_stored(self, station_id, channel_id):
+        """ Return the sum of the time delay of all components in the signal chain stored in the DB
 
         Parameters
         ----------
@@ -907,6 +907,47 @@ class Detector():
                 self.logger.warning(f"The signal chain component \"{key}\" of station.channel {station_id}.{channel_id} has not time delay stored...")
                 continue
             time_delay += value["time_delay"]
+
+        return time_delay
+
+
+    def get_time_delay(self, station_id, channel_id, cable_only=False):
+        """ Return the sum of the time delay of all components in the signal chain calculated from the phase
+
+        Parameters
+        ----------
+
+        station_id: int
+            The station id
+
+        channel_id: int
+            The channel id
+
+        cable_only: bool
+            If True: Consider only cables to calculate delay. (Default: False)
+
+        Returns
+        -------
+
+        time_delay: float
+            Sum of the time delays of all components in the signal chain for one channel
+        """
+
+        signal_chain_dict = self.get_channel_signal_chain(
+            station_id, channel_id)
+
+        measurement_components_dic = signal_chain_dict["response_chain"]
+
+        time_delay = 0
+        for key, value in measurement_components_dic.items():
+
+            if re.search("cable", key) is None and cable_only:
+                continue
+
+            ydata = [value["mag"], value["phase"]]
+            response = Response(value["frequencies"], ydata, value["y-axis_units"], name=key)
+
+            time_delay += response.get_time_delay()
 
         return time_delay
 
@@ -939,7 +980,7 @@ class Response:
     response of several components into one response by multiplying them.
     """
 
-    def __init__(self, frequency, y, y_unit, name="default"):
+    def __init__(self, frequency, y, y_unit, weight=1, name="default"):
         """
         Parameters
         ----------
@@ -1076,6 +1117,30 @@ class Response:
             plt.show()
         else:
             return fig, ax
+
+    def get_time_delay(self, freqs=np.arange(0.05, 1.2, 0.001) * units.GHz):
+        """ Calculate time delay from phase """
+
+        response = self(freqs)
+
+        delta_freq = np.diff(freqs)
+
+        phase = np.angle(response)
+        time_delay = -np.diff(np.unwrap(phase)) / delta_freq / 2 / np.pi
+
+        mask = np.all([195 * units.MHz < freqs, freqs < 250 * units.MHz], axis=0)[:-1]
+        time_delay1 = np.mean(time_delay[mask])
+
+        # fit the unwrapped phase with a linear function
+        popt = np.polyfit(freqs, np.unwrap(phase), 1)
+        time_delay2 = -popt[0] / (2 * np.pi)
+
+        if np.abs(time_delay1 - time_delay2) > 0.1:
+            self.logger.warning(f"Calculation of time delay. The two methods yield different results: {time_delay1:.1f} / {time_delay2:.1f} for {self.get_names()}. Return the former...")
+
+        return time_delay1
+
+
 
 if __name__ == "__main__":
 
