@@ -26,8 +26,8 @@ class triggerTimeAdjuster:
         ----------
         trigger_name: string or None
             name of the trigger that should be used.
-            If trigger_name is None, the trigger with the smalles trigger_time will be used.
-            If a name is give, corresponding trigger module must be run beforehand.
+            If trigger_name is None, the trigger with the smallest trigger_time will be used.
+            If a name is given, corresponding trigger module must be run beforehand.
             If the trigger does not exist or did not trigger, this module will do nothing
         pre_trigger_time: float or dict
             Amount of time that should be stored in the channel trace before the trigger. 
@@ -64,8 +64,11 @@ class triggerTimeAdjuster:
         mode: 'sim_to_data' (default) | 'data_to_sim'
             If 'sim_to_data', cuts the (arbitrary-length) simulated traces
             to the appropriate readout windows. If 'data_to_sim',
-            looks through all triggers in the station and adjusts the 
+            looks through all triggers in the station and adjusts the
             trace_start_time according to the different readout delays
+
+            If the ``trigger_name`` was specified in the ``begin`` function,
+            only this trigger is considered.
         
         """
         if mode == 'sim_to_data':
@@ -116,7 +119,7 @@ class triggerTimeAdjuster:
                             else:
                                 logger.error(
                                     'pre_trigger_time was specified as a dictionary, '
-                                    f'but the neither the trigger_name {trigger_name} '
+                                    f'but neither the trigger_name {trigger_name} '
                                     f'nor the channel id {channel_id} are present as keys'
                                     )
                                 raise KeyError
@@ -156,8 +159,19 @@ class triggerTimeAdjuster:
             else:
                 logger.debug('Trigger {} has not triggered. Channel timings will not be changed.'.format(self.__trigger_name))
         elif mode == 'data_to_sim':
-            for trigger in station.get_triggers().values():
-                pre_trigger_time = trigger.get_pre_trigger_times()
+            if self.__trigger_name is not None:
+                triggers = [station.get_trigger(self.__trigger_name)]
+            else:
+                triggers = station.get_triggers().values()
+
+            pre_trigger_times = [trigger.get_pre_trigger_times() for trigger in triggers]
+            if np.sum([dt is not None for dt in pre_trigger_times]) > 1:
+                logger.warning(
+                    'More than one trigger claims to have adjusted the pre_trigger_times. '
+                    'Normally, only one trigger should set pre_trigger_times. '
+                    )
+
+            for pre_trigger_time in pre_trigger_times:
                 if pre_trigger_time is not None:
                     for channel in station.iter_channels():
                         channel.set_trace_start_time(channel.get_trace_start_time()-pre_trigger_time[channel.get_id()])
