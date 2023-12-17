@@ -3,7 +3,7 @@ import numpy as np
 import logging
 from NuRadioReco.utilities import units
 
-logger = logging.getLogger('triggerTimeAdjuster')
+logger = logging.getLogger('NuRadioReco.triggerTimeAdjuster')
 
 
 class triggerTimeAdjuster:
