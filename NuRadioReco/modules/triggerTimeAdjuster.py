@@ -42,6 +42,7 @@ class triggerTimeAdjuster:
         """
         self.__trigger_name = trigger_name
         self.__pre_trigger_time = pre_trigger_time
+        self.__sampling_rate_warning_issued = False
 
     @register_run()
     def run(self, event, station, detector, mode='sim_to_data'):
@@ -95,10 +96,11 @@ class triggerTimeAdjuster:
 
                     trace = channel.get_trace()
                     trace_length = len(trace)
+                    detector_sampling_rate = detector.get_sampling_frequency(station.get_id(), channel.get_id())
                     number_of_samples = int(
                         2 * np.ceil( # this should ensure that 1) the number of samples is even and 2) resampling to the detector sampling rate results in the correct number of samples (note that 2) can only be guaranteed if the detector sampling rate is lower than the current sampling rate)
-                            detector.get_number_of_samples(station.get_id(), channel.get_id()) / 2 
-                            * channel.get_sampling_rate() / detector.get_sampling_frequency(station.get_id(), channel.get_id())
+                            detector.get_number_of_samples(station.get_id(), channel.get_id()) / 2
+                            * channel.get_sampling_rate() / detector_sampling_rate
                         ))
                     if number_of_samples > trace.shape[0]:
                         logger.error("Input has fewer samples than desired output. Channels has only {} samples but {} samples are requested.".format(
@@ -106,6 +108,7 @@ class triggerTimeAdjuster:
                         raise AttributeError
                     else:
                         sampling_rate = channel.get_sampling_rate()
+                        self.__check_sampling_rates(detector_sampling_rate, sampling_rate)
                         trigger_time_sample = int(np.round(trigger_time_channel * sampling_rate))
                         # logger.debug(f"channel {channel.get_id()}: trace_start_time = {channel.get_trace_start_time():.1f}ns, trigger time channel {trigger_time_channel/units.ns:.1f}ns,  trigger time sample = {trigger_time_sample}")
                         pre_trigger_time = self.__pre_trigger_time
@@ -177,3 +180,14 @@ class triggerTimeAdjuster:
                         channel.set_trace_start_time(channel.get_trace_start_time()-pre_trigger_time[channel.get_id()])
         else:
             raise ValueError(f"Argument '{mode}' for mode is not valid. Options are 'sim_to_data' or 'data_to_sim'.")
+
+    def __check_sampling_rates(self, detector_sampling_rate, channel_sampling_rate):
+        if not self.__sampling_rate_warning_issued: # we only issue this warning once
+            if not np.isclose(detector_sampling_rate, channel_sampling_rate):
+                logger.warning(
+                    'triggerTimeAdjuster was called, but the channel sampling rate '
+                    f'({channel_sampling_rate/units.GHz:3.f} GHz) is not equal to '
+                    f'the target detector sampling rate ({detector_sampling_rate/units.GHz:.3f} GHz). '
+                    'Traces may not have the correct trace length after resampling.'
+                )
+                self.__sampling_rate_warning_issued = True
