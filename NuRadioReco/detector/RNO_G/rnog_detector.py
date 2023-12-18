@@ -27,8 +27,10 @@ def json_serial(obj):
         return obj.isoformat()
     elif isinstance(obj, bson.objectid.ObjectId):
         return str(obj)
-
-    raise TypeError ("Type %s not serializable" % type(obj))
+    elif isinstance(obj, Response):
+        pass
+    else:
+        raise TypeError ("Type %s not serializable" % type(obj))
 
 
 def keys_not_in_dict(d, keys):
@@ -131,7 +133,9 @@ class Detector():
             self._query_all = None  # specific case for file imported detector descriptions
             self._det_imported_from_file = True
 
+            is_json = False
             if detector_file.endswith(".json"):
+                is_json = True
                 with open(detector_file, "r") as f:
                     import_dict = json.load(f)
 
@@ -144,16 +148,20 @@ class Detector():
             if "version" in import_dict and import_dict["version"] == 1:
                 self.__buffered_stations = {}
 
-                # need to convert station/channel id keys back to integers
-                for station_id, station_data in import_dict["data"].items():
-                    station_data["channels"] = {int(channel_id): channel_data for channel_id, channel_data in station_data["channels"].items()}
-                    self.__buffered_stations[int(station_id)] = station_data
+                if is_json:
+                    # need to convert station/channel id keys back to integers
+                    for station_id, station_data in import_dict["data"].items():
+                        station_data["channels"] = {int(channel_id): channel_data for channel_id, channel_data in station_data["channels"].items()}
+                        self.__buffered_stations[int(station_id)] = station_data
 
-                # need to convert modification_timestamps back to datetime objects
-                self._time_periods_per_station = {
-                    int(station_id): {"modification_timestamps": [datetime.datetime.fromisoformat(v) for v in value["modification_timestamps"]]}
-                    for station_id, value in import_dict["periods"].items()
-                }
+                    # need to convert modification_timestamps back to datetime objects
+                    self._time_periods_per_station = {
+                        int(station_id): {"modification_timestamps": [datetime.datetime.fromisoformat(v) for v in value["modification_timestamps"]]}
+                        for station_id, value in import_dict["periods"].items()
+                    }
+                else:
+                    self.__buffered_stations = import_dict["data"]
+                    self._time_periods_per_station = import_dict["periods"]
 
                 # Set de/commission timestamps to the time period for which this config is valid
                 for station_id in self._time_periods_per_station:
@@ -179,7 +187,7 @@ class Detector():
 
         self.logger.info(info)
 
-    def export(self, filename, filetype="auto"):
+    def export(self, filename, filetype="auto", json_kwargs=None):
         """
         Export the buffered detector description.
 
@@ -193,6 +201,9 @@ class Detector():
             Select filetype to export detector describtion. Possible options are "pickle", "json" and "auto".
             If "auto" (default) is passed use extension in filename to define filetype. If that is not possible
             (because no extension is found) export to a json file.
+
+        json_kwargs: dict
+            Arguments passed to json.dumps(..). (Default: None -> dict(indent=0, default=json_serial))
         """
 
         periods = {}
@@ -231,12 +242,22 @@ class Detector():
             if not filename.endswith(".json"):
                 filename += ".json"
 
+            if json_kwargs is None:
+                json_kwargs = dict(indent=0, default=json_serial)
+
             with open(filename, "w") as f:
-                json.dump(export_dict, f, indent=4, default=json_serial)
+                json.dump(export_dict, f, **json_kwargs)
 
         elif filetype == "pickle":
             if not (filename.endswith(".pickle") or filename.endswith(".pkl")):
                 filename += ".pickle"
+
+            #TODO: Currently we are serializing stuff like datetime which can cause backwards in-compatibility ....
+
+            for station_id in export_dict["data"]:
+                for channel_id in export_dict["data"][station_id]["channels"]:
+                    # you do not want to serialise non-built-in classes and the raw data is stored anyway...
+                    export_dict["data"][station_id]["channels"][channel_id]["signal_chain"].pop("total_response", None)  # you do not want to serialise non-built-in classes
 
             with open(filename, "wb") as f:
                 pickle.dump(export_dict, f)
@@ -681,7 +702,8 @@ class Detector():
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
 
-        if "total_response" not in signal_chain_dict:
+        # total_response can be None if imported from file
+        if "total_response" not in signal_chain_dict or signal_chain_dict["total_response"] is None:
             measurement_components_dic = signal_chain_dict["response_chain"]
 
             # Here comes a HACK
