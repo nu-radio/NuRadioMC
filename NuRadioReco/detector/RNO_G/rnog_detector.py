@@ -681,32 +681,35 @@ class Detector():
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
 
-        measurement_components_dic = signal_chain_dict["response_chain"]
+        if "total_response" not in signal_chain_dict:
+            measurement_components_dic = signal_chain_dict["response_chain"]
 
-        # Here comes a HACK
-        components = list(measurement_components_dic.keys())
-        is_equal = False
-        if "drab_board" in components and "iglu_board" in components:
+            # Here comes a HACK
+            components = list(measurement_components_dic.keys())
+            is_equal = False
+            if "drab_board" in components and "iglu_board" in components:
 
-            is_equal = np.allclose(measurement_components_dic["drab_board"]["mag"],
-                                   measurement_components_dic["iglu_board"]["mag"])
+                is_equal = np.allclose(measurement_components_dic["drab_board"]["mag"],
+                                    measurement_components_dic["iglu_board"]["mag"])
 
-            if is_equal:
-                self.logger.warn("Currently both, iglu and drab board are configured in the signal chain but their"
-                                 " responses are the same (because we measure them together in the lab). Drop the drab board response.")
+                if is_equal:
+                    self.logger.warn(f"Station.channel {station_id}.{channel_id}: Currently both, iglu and drab board are configured in the signal chain but their"
+                                    " responses are the same (because we measure them together in the lab). Skip the drab board response.")
 
-        responses = []
-        for key, value in measurement_components_dic.items():
-            if is_equal and key == "drab_board":
-                continue
+            responses = []
+            for key, value in measurement_components_dic.items():
+                if is_equal and key == "drab_board":
+                    continue
 
-            weight = value.get("weigth", 1)
-            ydata = [value["mag"], value["phase"]]
-            response = Response(value["frequencies"], ydata, value["y-axis_units"], weight=weight, name=key)
+                weight = value.get("weigth", 1)
+                ydata = [value["mag"], value["phase"]]
+                response = Response(value["frequencies"], ydata, value["y-axis_units"], weight=weight, name=key)
 
-            responses.append(response)
+                responses.append(response)
 
-        return np.prod(responses)
+            signal_chain_dict["total_response"] = np.prod(responses)
+
+        return signal_chain_dict["total_response"]
 
     @check_detector_time
     def get_devices(self, station_id):
