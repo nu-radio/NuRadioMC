@@ -186,7 +186,7 @@ class triggerTimeAdjuster:
             if not np.isclose(detector_sampling_rate, channel_sampling_rate):
                 logger.warning(
                     'triggerTimeAdjuster was called, but the channel sampling rate '
-                    f'({channel_sampling_rate/units.GHz:3.f} GHz) is not equal to '
+                    f'({channel_sampling_rate/units.GHz:.3f} GHz) is not equal to '
                     f'the target detector sampling rate ({detector_sampling_rate/units.GHz:.3f} GHz). '
                     'Traces may not have the correct trace length after resampling.'
                 )
