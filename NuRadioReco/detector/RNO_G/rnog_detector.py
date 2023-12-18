@@ -14,7 +14,21 @@ import datetime
 import numpy as np
 import collections
 import pickle
+import json
 import re
+import copy
+import bson
+
+
+def json_serial(obj):
+    """JSON serializer for objects not serializable by default json code"""
+
+    if isinstance(obj, (datetime.datetime, datetime.date)):
+        return obj.isoformat()
+    elif isinstance(obj, bson.objectid.ObjectId):
+        return str(obj)
+
+    raise TypeError ("Type %s not serializable" % type(obj))
 
 
 def keys_not_in_dict(d, keys):
@@ -48,8 +62,7 @@ def check_detector_time(method):
 
 class Detector():
     def __init__(self, database_connection='RNOG_test_public', log_level=logging.INFO, over_write_handset_values={},
-                 database_time=None, always_query_entire_description=True,
-                 pickle_file=None):
+                 database_time=None, always_query_entire_description=True, detector_file=None):
         """
 
         Parameters
@@ -72,6 +85,9 @@ class Detector():
         always_query_entire_description: bool
             If True, query the entire detector describtion all at once when calling Detector.update(...) (if necessary).
             (Default: True)
+
+        detector_file: str
+            File to import detector description instead of querying from DB. (Default: None -> query from DB)
         """
 
         self.logger = logging.getLogger("rno-g-detector")
@@ -83,7 +99,7 @@ class Detector():
             "is_noiseless": False,
         }
 
-        if pickle_file is None:
+        if detector_file is None:
             self._det_imported_from_file = False
 
             self.__db = Database(database_connection=database_connection)
@@ -115,13 +131,39 @@ class Detector():
             self._query_all = None  # specific case for file imported detector descriptions
             self._det_imported_from_file = True
 
-            import_dir = pickle.load(open(pickle_file, "rb"))
-            if "version" in import_dir and import_dir["version"] == 1:
-                self.__buffered_stations = import_dir["data"]
-                self._time_periods_per_station = import_dir["periods"]
+            if detector_file.endswith(".json"):
+                with open(detector_file, "r") as f:
+                    import_dict = json.load(f)
+
+            elif detector_file.endswith(".pickle") or detector_file.endswith(".pkl"):
+                with open(detector_file, "rb") as f:
+                    import_dict = pickle.load(f)
+            else:
+                raise ValueError(f"Unknown filetype, can not import detector from {detector_file}")
+
+            if "version" in import_dict and import_dict["version"] == 1:
+                self.__buffered_stations = {}
+
+                # need to convert station/channel id keys back to integers
+                for station_id, station_data in import_dict["data"].items():
+                    station_data["channels"] = {int(channel_id): channel_data for channel_id, channel_data in station_data["channels"].items()}
+                    self.__buffered_stations[int(station_id)] = station_data
+
+                # need to convert modification_timestamps back to datetime objects
+                self._time_periods_per_station = {
+                    int(station_id): {"modification_timestamps": [datetime.datetime.fromisoformat(v) for v in value["modification_timestamps"]]}
+                    for station_id, value in import_dict["periods"].items()
+                }
+
+                # Set de/commission timestamps to the time period for which this config is valid
+                for station_id in self._time_periods_per_station:
+                    modification_timestamps = self._time_periods_per_station[station_id]["modification_timestamps"]
+                    self._time_periods_per_station[station_id]["station_commission_timestamps"] = [modification_timestamps[0]]
+                    self._time_periods_per_station[station_id]["station_decommission_timestamps"] = [modification_timestamps[-1]]
+
                 self._time_period_index_per_station = {
                     st_id: 1 for st_id in self.__buffered_stations}
-                self.__default_values = import_dir["default_values"]
+                self.__default_values = import_dict["default_values"]
             else:
                 self.logger.error(f"{pickle_file} with unknown version.")
                 raise ReferenceError(f"{pickle_file} with unknown version.")
@@ -137,7 +179,7 @@ class Detector():
 
         self.logger.info(info)
 
-    def export(self, filename):
+    def export(self, filename, filetype="auto"):
         """
         Export the buffered detector description.
 
@@ -146,6 +188,11 @@ class Detector():
 
         filename: str
             Filename of the exported detector description
+
+        filetype: str
+            Select filetype to export detector describtion. Possible options are "pickle", "json" and "auto".
+            If "auto" (default) is passed use extension in filename to define filetype. If that is not possible
+            (because no extension is found) export to a json file.
         """
 
         periods = {}
@@ -172,7 +219,56 @@ class Detector():
             "default_values": self.__default_values
         }
 
-        pickle.dump(export_dict, open(filename, "wb"))
+        if filetype == "auto":
+            if filename.endswith(".json"):
+                filetype = "json"
+            elif filename.endswith(".pickle") or filename.endswith(".pkl"):
+                filetype = "pickle"
+            else:
+                filetype = "json"
+
+        if filetype == "json":
+            if not filename.endswith(".json"):
+                filename += ".json"
+
+            with open(filename, "w") as f:
+                json.dump(export_dict, f, indent=4, default=json_serial)
+
+        elif filetype == "pickle":
+            if not (filename.endswith(".pickle") or filename.endswith(".pkl")):
+                filename += ".pickle"
+
+            with open(filename, "wb") as f:
+                pickle.dump(export_dict, f)
+        else:
+            raise ValueError(f"Unknown filetype {filetype}. Can not export detector description")
+
+    def export_as_string(self, skip_signal_chain_response=True, dumps_kwargs=None):
+        """
+        Export the detector description as string using json.dumps
+
+        Parameters
+        ----------
+
+        skip_signal_chain_response: bool
+            If true drop the data of the response chain from the detector description (because this creates large files).
+            (Default: True)
+
+        dumps_kwargs: dict
+            Arguments passed to json.dumps(..). (Default: None -> dict(indent=4, default=str))
+        """
+        export_dir = copy.deepcopy(self.__buffered_stations)
+
+        if skip_signal_chain_response:
+            for station_id in export_dir:
+                for channel_id in export_dir[station_id]["channels"]:
+                    export_dir[station_id]["channels"][channel_id]["signal_chain"].pop("response_chain", None)
+                    export_dir[station_id]["channels"][channel_id]["signal_chain"].pop("total_response", None)
+
+        if dumps_kwargs is None:
+            dumps_kwargs = dict(indent=4, default=str)
+
+        return json.dumps(export_dir, **dumps_kwargs)
 
     def _check_update_buffer(self):
         """
