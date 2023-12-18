@@ -1006,6 +1006,9 @@ class Detector():
 
         return time_delay
 
+    def get_cable_delay(self, station_id, channel_id):
+        """ Return the cable delay of a signal chain. This interface is required by simulation.py """
+        return self.get_time_delay(station_id, channel_id, cable_only=True)
 
     def get_time_delay(self, station_id, channel_id, cable_only=False):
         """ Return the sum of the time delay of all components in the signal chain calculated from the phase
