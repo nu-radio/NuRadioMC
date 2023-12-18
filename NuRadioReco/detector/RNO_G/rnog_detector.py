@@ -354,9 +354,9 @@ class Detector():
 
         if self._det_imported_from_file and any_update:
             self.logger.error(
-                "You have imported the detector description from a pickle file but it is not valid anymore. Full stop!")
+                "You have imported the detector description from a pickle/json file but it is not valid anymore. Full stop!")
             raise ValueError(
-                "You have imported the detector description from a pickle file but it is not valid anymore. Full stop!")
+                "You have imported the detector description from a pickle/json file but it is not valid anymore. Full stop!")
 
         if any_update:
             for key in self.__buffered_stations:
