@@ -325,7 +325,7 @@ class simulation:
                 integrated_channel_response = np.trapz(np.abs(filt) ** 2, ff)
                 self._integrated_channel_response[self._station_id][channel_id] = integrated_channel_response
 
-                logger.debug(f"Estimated bandwidth of station {self._station_id} channel {channel_id} is "
+                logger.debug(f"Station.channel {self._station_id}.{channel_id} estimated bandwidth is "
                              f"{integrated_channel_response / mean_integrated_response / units.MHz:.1f} MHz")
 
         ################################
@@ -338,54 +338,79 @@ class simulation:
         Vrms = self._cfg['trigger']['Vrms']
 
         if noise_temp is not None and Vrms is not None:
-            raise AttributeError(f"Specifying noise temperature (set to {noise_temp}) and Vrms (set to {Vrms} is not allowed.")
+            raise AttributeError(f"Specifying noise temperature (set to {noise_temp}) and Vrms (set to {Vrms}) is not allowed).")
+
+        self._Vrms_per_channel = collections.defaultdict(dict)
+        self._Vrms_efield_per_channel = collections.defaultdict(dict)
 
         if noise_temp is not None:
+
             if noise_temp == "detector":
+                logger.status("Use noise temperature from detector description to determine noise Vrms in each channel.")
                 self._noise_temp = None  # the noise temperature is defined in the detector description
             else:
                 self._noise_temp = float(noise_temp)
+                logger.status(f"Use a noise temperature of {noise_temp / units.kelvin:.1f} K for each channel to determine noise Vrms.")
 
-            self._Vrms_per_channel = {}
-            self._noiseless_channels = {}
+            self._noiseless_channels = collections.defaultdict(dict)
             for station_id in self._integrated_channel_response:
-                self._Vrms_per_channel[station_id] = {}
-                self._noiseless_channels[station_id] = []
+
                 for channel_id in self._integrated_channel_response[station_id]:
                     if self._noise_temp is None:
                         noise_temp_channel = self._det.get_noise_temperature(station_id, channel_id)
                     else:
                         noise_temp_channel = self._noise_temp
+
                     if self._det.is_channel_noiseless(station_id, channel_id):
                         self._noiseless_channels[station_id].append(channel_id)
 
-                    # from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise (last Eq. in "noise voltage and power" section
-                    self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k *
-                           self._integrated_channel_response[station_id][channel_id] / units.Hz) ** 0.5
-                    logger.debug(f'station {station_id} channel {channel_id} noise temperature = {noise_temp_channel} K -> Vrms = '
-                                  f'{self._Vrms_per_channel[station_id][channel_id]/ units.mV:.2f} mV')
+                    # Calculation of Vrms. For details see from elog:1566 and https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise
+                    # (last two Eqs. in "noise voltage and power" section) or our wiki https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/HDF5_structure.html
+
+                    # Bandwidth, i.e., \Delta f in equation
+                    integrated_channel_response = self._integrated_channel_response[station_id][channel_id]
+                    max_amplification = self._max_amplification_per_channel[station_id][channel_id]
+
+                    self._Vrms_per_channel[station_id][channel_id] = (noise_temp_channel * 50 * constants.k * integrated_channel_response / units.Hz) ** 0.5
+                    self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / max_amplification / units.m  # VEL = 1m
+
+                    # for logging
+                    mean_integrated_response = self._integrated_channel_response_normalization[self._station_id][channel_id]
+
+                    logger.status(f'Station.channel {station_id}.{channel_id:02d}: noise temperature = {noise_temp_channel} K, '
+                                  f'est. bandwidth = {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz, '
+                                  f'max. filter amplification = {max_amplification:.2e} -> Vrms = '
+                                  f'{self._Vrms_per_channel[station_id][channel_id] / units.mV:.2f} mV -> efield Vrms = {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (VEL = 1m) ')
 
             self._Vrms = next(iter(next(iter(self._Vrms_per_channel.values())).values()))
-            logger.status('noise temperature = {}, est. bandwidth = {:.2f} MHz -> Vrms = {:.2f} muV (for station {:d} and channel {:d})'.format(
-                self._noise_temp, self._bandwidth / norm / units.MHz, self._Vrms / units.V / units.micro, self._station_ids[0], 0))
 
         elif Vrms is not None:
             self._Vrms = float(Vrms) * units.V
             self._noise_temp = None
+            logger.status(f"Use a fix noise Vrms of {self._Vrms / units.mV:.2f} mV in each channel.")
+
+            for station_id in self._integrated_channel_response:
+
+                for channel_id in self._integrated_channel_response[station_id]:
+                    max_amplification = self._max_amplification_per_channel[station_id][channel_id]
+                    self._Vrms_per_channel[station_id][channel_id] = self._Vrms  # to be stored in the hdf5 file
+                    self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms / max_amplification / units.m  # VEL = 1m
+
+                    # for logging
+                    integrated_channel_response = self._integrated_channel_response[station_id][channel_id]
+                    mean_integrated_response = self._integrated_channel_response_normalization[self._station_id][channel_id]
+
+                    logger.status(f'Station.channel {station_id}.{channel_id:02d}: '
+                                  f'est. bandwidth = {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz, '
+                                  f'max. filter amplification = {max_amplification:.2e} -> '
+                                  f'efield Vrms = {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (VEL = 1m) ')
+
         else:
             raise AttributeError(f"noise temperature and Vrms are both set to None")
 
-        self._Vrms_efield_per_channel = {}
-        for station_id in self._integrated_channel_response:
-            self._Vrms_efield_per_channel[station_id] = {}
-            for channel_id in self._integrated_channel_response[station_id]:
-                self._Vrms_efield_per_channel[station_id][channel_id] = self._Vrms_per_channel[station_id][channel_id] / self._max_amplification_per_channel[station_id][channel_id] / units.m
-
         self._Vrms_efield = next(iter(next(iter(self._Vrms_efield_per_channel.values())).values()))
-        tmp_cut = float(self._cfg['speedup']['min_efield_amplitude'])
-        logger.status(f"final Vrms {self._Vrms/units.V:.2g}V corresponds to an efield of {self._Vrms_efield/units.V/units.m/units.micro:.2g} "
-                      f"muV/m for a VEL = 1m (amplification factor of system is {amplification:.1f}).\n -> all signals with less then "
-                      f"{tmp_cut:.1f} x Vrms_efield = {tmp_cut * self._Vrms_efield/units.m/units.V/units.micro:.2g}muV/m will be skipped")
+        speed_cut = float(self._cfg['speedup']['min_efield_amplitude'])
+        logger.status(f"All signals with less then {speed_cut:.1f} x Vrms_efield will be skipped.")
 
         self._distance_cut_polynomial = None
         if self._cfg['speedup']['distance_cut']:
