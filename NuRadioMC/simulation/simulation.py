@@ -1072,7 +1072,7 @@ class simulation:
                 self.logger.warning("Fiducial volume not defined. Return True")
                 return True
 
-        pos = copy.deepcopy(pos) - np.array([self._fin_attrs["x0"], self._fin_attrs["y0"], 0])
+        pos = copy.deepcopy(pos) - np.array([self._fin_attrs.get("x0", 0), self._fin_attrs.get("y0", 0), 0])
 
         if not (self._fin_attrs["fiducial_zmin"] < pos[2] < self._fin_attrs["fiducial_zmax"]):
             return False
