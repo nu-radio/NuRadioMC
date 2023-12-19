@@ -1069,7 +1069,7 @@ class simulation:
 
         for check_attr in ['fiducial_zmin', 'fiducial_zmax']:
             if not check_attr in self._fin_attrs:
-                self.logger.warning("Fiducial volume not defined. Return True")
+                logger.warning("Fiducial volume not defined. Return True")
                 return True
 
         pos = copy.deepcopy(pos) - np.array([self._fin_attrs.get("x0", 0), self._fin_attrs.get("y0", 0), 0])
