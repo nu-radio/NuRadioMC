@@ -1000,42 +1000,16 @@ class Detector():
             "This information is not (yet) implemented in the DB.")
         return is_noiseless
 
-    def get_time_delay_stored(self, station_id, channel_id):
-        """ Return the sum of the time delay of all components in the signal chain stored in the DB
 
-        Parameters
-        ----------
-
-        station_id: int
-            The station id
-
-        channel_id: int
-            The channel id
-
-        Returns
-        -------
-
-        time_delay: float
-            Sum of the time delays of all components in the signal chain for one channel
+    def get_cable_delay(self, station_id, channel_id, use_stored=True):
         """
+        Return the cable delay of a signal chain as stored in the detector description.
+        This interface is required by simulation.py. See get_time_delay for description of
+        arguments.
+        """
+        return self.get_time_delay(station_id, channel_id, cable_only=True, use_stored=use_stored)
 
-        signal_chain_dict = self.get_channel_signal_chain(
-            station_id, channel_id)
-
-        time_delay = 0
-        for key, value in signal_chain_dict["response_chain"].items():
-            if not "time_delay" in value:
-                self.logger.warning(f"The signal chain component \"{key}\" of station.channel {station_id}.{channel_id} has not time delay stored...")
-                continue
-            time_delay += value["time_delay"]
-
-        return time_delay
-
-    def get_cable_delay(self, station_id, channel_id):
-        """ Return the cable delay of a signal chain. This interface is required by simulation.py """
-        return self.get_time_delay(station_id, channel_id, cable_only=True)
-
-    def get_time_delay(self, station_id, channel_id, cable_only=False):
+    def get_time_delay(self, station_id, channel_id, cable_only=False, use_stored=False):
         """ Return the sum of the time delay of all components in the signal chain calculated from the phase
 
         Parameters
@@ -1050,6 +1024,9 @@ class Detector():
         cable_only: bool
             If True: Consider only cables to calculate delay. (Default: False)
 
+        use_stored: bool
+            If True, take time delay as stored in DB rather than calculated from response. (Default: False)
+
         Returns
         -------
 
@@ -1060,18 +1037,27 @@ class Detector():
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
 
-        measurement_components_dic = signal_chain_dict["response_chain"]
-
         time_delay = 0
-        for key, value in measurement_components_dic.items():
+        for key, value in signal_chain_dict["response_chain"].items():
 
             if re.search("cable", key) is None and cable_only:
                 continue
 
-            ydata = [value["mag"], value["phase"]]
-            response = Response(value["frequencies"], ydata, value["y-axis_units"], name=key)
+            if use_stored:
+                if "time_delay" not in value or "cable_delay" not in value:
+                    self.logger.warning(f"The signal chain component \"{key}\" of station.channel {station_id}.{channel_id} has no cable/time delay stored... Skip it")
+                    continue
 
-            time_delay += response.get_time_delay()
+                try:
+                    time_delay += value["time_delay"]
+                except KeyError:
+                    time_delay += value["cable_delay"]
+
+            else:
+                ydata = [value["mag"], value["phase"]]
+                response = Response(value["frequencies"], ydata, value["y-axis_units"], name=key)
+
+                time_delay += response.get_time_delay()
 
         return time_delay
 
