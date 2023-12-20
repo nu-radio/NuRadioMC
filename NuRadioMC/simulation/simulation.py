@@ -99,6 +99,8 @@ class simulation:
     def __init__(self, inputfilename,
                  outputfilename,
                  detectorfile,
+                 det=None,
+                 det_kwargs={},
                  outputfilenameNuRadioReco=None,
                  debug=False,
                  evt_time=datetime.datetime(2018, 1, 1),
@@ -124,6 +126,10 @@ class simulation:
             specify hdf5 output filename.
         detectorfile: string
             path to the json file containing the detector description
+        det: detector object
+            Pass a detector class object
+        det_kwargs: dict
+            Pass arguments to the detector (only used when det == None)
         station_id: int
             the station id for which the simulation is performed. Must match a station
             deself._fined in the detector description
@@ -157,8 +163,9 @@ class simulation:
             allows to specify a custom ice model. This model is used if the config file specifies the ice model as "custom".
         """
         logger.setLevel(log_level)
-        if 'write_mode' in kwargs.keys():
+        if 'write_mode' in kwargs:
             logger.warning('Parameter write_mode is deprecated. Define the output format in the config file instead.')
+
         self._log_level = log_level
         self._log_level_ray_propagation = log_level_propagation
         config_file_default = os.path.join(os.path.dirname(__file__), 'config_default.yaml')
@@ -212,19 +219,15 @@ class simulation:
         self._mout_groups = collections.OrderedDict()
         self._mout_attrs = collections.OrderedDict()
 
-        # read in detector positions
-        logger.status("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
-        self._det = None
-        if default_detector_station is not None:
-            logger.warning(
-                'Deprecation warning: Passing the default detector station is deprecated. Default stations and default'
-                'channel should be specified in the detector description directly.'
-            )
-            logger.status(f"Default detector station provided (station {default_detector_station}) -> Using generic detector")
-            self._det = gdetector.GenericDetector(json_filename=self._detectorfile, default_station=default_detector_station,
-                                                 default_channel=default_detector_channel, antenna_by_depth=False)
+        # Initialize detector
+        if det is None:
+            logger.status("Detectorfile {}".format(os.path.abspath(self._detectorfile)))
+            kwargs = dict(json_filename=self._detectorfile, default_station=default_detector_station,
+                              default_channel=default_detector_channel, antenna_by_depth=False)
+            kwargs.update(det_kwargs)
+            self._det = detector.Detector(**kwargs)
         else:
-            self._det = detector.Detector(json_filename=self._detectorfile, antenna_by_depth=False)
+            self._det = det
 
         self._det.update(evt_time)
 
@@ -851,7 +854,7 @@ class simulation:
                 self._station = NuRadioReco.framework.station.Station(self._station_id)
                 self._station.set_sim_station(self._sim_station)
                 self._station.get_sim_station().set_station_time(self._evt_time)
-                
+
                 # convert efields to voltages at digitizer
                 if hasattr(self, '_detector_simulation_part1'):
                     # we give the user the opportunity to define a custom detector simulation

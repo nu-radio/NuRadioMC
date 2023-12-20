@@ -1,8 +1,12 @@
+import json
+import os
+import numpy as np
+import logging
+
 import NuRadioReco.detector.detector_base
 import NuRadioReco.detector.generic_detector
 import NuRadioReco.detector.RNO_G.rnog_detector
-import json
-import os
+
 
 
 def find_path(name):
@@ -137,7 +141,17 @@ def Detector(*args, **kwargs):
         if source == 'json':
             f.close()
 
-        if has_reference_entry:
+        has_default = np.any([arg in kwargs and kwargs[arg] is not None for arg in ["default_station", "default_channel", "default_device"]])
+
+        if has_reference_entry or has_default:
+            if has_default:
+                logging.warning(
+                    'Deprecation warning: Passing the default detector station is deprecated. Default stations and default'
+                    'channel should be specified in the detector description directly.')
+
+                if "default_station" in kwargs:
+                    logging.status(f'Default detector station provided (station {kwargs["default_station"]}) -> Using generic detector')
+
             return NuRadioReco.detector.generic_detector.GenericDetector(
                 json_filename=filename, source=source, dictionary=dictionary,
                 assume_inf=assume_inf, antenna_by_depth=antenna_by_depth, **kwargs)
