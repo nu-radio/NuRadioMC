@@ -632,6 +632,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_times</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_type</span> <span class="o">=</span> <span class="n">trigger_type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggered_channels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="Trigger.has_triggered"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.has_triggered">[docs]</a>    <span class="k">def</span> <span class="nf">has_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -691,6 +692,39 @@
 
 <div class="viewcode-block" id="Trigger.set_triggered_channels"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_triggered_channels">[docs]</a>    <span class="k">def</span> <span class="nf">set_triggered_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggered_channels</span> <span class="o">=</span> <span class="n">triggered_channels</span></div>
+
+<div class="viewcode-block" id="Trigger.set_pre_trigger_times"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_pre_trigger_times">[docs]</a>    <span class="k">def</span> <span class="nf">set_pre_trigger_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the pre-trigger times</span>
+
+<span class="sd">        This parameter should only be set if this trigger </span>
+<span class="sd">        determines the readout windows (e.g. by :py:`NuRadioReco.modules.triggerTimeAdjuster`)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pre_trigger_times: dict</span>
+<span class="sd">            keys are the channel_ids, and the value is the pre_trigger_time between the </span>
+<span class="sd">            start of the trace and the trigger time.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span> <span class="o">=</span> <span class="n">pre_trigger_times</span></div>
+
+<div class="viewcode-block" id="Trigger.get_pre_trigger_times"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_pre_trigger_times">[docs]</a>    <span class="k">def</span> <span class="nf">get_pre_trigger_times</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the pre_trigger_time between the start of the trace and the (global) trigger time</span>
+
+<span class="sd">        If this trigger has not been used to adjust the readout windows, returns None instead</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pre_trigger_times: dict | None</span>
+<span class="sd">            If this trigger has been used to set the readout windows, returns a</span>
+<span class="sd">            dictionary where the keys are the channel ids and the values are the</span>
+<span class="sd">            time between the start of the channel trace and the trigger time. Otherwise,</span>
+<span class="sd">            returns None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span></div>
 
 <div class="viewcode-block" id="Trigger.serialize"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>

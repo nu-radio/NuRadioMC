@@ -576,7 +576,7 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;triggerTimeAdjuster&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.triggerTimeAdjuster&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="triggerTimeAdjuster"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster">[docs]</a><span class="k">class</span> <span class="nc">triggerTimeAdjuster</span><span class="p">:</span>
@@ -599,78 +599,171 @@
 <span class="sd">        ----------</span>
 <span class="sd">        trigger_name: string or None</span>
 <span class="sd">            name of the trigger that should be used.</span>
-<span class="sd">            If trigger_name is None, the trigger with the smalles trigger_time will be used.</span>
-<span class="sd">            If a name is give, corresponding trigger module must be run beforehand.</span>
+<span class="sd">            If trigger_name is None, the trigger with the smallest trigger_time will be used.</span>
+<span class="sd">            If a name is given, corresponding trigger module must be run beforehand.</span>
 <span class="sd">            If the trigger does not exist or did not trigger, this module will do nothing</span>
-<span class="sd">        pre_trigger_time: float</span>
-<span class="sd">            Amount of time that should be stored in the channel trace before the trigger. If the channel trace is long</span>
-<span class="sd">            enough, it will be cut accordingly. Otherwise, it will be rolled.</span>
+<span class="sd">        pre_trigger_time: float or dict</span>
+<span class="sd">            Amount of time that should be stored in the channel trace before the trigger. </span>
+<span class="sd">            If the channel trace is long enough, it will be cut accordingly. </span>
+<span class="sd">            Otherwise, it will be rolled.</span>
+
+<span class="sd">            If given as a float, the same ``pre_trigger_time`` will be used for all channels.</span>
+<span class="sd">            If a dict, the keys should be ``channel_id``, and the values the ``pre_trigger_time`` </span>
+<span class="sd">            to use for each channel. Alternatively, the keys should be the ``trigger_name``,</span>
+<span class="sd">            and the values either a float or a dictionary with (``channel_id``, ``pre_trigger_time``)</span>
+<span class="sd">            pairs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_name</span> <span class="o">=</span> <span class="n">trigger_name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__pre_trigger_time</span> <span class="o">=</span> <span class="n">pre_trigger_time</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__pre_trigger_time</span> <span class="o">=</span> <span class="n">pre_trigger_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sampling_rate_warning_issued</span> <span class="o">=</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="triggerTimeAdjuster.run"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.triggerTimeAdjuster.html#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">detector</span><span class="p">):</span>
-        <span class="n">trigger</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">trigger</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_trigger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__trigger_name</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">min_trigger_time</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">for</span> <span class="n">trig</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">get_triggers</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-                <span class="k">if</span><span class="p">(</span><span class="n">trig</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">()):</span>
-                    <span class="k">if</span> <span class="n">min_trigger_time</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">trig</span><span class="o">.</span><span class="n">get_trigger_time</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">min_trigger_time</span><span class="p">:</span>
-                        <span class="n">min_trigger_time</span> <span class="o">=</span> <span class="n">trig</span><span class="o">.</span><span class="n">get_trigger_time</span><span class="p">()</span>
-                        <span class="n">trigger</span> <span class="o">=</span> <span class="n">trig</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">min_trigger_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;minimum trigger time is </span><span class="si">{</span><span class="n">min_trigger_time</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">ns&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">trigger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;No trigger found! Channel timings will not be changed.&#39;</span><span class="p">)</span>
-            <span class="k">return</span>
-        <span class="k">if</span> <span class="n">trigger</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">():</span>
-            <span class="n">trigger_time</span> <span class="o">=</span> <span class="n">trigger</span><span class="o">.</span><span class="n">get_trigger_time</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
-                <span class="n">trigger_time_channel</span> <span class="o">=</span> <span class="n">trigger_time</span> <span class="o">-</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sim_to_data&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run the trigger time adjuster.</span>
 
-                <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
-                <span class="n">trace_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
-                <span class="n">number_of_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">detector</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span> <span class="o">*</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">/</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()))</span>
-                <span class="k">if</span> <span class="n">number_of_samples</span> <span class="o">&gt;</span> <span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Input has fewer samples than desired output. Channels has only </span><span class="si">{}</span><span class="s2"> samples but </span><span class="si">{}</span><span class="s2"> samples are requested.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">number_of_samples</span><span class="p">))</span>
-                    <span class="k">raise</span> <span class="ne">AttributeError</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
-                    <span class="n">trigger_time_sample</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">trigger_time_channel</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">))</span>
-                    <span class="c1"># logger.debug(f&quot;channel {channel.get_id()}: trace_start_time = {channel.get_trace_start_time():.1f}ns, trigger time channel {trigger_time_channel/units.ns:.1f}ns,  trigger time sample = {trigger_time_sample}&quot;)</span>
-                    <span class="n">samples_before_trigger</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__pre_trigger_time</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">)</span>
-                    <span class="n">rel_station_time_samples</span> <span class="o">=</span> <span class="mi">0</span>
-                    <span class="n">cut_samples_beginning</span> <span class="o">=</span> <span class="mi">0</span>
-                    <span class="k">if</span><span class="p">(</span><span class="n">samples_before_trigger</span> <span class="o">&lt;</span> <span class="n">trigger_time_sample</span><span class="p">):</span>
-                        <span class="n">cut_samples_beginning</span> <span class="o">=</span> <span class="n">trigger_time_sample</span> <span class="o">-</span> <span class="n">samples_before_trigger</span>
-                        <span class="n">roll_by</span> <span class="o">=</span> <span class="mi">0</span>
-                        <span class="k">if</span><span class="p">(</span><span class="n">cut_samples_beginning</span> <span class="o">+</span> <span class="n">number_of_samples</span> <span class="o">&gt;</span> <span class="n">trace_length</span><span class="p">):</span>
-                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;trigger time is sample </span><span class="si">{}</span><span class="s2"> but total trace length is only </span><span class="si">{}</span><span class="s2"> samples (requested trace length is </span><span class="si">{}</span><span class="s2"> with an offest of </span><span class="si">{}</span><span class="s2"> before trigger). To achieve desired configuration, trace will be rolled&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                                <span class="n">trigger_time_sample</span><span class="p">,</span> <span class="n">trace_length</span><span class="p">,</span> <span class="n">number_of_samples</span><span class="p">,</span> <span class="n">samples_before_trigger</span><span class="p">))</span>
-                            <span class="n">roll_by</span> <span class="o">=</span> <span class="n">cut_samples_beginning</span> <span class="o">+</span> <span class="n">number_of_samples</span> <span class="o">-</span> <span class="n">trace_length</span>  <span class="c1"># roll_by is positive</span>
-                            <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">roll_by</span><span class="p">)</span>
-                            <span class="n">cut_samples_beginning</span> <span class="o">-=</span> <span class="n">roll_by</span>
-                        <span class="n">rel_station_time_samples</span> <span class="o">=</span> <span class="n">cut_samples_beginning</span> <span class="o">+</span> <span class="n">roll_by</span>
-                    <span class="k">elif</span><span class="p">(</span><span class="n">samples_before_trigger</span> <span class="o">&gt;</span> <span class="n">trigger_time_sample</span><span class="p">):</span>
-                        <span class="n">roll_by</span> <span class="o">=</span> <span class="o">-</span><span class="n">trigger_time_sample</span> <span class="o">+</span> <span class="n">samples_before_trigger</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                            <span class="s2">&quot;trigger time is before &#39;trigger offset window&#39;, the trace needs to be rolled by </span><span class="si">{}</span><span class="s2"> samples first&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">roll_by</span><span class="p">))</span>
-                        <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">roll_by</span><span class="p">)</span>
-                        <span class="n">trigger_time_sample</span> <span class="o">-=</span> <span class="n">roll_by</span>
-                        <span class="n">rel_station_time_samples</span> <span class="o">=</span> <span class="o">-</span><span class="n">roll_by</span>
+<span class="sd">        This module can be used either to &#39;cut&#39; the simulated traces into</span>
+<span class="sd">        the appropriate readout windows, or to adjust the trace start times </span>
+<span class="sd">        of simulated / real data to account for the different trigger readout</span>
+<span class="sd">        delays.</span>
 
-                    <span class="c1"># shift trace to be in the correct location for cutting</span>
-                    <span class="c1"># logger.debug(f&quot;cutting trace to {cut_samples_beginning}-{number_of_samples + cut_samples_beginning} samples&quot;)</span>
-                    <span class="n">trace</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">cut_samples_beginning</span><span class="p">:(</span><span class="n">number_of_samples</span> <span class="o">+</span> <span class="n">cut_samples_beginning</span><span class="p">)]</span>
-                    <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
-                    <span class="n">channel</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">+</span> <span class="n">rel_station_time_samples</span> <span class="o">/</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
-                    <span class="c1"># logger.debug(f&quot;setting trace start time to {channel.get_trace_start_time() + rel_station_time_samples / channel.get_sampling_rate():.0f} = {channel.get_trace_start_time():.0f} + {rel_station_time_samples / channel.get_sampling_rate():.0f}&quot;)</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        event: NuRadioReco.framework.event.Event</span>
+
+<span class="sd">        station: NuRadioReco.framework.base_station.Station</span>
+
+<span class="sd">        detector: NuRadioReco.detector.detector.Detector</span>
+
+<span class="sd">        mode: &#39;sim_to_data&#39; (default) | &#39;data_to_sim&#39;</span>
+<span class="sd">            If &#39;sim_to_data&#39;, cuts the (arbitrary-length) simulated traces</span>
+<span class="sd">            to the appropriate readout windows. If &#39;data_to_sim&#39;,</span>
+<span class="sd">            looks through all triggers in the station and adjusts the</span>
+<span class="sd">            trace_start_time according to the different readout delays</span>
+
+<span class="sd">            If the ``trigger_name`` was specified in the ``begin`` function,</span>
+<span class="sd">            only this trigger is considered.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;sim_to_data&#39;</span><span class="p">:</span>
+            <span class="n">trigger</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">trigger</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_trigger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__trigger_name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">min_trigger_time</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">for</span> <span class="n">trig</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">get_triggers</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                    <span class="k">if</span><span class="p">(</span><span class="n">trig</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">()):</span>
+                        <span class="k">if</span> <span class="n">min_trigger_time</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">trig</span><span class="o">.</span><span class="n">get_trigger_time</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">min_trigger_time</span><span class="p">:</span>
+                            <span class="n">min_trigger_time</span> <span class="o">=</span> <span class="n">trig</span><span class="o">.</span><span class="n">get_trigger_time</span><span class="p">()</span>
+                            <span class="n">trigger</span> <span class="o">=</span> <span class="n">trig</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">min_trigger_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;minimum trigger time is </span><span class="si">{</span><span class="n">min_trigger_time</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">ns&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">trigger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;No trigger found! Channel timings will not be changed.&#39;</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="k">if</span> <span class="n">trigger</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">():</span>
+                <span class="n">trigger_time</span> <span class="o">=</span> <span class="n">trigger</span><span class="o">.</span><span class="n">get_trigger_time</span><span class="p">()</span>
+                <span class="n">store_pre_trigger_time</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># we also want to save the used pre_trigger_time</span>
+                <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
+                    <span class="n">trigger_time_channel</span> <span class="o">=</span> <span class="n">trigger_time</span> <span class="o">-</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span>
+
+                    <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
+                    <span class="n">trace_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+                    <span class="n">detector_sampling_rate</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
+                    <span class="n">number_of_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+                        <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span> <span class="c1"># this should ensure that 1) the number of samples is even and 2) resampling to the detector sampling rate results in the correct number of samples (note that 2) can only be guaranteed if the detector sampling rate is lower than the current sampling rate)</span>
+                            <span class="n">detector</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span> <span class="o">/</span> <span class="mi">2</span>
+                            <span class="o">*</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">/</span> <span class="n">detector_sampling_rate</span>
+                        <span class="p">))</span>
+                    <span class="k">if</span> <span class="n">number_of_samples</span> <span class="o">&gt;</span> <span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Input has fewer samples than desired output. Channels has only </span><span class="si">{}</span><span class="s2"> samples but </span><span class="si">{}</span><span class="s2"> samples are requested.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">number_of_samples</span><span class="p">))</span>
+                        <span class="k">raise</span> <span class="ne">AttributeError</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">__check_sampling_rates</span><span class="p">(</span><span class="n">detector_sampling_rate</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
+                        <span class="n">trigger_time_sample</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">trigger_time_channel</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">))</span>
+                        <span class="c1"># logger.debug(f&quot;channel {channel.get_id()}: trace_start_time = {channel.get_trace_start_time():.1f}ns, trigger time channel {trigger_time_channel/units.ns:.1f}ns,  trigger time sample = {trigger_time_sample}&quot;)</span>
+                        <span class="n">pre_trigger_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pre_trigger_time</span>
+                        <span class="n">channel_id</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
+                        <span class="n">trigger_name</span> <span class="o">=</span> <span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span>
+                        <span class="k">while</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pre_trigger_time</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="n">trigger_name</span> <span class="ow">in</span> <span class="n">pre_trigger_time</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span> <span class="c1"># keys are different triggers</span>
+                                <span class="n">pre_trigger_time</span> <span class="o">=</span> <span class="n">pre_trigger_time</span><span class="p">[</span><span class="n">trigger_name</span><span class="p">]</span>
+                            <span class="k">elif</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">pre_trigger_time</span><span class="p">:</span> <span class="c1"># keys are channel_ids</span>
+                                <span class="n">pre_trigger_time</span> <span class="o">=</span> <span class="n">pre_trigger_time</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                                    <span class="s1">&#39;pre_trigger_time was specified as a dictionary, &#39;</span>
+                                    <span class="sa">f</span><span class="s1">&#39;but neither the trigger_name </span><span class="si">{</span><span class="n">trigger_name</span><span class="si">}</span><span class="s1"> &#39;</span>
+                                    <span class="sa">f</span><span class="s1">&#39;nor the channel id </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s1"> are present as keys&#39;</span>
+                                    <span class="p">)</span>
+                                <span class="k">raise</span> <span class="ne">KeyError</span>
+                        <span class="n">samples_before_trigger</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pre_trigger_time</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">)</span>
+                        <span class="n">rel_station_time_samples</span> <span class="o">=</span> <span class="mi">0</span>
+                        <span class="n">cut_samples_beginning</span> <span class="o">=</span> <span class="mi">0</span>
+                        <span class="k">if</span><span class="p">(</span><span class="n">samples_before_trigger</span> <span class="o">&lt;</span> <span class="n">trigger_time_sample</span><span class="p">):</span>
+                            <span class="n">cut_samples_beginning</span> <span class="o">=</span> <span class="n">trigger_time_sample</span> <span class="o">-</span> <span class="n">samples_before_trigger</span>
+                            <span class="n">roll_by</span> <span class="o">=</span> <span class="mi">0</span>
+                            <span class="k">if</span><span class="p">(</span><span class="n">cut_samples_beginning</span> <span class="o">+</span> <span class="n">number_of_samples</span> <span class="o">&gt;</span> <span class="n">trace_length</span><span class="p">):</span>
+                                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;trigger time is sample </span><span class="si">{}</span><span class="s2"> but total trace length is only </span><span class="si">{}</span><span class="s2"> samples (requested trace length is </span><span class="si">{}</span><span class="s2"> with an offest of </span><span class="si">{}</span><span class="s2"> before trigger). To achieve desired configuration, trace will be rolled&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                    <span class="n">trigger_time_sample</span><span class="p">,</span> <span class="n">trace_length</span><span class="p">,</span> <span class="n">number_of_samples</span><span class="p">,</span> <span class="n">samples_before_trigger</span><span class="p">))</span>
+                                <span class="n">roll_by</span> <span class="o">=</span> <span class="n">cut_samples_beginning</span> <span class="o">+</span> <span class="n">number_of_samples</span> <span class="o">-</span> <span class="n">trace_length</span>  <span class="c1"># roll_by is positive</span>
+                                <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">roll_by</span><span class="p">)</span>
+                                <span class="n">cut_samples_beginning</span> <span class="o">-=</span> <span class="n">roll_by</span>
+                            <span class="n">rel_station_time_samples</span> <span class="o">=</span> <span class="n">cut_samples_beginning</span> <span class="o">+</span> <span class="n">roll_by</span>
+                        <span class="k">elif</span><span class="p">(</span><span class="n">samples_before_trigger</span> <span class="o">&gt;</span> <span class="n">trigger_time_sample</span><span class="p">):</span>
+                            <span class="n">roll_by</span> <span class="o">=</span> <span class="o">-</span><span class="n">trigger_time_sample</span> <span class="o">+</span> <span class="n">samples_before_trigger</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                                <span class="s2">&quot;trigger time is before &#39;trigger offset window&#39;, the trace needs to be rolled by </span><span class="si">{}</span><span class="s2"> samples first&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">roll_by</span><span class="p">))</span>
+                            <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">roll_by</span><span class="p">)</span>
+                            <span class="n">trigger_time_sample</span> <span class="o">-=</span> <span class="n">roll_by</span>
+                            <span class="n">rel_station_time_samples</span> <span class="o">=</span> <span class="o">-</span><span class="n">roll_by</span>
+
+                        <span class="c1"># shift trace to be in the correct location for cutting</span>
+                        <span class="c1"># logger.debug(f&quot;cutting trace to {cut_samples_beginning}-{number_of_samples + cut_samples_beginning} samples&quot;)</span>
+                        <span class="n">trace</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="n">cut_samples_beginning</span><span class="p">:(</span><span class="n">number_of_samples</span> <span class="o">+</span> <span class="n">cut_samples_beginning</span><span class="p">)]</span>
+                        <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
+                        <span class="n">channel</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">trigger_time</span><span class="p">)</span>
+                        <span class="n">store_pre_trigger_time</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">pre_trigger_time</span>
+                        <span class="c1"># channel.set_trace_start_time(channel.get_trace_start_time() + rel_station_time_samples / channel.get_sampling_rate())</span>
+                        <span class="c1"># logger.debug(f&quot;setting trace start time to {channel.get_trace_start_time() + rel_station_time_samples / channel.get_sampling_rate():.0f} = {channel.get_trace_start_time():.0f} + {rel_station_time_samples / channel.get_sampling_rate():.0f}&quot;)</span>
+                
+                <span class="c1"># store the used pre_trigger_times</span>
+                <span class="n">trigger</span><span class="o">.</span><span class="n">set_pre_trigger_times</span><span class="p">(</span><span class="n">store_pre_trigger_time</span><span class="p">)</span>
+            
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Trigger </span><span class="si">{}</span><span class="s1"> has not triggered. Channel timings will not be changed.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__trigger_name</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;data_to_sim&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">triggers</span> <span class="o">=</span> <span class="p">[</span><span class="n">station</span><span class="o">.</span><span class="n">get_trigger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__trigger_name</span><span class="p">)]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">triggers</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_triggers</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+
+            <span class="n">pre_trigger_times</span> <span class="o">=</span> <span class="p">[</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_pre_trigger_times</span><span class="p">()</span> <span class="k">for</span> <span class="n">trigger</span> <span class="ow">in</span> <span class="n">triggers</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">dt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">dt</span> <span class="ow">in</span> <span class="n">pre_trigger_times</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s1">&#39;More than one trigger claims to have adjusted the pre_trigger_times. &#39;</span>
+                    <span class="s1">&#39;Normally, only one trigger should set pre_trigger_times. &#39;</span>
+                    <span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">pre_trigger_time</span> <span class="ow">in</span> <span class="n">pre_trigger_times</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pre_trigger_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
+                        <span class="n">channel</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span><span class="o">-</span><span class="n">pre_trigger_time</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Trigger </span><span class="si">{}</span><span class="s1"> has not triggered. Channel timings will not be changed.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__trigger_name</span><span class="p">))</span></div></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument &#39;</span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">&#39; for mode is not valid. Options are &#39;sim_to_data&#39; or &#39;data_to_sim&#39;.&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__check_sampling_rates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detector_sampling_rate</span><span class="p">,</span> <span class="n">channel_sampling_rate</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sampling_rate_warning_issued</span><span class="p">:</span> <span class="c1"># we only issue this warning once</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">detector_sampling_rate</span><span class="p">,</span> <span class="n">channel_sampling_rate</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s1">&#39;triggerTimeAdjuster was called, but the channel sampling rate &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">channel_sampling_rate</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> GHz) is not equal to &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;the target detector sampling rate (</span><span class="si">{</span><span class="n">detector_sampling_rate</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> GHz). &#39;</span>
+                    <span class="s1">&#39;Traces may not have the correct trace length after resampling.&#39;</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__sampling_rate_warning_issued</span> <span class="o">=</span> <span class="kc">True</span></div>
 </pre></div>
 
            </div>

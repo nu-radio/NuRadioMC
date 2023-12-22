@@ -595,28 +595,30 @@ If no trigger exists, nothing is done.</p>
 </dl>
 </p></td>
 </tr>
-</tbody>
-</table>
-<table class="docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><strong>run</strong></p></td>
-<td></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run" title="NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(event, station, detector[, mode])</p></td>
+<td><p>Run the trigger time adjuster.</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.begin">
 <span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trigger_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_trigger_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">55.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/triggerTimeAdjuster.html#triggerTimeAdjuster.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.begin" title="Permalink to this definition"></a></dt>
-<dd><dl class="field-list simple">
+<dd><dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
+<dd class="field-odd"><dl>
 <dt><strong>trigger_name: string or None</strong></dt><dd><p>name of the trigger that should be used.
-If trigger_name is None, the trigger with the smalles trigger_time will be used.
-If a name is give, corresponding trigger module must be run beforehand.
+If trigger_name is None, the trigger with the smallest trigger_time will be used.
+If a name is given, corresponding trigger module must be run beforehand.
 If the trigger does not exist or did not trigger, this module will do nothing</p>
 </dd>
-<dt><strong>pre_trigger_time: float</strong></dt><dd><p>Amount of time that should be stored in the channel trace before the trigger. If the channel trace is long
-enough, it will be cut accordingly. Otherwise, it will be rolled.</p>
+<dt><strong>pre_trigger_time: float or dict</strong></dt><dd><p>Amount of time that should be stored in the channel trace before the trigger. 
+If the channel trace is long enough, it will be cut accordingly. 
+Otherwise, it will be rolled.</p>
+<p>If given as a float, the same <code class="docutils literal notranslate"><span class="pre">pre_trigger_time</span></code> will be used for all channels.
+If a dict, the keys should be <code class="docutils literal notranslate"><span class="pre">channel_id</span></code>, and the values the <code class="docutils literal notranslate"><span class="pre">pre_trigger_time</span></code> 
+to use for each channel. Alternatively, the keys should be the <code class="docutils literal notranslate"><span class="pre">trigger_name</span></code>,
+and the values either a float or a dictionary with (<code class="docutils literal notranslate"><span class="pre">channel_id</span></code>, <code class="docutils literal notranslate"><span class="pre">pre_trigger_time</span></code>)
+pairs.</p>
 </dd>
 </dl>
 </dd>
@@ -625,8 +627,29 @@ enough, it will be cut accordingly. Otherwise, it will be rolled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/triggerTimeAdjuster.html#triggerTimeAdjuster.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sim_to_data'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/triggerTimeAdjuster.html#triggerTimeAdjuster.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.triggerTimeAdjuster.triggerTimeAdjuster.run" title="Permalink to this definition"></a></dt>
+<dd><p>Run the trigger time adjuster.</p>
+<p>This module can be used either to ‘cut’ the simulated traces into
+the appropriate readout windows, or to adjust the trace start times 
+of simulated / real data to account for the different trigger readout
+delays.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>event: NuRadioReco.framework.event.Event</strong></dt><dd></dd>
+<dt><strong>station: NuRadioReco.framework.base_station.Station</strong></dt><dd></dd>
+<dt><strong>detector: NuRadioReco.detector.detector.Detector</strong></dt><dd></dd>
+<dt><strong>mode: ‘sim_to_data’ (default) | ‘data_to_sim’</strong></dt><dd><p>If ‘sim_to_data’, cuts the (arbitrary-length) simulated traces
+to the appropriate readout windows. If ‘data_to_sim’,
+looks through all triggers in the station and adjusts the
+trace_start_time according to the different readout delays</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">trigger_name</span></code> was specified in the <code class="docutils literal notranslate"><span class="pre">begin</span></code> function,
+only this trigger is considered.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
