@@ -4,6 +4,7 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
+import numpy as np
 
 
 def deserialize(triggers_pkl):
@@ -58,6 +59,7 @@ class Trigger:
         self._trigger_times = None
         self._trigger_type = trigger_type
         self._triggered_channels = []
+        self._pre_trigger_times = None
 
     def has_triggered(self):
         """
@@ -81,7 +83,7 @@ class Trigger:
 
     def get_trigger_time(self):
         """
-        get the trigger time (time with respect to beginning of trace)
+        get the trigger time (absolute time with respect to the beginning of the event)
         """
         return self._trigger_time
 
@@ -99,6 +101,8 @@ class Trigger:
         """
         get the trigger times (time with respect to beginning of trace)
         """
+        if self._trigger_times is None and not np.isnan(self._trigger_time):
+            return np.array(self._trigger_time)
         return self._trigger_times
 
     def get_name(self):
@@ -115,6 +119,39 @@ class Trigger:
 
     def set_triggered_channels(self, triggered_channels):
         self._triggered_channels = triggered_channels
+
+    def set_pre_trigger_times(self, pre_trigger_times):
+        """
+        Set the pre-trigger times
+
+        This parameter should only be set if this trigger 
+        determines the readout windows (e.g. by :py:`NuRadioReco.modules.triggerTimeAdjuster`)
+
+        Parameters
+        ----------
+        pre_trigger_times: dict
+            keys are the channel_ids, and the value is the pre_trigger_time between the 
+            start of the trace and the trigger time.
+        """
+        self._pre_trigger_times = pre_trigger_times
+
+    def get_pre_trigger_times(self):
+        """
+        Return the pre_trigger_time between the start of the trace and the (global) trigger time
+
+        If this trigger has not been used to adjust the readout windows, returns None instead
+
+        Returns
+        -------
+        pre_trigger_times: dict | None
+            If this trigger has been used to set the readout windows, returns a
+            dictionary where the keys are the channel ids and the values are the
+            time between the start of the channel trace and the trigger time. Otherwise,
+            returns None
+
+        """
+
+        return self._pre_trigger_times
 
     def serialize(self):
         return pickle.dumps(self.__dict__, protocol=4)
@@ -210,7 +247,10 @@ class SimplePhasedTrigger(Trigger):
 
     def __init__(self, name, threshold, channels=None, secondary_channels=None,
                  primary_angles=None, secondary_angles=None,
-                 trigger_delays=None, sec_trigger_delays=None):
+                 trigger_delays=None, sec_trigger_delays=None,
+                 window_size=None, step_size=None,
+                 maximum_amps=None
+                ):
         """
         initialize trigger class
 
@@ -235,6 +275,12 @@ class SimplePhasedTrigger(Trigger):
         sec_trigger_delays: dictionary
             the delays for the secondary channels that have caused a trigger.
             If there is no trigger or no secondary channels, it's an empty dictionary
+        window_size: int
+            the size of the integration window (units of ADC time ticks)
+        step_size: int
+            the size of the stride between calculating the phasing (units of ADC time ticks)
+        maximum_amps: list of floats (length equal to that of `phasing_angles`)
+            the maximum value of all the integration windows for each of the phased waveforms
         """
         Trigger.__init__(self, name, channels, 'simple_phased')
         self._primary_channels = channels
@@ -244,6 +290,9 @@ class SimplePhasedTrigger(Trigger):
         self._threshold = threshold
         self._trigger_delays = trigger_delays
         self._sec_trigger_delays = sec_trigger_delays
+        self._window_size = window_size
+        self._step_side = step_size
+        self._maximum_amps = maximum_amps
 
 
 class HighLowTrigger(Trigger):

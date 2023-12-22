@@ -41,7 +41,7 @@ class Event:
         kwargs:
             the key word arguments of the run method
         """
-
+                
         self.__modules_event.append([name, instance, kwargs])
 
     def register_module_station(self, station_id, instance, name, kwargs):
@@ -59,8 +59,9 @@ class Event:
         kwargs:
             the key word arguments of the run method
         """
-        if(station_id not in self.__modules_station):
+        if station_id not in self.__modules_station:
             self.__modules_station[station_id] = []
+            
         iE = len(self.__modules_event)
         self.__modules_station[station_id].append([iE, name, instance, kwargs])
 
@@ -128,7 +129,30 @@ class Event:
     def get_run_number(self):
         return self.__run_number
 
-    def get_station(self, station_id):
+    def get_station(self, station_id=None):
+        """
+        Returns the station for a given station id.
+
+        Parameters
+        ----------
+
+        station_id: int
+            Id of the station you want to get. If None and event has only one station
+            return it, otherwise raise error. (Default: None)
+
+        Returns
+        -------
+
+        station: NuRadioReco.framework.station
+        """
+        if station_id is None:
+            if len(self.get_station_ids()) == 1:
+                return self.__stations[self.get_station_ids()[0]]
+            else:
+                err = "Event has more than one station, you have to specify \"station_id\""
+                logger.error(err)
+                raise ValueError(err)
+
         return self.__stations[station_id]
 
     def get_stations(self):
@@ -404,30 +428,33 @@ class Event:
             commit_hash = NuRadioReco.utilities.version.get_NuRadioMC_commit_hash()
             self.set_parameter(parameters.eventParameters.hash_NuRadioMC, commit_hash)
         except:
+            logger.warning("Event is serialized without commit hash!")
             self.set_parameter(parameters.eventParameters.hash_NuRadioMC, None)
 
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))
 
-        showers_pkl = []
-        for shower in self.get_showers():
-            showers_pkl.append(shower.serialize())
-        sim_showers_pkl = []
-        for shower in self.get_sim_showers():
-            sim_showers_pkl.append(shower.serialize())
-        particles_pkl = []
-        for particle in self.get_particles():
-            particles_pkl.append(particle.serialize())
+        showers_pkl = [shower.serialize() for shower in self.get_showers()]
+        sim_showers_pkl = [shower.serialize() for shower in self.get_sim_showers()]
+        particles_pkl = [particle.serialize() for particle in self.get_particles()]
+        
         hybrid_info = self.__hybrid_information.serialize()
+        
         modules_out_event = []
         for value in self.__modules_event:  # remove module instances (this will just blow up the file size)
             modules_out_event.append([value[0], None, value[2]])
+            invalid_keys = [key for key,val in value[2].items() if isinstance(val, BaseException)]
+            if len(invalid_keys):
+                logger.warning(f"The following arguments to module {value[0]} could not be serialized and will not be stored: {invalid_keys}")
 
         modules_out_station = {}
         for key in self.__modules_station:  # remove module instances (this will just blow up the file size)
             modules_out_station[key] = []
             for value in self.__modules_station[key]:
                 modules_out_station[key].append([value[0], value[1], None, value[3]])
+                invalid_keys = [key for key,val in value[3].items() if isinstance(val, BaseException)]
+                if len(invalid_keys):
+                    logger.warning(f"The following arguments to module {value[0]} could not be serialized and will not be stored: {invalid_keys}")
 
         data = {'_parameters': self._parameters,
                 '__run_number': self.__run_number,
@@ -466,9 +493,11 @@ class Event:
                 particle = NuRadioReco.framework.particle.Particle(None)
                 particle.deserialize(particle_pkl)
                 self.add_particle(particle)
+        
         self.__hybrid_information = NuRadioReco.framework.hybrid_information.HybridInformation()
         if 'hybrid_info' in data.keys():
             self.__hybrid_information.deserialize(data['hybrid_info'])
+        
         self._parameters = data['_parameters']
         self.__run_number = data['__run_number']
         self._id = data['_id']
@@ -477,7 +506,7 @@ class Event:
         if 'generator_info' in data.keys():
             self._generator_info = data['generator_info']
 
-        if("__modules_event" in data):
+        if "__modules_event" in data:
             self.__modules_event = data['__modules_event']
-        if("__modules_station" in data):
+        if "__modules_station" in data:
             self.__modules_station = data['__modules_station']

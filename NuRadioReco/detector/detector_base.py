@@ -160,8 +160,8 @@ class DetectorBase(object):
             appending e.g. '_InfFirn' to the antenna model name.
             if False, the antenna model as specified in the database is used.
         create_new: bool (default:False)
-            Can be used to force the creation of a new detector object. By default, the __init__ will anly create a new
-            object of none already exists.
+            Can be used to force the creation of a new detector object. By default, the __init__ will only create a new
+            object if none already exists.
         """
         self._serialization = SerializationMiddleware()
         self._serialization.register_serializer(DateTimeSerializer(), 'TinyDate')

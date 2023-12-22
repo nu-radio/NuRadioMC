@@ -64,7 +64,7 @@ def interpolate_linear_vectorized(x, x0, x1, y0, y1, interpolation_method='compl
     """
     x = np.array(x)
     mask = x0 != x1
-    result = np.zeros_like(x, dtype=np.complex)
+    result = np.zeros_like(x, dtype=complex)
     denominator = x1 - x0
     if interpolation_method == 'complex':
         result[mask] = y0[mask] + (y1[mask] - y0[mask]) * (x[mask] - x0[mask]) / denominator[mask]
@@ -1059,8 +1059,8 @@ class AntennaPatternBase:
             of the same length as the frequency input
         """
         if self._notfound:
-            VEL = {'theta': np.ones(len(freq), dtype=np.complex),
-                   'phi': np.ones(len(freq), dtype=np.complex)}
+            VEL = {'theta': np.ones(len(freq), dtype=complex),
+                   'phi': np.ones(len(freq), dtype=complex)}
             return VEL
 
         if isinstance(freq, (float, int)):
@@ -1395,7 +1395,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
             # Assuming simple cosine, sine falls-off for dummy module
             H_eff_t = np.zeros_like(Gain)
-            fmask = freq >= 0
+            fmask = freq > 0
             H_eff_t[fmask] = Gain[fmask] * max_gain_cross * 1 / freq[fmask]
             H_eff_t *= np.cos(theta) * np.sin(phi)
             H_eff_t *= constants.c * units.m / units.s * Z_ant / Z_0 / np.pi

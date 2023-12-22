@@ -17,7 +17,7 @@ class ray_tracing_base:
 
     def __init__(self, medium, attenuation_model=None, log_level=logging.WARNING, 
                  n_frequencies_integration=None, n_reflections=None, config=None, 
-                 detector = None):
+                 detector=None, ray_tracing_2D_kwards={}):
         """
         class initilization
 
@@ -45,6 +45,8 @@ class ray_tracing_base:
         config: nested dictionary
             loaded yaml config file
         detector: detector object
+        ray_tracing_2D_kwards: dict
+            Additional arguments which are passed to ray_tracing_2D
         """
         self.__logger = logging.getLogger('ray_tracing_base')
         self.__logger.setLevel(log_level)
