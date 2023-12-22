@@ -403,8 +403,8 @@ class simulation:
 
                     logger.status(f'Station.channel {station_id}.{channel_id:02d}: '
                                   f'est. bandwidth = {integrated_channel_response / mean_integrated_response / units.MHz:.2f} MHz, '
-                                  f'max. filter amplification = {max_amplification:.2e} -> '
-                                  f'integrated response = {integrated_channel_response / units.MHz:.2e}MHz -> Vrms = '
+                                  f'max. filter amplification = {max_amplification:.2e} '
+                                  f'integrated response = {integrated_channel_response / units.MHz:.2e}MHz ->'
                                   f'efield Vrms = {self._Vrms_efield_per_channel[station_id][channel_id] / units.V / units.m / units.micro:.2f}muV/m (assuming VEL = 1m) ')
 
         else:
