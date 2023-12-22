@@ -354,7 +354,7 @@ class simulation:
 
             self._noiseless_channels = collections.defaultdict(dict)
             for station_id in self._integrated_channel_response:
-
+                self._noiseless_channels[station_id] = []
                 for channel_id in self._integrated_channel_response[station_id]:
                     if self._noise_temp is None:
                         noise_temp_channel = self._det.get_noise_temperature(station_id, channel_id)
