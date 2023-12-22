@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "NuRadioMC"
-version = "2.2.0-dev"
+version = "2.2.0"
 authors = ["Christian Glaser et al."]
 homepage = "https://github.com/nu-radio/NuRadioMC"
 documentation = "https://nu-radio.github.io/NuRadioMC/main.html"
