@@ -4,9 +4,9 @@ import plotly.subplots
 from NuRadioReco.utilities import units
 from NuRadioReco.eventbrowser.default_layout import default_layout
 import numpy as np
-from dash import dcc
+from dash import dcc, callback
 from dash.dependencies import State
-from NuRadioReco.eventbrowser.app import app
+# from NuRadioReco.eventbrowser.app import app
 import NuRadioReco.eventbrowser.dataprovider
 
 provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
@@ -16,7 +16,7 @@ layout = [
 ]
 
 
-@app.callback(
+@callback(
     dash.dependencies.Output('time-trace', 'figure'),
     [dash.dependencies.Input('trigger-trace', 'children'),
      dash.dependencies.Input('event-counter-slider', 'value'),
@@ -52,8 +52,8 @@ def update_time_trace(trigger, evt_counter, filename, station_id, juser_id):
                 'color': colors[i % len(colors)],
                 'line': {'color': colors[i % len(colors)]}
             },
-            name='Channel {}'.format(i),
-            uid='Channel {}'.format(i)
+            name='Channel {}'.format(channel.get_id()),
+            uid='Channel {}'.format(channel.get_id())
         ), 1, 1)
     fig['layout'].update(default_layout)
     fig['layout']['legend']['uirevision'] = filename # only update channel selection on changing files.

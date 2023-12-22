@@ -328,7 +328,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                 'flavors': [],
                 'energies': []}
     # calculate rotation matrix to transform position on area to 3D
-    mask_int = np.zeros_like(mask, dtype=np.bool)
+    mask_int = np.zeros_like(mask, dtype=bool)
     t0 = time.perf_counter()
     n_cylinder = 0
     for j, i in enumerate(np.arange(n_events, dtype=int)[mask]):

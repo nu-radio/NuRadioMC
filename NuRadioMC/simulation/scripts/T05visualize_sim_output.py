@@ -42,14 +42,14 @@ else:
         plot_folder = os.path.join(dirname, 'plots', filename, args.trigger_name[0])
         if(not os.path.exists(plot_folder)):
             os.makedirs(plot_folder)
-        triggered = np.zeros(len(fin['multiple_triggers'][:, 0]), dtype=np.bool)
+        triggered = np.zeros(len(fin['multiple_triggers'][:, 0]), dtype=bool)
         for trigger in args.trigger_name[1:]:
             iTrigger = np.squeeze(np.argwhere(fin.attrs['trigger_names'] == trigger))
-            triggered = triggered | np.array(fin['multiple_triggers'][:, iTrigger], dtype=np.bool)
+            triggered = triggered | np.array(fin['multiple_triggers'][:, iTrigger], dtype=bool)
     else:
         trigger_name = args.trigger_name[0]
         iTrigger = np.argwhere(fin.attrs['trigger_names'] == trigger_name)
-        triggered = np.array(fin['multiple_triggers'][:, iTrigger], dtype=np.bool)
+        triggered = np.array(fin['multiple_triggers'][:, iTrigger], dtype=bool)
         print("\tyou selected '{}'".format(trigger_name))
         plot_folder = os.path.join(dirname, 'plots', filename, trigger_name)
         if(not os.path.exists(plot_folder)):
@@ -147,14 +147,14 @@ for key, station in iteritems(fin):
             if(len(args.trigger_name) > 1):
                 print("trigger {} selected which is a combination of {}".format(args.trigger_name[0], args.trigger_name[1:]))
                 trigger_name = args.trigger_name[0]
-                triggered = np.zeros(len(station['multiple_triggers'][:, 0]), dtype=np.bool)
+                triggered = np.zeros(len(station['multiple_triggers'][:, 0]), dtype=bool)
                 for trigger in args.trigger_name[1:]:
                     iTrigger = np.squeeze(np.argwhere(fin.attrs['trigger_names'] == trigger))
-                    triggered = triggered | np.array(station['multiple_triggers'][:, iTrigger], dtype=np.bool)
+                    triggered = triggered | np.array(station['multiple_triggers'][:, iTrigger], dtype=bool)
             else:
                 trigger_name = args.trigger_name[0]
                 iTrigger = np.argwhere(fin.attrs['trigger_names'] == trigger_name)
-                triggered = np.array(station['multiple_triggers'][:, iTrigger], dtype=np.bool)
+                triggered = np.array(station['multiple_triggers'][:, iTrigger], dtype=bool)
                 print("\tyou selected '{}'".format(trigger_name))
 
         ###########################

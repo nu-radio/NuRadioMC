@@ -3,62 +3,42 @@ import os
 import sys
 import argparse
 import logging
+import re
 
 logging.basicConfig()
 logger = logging.getLogger(name="Make_docs")
 logger.setLevel(logging.INFO)
 
-def filter_errs(errs, filter_string, multi_line=[], exclude=None, include_line_numbers=False):
-    """Selects only lines that contain filter_string
-    
-    Optionally can include multiple lines around each match,
-    and exclude matches containing 'exclude'
-    """
-    line_numbers = []
-    for filter_substr in filter_string.split('|'):
-        line_numbers += [
-            i for i,err in enumerate(errs)
-            if filter_substr in err
-        ]
-    line_numbers = sorted(list(set(line_numbers))) # remove duplicates
-    matches = [(j, errs[j]) for j in line_numbers]
-    
-    if exclude != None:
-        matches = [k for k in matches if (not exclude in k[1])]
-
-    if len(multi_line) == 2:
-        matches = [
-            (k[0], errs[k[0]-multi_line[0]:k[0]+multi_line[1]])
-            for k in matches
-        ]
-    
-    if not include_line_numbers:
-        return [k[1] for k in matches]
-    else:
-        return matches
-
-err_sections = [
-    '[reference target not found]',
-    '[title underline too short]',
-    '[stub file not found]',
-    '[unexpected section title]',
-    '[numpydoc]',
-    '[indentation]',
-    '[toctree]',
-    '[other]'
-]
-
-# we try to classify some of the errors to be helpful
-# these are tuples (name, string_to_match)
-error_classes = [
-    ('reference target not found', 'reference target not found|undefined label'),
-    ('title underline too short', 'Title underline too short'),
-    ('stub file not found', 'stub file not found'),
-    ('unexpected section title', 'Unexpected section title'),
-    ('numpydoc', 'numpydoc'),
-    ('indentation', 'expected indent|expected unindent'),
-    ('toctree', 'toctree')
-]
+# we do some error classification, because we don't want to fail on all errors
+# This is done with simple string matching using re.search
+# The classification is exclusive, i.e. once a match has been found the error 
+# won't be included in a category lower down this list 
+error_dict = {
+        'reference target not found': dict(
+            pattern='reference target not found|undefined label|unknown document', matches=[]
+        ),
+        'title underline too short': dict(
+            pattern='Title underline too short', matches=[]
+        ),
+        'Unexpected section title': dict(
+            pattern='Unexpected section title', matches=[]
+        ),
+        'numpydoc': dict(
+            pattern='numpydoc', matches=[]
+        ),
+        'stub file not found': dict(
+            pattern='stub file not found', matches=[]
+        ),
+        'indentation': dict(
+            pattern='expected indent|expected unindent', matches=[]
+        ),
+        'toctree': dict(
+            pattern='toctree', matches=[]
+        ),
+        'other': dict(
+            pattern='', matches = []
+        )
+    }
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(
@@ -86,6 +66,9 @@ if __name__ == "__main__":
         file_logger = logging.FileHandler(logfile)
         file_logger.setLevel(logger.getEffectiveLevel())
         logger.addHandler(file_logger)
+        pipe_stdout = None
+    else:
+        pipe_stdout = subprocess.PIPE # hide the stdout
 
     doc_path = os.path.dirname(os.path.realpath(__file__))
     os.chdir(doc_path)
@@ -113,12 +96,12 @@ if __name__ == "__main__":
 
         logger.info("Creating automatic documentation files with apidoc:")
         logger.info("excluding modules: {}".format(exclude_modules))
-        subprocess.call(
+        subprocess.run(
             [
                 'sphinx-apidoc', '-efMT', '--ext-autodoc', '--ext-intersphinx',
                 '--ext-coverage', '--ext-githubpages', '-o', output_folder,
                 module_path, *exclude_modules
-            ]
+            ], stdout=pipe_stdout
         )
         # We don't use the top level NuRadioReco.rst / NuRadioMC.rst toctrees,
         # so we remove them to eliminate a sphinx warning
@@ -128,96 +111,61 @@ if __name__ == "__main__":
     if not parsed_args.no_clean:
         logger.info('Removing old \'build\' directory...')
         subprocess.check_output(['make', 'clean'])
-    sphinx_log = subprocess.run(['make', 'html'], stderr=subprocess.PIPE) # stdout=subprocess.PIPE,
+    sphinx_log = subprocess.run(['make', 'html'], stderr=subprocess.PIPE, stdout=pipe_stdout)
 
-    errs = sphinx_log.stderr.decode().split('\n')
-    # output = sphinx_log.stdout.decode().split('\n')
+    # we write out all the sphinx errors to sphinx-debug.log, and parse these
+    with open('sphinx-debug.log') as f:
+        errs_raw = f.read()
+    errs_sphinx = re.split('\\x1b\[[0-9;]+m', errs_raw) # split the errors
+     
+    for err in errs_sphinx:
+        if not err.split(): # whitespace only
+            continue
+        for key in error_dict.keys():
+            if re.search(error_dict[key]['pattern'], err):
+                error_dict[key]['matches'].append(err)
+                break # we don't match errors to multiple categories
 
-    # broken cross-references. We ignore warnings originating from docstrings
-    match_str = 'reference target not found|undefined label|unknown document'
-    xref_errs = filter_errs(errs, match_str)
-    xref_errs_in_docstrings = filter_errs(xref_errs, 'docstring')
-    xref_tofix = filter_errs(errs, match_str, exclude='docstring')
-    logger.info('{} broken xrefs, of which {} outside docstrings'.format(len(xref_errs), len(xref_tofix)))
-
-    # broken sections
-    match_str = 'Title underline too short'
-    section_errs = filter_errs(errs, match_str, multi_line=(0,4))
-    section_errs_tofix = filter_errs(errs, match_str, multi_line=(0,4), exclude='docstring')
-    logger.info('{} bad section titles, of which {} outside docstrings'.format(
-        len(section_errs), len(section_errs_tofix)))
-
-    # bad docstrings
-    match_str = 'Unexpected section title'
-    unexpected_title_errs = filter_errs(errs, match_str, multi_line=(1,4))
-    logger.info('{} bad docstring sections'.format(len(unexpected_title_errs)))
-
-    match_str = 'numpydoc'
-    numpydoc_errs = filter_errs(errs, match_str, multi_line=(0,3))
-    logger.info('{} numpydoc errors'.format(len(numpydoc_errs)))
-
-    # missing stubs in .rst files - if these happen, may have to rerun apidoc!
-    match_str = 'stub file not found'
-    stub_errs = filter_errs(errs, match_str)
-    logger.info('{} stub errs'.format(len(stub_errs)))
-
-    match_str = 'expected indent|expected unindent'
-    indentation_errs = filter_errs(errs, match_str)
-    indentation_errs_outside_docstrings = filter_errs(errs, match_str, exclude='docstring')
-    logger.info(
-        '{} indentation errors, of which {} outside docstrings'.format(
-        len(indentation_errs), len(indentation_errs_outside_docstrings))
-    )
-
-    match_str = 'toctree'
-    toctree_errs = filter_errs(errs, match_str)
-    logger.info(
-        '{} toctree errors (missing document or missing entry)'.format(len(toctree_errs))
-    )
+    fixable_errors = 0
+    for key in error_dict.keys():
+        if key == 'other': # we don't fail on these errors
+            continue
+        fixable_errors += len(error_dict[key]['matches'])
     
-    all_errs = (
-        ['[reference target not found]'] + xref_tofix # we exclude broken xrefs in docstrings
-        + ['[title underline too short]'] + [k for j in section_errs for k in j]
-        + ['[stub file not found]'] + stub_errs 
-        + ['[unexpected section title]'] + [k for j in unexpected_title_errs for k in j]
-        + ['[numpydoc]'] + [k for j in numpydoc_errs for k in j]
-        + ['[indentation]'] + indentation_errs
-        + [err_sections[6]] + toctree_errs
-    )
+    # stderr includes non-sphinx errors/warnings raised during the build process
+    # we record these for debugging but don't fail on them
+    errs_other = re.split('\\x1b\[[0-9;]+m', sphinx_log.stderr.decode())
+    errs_other = [err for err in errs_other if not err in errs_sphinx]
+    error_dict['other']['matches'] += errs_other
 
-    other_errs = [
-        err for err in errs 
-        if (err not in all_errs) & (err not in xref_errs)
-    ]
+    errors_string = '\n'.join([
+        f'[{key}]\n' + '\n'.join(value['matches']) 
+        for key, value in error_dict.items() if len(value['matches'])
+    ])
 
-    fixable_errors = (len(all_errs) > len(err_sections) - 1)
-    
+    print(2*'\n'+78*'-', flush=True)
     if fixable_errors:
-        logger.warning("The documentation was not built without errors. Please fix the following errors!")
-        print('\n'.join(all_errs))
-    elif len(other_errs):
+        logger.error(f"The documentation was not built without errors. Please fix the following errors!\n{errors_string}")
+    elif len(error_dict['other']['matches']):
         logger.warning((
             "make_docs found some errors but doesn't know what to do with them.\n"
-            "The documentation may not be rejected, but consider fixing the following anyway:"
+            f"The documentation may not be rejected, but consider fixing the following anyway:\n{errors_string}"
             ))
-        print('\n'.join(other_errs))
+    print(78*'-'+2*'\n', flush=True)
 
     if sphinx_log.returncode:
         logger.error("The documentation failed to build, make_docs will raise an error.")
-
+    # print(error_dict)
     if parsed_args.debug:
         logger.info('Logging output under {}'.format(logfile))
         with open(logfile, 'w') as file:
             # file.write('[stdout]\n')
             # file.write('\n'.join(output))
             # file.write('\n')
-            file.write('[broken references in docstrings] # these can be ignored\n')
-            file.write('\n'.join(xref_errs_in_docstrings))
-            file.write('\n')
-            file.write('\n'.join(all_errs))
-            file.write('\n')
-            file.write('[other]\n')
-            file.write('\n'.join(other_errs))
-    
+            for key, item in error_dict.items():
+                if len(item['matches']):
+                    file.write(f'\n[{key}]\n')
+                    file.write('\n'.join(item['matches']))
+
     if fixable_errors or sphinx_log.returncode:
         sys.exit(1)

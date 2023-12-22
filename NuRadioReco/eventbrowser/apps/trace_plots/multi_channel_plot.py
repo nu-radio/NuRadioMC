@@ -12,10 +12,9 @@ from NuRadioReco.utilities import geometryUtilities
 from NuRadioReco.utilities import trace_utilities
 """
 import numpy as np
-from dash import html
-from dash import dcc
+from dash import dcc, html, callback
 from dash.dependencies import Input, Output, State
-from NuRadioReco.eventbrowser.app import app
+# from NuRadioReco.eventbrowser.app import app
 import os
 import NuRadioReco.detector.antennapattern
 import NuRadioReco.eventbrowser.dataprovider
@@ -72,7 +71,7 @@ layout = [
 ]
 
 
-@app.callback(
+@callback(
     dash.dependencies.Output('dropdown-traces', 'options'),
     [dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value'),
@@ -99,7 +98,7 @@ def get_dropdown_traces_options(evt_counter, filename, station_id, juser_id):
     return options
 
 
-@app.callback(
+@callback(
     Output('template-input-group', 'style'),
     [Input('dropdown-traces', 'value')]
 )
@@ -117,7 +116,7 @@ def get_L1(a):
     return l1
 
 
-@app.callback(
+@callback(
     dash.dependencies.Output('time-traces', 'figure'),
     [dash.dependencies.Input('event-counter-slider', 'value'),
      dash.dependencies.Input('filename', 'value'),
@@ -126,9 +125,11 @@ def get_L1(a):
      dash.dependencies.Input('station-id-dropdown', 'value'),
      dash.dependencies.Input('open-template-button', 'n_clicks_timestamp')],
     [State('user_id', 'children'),
-     State('template-directory-input', 'value')])
+     State('template-directory-input', 'value'),
+     State('channel-spectrum-log-linear-switch', 'children')]
+)
 def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_info, station_id,
-                              open_template_timestamp, juser_id, template_directory):
+                              open_template_timestamp, juser_id, template_directory, yscale):
     if filename is None or station_id is None:
         return {}
     user_id = json.loads(juser_id)
@@ -420,6 +421,7 @@ def update_multi_channel_plot(evt_counter, filename, dropdown_traces, dropdown_i
         fig['layout']['yaxis{:d}'.format(i * 2 + 1)].update(
             title='<b>Ch. {}</b><br>voltage [mV]'.format(channel_id)
         )
+        fig['layout']['yaxis{:d}'.format(i * 2 + 2)].update(type=yscale)
 
         if channel.get_trace() is None:
             continue
