@@ -352,9 +352,8 @@ class simulation:
                 self._noise_temp = float(noise_temp)
                 logger.status(f"Use a noise temperature of {noise_temp / units.kelvin:.1f} K for each channel to determine noise Vrms.")
 
-            self._noiseless_channels = collections.defaultdict(dict)
+            self._noiseless_channels = collections.defaultdict(list)
             for station_id in self._integrated_channel_response:
-                self._noiseless_channels[station_id] = []
                 for channel_id in self._integrated_channel_response[station_id]:
                     if self._noise_temp is None:
                         noise_temp_channel = self._det.get_noise_temperature(station_id, channel_id)
