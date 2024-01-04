@@ -427,7 +427,6 @@ def set_volume_attributes(volume, proposal, attributes):
 
     Parameters
     ----------
-
     volume: dict
         A dictionary specifying the simulation volume. Can be either a cylinder (specified with min/max radius and z-coordinate)
         or a cube (specified with min/max x-, y-, z-coordinates).
@@ -436,7 +435,6 @@ def set_volume_attributes(volume, proposal, attributes):
 
         * fiducial_{rmin,rmax,zmin,zmax}: float
             lower r / upper r / lower z / upper z coordinate of fiducial volume
-
         * full_{rmin,rmax,zmin,zmax}: float (optional)
             lower r / upper r / lower z / upper z coordinate of simulated volume
 
@@ -444,7 +442,6 @@ def set_volume_attributes(volume, proposal, attributes):
 
         * fiducial_{xmin,xmax,ymin,ymax,zmin,zmax}: float
             lower / upper x-, y-, z-coordinate of fiducial volume
-
         * full_{xmin,xmax,ymin,ymax,zmin,zmax}: float (optional)
             lower / upper x-, y-, z-coordinate of simulated volume
 
@@ -452,10 +449,8 @@ def set_volume_attributes(volume, proposal, attributes):
 
         * x0, y0: float
             x-, y-coordinate this shift the center of the simulation volume
-
     proposal: bool
         specifies if secondary interaction via proposal are calculated
-
     attributes: dictionary
         dict storing hdf5 attributes
     """
@@ -530,7 +525,7 @@ def set_volume_attributes(volume, proposal, attributes):
             logger.info(f"decreasing zmin from {attributes['fiducial_zmin'] / units.km:.01f}km to {zmin / units.km:.01f}km")
 
         n_events = int(n_events * volume_full / volume_fiducial)
-        logger.info(f"increasing number of events to from {attributes['n_events']:.6g} {n_events:.6g}")
+        logger.info(f"increasing number of events from {attributes['n_events']:.6g} to {n_events:.6g}")
         attributes['n_events'] = n_events
 
         attributes['rmin'] = rmin
@@ -543,13 +538,6 @@ def set_volume_attributes(volume, proposal, attributes):
         attributes['area'] = np.pi * (rmax ** 2 - rmin ** 2)
 
     elif "fiducial_xmax" in volume:  # user specifies a cube
-        attributes['fiducial_xmax'] = volume['fiducial_xmax']
-        attributes['fiducial_xmin'] = volume['fiducial_xmin']
-        attributes['fiducial_ymax'] = volume['fiducial_ymax']
-        attributes['fiducial_ymin'] = volume['fiducial_ymin']
-        attributes['fiducial_zmin'] = volume['fiducial_zmin']
-        attributes['fiducial_zmax'] = volume['fiducial_zmax']
-
         # copy keys
         for key in ['fiducial_xmin', 'fiducial_xmax', 'fiducial_ymin', 'fiducial_ymax', 'fiducial_zmin', 'fiducial_zmax']:
             attributes[key] = volume[key]
@@ -621,7 +609,7 @@ def set_volume_attributes(volume, proposal, attributes):
         attributes['volume'] = V  # save full simulation volume to simplify effective volume calculation
         attributes['area'] = (xmax - xmin) * (ymax - ymin)
     else:
-        raise AttributeError(f"'fiducial_xmax' or 'fiducial_rmax' is not part of 'volume'. Can not define a volume")
+        raise AttributeError("'fiducial_xmax' or 'fiducial_rmax' is not part of 'volume'. Can not define a volume")
 
 
 def generate_vertex_positions(attributes, n_events, rnd=None):
@@ -799,7 +787,27 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         the maximum neutrino energy (energies are randomly chosen assuming a
         uniform distribution in the logarithm of the energy)
     volume: dict
-        a dictionary specifying the simulation volume. See set_volume_attributes() for an explanation
+        A dictionary specifying the simulation volume. Can be either a cylinder (specified with min/max radius and z-coordinate)
+        or a cube (specified with min/max x-, y-, z-coordinates). For more information see set_volume_attributes
+
+        Cylinder:
+
+        * fiducial_{rmin,rmax,zmin,zmax}: float
+            lower r / upper r / lower z / upper z coordinate of fiducial volume
+        * full_{rmin,rmax,zmin,zmax}: float (optional)
+            lower r / upper r / lower z / upper z coordinate of simulated volume
+
+        Cube:
+
+        * fiducial_{xmin,xmax,ymin,ymax,zmin,zmax}: float
+            lower / upper x-, y-, z-coordinate of fiducial volume
+        * full_{xmin,xmax,ymin,ymax,zmin,zmax}: float (optional)
+            lower / upper x-, y-, z-coordinate of simulated volume
+
+        Optinal you can also define the horizontal center of the volume (if you want to displace it from the origin)
+
+        * x0, y0: float
+            x-, y-coordinate this shift the center of the simulation volume
     thetamin: float
         lower zenith angle for neutrino arrival direction
     thetamax: float
@@ -1066,7 +1074,27 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     Emax: float
         the maximum neutrino energy
     volume: dict
-        a dictionary specifying the simulation volume. See set_volume_attributes() for an explanation
+        A dictionary specifying the simulation volume. Can be either a cylinder (specified with min/max radius and z-coordinate)
+        or a cube (specified with min/max x-, y-, z-coordinates). For more information see set_volume_attributes
+
+        Cylinder:
+
+        * fiducial_{rmin,rmax,zmin,zmax}: float
+            lower r / upper r / lower z / upper z coordinate of fiducial volume
+        * full_{rmin,rmax,zmin,zmax}: float (optional)
+            lower r / upper r / lower z / upper z coordinate of simulated volume
+
+        Cube:
+
+        * fiducial_{xmin,xmax,ymin,ymax,zmin,zmax}: float
+            lower / upper x-, y-, z-coordinate of fiducial volume
+        * full_{xmin,xmax,ymin,ymax,zmin,zmax}: float (optional)
+            lower / upper x-, y-, z-coordinate of simulated volume
+
+        Optinal you can also define the horizontal center of the volume (if you want to displace it from the origin)
+
+        * x0, y0: float
+            x-, y-coordinate this shift the center of the simulation volume
     thetamin: float
         lower zenith angle for neutrino arrival direction (default 0deg)
     thetamax: float
