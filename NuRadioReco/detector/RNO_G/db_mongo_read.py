@@ -681,7 +681,7 @@ class Database(object):
             return {k:collection_info[0]['measurements'][k] for k in ('VEL', 'response_chain', 'primary_components')}
 
 
-    def get_channel_signal_chain_component_data(self, component_type, component_id, supplementary_info, primary_time, verbose=True):
+    def get_component_data(self, component_type, component_id, supplementary_info, primary_time, verbose=True, sparameter='S21'):
         """ returns the current primary measurement of the component, reads in the component collection"""
 
         # define a search filter
@@ -692,8 +692,8 @@ class Database(object):
             for supp_info in supplementary_info.keys():
                 search_filter[-1]['$match'].update({f'measurements.{supp_info}': supplementary_info[supp_info]})
 
-        # add the S parameter to the search filter, only collect S21 parameter
-        search_filter[-1]['$match'].update({f'measurements.S_parameter': 'S21'})
+        # add the S parameter to the search filter, only collect single S parameter
+        search_filter[-1]['$match'].update({f'measurements.S_parameter': sparameter})
 
         search_filter.append({'$unwind': '$measurements.primary_measurement'})
         search_filter.append({'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
@@ -844,10 +844,10 @@ class Database(object):
 
             if re.search("golden", component, re.IGNORECASE):
                 collection_component = component.replace("_1", "").replace("_2", "")
-                component_data = self.get_channel_signal_chain_component_data(
+                component_data = self.get_component_data(
                     collection_component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
             else:
-                component_data = self.get_channel_signal_chain_component_data(
+                component_data = self.get_component_data(
                     component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
 
             components_data[component] = {'name': component_id}
