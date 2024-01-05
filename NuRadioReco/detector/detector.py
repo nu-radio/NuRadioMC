@@ -150,7 +150,7 @@ def Detector(*args, **kwargs):
                     'channel should be specified in the detector description directly.')
 
                 if "default_station" in kwargs:
-                    logging.status(f'Default detector station provided (station {kwargs["default_station"]}) -> Using generic detector')
+                    logging.info(f'Default detector station provided (station {kwargs["default_station"]}) -> Using generic detector')
 
             return NuRadioReco.detector.generic_detector.GenericDetector(
                 json_filename=filename, source=source, dictionary=dictionary,
