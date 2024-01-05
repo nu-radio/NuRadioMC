@@ -156,6 +156,10 @@ def Detector(*args, **kwargs):
                 json_filename=filename, source=source, dictionary=dictionary,
                 assume_inf=assume_inf, antenna_by_depth=antenna_by_depth, **kwargs)
         else:
+            # Keys might be present (but should be None). Keys are deprecated, keep them for backwards compatibility
+            for key in ["default_station", "default_channel", "default_device"]:
+                kwargs.pop(key, "None")
+
             return NuRadioReco.detector.detector_base.DetectorBase(
                 json_filename=filename, source=source, dictionary=dictionary,
                 assume_inf=assume_inf, antenna_by_depth=antenna_by_depth, **kwargs)
