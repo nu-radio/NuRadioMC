@@ -173,8 +173,8 @@ class Detector():
                     st_id: 1 for st_id in self.__buffered_stations}
                 self.__default_values = import_dict["default_values"]
             else:
-                self.logger.error(f"{pickle_file} with unknown version.")
-                raise ReferenceError(f"{pickle_file} with unknown version.")
+                self.logger.error(f"{detector_file} with unknown version.")
+                raise ReferenceError(f"{detector_file} with unknown version.")
 
         # Allow overwriting the hard-coded values
         self.__default_values.update(over_write_handset_values)
