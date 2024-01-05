@@ -723,7 +723,10 @@ class Detector():
                 if is_equal and key == "drab_board":
                     continue
 
-                weight = value.get("weigth", 1)
+                if "weight" not in value:
+                    self.logger.warn(f"Component {key} does not have a weight. Assume a weight of 1 ...")
+
+                weight = value.get("weight", 1)
                 ydata = [value["mag"], value["phase"]]
                 response = Response(value["frequencies"], ydata, value["y-axis_units"], weight=weight, name=key)
 
@@ -1207,21 +1210,35 @@ class Response:
         return self.__mul__(other)
 
     def __str__(self):
-        return "Response of " + ", ".join(self.get_names()) + f": R(0.5 GHz) = {self(0.5 * units.GHz)}"
+        ampl = 20 * np.log10(np.abs(self(0.5 * units.GHz)))
+        return "Response of " + ", ".join([f"{name} ({weight})" for name, weight in zip(self.get_names(), self.__weights)]) \
+            + f": |R(0.5 GHz)| = {ampl} dB (amplitude)"
 
-    def plot(self, show=False):
+    def plot(self, show=False, in_dB=True):
         import matplotlib.pyplot as plt
 
         freqs = np.linspace(0, 1.4) * units.GHz
 
         fig, ax = plt.subplots()
-        for gain, name in zip(self.__gains, self.__names):
-            ax.plot(freqs / units.MHz, gain(freqs), label=name)
+        for gain, weight, name in zip(self.__gains, self.__weights, self.__names):
+            if in_dB:
+                ax.plot(freqs / units.MHz, weight * 20 * np.log10(gain(freqs)), label=name)
+            else:
+                ax.plot(freqs / units.MHz, gain(freqs), label=name)
+
+        if in_dB:
+            ax.plot(freqs / units.MHz, 20 * np.log10(np.abs(self(freqs))), color="k", label="total")
+        else:
+            ax.plot(freqs / units.MHz, np.abs(self(freqs)), color="k", label="total")
 
         ax.set_xlabel("frequency / MHz")
-        ax.set_ylabel("gain")
+        if in_dB:
+            ax.set_ylabel("gain / dB")
+        else:
+            ax.set_ylabel("gain")
+            ax.set_yscale("log")
+
         ax.legend()
-        ax.set_yscale("log")
 
         if show:
             plt.show()
@@ -1258,8 +1275,9 @@ if __name__ == "__main__":
     # det = Detector(log_level=logging.DEBUG, over_write_handset_values={
     #                "sampling_frequency": 2.4 * units.GHz}, always_query_entire_description=False)
     det = detector.Detector(source="mongo", log_level=logging.DEBUG, always_query_entire_description=False,
-                            database_connection='RNOG_test_public')
+                            database_connection='RNOG_public')
 
     det.update(datetime.datetime(2022, 8, 2, 0, 0))
-    # det.get_antenna_model(11, 0)
-    det.get_cable_delay(11, 0)
+    print(det.get_absolute_position(21))
+    resp = det.get_signal_chain_response(21, 0)
+    resp.plot(True, True)
