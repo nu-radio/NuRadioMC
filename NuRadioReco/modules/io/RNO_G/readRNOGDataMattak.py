@@ -22,7 +22,7 @@ import string
 import random
 
 
-def create_random_directory_path(prefix="/tmp/", n=7):
+def _create_random_directory_path(prefix="/tmp/", n=7):
     """
     Produces a path for a temporary directory with a n letter random suffix
 
@@ -48,7 +48,7 @@ def create_random_directory_path(prefix="/tmp/", n=7):
     return path
 
 
-def baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
+def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
     """
     Simple baseline correction function. 
     
@@ -150,7 +150,7 @@ def get_time_offset(trigger_type):
         raise KeyError(f"Unknown trigger type: {trigger_type}. Known are: {known_trigger_types}. Abort ....")
 
 
-def all_files_in_directory(mattak_dir):
+def _all_files_in_directory(mattak_dir):
     """
     Checks if all Mattak root files are in a directory.
     Ignoring runinfo.root because (asaik) not all runs have those and information is currently not read by Mattak.
@@ -376,13 +376,13 @@ class readRNOGData:
         self._datasets = []
         self.__n_events_per_dataset = []
 
+        if not isinstance(dirs_files, (list, np.ndarray)):
+            dirs_files = [dirs_files]
+
         self.logger.info(f"Parse through / read-in {len(dirs_files)} directory(ies) / file(s).")
 
         self.__skipped_runs = 0
         self.__n_runs = 0
-
-        if not isinstance(dirs_files, (list, np.ndarray)):
-            dirs_files = [dirs_files]
 
         # Set verbose for mattak
         if "verbose" in mattak_kwargs:
@@ -398,7 +398,7 @@ class readRNOGData:
 
             if os.path.isdir(dir_file):
 
-                if not all_files_in_directory(dir_file):
+                if not _all_files_in_directory(dir_file):
                     self.logger.error(f"Incomplete directory: {dir_file}. Skip ...")
                     continue
             else:
@@ -407,7 +407,7 @@ class readRNOGData:
                 # it is not a combined file). To work around this: Create a tmp directory under `/tmp/`, link the file you want to
                 # read into this directory with the the name `combined.root`, use this path to read the run.
 
-                path = create_random_directory_path()
+                path = _create_random_directory_path()
                 self.logger.debug(f"Create temporary directory: {path}")
                 if os.path.exists(path):
                     raise ValueError(f"Temporary directory {path} already exists.")
