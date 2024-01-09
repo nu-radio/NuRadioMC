@@ -245,6 +245,18 @@ class readRNOGData:
                     self.logger.warn("Import of run table failed. Runs can not be filtered.! \n"
                             "You can get the interface from GitHub: git@github.com:RNO-G/rnog-runtable.git")
             else:
+                # some users may mistakenly try to pass the .root files to __init__
+                # we check for this and raise a (hopefully) helpful error message
+                user_passed_root_file_msg = (
+                    "The optional argument run_table_path expects a csv file, "
+                    "but you passed a list of files or a .root file. Note that "
+                    "the .root files to read in should be passed to the `begin` method of this class"
+                )
+                if isinstance(run_table_path, (list, np.ndarray)):
+                    raise TypeError(user_passed_root_file_msg)
+                elif os.path.isdir(run_table_path) or run_table_path.endswith('.root'):
+                    raise ValueError(user_passed_root_file_msg)
+
                 import pandas
                 self.__run_table = pandas.read_csv(run_table_path)
 
