@@ -393,7 +393,7 @@ class readRNOGData:
                 self.__temporary_dirs.append(path)  # for housekeeping
 
                 self.logger.debug(f"Create symlink for {dir_file}")
-                os.symlink(dir_file, os.path.join(path, "combined.root"))
+                os.symlink(os.path.abspath(dir_file), os.path.join(path, "combined.root"))
 
                 dir_file = path  # set path to e.g. /tmp/NuRadioReco_XXXXXXX/combined.root
 
