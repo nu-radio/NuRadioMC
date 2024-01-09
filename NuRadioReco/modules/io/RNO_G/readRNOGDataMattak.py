@@ -186,11 +186,17 @@ class readRNOGData:
 
     def __init__(self, run_table_path=None, load_run_table=True, log_level=logging.INFO):
         """
+        Reader for RNO-G ``.root`` files
+
+        This class provides read access to RNO-G ``.root`` files and converts them
+        to NuRadioMC :class:`Events <NuRadioReco.framework.event.Event>`. Requires ``mattak``
+        (https://github.com/RNO-G/mattak) to be installed.
+
         Parameters
         ----------
 
         run_table_path: str | None
-            Path to a run_table.cvs file. If None, the run table is queried from the DB. (Default: None)
+            Path to a run_table.csv file. If None, the run table is queried from the DB. (Default: None)
 
         load_run_table: bool
             If True, try to load the run_table from run_table_path. Otherwise, skip this.
@@ -198,6 +204,23 @@ class readRNOGData:
         log_level: enum
             Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).
             (Default: logging.INFO)
+
+        Examples
+        --------
+
+        .. code-block::
+
+            reader = readRNOGDataMattak.readRNOGData() # initialize reader
+            reader.begin('/path/to/root_file_or_folder')
+
+            evt = reader.get_event_by_index(0) # returns the first event in the file
+            # OR
+            evt = reader.get_event(run_nr=1100, event_id=679) # returns the event with run_number 1100 and event_id 679
+            # OR
+            for evt in reader.run(): # loop over all events in file
+                # perform some analysis
+                pass
+
         """
         self.logger = logging.getLogger('NuRadioReco.readRNOGData')
         self.logger.setLevel(log_level)
@@ -721,10 +744,10 @@ class readRNOGData:
         """
         Loop over all events.
 
-        Returns
-        -------
+        Yields
+        ------
 
-        evt: generator(NuRadioReco.framework.event)
+        evt: `NuRadioReco.framework.event.Event`
         """
         event_idx = -1
         for dataset in self._datasets:
@@ -774,7 +797,7 @@ class readRNOGData:
         Returns
         -------
 
-        evt: NuRadioReco.framework.event
+        evt: `NuRadioReco.framework.event.Event`
         """
 
         self.logger.debug(f"Processing event number {event_index} out of total {self._n_events_total}")
@@ -816,7 +839,7 @@ class readRNOGData:
         Returns
         -------
 
-        evt: NuRadioReco.framework.event
+        evt: `NuRadioReco.framework.event.Event`
         """
 
         self.logger.debug(f"Processing event {event_id}")
