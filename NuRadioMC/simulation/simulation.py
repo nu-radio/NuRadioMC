@@ -98,7 +98,7 @@ class simulation:
 
     def __init__(self, inputfilename,
                  outputfilename,
-                 detectorfile,
+                 detectorfile=None,
                  det=None,
                  det_kwargs={},
                  outputfilenameNuRadioReco=None,
