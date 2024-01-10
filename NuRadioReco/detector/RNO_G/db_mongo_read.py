@@ -693,7 +693,7 @@ class Database(object):
                 search_filter[-1]['$match'].update({f'measurements.{supp_info}': supplementary_info[supp_info]})
 
         # add the S parameter to the search filter, only collect single S parameter
-        search_filter[-1]['$match'].update({f'measurements.S_parameter': sparameter})
+        search_filter[-1]['$match'].update({'measurements.S_parameter': sparameter})
 
         search_filter.append({'$unwind': '$measurements.primary_measurement'})
         search_filter.append({'$match': {'measurements.primary_measurement.start': {'$lte': primary_time},
@@ -702,8 +702,7 @@ class Database(object):
         search_result = list(self.db[component_type].aggregate(search_filter))
 
         if len(search_result) != 1:
-            print(search_result)
-            raise ValueError('No or more than one measurement found!')
+            raise ValueError(f'No or more than one measurement found: {search_result}. Search filter: {search_filter}')
 
         measurement = search_result[0]['measurements']
 
