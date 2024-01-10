@@ -25,6 +25,7 @@ import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelAddCableDelay
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.detector.detector as detector
+from NuRadioReco.detector.RNO_G import rnog_detector
 import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
@@ -1251,11 +1252,19 @@ class simulation:
         checks if the same detector was simulated before (then we can save the ray tracing part)
         """
         self._was_pre_simulated = False
+
         if 'detector' in self._fin_attrs:
-            with open(self._detectorfile, 'r') as fdet:
-                if fdet.read() == self._fin_attrs['detector']:
+            if isinstance(self._det, rnog_detector.Detector):
+                if self._det.export_as_string() == self._fin_attrs['detector']:
                     self._was_pre_simulated = True
-                    logger.status("the simulation was already performed with the same detector")
+            else:
+                with open(self._detectorfile, 'r') as fdet:
+                    if fdet.read() == self._fin_attrs['detector']:
+                        self._was_pre_simulated = True
+
+        if self._was_pre_simulated:
+            logger.status("the simulation was already performed with the same detector")
+
         return self._was_pre_simulated
 
     def _create_meta_output_datastructures(self):
@@ -1441,8 +1450,11 @@ class simulation:
         for (key, value) in iteritems(self._mout_attrs):
             fout.attrs[key] = value
 
-        with open(self._detectorfile, 'r') as fdet:
-            fout.attrs['detector'] = fdet.read()
+        if isinstance(self._det, rnog_detector.Detector):
+            fout.attrs['detector'] = self._det.export_as_string()
+        else:
+            with open(self._detectorfile, 'r') as fdet:
+                fout.attrs['detector'] = fdet.read()
 
         if not empty:
             # save antenna position separately to hdf5 output
