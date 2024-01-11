@@ -20,7 +20,7 @@ class NoiseModel:
         sampling_rate : float
             The sampling rate of the antennas
         spectra : numpy.ndarray, optional
-            Spectra of the noise in the antennas. Has dimensions [n_antennas,n_samples/2]. Default value is None, 
+            Spectra of the noise in the antennas. Has dimensions [n_antennas,n_samples/2+1]. Default value is None, 
             and can instead be calculated using NoiseModel.calculate_spectra_from_data.
         add_white_noise : float, optional
             Calculating the inverse of a (covariance) matrix is numerically unstable and is impossible if the matrix 
@@ -34,12 +34,16 @@ class NoiseModel:
         self.n_samples = n_samples
         self.sampling_rate = sampling_rate
         self.spectra = spectra
+        self.frequencies = np.fft.rfftfreq(n_samples, 1.0/sampling_rate)
+        self.n_frequencies = len(self.frequencies)
         self.cov = None
         self.cov_inv = None
         self.cov_det = None
         self.add_white_noise = add_white_noise
-
         self.t_array = np.arange(n_samples) * 1.0 / sampling_rate
+
+        if spectra is not None:
+            assert np.shape(spectra)[1] == self.n_frequencies, "The dimensionality of the provided spectrum does not match the number of samples per trace"
 
     def _set_covariance_matrices(self, cov):
         """
@@ -66,10 +70,13 @@ class NoiseModel:
             data : numpy.ndarray
                 Array containing data with dimensions [n_datasets,n_antennas,n_samples]
         """
+        spectra = np.zeros([self.n_antennas,self.n_frequencies])
         for i in range(self.n_antennas):
-            fourier_transforms = fft.time2freq(data[:, i, :], self.sampling_rate)
+            fourier_transforms = fft.time2freq(data[:,i,:], self.sampling_rate)
             fourier_transforms_mean = np.sqrt(np.mean(fourier_transforms.real**2 + fourier_transforms.imag**2, axis=0))
-            self.spectra = fourier_transforms_mean
+            spectra[i,:] = fourier_transforms_mean
+        
+        self.spectra = spectra
 
     def calculate_covariance_matrices_from_spectra(self):
         """
@@ -77,18 +84,18 @@ class NoiseModel:
 
         """
 
-        assert self.spectrum is not None, "Spectrum not set"
+        assert self.spectra is not None, "Spectra are not set"
 
-        n_frequencies = len(self.spectrum)
-        frequencies = np.fft.rfftfreq(self.n_samples, 1.0/self.sampling_rate)
+        # The normalization convention of the Fourier transform in NuRadioReco has to be taken into account:
+        amplitudes = self.spectra * self.sampling_rate * np.sqrt(2) / self.n_samples
 
         covariance_matrices = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
 
         for i in range(self.n_antennas):
             # Calculate first row of covariance matrix:
             covariance_total = np.zeros(self.n_samples)
-            for i in np.arange(0, n_frequencies):
-                covariance = 0.5 * self.spectra[i]**2 * np.cos(frequencies[i]*self.t_array)
+            for j in np.arange(0, self.n_frequencies):
+                covariance = 0.5 * amplitudes[i,j]**2 * np.cos(self.frequencies[j]*(2*np.pi)*self.t_array)
                 covariance_total += covariance
 
             # Make sure covariance matrix is symmetric:
@@ -96,8 +103,8 @@ class NoiseModel:
 
             # Construct covariances matrix assuming it is circulant:
             constructed_covariance_matrix = np.zeros([self.n_samples, self.n_samples])
-            for i in range(self.n_samples):
-                constructed_covariance_matrix[:,i] = np.roll(covariance_total, i)
+            for j in range(self.n_samples):
+                constructed_covariance_matrix[:,j] = np.roll(covariance_total, j)
 
             covariance_matrices[i,:,:] = constructed_covariance_matrix
 
@@ -159,7 +166,7 @@ class NoiseModel:
         Parameters
         ----------
             data : numpy.ndarray
-                Array containing data with dimensions [n_datasets,n_antennas,n_samples]
+                Array containing data with dimensions [n_datasets,n_antennas,n_samples] or [n_antennas,n_samples]
             signal : numpy.ndarray, optional
                 Array containing neutrino signal signal of dimensions [n_antennas,n_samples].
                 If no signal is provided, it will be set to zeros.
