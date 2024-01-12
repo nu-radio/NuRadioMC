@@ -6,10 +6,9 @@ import matplotlib.pyplot as plt
 
 class NoiseModel:
     """
-    Probabilistic description of thermal noise in radio detectors.
-    Handles two situations:
-        1. The spectra of the noise is known
-        2. Many datasets containing only noise are availableß
+    Probabilistic description of thermal noise in radio detectors. The noise is assumed to be a multivariate gaussion of
+    dimension n_samples. The covariance matrix of the distirbution can be calculated from the spectrum of the noise or 
+    directly from datasets containing only noise.
 
     Parameters
     ----------
