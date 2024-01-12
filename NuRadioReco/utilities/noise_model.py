@@ -58,7 +58,7 @@ class NoiseModel:
         self.cov_inv = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
         self.cov_det = np.zeros(self.n_antennas)
         for i in range(self.n_antennas):
-            self.cov_inv[i, :, :] = np.linalg.inv(cov[i,:,:] + np.diag(np.ones(self.n_samples) * self.add_white_noise))
+            self.cov_inv[i,:,:] = np.linalg.inv(cov[i,:,:] + np.diag(np.ones(self.n_samples) * self.add_white_noise))
             self.cov_det[i] = np.linalg.slogdet(cov[i,:,:])[0]
 
     def calculate_spectra_from_data(self, data):
@@ -222,38 +222,135 @@ class NoiseModel:
 
     ### Plotting: ###
 
-    def plot_data(self, data, zoom=0):
-        for i in range(len(data)):
-            plt.figure(figsize=[4.2,3])
-            plt.plot(self.t_array, data[i,:], "k-")
-            axis = plt.axis()
-            plt.axis([zoom, max(self.t_array)-zoom, axis[2], axis[3]])
-            plt.xlabel("Time [ns]")
-            plt.ylabel("Voltage [V]")
-            plt.legend()
-            plt.tight_layout()
+    def plot_data(self, data, plot_range=None, linestyle_and_color = "auto", make_new_figure=True):
+        """
+        Plots a dataset containing noise
 
-    def plot_covariance_matrix(self, cov):
-        plt.figure(figsize=[4.2,3])
-        plt.imshow(cov, vmax=np.max(cov), vmin=-np.max(cov), cmap="seismic")
-        plt.colorbar(label=f"Cov$(f_t(t_i),f_t(t_j))$")
-        plt.xlabel(f"$i$")
-        plt.ylabel(f"$j$")
-        x_ticks = plt.xticks()
-        plt.xticks(x_ticks[0][1:-1], np.array(x_ticks[0][1:-1], dtype=int))
-        y_ticks = plt.yticks()
-        plt.yticks(y_ticks[0][1:-1], np.array(y_ticks[0][1:-1], dtype=int))
+        Parameters
+        ----------
+            data : numpy.array
+                Array containing data with dimensions [n_samples]
+            plot_range : float
+                Range along x-axis (self.t_array) to plot in units of nanoseconds
+            linestyle_and_color : str, optional
+                String specifying linestyle and color, e.f. "k-" for black solid line, or "b--" for blue 
+                dashed line. If set to "auto", matplotlib will set the color and style.
+            make_new_figure : bool
+                If True create a new figure
+        """
+        if make_new_figure:
+            plt.figure(figsize=[4.2,3])
+        
+        if linestyle_and_color == "auto":
+            plt.plot(self.t_array, data)
+        else:
+            plt.plot(self.t_array, data, linestyle_and_color)
+            
+        axis = plt.axis()
+        if plot_range is None:
+            plt.axis([0, max(self.t_array), axis[2], axis[3]])
+        else:
+            plt.axis([plot_range[0], plot_range[1], axis[2], axis[3]])
+        plt.xlabel("Time [ns]")
+        plt.ylabel("Voltage [V]")
         plt.tight_layout()
 
-    def plot_llh_distribution(self, data):
+    def plot_covariance_matrix(self, cov, plot_range=None, make_new_figure=True):
+        """
+        Plots a covariance matrix
+
+        Parameters
+        ----------
+            cov : numpy.array
+                Covariance matrix of dimensions [n_samples,n_samples]
+            plot_range : float
+                Range along x- and y-axes (self.t_array) to plot in units of nanoseconds
+            make_new_figure : bool
+                If True create a new figure
+        """
+        if make_new_figure:
+            plt.figure(figsize=[4.2,3])
+
+        # imshow looks better than pcolormesh:
+        plt.imshow(cov, vmax=np.max(cov), vmin=-np.max(cov), cmap="seismic")
+        plt.colorbar(label=f"Cov$(t_i,t_j)$")
+        plt.xlabel(f"$t_i$ [ns]")
+        plt.ylabel(f"$t_j$ [ns]")
+
+        # Do some weird zoom in/out to get the ticks right:
+        if plot_range is not None:
+            plt.axis([plot_range[0], plot_range[1], plot_range[0], plot_range[1]])
+            xticks = plt.xticks()
+            yticks = plt.yticks()
+            plt.xticks(xticks[0]*self.sampling_rate, xticks[1])
+            plt.yticks(yticks[0]*self.sampling_rate, yticks[1])
+            plt.axis([plot_range[0]*self.sampling_rate, plot_range[1]*self.sampling_rate, plot_range[0]*self.sampling_rate, plot_range[1]*self.sampling_rate])
+            plt.gca().invert_yaxis()
+        else:
+            axis = plt.axis()
+            plt.axis([0, axis[1]/self.sampling_rate, axis[2]/self.sampling_rate, 0])
+            xticks = plt.xticks()
+            yticks = plt.yticks()
+            plt.xticks(xticks[0]*self.sampling_rate, xticks[1])
+            plt.yticks(yticks[0]*self.sampling_rate, yticks[1])
+            plt.axis(axis)
+        plt.tight_layout()
+
+    def plot_covariance_matrix_first_row(self, cov, plot_range=None, linestyle_and_color = "auto", make_new_figure=True):
+        """
+        Plots one row of a covariance matrix
+
+        Parameters
+        ----------
+            cov : numpy.array
+                Covariance matrix of dimensions [n_samples,n_samples]
+            plot_range : float
+                Range along x-axis (self.t_array) to plot in units of nanoseconds
+            linestyle_and_color : str, optional
+                String specifying linestyle and color, e.f. "k-" for black solid line, or "b--" for blue 
+                dashed line. If set to "auto", matplotlib will set the color and style.
+            make_new_figure : bool
+                If True create a new figure
+        """
+        if make_new_figure:
+            plt.figure(figsize=[4.2,3])
+        
+        
+        if linestyle_and_color == "auto":
+            plt.plot(self.t_array, cov[0,:])
+        else:
+            plt.plot(self.t_array, cov[0,:], linestyle_and_color)
+            
+        axis = plt.axis()
+        if plot_range is None:
+            plt.axis([0, max(self.t_array), axis[2], axis[3]])
+        else:
+            plt.axis([plot_range[0], plot_range[1], axis[2], axis[3]])
+        plt.xlabel(f"$\Delta t$ [ns]")
+        plt.ylabel(f"Cov$(\Delta t)$")
+        plt.tight_layout()
+
+    def plot_llh_distribution(self, data, make_new_figure = True):
+        """
+        Calculate the llh values for many datasets and plot the distribution alongside a chi2 
+        distribution with dof equal to the number of samples
+
+        Parameters
+        ----------
+            data : numpy.array
+                Array containing data with dimensions [n_samples]
+            make_new_figure : bool
+                If True create a new figure
+        """
         LLH_array = self.calculate_llh(data)
 
         n_datasets = len(data)
         n_dof = int(self.n_antennas * self.n_samples)
 
-        plt.figure(figsize=[4.2,3])
+        if make_new_figure:
+            plt.figure(figsize=[4.2,3])
 
-        plt.hist(-2*LLH_array, bins=int(n_datasets/20), histtype="step", color="b", label=str(n_datasets) + " datasets", density=True,)
+        plt.hist(-2*LLH_array, bins=int(n_datasets/20), histtype="step", color="b", label=str(n_datasets) + " datasets", density=True)
 
         axis = plt.axis()
 
@@ -261,7 +358,7 @@ class NoiseModel:
         x = np.linspace(n_dof * 0.1, n_dof * 10, 10000)
         plt.plot(x, chi2.pdf(x, n_dof), "r-", alpha=0.6, label="chi2, dof = "+str(n_dof))
 
-        plt.axis([np.min([axis[0], n_dof * 0.8]), np.max([axis[1], n_dof * 1.2]), axis[2], axis[3]])
+        plt.axis([np.min([axis[0], n_dof * 0.9]), np.max([axis[1], n_dof * 1.2]), axis[2], axis[3]])
 
         plt.xlabel(f"$-2\Delta LLH$")
         plt.ylabel("Density")
