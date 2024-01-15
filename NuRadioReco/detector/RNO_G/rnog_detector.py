@@ -64,32 +64,37 @@ def check_detector_time(method):
 
 class Detector():
     def __init__(self, database_connection='RNOG_test_public', log_level=logging.INFO, over_write_handset_values={},
-                 database_time=None, always_query_entire_description=True, detector_file=None):
+                 database_time=None, always_query_entire_description=True, detector_file=None,
+                 select_stations=None):
         """
 
         Parameters
         ----------
 
-        database_connection: str
-            Allows to specify database connection. Passed to mongo-db interface. (Default: 'RNOG_test_public')
+        database_connection : str (Default: 'RNOG_test_public')
+            Allows to specify database connection. Passed to mongo-db interface.
 
-        log_level: enum
-            Defines verbosity level of logger. (Default: logging.DEBUG)
+        log_level : `logging.LOG_LEVEL` (Default: logging.INFO)
+            Defines verbosity level of logger. Other options are: `logging.WARNING`, `logging.DEBUG`, ...
 
-        over_write_handset_values: dict
+        over_write_handset_values : dict (Default: {})
             Overwrite the default values for the manually set parameter which are not (yet) implemented in the database.
             (Default: {}, the acutally default values for the parameters in question are defined below)
 
-        database_time: datetime.datetime
+        database_time : `datetime.datetime`
             Set database time which is used to select the primary measurement. By default (= None) the database time
             is set to now (time the code is running) to select the measurement which is now primary.
 
-        always_query_entire_description: bool
+        always_query_entire_description : bool (Default: True)
             If True, query the entire detector describtion all at once when calling Detector.update(...) (if necessary).
-            (Default: True)
 
-        detector_file: str
+        detector_file : str
             File to import detector description instead of querying from DB. (Default: None -> query from DB)
+
+        select_stations : int or list(int) (Default: None)
+            Select a station or list of stations using their station ids for which the describtion is provided.
+            This is useful for example in simulations when one wants to simulate only one station. The default None
+            means to descibe all commissioned stations.
         """
 
         self.logger = logging.getLogger("rno-g-detector")
@@ -100,6 +105,12 @@ class Detector():
             "noise_temperature": 300 * units.kelvin,
             "is_noiseless": False,
         }
+
+        if select_stations is not None and not isinstance(select_stations, list):
+            select_stations = [select_stations]
+
+        self.selected_stations = select_stations
+        self.logger.info(f"Select the following stations (if possible): {select_stations}")
 
         if detector_file is None:
             self._det_imported_from_file = False
@@ -113,10 +124,17 @@ class Detector():
             self._time_periods_per_station = self.__db.query_modification_timestamps_per_station()
             self.logger.info(
                 f"Found the following stations in the database: {list(self._time_periods_per_station.keys())}")
+
+            if self.selected_stations is not None:
+                # Filter stations: Only consider selected stations
+                self._time_periods_per_station = {
+                    station_id: value for station_id, value in self._time_periods_per_station.items()
+                    if station_id in self.selected_stations
+                }
+
             self.logger.debug("Register the following modification periods:")
-            for key in self._time_periods_per_station:
-                mods = self._time_periods_per_station[key]["modification_timestamps"]
-                self.logger.debug(f"{key}: {mods}")
+            for key, value in self._time_periods_per_station.items():
+                self.logger.debug(f'{key}: {value}["modification_timestamps"]')
 
             # Used to keep track which time period is buffered. Index of 0, not buffered jet.
             self._time_period_index_per_station = collections.defaultdict(int)
@@ -151,13 +169,18 @@ class Detector():
                 if is_json:
                     # need to convert station/channel id keys back to integers
                     for station_id, station_data in import_dict["data"].items():
+                        if self.selected_stations is not None and int(station_id) not in self.selected_stations:
+                            continue
+
                         station_data["channels"] = {int(channel_id): channel_data for channel_id, channel_data in station_data["channels"].items()}
                         self.__buffered_stations[int(station_id)] = station_data
 
                     # need to convert modification_timestamps back to datetime objects
                     self._time_periods_per_station = {
-                        int(station_id): {"modification_timestamps": [datetime.datetime.fromisoformat(v) for v in value["modification_timestamps"]]}
-                        for station_id, value in import_dict["periods"].items()
+                        int(station_id): {"modification_timestamps":
+                            [datetime.datetime.fromisoformat(v) for v in value["modification_timestamps"]]}
+                        for station_id, value in import_dict["periods"].items() if self.selected_stations is None
+                        or int(station_id) in self.selected_stations
                     }
                 else:
                     self.__buffered_stations = import_dict["data"]
@@ -305,7 +328,8 @@ class Detector():
 
         for station_id in self._time_periods_per_station:
             period = np.digitize(self.get_detector_time().timestamp(),
-                                 [dt.timestamp() for dt in self._time_periods_per_station[station_id]["modification_timestamps"]])
+                                 [dt.timestamp() for dt in
+                                  self._time_periods_per_station[station_id]["modification_timestamps"]])
 
             if period != self._time_period_index_per_station[station_id]:
                 need_update[station_id] = True
@@ -316,7 +340,8 @@ class Detector():
 
         debug_str = "The following stations need to be updated:"
         for station_id in self._time_period_index_per_station:
-            debug_str += f"\n\tStation {station_id} : {need_update[station_id]} (period: {self._time_period_index_per_station[station_id]})"
+            debug_str += (f"\n\tStation {station_id} : {need_update[station_id]} "
+                          f"(period: {self._time_period_index_per_station[station_id]})")
 
         self.logger.debug(debug_str)
 
