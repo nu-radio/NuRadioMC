@@ -3,9 +3,9 @@ import os
 import numpy as np
 import logging
 
-import NuRadioReco.detector.detector_base
-import NuRadioReco.detector.generic_detector
-import NuRadioReco.detector.RNO_G.rnog_detector
+from NuRadioReco.detector import detector_base
+from NuRadioReco.detector import generic_detector
+from NuRadioReco.detector.RNO_G import rnog_detector
 
 
 
@@ -45,10 +45,10 @@ def Detector(*args, **kwargs):
         This function returns a detector class object. It chooses the correct class based on the "source" argument.
         The returned object is of one of these classes:
 
-            - kwargs["source'] == "mongo" -> NuRadioReco.detector.RNO_G.rnog_detector
-            - kwargs["source'] == "sql" -> NuRadioReco.detector.detector_base
-            - kwargs["source'] == "json" or "dictionary" -> NuRadioReco.detector.detector_base or
-                                                            NuRadioReco.detector.generic_detector
+            - kwargs["source'] == "mongo" -> `NuRadioReco.detector.RNO_G.rnog_detector`
+            - kwargs["source'] == "sql" -> `NuRadioReco.detector.detector_base`
+            - kwargs["source'] == "json" or "dictionary" -> `NuRadioReco.detector.detector_base` or
+                                                            `NuRadioReco.detector.generic_detector`
 
         For 'kwargs["source'] == "json"', whether to use "detector_base" or "generic_detector"
         depends on whether a reference station / channel is defined in the json file / dictionary
@@ -103,12 +103,12 @@ def Detector(*args, **kwargs):
 
 
         if source == "sql":
-            return NuRadioReco.detector.detector_base.DetectorBase(
+            return detector_base.DetectorBase(
                 json_filename=None, source=source, dictionary=dictionary,
                 assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
 
         elif source == "mongo":
-            return NuRadioReco.detector.RNO_G.rnog_detector.Detector(*args, **kwargs)
+            return rnog_detector.Detector(*args, **kwargs)
 
         elif source == "dictionary":
 
@@ -152,7 +152,7 @@ def Detector(*args, **kwargs):
                 if "default_station" in kwargs:
                     logging.info(f'Default detector station provided (station {kwargs["default_station"]}) -> Using generic detector')
 
-            return NuRadioReco.detector.generic_detector.GenericDetector(
+            return generic_detector.GenericDetector(
                 json_filename=filename, source=source, dictionary=dictionary,
                 assume_inf=assume_inf, antenna_by_depth=antenna_by_depth, **kwargs)
         else:
@@ -160,6 +160,6 @@ def Detector(*args, **kwargs):
             for key in ["default_station", "default_channel", "default_device"]:
                 kwargs.pop(key, "None")
 
-            return NuRadioReco.detector.detector_base.DetectorBase(
+            return detector_base.DetectorBase(
                 json_filename=filename, source=source, dictionary=dictionary,
                 assume_inf=assume_inf, antenna_by_depth=antenna_by_depth, **kwargs)
