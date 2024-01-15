@@ -416,7 +416,7 @@ class Detector():
 
         # Return when buffer is not empty. This has to come first ...
         for station_id in self.__buffered_stations:
-            if len(self.__buffered_stations[key]):
+            if len(self.__buffered_stations[station_id]):
                 return
 
         # ... and than second
