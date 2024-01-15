@@ -389,7 +389,7 @@ class Detector():
         time: datetime.datetime
             Unix time of measurement.
         """
-        self.logger.debug(f"Update detector to {time}")
+        self.logger.info(f"Update detector to {time}")
 
         self.__set_detector_time(time)
         if not self._det_imported_from_file:
@@ -413,6 +413,20 @@ class Detector():
             for station_id, need_update in update_buffer_for_station.items():
                 if need_update and self.has_station(station_id):
                     self._query_station_information(station_id)
+
+        # Return when buffer is not empty. This has to come first ...
+        for station_id in self.__buffered_stations:
+            if len(self.__buffered_stations[key]):
+                return
+
+        # ... and than second
+        if len(self.__buffered_stations):
+            return
+
+        # When you reach this point something went wrong ...
+        self.logger.error(f"Empty detector for {time}!")
+        raise ValueError(f"Empty detector for {time}!")
+
 
     @check_detector_time
     def get_station_ids(self):
