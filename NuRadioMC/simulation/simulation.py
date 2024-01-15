@@ -25,8 +25,6 @@ import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelAddCableDelay
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.detector.detector as detector
-from NuRadioReco.detector.RNO_G import rnog_detector
-import NuRadioReco.detector.generic_detector as gdetector
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.particle
@@ -1254,7 +1252,7 @@ class simulation:
         self._was_pre_simulated = False
 
         if 'detector' in self._fin_attrs:
-            if isinstance(self._det, rnog_detector.Detector):
+            if isinstance(self._det, detector.rnog_detector.Detector):
                 if self._det.export_as_string() == self._fin_attrs['detector']:
                     self._was_pre_simulated = True
             else:
@@ -1450,7 +1448,7 @@ class simulation:
         for (key, value) in iteritems(self._mout_attrs):
             fout.attrs[key] = value
 
-        if isinstance(self._det, rnog_detector.Detector):
+        if isinstance(self._det, detector.rnog_detector.Detector):
             fout.attrs['detector'] = self._det.export_as_string()
         else:
             with open(self._detectorfile, 'r') as fdet:
