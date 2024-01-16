@@ -2,6 +2,12 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
+version 2.3.0-dev
+new features:
+
+bugfixes:
+
+
 version 2.2.0
 new features:
 - expand values stored in SimplePhasedTrigger
