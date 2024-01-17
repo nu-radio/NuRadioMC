@@ -218,6 +218,65 @@ class NoiseModel:
             return two_delta_llh_signal
 
         return llh_func
+    
+    def save_covariance_matrix(self, antenna, filename):
+        """
+        Save compressed version (half of one row) of covariance matrix for one antenna along with the sample rate in GHz and number of samples
+
+        Parameters
+        ----------
+            antenna : int
+                Which antenna to save the covariance matrix for
+            filename : str
+                Name of file. Should follow the naming scheme:
+                noise_covariance_matrix_<experiment>_<station_id>_<antenna_id>_<date_from>_to_<date_to>
+                e.g.: noise_covariance_matrix_RNOG_station21_antenna6_2023-03-01_to_2023-10-31
+        """
+
+        if self.n_samples%2 == 0:
+            cov_compressed = self.cov[antenna,:int(self.n_samples/2),0]
+        if self.n_samples%2 == 1:
+            cov_compressed = self.cov[antenna,:int(self.n_samples/2)+1,0]
+        object_to_save = np.array([self.sampling_rate, self.n_samples, cov_compressed],dtype=object)
+        np.save(filename, object_to_save)
+
+    def load_covariance_matrices(self, filenames):
+        """
+        Load compressed version (half of one row) of covariance matrices for a all antennas (self.n_antennas) along with the sample rate in GHz. The full covariance matrices are then constructed and assigned to self.cov[:,:,:].
+
+        Parameters
+        ----------
+            filenames : list[str]
+                List of filenames which contain the covariance matrices. Should be of length self.n_antennas.
+        """
+        assert len(filenames) == self.n_antennas, f"Number of filenames ({len(filenames)}) does not match the number of antennas ({self.n_antennas})"
+
+        covariance_matrices = np.zeros([self.n_antennas, self.n_samples, self.n_samples])
+
+        for i, file in enumerate(filenames):
+            cov_sample_rate, cov_n_samples, cov_compressed = np.load(file, allow_pickle=True)
+
+            # Until resampling is implementet, only matching sampling rates and number of samples are allowed:
+            assert cov_sample_rate == self.sampling_rate, f"Sampling rate ({self.sampling_rate}) does not match covariance matrix sampling rate ({cov_sample_rate})"
+            assert cov_n_samples == self.n_samples, f"Number of samples ({self.n_samples}) does not match covariance matrix number of samples ({cov_n_samples})"
+
+            if self.n_samples%2 == 0:
+                cov_one_row = np.zeros(self.n_samples)
+                cov_one_row[:int(self.n_samples/2)] = cov_compressed
+                cov_one_row[int(self.n_samples/2):] = np.flip(cov_compressed)
+            if self.n_samples%2 == 1:
+                cov_one_row = np.zeros(self.n_samples)
+                cov_one_row[:int(self.n_samples/2)+1] = cov_compressed
+                cov_one_row[int(self.n_samples/2)+1:] = np.flip(cov_compressed[:-1])
+            
+            # Construct covariances matrix assuming it is circulant:
+            constructed_covariance_matrix = np.zeros([self.n_samples, self.n_samples])
+            for j in range(self.n_samples):
+                constructed_covariance_matrix[:,j] = np.roll(cov_one_row, j)
+
+            covariance_matrices[i,:,:] = constructed_covariance_matrix
+
+        self._set_covariance_matrices(covariance_matrices)
 
     ### Plotting: ###
 
