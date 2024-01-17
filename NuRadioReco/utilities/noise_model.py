@@ -277,6 +277,37 @@ class NoiseModel:
             covariance_matrices[i,:,:] = constructed_covariance_matrix
 
         self._set_covariance_matrices(covariance_matrices)
+    
+    def calculate_fisher_information_matrix(self, signal_function, paramters_x0, dx):
+        """
+        Calculate Fisher information matrix for a set of parameter values (paramters_x0) which generates a signal using the covariance matrices of the noise. 
+
+        Parameters
+        ----------
+            signal_function : function
+                Function that takes a list of parameter values as input and returns a neutrino signal with dimensions [n_antennas,n_samples]
+            paramters_x0 : list
+                Parameter values for which to calculate the Fisher information matrix
+            dx : list
+                Finite differences to use when calculating derivatives of signal_function with respect to the parameters
+        """
+        n_parameters = len(paramters_x0)
+
+        # Calculate derivatives:
+        derivatives = np.zeros([n_parameters, self.n_antennas, self.n_samples])
+        for i in range(n_parameters):
+            paramters_x1 = np.copy(paramters_x0)
+            paramters_x1[i] = paramters_x0[i] + dx[i]
+            derivatives[i,:,:] = (signal_function(paramters_x1) - signal_function(paramters_x0))/dx[i]
+
+        # Calculate Fisher information matrix
+        fisher_information_matrix = np.zeros([n_parameters,n_parameters])
+        for i in range(n_parameters):
+            for j in range(n_parameters):
+                for k in range(self.n_antennas):
+                    fisher_information_matrix[i,j] += np.matmul(derivatives[i,k,:], np.matmul(self.cov_inv[k,:,:], derivatives[j,k,:]))
+
+        return fisher_information_matrix
 
     ### Plotting: ###
 
