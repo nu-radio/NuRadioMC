@@ -5,6 +5,7 @@ import fractions
 import decimal
 import numbers
 from NuRadioReco.utilities import fft, bandpass_filter
+from NuRadioReco.detector import detector
 import scipy.signal
 import copy
 try:
@@ -69,30 +70,52 @@ class BaseTrace:
             self.__time_domain_up_to_date = False
         return np.copy(self._frequency_spectrum)
 
-    def set_trace(self, trace, sampling_rate):
+    def set_trace(self, trace, sampling_rate=None):
         """
-        sets the time trace
+        Sets the time trace
 
         Parameters
         ----------
-        trace: np.array of floats
-            the time series
-        sampling_rate: float
-            the sampling rage of the trace, i.e., the inverse of the bin width
+        trace : np.array of floats
+            The time series
+        sampling_rate : float (Default: None)
+            The sampling rate of the trace, i.e., the inverse of the bin width.
+            If None, assume sampling rate did not change.
         """
         if trace is not None:
             if trace.shape[trace.ndim - 1] % 2 != 0:
-                raise ValueError(('Attempted to set trace with an uneven number ({}) of samples. '
-                                 'Only traces with an even number of samples are allowed.').format(trace.shape[trace.ndim - 1]))
+                raise ValueError(f'Attempted to set trace with an uneven number ({trace.shape[trace.ndim - 1]}) '
+                                 'of samples. Only traces with an even number of samples are allowed.')
         self.__time_domain_up_to_date = True
         self._time_trace = np.copy(trace)
-        self._sampling_rate = sampling_rate
+
+        if sampling_rate is not None:
+            self._sampling_rate = sampling_rate
+        elif self._sampling_rate is None:
+            raise ValueError("You have to specify a sampling rate for `BaseTrace.set_frequency_spectrum(...)`")
+
         self._frequency_spectrum = None
 
-    def set_frequency_spectrum(self, frequency_spectrum, sampling_rate):
+    def set_frequency_spectrum(self, frequency_spectrum, sampling_rate=None):
+        """
+        Sets the frequency spectrum
+
+        Parameters
+        ----------
+        frequency_spectrum : np.array of floats
+            The frequency spectrum
+        sampling_rate : float (Default: None)
+            The sampling rate of the trace, i.e., the inverse of the bin width.
+            If None, assume sampling rate did not change.
+        """
         self.__time_domain_up_to_date = False
         self._frequency_spectrum = np.copy(frequency_spectrum)
-        self._sampling_rate = sampling_rate
+
+        if sampling_rate is not None:
+            self._sampling_rate = sampling_rate
+        elif self._sampling_rate is None:
+            raise ValueError("You have to specify a sampling rate for `BaseTrace.set_frequency_spectrum(...)`")
+
         self._time_trace = None
 
     def get_sampling_rate(self):
@@ -308,6 +331,8 @@ class BaseTrace:
                 self._frequency_spectrum *= x
                 return self
             raise ValueError('Cant multiply baseTrace with number because no value is set for trace.')
+        elif isinstance(x, detector.rnog_detector.Response):
+            return x * self  # operation defined in detector.rnog_detector.Response
         else:
             raise TypeError('Multiplication of baseTrace object with object of type {} is not defined'.format(type(x)))
 
