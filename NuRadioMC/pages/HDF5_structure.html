@@ -20,6 +20,7 @@
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -615,7 +616,7 @@ the same <code class="docutils literal notranslate"><span class="pre">event_id</
 <ul class="simple">
 <li><p>The top level <a class="reference internal" href="#hdf5-file-attributes"><span class="std std-ref">attributes</span></a>, which can be accessed through <code class="docutils literal notranslate"><span class="pre">f.attrs</span></code>, contain some top-level information about the simulation.</p></li>
 <li><p>The <a class="reference internal" href="#hdf5-file-contents"><span class="std std-ref">individual keys</span></a> contain some properties (energy, vertex, …) for each stored event or shower.</p></li>
-<li><p>Finally, the <code class="docutils literal notranslate"><span class="pre">station_&lt;station_id&gt;</span></code> key contains slightly more detailed information (triggers, propagation times, amplitudes…) at the level of individual channels <a class="reference internal" href="#station-data"><span class="std std-ref">for each station</span></a>.</p></li>
+<li><p>Finally, the <code class="docutils literal notranslate"><span class="pre">station_&lt;station_id&gt;</span></code> key contains slightly more detailed information (triggers, propagation times, amplitudes…) at the level of individual channels <a class="reference internal" href="#station-data"><span class="std std-ref">for each station</span></a>. Each station group has its own attributes (<code class="docutils literal notranslate"><span class="pre">f[station_&lt;station_id&gt;].attrs</span></code>)</p></li>
 </ul>
 <section id="hdf5-file-attributes">
 <h3>HDF5 file attributes<a class="headerlink" href="#hdf5-file-attributes" title="Permalink to this heading"></a></h3>
@@ -668,12 +669,6 @@ the same <code class="docutils literal notranslate"><span class="pre">event_id</
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tnoise</span></code></p></td>
 <td><p>(explicit) noise temperature used in simulation</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Vrms</span></code></p></td>
-<td><p>RMS of the voltage used as thermal noise floor. Determine from <code class="docutils literal notranslate"><span class="pre">Tnoise</span></code> and <code class="docutils literal notranslate"><span class="pre">bandwidth</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bandwidth</span></code></p></td>
-<td><p>Bandwidth of the antennas/detector (for triggering)</p></td>
-</tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">n_samples</span></code></p></td>
 <td><p>Samples of the to-be generated antenna signals</p></td>
 </tr>
@@ -692,14 +687,36 @@ the same <code class="docutils literal notranslate"><span class="pre">event_id</
 </tbody>
 </table>
 </div></blockquote>
+<p>The station-level attributes can be accessed using <code class="docutils literal notranslate"><span class="pre">f[station_&lt;station_id&gt;].attrs</span></code>. The first two attributes <code class="docutils literal notranslate"><span class="pre">Vrms</span></code> and <code class="docutils literal notranslate"><span class="pre">bandwidth</span></code> also exist on the top-level and refer to the corresponding to the first station/channel pair.</p>
+<blockquote>
+<div><span id="hdf5-station-attrs-table"></span><table class="docutils align-default" id="id2">
+<caption><span class="caption-text">HDF5 station attributes</span><a class="headerlink" href="#id2" title="Permalink to this table"></a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Vrms</span></code></p></td>
+<td><p>RMS of the voltage used as thermal noise floor <span class="math notranslate nohighlight">\(v_{n} = (k_{B} \, R \, T \, \Delta f) ^ {0.5}\)</span>. See the relevant section “Noise voltage and power” in this <a class="reference external" href="https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise">wiki article</a> (last two equations). Determine from <code class="docutils literal notranslate"><span class="pre">Tnoise</span></code> and <code class="docutils literal notranslate"><span class="pre">bandwidth</span></code> (see below).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bandwidth</span></code></p></td>
+<td><p>Bandwidth is above equation. Calculated as the integral over the simulated filter response (<em class="xref py py-obj">filt</em>) squared: <span class="math notranslate nohighlight">\(\Delta f = np.trapz(np.abs(filt) ** 2, ff)\)</span>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">antenna_positions</span></code></p></td>
+<td><p>Relative position of all simulated antennas (channels)</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
 </section>
 <section id="hdf5-file-contents">
 <h3>HDF5 file contents<a class="headerlink" href="#hdf5-file-contents" title="Permalink to this heading"></a></h3>
 <p>The HDF5 file contains the following items. Listed are the <code class="docutils literal notranslate"><span class="pre">key</span></code> and the <code class="docutils literal notranslate"><span class="pre">shape</span></code> of each HDF5 dataset, where <code class="docutils literal notranslate"><span class="pre">n_events</span></code> is the number of events stored in the file and <code class="docutils literal notranslate"><span class="pre">n_showers</span></code>
 is the number of showers (which may be larger than the number of events), and <code class="docutils literal notranslate"><span class="pre">n_triggers</span></code> is the number of different triggers simulated. Each “row” correspond to a particle shower which can produce radio emission.</p>
 <blockquote>
-<div><span id="hdf5-items-table"></span><table class="docutils align-default" id="id2">
-<caption><span class="caption-text">HDF5 items</span><a class="headerlink" href="#id2" title="Permalink to this table"></a></caption>
+<div><span id="hdf5-items-table"></span><table class="docutils align-default" id="id3">
+<caption><span class="caption-text">HDF5 items</span><a class="headerlink" href="#id3" title="Permalink to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Key</p></th>
 <th class="head"><p>Shape</p></th>
@@ -792,8 +809,8 @@ The <code class="docutils literal notranslate"><span class="pre">event_group_id<
 an <code class="docutils literal notranslate"><span class="pre">event_group_id</span></code> which stations contain the same <code class="docutils literal notranslate"><span class="pre">event_group_id</span></code> and retrieve the information, which
 station triggered, with which amplitude, etc. The same approach works for <code class="docutils literal notranslate"><span class="pre">shower_id</span></code>.</p>
 <blockquote>
-<div><span id="hdf5-station-table"></span><table class="docutils align-default" id="id3">
-<caption><span class="caption-text">HDF5 station items</span><a class="headerlink" href="#id3" title="Permalink to this table"></a></caption>
+<div><span id="hdf5-station-table"></span><table class="docutils align-default" id="id4">
+<caption><span class="caption-text">HDF5 station items</span><a class="headerlink" href="#id4" title="Permalink to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Key</p></th>
 <th class="head"><p>Shape</p></th>
