@@ -583,9 +583,9 @@
 
 
 <div class="viewcode-block" id="get_signal"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.get_signal">[docs]</a><span class="k">def</span> <span class="nf">get_signal</span><span class="p">(</span><span class="n">sum_trace</span><span class="p">,</span> <span class="n">tstep</span><span class="p">,</span> <span class="n">window_width</span><span class="o">=</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;power&quot;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; </span>
-<span class="sd">    Calculates signal quantity from beam-formed waveform </span>
-<span class="sd">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates signal quantity from beam-formed waveform</span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
@@ -594,13 +594,13 @@
 
 <span class="sd">    tstep : double</span>
 <span class="sd">        Sampling bin size</span>
-<span class="sd">    </span>
+
 <span class="sd">    window_width : double</span>
-<span class="sd">        Time window size to calculate power </span>
+<span class="sd">        Time window size to calculate power</span>
 
 <span class="sd">    kind : str</span>
 <span class="sd">        Key-word what to do: &quot;amplitude&quot;, &quot;power&quot;, or &quot;hilbert_sum&quot;</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 
@@ -643,11 +643,11 @@
 
 
 <div class="viewcode-block" id="interfere_traces_interpolation"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.interfere_traces_interpolation">[docs]</a><span class="k">def</span> <span class="nf">interfere_traces_interpolation</span><span class="p">(</span><span class="n">target_pos</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate sum of time shifted waveforms.</span>
 
 <span class="sd">    Performs a linear interpolation between samples.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
@@ -665,7 +665,7 @@
 
 <span class="sd">    tab : radiotools.atmosphere.refractivity.RefractivityTable</span>
 <span class="sd">        Tabulated table of the avg. refractive index between two points</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 
@@ -706,9 +706,9 @@
 
 <div class="viewcode-block" id="get_time_shifts"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.get_time_shifts">[docs]</a><span class="k">def</span> <span class="nf">get_time_shifts</span><span class="p">(</span><span class="n">target_pos</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Calculates the time delay of an electromagnetic wave along a straight trajectories between </span>
+<span class="sd">    Calculates the time delay of an electromagnetic wave along a straight trajectories between</span>
 <span class="sd">    a source/traget location and several observers.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
@@ -726,7 +726,7 @@
 
 <span class="sd">    tshifts : np.array(n,)</span>
 <span class="sd">        Time delay in sec</span>
-<span class="sd">    </span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">tshifts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">))</span>
@@ -742,13 +742,13 @@
 
 
 <div class="viewcode-block" id="fit_axis"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.fit_axis">[docs]</a><span class="k">def</span> <span class="nf">fit_axis</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">coreX</span><span class="p">,</span> <span class="n">coreY</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Predicts the intersetction of an axis/line with horizontal layers at different heights.</span>
 
 <span class="sd">    Line is described by an anchor on a horizontal plane (coreX, coreY) and a direction</span>
 <span class="sd">    in spherical coordinates (theta, phi).</span>
 
-<span class="sd">    Returns the position/intersection of the line with flat horizontal layers at </span>
+<span class="sd">    Returns the position/intersection of the line with flat horizontal layers at</span>
 <span class="sd">    given height(s) z. Resulting array (positions) is flatten.</span>
 
 <span class="sd">    Parameters</span>
@@ -804,7 +804,7 @@
 <span class="sd">        Anchor of this line</span>
 
 <span class="sd">    epsilon : double</span>
-<span class="sd">        Numerical precision </span>
+<span class="sd">        Numerical precision</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>

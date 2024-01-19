@@ -573,7 +573,7 @@
   <h1>Source code for NuRadioReco.modules.efieldRadioInterferometricReconstruction</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">NuRadioReco.modules.base.module</span> <span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">from</span> <span class="nn">NuRadioReco.utilities</span> <span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">interferometry</span>
-<span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
+
 <span class="kn">from</span> <span class="nn">NuRadioReco.framework.parameters</span> <span class="kn">import</span> <span class="n">showerParameters</span> <span class="k">as</span> <span class="n">shp</span>
 
 <span class="kn">from</span> <span class="nn">radiotools</span> <span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span><span class="p">,</span> <span class="n">coordinatesystems</span>
@@ -589,12 +589,12 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;efieldRadioInterferometricReconstruction&#39;</span><span class="p">)</span>
 
-<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module hosts to classes</span>
 <span class="sd">    - efieldInterferometricDepthReco</span>
 <span class="sd">    - efieldInterferometricAxisReco (TODO: Not yet implemented)</span>
 
-<span class="sd">The radio-interferometric reconstruction (RIT) was proposed in [1]. </span>
+<span class="sd">The radio-interferometric reconstruction (RIT) was proposed in [1].</span>
 <span class="sd">The implementation here is based on work published in [2].</span>
 
 <span class="sd">[1]: H. Schoorlemmer, W. R. Carvalho Jr., arXiv:2006.10348</span>
@@ -604,12 +604,12 @@
 
 <div class="viewcode-block" id="efieldInterferometricDepthReco"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco">[docs]</a><span class="k">class</span> <span class="nc">efieldInterferometricDepthReco</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This class reconstructs the depth of the maximum of the longitudinal profile of the </span>
-<span class="sd">    beam-formed radio emission: X_RIT along a given axis. X_RIT is found to correlate with X_max. </span>
+<span class="sd">    This class reconstructs the depth of the maximum of the longitudinal profile of the</span>
+<span class="sd">    beam-formed radio emission: X_RIT along a given axis. X_RIT is found to correlate with X_max.</span>
 <span class="sd">    This correlation may depend on the zenith angle, the frequency band, and detector layout</span>
 <span class="sd">    (if the detector is very irregular).</span>
 
-<span class="sd">    For the reconstruction, a shower axis is needed. The radio emission in the vxB polarisation is used </span>
+<span class="sd">    For the reconstruction, a shower axis is needed. The radio emission in the vxB polarisation is used</span>
 <span class="sd">    (and thus the arrival direction is needed).</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -635,7 +635,7 @@
 
 <span class="sd">        signal_kind : str</span>
 <span class="sd">            Define which signal &quot;metric&quot; is used on the beamformed traces. Default &quot;power&quot; : sum over the squared amplitudes in a 100 ns window around the peak.</span>
-<span class="sd">            Other options are &quot;amplitude&quot; or &quot;hilbert_sum&quot; </span>
+<span class="sd">            Other options are &quot;amplitude&quot; or &quot;hilbert_sum&quot;</span>
 
 <span class="sd">        debug : bool</span>
 <span class="sd">            If true, show some debug plots (Default: False).</span>
@@ -652,7 +652,7 @@
             <span class="bp">self</span><span class="p">,</span> <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">station_positions</span><span class="p">,</span>
             <span class="n">shower_axis</span><span class="p">,</span> <span class="n">core</span><span class="p">,</span> <span class="n">depths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distances</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the longitudinal profile of the interferometic signal sampled along the shower axis. </span>
+<span class="sd">        Returns the longitudinal profile of the interferometic signal sampled along the shower axis.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -673,7 +673,7 @@
 <span class="sd">            Shower core. Keep in mind that the altitudes (z-coordinate) matters.</span>
 
 <span class="sd">        depths : array (optinal)</span>
-<span class="sd">            Define the positions (slant depth along the axis) at which the interferometric signal is sampled. </span>
+<span class="sd">            Define the positions (slant depth along the axis) at which the interferometric signal is sampled.</span>
 <span class="sd">            Instead of &quot;depths&quot; you can provide &quot;distances&quot;.</span>
 
 <span class="sd">        distances : array (optinal)</span>
@@ -682,7 +682,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd"> </span>
+
 <span class="sd">        signals : array</span>
 <span class="sd">            Interferometric singals sampled along the given axis</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -738,9 +738,9 @@
             <span class="bp">self</span><span class="p">,</span> <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">station_positions</span><span class="p">,</span> <span class="n">shower_axis</span><span class="p">,</span> <span class="n">core</span><span class="p">,</span>
             <span class="n">lower_depth</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">upper_depth</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">bin_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">return_profile</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns Gauss-parameters fitted to the &quot;peak&quot; of the interferometic </span>
+<span class="sd">        Returns Gauss-parameters fitted to the &quot;peak&quot; of the interferometic</span>
 <span class="sd">        longitudinal profile along the shower axis.</span>
-<span class="sd">        </span>
+
 <span class="sd">        A initial samping range and size in defined by &quot;lower_depth&quot;, &quot;upper_depth&quot;, &quot;bin_size&quot;.</span>
 <span class="sd">        However if the &quot;peak&quot;, i.e., maximum signal is found at an edge the sampling range in</span>
 <span class="sd">        continually increased (with a min/max depth of 0/2000 g/cm^2). The Gauss is fitted around the</span>
@@ -774,26 +774,26 @@
 <span class="sd">            Define the step size pf the inital sampling (default: 100 g/cm2).</span>
 <span class="sd">            The refined sampling around the peak region is / 10 this value.</span>
 
-<span class="sd">        return_profile : bool </span>
+<span class="sd">        return_profile : bool</span>
 <span class="sd">            If true return the sampled profile in addition to the Gauss parameter (default: False).</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        </span>
+
 <span class="sd">        If return_profile is True</span>
-<span class="sd">            </span>
+
 <span class="sd">            depths_corse : np.array</span>
 <span class="sd">                Depths along shower axis coarsely sampled</span>
-<span class="sd">            </span>
+
 <span class="sd">            depths_fine : np.array</span>
 <span class="sd">                Depths along shower axis finely sampled (used in fitting)</span>
-<span class="sd">            </span>
+
 <span class="sd">            signals_corese : np.array</span>
 <span class="sd">                Beamformed signals along shower axis coarsely sampled</span>
-<span class="sd">            </span>
+
 <span class="sd">            signals_fine : np.array</span>
 <span class="sd">                Beamformed signals along shower axis finely sampled (used in fitting)</span>
-<span class="sd">                    </span>
+
 <span class="sd">            popt : list</span>
 <span class="sd">                List of fitted Gauss parameters (amplitude, position, width)</span>
 
@@ -801,7 +801,7 @@
 
 <span class="sd">            popt : list</span>
 <span class="sd">                List of fitted Gauss parameters (amplitude, position, width)</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">depths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">lower_depth</span><span class="p">,</span> <span class="n">upper_depth</span><span class="p">,</span> <span class="n">bin_size</span><span class="p">)</span>
@@ -853,7 +853,7 @@
 
 
 <div class="viewcode-block" id="efieldInterferometricDepthReco.update_atmospheric_model_and_refractivity_table"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.update_atmospheric_model_and_refractivity_table">[docs]</a>    <span class="k">def</span> <span class="nf">update_atmospheric_model_and_refractivity_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shower</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Updates model of the atmosphere and tabulated, integrated refractive index according to shower properties.</span>
 
 <span class="sd">        Parameters</span>
@@ -871,18 +871,18 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_at</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Atmosphere</span><span class="p">(</span><span class="n">shower</span><span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">atmospheric_model</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_tab</span> <span class="o">=</span> <span class="n">refractivity</span><span class="o">.</span><span class="n">RefractivityTable</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_at</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">refractivity_at_sea_level</span><span class="o">=</span><span class="n">shower</span><span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">refractive_index_at_ground</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">curved</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        
+
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tab</span><span class="o">.</span><span class="n">_refractivity_at_sea_level</span> <span class="o">!=</span> <span class="n">shower</span><span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">refractive_index_at_ground</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_tab</span> <span class="o">=</span> <span class="n">refractivity</span><span class="o">.</span><span class="n">RefractivityTable</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_at</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">refractivity_at_sea_level</span><span class="o">=</span><span class="n">shower</span><span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">refractive_index_at_ground</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">curved</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        
+
         <span class="k">else</span><span class="p">:</span>
             <span class="k">pass</span></div>
 
 
 <div class="viewcode-block" id="efieldInterferometricDepthReco.run"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">use_MC_geometry</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_MC_pulses</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run interferometric reconstruction of depth of coherent signal.</span>
 
 <span class="sd">        Parameters</span>
@@ -890,7 +890,7 @@
 
 <span class="sd">        evt : Event</span>
 <span class="sd">            Event to run the module on.</span>
-<span class="sd">        </span>
+
 <span class="sd">        det : Detector</span>
 <span class="sd">            Detector description</span>
 
@@ -901,7 +901,7 @@
 <span class="sd">            if true, take electric field trace from sim_station</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="c1"># TODO: Mimic imperfect time syncronasation by adding a time jitter here? </span>
+        <span class="c1"># TODO: Mimic imperfect time syncronasation by adding a time jitter here?</span>
 
         <span class="c1"># TODO: Make it more flexible. Choose shower from which the geometry and atmospheric properties are taken.</span>
         <span class="c1"># Also store xrit in this shower.</span>
@@ -909,7 +909,7 @@
             <span class="n">shower</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_first_sim_shower</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">shower</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_first_shower</span><span class="p">()</span>
-        
+
         <span class="bp">self</span><span class="o">.</span><span class="n">update_atmospheric_model_and_refractivity_table</span><span class="p">(</span><span class="n">shower</span><span class="p">)</span>
         <span class="n">core</span><span class="p">,</span> <span class="n">shower_axis</span><span class="p">,</span> <span class="n">cs</span> <span class="o">=</span> <span class="n">get_geometry_and_transformation</span><span class="p">(</span><span class="n">shower</span><span class="p">)</span>
 
@@ -936,7 +936,7 @@
         <span class="n">shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">interferometric_shower_maximum</span><span class="p">,</span> <span class="n">xrit</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">g</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">cm2</span><span class="p">)</span>
 
         <span class="c1">#TODO: Add calibration Xmax(Xrit, theta, ...)?</span>
-        
+
         <span class="c1"># for plotting</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;xrit&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xrit</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;xmax&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shower</span><span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">shower_maximum</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">g</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">cm2</span><span class="p">))</span>
@@ -961,7 +961,7 @@
 
 <div class="viewcode-block" id="efieldInterferometricAxisReco"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco">[docs]</a><span class="k">class</span> <span class="nc">efieldInterferometricAxisReco</span><span class="p">(</span><span class="n">efieldInterferometricDepthReco</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Class to reconstruct the shower axis with beamforming.     </span>
+<span class="sd">    Class to reconstruct the shower axis with beamforming.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -970,7 +970,7 @@
 <div class="viewcode-block" id="efieldInterferometricAxisReco.find_maximum_in_plane"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.find_maximum_in_plane">[docs]</a>    <span class="k">def</span> <span class="nf">find_maximum_in_plane</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">p_axis</span><span class="p">,</span> <span class="n">station_positions</span><span class="p">,</span> <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">cs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sample interferometric signals in 2-d plane (vxB-vxvxB) perpendicular to a given axis on a rectangular/quadratic grid.</span>
-<span class="sd">        The orientation of the plane is defined by the radiotools.coordinatesytem.cstrafo argument. </span>
+<span class="sd">        The orientation of the plane is defined by the radiotools.coordinatesytem.cstrafo argument.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1030,9 +1030,9 @@
             <span class="n">relative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">initial_grid_spacing</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">centered_around_truth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">cross_section_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">deg_resolution</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mf">0.005</span><span class="p">)):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Sampling the &quot;cross section&quot;, i.e., 2d-lateral distribution of the beam formed signal for a slice in the atmosphere. </span>
-<span class="sd">        It is looking for the maximum in the lateral distribution with an (stupid) iterative grid search. </span>
-<span class="sd">        </span>
+<span class="sd">        Sampling the &quot;cross section&quot;, i.e., 2d-lateral distribution of the beam formed signal for a slice in the atmosphere.</span>
+<span class="sd">        It is looking for the maximum in the lateral distribution with an (stupid) iterative grid search.</span>
+
 <span class="sd">        Returns the position and the strenght of the maximum signal.</span>
 
 <span class="sd">        Parameters</span>
@@ -1059,33 +1059,33 @@
 <span class="sd">        cs : radiotools.coordinatesytem.cstrafo</span>
 
 <span class="sd">        shower_axis_mc : np.array(3,)</span>
-<span class="sd">        </span>
+
 <span class="sd">        core_mc : np.array(3,)</span>
 
 <span class="sd">        relative : bool</span>
 <span class="sd">            False</span>
-<span class="sd">            </span>
+
 <span class="sd">        initial_grid_spacing : int</span>
 <span class="sd">            100</span>
-<span class="sd">        </span>
+
 <span class="sd">        centered_around_truth : bool</span>
 <span class="sd">            True</span>
 
 <span class="sd">        cross_section_size : int</span>
 <span class="sd">            1000</span>
-<span class="sd">            </span>
+
 <span class="sd">        deg_resolution : float</span>
 <span class="sd">            np.deg2rad(0.005))</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        </span>
+
 <span class="sd">        point_found : np.array(3,)</span>
 <span class="sd">            Position of the found maximum</span>
 
 <span class="sd">        weight : float</span>
 <span class="sd">            Amplitude/Strengt of the maximum</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">zenith_inital</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">cartesian_to_spherical</span><span class="p">(</span>
@@ -1174,7 +1174,7 @@
 
 
 <div class="viewcode-block" id="efieldInterferometricAxisReco.reconstruct_shower_axis"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.reconstruct_shower_axis">[docs]</a>    <span class="k">def</span> <span class="nf">reconstruct_shower_axis</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> 
+            <span class="bp">self</span><span class="p">,</span>
             <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">station_positions</span><span class="p">,</span>
             <span class="n">shower_axis</span><span class="p">,</span> <span class="n">core</span><span class="p">,</span>
             <span class="n">magnetic_field_vector</span><span class="p">,</span>
@@ -1182,7 +1182,7 @@
             <span class="n">initial_grid_spacing</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
             <span class="n">cross_section_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Run interferometric reconstruction of the shower axis. Find the maxima of the interferometric signals </span>
+<span class="sd">        Run interferometric reconstruction of the shower axis. Find the maxima of the interferometric signals</span>
 <span class="sd">        within 2-d plane (slices) along a given axis (initial guess). Through those maxima (their position in the</span>
 <span class="sd">        atmosphere) a straight line is fitted to reconstruct the shower axis.</span>
 
@@ -1207,8 +1207,8 @@
 
 <span class="sd">        is_mc : bool</span>
 <span class="sd">            If true, interprete the provided shower axis as truth and add some gaussian smearing to optain an</span>
-<span class="sd">            inperfect initial guess for the shower axis (Default: True). </span>
-<span class="sd">        </span>
+<span class="sd">            inperfect initial guess for the shower axis (Default: True).</span>
+
 <span class="sd">        initial_grid_spacing : double</span>
 <span class="sd">            Spacing of your grid points in meters (Default: 60m)</span>
 
@@ -1217,7 +1217,7 @@
 <span class="sd">            (Default: 1000m).</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        
+
 
         <span class="k">if</span> <span class="n">is_mc</span><span class="p">:</span>
             <span class="n">zenith_mc</span><span class="p">,</span> <span class="n">azimuth_mc</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">cartesian_to_spherical</span><span class="p">(</span><span class="o">*</span><span class="n">shower_axis</span><span class="p">)</span>
@@ -1229,8 +1229,8 @@
                 <span class="n">zenith</span><span class="o">=</span><span class="n">zenith_inital</span><span class="p">,</span> <span class="n">azimuth</span><span class="o">=</span><span class="n">azimuth_inital</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">shower_axis_inital</span> <span class="o">=</span> <span class="n">shower_axis</span> 
-            <span class="n">core_inital</span> <span class="o">=</span> <span class="n">core</span> 
+            <span class="n">shower_axis_inital</span> <span class="o">=</span> <span class="n">shower_axis</span>
+            <span class="n">core_inital</span> <span class="o">=</span> <span class="n">core</span>
             <span class="n">zenith_inital</span><span class="p">,</span> <span class="n">azimuth_inital</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">cartesian_to_spherical</span><span class="p">(</span>
                 <span class="o">*</span><span class="n">shower_axis</span><span class="p">)</span>
 
@@ -1240,7 +1240,7 @@
 
         <span class="n">cs</span> <span class="o">=</span> <span class="n">coordinatesystems</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span>
             <span class="n">zenith_inital</span><span class="p">,</span> <span class="n">azimuth_inital</span><span class="p">,</span> <span class="n">magnetic_field_vector</span><span class="o">=</span><span class="n">magnetic_field_vector</span><span class="p">)</span>
-        
+
         <span class="k">if</span> <span class="n">is_mc</span><span class="p">:</span>
             <span class="n">core_inital</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">transform_from_vxB_vxvxB_2D</span><span class="p">(</span>
                 <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">core</span><span class="p">)</span>
@@ -1255,15 +1255,15 @@
         <span class="n">centered_around_truth</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="k">def</span> <span class="nf">sample_lateral_cross_section_placeholder</span><span class="p">(</span><span class="n">dep</span><span class="p">):</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Run sample_lateral_cross_section for a particular depth.</span>
-<span class="sd">            </span>
+
 <span class="sd">            Parameters</span>
 <span class="sd">            ----------</span>
 
 <span class="sd">            dep : double</span>
 <span class="sd">                Depth along the axis at which the cross section is sampled in g/cm2.</span>
-<span class="sd">            </span>
+
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_lateral_cross_section</span><span class="p">(</span>
                 <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">station_positions</span><span class="p">,</span>
@@ -1318,7 +1318,7 @@
 
 <div class="viewcode-block" id="efieldInterferometricAxisReco.run"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricAxisReco.run">[docs]</a>    <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">use_MC_geometry</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_MC_pulses</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run interferometric reconstruction of depth of coherent signal.</span>
 
 <span class="sd">        Parameters</span>
@@ -1326,7 +1326,7 @@
 
 <span class="sd">        evt : Event</span>
 <span class="sd">            Event to run the module on.</span>
-<span class="sd">        </span>
+
 <span class="sd">        det : Detector</span>
 <span class="sd">            Detector description</span>
 
@@ -1363,7 +1363,7 @@
 
 
 <div class="viewcode-block" id="get_geometry_and_transformation"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.get_geometry_and_transformation">[docs]</a><span class="k">def</span> <span class="nf">get_geometry_and_transformation</span><span class="p">(</span><span class="n">shower</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns core (def. as intersection between shower axis and observation plane,</span>
 <span class="sd">    shower axis, and radiotools.coordinatesytem for given shower.</span>
 
@@ -1392,9 +1392,9 @@
 
 
 <div class="viewcode-block" id="get_station_data"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.get_station_data">[docs]</a><span class="k">def</span> <span class="nf">get_station_data</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">use_MC_pulses</span><span class="p">,</span> <span class="n">n_sampling</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns station data in a proper format</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
@@ -1412,15 +1412,15 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    </span>
+
 <span class="sd">    traces_vxB : np.array</span>
 <span class="sd">        The electric field traces in the vxB polarisation (takes first electric field stored in a station) for all stations/observers.</span>
 
-<span class="sd">    times : mp.array  </span>
+<span class="sd">    times : mp.array</span>
 <span class="sd">        The electric field traces time series for all stations/observers.</span>
-<span class="sd">        </span>
+
 <span class="sd">    pos : np.array</span>
-<span class="sd">        Positions for all stations/observers. </span>
+<span class="sd">        Positions for all stations/observers.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">traces_vxB</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1442,11 +1442,11 @@
                 <span class="n">hw</span> <span class="o">=</span> <span class="n">n_sampling</span> <span class="o">//</span> <span class="mi">2</span>
                 <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">trace_vxB</span><span class="p">))</span>
 
-                <span class="k">if</span> <span class="n">m</span> <span class="o">&lt;</span> <span class="n">hw</span><span class="p">:</span> 
+                <span class="k">if</span> <span class="n">m</span> <span class="o">&lt;</span> <span class="n">hw</span><span class="p">:</span>
                     <span class="n">m</span> <span class="o">=</span> <span class="n">hw</span>
                 <span class="k">if</span> <span class="n">m</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace_vxB</span><span class="p">)</span> <span class="o">-</span> <span class="n">hw</span><span class="p">:</span>
                     <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace_vxB</span><span class="p">)</span> <span class="o">-</span> <span class="n">hw</span>
-                
+
                 <span class="n">trace_vxB</span> <span class="o">=</span> <span class="n">trace_vxB</span><span class="p">[</span><span class="n">m</span><span class="o">-</span><span class="n">hw</span><span class="p">:</span><span class="n">m</span><span class="o">+</span><span class="n">hw</span><span class="p">]</span>
                 <span class="n">time</span> <span class="o">=</span> <span class="n">time</span><span class="p">[</span><span class="n">m</span><span class="o">-</span><span class="n">hw</span><span class="p">:</span><span class="n">m</span><span class="o">+</span><span class="n">hw</span><span class="p">]</span>
 
@@ -1455,7 +1455,7 @@
             <span class="k">break</span>  <span class="c1"># just take the first efield. TODO: Improve this</span>
 
         <span class="n">pos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">det</span><span class="o">.</span><span class="n">get_absolute_position</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()))</span>
-    
+
     <span class="n">traces_vxB</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">traces_vxB</span><span class="p">)</span>
     <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
     <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
@@ -1464,7 +1464,7 @@
 
 
 <div class="viewcode-block" id="plot_lateral_cross_section"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldRadioInterferometricReconstruction.html#NuRadioReco.modules.efieldRadioInterferometricReconstruction.plot_lateral_cross_section">[docs]</a><span class="k">def</span> <span class="nf">plot_lateral_cross_section</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">signals</span><span class="p">,</span> <span class="n">mc_pos</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot the lateral distribution of the beamformed singal (in the vxB, vxvxB directions).</span>
 
 <span class="sd">    Parameters</span>
@@ -1474,7 +1474,7 @@
 <span class="sd">        Positions on x-axis (vxB) at which the signal is sampled (on a 2d grid)</span>
 
 <span class="sd">    ys : np.array</span>
-<span class="sd">        Positions on y-axis (vxvxB) at which the signal is sampled (on a 2d grid)   </span>
+<span class="sd">        Positions on y-axis (vxvxB) at which the signal is sampled (on a 2d grid)</span>
 
 <span class="sd">    signals : np.array</span>
 <span class="sd">        Signals sampled on the 2d grid defined by xs and ys.</span>

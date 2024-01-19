@@ -616,17 +616,17 @@
 
 <div class="viewcode-block" id="BaseShower.get_axis"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower.get_axis">[docs]</a>    <span class="k">def</span> <span class="nf">get_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the (shower) axis. </span>
-<span class="sd">        </span>
+<span class="sd">        Returns the (shower) axis.</span>
+
 <span class="sd">        The axis is antiparallel to the movement of the shower particla and point</span>
 <span class="sd">        towards the origin of the shower.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        np.array(3,)  </span>
+<span class="sd">        np.array(3,)</span>
 <span class="sd">            Shower axis</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span> <span class="ow">or</span> \
            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">):</span>
@@ -639,18 +639,18 @@
                                          <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="BaseShower.get_coordinatesystem"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower.get_coordinatesystem">[docs]</a>    <span class="k">def</span> <span class="nf">get_coordinatesystem</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns radiotools.coordinatesystem.cstrafo for shower geometry.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Can be used to transform the radio pulses or the observer coordiates</span>
-<span class="sd">        in the shower frame. Requieres the shower arrival direction </span>
+<span class="sd">        in the shower frame. Requieres the shower arrival direction</span>
 <span class="sd">        (azimuth and zenith angle) and magnetic field vector (parameters.showerParameters).</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
 <span class="sd">        radiotools.coordinatesystem.cstrafo</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span> <span class="ow">or</span> \
            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span> <span class="ow">or</span> \

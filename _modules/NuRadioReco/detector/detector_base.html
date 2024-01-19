@@ -713,7 +713,7 @@
 <span class="sd">        is returned. To force the creation of a new detector instance, pass the additional keyword parameter</span>
 <span class="sd">        `create_new=True` to this function. For more details, check the documentation for the</span>
 <span class="sd">        `Singleton metaclass &lt;NuRadioReco.utilities.html#NuRadioReco.utilities.metaclasses.Singleton&gt;`_.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        source : str</span>
@@ -804,7 +804,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="o">.</span><span class="n">search</span><span class="p">((</span><span class="n">Channel</span><span class="o">.</span><span class="n">station_id</span> <span class="o">==</span> <span class="n">station_id</span><span class="p">)</span>
                                      <span class="o">&amp;</span> <span class="p">(</span><span class="n">Channel</span><span class="o">.</span><span class="n">commission_time</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="o">.</span><span class="n">datetime</span><span class="p">)</span>
                                      <span class="o">&amp;</span> <span class="p">(</span><span class="n">Channel</span><span class="o">.</span><span class="n">decommission_time</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="o">.</span><span class="n">datetime</span><span class="p">))</span>
-                                     
+
     <span class="k">def</span> <span class="nf">_query_devices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">Device</span> <span class="o">=</span> <span class="n">Query</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -878,13 +878,13 @@
         <span class="k">if</span> <span class="n">station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_stations</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_channels</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">channel_id</span><span class="p">]</span>
-        
-        
+
+
     <span class="k">def</span> <span class="nf">__get_devices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_stations</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_devices</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span>
-        
+
     <span class="k">def</span> <span class="nf">__get_device</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">device_id</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_stations</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
@@ -906,7 +906,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_devices</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">device</span><span class="p">[</span><span class="s1">&#39;device_id&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">device</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__valid_t0</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__valid_t0</span><span class="p">,</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">channel</span><span class="p">[</span><span class="s1">&#39;commission_time&#39;</span><span class="p">]))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__valid_t1</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__valid_t1</span><span class="p">,</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">channel</span><span class="p">[</span><span class="s1">&#39;decommission_time&#39;</span><span class="p">]))</span>
-        
+
 
     <span class="k">def</span> <span class="nf">__buffer_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position_id</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_positions</span><span class="p">[</span><span class="n">position_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__query_position</span><span class="p">(</span><span class="n">position_id</span><span class="p">)</span>
@@ -984,6 +984,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span> <span class="o">=</span> <span class="n">time</span>
+
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;updating detector time to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__valid_t0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__valid_t1</span><span class="p">)):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_buffered_stations</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1013,8 +1014,8 @@
 <span class="sd">        dict of channel parameters</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span></div>
-        
-        
+
+
 <div class="viewcode-block" id="DetectorBase.get_device"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_device">[docs]</a>    <span class="k">def</span> <span class="nf">get_device</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">device_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns a dictionary of all device parameters</span>
@@ -1103,11 +1104,14 @@
 <span class="sd">        -------</span>
 <span class="sd">        3-dim array of relative station position</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;channel&#39;</span><span class="p">:</span> <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;device&#39;</span><span class="p">:</span> <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_device</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span> 
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;channel&#39;</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;device&#39;</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_device</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Mode </span><span class="si">{}</span><span class="s2"> does not exist. Use &#39;channel&#39; or &#39;device&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
             <span class="k">raise</span> <span class="ne">NameError</span>
+
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;ant_position_x&#39;</span><span class="p">],</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;ant_position_y&#39;</span><span class="p">],</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;ant_position_z&#39;</span><span class="p">]])</span></div>
 
 <div class="viewcode-block" id="DetectorBase.get_site"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_site">[docs]</a>    <span class="k">def</span> <span class="nf">get_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
@@ -1212,10 +1216,10 @@
                             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
                                 <span class="n">parallel_antennas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel_ids</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">parallel_antennas</span><span class="p">)</span></div>
-        
-        
-        
-        
+
+
+
+
 <div class="viewcode-block" id="DetectorBase.get_number_of_devices"><a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.get_number_of_devices">[docs]</a>    <span class="k">def</span> <span class="nf">get_number_of_devices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the number of devices per station</span>
@@ -1494,7 +1498,7 @@
 <span class="sd">        stage: string (default &#39;amp&#39;)</span>
 <span class="sd">            specifies the stage of reconstruction you want the noise RMS for,</span>
 <span class="sd">            `stage` can be one of</span>
-<span class="sd">            </span>
+
 <span class="sd">             * &#39;raw&#39; (raw measured trace)</span>
 <span class="sd">             * &#39;amp&#39; (after the amp was deconvolved)</span>
 <span class="sd">             * &#39;filt&#39; (after the trace was highpass with 100MHz</span>
