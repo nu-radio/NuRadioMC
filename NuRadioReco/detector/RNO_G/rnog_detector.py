@@ -1212,7 +1212,6 @@ class Response:
             time_delay = 0
 
         y_phase = np.unwrap(y_phase)
-        # print(y_phase == y_phase_orig)
 
         self.__gains = [interpolate.interp1d(
             self.__frequency, gain, kind="linear", bounds_error=False, fill_value=0)]
@@ -1331,7 +1330,7 @@ class Response:
             spec = other.get_frequency_spectrum()
             freqs = other.get_frequencies()
             spec *= self(freqs)  # __call__
-            other.set_trace_start_time(np.sum(self.__time_delays))
+            other.add_trace_start_time(np.sum(self.__time_delays))
             other.set_frequency_spectrum(spec)
             return other
 
