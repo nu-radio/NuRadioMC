@@ -919,7 +919,7 @@
 <span class="sd">        * &#39;GZK-1+IceCube-nu-2017&#39;: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</span>
 <span class="sd">        * &#39;GZK-1+IceCube-nu-2022&#39;: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux</span>
 <span class="sd">        * &#39;GZK-2+IceCube-nu-2022&#39;: a combination of the cosmogenic (GZK-2) and astrophysical (IceCube nu 2022) flux</span>
-<span class="sd">        </span>
+
 <span class="sd">    rnd: random generator object</span>
 <span class="sd">        if None is provided, a new default random generator object is initialized</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -981,26 +981,64 @@
 
 <div class="viewcode-block" id="set_volume_attributes"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.set_volume_attributes">[docs]</a><span class="k">def</span> <span class="nf">set_volume_attributes</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">proposal</span><span class="p">,</span> <span class="n">attributes</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    helper function that interprets the volume settings and sets the relevant quantities as hdf5 attributes.</span>
+<span class="sd">    Helper function that interprets the volume settings and sets the relevant quantities as attributes dictinary.</span>
+<span class="sd">    The relevant quantities to define the volume in which neutrinos are generated are (rmin, rmax, zmin, zmax) or</span>
+<span class="sd">    (xmin, xmax, ymin, ymax, zmin, zmax) based on the user settings (see explanation blow).</span>
+
+<span class="sd">    The user can specify a &quot;fiducial&quot; (mandatory) and &quot;full&quot; (optional) volume. In the end only events are</span>
+<span class="sd">    considered (= passed to radio simulation) which produce a shower (over a configurable energy threshold)</span>
+<span class="sd">    within the fiducial volume. However, neutrino vertices might be generated outside this fiducial volume</span>
+<span class="sd">    but the generated charge lepton (mu or tau) reaches the fiducial volume and produces a trigger</span>
+<span class="sd">    (this obviously only makes sense when running proposal). Hence, a &quot;full&quot; volume can be defined in which</span>
+<span class="sd">    neutrinos interactions are generated. If the &quot;full&quot; volume is not specified in the case you run proposal,</span>
+<span class="sd">    the volume is determind using the energy dependent mean-free-path length of the tau.</span>
+
+<span class="sd">    TL;DR</span>
+<span class="sd">    - The fiducial volume needs to be chosen large enough such that no events outside of it will trigger.</span>
+<span class="sd">    - The full volume is optional and most of the times it is not necessary to specify it (because it is</span>
+<span class="sd">    automatically determined).</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    volume: dictionarty</span>
-<span class="sd">        dict specifying the volume</span>
+<span class="sd">    volume: dict</span>
+<span class="sd">        A dictionary specifying the simulation volume. Can be either a cylinder (specified with min/max radius and z-coordinate)</span>
+<span class="sd">        or a cube (specified with min/max x-, y-, z-coordinates).</span>
+
+<span class="sd">        Cylinder:</span>
+
+<span class="sd">        * fiducial_{rmin,rmax,zmin,zmax}: float</span>
+<span class="sd">            lower r / upper r / lower z / upper z coordinate of fiducial volume</span>
+<span class="sd">        * full_{rmin,rmax,zmin,zmax}: float (optional)</span>
+<span class="sd">            lower r / upper r / lower z / upper z coordinate of simulated volume</span>
+
+<span class="sd">        Cube:</span>
+
+<span class="sd">        * fiducial_{xmin,xmax,ymin,ymax,zmin,zmax}: float</span>
+<span class="sd">            lower / upper x-, y-, z-coordinate of fiducial volume</span>
+<span class="sd">        * full_{xmin,xmax,ymin,ymax,zmin,zmax}: float (optional)</span>
+<span class="sd">            lower / upper x-, y-, z-coordinate of simulated volume</span>
+
+<span class="sd">        Optinal you can also define the horizontal center of the volume (if you want to displace it from the origin)</span>
+
+<span class="sd">        * x0, y0: float</span>
+<span class="sd">            x-, y-coordinate this shift the center of the simulation volume</span>
 <span class="sd">    proposal: bool</span>
 <span class="sd">        specifies if secondary interaction via proposal are calculated</span>
 <span class="sd">    attributes: dictionary</span>
 <span class="sd">        dict storing hdf5 attributes</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">n_events</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;n_events&#39;</span><span class="p">]</span>
-    <span class="k">if</span><span class="p">(</span><span class="s2">&quot;fiducial_rmax&quot;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">):</span>  <span class="c1"># user specifies a cylinder</span>
-        <span class="k">if</span><span class="p">(</span><span class="s1">&#39;fiducial_rmin&#39;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">):</span>
-            <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_rmin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_rmin&#39;</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_rmin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_rmax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_rmax&#39;</span><span class="p">]</span>
-        <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">]</span>
-        <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_zmax&#39;</span><span class="p">]</span>
+
+    <span class="n">attributes</span><span class="p">[</span><span class="s2">&quot;x0&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">volume</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x0&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s2">&quot;y0&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">volume</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y0&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;fiducial_rmax&quot;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">:</span>  <span class="c1"># user specifies a cylinder</span>
+        <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_rmin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">volume</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fiducial_rmin&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># copy keys</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;fiducial_rmax&#39;</span><span class="p">,</span> <span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">,</span> <span class="s1">&#39;fiducial_zmax&#39;</span><span class="p">]:</span>
+            <span class="n">attributes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
         <span class="n">rmin</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_rmin&#39;</span><span class="p">]</span>
         <span class="n">rmax</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_rmax&#39;</span><span class="p">]</span>
@@ -1008,53 +1046,59 @@
         <span class="n">zmax</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmax&#39;</span><span class="p">]</span>
         <span class="n">volume_fiducial</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">rmax</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">rmin</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">zmax</span> <span class="o">-</span> <span class="n">zmin</span><span class="p">)</span>
 
-        <span class="k">if</span><span class="p">(</span><span class="s1">&#39;full_rmax&#39;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;full_rmax&#39;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">:</span>
             <span class="n">rmax</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;full_rmax&#39;</span><span class="p">]</span>
-        <span class="k">if</span><span class="p">(</span><span class="s1">&#39;full_rmin&#39;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;full_rmin&#39;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">:</span>
             <span class="n">rmin</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;full_rmin&#39;</span><span class="p">]</span>
-        <span class="k">if</span><span class="p">(</span><span class="s1">&#39;full_zmax&#39;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;full_zmax&#39;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">:</span>
             <span class="n">zmax</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;full_zmax&#39;</span><span class="p">]</span>
-        <span class="k">if</span><span class="p">(</span><span class="s1">&#39;full_zmin&#39;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;full_zmin&#39;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">:</span>
             <span class="n">zmin</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;full_zmin&#39;</span><span class="p">]</span>
 
         <span class="c1"># We increase the radius of the cylinder according to the tau track length</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">proposal</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">proposal</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;simulation of second interactions via PROPOSAL activated&quot;</span><span class="p">)</span>
-            <span class="k">if</span><span class="p">(</span><span class="s2">&quot;full_rmin&quot;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">):</span>
-                <span class="n">rmin</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;full_rmin&#39;</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">rmin</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_rmin&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">3.</span>
-            <span class="k">if</span><span class="p">(</span><span class="s1">&#39;full_rmax&#39;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">):</span>
+            <span class="n">rmin</span> <span class="o">=</span> <span class="n">volume</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;full_rmin&#39;</span><span class="p">,</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_rmin&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">3.</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="s1">&#39;full_rmax&#39;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">:</span>
                 <span class="n">rmax</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;full_rmax&#39;</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">tau_95_length</span> <span class="o">=</span> <span class="n">get_tau_95_length</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;Emax&#39;</span><span class="p">])</span>
                 <span class="c1"># check if thetamax/thetamin are in same quadrant</span>
                 <span class="n">is_same_quadrant</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">]))</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">]))</span>
                 <span class="k">if</span> <span class="n">is_same_quadrant</span><span class="p">:</span>
-                    <span class="n">max_horizontal_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">])),</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">])))</span> <span class="o">*</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">])</span>  <span class="c1"># calculates the maximum horizontal distance through the ice</span>
+                    <span class="n">max_horizontal_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">])),</span>
+                                                     <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">])))</span> <span class="o">*</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">])</span>  <span class="c1"># calculates the maximum horizontal distance through the ice</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># not same quadrant: theta range surpasses pi/2 -&gt; horizontal trajectories</span>
                     <span class="c1"># geometric trajectory is infinite, but not acutally used. distance is limited by the min() to allowed length below</span>
                     <span class="n">max_horizontal_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
                 <span class="n">d_extent</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">tau_95_length</span><span class="p">,</span> <span class="n">max_horizontal_dist</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;95% quantile of tau decay length is </span><span class="si">{</span><span class="n">tau_95_length</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km. Maximum horizontal distance for zenith range of </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">deg and depth of </span><span class="si">{</span><span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km is </span><span class="si">{</span><span class="n">max_horizontal_dist</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km -&gt; extending horizontal volume by </span><span class="si">{</span><span class="n">d_extent</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;95% quantile of tau decay length is </span><span class="si">{</span><span class="n">tau_95_length</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km. Maximum horizontal &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;distance for zenith range of </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> - &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">deg and depth of </span><span class="si">{</span><span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;is </span><span class="si">{</span><span class="n">max_horizontal_dist</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km -&gt; extending horizontal volume by </span><span class="si">{</span><span class="n">d_extent</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
 
                 <span class="n">rmax</span> <span class="o">=</span> <span class="n">d_extent</span> <span class="o">+</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_rmax&#39;</span><span class="p">]</span>
-            <span class="k">if</span><span class="p">(</span><span class="s1">&#39;full_zmax&#39;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">):</span>
-                <span class="n">zmax</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;full_zmax&#39;</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">zmax</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmax&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">3.</span>
-            <span class="k">if</span><span class="p">(</span><span class="s1">&#39;full_zmin&#39;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">):</span>
-                <span class="n">zmin</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;full_zmin&#39;</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">zmin</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">]</span>
+
+            <span class="n">zmax</span> <span class="o">=</span> <span class="n">volume</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;full_zmax&#39;</span><span class="p">,</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmax&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">3.</span><span class="p">)</span>
+            <span class="n">zmin</span> <span class="o">=</span> <span class="n">volume</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;full_zmin&#39;</span><span class="p">,</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">])</span>
+
         <span class="n">volume_full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">rmax</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">rmin</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">zmax</span> <span class="o">-</span> <span class="n">zmin</span><span class="p">)</span>
         <span class="c1"># increase the total number of events such that we end up with the same number of events in the fiducial volume</span>
         <span class="n">n_events</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_events</span> <span class="o">*</span> <span class="n">volume_full</span> <span class="o">/</span> <span class="n">volume_fiducial</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;increasing rmax from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_rmax&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">rmax</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km, zmax from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmax&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">zmax</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;decreasing rmin from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_rmin&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">rmin</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;decreasing zmin from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">zmin</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;increasing number of events to </span><span class="si">{</span><span class="n">n_events</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;increasing rmax from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_rmax&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">rmax</span><span class="w">  </span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;zmax from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmax&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">zmax</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_rmin&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">rmin</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;decreasing rmin from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_rmin&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">rmin</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">zmin</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;decreasing zmin from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">zmin</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
+
+        <span class="n">n_events</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_events</span> <span class="o">*</span> <span class="n">volume_full</span> <span class="o">/</span> <span class="n">volume_fiducial</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;increasing number of events from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;n_events&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">n_events</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;n_events&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_events</span>
 
         <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;rmin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rmin</span>
@@ -1065,13 +1109,11 @@
         <span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">rmax</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">rmin</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">zmax</span> <span class="o">-</span> <span class="n">zmin</span><span class="p">)</span>
         <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">V</span>  <span class="c1"># save full simulation volume to simplify effective volume calculation</span>
         <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">rmax</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">rmin</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="k">elif</span><span class="p">(</span><span class="s2">&quot;fiducial_xmax&quot;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">):</span>  <span class="c1"># user specifies a cube</span>
-        <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_xmax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_xmax&#39;</span><span class="p">]</span>
-        <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_xmin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_xmin&#39;</span><span class="p">]</span>
-        <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_ymax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_ymax&#39;</span><span class="p">]</span>
-        <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_ymin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_ymin&#39;</span><span class="p">]</span>
-        <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">]</span>
-        <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_zmax&#39;</span><span class="p">]</span>
+
+    <span class="k">elif</span> <span class="s2">&quot;fiducial_xmax&quot;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">:</span>  <span class="c1"># user specifies a cube</span>
+        <span class="c1"># copy keys</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;fiducial_xmin&#39;</span><span class="p">,</span> <span class="s1">&#39;fiducial_xmax&#39;</span><span class="p">,</span> <span class="s1">&#39;fiducial_ymin&#39;</span><span class="p">,</span> <span class="s1">&#39;fiducial_ymax&#39;</span><span class="p">,</span> <span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">,</span> <span class="s1">&#39;fiducial_zmax&#39;</span><span class="p">]:</span>
+            <span class="n">attributes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
         <span class="n">xmin</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_xmin&#39;</span><span class="p">]</span>
         <span class="n">xmax</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_xmax&#39;</span><span class="p">]</span>
@@ -1080,7 +1122,8 @@
         <span class="n">zmin</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">]</span>
         <span class="n">zmax</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmax&#39;</span><span class="p">]</span>
         <span class="n">volume_fiducial</span> <span class="o">=</span> <span class="p">(</span><span class="n">xmax</span> <span class="o">-</span> <span class="n">xmin</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">zmax</span> <span class="o">-</span> <span class="n">zmin</span><span class="p">)</span>
-        <span class="k">if</span><span class="p">(</span><span class="s1">&#39;full_xmax&#39;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="s1">&#39;full_xmax&#39;</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">:</span>
             <span class="n">xmin</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;full_xmin&#39;</span><span class="p">]</span>
             <span class="n">xmax</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;full_xmax&#39;</span><span class="p">]</span>
             <span class="n">ymin</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;full_ymin&#39;</span><span class="p">]</span>
@@ -1089,30 +1132,41 @@
             <span class="n">zmax</span> <span class="o">=</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;full_zmax&#39;</span><span class="p">]</span>
 
         <span class="c1"># We increase the simulation volume according to the tau track length</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">proposal</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">proposal</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;simulation of second interactions via PROPOSAL activated&quot;</span><span class="p">)</span>
-            <span class="k">if</span><span class="p">(</span><span class="s1">&#39;full_xmax&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">):</span>  <span class="c1"># assuming that also full_xmin, full_ymin, full_ymax are not set.</span>
+            <span class="k">if</span> <span class="s1">&#39;full_xmax&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">:</span>  <span class="c1"># assuming that also full_xmin, full_ymin, full_ymax are not set.</span>
                 <span class="c1"># extent fiducial by tau decay length</span>
                 <span class="n">tau_95_length</span> <span class="o">=</span> <span class="n">get_tau_95_length</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;Emax&#39;</span><span class="p">])</span>
                 <span class="c1"># check if thetamax/thetamin are in same quadrant</span>
                 <span class="n">is_same_quadrant</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">]))</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">]))</span>
                 <span class="k">if</span> <span class="n">is_same_quadrant</span><span class="p">:</span>
-                    <span class="n">max_horizontal_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">])),</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">])))</span> <span class="o">*</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">])</span>  <span class="c1"># calculates the maximum horizontal distance through the ice</span>
+                    <span class="n">max_horizontal_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">])),</span>
+                                                     <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">])))</span> <span class="o">*</span> <span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">])</span>  <span class="c1"># calculates the maximum horizontal distance through the ice</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># not same quadrant: theta range surpasses pi/2 -&gt; horizontal trajectories</span>
                     <span class="c1"># geometric trajectory is infinite, but not acutally used. distance is limited by the min() to allowed length below</span>
                     <span class="n">max_horizontal_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
                 <span class="n">d_extent</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">tau_95_length</span><span class="p">,</span> <span class="n">max_horizontal_dist</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;95% quantile of tau decay length is </span><span class="si">{</span><span class="n">tau_95_length</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km. Maximum horizontal distance for zenith range of </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">deg and depth of </span><span class="si">{</span><span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km is </span><span class="si">{</span><span class="n">max_horizontal_dist</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km -&gt; extending horizontal volume by </span><span class="si">{</span><span class="n">d_extent</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;95% quantile of tau decay length is </span><span class="si">{</span><span class="n">tau_95_length</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km. Maximum horizontal distance for zenith range of &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">deg and depth of &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">volume</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km is </span><span class="si">{</span><span class="n">max_horizontal_dist</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km -&gt; extending horizontal volume by </span><span class="si">{</span><span class="n">d_extent</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
+
                 <span class="n">xmax</span> <span class="o">+=</span> <span class="n">d_extent</span>
                 <span class="n">xmin</span> <span class="o">-=</span> <span class="n">d_extent</span>
                 <span class="n">ymax</span> <span class="o">+=</span> <span class="n">d_extent</span>
                 <span class="n">ymin</span> <span class="o">-=</span> <span class="n">d_extent</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;increasing xmax from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_xmax&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">xmax</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km, ymax from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_ymax&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">ymax</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km, zmax from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmax&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">zmax</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;decreasing xmin from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_xmin&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">xmin</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km, ymin from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_ymin&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">ymin</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;decreasing zmin from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">zmin</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;increasing xmax from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_xmax&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">xmax</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;ymax from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_ymax&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">ymax</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;zmax from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmax&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">zmax</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;decreasing xmin from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_xmin&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">xmin</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km, ymin from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_ymin&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">ymin</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;decreasing zmin from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km to </span><span class="si">{</span><span class="n">zmin</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="si">:</span><span class="s2">.01f</span><span class="si">}</span><span class="s2">km&quot;</span><span class="p">)</span>
 
         <span class="n">volume_full</span> <span class="o">=</span> <span class="p">(</span><span class="n">xmax</span> <span class="o">-</span> <span class="n">xmin</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">zmax</span> <span class="o">-</span> <span class="n">zmin</span><span class="p">)</span>
+
         <span class="n">n_events</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_events</span> <span class="o">*</span> <span class="n">volume_full</span> <span class="o">/</span> <span class="n">volume_fiducial</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;increasing number of events from </span><span class="si">{</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;n_events&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">n_events</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;n_events&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_events</span>
@@ -1128,38 +1182,40 @@
         <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">V</span>  <span class="c1"># save full simulation volume to simplify effective volume calculation</span>
         <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">xmax</span> <span class="o">-</span> <span class="n">xmin</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;fiducial_rmin&#39; or &#39;fiducial_rmax&#39; is not part of &#39;volume&#39;&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;&#39;fiducial_xmax&#39; or &#39;fiducial_rmax&#39; is not part of &#39;volume&#39;. Can not define a volume&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="generate_vertex_positions"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.generate_vertex_positions">[docs]</a><span class="k">def</span> <span class="nf">generate_vertex_positions</span><span class="p">(</span><span class="n">attributes</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    helper function that generates the vertex position randomly distributed in simulation volume.</span>
-<span class="sd">    The relevant quantities are also saved into the hdf5 attributes</span>
+<span class="sd">    Helper function that generates the vertex position randomly distributed in simulation volume.</span>
+<span class="sd">    The relevant quantities are also saved into the hdf5 attributes.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    attributes: dicitionary</span>
 <span class="sd">        dict storing hdf5 attributes</span>
+
 <span class="sd">    rnd: random generator object</span>
 <span class="sd">        if None is provided, a new default random generator object is initialized</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">rnd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">rnd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">rnd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">()</span>
-    <span class="k">if</span><span class="p">(</span><span class="s2">&quot;fiducial_rmax&quot;</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">):</span>  <span class="c1"># user specifies a cylinder</span>
+    <span class="k">if</span> <span class="s2">&quot;fiducial_rmax&quot;</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">:</span>  <span class="c1"># user specifies a cylinder</span>
         <span class="n">rr_full</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;rmin&#39;</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;rmax&#39;</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">n_events</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>
         <span class="n">phiphi</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">n_events</span><span class="p">)</span>
         <span class="n">xx</span> <span class="o">=</span> <span class="n">rr_full</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phiphi</span><span class="p">)</span>
         <span class="n">yy</span> <span class="o">=</span> <span class="n">rr_full</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phiphi</span><span class="p">)</span>
         <span class="n">zz</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;zmin&#39;</span><span class="p">],</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;zmax&#39;</span><span class="p">],</span> <span class="n">n_events</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">zz</span>
-    <span class="k">elif</span><span class="p">(</span><span class="s2">&quot;fiducial_xmax&quot;</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">):</span>  <span class="c1"># user specifies a cube</span>
+
+    <span class="k">elif</span> <span class="s2">&quot;fiducial_xmax&quot;</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">:</span>  <span class="c1"># user specifies a cube</span>
         <span class="n">xx</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;xmin&#39;</span><span class="p">],</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;xmax&#39;</span><span class="p">],</span> <span class="n">n_events</span><span class="p">)</span>
         <span class="n">yy</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;ymin&#39;</span><span class="p">],</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;ymax&#39;</span><span class="p">],</span> <span class="n">n_events</span><span class="p">)</span>
         <span class="n">zz</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;zmin&#39;</span><span class="p">],</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;zmax&#39;</span><span class="p">],</span> <span class="n">n_events</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">zz</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;fiducial_rmin&#39; or &#39;fiducial_rmax&#39; is not part of &#39;attributes&#39;&quot;</span><span class="p">)</span></div>
 
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;fiducial_xmax&#39; or &#39;fiducial_rmax&#39; is not part of &#39;attributes&#39;&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">xx</span> <span class="o">+</span> <span class="n">attributes</span><span class="p">[</span><span class="s2">&quot;x0&quot;</span><span class="p">],</span> <span class="n">yy</span> <span class="o">+</span> <span class="n">attributes</span><span class="p">[</span><span class="s2">&quot;y0&quot;</span><span class="p">],</span> <span class="n">zz</span></div>
 
 <div class="viewcode-block" id="intersection_box_ray"><a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.intersection_box_ray">[docs]</a><span class="k">def</span> <span class="nf">intersection_box_ray</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">ray</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1304,53 +1360,27 @@
 <span class="sd">        the maximum neutrino energy (energies are randomly chosen assuming a</span>
 <span class="sd">        uniform distribution in the logarithm of the energy)</span>
 <span class="sd">    volume: dict</span>
-<span class="sd">        a dictionary specifying the simulation volume</span>
-<span class="sd">        can be either a cylinder spefified via the keys</span>
+<span class="sd">        A dictionary specifying the simulation volume. Can be either a cylinder (specified with min/max radius and z-coordinate)</span>
+<span class="sd">        or a cube (specified with min/max x-, y-, z-coordinates). For more information see set_volume_attributes</span>
 
-<span class="sd">        * fiducial_rmin: float</span>
-<span class="sd">            lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * fiducial_rmax: float</span>
-<span class="sd">            upper r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * fiducial_zmin: float</span>
-<span class="sd">            lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * fiducial_zmax: float</span>
-<span class="sd">            upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * full_rmin: float (optional)</span>
-<span class="sd">            lower r coordinate of simulated volume (if not set it is set to the fiducial volume)</span>
-<span class="sd">        * full_rmax: float (optional)</span>
-<span class="sd">            upper r coordinate of simulated volume (if not set it is set to the fiducial volume)</span>
-<span class="sd">        * full_zmin: float (optional)</span>
-<span class="sd">            lower z coordinate of simulated volume (if not set it is set to the fiducial volume)</span>
-<span class="sd">        * full_zmax: float (optional)</span>
-<span class="sd">            upper z coordinate of simulated volume (if not set it is set to the fiducial volume)</span>
+<span class="sd">        Cylinder:</span>
 
-<span class="sd">        or a cube specified with</span>
+<span class="sd">        * fiducial_{rmin,rmax,zmin,zmax}: float</span>
+<span class="sd">            lower r / upper r / lower z / upper z coordinate of fiducial volume</span>
+<span class="sd">        * full_{rmin,rmax,zmin,zmax}: float (optional)</span>
+<span class="sd">            lower r / upper r / lower z / upper z coordinate of simulated volume</span>
 
-<span class="sd">        * fiducial_xmin: float</span>
-<span class="sd">            lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * fiducial_xmax: float</span>
-<span class="sd">            upper x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * fiducial_ymin: float</span>
-<span class="sd">            lower y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * fiducial_ymax: float</span>
-<span class="sd">            upper y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * fiducial_zmin: float</span>
-<span class="sd">            lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * fiducial_zmax: float</span>
-<span class="sd">            upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * full_xmin: float (optional)</span>
-<span class="sd">            lower x coordinate of simulated volume (if not set it is set to the fiducial volume)</span>
-<span class="sd">        * full_xmax: float (optional)</span>
-<span class="sd">            upper x coordinate of simulated volume (if not set it is set to the fiducial volume)</span>
-<span class="sd">        * full_ymin: float (optional)</span>
-<span class="sd">            lower y coordinate of simulated volume (if not set it is set to the fiducial volume)</span>
-<span class="sd">        * full_ymax: float (optional)</span>
-<span class="sd">            upper y coordinate of simulated volume (if not set it is set to the fiducial volume)</span>
-<span class="sd">        * full_zmin: float (optional)</span>
-<span class="sd">            lower z coordinate of simulated volume (if not set it is set to the fiducial volume)</span>
-<span class="sd">        * full_zmax: float (optional)</span>
-<span class="sd">            upper z coordinate of simulated volume (if not set it is set to the fiducial volume)</span>
+<span class="sd">        Cube:</span>
 
+<span class="sd">        * fiducial_{xmin,xmax,ymin,ymax,zmin,zmax}: float</span>
+<span class="sd">            lower / upper x-, y-, z-coordinate of fiducial volume</span>
+<span class="sd">        * full_{xmin,xmax,ymin,ymax,zmin,zmax}: float (optional)</span>
+<span class="sd">            lower / upper x-, y-, z-coordinate of simulated volume</span>
+
+<span class="sd">        Optinal you can also define the horizontal center of the volume (if you want to displace it from the origin)</span>
+
+<span class="sd">        * x0, y0: float</span>
+<span class="sd">            x-, y-coordinate this shift the center of the simulation volume</span>
 <span class="sd">    thetamin: float</span>
 <span class="sd">        lower zenith angle for neutrino arrival direction</span>
 <span class="sd">    thetamax: float</span>
@@ -1377,7 +1407,7 @@
 <span class="sd">        * &#39;log_uniform&#39;: uniformly distributed in the logarithm of energy</span>
 <span class="sd">        * &#39;E-?&#39;: E to the -? spectrum where ? can be any float</span>
 <span class="sd">        * &#39;IceCube-nu-2017&#39;: astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)</span>
-<span class="sd">        * &#39;GZK-1&#39;: GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 </span>
+<span class="sd">        * &#39;GZK-1&#39;: GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1</span>
 <span class="sd">          for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)</span>
 <span class="sd">        * &#39;GZK-1+IceCube-nu-2017&#39;: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</span>
 
@@ -1617,53 +1647,27 @@
 <span class="sd">    Emax: float</span>
 <span class="sd">        the maximum neutrino energy</span>
 <span class="sd">    volume: dict</span>
-<span class="sd">        a dictionary specifying the simulation volume</span>
-<span class="sd">        can be either a cylinder spefified via the keys</span>
+<span class="sd">        A dictionary specifying the simulation volume. Can be either a cylinder (specified with min/max radius and z-coordinate)</span>
+<span class="sd">        or a cube (specified with min/max x-, y-, z-coordinates). For more information see set_volume_attributes</span>
 
-<span class="sd">        * fiducial_rmin: float</span>
-<span class="sd">            lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * fiducial_rmax: float</span>
-<span class="sd">            upper r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * fiducial_zmin: float</span>
-<span class="sd">            lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * fiducial_zmax: float</span>
-<span class="sd">            upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * full_rmin: float (optional)</span>
-<span class="sd">            lower r coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)</span>
-<span class="sd">        * full_rmax: float (optional)</span>
-<span class="sd">            upper r coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)</span>
-<span class="sd">        * full_zmin: float (optional)</span>
-<span class="sd">            lower z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)</span>
-<span class="sd">        * full_zmax: float (optional)</span>
-<span class="sd">            upper z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume , if second vertices are not activated it is set to the fiducial volume)</span>
+<span class="sd">        Cylinder:</span>
 
-<span class="sd">        or a cube specified with</span>
+<span class="sd">        * fiducial_{rmin,rmax,zmin,zmax}: float</span>
+<span class="sd">            lower r / upper r / lower z / upper z coordinate of fiducial volume</span>
+<span class="sd">        * full_{rmin,rmax,zmin,zmax}: float (optional)</span>
+<span class="sd">            lower r / upper r / lower z / upper z coordinate of simulated volume</span>
 
-<span class="sd">        * fiducial_xmin: float</span>
-<span class="sd">            lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * fiducial_xmax: float</span>
-<span class="sd">            upper x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * fiducial_ymin: float</span>
-<span class="sd">            lower y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * fiducial_ymax: float</span>
-<span class="sd">            upper y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * fiducial_zmin: float</span>
-<span class="sd">            lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * fiducial_zmax: float</span>
-<span class="sd">            upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</span>
-<span class="sd">        * full_xmin: float (optional)</span>
-<span class="sd">            lower x coordinate of simulated volume (if not set it is set to the fiducial volume - the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)</span>
-<span class="sd">        * full_xmax: float (optional)</span>
-<span class="sd">            upper x coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)</span>
-<span class="sd">        * full_ymin: float (optional)</span>
-<span class="sd">            lower y coordinate of simulated volume (if not set it is set to the fiducial volume - the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)</span>
-<span class="sd">        * full_ymax: float (optional)</span>
-<span class="sd">            upper y coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)</span>
-<span class="sd">        * full_zmin: float (optional)</span>
-<span class="sd">            lower z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)</span>
-<span class="sd">        * full_zmax: float (optional)</span>
-<span class="sd">            upper z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)</span>
+<span class="sd">        Cube:</span>
 
+<span class="sd">        * fiducial_{xmin,xmax,ymin,ymax,zmin,zmax}: float</span>
+<span class="sd">            lower / upper x-, y-, z-coordinate of fiducial volume</span>
+<span class="sd">        * full_{xmin,xmax,ymin,ymax,zmin,zmax}: float (optional)</span>
+<span class="sd">            lower / upper x-, y-, z-coordinate of simulated volume</span>
+
+<span class="sd">        Optinal you can also define the horizontal center of the volume (if you want to displace it from the origin)</span>
+
+<span class="sd">        * x0, y0: float</span>
+<span class="sd">            x-, y-coordinate this shift the center of the simulation volume</span>
 <span class="sd">    thetamin: float</span>
 <span class="sd">        lower zenith angle for neutrino arrival direction (default 0deg)</span>
 <span class="sd">    thetamax: float</span>
@@ -1700,7 +1704,7 @@
 <span class="sd">        * &#39;E-?&#39;: E to the -? spectrum where ? can be any float</span>
 <span class="sd">        * &#39;IceCube-nu-2017&#39;: astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)</span>
 <span class="sd">        * &#39;IceCube-nu-2022&#39;: astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.48550/arXiv.2111.10299)</span>
-<span class="sd">        * &#39;GZK-1&#39;: GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 </span>
+<span class="sd">        * &#39;GZK-1&#39;: GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1</span>
 <span class="sd">          for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)</span>
 <span class="sd">        * &#39;GZK-2&#39;: GZK neutrino flux model from fit to TA data (https://pos.sissa.it/395/338/)</span>
 <span class="sd">        * &#39;GZK-1+IceCube-nu-2017&#39;: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</span>
@@ -1745,17 +1749,17 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">rnd</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">Philox</span><span class="p">(</span><span class="n">seed</span><span class="p">))</span>
     <span class="n">t_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-    
+
     <span class="k">if</span> <span class="n">log_level</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
-    
+
     <span class="k">if</span> <span class="n">proposal</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">NuRadioMC.EvtGen.NuRadioProposal</span> <span class="kn">import</span> <span class="n">ProposalFunctions</span>
         <span class="n">proposal_functions</span> <span class="o">=</span> <span class="n">ProposalFunctions</span><span class="p">(</span><span class="n">config_file</span><span class="o">=</span><span class="n">proposal_config</span><span class="p">,</span> <span class="n">tables_path</span><span class="o">=</span><span class="n">proposal_tables_path</span><span class="p">)</span>
     <span class="n">max_n_events_batch</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_n_events_batch</span><span class="p">)</span>
     <span class="n">attributes</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">n_events</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
-    
+
     <span class="c1"># sanity check</span>
     <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flavor</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">f</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="o">-</span><span class="mi">12</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="o">-</span><span class="mi">14</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="o">-</span><span class="mi">16</span><span class="p">]:</span>
@@ -1787,10 +1791,10 @@
     <span class="n">n_batches</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">n_events</span> <span class="o">/</span> <span class="n">max_n_events_batch</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">i_batch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_batches</span><span class="p">):</span>  <span class="c1"># do generation of events in batches</span>
         <span class="n">n_events_batch</span> <span class="o">=</span> <span class="n">max_n_events_batch</span>
-        
+
         <span class="k">if</span> <span class="n">i_batch</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">==</span> <span class="n">n_batches</span><span class="p">:</span>  <span class="c1"># last batch?</span>
             <span class="n">n_events_batch</span> <span class="o">=</span> <span class="n">n_events</span> <span class="o">-</span> <span class="p">(</span><span class="n">i_batch</span> <span class="o">*</span> <span class="n">max_n_events_batch</span><span class="p">)</span>
-        
+
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;processing batch </span><span class="si">{</span><span class="n">i_batch</span><span class="o">+</span><span class="mi">1</span><span class="si">:</span><span class="s2">.2g</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n_batches</span><span class="si">:</span><span class="s2">.2g</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="n">n_events_batch</span><span class="si">:</span><span class="s2">.2g</span><span class="si">}</span><span class="s2"> events&quot;</span><span class="p">)</span>
         <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;xx&quot;</span><span class="p">],</span> <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;yy&quot;</span><span class="p">],</span> <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;zz&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">generate_vertex_positions</span><span class="p">(</span><span class="n">attributes</span><span class="o">=</span><span class="n">attributes</span><span class="p">,</span> <span class="n">n_events</span><span class="o">=</span><span class="n">n_events_batch</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="n">rnd</span><span class="p">)</span>
 
@@ -1817,10 +1821,10 @@
             <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;interaction_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">inelasticities</span><span class="o">.</span><span class="n">get_ccnc</span><span class="p">(</span><span class="n">n_events_batch</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="n">rnd</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">interaction_type</span> <span class="o">==</span> <span class="s2">&quot;cc&quot;</span> <span class="ow">or</span> <span class="n">interaction_type</span> <span class="o">==</span> <span class="s2">&quot;nc&quot;</span><span class="p">:</span>
             <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;interaction_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n_events_batch</span><span class="p">,</span> <span class="n">interaction_type</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U2&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span> 
+        <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input illegal interaction type: </span><span class="si">{</span><span class="n">interaction_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input illegal interaction type: </span><span class="si">{</span><span class="n">interaction_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        
+
         <span class="c1"># generate inelasticity</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;generating inelasticities&quot;</span><span class="p">)</span>
         <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;inelasticity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">inelasticities</span><span class="o">.</span><span class="n">get_neutrino_inelasticity</span><span class="p">(</span><span class="n">n_events_batch</span><span class="p">,</span> <span class="n">rnd</span><span class="o">=</span><span class="n">rnd</span><span class="p">)</span>
@@ -1841,7 +1845,7 @@
         <span class="n">em_shower_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;interaction_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;cc&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">data_sets</span><span class="p">[</span><span class="s1">&#39;flavors&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">12</span><span class="p">)</span>
 
         <span class="c1"># transform datatype to list so that inserting elements is faster</span>
-        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data_sets</span><span class="p">:</span> 
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data_sets</span><span class="p">:</span>
             <span class="n">data_sets</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data_sets</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
 
         <span class="c1"># loop over all events where an EM shower needs to be inserted</span>
@@ -1877,7 +1881,7 @@
 
             <span class="n">E_all_leptons</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;inelasticity&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;energies&quot;</span><span class="p">]</span>
             <span class="n">lepton_codes</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;flavors&quot;</span><span class="p">])</span>
-            
+
             <span class="c1"># convert neutrino flavors (makes only sense for cc interaction which is ensured with &quot;mask_leptons&quot;)</span>
             <span class="n">lepton_codes</span> <span class="o">=</span> <span class="n">lepton_codes</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">lepton_codes</span><span class="p">)</span>
 
@@ -1897,7 +1901,7 @@
                 <span class="n">x_nu</span> <span class="o">=</span> <span class="n">data_sets</span><span class="p">[</span><span class="s1">&#39;xx&#39;</span><span class="p">][</span><span class="n">iE</span><span class="p">]</span>
                 <span class="n">y_nu</span> <span class="o">=</span> <span class="n">data_sets</span><span class="p">[</span><span class="s1">&#39;yy&#39;</span><span class="p">][</span><span class="n">iE</span><span class="p">]</span>
                 <span class="n">z_nu</span> <span class="o">=</span> <span class="n">data_sets</span><span class="p">[</span><span class="s1">&#39;zz&#39;</span><span class="p">][</span><span class="n">iE</span><span class="p">]</span>
-                
+
                 <span class="c1"># Appending event if it interacts within the fiducial volume</span>
                 <span class="k">if</span> <span class="n">is_in_fiducial_volume</span><span class="p">(</span><span class="n">attributes</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x_nu</span><span class="p">,</span> <span class="n">y_nu</span><span class="p">,</span> <span class="n">z_nu</span><span class="p">])):</span>
                     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">iterkeys</span><span class="p">(</span><span class="n">data_sets</span><span class="p">):</span>
@@ -1908,13 +1912,13 @@
                 <span class="k">if</span> <span class="n">mask_tracks</span><span class="p">[</span><span class="n">iE</span><span class="p">]:</span>
                     <span class="n">geometry_selection</span> <span class="o">=</span> <span class="n">get_intersection_volume_neutrino</span><span class="p">(</span>
                         <span class="n">attributes</span><span class="p">,</span> <span class="p">[</span><span class="n">x_nu</span><span class="p">,</span> <span class="n">y_nu</span><span class="p">,</span> <span class="n">z_nu</span><span class="p">],</span> <span class="n">lepton_directions</span><span class="p">[</span><span class="n">iE</span><span class="p">])</span>
-                    
+
                     <span class="k">if</span> <span class="n">geometry_selection</span><span class="p">:</span>
                         <span class="n">products_array</span> <span class="o">=</span> <span class="n">proposal_functions</span><span class="o">.</span><span class="n">get_secondaries_array</span><span class="p">(</span>
                             <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">E_all_leptons</span><span class="p">[</span><span class="n">iE</span><span class="p">]]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">lepton_codes</span><span class="p">[</span><span class="n">iE</span><span class="p">]]),</span>
                             <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">lepton_positions</span><span class="p">[</span><span class="n">iE</span><span class="p">]]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">lepton_directions</span><span class="p">[</span><span class="n">iE</span><span class="p">]]),</span>
                                                                                    <span class="o">**</span><span class="n">proposal_kwargs</span><span class="p">)</span>
-                        
+
                         <span class="n">products</span> <span class="o">=</span> <span class="n">products_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                         <span class="n">n_interaction</span> <span class="o">=</span> <span class="mi">2</span>
                         <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">products</span><span class="p">:</span>
@@ -1937,14 +1941,14 @@
 
                                 <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;n_interaction&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_interaction</span>  <span class="c1"># specify that new event is a secondary interaction</span>
                                 <span class="n">n_interaction</span> <span class="o">+=</span> <span class="mi">1</span>
-                                
+
                                 <span class="c1"># store energy of parent lepton before producing the shower</span>
                                 <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;energies&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">product</span><span class="o">.</span><span class="n">parent_energy</span>
                                 <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;shower_energies&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">product</span><span class="o">.</span><span class="n">energy</span>
                                 <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;inelasticity&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-                                
+
                                 <span class="c1"># For neutrino interactions &#39;interaction_type&#39; contains &#39;cc&#39; or &#39;nc&#39;</span>
-                                <span class="c1"># For energy losses of leptons use name of produced particle </span>
+                                <span class="c1"># For energy losses of leptons use name of produced particle</span>
                                 <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;interaction_type&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">particle_name</span><span class="p">(</span><span class="n">product</span><span class="o">.</span><span class="n">code</span><span class="p">)</span>
                                 <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;shower_type&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">product</span><span class="o">.</span><span class="n">shower_type</span>
 
@@ -1957,7 +1961,7 @@
 
                                 <span class="c1"># Store flavor/particle code of parent particle</span>
                                 <span class="n">data_sets_fiducial</span><span class="p">[</span><span class="s1">&#39;flavors&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">lepton_codes</span><span class="p">[</span><span class="n">iE</span><span class="p">]</span>
-            
+
             <span class="n">time_proposal</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">init_time</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span><span class="p">(</span><span class="n">n_batches</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>

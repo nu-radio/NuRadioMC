@@ -1039,11 +1039,59 @@ elapsed since the first interaction to the present interaction</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.EvtGen.generator.set_volume_attributes">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.generator.</span></span><span class="sig-name descname"><span class="pre">set_volume_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">volume</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proposal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/generator.html#set_volume_attributes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.generator.set_volume_attributes" title="Permalink to this definition"></a></dt>
-<dd><p>helper function that interprets the volume settings and sets the relevant quantities as hdf5 attributes.</p>
-<dl class="field-list simple">
+<dd><p>Helper function that interprets the volume settings and sets the relevant quantities as attributes dictinary.
+The relevant quantities to define the volume in which neutrinos are generated are (rmin, rmax, zmin, zmax) or
+(xmin, xmax, ymin, ymax, zmin, zmax) based on the user settings (see explanation blow).</p>
+<p>The user can specify a “fiducial” (mandatory) and “full” (optional) volume. In the end only events are
+considered (= passed to radio simulation) which produce a shower (over a configurable energy threshold)
+within the fiducial volume. However, neutrino vertices might be generated outside this fiducial volume
+but the generated charge lepton (mu or tau) reaches the fiducial volume and produces a trigger
+(this obviously only makes sense when running proposal). Hence, a “full” volume can be defined in which
+neutrinos interactions are generated. If the “full” volume is not specified in the case you run proposal,
+the volume is determind using the energy dependent mean-free-path length of the tau.</p>
+<p>TL;DR
+- The fiducial volume needs to be chosen large enough such that no events outside of it will trigger.
+- The full volume is optional and most of the times it is not necessary to specify it (because it is
+automatically determined).</p>
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>volume: dictionarty</strong></dt><dd><p>dict specifying the volume</p>
+<dd class="field-odd"><dl>
+<dt><strong>volume: dict</strong></dt><dd><p>A dictionary specifying the simulation volume. Can be either a cylinder (specified with min/max radius and z-coordinate)
+or a cube (specified with min/max x-, y-, z-coordinates).</p>
+<p>Cylinder:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>fiducial_{rmin,rmax,zmin,zmax}: float</dt><dd><p>lower r / upper r / lower z / upper z coordinate of fiducial volume</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>full_{rmin,rmax,zmin,zmax}: float (optional)</dt><dd><p>lower r / upper r / lower z / upper z coordinate of simulated volume</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>Cube:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>fiducial_{xmin,xmax,ymin,ymax,zmin,zmax}: float</dt><dd><p>lower / upper x-, y-, z-coordinate of fiducial volume</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>full_{xmin,xmax,ymin,ymax,zmin,zmax}: float (optional)</dt><dd><p>lower / upper x-, y-, z-coordinate of simulated volume</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>Optinal you can also define the horizontal center of the volume (if you want to displace it from the origin)</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>x0, y0: float</dt><dd><p>x-, y-coordinate this shift the center of the simulation volume</p>
+</dd>
+</dl>
+</li>
+</ul>
 </dd>
 <dt><strong>proposal: bool</strong></dt><dd><p>specifies if secondary interaction via proposal are calculated</p>
 </dd>
@@ -1057,8 +1105,8 @@ elapsed since the first interaction to the present interaction</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.EvtGen.generator.generate_vertex_positions">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.EvtGen.generator.</span></span><span class="sig-name descname"><span class="pre">generate_vertex_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rnd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/EvtGen/generator.html#generate_vertex_positions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.EvtGen.generator.generate_vertex_positions" title="Permalink to this definition"></a></dt>
-<dd><p>helper function that generates the vertex position randomly distributed in simulation volume.
-The relevant quantities are also saved into the hdf5 attributes</p>
+<dd><p>Helper function that generates the vertex position randomly distributed in simulation volume.
+The relevant quantities are also saved into the hdf5 attributes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1122,109 +1170,38 @@ uniform distribution in the logarithm of the energy)</p>
 <dt><strong>Emax: float</strong></dt><dd><p>the maximum neutrino energy (energies are randomly chosen assuming a
 uniform distribution in the logarithm of the energy)</p>
 </dd>
-<dt><strong>volume: dict</strong></dt><dd><p>a dictionary specifying the simulation volume
-can be either a cylinder spefified via the keys</p>
+<dt><strong>volume: dict</strong></dt><dd><p>A dictionary specifying the simulation volume. Can be either a cylinder (specified with min/max radius and z-coordinate)
+or a cube (specified with min/max x-, y-, z-coordinates). For more information see set_volume_attributes</p>
+<p>Cylinder:</p>
 <ul class="simple">
 <li><dl class="simple">
-<dt>fiducial_rmin: float</dt><dd><p>lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
+<dt>fiducial_{rmin,rmax,zmin,zmax}: float</dt><dd><p>lower r / upper r / lower z / upper z coordinate of fiducial volume</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>fiducial_rmax: float</dt><dd><p>upper r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>fiducial_zmin: float</dt><dd><p>lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>fiducial_zmax: float</dt><dd><p>upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_rmin: float (optional)</dt><dd><p>lower r coordinate of simulated volume (if not set it is set to the fiducial volume)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_rmax: float (optional)</dt><dd><p>upper r coordinate of simulated volume (if not set it is set to the fiducial volume)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_zmin: float (optional)</dt><dd><p>lower z coordinate of simulated volume (if not set it is set to the fiducial volume)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_zmax: float (optional)</dt><dd><p>upper z coordinate of simulated volume (if not set it is set to the fiducial volume)</p>
+<dt>full_{rmin,rmax,zmin,zmax}: float (optional)</dt><dd><p>lower r / upper r / lower z / upper z coordinate of simulated volume</p>
 </dd>
 </dl>
 </li>
 </ul>
-<p>or a cube specified with</p>
+<p>Cube:</p>
 <ul class="simple">
 <li><dl class="simple">
-<dt>fiducial_xmin: float</dt><dd><p>lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
+<dt>fiducial_{xmin,xmax,ymin,ymax,zmin,zmax}: float</dt><dd><p>lower / upper x-, y-, z-coordinate of fiducial volume</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>fiducial_xmax: float</dt><dd><p>upper x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
+<dt>full_{xmin,xmax,ymin,ymax,zmin,zmax}: float (optional)</dt><dd><p>lower / upper x-, y-, z-coordinate of simulated volume</p>
 </dd>
 </dl>
 </li>
+</ul>
+<p>Optinal you can also define the horizontal center of the volume (if you want to displace it from the origin)</p>
+<ul class="simple">
 <li><dl class="simple">
-<dt>fiducial_ymin: float</dt><dd><p>lower y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>fiducial_ymax: float</dt><dd><p>upper y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>fiducial_zmin: float</dt><dd><p>lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>fiducial_zmax: float</dt><dd><p>upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_xmin: float (optional)</dt><dd><p>lower x coordinate of simulated volume (if not set it is set to the fiducial volume)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_xmax: float (optional)</dt><dd><p>upper x coordinate of simulated volume (if not set it is set to the fiducial volume)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_ymin: float (optional)</dt><dd><p>lower y coordinate of simulated volume (if not set it is set to the fiducial volume)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_ymax: float (optional)</dt><dd><p>upper y coordinate of simulated volume (if not set it is set to the fiducial volume)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_zmin: float (optional)</dt><dd><p>lower z coordinate of simulated volume (if not set it is set to the fiducial volume)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_zmax: float (optional)</dt><dd><p>upper z coordinate of simulated volume (if not set it is set to the fiducial volume)</p>
+<dt>x0, y0: float</dt><dd><p>x-, y-coordinate this shift the center of the simulation volume</p>
 </dd>
 </dl>
 </li>
@@ -1255,7 +1232,7 @@ This is useful to split up the computing on multiple cores.</p>
 <li><p>‘log_uniform’: uniformly distributed in the logarithm of energy</p></li>
 <li><p>‘E-?’: E to the -? spectrum where ? can be any float</p></li>
 <li><p>‘IceCube-nu-2017’: astrophysical neutrino flux measured with IceCube muon sample (<a class="reference external" href="https://doi.org/10.22323/1.301.1005">https://doi.org/10.22323/1.301.1005</a>)</p></li>
-<li><p>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a> 
+<li><p>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a>
 for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)</p></li>
 <li><p>‘GZK-1+IceCube-nu-2017’: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</p></li>
 </ul>
@@ -1310,109 +1287,38 @@ All events are saved in an hdf5 file.</p>
 </dd>
 <dt><strong>Emax: float</strong></dt><dd><p>the maximum neutrino energy</p>
 </dd>
-<dt><strong>volume: dict</strong></dt><dd><p>a dictionary specifying the simulation volume
-can be either a cylinder spefified via the keys</p>
+<dt><strong>volume: dict</strong></dt><dd><p>A dictionary specifying the simulation volume. Can be either a cylinder (specified with min/max radius and z-coordinate)
+or a cube (specified with min/max x-, y-, z-coordinates). For more information see set_volume_attributes</p>
+<p>Cylinder:</p>
 <ul class="simple">
 <li><dl class="simple">
-<dt>fiducial_rmin: float</dt><dd><p>lower r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
+<dt>fiducial_{rmin,rmax,zmin,zmax}: float</dt><dd><p>lower r / upper r / lower z / upper z coordinate of fiducial volume</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>fiducial_rmax: float</dt><dd><p>upper r coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>fiducial_zmin: float</dt><dd><p>lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>fiducial_zmax: float</dt><dd><p>upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_rmin: float (optional)</dt><dd><p>lower r coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_rmax: float (optional)</dt><dd><p>upper r coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_zmin: float (optional)</dt><dd><p>lower z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_zmax: float (optional)</dt><dd><p>upper z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume , if second vertices are not activated it is set to the fiducial volume)</p>
+<dt>full_{rmin,rmax,zmin,zmax}: float (optional)</dt><dd><p>lower r / upper r / lower z / upper z coordinate of simulated volume</p>
 </dd>
 </dl>
 </li>
 </ul>
-<p>or a cube specified with</p>
+<p>Cube:</p>
 <ul class="simple">
 <li><dl class="simple">
-<dt>fiducial_xmin: float</dt><dd><p>lower x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
+<dt>fiducial_{xmin,xmax,ymin,ymax,zmin,zmax}: float</dt><dd><p>lower / upper x-, y-, z-coordinate of fiducial volume</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>fiducial_xmax: float</dt><dd><p>upper x coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
+<dt>full_{xmin,xmax,ymin,ymax,zmin,zmax}: float (optional)</dt><dd><p>lower / upper x-, y-, z-coordinate of simulated volume</p>
 </dd>
 </dl>
 </li>
+</ul>
+<p>Optinal you can also define the horizontal center of the volume (if you want to displace it from the origin)</p>
+<ul class="simple">
 <li><dl class="simple">
-<dt>fiducial_ymin: float</dt><dd><p>lower y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>fiducial_ymax: float</dt><dd><p>upper y coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>fiducial_zmin: float</dt><dd><p>lower z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>fiducial_zmax: float</dt><dd><p>upper z coordinate of fiducial volume (the fiducial volume needs to be chosen large enough such that no events outside of it will trigger)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_xmin: float (optional)</dt><dd><p>lower x coordinate of simulated volume (if not set it is set to the fiducial volume - the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_xmax: float (optional)</dt><dd><p>upper x coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_ymin: float (optional)</dt><dd><p>lower y coordinate of simulated volume (if not set it is set to the fiducial volume - the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_ymax: float (optional)</dt><dd><p>upper y coordinate of simulated volume (if not set it is set to the fiducial volume + the 95% quantile of the tau decay length, if second vertices are not activated it is set to the fiducial volume)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_zmin: float (optional)</dt><dd><p>lower z coordinate of simulated volume (if not set it is set to 1/3 of the fiducial volume, if second vertices are not activated it is set to the fiducial volume)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>full_zmax: float (optional)</dt><dd><p>upper z coordinate of simulated volume (if not set it is set to the fiducial volume - the tau decay length, if second vertices are not activated it is set to the fiducial volume)</p>
+<dt>x0, y0: float</dt><dd><p>x-, y-coordinate this shift the center of the simulation volume</p>
 </dd>
 </dl>
 </li>
@@ -1452,7 +1358,7 @@ This is useful to split up the computing on multiple cores.</p>
 <li><p>‘E-?’: E to the -? spectrum where ? can be any float</p></li>
 <li><p>‘IceCube-nu-2017’: astrophysical neutrino flux measured with IceCube muon sample (<a class="reference external" href="https://doi.org/10.22323/1.301.1005">https://doi.org/10.22323/1.301.1005</a>)</p></li>
 <li><p>‘IceCube-nu-2022’: astrophysical neutrino flux measured with IceCube muon sample (<a class="reference external" href="https://doi.org/10.48550/arXiv.2111.10299">https://doi.org/10.48550/arXiv.2111.10299</a>)</p></li>
-<li><p>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a> 
+<li><p>‘GZK-1’: GZK neutrino flux model from van Vliet et al., 2019, <a class="reference external" href="https://arxiv.org/abs/1901.01899v1">https://arxiv.org/abs/1901.01899v1</a>
 for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)</p></li>
 <li><p>‘GZK-2’: GZK neutrino flux model from fit to TA data (<a class="reference external" href="https://pos.sissa.it/395/338/">https://pos.sissa.it/395/338/</a>)</p></li>
 <li><p>‘GZK-1+IceCube-nu-2017’: a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</p></li>
