@@ -1095,7 +1095,7 @@ class Detector():
                 response = Response(value["frequencies"], ydata, value["y-axis_units"],
                                     name=key, station_id=station_id, channel_id=channel_id)
 
-                time_delay += response.get_time_delay()
+                time_delay += response._get_time_delay()
 
         return time_delay
 
@@ -1322,7 +1322,7 @@ class Response:
 
             if self._sanity_check:
                 trace_length = other.get_number_of_samples() / other.get_sampling_rate()
-                time_delay = self.get_time_delay()
+                time_delay = self._get_time_delay()
                 if time_delay > trace_length / 2:
                     logging.warning("The time shift appiled by the response is larger than half the trace length:\n\t"
                                     f"{time_delay:.2f} vs {trace_length:.2f}")
@@ -1387,8 +1387,27 @@ class Response:
         else:
             return fig, ax
 
-    def get_time_delay(self, freqs=np.arange(0.05, 1.2, 0.001) * units.GHz):
-        """ Calculate time delay from phase """
+    def get_time_delay(self):
+        """ Get time delay from DB """
+        return np.sum(self.__time_delays)
+
+    def _get_time_delay(self):
+        """
+        Calculate time delay from phase of the stored complex response function.
+        This is not the time delay which is stored in the DB and which is used in
+        the `__init__()` to normalize the reponse function. Rather, its the remaining
+        group delay.
+
+        The time delay is calculated as the mean between 195 and 205 MHz.
+
+        Returns
+        -------
+
+        time_delay1 : float
+            The time delay at ~ 200 MHz
+        """
+
+        freqs = np.arange(0.05, 1.2, 0.001) * units.GHz
 
         response = self(freqs)
 
