@@ -591,8 +591,9 @@ class simulation:
 
                     # skip vertices not in fiducial volume. This is required because 'mother' events are added to the event list
                     # if daugthers (e.g. tau decay) have their vertex in the fiducial volume
-                    if not self._is_in_fiducial_volume():
-                        logger.debug(f"event is not in fiducial volume, skipping simulation {self._fin['xx'][self._shower_index]}, {self._fin['yy'][self._shower_index]}, {self._fin['zz'][self._shower_index]}")
+                    if not self._is_in_fiducial_volume(self._shower_vertex):
+                        logger.debug(f"event is not in fiducial volume, skipping simulation {self._fin['xx'][self._shower_index]}, "
+                                     f"{self._fin['yy'][self._shower_index]}, {self._fin['zz'][self._shower_index]}")
                         continue
 
                     # for special cases where only EM or HAD showers are simulated, skip all events that don't fulfill this criterion
@@ -1063,26 +1064,27 @@ class simulation:
         """
         return bool(self._cfg['noise'])
 
-    def _is_in_fiducial_volume(self):
-        """
-        checks wether a vertex is in the fiducial volume
+    def _is_in_fiducial_volume(self, pos):
+        """ Checks if pos is in fiducial volume """
 
-        if the fiducial volume is not specified in the input file, True is returned (this is required for the simulation
-        of pulser calibration measuremens)
-        """
-        tt = ['fiducial_rmin', 'fiducial_rmax', 'fiducial_zmin', 'fiducial_zmax']
-        has_fiducial = True
-        for t in tt:
-            if not t in self._fin_attrs:
-                has_fiducial = False
-        if not has_fiducial:
-            return True
-
-        r = (self._shower_vertex[0] ** 2 + self._shower_vertex[1] ** 2) ** 0.5
-        if r >= self._fin_attrs['fiducial_rmin'] and r <= self._fin_attrs['fiducial_rmax']:
-            if self._shower_vertex[2] >= self._fin_attrs['fiducial_zmin'] and self._shower_vertex[2] <= self._fin_attrs['fiducial_zmax']:
+        for check_attr in ['fiducial_zmin', 'fiducial_zmax']:
+            if not check_attr in self._fin_attrs:
+                logger.warning("Fiducial volume not defined. Return True")
                 return True
-        return False
+
+        pos = copy.deepcopy(pos) - np.array([self._fin_attrs.get("x0", 0), self._fin_attrs.get("y0", 0), 0])
+
+        if not (self._fin_attrs["fiducial_zmin"] < pos[2] < self._fin_attrs["fiducial_zmax"]):
+            return False
+
+        if "fiducial_rmax" in self._fin_attrs:
+            radius = np.sqrt(pos[0] ** 2 + pos[1] ** 2)
+            return self._fin_attrs["fiducial_rmin"] < radius < self._fin_attrs["fiducial_rmax"]
+        elif "fiducial_xmax" in self._fin_attrs:
+            return (self._fin_attrs["fiducial_xmin"] < pos[0] < self._fin_attrs["fiducial_xmax"] and
+                    self._fin_attrs["fiducial_ymin"] < pos[1] < self._fin_attrs["fiducial_ymax"])
+        else:
+            raise ValueError("Could not contruct fiducial volume from input file.")
 
     def _increase_signal(self, channel_id, factor):
         """
