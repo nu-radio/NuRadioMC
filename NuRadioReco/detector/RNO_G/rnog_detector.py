@@ -729,20 +729,38 @@ class Detector():
                                     measurement_components_dic["iglu_board"]["mag"])
 
                 if is_equal:
-                    self.logger.warn(f"Station.channel {station_id}.{channel_id}: Currently both, iglu and drab board are configured in the signal chain but their"
-                                    " responses are the same (because we measure them together in the lab). Skip the drab board response.")
+                    self.logger.warn(f"Station.channel {station_id}.{channel_id}: Currently both, "
+                                      "iglu and drab board are configured in the signal chain but their "
+                                      "responses are the same (because we measure them together in the lab). "
+                                      "Skip the drab board response.")
 
             responses = []
             for key, value in measurement_components_dic.items():
+
+                # Skip drab_board if its equal with iglu
                 if is_equal and key == "drab_board":
                     continue
 
                 if "weight" not in value:
                     self.logger.warn(f"Component {key} does not have a weight. Assume a weight of 1 ...")
-
                 weight = value.get("weight", 1)
+
+                if "time_delay" in value:
+                    time_delay = value["time_delay"]
+                elif "cable_delay" in value:
+                    time_delay = value["cable_delay"]
+                else:
+                    self.logger.warning(
+                        f"The signal chain component \"{key}\" of station.channel "
+                        f"{station_id}.{channel_id} has no cable/time delay stored... "
+                        "Set component time delay to 0")
+                    time_delay = 0
+
                 ydata = [value["mag"], value["phase"]]
-                response = Response(value["frequencies"], ydata, value["y-axis_units"], weight=weight, name=key)
+                response = Response(value["frequencies"], ydata, value["y-axis_units"],
+                                    time_delay=time_delay, weight=weight, name=key,
+                                    station_id=station_id, channel_id=channel_id)
+
 
                 responses.append(response)
 
@@ -1062,7 +1080,9 @@ class Detector():
 
             if use_stored:
                 if "time_delay" not in value or "cable_delay" not in value:
-                    self.logger.warning(f"The signal chain component \"{key}\" of station.channel {station_id}.{channel_id} has no cable/time delay stored... Skip it")
+                    self.logger.warning(
+                        f"The signal chain component \"{key}\" of station.channel "
+                        f"{station_id}.{channel_id} has no cable/time delay stored... Skip it")
                     continue
 
                 try:
@@ -1072,7 +1092,8 @@ class Detector():
 
             else:
                 ydata = [value["mag"], value["phase"]]
-                response = Response(value["frequencies"], ydata, value["y-axis_units"], name=key)
+                response = Response(value["frequencies"], ydata, value["y-axis_units"],
+                                    name=key, station_id=station_id, channel_id=channel_id)
 
                 time_delay += response.get_time_delay()
 
@@ -1107,54 +1128,91 @@ class Response:
     response of several components into one response by multiplying them.
     """
 
-    def __init__(self, frequency, y, y_unit, weight=1, name="default"):
+    def __init__(self, frequency, y, y_unit, time_delay=0, weight=1,
+                 name="default", station_id=None, channel_id=None,
+                 remove_time_delay=True, debug_plot=True):
         """
         Parameters
         ----------
 
-        frequency: list(float)
+        frequency : list(float)
             The frequency vector at which the response is measured. Unit has to be GHz.
 
-        y: [list(float), list(float)]
+        y : [list(float), list(float)]
             The measured response. First entry is the vector of the measured amplitude, the second entry is the measured phase.
             The unit of both entries is specified with the next argument.
 
-        y_unit: [str, str]
+        y_unit : [str, str]
             The first entry specifies the unit of the measured amplitude. Options are "dB", "MAG" and "mag".
             The second entry specifies the unit of the measured phase. Options are "rad" and "deg".
 
-        weight: float
+        time_delay : float (Default: 0)
+            "Average" group delay. Read from database. Will be used to normalize the phase and stored alongside response
+
+        weight : float (Default: 1)
             Specifies the weight with which this component reponse "adds" to the total signal-chain response or data.
             Its the exponent of the complex multiplicitive gain. That means that a value of 1 means to linear multiply this
-            reponse while a value of -1 means to divide by this reponse. (Default: 1)
+            reponse while a value of -1 means to divide by this reponse.
 
-        name: str
-            Give the response a name. This is only use for printing purposes. (Default: "default")
+        name : str (Default: "default")
+            Give the response a name. This is only use for printing purposes.
+
+        station_id : int (Default: None)
+            Associated station id.
+
+        channel_id : int (Default: None)
+            Associated channel id.
+
+        remove_time_delay : bool (Default: True)
+            If True, remove `time_delay` from response.
+
+        debug_plot : bool (Default: False)
+            If True, produce a debug plot
         """
 
         self.__names = [name]
+        self._station_id = station_id
+        self._channel_id = channel_id
+
+        self._sanity_check = True # Tmp
+
+        if self._station_id is None or self._channel_id is None:
+            logging.error(f"Station and channel id were not defined for response {name}. Please do that.")
 
         self.__frequency = np.array(frequency) * units.GHz
 
         if y[0] is None or y[1] is None:
-            raise ValueError
+            raise ValueError("Data for response incomplete, detected \"None\"")
 
-        y_ampl = np.array(y[0])
-        y_phase = np.array(y[1])
-
+        y_ampl, y_phase = np.array(y)
         if y_unit[0] == "dB":
             gain = 10 ** (y_ampl / 20)
-        elif y_unit[0] == "mag" or y_unit[0] == "MAG":
+        elif y_unit[0].lower() == "mag":
             gain = y_ampl
         else:
             raise KeyError
 
-        if y_unit[1] == "deg":
-            y_phase = np.deg2rad(y_phase)
-        elif y_unit[1] == "rad":
+        if y_unit[1].lower() == "deg":
+            if np.max(np.abs(y_phase)) < 2 * np.pi:
+                logging.warning("Is the phase really in deg? Does not look like it... "
+                                f"Do not convert to rad. Phase: {y_phase}")
+            else:
+                y_phase = np.deg2rad(y_phase)
+        elif y_unit[1].lower() == "rad":
             y_phase = y_phase
         else:
             raise KeyError
+
+
+        if remove_time_delay:
+            y_phase_orig = np.copy(np.unwrap(y_phase))
+            _response = gain * np.exp(1j * (y_phase + 2 * np.pi * time_delay * self.__frequency))
+            y_phase = np.angle(_response)
+        else:
+            time_delay = 0
+
+        y_phase = np.unwrap(y_phase)
+        # print(y_phase == y_phase_orig)
 
         self.__gains = [interpolate.interp1d(
             self.__frequency, gain, kind="linear", bounds_error=False, fill_value=0)]
@@ -1163,6 +1221,44 @@ class Response:
             self.__frequency, y_phase, kind="linear", bounds_error=False, fill_value=0)]
 
         self.__weights = [weight]
+        self.__time_delays = [weight * time_delay]
+
+        if debug_plot:
+            from matplotlib import pyplot as plt
+            fig, axs = plt.subplots(3, 1, sharex=True)  #, gridspec_kw=dict(hspace=0.03))
+            axs[0].set_title(name)
+            frequency_interp = np.linspace(self.__frequency[0], self.__frequency[-1], 10000)
+            axs[0].plot(self.__frequency, gain, "C0o", label="data", markersize=2)
+            axs[0].plot(frequency_interp, self.__gains[0](frequency_interp), "C1--", lw=1, label="interpolation")
+
+            if remove_time_delay:
+                axs[1].plot(self.__frequency, y_phase_orig, "C0o", markersize=2, label="Original phase")
+                ax2 = axs[1].twinx()
+                ax2.plot(self.__frequency, y_phase, "C2o", markersize=2, label=f"Excl. time delay of {self.__time_delays[0]:.2f}ns")
+                ax2.plot(frequency_interp, self.__phases[0](frequency_interp), "C3--", lw=1, label="interpolation")
+                ax2.set_ylabel("norm. phase / rad")
+                ax2.legend(fontsize=5)
+            else:
+                axs[1].plot(self.__frequency, y_phase, "C0o", markersize=2)
+                axs[1].plot(frequency_interp, self.__phases[0](frequency_interp), "C1--", lw=1)
+
+            axs[0].set_ylabel("gain")
+            axs[1].set_ylabel("phase / rad")
+
+            axs[0].legend(fontsize=5)
+            # axs[1].legend(fontsize=5)
+
+            group_delay = -np.diff(y_phase) / np.diff(self.__frequency)[0] / (2 * np.pi)
+            axs[2].plot(self.__frequency[:-1], group_delay, "C0o", markersize=2)
+            frequency_mask = np.all([50 * units.MHz < self.__frequency[:-1], self.__frequency[:-1] < 800 * units.MHz], axis=0)
+            axs[2].set_ylim(np.amin(group_delay[frequency_mask]), np.amax(group_delay[frequency_mask]))
+            axs[2].set_ylabel("group delay / ns")
+
+            axs[-1].set_xlabel("frequency / GHz")
+            fig.tight_layout()
+            plt.savefig(f'{name}_{self._station_id}_{self._channel_id}_'
+                        f'{datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S")}_debug.png', transparent=False)
+            plt.close()
 
     def __call__(self, freq):
         """
@@ -1209,22 +1305,43 @@ class Response:
         """
 
         if isinstance(other, Response):
+            if self._station_id != other._station_id or \
+                self._channel_id != other._channel_id:
+                logging.error("It looks like you are combining responses from "
+                                  f"two different channels: {self._station_id}.{self._channel_id} "
+                                  f" vs {other._station_id}.{other._channel_id} (station_id.channel_id)")
             # Store each response individually: append/concatenate lists of gains and phases.
             # The multiplication happens in __call__.
             self.__names += other.__names
             self.__gains += other.__gains
             self.__phases += other.__phases
             self.__weights += other.__weights
+            self.__time_delays += other.__time_delays
             return self
 
-        elif isinstance(other, NuRadioReco.framework.base_trace):
+        elif isinstance(other, NuRadioReco.framework.base_trace.BaseTrace):
+
+            if self._sanity_check:
+                trace_length = other.get_number_of_samples() / other.get_sampling_rate()
+                time_delay = self.get_time_delay()
+                if time_delay > trace_length / 2:
+                    logging.warning("The time shift appiled by the response is larger than half the trace length:\n\t"
+                                    f"{time_delay:.2f} vs {trace_length:.2f}")
+
             spec = other.get_frequency_spectrum()
             freqs = other.get_frequencies()
             spec *= self(freqs)  # __call__
+            other.set_trace_start_time(np.sum(self.__time_delays))
+            other.set_frequency_spectrum(spec)
             return other
 
+        elif isinstance(other, np.ndarray):
+            raise TypeError("You try to multiply a `Response` object with a numpy array, "
+                            "only `Response` or `BaseTrace` is allowed. "
+                            "Did you call `get_trace()` or `get_frequency_spectrum()` on `BaseTrace`?")
+
         else:
-            raise TypeError
+            raise TypeError(f"Response multiplied with unknown type: {type(other)}")
 
     def __rmul__(self, other):
         """ Same as mul """
@@ -1233,7 +1350,7 @@ class Response:
     def __str__(self):
         ampl = 20 * np.log10(np.abs(self(0.5 * units.GHz)))
         return "Response of " + ", ".join([f"{name} ({weight})" for name, weight in zip(self.get_names(), self.__weights)]) \
-            + f": |R(0.5 GHz)| = {ampl:.2f} dB (amplitude)"
+            + f": |R(0.5 GHz)| = {ampl:.2f} dB (amplitude) ({np.sum(self.__time_delays):.2f} ns)"
 
     def plot(self, show=False, in_dB=True):
         import matplotlib.pyplot as plt
@@ -1289,7 +1406,8 @@ class Response:
         time_delay2 = -popt[0] / (2 * np.pi)
 
         if np.abs(time_delay1 - time_delay2) > 0.1:
-            self.logger.warning(f"Calculation of time delay. The two methods yield different results: {time_delay1:.1f} / {time_delay2:.1f} for {self.get_names()}. Return the former...")
+            logging.warning("Calculation of time delay. The two methods yield different results: "
+                            f"{time_delay1:.1f} / {time_delay2:.1f} for {self.get_names()}. Return the former...")
 
         return time_delay1
 
@@ -1298,12 +1416,55 @@ class Response:
 if __name__ == "__main__":
 
     from NuRadioReco.detector import detector
-    # det = Detector(log_level=logging.DEBUG, over_write_handset_values={
-    #                "sampling_frequency": 2.4 * units.GHz}, always_query_entire_description=False)
-    det = detector.Detector(source="mongo", log_level=logging.DEBUG, always_query_entire_description=False,
-                            database_connection='RNOG_public')
 
-    det.update(datetime.datetime(2022, 8, 2, 0, 0))
-    print(det.get_absolute_position(21))
-    resp = det.get_signal_chain_response(21, 0)
-    resp.plot(True, True)
+    det = detector.Detector(source="mongo", log_level=logging.DEBUG, always_query_entire_description=False,
+                            database_connection='RNOG_public', select_stations=24)
+
+    det.update(datetime.datetime(2023, 8, 2, 0, 0))
+    # det.export("station24.json.xz")
+    # # print(det.get_absolute_position(21))
+    # # resp = det.get_signal_chain_response(21, 0)
+    # # resp.plot(True, True)
+
+    # det = detector.Detector(source="mongo", detector_file="station24.json.xz", select_stations=24)
+    # det.update(datetime.datetime(2023, 8, 2, 0, 0))
+
+    response = det.get_signal_chain_response(24, 0)
+    print(response)
+
+    # from NuRadioReco.modules.io import eventReader
+
+    # reader = eventReader.eventReader()
+    # reader.begin("./NuRadioMC/test/SingleEvents/1e18_output.nur")
+    # for ev in reader.run():
+    #     for st in ev.get_stations():
+    #         sim_st = st.get_sim_station()
+    #         for ef in sim_st.get_electric_fields():
+    #             print(sim_st.get_id(), ef.get_unique_identifier())
+    #             if 0 in ef.get_unique_identifier()[0]:
+    #                 with open("test_ef.pkl", "wb") as f:
+    #                     f.write(ef.serialize(True))
+
+    #                 sys.exit()
+
+    # from NuRadioReco.framework import electric_field
+    # with open("test_ef.pkl", "rb") as f:
+    #     ef = electric_field.ElectricField(channel_ids=[0])
+    #     ef.deserialize(f.read())
+
+    # from matplotlib import pyplot as plt
+    # fig, ax = plt.subplots()
+    # ax.plot(ef.get_trace().T)
+    # ef *= response
+    # ax2 = ax.twinx()
+    # ax2.plot(ef.get_trace().T, ls="--")
+    # y = np.amax(np.abs(ax2.get_ylim()))
+    # ax2.set_ylim(-y, y)
+
+    # y = np.amax(np.abs(ax.get_ylim()))
+    # ax.set_ylim(-y, y)
+
+    # print(response.get_time_delay())
+
+    # fig.tight_layout()
+    # plt.show()
