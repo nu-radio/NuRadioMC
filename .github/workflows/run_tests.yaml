@@ -165,3 +165,8 @@ jobs:
         export GSLDIR=$(gsl-config --prefix)
         export PYTHONPATH=$(pwd):$PYTHONPATH
         NuRadioReco/test/test_examples.sh
+    - name: "Detector"
+      if: always()
+      run: |
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        NuRadioReco/detector/test/tests.sh
