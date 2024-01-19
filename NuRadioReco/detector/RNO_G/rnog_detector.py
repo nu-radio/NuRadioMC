@@ -18,6 +18,7 @@ import json
 import re
 import copy
 import bson
+import lzma
 
 
 def json_serial(obj):
@@ -150,54 +151,7 @@ class Detector():
         else:
             self._query_all = None  # specific case for file imported detector descriptions
             self._det_imported_from_file = True
-
-            is_json = False
-            if detector_file.endswith(".json"):
-                is_json = True
-                with open(detector_file, "r") as f:
-                    import_dict = json.load(f)
-
-            elif detector_file.endswith(".pickle") or detector_file.endswith(".pkl"):
-                with open(detector_file, "rb") as f:
-                    import_dict = pickle.load(f)
-            else:
-                raise ValueError(f"Unknown filetype, can not import detector from {detector_file}")
-
-            if "version" in import_dict and import_dict["version"] == 1:
-                self.__buffered_stations = {}
-
-                if is_json:
-                    # need to convert station/channel id keys back to integers
-                    for station_id, station_data in import_dict["data"].items():
-                        if self.selected_stations is not None and int(station_id) not in self.selected_stations:
-                            continue
-
-                        station_data["channels"] = {int(channel_id): channel_data for channel_id, channel_data in station_data["channels"].items()}
-                        self.__buffered_stations[int(station_id)] = station_data
-
-                    # need to convert modification_timestamps back to datetime objects
-                    self._time_periods_per_station = {
-                        int(station_id): {"modification_timestamps":
-                            [datetime.datetime.fromisoformat(v) for v in value["modification_timestamps"]]}
-                        for station_id, value in import_dict["periods"].items() if self.selected_stations is None
-                        or int(station_id) in self.selected_stations
-                    }
-                else:
-                    self.__buffered_stations = import_dict["data"]
-                    self._time_periods_per_station = import_dict["periods"]
-
-                # Set de/commission timestamps to the time period for which this config is valid
-                for station_id in self._time_periods_per_station:
-                    modification_timestamps = self._time_periods_per_station[station_id]["modification_timestamps"]
-                    self._time_periods_per_station[station_id]["station_commission_timestamps"] = [modification_timestamps[0]]
-                    self._time_periods_per_station[station_id]["station_decommission_timestamps"] = [modification_timestamps[-1]]
-
-                self._time_period_index_per_station = {
-                    st_id: 1 for st_id in self.__buffered_stations}
-                self.__default_values = import_dict["default_values"]
-            else:
-                self.logger.error(f"{detector_file} with unknown version.")
-                raise ReferenceError(f"{detector_file} with unknown version.")
+            self._import_from_file(detector_file)
 
         # Allow overwriting the hard-coded values
         self.__default_values.update(over_write_handset_values)
@@ -210,7 +164,7 @@ class Detector():
 
         self.logger.info(info)
 
-    def export(self, filename, filetype="auto", json_kwargs=None):
+    def export(self, filename, json_kwargs=None):
         """
         Export the buffered detector description.
 
@@ -219,11 +173,6 @@ class Detector():
 
         filename: str
             Filename of the exported detector description
-
-        filetype: str
-            Select filetype to export detector describtion. Possible options are "pickle", "json" and "auto".
-            If "auto" (default) is passed use extension in filename to define filetype. If that is not possible
-            (because no extension is found) export to a json file.
 
         json_kwargs: dict
             Arguments passed to json.dumps(..). (Default: None -> dict(indent=0, default=json_serial))
@@ -253,39 +202,20 @@ class Detector():
             "default_values": self.__default_values
         }
 
-        if filetype == "auto":
-            if filename.endswith(".json"):
-                filetype = "json"
-            elif filename.endswith(".pickle") or filename.endswith(".pkl"):
-                filetype = "pickle"
-            else:
-                filetype = "json"
-
-        if filetype == "json":
+        if not filename.endswith(".xz"):
             if not filename.endswith(".json"):
                 filename += ".json"
+            filename += ".xz"
+        elif not filename.endswith(".json.xz"):
+            filename = filename.replace(".xz", ".json.xz")
 
-            if json_kwargs is None:
-                json_kwargs = dict(indent=0, default=json_serial)
+        if json_kwargs is None:
+            json_kwargs = dict(indent=0, default=json_serial)
 
-            with open(filename, "w") as f:
-                json.dump(export_dict, f, **json_kwargs)
+        self.logger.info(f"Export detector description to {filename}")
+        with lzma.open(filename, "w") as f:
+            f.write(json.dumps(export_dict, **json_kwargs).encode('utf-8'))
 
-        elif filetype == "pickle":
-            if not (filename.endswith(".pickle") or filename.endswith(".pkl")):
-                filename += ".pickle"
-
-            #TODO: Currently we are serializing stuff like datetime which can cause backwards in-compatibility ....
-
-            for station_id in export_dict["data"]:
-                for channel_id in export_dict["data"][station_id]["channels"]:
-                    # you do not want to serialise non-built-in classes and the raw data is stored anyway...
-                    export_dict["data"][station_id]["channels"][channel_id]["signal_chain"].pop("total_response", None)  # you do not want to serialise non-built-in classes
-
-            with open(filename, "wb") as f:
-                pickle.dump(export_dict, f)
-        else:
-            raise ValueError(f"Unknown filetype {filetype}. Can not export detector description")
 
     def export_as_string(self, skip_signal_chain_response=True, dumps_kwargs=None):
         """
@@ -313,6 +243,51 @@ class Detector():
             dumps_kwargs = dict(indent=4, default=str)
 
         return json.dumps(export_dir, **dumps_kwargs)
+
+    def _import_from_file(self, detector_file):
+
+        if detector_file.endswith(".json.xz"):
+            with lzma.open(detector_file, "r") as f:
+                import_dict = json.load(f)
+        elif detector_file.endswith(".json"):
+            with open(detector_file, "r") as f:
+                import_dict = json.load(f)
+        else:
+            raise ValueError(f"Unknown filetype (extension), can not import detector from {detector_file}. "
+                                "Allowed are only: \".json\" and \".json.xz\"")
+
+        if "version" in import_dict and import_dict["version"] == 1:
+            self.__buffered_stations = {}
+
+            # need to convert station/channel id keys back to integers
+            for station_id, station_data in import_dict["data"].items():
+                if self.selected_stations is not None and int(station_id) not in self.selected_stations:
+                    continue
+
+                station_data["channels"] = {int(channel_id): channel_data for channel_id, channel_data in station_data["channels"].items()}
+                self.__buffered_stations[int(station_id)] = station_data
+
+            # need to convert modification_timestamps back to datetime objects
+            self._time_periods_per_station = {
+                int(station_id): {"modification_timestamps":
+                    [datetime.datetime.fromisoformat(v) for v in value["modification_timestamps"]]}
+                for station_id, value in import_dict["periods"].items() if self.selected_stations is None
+                or int(station_id) in self.selected_stations
+            }
+
+            # Set de/commission timestamps to the time period for which this config is valid
+            for station_id in self._time_periods_per_station:
+                modification_timestamps = self._time_periods_per_station[station_id]["modification_timestamps"]
+                self._time_periods_per_station[station_id]["station_commission_timestamps"] = [modification_timestamps[0]]
+                self._time_periods_per_station[station_id]["station_decommission_timestamps"] = [modification_timestamps[-1]]
+
+            self._time_period_index_per_station = {
+                st_id: 1 for st_id in self.__buffered_stations}
+            self.__default_values = import_dict["default_values"]
+        else:
+            self.logger.error(f"{detector_file} with unknown version.")
+            raise ReferenceError(f"{detector_file} with unknown version.")
+
 
     def _check_update_buffer(self):
         """
