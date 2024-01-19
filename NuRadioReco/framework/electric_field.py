@@ -22,7 +22,7 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         Parameters
         ----------
         channel_ids: array of ints
-            the channels ids this electric field is valid for. 
+            the channels ids this electric field is valid for.
             (For cosmic rays one electric field is typically valid
             for several channels. For neutrino simulations, we typically
             simulate the electric field for each
