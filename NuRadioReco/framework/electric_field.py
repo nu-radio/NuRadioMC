@@ -38,7 +38,11 @@ class ElectricField(NuRadioReco.framework.base_trace.BaseTrace):
         self._channel_ids = channel_ids
         self._parameters = {}
         self._parameter_covariances = {}
-        self._position = list(position) or [0, 0, 0]  # if position is empty or None use [0, 0, 0]
+
+        self._position = position
+        if position is None:
+            self._position = [0, 0, 0]
+
         self._shower_id = shower_id
         self._ray_tracing_id = ray_tracing_id
 
