@@ -28,9 +28,9 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
     model: string
         specifies the signal model
         If the model string starts with "efield_", the function provides the three dimensional electric field emitted
-        by the pulser/antena combination normalized to a distance of 1m. 
+        by the pulser/antena combination normalized to a distance of 1m.
         If not, then the voltage of the pulser is returned (which needs to be folded with an antenna response pattern to obtain
-        the emitted electric field. This is automatically done in a NuRadioMC simulation).  
+        the emitted electric field. This is automatically done in a NuRadioMC simulation).
 
         * delta_pulse: a simple signal model of a delta pulse emitter
         * cw : a sinusoidal wave of given frequency
@@ -39,6 +39,15 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         * idl1 & hvsp1 : these are the waveforms generated in KU lab and stored in hdf5 files
         * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
         * ARA02-calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02
+        * efield_idl1_spice: direct measurement of the efield from the idl1 pulser and its antenna as used in the SPICE
+          calibration campaigns from 2018 and 2019. The viewing angle (angle between the z-axis of the antenna and the
+          launch direction) needs to be specified in the kwargs. See Journal of Instrumentation 15 (2020) P09039,
+          doi:10.1088/1748-0221/15/09/P09039 arXiv:2006.03027 for details.
+        * efield_delta_pulse: a simple signal model of a delta pulse emitter. The kwarg `polarization` needs
+          to be specified to select the polarization of the efield, defined as float between 0 and 1 with
+          0 = eTheta polarized and 1 = ePhi polarized. The default is 0.5, i.e. unpolarized. The amplitudes are
+          set to preserve the total power of the delta pulse, i.e. A_theta = sqrt(1-polarization)
+          and A_phi = sqrt(polarization).
     full_output: bool (default False)
         if True, can return additional output
 
@@ -111,6 +120,10 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         trace = amplitude * trace / np.max(np.abs(trace))  # trace now has dimension of amplitude given from event generation file
         peak_amplitude_index_new = np.where(np.abs(trace) == np.max(np.abs(trace)))[0][0]
         trace = np.roll(trace, int(N / 2) - peak_amplitude_index_new)  # this rolls the array(trace) to keep peak amplitude at center
+    elif(model == 'efield_delta_pulse'):  # this takes delta signal as input voltage
+        trace = np.zeros((3, N))
+        trace[1, N // 2] = (1.0 - kwargs.get("polarization", 0.5)) ** 0.5 * amplitude
+        trace[2, N // 2] = kwargs.get("polarization", 0.5) ** 0.5 * amplitude
     elif(model == "efield_idl1_spice"):
         viewing_angle = kwargs["viewing_angle"]
         pass # @Nils, implement 
