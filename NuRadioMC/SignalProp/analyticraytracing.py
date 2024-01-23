@@ -1966,7 +1966,7 @@ class ray_tracing(ray_tracing_base):
         output format: numpy.array: np.array([[p_radial_1, p_theta_1, p_phi_1], [p_radial_2, p_theta_2, p_phi_2]])
         meaning:       normalized e-field vector in spherical coordinates for both birefringence solutions
         """
-
+        
         narrow_check = 1e-9
         wide_check = 1e-10
 
@@ -1974,52 +1974,64 @@ class ray_tracing(ray_tracing_base):
 
             if (np.isclose(N1, np.array([nx, ny, nz]), rtol=0, atol=narrow_check).any()) and (np.isclose(N2, np.array([nx, ny, nz]), rtol=0, atol=narrow_check).any()):
                 self.__logger.warning("warning: Polarization vectors not computable")
-                polarization_1 = np.array([0, 0, 0])
-                polarization_2 = np.array([0, 0, 0])
+                sky_polarization_1 = np.array([0, 0, 0])
+                sky_polarization_2 = np.array([0, 0, 0])
             
             elif np.isclose(N1, nx, rtol=0, atol=wide_check):
-                if direction[0] < 0:
-                    polarization_1 = np.array([-1, 0, 0])
-                else:
-                    polarization_1 = np.array([1, 0, 0])
 
-                polarization_2 = self.get_polarization_birefringence_simple(N2, direction, nx, ny, nz)
-            
+                if direction[0] < 0:
+                    sky_polarization_1 = np.array([0, 0, 1])
+                    sky_polarization_2 = np.array([0, 1, 0])
+
+                else:
+                    sky_polarization_1 = np.array([0, 0, -1])
+                    sky_polarization_2 = np.array([0, 1, 0])
+
             elif np.isclose(N1, ny, rtol=0, atol=narrow_check):
+                
                 if direction[1] < 0:
-                    polarization_1 = np.array([0, 1, 0])
+                    sky_polarization_1 = np.array([0, 0, 1])
+                    sky_polarization_2 = np.array([0, 1, 0])
+
                 else:
-                    polarization_1 = np.array([0, -1, 0])
-                    
-                polarization_2 = self.get_polarization_birefringence_simple(N2, direction, nx, ny, nz)
-            
+                    sky_polarization_1 = np.array([0, 0, -1])
+                    sky_polarization_2 = np.array([0, 1, 0])
+
             elif np.isclose(N2, ny, rtol=0, atol=narrow_check):
-                polarization_1 = self.get_polarization_birefringence_simple(N1, direction, nx, ny, nz)
-            
+
                 if direction[1] < 0:
-                    polarization_2 = np.array([0, -1, 0])
+                    sky_polarization_1 = np.array([0, 1, 0])
+                    sky_polarization_2 = np.array([0, 0, -1])
+
                 else:
-                    polarization_2 = np.array([0, 1, 0])
+                    sky_polarization_1 = np.array([0, 1, 0])
+                    sky_polarization_2 = np.array([0, 0, 1])
 
             elif np.isclose(N2, nz, rtol=0, atol=wide_check):
-                polarization_1 = self.get_polarization_birefringence_simple(N1, direction, nx, ny, nz)
-            
+
                 if direction[2] < 0:
-                    polarization_2 = np.array([0, 0, 1])
+                    sky_polarization_1 = np.array([0, 0, -1])
+                    sky_polarization_2 = np.array([0, -1, 0])
+
                 else:
-                    polarization_2 = np.array([0, 0, -1])
+                    sky_polarization_1 = np.array([0, 0, -1])
+                    sky_polarization_2 = np.array([0, 1, 0])
 
             else:
                 polarization_1 = self.get_polarization_birefringence_simple(N1, direction, nx, ny, nz)
                 polarization_2 = self.get_polarization_birefringence_simple(N2, direction, nx, ny, nz)
 
+                zenith, azimuth = hp.cartesian_to_spherical( * (direction))
+                sky_polarization_1 = self.on_sky_birefringence(zenith, azimuth, polarization_1)
+                sky_polarization_2 = self.on_sky_birefringence(zenith, azimuth, polarization_2)
+
         else:
             polarization_1 = self.get_polarization_birefringence_simple(N1, direction, nx, ny, nz)
             polarization_2 = self.get_polarization_birefringence_simple(N2, direction, nx, ny, nz)
 
-        zenith, azimuth = hp.cartesian_to_spherical( * (direction))
-        sky_polarization_1 = self.on_sky_birefringence(zenith, azimuth, polarization_1)
-        sky_polarization_2 = self.on_sky_birefringence(zenith, azimuth, polarization_2)
+            zenith, azimuth = hp.cartesian_to_spherical( * (direction))
+            sky_polarization_1 = self.on_sky_birefringence(zenith, azimuth, polarization_1)
+            sky_polarization_2 = self.on_sky_birefringence(zenith, azimuth, polarization_2)
 
         return np.vstack((sky_polarization_1, sky_polarization_2))
     
@@ -2189,7 +2201,7 @@ class ray_tracing(ray_tracing_base):
             refractive_index_birefringence = ice_birefringence.get_birefringence_index_of_refraction(path[i])
 
             nx, ny, nz = refractive_index + refractive_index_birefringence - 1.78
-            dD = path[i + 1] - path[i]    
+            dD = path[i + 1] - path[i]   
 
             direction = np.array(dD)
             len_diff = np.linalg.norm(direction)
