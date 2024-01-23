@@ -1331,7 +1331,7 @@ class Response:
             freqs = other.get_frequencies()
             spec *= self(freqs)  # __call__
             other.add_trace_start_time(np.sum(self.__time_delays))
-            other.set_frequency_spectrum(spec)
+            other.set_frequency_spectrum(spec, sampling_rate="same")
             return other
 
         elif isinstance(other, np.ndarray):
