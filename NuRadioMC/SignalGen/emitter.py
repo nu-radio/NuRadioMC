@@ -27,6 +27,10 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         time bin width, i.e. the inverse of the sampling rate
     model: string
         specifies the signal model
+        If the model string starts with "efield_", the function provides the three dimensional electric field emitted
+        by the pulser/antena combination normalized to a distance of 1m.
+        If not, then the voltage of the pulser is returned (which needs to be folded with an antenna response pattern to obtain
+        the emitted electric field. This is automatically done in a NuRadioMC simulation).
 
         * delta_pulse: a simple signal model of a delta pulse emitter
         * cw : a sinusoidal wave of given frequency
@@ -35,30 +39,41 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         * idl1 & hvsp1 : these are the waveforms generated in KU lab and stored in hdf5 files
         * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
         * ARA02-calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02
+        * efield_idl1_spice: direct measurement of the efield from the idl1 pulser and its antenna as used in the SPICE
+          calibration campaigns from 2018 and 2019. The viewing angle (angle between the z-axis of the antenna and the
+          launch direction) needs to be specified in the kwargs. See Journal of Instrumentation 15 (2020) P09039,
+          doi:10.1088/1748-0221/15/09/P09039 arXiv:2006.03027 for details.
+        * efield_delta_pulse: a simple signal model of a delta pulse emitter. The kwarg `polarization` needs
+          to be specified to select the polarization of the efield, defined as float between 0 and 1 with
+          0 = eTheta polarized and 1 = ePhi polarized. The default is 0.5, i.e. unpolarized. The amplitudes are
+          set to preserve the total power of the delta pulse, i.e. A_theta = sqrt(1-polarization)
+          and A_phi = sqrt(polarization).
     full_output: bool (default False)
         if True, can return additional output
 
     Returns
     -------
-    time trace: 2d array, shape (3, N)
-        the amplitudes for each time bin
+    time trace: 1d or 2d array, shape (N) or (3, N) for efield
+        the amplitudes for each time bin. In case of an efield, the the amplitude for the three componente eR, eTheta, ePhi are returned.
     additional information: dict
         only available if `full_output` enabled
 
     """
-    half_width = kwargs.get("half_width")
-    emitter_frequency = kwargs.get("emitter_frequency")
     trace = None
     additional_output = {}
     if(amplitude == 0):
-        trace = np.zeros(3, N)
+        if(model.startswith("efield_")):
+            trace = np.zeros(3, N)
+        else:
+            trace = np.zeros(N)
     if(model == 'delta_pulse'):  # this takes delta signal as input voltage
         trace = np.zeros(N)
         trace[N // 2] = amplitude
     elif(model == 'cw'):  # generates a sine wave of given frequency
         time = np.linspace(-(N / 2) * dt, ((N - 1) - N / 2) * dt, N)
-        trace = amplitude * np.sin(2 * np.pi * emitter_frequency * time)
+        trace = amplitude * np.sin(2 * np.pi * kwargs["emitter_frequency"] * time)
     elif(model == 'square' or model == 'tone_burst'):  # generates a rectangular or tone_burst signal of given width and frequency
+        half_width = kwargs.get("half_width")
         if(half_width > int(N / 2)):
             raise NotImplementedError(" half_width {} should be < half of the number of samples N " . format(half_width))
         time = np.linspace(-(N / 2) * dt, ((N - 1) - N / 2) * dt, N)
@@ -69,10 +84,10 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         if(model == 'square'):
             trace = voltage
         else:
-            trace = voltage * np.sin(2 * np.pi * emitter_frequency * time)
+            trace = voltage * np.sin(2 * np.pi * kwargs["emitter_frequency"] * time)
     elif(model == 'gaussian'):  # generates gaussian pulse where half_width represents the half width at half maximum
         time = np.linspace(-(N / 2) * dt, ((N - 1) - N / 2) * dt, N)
-        sigma = half_width / (np.sqrt(2 * np.log(2)))
+        sigma = kwargs["half_width"] / (np.sqrt(2 * np.log(2)))
         trace = 1 / (sigma * np.sqrt(2 * np.pi)) * np.exp(-1 / 2 * ((time - 500) / sigma) ** 2)
         trace = amplitude * 1 / np.max(np.abs(trace)) * trace
     elif(model == 'idl1' or model == 'hvsp1' or model == 'ARA02_calPulser'):  # the idl1 & hvsp1 waveforms gemerated in KU Lab stored in hdf5 file
@@ -105,6 +120,13 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         trace = amplitude * trace / np.max(np.abs(trace))  # trace now has dimension of amplitude given from event generation file
         peak_amplitude_index_new = np.where(np.abs(trace) == np.max(np.abs(trace)))[0][0]
         trace = np.roll(trace, int(N / 2) - peak_amplitude_index_new)  # this rolls the array(trace) to keep peak amplitude at center
+    elif(model == 'efield_delta_pulse'):  # this takes delta signal as input voltage
+        trace = np.zeros((3, N))
+        trace[1, N // 2] = (1.0 - kwargs.get("polarization", 0.5)) ** 0.5 * amplitude
+        trace[2, N // 2] = kwargs.get("polarization", 0.5) ** 0.5 * amplitude
+    elif(model == "efield_idl1_spice"):
+        viewing_angle = kwargs["viewing_angle"]
+        pass # @Nils, implement 
     else:
         raise NotImplementedError("model {} unknown".format(model))
     if(full_output):
@@ -119,7 +141,7 @@ def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs)
 
     Parameters
     ----------
-    amplitude : float
+    amplitude : float 
         strength of a pulse
     N : int
         number of samples in the time domain
@@ -127,6 +149,10 @@ def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs)
         time bin width, i.e. the inverse of the sampling rate
     model: string
         specifies the signal model
+        If the model string starts with "efield_", the function provides the three dimensional electric field emitted
+        by the pulser/antena combination normalized to a distance of 1m. 
+        If not, then the voltage of the pulser is returned (which needs to be folded with an antenna response pattern to obtain
+        the emitted electric field. This is automatically done in a NuRadioMC simulation).  
 
         * delta_pulse: a simple signal model of a delta pulse emitter
         * cw : a sinusoidal wave of given frequency
@@ -140,11 +166,10 @@ def get_frequency_spectrum(amplitude, N, dt, model, full_output=False, **kwargs)
 
     Returns
     -------
-    time trace: 2d array, shape (3, N)
-        the amplitudes for each time bin
+    time trace: 1d or 2d array, shape (N) or (3, N) for efield
+        the amplitudes for each time bin. In case of an efield, the the amplitude for the three componente eR, eTheta, ePhi are returned.
     additional information: dict
         only available if `full_output` enabled
-
     """
     tmp = get_time_trace(amplitude, N, dt, model, full_output=full_output, **kwargs)
     if(full_output):
