@@ -78,9 +78,10 @@ class BaseTrace:
         ----------
         trace : np.array of floats
             The time series
-        sampling_rate : float (Default: None)
+        sampling_rate : float or str (Default: None)
             The sampling rate of the trace, i.e., the inverse of the bin width.
-            If None, assume sampling rate did not change.
+            If `sampling_rate="same"`, sampling rate is not changed (requires previous initialisation).
+            If `sampling_rate=None` raise an error.
         """
         if trace is not None:
             if trace.shape[trace.ndim - 1] % 2 != 0:
@@ -89,14 +90,19 @@ class BaseTrace:
         self.__time_domain_up_to_date = True
         self._time_trace = np.copy(trace)
 
-        if sampling_rate is not None:
-            self._sampling_rate = sampling_rate
-        elif self._sampling_rate is None:
-            raise ValueError("You have to specify a sampling rate for `BaseTrace.set_frequency_spectrum(...)`")
-
         self._frequency_spectrum = None
 
-    def set_frequency_spectrum(self, frequency_spectrum, sampling_rate=None):
+        if isinstance(sampling_rate, str) and sampling_rate.lower() == "same":
+            if self._sampling_rate is None:
+                raise ValueError("You specified to keep the sampling rate "
+                                 "but no value have been set previously.")
+                pass  # keep value of self._sampling_rate
+        elif sampling_rate is not None:
+            self._sampling_rate = sampling_rate
+        else:
+            raise ValueError("You have to specify a sampling rate for `BaseTrace.set_trace(...)`")
+
+    def set_frequency_spectrum(self, frequency_spectrum, sampling_rate="same"):
         """
         Sets the frequency spectrum
 
@@ -104,19 +110,24 @@ class BaseTrace:
         ----------
         frequency_spectrum : np.array of floats
             The frequency spectrum
-        sampling_rate : float (Default: None)
+        sampling_rate : float or str (Default: None)
             The sampling rate of the trace, i.e., the inverse of the bin width.
-            If None, assume sampling rate did not change.
+            If `sampling_rate="same"`, sampling rate is not changed (requires previous initialisation).
+            If `sampling_rate=None` raise an error.
         """
         self.__time_domain_up_to_date = False
         self._frequency_spectrum = np.copy(frequency_spectrum)
-
-        if sampling_rate is not None:
-            self._sampling_rate = sampling_rate
-        elif self._sampling_rate is None:
-            raise ValueError("You have to specify a sampling rate for `BaseTrace.set_frequency_spectrum(...)`")
-
         self._time_trace = None
+
+        if isinstance(sampling_rate, str) and sampling_rate.lower() == "same":
+            if self._sampling_rate is None:
+                raise ValueError("You specified to keep the sampling rate "
+                                 "but no value have been set previously.")
+            pass  # keep value of self._sampling_rate
+        elif sampling_rate is not None:
+            self._sampling_rate = sampling_rate
+        else:
+            raise ValueError("You have to specify a sampling rate for `BaseTrace.set_frequency_spectrum(...)`")
 
     def get_sampling_rate(self):
         """
@@ -132,9 +143,11 @@ class BaseTrace:
     def get_times(self):
         try:
             length = self.get_number_of_samples()
-            times = np.arange(0, length / self._sampling_rate - 0.1 / self._sampling_rate, 1. / self._sampling_rate) + self._trace_start_time
+            times = np.arange(0, length / self._sampling_rate - 0.1 / self._sampling_rate,
+                              1. / self._sampling_rate) + self._trace_start_time
             if len(times) != length:
-                err = f"time array does not have the same length as the trace. n_samples = {length:d}, sampling rate = {self._sampling_rate:.5g}"
+                err = ("time array does not have the same length as the trace. "
+                    f"n_samples = {length:d}, sampling rate = {self._sampling_rate:.5g}")
                 logger.error(err)
                 raise ValueError(err)
         except (ValueError, AttributeError):
