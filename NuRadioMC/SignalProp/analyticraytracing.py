@@ -2620,7 +2620,6 @@ class ray_tracing(ray_tracing_base):
                 if "birefringence_propagation" in self._config['propagation']:
 
                     if self._config['propagation']['birefringence_propagation'] == 'analytical':
-
                         spec = self.get_pulse_propagation_birefringence(spec, s_rate, i_solution, bire_model = bire_model)
 
                     elif self._config['propagation']['birefringence_propagation'] == 'numerical':
