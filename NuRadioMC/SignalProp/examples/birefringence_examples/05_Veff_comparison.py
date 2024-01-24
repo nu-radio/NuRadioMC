@@ -78,7 +78,7 @@ for i in energies:
     Veff_no_birefringence.append(data_no_birefringence[0]['veff']['all_triggers'][0])
 
 plt.scatter(energies, 100 * np.array(Veff_birefringence) / np.array(Veff_no_birefringence))
-plt.ylabel(r'V_{eff._bir.} / V_{eff._iso.} [%]')
+plt.ylabel(r'$V_{eff.-bir.} / V_{eff.-iso.}$ [%]')
 plt.xlabel(r'$\log (E)$')
 plt.tight_layout()
 plt.savefig('05_Veff_comp_plot.png', dpi=400)

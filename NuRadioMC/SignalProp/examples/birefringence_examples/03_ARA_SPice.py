@@ -31,6 +31,8 @@ config['propagation']['attenuate_ice'] = True
 config['propagation']['focusing_limit'] = 2
 config['propagation']['focusing'] = False
 config['propagation']['birefringence'] = True
+config['propagation']['birefringence_model'] = 'southpole_A'
+config['propagation']['birefringence_propagation'] = 'analytical'
 
 prov = antennapattern.AntennaPatternProvider()
 hpol = prov.load_antenna_pattern("XFDTD_Hpol_150mmHole_n1.78")

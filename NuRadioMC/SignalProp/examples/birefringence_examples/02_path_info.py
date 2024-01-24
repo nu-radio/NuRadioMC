@@ -7,10 +7,11 @@ import numpy as np
 
 from NuRadioMC.SignalProp import analyticraytracing
 
-###-----------------------------------------
-#   EXAMPLE: Script to simulate the effects of birefringence for a specific geometry and pulse. 
-#            The relevant birefringent propaties along the ray path are extracted and plotted. (propagation path, final pulse, refractive indices, polarization vectors)
-###-----------------------------------------
+
+"""   
+    EXAMPLE: Script to simulate the effects of birefringence for a specific geometry and pulse. 
+            The relevant birefringent propaties along the ray path are extracted and plotted. (propagation path, final pulse, refractive indices, polarization vectors)
+"""
 
 
 simulated_trace = np.load('extra_files/example_pulse.npy')
@@ -45,6 +46,7 @@ config['propagation']['focusing_limit'] = 2
 config['propagation']['focusing'] = False
 config['propagation']['birefringence'] = True
 config['propagation']['birefringence_model'] = bire_ice_model
+config['propagation']['birefringence_propagation'] = 'analytical'
 
 sim_pulse.set_trace(pulse_efield, sr)
 
