@@ -70,7 +70,7 @@ class BaseTrace:
             self.__time_domain_up_to_date = False
         return np.copy(self._frequency_spectrum)
 
-    def set_trace(self, trace, sampling_rate=None):
+    def set_trace(self, trace, sampling_rate):
         """
         Sets the time trace
 
@@ -78,10 +78,9 @@ class BaseTrace:
         ----------
         trace : np.array of floats
             The time series
-        sampling_rate : float or str (Default: None)
+        sampling_rate : float or str
             The sampling rate of the trace, i.e., the inverse of the bin width.
             If `sampling_rate="same"`, sampling rate is not changed (requires previous initialisation).
-            If `sampling_rate=None` raise an error.
         """
         if trace is not None:
             if trace.shape[trace.ndim - 1] % 2 != 0:
@@ -102,7 +101,7 @@ class BaseTrace:
         else:
             raise ValueError("You have to specify a sampling rate for `BaseTrace.set_trace(...)`")
 
-    def set_frequency_spectrum(self, frequency_spectrum, sampling_rate="same"):
+    def set_frequency_spectrum(self, frequency_spectrum, sampling_rate):
         """
         Sets the frequency spectrum
 
@@ -113,7 +112,6 @@ class BaseTrace:
         sampling_rate : float or str (Default: None)
             The sampling rate of the trace, i.e., the inverse of the bin width.
             If `sampling_rate="same"`, sampling rate is not changed (requires previous initialisation).
-            If `sampling_rate=None` raise an error.
         """
         self.__time_domain_up_to_date = False
         self._frequency_spectrum = np.copy(frequency_spectrum)
