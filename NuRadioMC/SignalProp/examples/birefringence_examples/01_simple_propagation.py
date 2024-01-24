@@ -8,9 +8,9 @@ import numpy as np
 from NuRadioMC.SignalProp import radioproparaytracing
 from NuRadioMC.SignalProp import analyticraytracing
 
-###-----------------------------------------
-#   EXAMPLE: Script to simulate the effects of birefringence on a simple pulse using different available propagation modules and ice-models. 
-###-----------------------------------------
+"""
+    EXAMPLE: Script to simulate the effects of birefringence on a simple pulse using different available propagation modules and ice-models. 
+"""
 
 simulated_trace = np.load('extra_files/example_pulse.npy')
 
@@ -71,6 +71,8 @@ config['propagation']['focusing'] = False
 # ---------------   biefringence model:    'southpole_A' ---------------------
 
 config['propagation']['birefringence'] = True
+config['propagation']['birefringence_model'] = 'southpole_A'
+config['propagation']['birefringence_propagation'] = 'analytical'
 
 birefringence_propagation(config, 'analytical', ray_tracing_solution, 0, x_limits, 'analyticraytracing.py', 'analyticraytracing.py', 'southpole_A')
 
@@ -81,6 +83,7 @@ birefringence_propagation(config, 'analytical', ray_tracing_solution, 0, x_limit
 
 config['propagation']['birefringence'] = True
 config['propagation']['birefringence_model'] = 'southpole_B'
+config['propagation']['birefringence_propagation'] = 'analytical'
 
 birefringence_propagation(config, 'analytical', ray_tracing_solution, 1, x_limits, 'analyticraytracing.py', 'analyticraytracing.py', 'southpole_B')
 
@@ -90,6 +93,7 @@ birefringence_propagation(config, 'analytical', ray_tracing_solution, 1, x_limit
 # ---------------   biefringence model:    'southpole_A' ---------------------
 
 config['propagation']['birefringence'] = True
+config['propagation']['birefringence_model'] = 'southpole_A'
 config['propagation']['birefringence_propagation'] = 'numerical'
 
 birefringence_propagation(config, 'analytical', ray_tracing_solution, 2, x_limits, 'analyticraytracing.py', 'radioproparaytracing.py', 'southpole_A')

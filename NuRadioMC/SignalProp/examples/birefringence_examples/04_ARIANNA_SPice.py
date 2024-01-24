@@ -6,11 +6,13 @@ import numpy as np
 from scipy import signal
 from NuRadioMC.SignalProp import analyticraytracing
 
-###-----------------------------------------
-#   EXAMPLE: Script to simulate the effects of birefringence on the polarization at the ARIANNA SouthPole station. 
-#            The measured data the simulation is compared to was taken from: DOI 10.1088/1748-0221/15/09/P09039
-#            A full study of this calculation was published here: DOI https://doi.org/10.1140/epjc/s10052-023-11238-y
-###-----------------------------------------
+"""
+-----------------------------------------
+   EXAMPLE: Script to simulate the effects of birefringence on the polarization at the ARIANNA SouthPole station. 
+            The measured data the simulation is compared to was taken from: DOI 10.1088/1748-0221/15/09/P09039
+            A full study of this calculation was published here: DOI https://doi.org/10.1140/epjc/s10052-023-11238-y
+-----------------------------------------
+"""
 
 SPice_position = np.array([0 , 0 , -1300 ])* units.m
 ARIANNA_position = np.array([564, 37, -1])* units.m
@@ -28,6 +30,8 @@ config['propagation']['attenuate_ice'] = True
 config['propagation']['focusing_limit'] = 2
 config['propagation']['focusing'] = False
 config['propagation']['birefringence'] = True
+config['propagation']['birefringence_model'] = 'southpole_A'
+config['propagation']['birefringence_propagation'] = 'analytical'
 
 def hilbert(T, th, ph):
     # function to calculate the hilbert envelope of a pulse

@@ -1,9 +1,9 @@
-######
+"""
 
-#This file is meant to give a guide for creating spline tables that can be used for the birefringence propagation functions.
-#The script is not used during the propagation.
+This file is meant to give a guide for creating spline tables that can be used for the birefringence propagation functions.
+The script is not used during the propagation.
 
-######
+"""
 
 import numpy as np
 import csv
@@ -22,7 +22,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('raytracing')
 
-model = 'A'
+model = 'X'
 
 c = constants.c
 e_p = 3.157                 # given in Jordan
@@ -122,13 +122,22 @@ node_cond3 = 0.000001
 
 
 # smooth interpolation
-node_cond1 = 0.000005
-node_cond2 = 0.00001
+
+node_cond1 = 0.000005 
+#node_cond1 = 0.00001 #model B
+node_cond2 = 0.00001 
 node_cond3 = 0.000015
 
+#used for model B
+#n_shared = (n1 + n2) / 2
+#f1 = interpolate.UnivariateSpline(depth1, n_shared, s=node_cond1)
+#f2 = interpolate.UnivariateSpline(depth2, n_shared, s=node_cond2)
 
-#print(depth1.shape)
-#print(n1.shape)
+#used for model C
+n1_new = - n1 * 1/5000 + n1
+n2_new = n2 * 1/5000 + n2
+#f1 = interpolate.UnivariateSpline(depth1, n1_new, s=node_cond1) #model C
+#f2 = interpolate.UnivariateSpline(depth2, n2_new, s=node_cond2) #model C
 
 f1 = interpolate.UnivariateSpline(depth1, n1, s=node_cond1)
 f2 = interpolate.UnivariateSpline(depth2, n2, s=node_cond2)
@@ -171,7 +180,6 @@ if 1:
     plt.plot(-depth3, n3, 'g.', label='nz - data')
     plt.plot(-xnew, f3(xnew), label='nz - interpolation')
 
-    plt.title('Principle refractive index at SPICE')
     plt.xlabel('depth [m]')
     plt.ylabel('refractive index')
     plt.legend()
@@ -180,8 +188,8 @@ if 1:
     plt.grid()
     plt.show()
 
-# -------------Jordan + Southpole
-if 1:
+# -------------Jordan + Greenland
+if 0:
     p = [0, 0, -2500]
 
     i_all = get_index_of_refraction_all(p)
