@@ -142,7 +142,7 @@ class correlationDirectionFitter:
         station_id = station.get_id()
         positions_pairs = [[det.get_relative_position(station_id, channel_pairs[0][0]), det.get_relative_position(station_id, channel_pairs[0][1])],
                            [det.get_relative_position(station_id, channel_pairs[1][0]), det.get_relative_position(station_id, channel_pairs[1][1])]]
-        sampling_rate = station.get_channel(0).get_sampling_rate()  # assume that channels have the same sampling rate
+        sampling_rate = station.get_channel(channel_pairs[0][0]).get_sampling_rate()  # assume that channels have the same sampling rate
         trace_start_time_pairs = [[station.get_channel(channel_pairs[0][0]).get_trace_start_time(), station.get_channel(channel_pairs[0][1]).get_trace_start_time()],
                                   [station.get_channel(channel_pairs[1][0]).get_trace_start_time(), station.get_channel(channel_pairs[1][1]).get_trace_start_time()]]
         # determine automatically if one channel has an inverted waveform with respect to the other
