@@ -2,8 +2,7 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units, fft
 
 from NuRadioReco.detector.RNO_G import analog_components
-import NuRadioReco.detector.generic_detector as gdetector
-from NuRadioReco.detector.RNO_G import rnog_detector
+import NuRadioReco.detector.detector as detector
 
 import numpy as np
 import time
@@ -61,9 +60,9 @@ class hardwareResponseIncorporator:
         mode: {None, 'phase_only', 'relative'}, default None
             Options:
 
-            * 'phase_only': only the phases response is applied but not the amplitude response 
+            * 'phase_only': only the phases response is applied but not the amplitude response
               (identical to phase_only=True )
-            * 'relative': gain of amp is divided by maximum of the gain, i.e. at the maximum of the 
+            * 'relative': gain of amp is divided by maximum of the gain, i.e. at the maximum of the
               filter response is 1 (before applying cable response). This makes it easier
               to compare the filtered to unfiltered signal
             * None : default, gain and phase effects are applied 'normally'
@@ -83,13 +82,13 @@ class hardwareResponseIncorporator:
             the complex filter amplitudes
         """
 
-        if isinstance(det, gdetector.GenericDetector):
+        if isinstance(det, detector.generic_detector.GenericDetector):
             amp_type = det.get_amplifier_type(station_id, channel_id)
             # it reads the log file. change this to load_amp_measurement if you want the RI file
             amp_response = analog_components.load_amp_response(amp_type)
             amp_response = amp_response['gain'](
                 frequencies, temp) * amp_response['phase'](frequencies)
-        elif isinstance(det, rnog_detector.Detector):
+        elif isinstance(det, detector.rnog_detector.Detector):
             amp_response = det.get_signal_chain_response(
                 station_id, channel_id)(frequencies)
         else:

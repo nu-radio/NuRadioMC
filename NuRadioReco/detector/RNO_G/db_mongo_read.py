@@ -4,13 +4,10 @@ import urllib.parse
 import datetime
 import numpy as np
 from functools import wraps
-import collections
 import copy
 import re
 
 from pymongo import MongoClient
-# from bson import json_util  # bson dicts are used by pymongo
-
 import NuRadioReco.utilities.metaclasses
 
 import logging
