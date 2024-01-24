@@ -2,7 +2,7 @@
 import logging
 logging.basicConfig(format="%(asctime)s - %(levelname)s:%(name)s:%(funcName)s : %(message)s", datefmt="%H:%M:%S")
 
-from NuRadioReco.detector.RNO_G.db_mongo_read import Database, filtered_keys
+from NuRadioReco.detector.RNO_G.db_mongo_read import Database
 import NuRadioReco.framework.base_trace
 from NuRadioReco.utilities import units
 
@@ -21,7 +21,7 @@ import bson
 import lzma
 
 
-def json_serial(obj):
+def _json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
 
     if isinstance(obj, (datetime.datetime, datetime.date)):
@@ -34,7 +34,7 @@ def json_serial(obj):
         raise TypeError ("Type %s not serializable" % type(obj))
 
 
-def keys_not_in_dict(d, keys):
+def _keys_not_in_dict(d, keys):
     """ Checks sequentially if a list of `keys` is in a dictionary.
 
     Example:
@@ -55,7 +55,7 @@ def keys_not_in_dict(d, keys):
     return False
 
 
-def check_detector_time(method):
+def _check_detector_time(method):
     @wraps(method)
     def _impl(self, *method_args, **method_kwargs):
         self.get_detector_time()  # this will raise an error if time is not set
@@ -175,7 +175,7 @@ class Detector():
             Filename of the exported detector description
 
         json_kwargs: dict
-            Arguments passed to json.dumps(..). (Default: None -> dict(indent=0, default=json_serial))
+            Arguments passed to json.dumps(..). (Default: None -> dict(indent=0, default=_json_serial))
         """
 
         periods = {}
@@ -210,7 +210,7 @@ class Detector():
             filename = filename.replace(".xz", ".json.xz")
 
         if json_kwargs is None:
-            json_kwargs = dict(indent=0, default=json_serial)
+            json_kwargs = dict(indent=0, default=_json_serial)
 
         self.logger.info(f"Export detector description to {filename}")
         with lzma.open(filename, "w") as f:
@@ -403,7 +403,7 @@ class Detector():
         raise ValueError(f"Empty detector for {time}!")
 
 
-    @check_detector_time
+    @_check_detector_time
     def get_station_ids(self):
         """
         Returns the list of all commissioned stations.
@@ -424,7 +424,7 @@ class Detector():
 
         return commissioned_stations
 
-    @check_detector_time
+    @_check_detector_time
     def has_station(self, station_id):
         """
         Returns true if the station is commission. First checks buffer. If not in buffer, queries (and buffers)
@@ -533,13 +533,13 @@ class Detector():
             self.logger.error(err)
             raise ValueError(err)
 
-        if keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id]):
+        if _keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id]):
             raise KeyError(
                 f"Could not find channel {channel_id} in detector description for station {station_id}. Did you call det.update(...)?")
 
-        if with_position and keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "channel_position"]):
+        if with_position and _keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "channel_position"]):
 
-            if keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "id_position"]):
+            if _keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "id_position"]):
                 raise KeyError(
                     f"\"id_position\" not in buffer for station.channel {station_id}.{channel_id}. Did you call det.update(..)")
 
@@ -552,9 +552,9 @@ class Detector():
                 position_id=position_id, component="channel")
             self.__buffered_stations[station_id]["channels"][channel_id]['channel_position'] = channel_position_dict
 
-        if with_signal_chain and keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "signal_chain"]):
+        if with_signal_chain and _keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "signal_chain"]):
 
-            if keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "id_signal"]):
+            if _keys_not_in_dict(self.__buffered_stations, [station_id, "channels", channel_id, "id_signal"]):
                 raise KeyError(
                     f"\"id_signal\" not in buffer for station.channel {station_id}.{channel_id}. Did you call det.update(..)")
 
@@ -569,7 +569,7 @@ class Detector():
 
         return self.__buffered_stations[station_id]["channels"][channel_id]
 
-    @check_detector_time
+    @_check_detector_time
     def get_absolute_position(self, station_id):
         """
         Get the absolute position of a specific station (relative to site)
@@ -590,9 +590,9 @@ class Detector():
         self.logger.debug(
             f"Requesting station position for station {station_id}.")
 
-        if keys_not_in_dict(self.__buffered_stations, [station_id, "station_position"]):
+        if _keys_not_in_dict(self.__buffered_stations, [station_id, "station_position"]):
 
-            if keys_not_in_dict(self.__buffered_stations, [station_id, "id_position"]):
+            if _keys_not_in_dict(self.__buffered_stations, [station_id, "id_position"]):
                 raise KeyError(
                     f"\"id_position\" not in buffer for station {station_id}. Did you call det.update(..)")
 
@@ -606,7 +606,7 @@ class Detector():
 
         return np.array(self.__buffered_stations[station_id]["station_position"]["position"])
 
-    @check_detector_time
+    @_check_detector_time
     def get_relative_position(self, station_id, channel_id):
         """
         Get the relative position of a specific channel/antenna with respect to the station center
@@ -630,7 +630,7 @@ class Detector():
             station_id, channel_id, with_position=True)
         return np.array(channel_info["channel_position"]['position'])
 
-    @check_detector_time
+    @_check_detector_time
     def get_channel_orientation(self, station_id, channel_id):
         """
         Returns the orientation of a specific channel/antenna
@@ -669,7 +669,7 @@ class Detector():
         """ Returns get_channel_orientation """
         return self.get_channel_orientation(station_id, channel_id)
 
-    @check_detector_time
+    @_check_detector_time
     def get_channel_signal_chain(self, station_id, channel_id):
         """
 
@@ -694,7 +694,7 @@ class Detector():
             station_id, channel_id, with_signal_chain=True)
         return self.__buffered_stations[station_id]["channels"][channel_id]["signal_chain"]
 
-    @check_detector_time
+    @_check_detector_time
     def get_signal_chain_response(self, station_id, channel_id):
         """
 
@@ -768,7 +768,7 @@ class Detector():
 
         return signal_chain_dict["total_response"]
 
-    @check_detector_time
+    @_check_detector_time
     def get_devices(self, station_id):
         """
         Get all devices for a particular station.
@@ -793,7 +793,7 @@ class Detector():
 
         return {device["id"]: device["device_name"] for device in self.__buffered_stations[station_id]["devices"].values()}
 
-    @check_detector_time
+    @_check_detector_time
     def get_relative_position_device(self, station_id, device_id):
         """
         Get the relative position of a specific device with respect to the station center
@@ -813,13 +813,13 @@ class Detector():
         pos: np.array(3,)
             3-dim array of relative station position
         """
-        if keys_not_in_dict(self.__buffered_stations, [station_id, "devices", device_id]):
+        if _keys_not_in_dict(self.__buffered_stations, [station_id, "devices", device_id]):
             # All devices should have been queried with _query_station_information
             raise KeyError(f"Device {device_id} not in detector description.")
 
-        if keys_not_in_dict(self.__buffered_stations, [station_id, "devices", device_id, "device_position"]):
+        if _keys_not_in_dict(self.__buffered_stations, [station_id, "devices", device_id, "device_position"]):
 
-            if keys_not_in_dict(self.__buffered_stations, [station_id, "devices", device_id, "id_position"]):
+            if _keys_not_in_dict(self.__buffered_stations, [station_id, "devices", device_id, "id_position"]):
                 raise KeyError(
                     f"\"id_position\" not in buffer for device {device_id}.")
 
@@ -850,7 +850,7 @@ class Detector():
     #         True if key_list exists and is valid
     #     """
 
-    #     if keys_not_in_dict(self.__buffered_stations, key_list):
+    #     if _keys_not_in_dict(self.__buffered_stations, key_list):
     #         self.logger.debug("Parameter not in buffer: " + " / ".join([str(x) for x in key_list]))
     #         return False
 
@@ -871,7 +871,7 @@ class Detector():
     #     self.logger.debug("Parameter in buffer and valid: " + " / ".join([str(x) for x in key_list]))
     #     return True
 
-    @check_detector_time
+    @_check_detector_time
     def get_number_of_channels(self, station_id):
         """
         Get number of channels for a particlular station. It will query the basic information of all stations in the
@@ -900,7 +900,7 @@ class Detector():
 
         return len(channels)
 
-    @check_detector_time
+    @_check_detector_time
     def get_channel_ids(self, station_id):
         """
         Get channel ids for a particlular station. It will query the basic information of all stations in the
@@ -975,7 +975,7 @@ class Detector():
             self.logger.error(err)
             raise ValueError(err)
 
-        if keys_not_in_dict(self.__buffered_stations, [station_id, "number_of_samples"]):
+        if _keys_not_in_dict(self.__buffered_stations, [station_id, "number_of_samples"]):
             raise KeyError(
                 f"Could not find \"number_of_samples\" for station {station_id} in buffer. Did you call det.update(...)?")
 
@@ -1005,7 +1005,7 @@ class Detector():
             self.logger.error(err)
             raise ValueError(err)
 
-        if keys_not_in_dict(self.__buffered_stations, [station_id, "sampling_rate"]):
+        if _keys_not_in_dict(self.__buffered_stations, [station_id, "sampling_rate"]):
             raise KeyError(
                 f"Could not find \"sampling_rate\" for station {station_id} in buffer. Did you call det.update(...)?")
 
@@ -1130,7 +1130,7 @@ class Response:
 
     def __init__(self, frequency, y, y_unit, time_delay=0, weight=1,
                  name="default", station_id=None, channel_id=None,
-                 remove_time_delay=True, debug_plot=True):
+                 remove_time_delay=True, debug_plot=False):
         """
         Parameters
         ----------

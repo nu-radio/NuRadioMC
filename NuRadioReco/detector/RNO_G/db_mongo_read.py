@@ -12,11 +12,11 @@ import NuRadioReco.utilities.metaclasses
 
 import logging
 logging.basicConfig()
-logger = logging.getLogger("database")
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger("NuRadioReco.MongoDBRead")
+logger.setLevel(logging.INFO)
 
 
-def check_database_time(method):
+def _check_database_time(method):
     @wraps(method)
     def _impl(self, *method_args, **method_kwargs):
         time = self.get_database_time()
@@ -25,14 +25,6 @@ def check_database_time(method):
             raise ValueError('Database time is None.')
         return method(self, *method_args, **method_kwargs)
     return _impl
-
-
-def filtered_keys(dict, exclude_keys):
-    """ Creates a set (list) of dictionary keys with out 'exclude_keys' """
-    if not isinstance(exclude_keys, list):
-        exclude_keys = [exclude_keys]
-
-    return set(list(dict.keys())) - set(exclude_keys)
 
 
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
@@ -139,12 +131,10 @@ class Database(object):
         primary_time: datetime.datetime
             timestamp for the primary measurement
 
-        _id: int
+        identification_label: int
             if there is a channel or device id for the object, the id is used in the search filter mask
 
-        id_label: string
-            sets if a channel id ('channel') or device id ('device) is used
-
+        data_dict:
         """
 
         # define search filter for the collection
@@ -208,7 +198,7 @@ class Database(object):
 
         return infos
 
-    @check_database_time
+    @_check_database_time
     def get_general_station_information(self, station_id):
         """ Get information from one station. Access information in the main collection.
 
@@ -276,7 +266,7 @@ class Database(object):
 
         return station_info
 
-    @check_database_time
+    @_check_database_time
     def get_general_channel_information(self, station_id, channel_id):
         """ Get information from one channel. Access information in the main collection.
 
@@ -330,7 +320,7 @@ class Database(object):
         # only return the channel information
         return channel_info[0]['channels']
 
-    @check_database_time
+    @_check_database_time
     def get_general_device_information(self, station_id, device_id):
         """ Get information from one device. Access information in the main collection.
 
@@ -383,8 +373,8 @@ class Database(object):
         # only return the channel information
         return device_info[0]['devices']
 
-    @check_database_time
-    def get_collection_information(self, collection_name, search_by, id, measurement_name=None, channel_id=None, use_primary_time_with_measurement=False):
+    @_check_database_time
+    def get_collection_information(self, collection_name, search_by, obj_id, measurement_name=None, channel_id=None, use_primary_time_with_measurement=False):
         """
         Get the information for a specified collection (will only work for 'station_position', 'channel_position' and 'signal_chain')
         if the station does not exist, {} will be returned. Return primary measurement unless measurement_name is specified.
@@ -399,7 +389,7 @@ class Database(object):
         search_by: string
             Specify if the collection is searched by 'station_id' or 'id'. The latter is a position or signal chain identifier
 
-        id: string or int
+        obj_id: string or int
             station id or position/signal_chain identifier
 
         measurement_name: string
@@ -421,9 +411,9 @@ class Database(object):
         """
 
         if search_by == 'station_id':
-            id_dict = {'id': {'$regex': f'_stn{id}_'}}
+            id_dict = {'id': {'$regex': f'_stn{obj_id}_'}}
         elif search_by == 'id':
-            id_dict = {'id': id}
+            id_dict = {'id': obj_id}
         else:
             raise ValueError('Only "station_id" and "id" are valid options for the "search_by" argument.')
 
