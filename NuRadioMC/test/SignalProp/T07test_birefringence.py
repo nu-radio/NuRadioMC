@@ -61,6 +61,8 @@ config['propagation']['attenuate_ice'] = False
 config['propagation']['focusing_limit'] = 2
 config['propagation']['focusing'] = False
 config['propagation']['birefringence'] = True
+config['propagation']['birefringence_model'] = 'southpole_A'
+config['propagation']['birefringence_propagation'] = 'analytical'
 
 results_theta = np.array(delta_pulse_ana.get_trace()[1])
 results_phi = np.array(delta_pulse_ana.get_trace()[2])
