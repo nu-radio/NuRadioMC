@@ -699,7 +699,7 @@ class Detector():
         """
         channel_info = self.__get_channel(
             station_id, channel_id, with_signal_chain=True)
-        return self.__buffered_stations[station_id]["channels"][channel_id]["signal_chain"]
+        return channel_info["signal_chain"]
 
     @_check_detector_time
     def get_signal_chain_response(self, station_id, channel_id):
@@ -736,7 +736,7 @@ class Detector():
             if "drab_board" in components and "iglu_board" in components:
 
                 is_equal = np.allclose(measurement_components_dic["drab_board"]["mag"],
-                                    measurement_components_dic["iglu_board"]["mag"])
+                                       measurement_components_dic["iglu_board"]["mag"])
 
                 if is_equal:
                     self.logger.warn(f"Station.channel {station_id}.{channel_id}: Currently both, "
@@ -747,7 +747,7 @@ class Detector():
             responses = []
             for key, value in measurement_components_dic.items():
 
-                # Skip drab_board if its equal with iglu
+                # Skip drab_board if its equal with iglu (see warning above)
                 if is_equal and key == "drab_board":
                     continue
 
@@ -772,6 +772,7 @@ class Detector():
 
                 responses.append(response)
 
+            # Buffer object
             signal_chain_dict["total_response"] = np.prod(responses)
 
         return signal_chain_dict["total_response"]
@@ -867,46 +868,6 @@ class Detector():
             self.__buffered_stations[station_id]["devices"][device_id]['device_position'] = device_pos_info
 
         return np.array(self.__buffered_stations[station_id]["devices"][device_id]["device_position"]["position"])
-
-    # def _has_valid_parameter_in_buffer(self, key_list):
-    #     """
-    #     This function first checks if a parameter which is specified with a key_list (e.g. [station_id, "channels", channel_id, "channel_position"])
-    #     exists in the buffer and second if it is still valid base on detector time (i.e., if corresponding station and channel are still commission).
-    #     Remove station or channel from buffer if not commission.
-
-    #     Parameters
-    #     ----------
-
-    #     key_list: list
-    #         Specifies a parameter (see example above)
-
-    #     Returns
-    #     -------
-
-    #     has_parameter:  bool
-    #         True if key_list exists and is valid
-    #     """
-
-    #     if _keys_not_in_dict(self.__buffered_stations, key_list):
-    #         self.logger.debug("Parameter not in buffer: " + " / ".join([str(x) for x in key_list]))
-    #         return False
-
-    #     station_info = self.__buffered_stations[key_list[0]]
-
-    #     if station_info["commission_time"] > self.get_detector_time() or station_info["decommission_time"] < self.get_detector_time():
-    #         self.logger.debug(f"Station {key_list[0]} not commission anymore at {self.get_detector_time()}. Remove from buffer ...")
-    #         self.__buffered_stations[key_list[0]] = {}  # clean buffer
-    #         return False
-
-    #     if key_list[1] == "channels" and len(key_list) >= 3:
-    #         channel_info = station_info["channels"][key_list[2]]
-    #         if station_info["commission_time"] > self.get_detector_time() or station_info["decommission_time"] < self.get_detector_time():
-    #             self.logger.debug(f"Channel {key_list[2]} (of Station {key_list[0]}) not commission anymore at {self.get_detector_time()}. Remove from buffer ...")
-    #             self.__buffered_stations[key_list[0]]["channels"][key_list[2]] = {}  # clean buffer
-    #             return False
-
-    #     self.logger.debug("Parameter in buffer and valid: " + " / ".join([str(x) for x in key_list]))
-    #     return True
 
     @_check_detector_time
     def get_number_of_channels(self, station_id):
