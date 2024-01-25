@@ -63,7 +63,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
     additional_output = {}
     if(amplitude == 0):
         if(model.startswith("efield_")):
-            trace = np.zeros(3, N)
+            trace = np.zeros((3, N))
         else:
             trace = np.zeros(N)
     if(model == 'delta_pulse'):  # this takes delta signal as input voltage
@@ -125,8 +125,74 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         trace[1, N // 2] = (1.0 - kwargs.get("polarization", 0.5)) ** 0.5 * amplitude
         trace[2, N // 2] = kwargs.get("polarization", 0.5) ** 0.5 * amplitude
     elif(model == "efield_idl1_spice"):
-        viewing_angle = kwargs["viewing_angle"]
-        pass # @Nils, implement 
+        viewing_angle = np.rad2deg(kwargs["viewing_angle"])
+        path = os.path.dirname(os.path.dirname(__file__))
+
+        if viewing_angle <= 7.5:
+            input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_90_set_0.npy')
+        elif (viewing_angle > 7.5) and (viewing_angle <= 22.5):
+            input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_75_set_0.npy')
+        elif (viewing_angle > 22.5) and (viewing_angle <= 37.5):
+            input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_60_set_0.npy')
+        elif (viewing_angle > 37.5) and (viewing_angle <= 52.5):
+            input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_45_set_0.npy')
+        elif (viewing_angle > 52.5) and (viewing_angle <= 67.5):
+            input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_30_set_0.npy')
+        elif (viewing_angle > 67.5) and (viewing_angle <= 82.5):
+            input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_15_set_0.npy')
+        elif viewing_angle > 82.5:
+            input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_0_set_0.npy')
+        
+        spice_pulse = np.load(input_file)
+        time_original = spice_pulse[0]
+        voltage_original_theta = spice_pulse[1]
+        voltage_original_phi = spice_pulse[2]
+
+        time_new = np.linspace(time_original[0], time_original[len(time_original) - 1], (int((time_original[len(time_original) - 1] - time_original[0]) / dt) + 1))
+        
+        interpolation_theta = interp1d(time_original, voltage_original_theta, kind='cubic')
+        voltage_theta_new = interpolation_theta(time_new)
+
+        interpolation_phi = interp1d(time_original, voltage_original_phi, kind='cubic')
+        voltage_phi_new = interpolation_phi(time_new)
+
+        if len(voltage_theta_new) > N:
+            peak_amplitude_index_theta = np.where(np.abs(voltage_theta_new) == np.max(np.abs(voltage_theta_new)))[0][0]
+            voltage_theta_new = np.roll(voltage_theta_new, int(len(voltage_theta_new) / 2) - peak_amplitude_index_theta)
+            lower_index = int(len(voltage_theta_new) / 2 - N / 2)
+            trace_theta = voltage_theta_new[lower_index: lower_index + N]  # this truncate data making trace lenght of N
+        # for the case with larger N, trace size will be adjusted depending on whether the number (N + len(voltage_new)) is even or odd
+        else:
+            add_zeros = int((N - len(voltage_theta_new)) / 2)
+            adjustment = 0
+            if ((N + len(voltage_theta_new)) % 2 != 0):
+                adjustment = 1
+            trace_theta = np.pad(voltage_theta_new, (add_zeros + adjustment, add_zeros), 'constant', constant_values=(0, 0))
+
+        if len(voltage_phi_new) > N:
+            peak_amplitude_index_phi = np.where(np.abs(voltage_phi_new) == np.max(np.abs(voltage_phi_new)))[0][0]
+            voltage_phi_new = np.roll(voltage_phi_new, int(len(voltage_phi_new) / 2) - peak_amplitude_index_phi)
+            lower_index = int(len(voltage_phi_new) / 2 - N / 2)
+            trace_phi = voltage_phi_new[lower_index: lower_index + N]  # this truncate data making trace lenght of N
+        # for the case with larger N, trace size will be adjusted depending on whether the number (N + len(voltage_new)) is even or odd
+        else:
+            add_zeros = int((N - len(voltage_phi_new)) / 2)
+            adjustment = 0
+            if ((N + len(voltage_phi_new)) % 2 != 0):
+                adjustment = 1
+            trace_phi = np.pad(voltage_phi_new, (add_zeros + adjustment, add_zeros), 'constant', constant_values=(0, 0))
+        
+        #trace_theta = amplitude * trace_theta / np.max(np.abs(trace_theta))  # trace now has dimension of amplitude given from event generation file
+        peak_amplitude_index_theta_new = np.where(np.abs(trace_theta) == np.max(np.abs(trace_theta)))[0][0]
+        trace_theta = np.roll(trace_theta, int(N / 2) - peak_amplitude_index_theta_new)
+
+        trace_phi = amplitude * trace_phi / np.max(np.abs(trace_phi))  # trace now has dimension of amplitude given from event generation file
+        peak_amplitude_index_phi_new = np.where(np.abs(trace_phi) == np.max(np.abs(trace_phi)))[0][0]
+        trace_phi = np.roll(trace_phi, int(N / 2) - peak_amplitude_index_phi_new)
+
+        trace[1,:] = trace_theta
+        trace[2,:] = trace_phi
+
     else:
         raise NotImplementedError("model {} unknown".format(model))
     if(full_output):
