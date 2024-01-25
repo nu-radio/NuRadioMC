@@ -47,12 +47,12 @@ Veff_no_birefringence = []
 
 for i in energies:
 
-    inputfilename = 'extra_files/1e' + str(i) + '_n1e3.hdf5'
+    inputfilename = '1e' + str(i) + '_n1e3.hdf5'
     outputfilename_no_birefringence = 'Veff_' + str(i) + '_no_birefringence.hdf5'
     outputfilename_birefringence = 'Veff_' + str(i) + '_birefringence.hdf5'
-    detectordescription = 'extra_files/detector.json'
-    config_no_birefringence = 'extra_files/config_no_birefringence.yaml'
-    config_birefringence = 'extra_files/config_birefringence.yaml'
+    detectordescription = 'detector.json'
+    config_no_birefringence = 'config_no_birefringence.yaml'
+    config_birefringence = 'config_birefringence.yaml'
 
 
     if __name__ == "__main__":
