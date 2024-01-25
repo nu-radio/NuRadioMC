@@ -9,6 +9,7 @@ from NuRadioReco.utilities import units
 from radiotools import helper
 from scipy import interpolate
 from functools import wraps
+import astropy.time
 
 import datetime
 import numpy as np
@@ -19,6 +20,13 @@ import re
 import copy
 import bson
 import lzma
+
+
+def _convert_astro_time_to_datetime(time_astro):
+    if not isinstance(time_astro, astropy.time.Time):
+        raise ValueError("This function expects only arguments from type `astropy.time.Time`")
+
+    return time_astro.to_datetime()
 
 
 def _json_serial(obj):
@@ -330,10 +338,13 @@ class Detector():
         Parameters
         ----------
 
-        time: datetime.datetime
+        time: datetime.datetime or `astro.time.Time`
             UTC time.
         '''
-        if not isinstance(time, datetime.datetime):
+
+        if isinstance(time, astropy.time.Time):
+            time = _convert_astro_time_to_datetime(time)
+        elif not isinstance(time, datetime.datetime):
             self.logger.error(
                 "Set invalid time for detector. Time has to be of type datetime.datetime")
             raise TypeError(
@@ -361,9 +372,12 @@ class Detector():
         Parameters
         ----------
 
-        time: datetime.datetime
+        time: datetime.datetime or `astro.time.Time`
             Unix time of measurement.
         """
+        if isinstance(time, astropy.time.Time):
+            time = _convert_astro_time_to_datetime(time)
+
         self.logger.info(f"Update detector to {time}")
 
         self.__set_detector_time(time)

@@ -9,6 +9,9 @@ import re
 
 from pymongo import MongoClient
 import NuRadioReco.utilities.metaclasses
+import astropy.time
+
+from NuRadioReco.detector.RNO_G.rnog_detector import _convert_astro_time_to_datetime
 
 import logging
 logging.basicConfig()
@@ -85,9 +88,12 @@ class Database(object):
         Parameters
         ----------
 
-        time: datetime.datetime
+        time: datetime.datetime or `astro.time.Time`
             UTC time.
         '''
+        if isinstance(time, astropy.time.Time):
+            time = _convert_astro_time_to_datetime(time)
+
         if not isinstance(time, datetime.datetime):
             logger.error("Set invalid time for database. Time has to be of type datetime.datetime")
             raise TypeError("Set invalid time for database. Time has to be of type datetime.datetime")
@@ -100,9 +106,12 @@ class Database(object):
         Parameters
         ----------
 
-        time: datetime.datetime
+        time: datetime.datetime or `astro.time.Time`
             UTC time.
         '''
+        if isinstance(time, astropy.time.Time):
+            time = _convert_astro_time_to_datetime(time)
+
         if not isinstance(time, datetime.datetime):
             logger.error("Set invalid time for detector. Time has to be of type datetime.datetime")
             raise TypeError("Set invalid time for detector. Time has to be of type datetime.datetime")
