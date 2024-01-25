@@ -704,6 +704,9 @@ class Detector():
     @_check_detector_time
     def get_signal_chain_response(self, station_id, channel_id):
         """
+        Returns a `rnog_detector.Response` object which describes the complex response of the
+        entire signal chain, i.e., the combined reponse of all components of one
+        channel. For example: IGLU, fiber-cable, DRAB, coax-cable, RADIANT.
 
         Parameters
         ----------
@@ -772,6 +775,35 @@ class Detector():
             signal_chain_dict["total_response"] = np.prod(responses)
 
         return signal_chain_dict["total_response"]
+
+    @_check_detector_time
+    def get_signal_chain_components(self, station_id, channel_id):
+        """
+        Returns the names of all components in the signal chain.
+
+        Parameters
+        ----------
+
+        station_id: int
+            The station id
+
+        channel_id: int
+            The channel id
+
+        Returns
+        -------
+
+        signal_chain_components: dict
+            A dictionaries with the keys being the names of the components and the values their weights in
+            the signal chain. (For an explanation of a weight see `rnog_detector.Response`)
+        """
+        signal_chain_dict = self.get_channel_signal_chain(
+            station_id, channel_id)
+        signal_chain_components = {
+            key: value["weight"] for key, value in
+                signal_chain_dict['response_chain'].items()}
+
+        return signal_chain_components
 
     @_check_detector_time
     def get_devices(self, station_id):
@@ -1484,4 +1516,3 @@ if __name__ == "__main__":
                             database_connection='RNOG_public', select_stations=24)
 
     det.update(datetime.datetime(2023, 8, 2, 0, 0))
-    det.get_antenna_type(24, 0)
