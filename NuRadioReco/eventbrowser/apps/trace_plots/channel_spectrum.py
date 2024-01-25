@@ -47,7 +47,7 @@ def update_channel_spectrum(trigger, evt_counter, filename, station_id, juser_id
                 'color': colors[i % len(colors)],
                 'line': {'color': colors[i % len(colors)]}
             },
-            name='Channel {}'.format(i)
+            name='Channel {}'.format(channel.get_id())
         ), 1, 1)
     fig['layout'].update(default_layout)
     fig['layout']['legend']['uirevision'] = filename

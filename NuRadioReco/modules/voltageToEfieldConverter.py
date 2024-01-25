@@ -110,11 +110,11 @@ def stacked_lstsq(L, b, rcond=1e-10):
 
 class voltageToEfieldConverter:
     """
-    This module reconstructs the electric field by solving the system of equation that related the incident electric field via the antenna response functions to the measured voltages 
+    This module reconstructs the electric field by solving the system of equation that related the incident electric field via the antenna response functions to the measured voltages
     (see Eq. 4 of the NuRadioReco paper https://link.springer.com/article/10.1140/epjc/s10052-019-6971-5).
     The module assumed that the electric field is identical at the antennas/channels that are used for the reconstruction. Furthermore, at least two antennas with
-    orthogonal polarization response are needed to reconstruct the 3dim electric field. 
-    Alternatively, the polarization of the resulting efield could be forced to a single polarization component. In that case, a single antenna is sufficient. 
+    orthogonal polarization response are needed to reconstruct the 3dim electric field.
+    Alternatively, the polarization of the resulting efield could be forced to a single polarization component. In that case, a single antenna is sufficient.
     """
 
     def __init__(self):
@@ -183,7 +183,7 @@ class voltageToEfieldConverter:
                              efield3_f[1]])
 
         electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels, [0, 0, 0])
-        electric_field.set_frequency_spectrum(efield3_f, station.get_channel(0).get_sampling_rate())
+        electric_field.set_frequency_spectrum(efield3_f, station.get_channel(use_channels[0]).get_sampling_rate())
         electric_field.set_parameter(efp.zenith, zenith)
         electric_field.set_parameter(efp.azimuth, azimuth)
         # figure out the timing of the E-field

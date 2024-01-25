@@ -15,7 +15,6 @@ from NuRadioReco.eventbrowser.apps import simulation
 import os
 import argparse
 import NuRadioReco.eventbrowser.dataprovider
-import NuRadioReco.eventbrowser.dataprovider_root
 import logging
 import webbrowser
 from NuRadioReco.modules.base import module
@@ -196,7 +195,7 @@ def get_page_content(selection):
      Input('event-info-run', 'value')],
     [State('user_id', 'children')]
 )
-def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, event_id, j_plot_click_info, filename, 
+def set_event_number(next_evt_click_timestamp, prev_evt_click_timestamp, event_id, j_plot_click_info, filename,
                      i_event, run_number, juser_id):
     context = dash.callback_context
     if filename is None:

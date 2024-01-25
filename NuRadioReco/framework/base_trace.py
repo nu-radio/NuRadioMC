@@ -114,7 +114,7 @@ class BaseTrace:
                 err = f"time array does not have the same length as the trace. n_samples = {length:d}, sampling rate = {self._sampling_rate:.5g}"
                 logger.error(err)
                 raise ValueError(err)
-        except:
+        except (ValueError, AttributeError):
             times = np.array([])
         return times
 
@@ -186,19 +186,23 @@ class BaseTrace:
         if resampling_factor.numerator != 1:
             # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
             resampled_trace = scipy.signal.resample(resampled_trace, resampling_factor.numerator * self.get_number_of_samples(), axis=-1)
-        
+
         if resampling_factor.denominator != 1:
             # resample and use axis -1 since trace might be either shape (N) for analytic trace or shape (3,N) for E-field
             resampled_trace = scipy.signal.resample(resampled_trace, np.shape(resampled_trace)[-1] // resampling_factor.denominator, axis=-1)
 
         if resampled_trace.shape[-1] % 2 != 0:
             resampled_trace = resampled_trace.T[:-1].T
-        
+
         self.set_trace(resampled_trace, sampling_rate)
 
     def serialize(self):
+        time_trace = self.get_trace()
+        # if there is no trace, the above will return np.array(None).
+        if not time_trace.shape:
+            return None
         data = {'sampling_rate': self.get_sampling_rate(),
-                'time_trace': self.get_trace(),
+                'time_trace': time_trace,
                 'trace_start_time': self.get_trace_start_time()}
         return pickle.dumps(data, protocol=4)
 
@@ -218,13 +222,13 @@ class BaseTrace:
         # Some sanity checks
         if not isinstance(x, BaseTrace):
             raise TypeError('+ operator is only defined for 2 BaseTrace objects')
-        
+
         if self.get_trace() is None or x.get_trace() is None:
             raise ValueError('One of the trace objects has no trace set')
-        
+
         if self.get_trace().ndim != x.get_trace().ndim:
             raise ValueError('Traces have different dimensions')
-        
+
         if self.get_sampling_rate() != x.get_sampling_rate():
             # Upsample trace with lower sampling rate
             # Create new baseTrace object for the resampling so we don't change the originals
@@ -256,12 +260,12 @@ class BaseTrace:
             first_trace = trace_2
             second_trace = trace_1
             trace_start = x.get_trace_start_time()
-        
+
         # Calculate the difference in the trace start time between the traces and the number of
         # samples that time difference corresponds to
         time_offset = np.abs(x.get_trace_start_time() - self.get_trace_start_time())
         i_start = int(round(time_offset * sampling_rate))
-        
+
         # We have to distinguish 2 cases: Trace is 1D (channel) or 2D(E-field)
         # and treat them differently
         if trace_1.ndim == 1:
@@ -282,13 +286,13 @@ class BaseTrace:
             early_trace[:, :first_trace.shape[1]] = first_trace
             late_trace = np.zeros((second_trace.shape[0], trace_length))
             late_trace[:, :second_trace.shape[1]] = second_trace
-        
+
         # Correct for different trace start times by using fourier shift theorem to
         # shift the later trace backwards.
         late_trace_object = BaseTrace()
         late_trace_object.set_trace(late_trace, sampling_rate)
         late_trace_object.apply_time_shift(time_offset, True)
-        
+
         # Create new BaseTrace object holding the summed traces
         new_trace = BaseTrace()
         new_trace.set_trace(early_trace + late_trace_object.get_trace(), sampling_rate)

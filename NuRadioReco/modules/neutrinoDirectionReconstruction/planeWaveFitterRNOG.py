@@ -28,9 +28,13 @@ class planeWaveFitterRNOG:
 
 
     def run(
-        self, evt, station, det, n_index = None,
-        template = None, mode = 'add', debug = True, debugplots_path = None):
-        """Run the plane wave fitter
+        self, evt, station, det, n_index = 1.,
+        template = None, mode = 'add', full_output=False,
+        zenith_min=0, zenith_max=180*units.deg, zenith_step=0.01,
+        azimuth_min=0, azimuth_max=360*units.deg, azimuth_step=0.01,
+        debug = True, debugplots_path = './'):
+        """
+        Run the plane wave fitter
 
         Parameters
         ----------
@@ -39,7 +43,7 @@ class planeWaveFitterRNOG:
             The station to use for reconstruction
         det: Detector object
             The detector that specifies the channel positions and cable delays
-        n_index: float
+        n_index: float (default: 1.)
             The average index of refraction
         template: np.array or None
             If given, the timing difference is determined by correlation with
@@ -55,11 +59,35 @@ class planeWaveFitterRNOG:
             * 'multiply': maximize the product of all correlations
             * 'log': maximize the log of the product of all correlations
 
+        full_output: bool, default False
+            If True, also return the brute-force meshgrid and the function
+            values at all points. Useful for debugging or fitting multiple events
+
+        Returns
+        -------
+        (zenith_fit, azimuth_fit): tuple of floats
+            The fit result
+        xgrid: np.ndarray
+            (Only if full_output=True)
+            the brute-force meshgrid
+        fgrid: np.ndarray
+            (Only if full_output=True)
+            the function values at each point of xgrid
+
+
+        Other Parameters
+        ----------------
+        zenith_min: float (default: 0)
+        zenith_max: float (default: 180*units.deg)
+        zenith_step: float (default: 0.01)
+        azimuth_min: float (default: 0)
+        azimuth_max: float (default: 360*units.deg)
+        azimuth_step: float (default: 0.01)
         debug: bool, default True
             If True, produce some debug plots and save them under
             debugplots_path
         debugplots_path: string
-            Path to existing directory to save debug plots
+            Path to existing directory to save debug plots. Default: './'
 
         """
         if station.has_sim_station():
@@ -149,7 +177,11 @@ class planeWaveFitterRNOG:
             if rec:
                 ax[-1, 1].set_xlabel("timing [ns]")
                 fig.tight_layout(h_pad=0)
-                fig.savefig("{}/planewave_corr.pdf".format(debugplots_path))
+                if debugplots_path is not None:
+                    fig.savefig("{}/planewave_corr.pdf".format(debugplots_path))
+                    plt.close()
+                else:
+                    plt.show()
            # print(stop)
             ### calculate timing shift due to plane wave
             ### get value in correlation due to timing
@@ -214,13 +246,6 @@ class planeWaveFitterRNOG:
                 if mode == 'add_normalize_correlation':
                     self.__correlation[ich] /= np.max(self.__correlation[ich])
 
-
-        ### minimizer
-        zen_start = np.deg2rad(0)
-        zen_end = np.deg2rad(180)
-        az_start = np.deg2rad(-180)
-        az_end = np.deg2rad(180)
-
         if debug & station.has_sim_station():
             print(
                 "Likelihood simulation",
@@ -229,8 +254,8 @@ class planeWaveFitterRNOG:
 
         ll, fval, xgrid, fgrid = opt.brute(
             likelihood, ranges=(
-                slice(zen_start, zen_end, 0.01),
-                slice(az_start, az_end, 0.01)
+                slice(zenith_min, zenith_max, zenith_step),
+                slice(azimuth_min, azimuth_max, azimuth_step)
             ), args=(mode,), finish = opt.fmin, full_output=True)
 
         rec_zenith = ll[0]
@@ -269,6 +294,9 @@ class planeWaveFitterRNOG:
             fig1.tight_layout()
             if debugplots_path != None:
                 fig1.savefig("{}/planewave_map.pdf".format(debugplots_path))
+                plt.close()
+            else:
+                plt.show()
         ##### run with reconstructed values
         if debug: print("likelihood reconstruction", likelihood(ll, rec = True))
         print("simulated zenith {} and reconstructed zenith {}".format(np.rad2deg(signal_zenith), np.rad2deg(rec_zenith)))
@@ -276,6 +304,11 @@ class planeWaveFitterRNOG:
 
         station[stnp.planewave_zenith] = rec_zenith
         station[stnp.planewave_azimuth] = rec_azimuth
+
+        if full_output:
+            return (rec_zenith, rec_azimuth), xgrid, fgrid
+
+        return (rec_zenith, rec_azimuth)
 
 
     def end(self):

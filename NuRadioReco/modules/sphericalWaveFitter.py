@@ -86,7 +86,7 @@ class sphericalWaveFitter:
                 self.__channel_pairs.append([self.__channel_ids[i], self.__channel_ids[j]])
 
 
-        self.__sampling_rate = station.get_channel(0).get_sampling_rate()
+        self.__sampling_rate = station.get_channel(self.__channel_ids[0]).get_sampling_rate()
         if debug:
             fig, ax = plt.subplots( len(self.__channel_pairs), 2)
 
@@ -141,7 +141,6 @@ class sphericalWaveFitter:
             self.__correlation[ich] = np.abs(scipy.signal.correlate(trace1, trace2))
             if mode == 'add_normalize_correlation':
                 self.__correlation[ich] /= np.max(self.__correlation[ich])
-          
 
 
         #### set positions for starting position ####

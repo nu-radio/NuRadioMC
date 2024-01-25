@@ -75,6 +75,7 @@ class neutrino3DVertexReconstructor:
             detector,
             template,
             distances_2d=None,
+            azimuths_2d=None,
             passband=None,
             min_antenna_distance=5. * units.m,
             use_maximum_filter=False,
@@ -101,6 +102,9 @@ class neutrino3DVertexReconstructor:
         distances_2d: array of float
             The minimum and maximum horizontal distance from the station in which to search
             If not specified, will look between 100 - 3000 m
+        azimuths_2d: array of float
+            The minimum and maximum azimuth angle in which to search. If not specified,
+            use [0, 2*np.pi]
         passband: array of float
             Lower and upper bounds off the bandpass filter that is applied to the channel
             waveform and the template before the correlations are determined. This filter
@@ -152,6 +156,10 @@ class neutrino3DVertexReconstructor:
             self.__distances_2d = [100, 3000]
         else:
             self.__distances_2d = distances_2d
+        if azimuths_2d is None:
+            self.__azimuths_2d = [0, 2*np.pi]
+        else:
+            self.__azimuths_2d = azimuths_2d
         for channel_id in channel_ids:
             channel_z = abs(detector.get_relative_position(station_id, channel_id)[2])
             channel_type = int(channel_z)
@@ -365,6 +373,9 @@ class neutrino3DVertexReconstructor:
         self._dTheta0 = 2 * units.deg
         self._dTheta_current = self._dTheta0
         dTheta = self._dTheta0
+        dPhi_total = np.abs(self.__azimuths_2d[-1] - self.__azimuths_2d[0])
+        phi_start = self.__azimuths_2d[0]
+        phi_stop = self.__azimuths_2d[-1]
         thetaphi_mask = None
         n_distance_steps = 100
         i_iteration = 1
@@ -373,7 +384,7 @@ class neutrino3DVertexReconstructor:
             distances_3d = np.logspace(np.log10(self.__distances_2d[0]), np.log10(self.__distances_2d[-1]), n_distance_steps)
             self._d_distance_current = np.exp(1/(n_distance_steps - 1) * np.log(distances_3d[-1] / distances_3d[0])) - 1
             theta_grid = np.arange(np.pi/2, np.pi, dTheta)
-            n_phi_per_theta = np.array([int(np.ceil(2*np.pi/dTheta*np.max([0.01, np.abs(np.sin(theta))]))) for theta in theta_grid])
+            n_phi_per_theta = np.array([int(np.ceil(dPhi_total/dTheta*np.max([0.01, np.abs(np.sin(theta))]))) for theta in theta_grid])
             cum_phi_per_theta = np.cumsum(n_phi_per_theta)
             n_thetaphi_total = cum_phi_per_theta[-1]
 
@@ -381,7 +392,7 @@ class neutrino3DVertexReconstructor:
                 thetaphi = np.array([
                     (theta, phi)
                     for theta in theta_grid
-                    for phi in np.linspace(0, 2*np.pi, int(np.ceil(2*np.pi/dTheta*np.max([0.01, np.abs(np.sin(theta))]))), endpoint=False)
+                    for phi in np.linspace(phi_start, phi_stop, int(np.ceil(dPhi_total/dTheta*np.max([0.01, np.abs(np.sin(theta))]))), endpoint=False)
                     ]
                 ).T
 
@@ -439,7 +450,7 @@ class neutrino3DVertexReconstructor:
                         continue
 
                     # the phi grid for the given value of theta
-                    phi = np.linspace(0, 2*np.pi, int(np.ceil(2*np.pi/dTheta*np.max([0.01, np.abs(np.sin(theta))]))), endpoint=False)
+                    phi = np.linspace(phi_start, phi_stop, int(np.ceil(dPhi_total/dTheta*np.max([0.01, np.abs(np.sin(theta))]))), endpoint=False)
 
                     # now we find the indices that would correspond to the nearest neighbours in theta, phi
                     # if we looked at the full (non-masked) grid. We later convert those to 'in-mask' indices
