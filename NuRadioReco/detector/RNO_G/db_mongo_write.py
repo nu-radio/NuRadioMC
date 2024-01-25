@@ -39,26 +39,30 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
 
     # operation adding documents to a collection
 
-    def set_not_working(self, type, name, primary_measurement, channel_id=None, breakout_id=None, breakout_channel_id=None):
+    def set_not_working(self, collection_name, name, primary_measurement, channel_id=None, breakout_id=None, breakout_channel_id=None):
         """
         inserts that the input unit is broken.
         If the input unit dosn't exist yet, it will be created.
 
         Parameters
         ----------
-        type: string
-            type of the input unit (HPol, VPol, surfCABLE, ...)
+        collection_name: string
+            name of the collection that is searched (surface_board, iglu_board, ...)
         name: string
             the unique identifier of the input unit
         primary_measurement: boolean
             specifies if this measurement is used as the primary measurement
         channel_id: int
-            channel-id of the measured object
+            channel-id of the measured object (default:None)
+        breakout_id: int
+            number describing the breakout of the fiber (default: None)
+        breakout_channel_id: string
+            string describing the breakout channel of the fiber (default: None)
         """
 
         # close the time period of the old primary measurement
-        if primary_measurement and name in self.get_object_names(type):
-            self.update_current_primary(type, name, channel_id=channel_id,
+        if primary_measurement and name in self.get_object_names(collection_name):
+            self.update_current_primary(collection_name, name, channel_id=channel_id,
                                         breakout_id=breakout_id, breakout_channel_id=breakout_channel_id)
 
         # define the new primary measurement times
@@ -66,7 +70,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
         ), 'end': datetime.datetime(2100, 1, 1, 0, 0, 0)}]
 
         if channel_id is not None:
-            self.db[type].update_one({'name': name},
+            self.db[collection_name].update_one({'name': name},
                                      {'$push': {'measurements': {
                                          'id_measurement': ObjectId(),
                                          'last_updated': datetime.datetime.utcnow(),
@@ -75,7 +79,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
                                          'channel_id': channel_id
                                      }}}, upsert=True)
         elif breakout_id is not None and breakout_channel_id is not None:
-            self.db[type].update_one({'name': name},
+            self.db[collection_name].update_one({'name': name},
                                      {'$push': {'measurements': {
                                          'id_measurement': ObjectId(),
                                          'last_updated': datetime.datetime.utcnow(),
@@ -85,7 +89,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
                                          'breakout_channel': breakout_channel_id
                                      }}}, upsert=True)
         else:
-            self.db[type].update_one({'name': name},
+            self.db[collection_name].update_one({'name': name},
                                      {'$push': {'measurements': {
                                          'id_measurement': ObjectId(),
                                          'last_updated': datetime.datetime.utcnow(),
@@ -260,29 +264,28 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
 
     # operation that change the primary status of a measurement
 
-    def update_current_primary(self, type, name, identification_label, data_dict):
+    def update_current_primary(self, collection_name, name, identification_label, data_dict):
         """
         updates the status of primary_measurement, set the timestamp of the current primary measurement to end at datetime.utcnow()
 
         Parameters
         ----------
-        type: string
-            type of the input unit (HPol, VPol, surfCABLE, ...)
+        collection_name: string
+            name of the collection that is searched (surface_board, iglu_board, ...)
         name: string
-            the unique identifier of the input unit
-        _id: int
-            if there is a channel or device id for the object, the id is used in the search filter mask
-        id_label: string
-            sets if a channel id ('channel') or device id ('device) is used
+            the unique identifier of the input component
+        identification_label: string
+            specify what kind of label is used for the identification ("name" or "id")
+        data_dict: dict
+            dictionary containing additional information that are used to search the database (e.g., channel_id, S_parameter)
         """
 
         present_time = self.__database_time
         print('present_time', present_time)
 
         # find the current primary measurement
-        # obj_id, measurement_id = self.find_primary_measurement(type, name, present_time, identification_label=identification_label, _id=_id, id_label=id_label, breakout_id=breakout_id, breakout_channel_id=breakout_channel_id)
         obj_id, measurement_id = self.find_primary_measurement(
-            type, name, present_time, identification_label=identification_label, data_dict=data_dict)
+            collection_name, name, present_time, identification_label=identification_label, data_dict=data_dict)
         print(obj_id, measurement_id)
         if obj_id is None and measurement_id[0] == 0:
             #  no primary measurement was found and thus there is no measurement to update
@@ -297,14 +300,14 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
                                         {'$unwind': '$measurements'},
                                         {'$match': {'measurements.id_measurement': m_id}}]
 
-                info = list(self.db[type].aggregate(filter_primary_times))
+                info = list(self.db[collection_name].aggregate(filter_primary_times))
 
                 primary_times = info[0]['measurements']['primary_measurement']
 
                 # update the 'end' time to the present time
                 primary_times[-1]['end'] = present_time
 
-                self.db[type].update_one({'_id': obj_id}, {"$set": {
+                self.db[collection_name].update_one({'_id': obj_id}, {"$set": {
                                          "measurements.$[updateIndex].primary_measurement": primary_times}}, array_filters=[{"updateIndex.id_measurement": m_id}])
 
     def __change_primary_object_measurement(self, object_type, object_name, search_filter, channel_id=None, breakout_id=None, breakout_channel_id=None):
@@ -457,6 +460,12 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             list of the input units (only y unit will be saved)
         function_test: boolean
             describes if the channel is working or not
+        drab_id: string
+            unique identifier of the drab used in the iglu measurement
+        laser_id: string
+            id of the laser that is used in the iglu board
+        temperature: int
+            temperature at which the measurement was performed
         """
 
         # find the entry specified by function arguments
@@ -486,6 +495,12 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             the unique identifier of the board
         S_parameter: list of strings
             specify which S_parameter is used (S11, ...)
+        iglu_id: string
+            unique identifier of the iglu used in the drab measurement
+        channel_id: int
+            channel of the drab that is measured
+        temp: int
+            temperature at which the measurement was performed
         protocol: string
             details of the testing environment
         units_arr: list of strings
@@ -522,6 +537,10 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             the unique identifier of the board
         S_parameter: list of strings
             specify which S_parameter is used (S11, ...)
+        channel_id: int
+            channel of the surface board that is measured
+        temp: int
+            temperature at which the measurement was performed
         protocol: string
             details of the testing environment
         units_arr: list of strings
@@ -556,6 +575,16 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             the unique identifier of the board
         S_parameter: list of strings
             specify which S_parameter is used (S11, ...)
+        breakout_id: int
+            number describing the breakout of the fiber (default: None)
+        breakout_cha_id: string
+            string describing the breakout channel of the fiber (default: None)
+        iglu_id: string
+            unique identifier of the iglu used in the measurement
+        drab_id: string
+            unique identifier of the drab used in the measurement
+        temp: int
+            temperature at which the measurement was performed
         protocol: string
             details of the testing environment
         units_arr: list of strings
@@ -580,15 +609,6 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
 
         self.__change_primary_object_measurement(
             board_type, board_name, search_filter, breakout_id=breakout_id, breakout_channel_id=breakout_cha_id)
-
-    def change_primary_station_measurement(self):
-        pass
-
-    def change_primary_channel_measurement(self):
-        pass
-
-    def change_primary_channel_signal_chain_configuration(self):
-        pass
 
     # operation that decommission a object
 
