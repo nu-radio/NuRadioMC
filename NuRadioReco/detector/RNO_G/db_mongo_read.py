@@ -11,12 +11,17 @@ from pymongo import MongoClient
 import NuRadioReco.utilities.metaclasses
 import astropy.time
 
-from NuRadioReco.detector.RNO_G.rnog_detector import _convert_astro_time_to_datetime
-
 import logging
 logging.basicConfig()
 logger = logging.getLogger("NuRadioReco.MongoDBRead")
 logger.setLevel(logging.INFO)
+
+
+def _convert_astro_time_to_datetime(time_astro):
+    if not isinstance(time_astro, astropy.time.Time):
+        raise ValueError("This function expects only arguments from type `astropy.time.Time`")
+
+    return time_astro.to_datetime()
 
 
 def _check_database_time(method):
@@ -626,7 +631,7 @@ class Database(object):
 
         # if measurement name is None, the primary measurement is returned
         collection_info = self.get_collection_information(
-            f'{component}_position', search_by='id', id=position_id, measurement_name=measurement_name,
+            f'{component}_position', search_by='id', obj_id=position_id, measurement_name=measurement_name,
             use_primary_time_with_measurement=use_primary_time_with_measurement)
 
         # raise an error if more than one value is returned
@@ -660,7 +665,7 @@ class Database(object):
 
         # if measurement name is None, the primary measurement is returned
         collection_info = self.get_collection_information(
-            'signal_chain', search_by='id',id=channel_signal_id, measurement_name=measurement_name)
+            'signal_chain', search_by='id', obj_id=channel_signal_id, measurement_name=measurement_name)
 
         # raise an error if more than one value is returned
         if len(collection_info) > 1:
