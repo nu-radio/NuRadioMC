@@ -5,7 +5,11 @@ import NuRadioReco.framework.electric_field
 import matplotlib.pyplot as plt
 import numpy as np
 
-from NuRadioMC.SignalProp import radioproparaytracing
+try:
+    from NuRadioMC.SignalProp import radioproparaytracing
+    propa = True
+except:
+    propa = False
 from NuRadioMC.SignalProp import analyticraytracing
 
 """
@@ -87,40 +91,40 @@ config['propagation']['birefringence_propagation'] = 'analytical'
 
 birefringence_propagation(config, 'analytical', ray_tracing_solution, 1, x_limits, 'analyticraytracing.py', 'analyticraytracing.py', 'southpole_B')
 
+if propa:
+    # ---------------   raytracing:            analyticraytracing.py ---------------------
+    # ---------------   e-field propagation:   radioproparaytracing.py ---------------------
+    # ---------------   biefringence model:    'southpole_A' ---------------------
 
-# ---------------   raytracing:            analyticraytracing.py ---------------------
-# ---------------   e-field propagation:   radioproparaytracing.py ---------------------
-# ---------------   biefringence model:    'southpole_A' ---------------------
+    config['propagation']['birefringence'] = True
+    config['propagation']['birefringence_model'] = 'southpole_A'
+    config['propagation']['birefringence_propagation'] = 'numerical'
 
-config['propagation']['birefringence'] = True
-config['propagation']['birefringence_model'] = 'southpole_A'
-config['propagation']['birefringence_propagation'] = 'numerical'
-
-birefringence_propagation(config, 'analytical', ray_tracing_solution, 2, x_limits, 'analyticraytracing.py', 'radioproparaytracing.py', 'southpole_A')
+    birefringence_propagation(config, 'analytical', ray_tracing_solution, 2, x_limits, 'analyticraytracing.py', 'radioproparaytracing.py', 'southpole_A')
 
 
-# ---------------   raytracing:            radioproparaytracing.py ---------------------
-# ---------------   e-field propagation:   radioproparaytracing.py ---------------------
-# ---------------   biefringence model:    'southpole_A' ---------------------
+    # ---------------   raytracing:            radioproparaytracing.py ---------------------
+    # ---------------   e-field propagation:   radioproparaytracing.py ---------------------
+    # ---------------   biefringence model:    'southpole_A' ---------------------
 
-propa_config = dict()
-propa_config['propagation'] = dict(
-    attenuate_ice = True,
-    focusing_limit = 2,
-    focusing = False,
-    birefringence = True,
-    radiopropa = dict(
-        mode = 'iterative',
-        iter_steps_channel = [25., 2., .5], #unit is meter
-        iter_steps_zenith = [.5, .05, .005], #unit is degree
-        auto_step_size = False,
-        max_traj_length = 10000) #unit is meter
-)
-propa_config['speedup'] = dict(
-    delta_C_cut = 40 * units.degree
-)
+    propa_config = dict()
+    propa_config['propagation'] = dict(
+        attenuate_ice = True,
+        focusing_limit = 2,
+        focusing = False,
+        birefringence = True,
+        radiopropa = dict(
+            mode = 'iterative',
+            iter_steps_channel = [25., 2., .5], #unit is meter
+            iter_steps_zenith = [.5, .05, .005], #unit is degree
+            auto_step_size = False,
+            max_traj_length = 10000) #unit is meter
+    )
+    propa_config['speedup'] = dict(
+        delta_C_cut = 40 * units.degree
+    )
 
-birefringence_propagation(propa_config, 'numerical', ray_tracing_solution, 3, x_limits, 'radioproparaytracing.py', 'radioproparaytracing.py', 'southpole_A')
+    birefringence_propagation(propa_config, 'numerical', ray_tracing_solution, 3, x_limits, 'radioproparaytracing.py', 'radioproparaytracing.py', 'southpole_A')
 
 # ---------------   plotting the results ---------------------
 axs[0].legend(loc = 1)
