@@ -60,10 +60,19 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token}}
       run: |
-        export tag_name=v"$(poetry version -s)"
-        git tag $tag_name
-        git push origin $tag_name
-        gh release create $tag_name --generate-notes
+        export VERSION_NEW="$(poetry version -s)"
+        export NEW_TAG=v$VERSION_NEW
+        git tag $NEW_TAG -m "$NEW_TAG release"
+        git push origin $NEW_TAG
+
+        # we want to include the changelog since the last release
+        # First, we use gh release and some regex to get the latest tag
+        export LATEST_TAG=$(gh release list | sed -rn 's/.*Latest\s*(\S+).*/\1/p')
+        # Next, we use some more regex to select
+        # the section of the changelog between the new and latest versions:
+        git diff --output-indicator-new=\| $LATEST_TAG $NEW_TAG changelog.txt | sed -rn "/^\|.*$VERSION_NEW/,/^[^|]/{s/\|//p}" | sed -n "2,\$p" > /tmp/changelog_$NEW_TAG.md
+
+        gh release create $NEW_TAG --notes-file /tmp/changelog_$NEW_TAG.md --generate-notes
 
     - name: Publish distribution 📦 to Test PyPI
       if: ${{ github.ref == 'refs/heads/master'}} # only runs if the push is to master
