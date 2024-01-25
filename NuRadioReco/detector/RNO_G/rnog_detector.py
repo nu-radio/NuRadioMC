@@ -747,12 +747,10 @@ class Detector():
 
                 if "time_delay" in value:
                     time_delay = value["time_delay"]
-                elif "cable_delay" in value:
-                    time_delay = value["cable_delay"]
                 else:
                     self.logger.warning(
                         f"The signal chain component \"{key}\" of station.channel "
-                        f"{station_id}.{channel_id} has no cable/time delay stored... "
+                        f"{station_id}.{channel_id} has no time delay stored... "
                         "Set component time delay to 0")
                     time_delay = 0
 
