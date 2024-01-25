@@ -22,7 +22,7 @@ import string
 import random
 
 
-def create_random_directory_path(prefix="/tmp/", n=7):
+def _create_random_directory_path(prefix="/tmp/", n=7):
     """
     Produces a path for a temporary directory with a n letter random suffix
 
@@ -48,7 +48,7 @@ def create_random_directory_path(prefix="/tmp/", n=7):
     return path
 
 
-def baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
+def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
     """
     Simple baseline correction function. 
     
@@ -150,7 +150,7 @@ def get_time_offset(trigger_type):
         raise KeyError(f"Unknown trigger type: {trigger_type}. Known are: {known_trigger_types}. Abort ....")
 
 
-def all_files_in_directory(mattak_dir):
+def _all_files_in_directory(mattak_dir):
     """
     Checks if all Mattak root files are in a directory.
     Ignoring runinfo.root because (asaik) not all runs have those and information is currently not read by Mattak.
@@ -186,11 +186,17 @@ class readRNOGData:
 
     def __init__(self, run_table_path=None, load_run_table=True, log_level=logging.INFO):
         """
+        Reader for RNO-G ``.root`` files
+
+        This class provides read access to RNO-G ``.root`` files and converts them
+        to NuRadioMC :class:`Events <NuRadioReco.framework.event.Event>`. Requires ``mattak``
+        (https://github.com/RNO-G/mattak) to be installed.
+
         Parameters
         ----------
 
         run_table_path: str | None
-            Path to a run_table.cvs file. If None, the run table is queried from the DB. (Default: None)
+            Path to a run_table.csv file. If None, the run table is queried from the DB. (Default: None)
 
         load_run_table: bool
             If True, try to load the run_table from run_table_path. Otherwise, skip this.
@@ -198,6 +204,23 @@ class readRNOGData:
         log_level: enum
             Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).
             (Default: logging.INFO)
+
+        Examples
+        --------
+
+        .. code-block::
+
+            reader = readRNOGDataMattak.readRNOGData() # initialize reader
+            reader.begin('/path/to/root_file_or_folder')
+
+            evt = reader.get_event_by_index(0) # returns the first event in the file
+            # OR
+            evt = reader.get_event(run_nr=1100, event_id=679) # returns the event with run_number 1100 and event_id 679
+            # OR
+            for evt in reader.run(): # loop over all events in file
+                # perform some analysis
+                pass
+
         """
         self.logger = logging.getLogger('NuRadioReco.readRNOGData')
         self.logger.setLevel(log_level)
@@ -222,6 +245,18 @@ class readRNOGData:
                     self.logger.warn("Import of run table failed. Runs can not be filtered.! \n"
                             "You can get the interface from GitHub: git@github.com:RNO-G/rnog-runtable.git")
             else:
+                # some users may mistakenly try to pass the .root files to __init__
+                # we check for this and raise a (hopefully) helpful error message
+                user_passed_root_file_msg = (
+                    "The optional argument run_table_path expects a csv file, "
+                    "but you passed a list of files or a .root file. Note that "
+                    "the .root files to read in should be passed to the `begin` method of this class"
+                )
+                if isinstance(run_table_path, (list, np.ndarray)):
+                    raise TypeError(user_passed_root_file_msg)
+                elif os.path.isdir(run_table_path) or run_table_path.endswith('.root'):
+                    raise ValueError(user_passed_root_file_msg)
+
                 import pandas
                 self.__run_table = pandas.read_csv(run_table_path)
 
@@ -353,13 +388,13 @@ class readRNOGData:
         self._datasets = []
         self.__n_events_per_dataset = []
 
+        if not isinstance(dirs_files, (list, np.ndarray)):
+            dirs_files = [dirs_files]
+
         self.logger.info(f"Parse through / read-in {len(dirs_files)} directory(ies) / file(s).")
 
         self.__skipped_runs = 0
         self.__n_runs = 0
-
-        if not isinstance(dirs_files, (list, np.ndarray)):
-            dirs_files = [dirs_files]
 
         # Set verbose for mattak
         if "verbose" in mattak_kwargs:
@@ -375,7 +410,7 @@ class readRNOGData:
 
             if os.path.isdir(dir_file):
 
-                if not all_files_in_directory(dir_file):
+                if not _all_files_in_directory(dir_file):
                     self.logger.error(f"Incomplete directory: {dir_file}. Skip ...")
                     continue
             else:
@@ -384,7 +419,7 @@ class readRNOGData:
                 # it is not a combined file). To work around this: Create a tmp directory under `/tmp/`, link the file you want to
                 # read into this directory with the the name `combined.root`, use this path to read the run.
 
-                path = create_random_directory_path()
+                path = _create_random_directory_path()
                 self.logger.debug(f"Create temporary directory: {path}")
                 if os.path.exists(path):
                     raise ValueError(f"Temporary directory {path} already exists.")
@@ -393,7 +428,7 @@ class readRNOGData:
                 self.__temporary_dirs.append(path)  # for housekeeping
 
                 self.logger.debug(f"Create symlink for {dir_file}")
-                os.symlink(dir_file, os.path.join(path, "combined.root"))
+                os.symlink(os.path.abspath(dir_file), os.path.join(path, "combined.root"))
 
                 dir_file = path  # set path to e.g. /tmp/NuRadioReco_XXXXXXX/combined.root
 
@@ -721,10 +756,10 @@ class readRNOGData:
         """
         Loop over all events.
 
-        Returns
-        -------
+        Yields
+        ------
 
-        evt: generator(NuRadioReco.framework.event)
+        evt: `NuRadioReco.framework.event.Event`
         """
         event_idx = -1
         for dataset in self._datasets:
@@ -774,7 +809,7 @@ class readRNOGData:
         Returns
         -------
 
-        evt: NuRadioReco.framework.event
+        evt: `NuRadioReco.framework.event.Event`
         """
 
         self.logger.debug(f"Processing event number {event_index} out of total {self._n_events_total}")
@@ -816,7 +851,7 @@ class readRNOGData:
         Returns
         -------
 
-        evt: NuRadioReco.framework.event
+        evt: `NuRadioReco.framework.event.Event`
         """
 
         self.logger.debug(f"Processing event {event_id}")
