@@ -42,7 +42,7 @@ class mySimulation(simulation.simulation):
                            triggered_channels=range(8))
         triggerTimeAdjuster.run(evt, station, det)
 
-
+"""
 parser = argparse.ArgumentParser(description='Run NuRadioMC simulation')
 parser.add_argument('inputfilename', type=str,
                     help='path to NuRadioMC input event list')
@@ -55,13 +55,14 @@ parser.add_argument('outputfilename', type=str,
 parser.add_argument('outputfilenameNuRadioReco', type=str, nargs='?', default=None,
                     help='outputfilename of NuRadioReco detector sim file')
 args = parser.parse_args()
+"""
 
 if __name__ == "__main__":
-    sim = mySimulation(inputfilename=args.inputfilename,
-                                outputfilename=args.outputfilename,
-                                detectorfile=args.detectordescription,
-                                outputfilenameNuRadioReco=args.outputfilenameNuRadioReco,
-                                config_file=args.config,
+    sim = mySimulation(inputfilename='input_spice.hdf5',
+                                outputfilename='output_MC.hdf5',
+                                detectorfile='detector_db.json',
+                                outputfilenameNuRadioReco='output_reco.nur',
+                                config_file='config_spice.yaml',
                                 #log_level=logging.WARNING,
                                 log_level=logging.ERROR,
                                 evt_time=datetime.datetime(2018, 12, 30),

@@ -81,5 +81,5 @@ plt.scatter(energies, 100 * np.array(Veff_birefringence) / np.array(Veff_no_bire
 plt.ylabel(r'$V_{eff.-bir.} / V_{eff.-iso.}$ [%]')
 plt.xlabel(r'$\log (E)$')
 plt.tight_layout()
-plt.savefig('05_Veff_comp_plot.png', dpi=400)
+plt.savefig('06_Veff_comp_plot.png', dpi=400)
 
