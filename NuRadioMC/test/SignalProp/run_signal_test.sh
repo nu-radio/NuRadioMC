@@ -14,4 +14,3 @@ python3 01_simple_propagation.py
 python3 02_path_info.py           
 python3 03_ARA_SPice.py
 python3 04_ARIANNA_SPice.py
-python3 05_Veff_comparison.py
