@@ -29,8 +29,9 @@ class DetectorProvider(object):
         filename: string
             Path to the .json file containing the detector description
         """
-        self.__detector = NuRadioReco.detector.detector.Detector.__new__(NuRadioReco.detector.detector.Detector)
-        self.__detector.__init__(source='json', json_filename=filename, assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
+        self.__detector = NuRadioReco.detector.detector.Detector.__new__(
+            NuRadioReco.detector.detector.Detector, source='json', json_filename=filename, assume_inf=assume_inf, 
+            antenna_by_depth=antenna_by_depth)
 
     def set_generic_detector(self, filename, default_station, default_channel, assume_inf, antenna_by_depth):
         """
@@ -46,8 +47,9 @@ class DetectorProvider(object):
             ID of the channel to be set as default channel
         """
         import NuRadioReco.detector.generic_detector
-        self.__detector = NuRadioReco.detector.generic_detector.GenericDetector.__new__(NuRadioReco.detector.generic_detector.GenericDetector)
-        self.__detector.__init__(filename, default_station, default_channel, assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
+        self.__detector = NuRadioReco.detector.generic_detector.GenericDetector.__new__(
+            NuRadioReco.detector.generic_detector.GenericDetector, filename, default_station, 
+            default_channel, assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
 
     def set_event_file(self, filename):
         """

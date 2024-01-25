@@ -45,7 +45,7 @@ The HDF5 files can be thought of as a structured dictionary:
 
 - The top level :ref:`attributes <NuRadioMC/pages/HDF5_structure:HDF5 file attributes>`, which can be accessed through ``f.attrs``, contain some top-level information about the simulation.
 - The :ref:`individual keys <NuRadioMC/pages/HDF5_structure:HDF5 file contents>` contain some properties (energy, vertex, ...) for each stored event or shower.
-- Finally, the ``station_<station_id>`` key contains slightly more detailed information (triggers, propagation times, amplitudes...) at the level of individual channels :ref:`for each station <NuRadioMC/pages/HDF5_structure:Station data>`.
+- Finally, the ``station_<station_id>`` key contains slightly more detailed information (triggers, propagation times, amplitudes...) at the level of individual channels :ref:`for each station <NuRadioMC/pages/HDF5_structure:Station data>`. Each station group has its own attributes (``f[station_<station_id>].attrs``)
 
 HDF5 file attributes
 ____________________
@@ -72,13 +72,25 @@ The top-level attributes can be accessed using ``f.attrs``. These contain:
             ``start_event_id`` | ``event_id`` of the first event in the file
             ``trigger_names`` | List of the names of the different triggers simulated
             ``Tnoise`` | (explicit) noise temperature used in simulation
-            ``Vrms`` |  RMS of the voltage used as thermal noise floor. Determine from ``Tnoise`` and ``bandwidth``
-            ``bandwidth`` | Bandwidth of the antennas/detector (for triggering)
             ``n_samples`` | Samples of the to-be generated antenna signals
             ``config`` | The (yaml-style) config file used for the simulation
             ``deposited`` |
             ``detector`` | The (json-format) detector description used for the simulation
             ``dt`` | The time resolution, i.e. the inverse of the sampling rate used for the simulation. This is not necessarily the same as the sampling rate of the simulated channels!
+
+
+The station-level attributes can be accessed using ``f[station_<station_id>].attrs``. The first two attributes ``Vrms`` and ``bandwidth`` also exist on the top-level and refer to the corresponding to the first station/channel pair.
+
+    .. _hdf5-station-attrs-table:
+
+    .. csv-table:: HDF5 station attributes
+            :header: "Key", "Description"
+            :widths: auto
+            :delim: |
+
+            ``Vrms`` | RMS of the voltage used as thermal noise floor :math:`v_{n} = (k_{B} \, R \, T \, \Delta f) ^ {0.5}`. See the relevant section "Noise voltage and power" in this `wiki article <https://en.wikipedia.org/wiki/Johnson%E2%80%93Nyquist_noise>`_ (last two equations). Determine from ``Tnoise`` and ``bandwidth`` (see below).
+            ``bandwidth`` | Bandwidth is above equation. Calculated as the integral over the simulated filter response (`filt`) squared: :math:`\Delta f = np.trapz(np.abs(filt) ** 2, ff)`.
+            ``antenna_positions`` | Relative position of all simulated antennas (channels)
 
 HDF5 file contents
 __________________
@@ -114,8 +126,12 @@ is the number of showers (which may be larger than the number of events), and ``
 Station data
 ____________
 In addition, the HDF5 file contains a key for each station in the simulation.
-The station contains more detailed information for each event that triggered it:
-``m_events`` and ``m_showers`` refer to the number of events and showers that triggered the station.
+The station contains more detailed information for each station. Some parameters are per event and
+some parameters are per shower. See https://doi.org/10.22323/1.395.1231 for a description of how showers relate to events.
+``m_events`` and ``m_showers`` refer to the number of events and showers that triggered the station. NOTE: The simple table
+structure of hdf5 files can not capture the complex relation between events and showers in all cases. Some fields can be ambiguous
+(e.g. `trigger_times` that only lists the last trigger that a shower generated).
+For more advanced analyses, please use the ``*.nur`` files.
 The ``event_group_id`` is the same as in the global dictionary. Therefore you can check for one event with
 an ``event_group_id`` which stations contain the same ``event_group_id`` and retrieve the information, which
 station triggered, with which amplitude, etc. The same approach works for ``shower_id``.
@@ -138,7 +154,7 @@ station triggered, with which amplitude, etc. The same approach works for ``show
             ``maximum_amplitudes_envelope`` | (``m_events``, ``n_channels``) | Maximum amplitude of the hilbert envelope for each event and channel
             ``multiple_triggers`` | (``m_showers``, ``n_triggers``) | A boolean array that specifies if a shower contributed to an event that fulfills a certain trigger. The index of the trigger can be translated to the trigger name via the attribute ``trigger_names``.
             ``multiple_triggers_per_event`` | (``m_events``, ``n_triggers``) | A boolean array that specifies if each event fulfilled a certain trigger. The index of the trigger can be translated to the trigger name via the attribute ``trigger_names``.
-            ``polarization`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D (Cartesian) coordinates of the polarization vector
+            ``polarization`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``, ``3``) | 3D coordinates of the polarization vector at the antenna in cartesian coordinates. (The receive vector (which is opposite to the propagation direction) was used to rotate from spherical/on-sky coordinates to cartesian coordinates). The polarization vector does not include any propagation effects that could change the polarization, such as different reflectivities at the surface for the p and s polarization component.   
             ``ray_tracing_C0`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | One of two parameters specifying the **analytic** ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.
             ``ray_tracing_C1`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | One of two parameters specifying the **analytic** ray tracing solution. Can be used to retrieve the solutions without having to re-run the ray tracer.
             ``ray_tracing_reflection`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) |
@@ -151,4 +167,5 @@ station triggered, with which amplitude, etc. The same approach works for ``show
             ``travel_times`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | The time travelled by each ray tracing solution to a specific channel
             ``triggered`` | (``m_showers``) | Whether each shower contributed to an event that satisfied any trigger condition
             ``triggered_per_event`` | (``m_events``) | Whether each event fulfilled any trigger condition.
-            ``trigger_times`` | (``m_showers``, ``n_triggers``) | The trigger times for each shower and trigger.
+            ``trigger_times`` | (``m_showers``, ``n_triggers``) | The trigger times for each shower and trigger. IMPORTANT: A shower can potentially generate multiple events. Then this field is ambiguous, as only a single trigger time per shower can be saved. In that case, the latest trigger time is saved into this field.
+            ``trigger_times_per_event`` | (``m_events``, ``n_triggers``) | The trigger times per event.
