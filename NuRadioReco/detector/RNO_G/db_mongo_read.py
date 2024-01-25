@@ -129,26 +129,27 @@ class Database(object):
     def get_detector_time(self):
         return self.__detector_time
 
-    def find_primary_measurement(self, type, name, primary_time, identification_label, data_dict):
+    def find_primary_measurement(self, collection_name, name, primary_time, identification_label, data_dict):
         """
         Find the object_id of entry with name 'name' and gives the measurement_id of the primary measurement,
         return the id of the object and the measurement
 
         Parameters
         ----------
-        type: string
-            type of the input unit (HPol, VPol, surfCABLE, ...)
+        collection_name: string
+            name of the collection that is searched (surface_board, iglu_board, ...)
 
         name: string
-            the unique identifier of the input unit
+            the unique identifier of the input component
 
         primary_time: datetime.datetime
             timestamp for the primary measurement
 
-        identification_label: int
-            if there is a channel or device id for the object, the id is used in the search filter mask
+        identification_label: string
+            specify what kind of label is used for the identification ("name" or "id") 
 
-        data_dict:
+        data_dict: dict
+            dictionary containing additional information that are used to search the database (e.g., channel_id, S_parameter)
         """
 
         # define search filter for the collection
@@ -174,7 +175,7 @@ class Database(object):
         filter_primary.append(add_filter)
 
         # get all entries matching the search filter
-        matching_entries = list(self.db[type].aggregate(filter_primary))
+        matching_entries = list(self.db[collection_name].aggregate(filter_primary))
 
         # extract the object and measurement id
         if len(matching_entries) > 1:
@@ -202,12 +203,13 @@ class Database(object):
         return self.db[self.__station_collection].distinct('id')
 
     def load_board_information(self, type, board_name, info_names):
-        """ For IGLU / DRAB """
+        """ Load the information for a single component from the database (can be used for IGLU / DRAB) """
         infos = []
-        for i in range(len(self.db[type].find_one({'name': board_name})['measurements'])):
-            if self.db[type].find_one({'name': board_name})['measurements'][i]['function_test']:
+        board_data = self.db[type].find_one({'name': board_name})
+        for i in range(len(board_data['measurements'])):
+            if board_data['measurements'][i]['function_test']:
                 for name in info_names:
-                    infos.append(self.db[type].find_one({'name': board_name})['measurements'][i][name])
+                    infos.append(board_data['measurements'][i][name])
                 break
 
         return infos
@@ -816,14 +818,16 @@ class Database(object):
             components in the signal chain.
         """
 
-        # load the signal chain information:
+        # load the channel signal chain information (which components are used in the signal chain per channel):
         channel_sig_info = self.get_channel_signal_chain_measurement(
             channel_signal_id=channel_signal_id, measurement_name=measurement_name, verbose=verbose)
 
+        # extract the information about the used components
         component_dict = channel_sig_info.pop('response_chain')
 
         # Certain keys in the response chain only carry additional information of other components
-        # and do not describe own components on their own ("channel" and "breakout")
+        # and do not describe own components on their own ("channel", "breakout", "weight")
+        # extract the information about the components, the additional information and the weights from the response chain dict
         filtered_component_dict = {}
         additional_information = {}
         weight_dict = {}
@@ -836,6 +840,7 @@ class Database(object):
             else:
                 additional_information[key] = ele
 
+        # go through all components and load the s parameter measurements for each used component
         components_data = {}
         for component, component_id in filtered_component_dict.items():
             # Add the additional informatio which were filtered out above to the correct components
@@ -844,12 +849,15 @@ class Database(object):
 
             if re.search("golden", component, re.IGNORECASE):
                 collection_component = component.replace("_1", "").replace("_2", "")
+                # load the s21 parameter measurement
                 component_data = self.get_component_data(
                     collection_component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
             else:
+                # load the s21 parameter measurement
                 component_data = self.get_component_data(
                     component, component_id, supp_info, primary_time=self.__database_time, verbose=verbose)
 
+            # add the component name, the weight of the s21 measurement and the actual s21 measurement (component_data) to a combined dictionary
             components_data[component] = {'name': component_id}
             if component in weight_dict:
                 components_data[component].update({'weight': weight_dict[component]})
