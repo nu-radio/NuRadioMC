@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "NuRadioMC"
-version = "2.2.0-dev"
+version = "2.3.0-dev"
 authors = ["Christian Glaser et al."]
 homepage = "https://github.com/nu-radio/NuRadioMC"
 documentation = "https://nu-radio.github.io/NuRadioMC/main.html"
@@ -25,7 +25,7 @@ tinydb = ">=4.1.1"
 tinydb-serialization = ">=2.1"
 aenum = "*"
 astropy = "*"
-radiotools = ">=0.2"
+radiotools = ">=0.2.1"
 cython = "*"
 dash = ">=2.0"
 future = "*"
@@ -45,11 +45,13 @@ numba = "*"
 [tool.poetry.dev-dependencies]
 Sphinx = "*"
 sphinx-rtd-theme = "*"
-numpydoc = "1.1.0"
-proposal = "7.5.1"
+numpydoc = "*"
+proposal = "7.6.2"
 pygdsm = {git = "https://github.com/telegraphic/pygdsm"}
 nifty5 = {git = "https://gitlab.mpcdf.mpg.de/ift/nifty.git", branch="NIFTy_5"}
 pypocketfft = {git = "https://gitlab.mpcdf.mpg.de/mtr/pypocketfft"}
+MCEq = "*"
+crflux = "*"
 pandas = "*"
 mattak = {git = "https://github.com/RNO-G/mattak"}
 runtable = {git = "ssh://git@github.com/RNO-G/rnog-runtable.git"}
@@ -59,4 +61,5 @@ documentation = ["Sphinx", "sphinx-rtd-theme", "numpydoc"]
 proposal = ["proposal"]
 galacticnoise = ['pygdsm']
 ift_reco = ['nifty5', 'pypocketfft']
+muon_flux_calc = ['MCEq', 'crflux']
 RNO_G_DATA = ["mattak", "runtable", "pandas"]

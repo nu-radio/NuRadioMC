@@ -47,7 +47,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
     tmax = time_shifts.max()
     logger.debug("adding relative station time = {:.0f}ns".format((t_cables.min() + t_geos.max()) / units.ns))
     logger.debug("delta t is {:.2f}".format(delta_t / units.ns))
-    trace_length = station.get_channel(0).get_times()[-1] - station.get_channel(0).get_times()[0]
+    trace_length = station.get_channel(use_channels[0]).get_times()[-1] - station.get_channel(use_channels[0]).get_times()[0]
     debug_cut = 0
     if(debug_cut):
         fig, ax = plt.subplots(len(use_channels), 1)
@@ -77,7 +77,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
         for iCh, trace in enumerate(traces):
             V_timedomain[iCh] = trace.get_trace()
     frequencies = traces[0].get_frequencies()  # assumes that all channels have the same sampling rate
-    V = np.zeros((len(use_channels), len(frequencies)), dtype=np.complex)
+    V = np.zeros((len(use_channels), len(frequencies)), dtype=complex)
     for iCh, trace in enumerate(traces):
         V[iCh] = trace.get_frequency_spectrum()
 
@@ -110,11 +110,11 @@ def stacked_lstsq(L, b, rcond=1e-10):
 
 class voltageToEfieldConverter:
     """
-    This module reconstructs the electric field by solving the system of equation that related the incident electric field via the antenna response functions to the measured voltages 
+    This module reconstructs the electric field by solving the system of equation that related the incident electric field via the antenna response functions to the measured voltages
     (see Eq. 4 of the NuRadioReco paper https://link.springer.com/article/10.1140/epjc/s10052-019-6971-5).
     The module assumed that the electric field is identical at the antennas/channels that are used for the reconstruction. Furthermore, at least two antennas with
-    orthogonal polarization response are needed to reconstruct the 3dim electric field. 
-    Alternatively, the polarization of the resulting efield could be forced to a single polarization component. In that case, a single antenna is sufficient. 
+    orthogonal polarization response are needed to reconstruct the 3dim electric field.
+    Alternatively, the polarization of the resulting efield could be forced to a single polarization component. In that case, a single antenna is sufficient.
     """
 
     def __init__(self):
@@ -170,7 +170,7 @@ class voltageToEfieldConverter:
         E1[mask] = (V[0] * efield_antenna_factor[-1][1] - V[-1] * efield_antenna_factor[0][1])[mask] / denom[mask]
         E2[mask] = (V[-1] - efield_antenna_factor[-1][0] * E1)[mask] / efield_antenna_factor[-1][1][mask]
         # solve it in a vectorized way
-        efield3_f = np.zeros((2, n_frequencies), dtype=np.complex)
+        efield3_f = np.zeros((2, n_frequencies), dtype=complex)
         if force_Polarization == 'eTheta':
             efield3_f[:1, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, 0, mask], 1, 0)[:, :, np.newaxis], np.moveaxis(V[:, mask], 1, 0)), 0, 1)
         elif force_Polarization == 'ePhi':
@@ -178,12 +178,12 @@ class voltageToEfieldConverter:
         else:
             efield3_f[:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, :, mask], 2, 0), np.moveaxis(V[:, mask], 1, 0)), 0, 1)
         # add eR direction
-        efield3_f = np.array([np.zeros_like(efield3_f[0], dtype=np.complex),
+        efield3_f = np.array([np.zeros_like(efield3_f[0], dtype=complex),
                              efield3_f[0],
                              efield3_f[1]])
 
         electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels, [0, 0, 0])
-        electric_field.set_frequency_spectrum(efield3_f, station.get_channel(0).get_sampling_rate())
+        electric_field.set_frequency_spectrum(efield3_f, station.get_channel(use_channels[0]).get_sampling_rate())
         electric_field.set_parameter(efp.zenith, zenith)
         electric_field.set_parameter(efp.azimuth, azimuth)
         # figure out the timing of the E-field

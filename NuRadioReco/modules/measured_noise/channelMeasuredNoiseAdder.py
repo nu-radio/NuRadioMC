@@ -44,7 +44,7 @@ class channelMeasuredNoiseAdder:
             including subdirectories. (Default: None)
             
         file_pattern: str
-            Use glob.glob(f"{folder}/**/{file_pattern}.nur", recursive=True) to search for files. (Default: "*")
+            Use ``glob.glob(f"{folder}/**/{file_pattern}.nur", recursive=True)`` to search for files. (Default: "*")
         
         random_seed: int, default: None
             Seed for the random number generator. By default, no seed is set.
