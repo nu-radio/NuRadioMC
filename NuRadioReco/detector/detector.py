@@ -45,7 +45,7 @@ def Detector(*args, **kwargs):
         This function returns a detector class object. It chooses the correct class based on the "source" argument.
         The returned object is of one of these classes:
 
-            - kwargs["source'] == "mongo" -> `NuRadioReco.detector.RNO_G.rnog_detector`
+            - kwargs["source'] == "rnog_mongo" -> `NuRadioReco.detector.RNO_G.rnog_detector`
             - kwargs["source'] == "sql" -> `NuRadioReco.detector.detector_base`
             - kwargs["source'] == "json" or "dictionary" -> `NuRadioReco.detector.detector_base` or
                                                             `NuRadioReco.detector.generic_detector`
@@ -82,9 +82,9 @@ def Detector(*args, **kwargs):
         # when source is sql | json | dictionary
         # json_filename = args[0] is used below (when source == 'json').
         if len(args) >= 2:
-            source = args[1]
+            source = args[1].lower()
         else:
-            source = kwargs.pop("source", "json")
+            source = kwargs.pop("source", "json").lower()
 
         if len(args) >= 3:
             dictionary = args[2]
@@ -107,7 +107,7 @@ def Detector(*args, **kwargs):
                 json_filename=None, source=source, dictionary=dictionary,
                 assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
 
-        elif source == "mongo":
+        elif source == "rnog_mongo":
             return rnog_detector.Detector(*args, **kwargs)
 
         elif source == "dictionary":
@@ -134,14 +134,16 @@ def Detector(*args, **kwargs):
             station_dict = json.load(f)
 
         else:
-            raise ValueError(f'Unknown source specifed (\"{source}\"). Must be one of \"json\", \"sql\", "\dictionary\", \"mongo\"')
+            raise ValueError(f'Unknown source specifed (\"{source}\"). '
+                             f'Must be one of \"json\", \"sql\", "\dictionary\", \"mongo\"')
 
         has_reference_entry = find_reference_entry(station_dict)
 
         if source == 'json':
             f.close()
 
-        has_default = np.any([arg in kwargs and kwargs[arg] is not None for arg in ["default_station", "default_channel", "default_device"]])
+        has_default = np.any([arg in kwargs and kwargs[arg] is not None
+                              for arg in ["default_station", "default_channel", "default_device"]])
 
         if has_reference_entry or has_default:
             if has_default:
@@ -150,7 +152,8 @@ def Detector(*args, **kwargs):
                     'channel should be specified in the detector description directly.')
 
                 if "default_station" in kwargs:
-                    logging.info(f'Default detector station provided (station {kwargs["default_station"]}) -> Using generic detector')
+                    logging.info('Default detector station provided (station '
+                                 f'{kwargs["default_station"]}) -> Using generic detector')
 
             return generic_detector.GenericDetector(
                 json_filename=filename, source=source, dictionary=dictionary,
