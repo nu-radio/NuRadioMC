@@ -2,7 +2,13 @@ Changelog - to keep track of all relevant changes
 
 please update the categories "new features" and "bugfixes" before a pull request merge!
 
-version 2.2.0-dev
+version 2.3.0-dev
+new features:
+
+bugfixes:
+
+
+version 2.2.0
 new features:
 - expand values stored in SimplePhasedTrigger
 - added getting to query ARZ charge-excess profiles
@@ -16,6 +22,10 @@ new features:
 - use Philox noise generator in noise adder module (this changes the default random sequence)
 - allow raytracing from air to ice and vice versa. Only supported by the Python implementation. (Note that the calculation of the focussing factor was not thoroughly tested.)
 - added 'block offset' removal/simulation module for RNO-G
+- triggerTimeAdjuster now works more reliably and supports different readout windows per channel.
+  The readout time adjustment now is stored in the trigger object and needs to be accounted for in analysis
+  by running the triggerTimeAdjuster, analogously to the channelAddCableDelay module.
+
 
 bugfixes:
 - fixed/improved C++ raytracer not finding solutions for some near-horizontal or near-shadowzone vertices
