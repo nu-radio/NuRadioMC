@@ -2,7 +2,7 @@
 import logging
 logging.basicConfig(format="%(asctime)s - %(levelname)s:%(name)s:%(funcName)s : %(message)s", datefmt="%H:%M:%S")
 
-from NuRadioReco.detector.RNO_G.db_mongo_read import Database
+from NuRadioReco.detector.RNO_G.db_mongo_read import Database, _convert_astro_time_to_datetime
 import NuRadioReco.framework.base_trace
 from NuRadioReco.utilities import units
 
@@ -20,13 +20,6 @@ import re
 import copy
 import bson
 import lzma
-
-
-def _convert_astro_time_to_datetime(time_astro):
-    if not isinstance(time_astro, astropy.time.Time):
-        raise ValueError("This function expects only arguments from type `astropy.time.Time`")
-
-    return time_astro.to_datetime()
 
 
 def _json_serial(obj):
@@ -952,6 +945,10 @@ class Detector():
         channel_id: int
             Channel id
 
+        zenith: float (Default: None)
+            So far has no use in this class. Only defined to keep the interface
+            in parity to other detector classes
+
         Returns
         -------
 
@@ -961,6 +958,28 @@ class Detector():
         channel_info = self.__get_channel(
             station_id, channel_id, with_signal_chain=True)
         return channel_info["signal_chain"]["VEL"]
+
+    def get_antenna_type(self, station_id, channel_id):
+        """
+        Returns type of antenna, i.e., "VPol" or "HPol" or "LPDA", ...
+
+        Parameters
+        ----------
+        station_id: int
+            Station id
+
+        channel_id: int
+            Channel id
+
+        Returns
+        -------
+
+        ant_type: string
+            Accronym/abbrivatipn of the antenna type
+        """
+        channel_info = self.__get_channel(
+            station_id, channel_id, with_signal_chain=True)
+        return channel_info['ant_type']
 
 
     def get_number_of_samples(self, station_id, channel_id=None):
@@ -1465,3 +1484,4 @@ if __name__ == "__main__":
                             database_connection='RNOG_public', select_stations=24)
 
     det.update(datetime.datetime(2023, 8, 2, 0, 0))
+    det.get_antenna_type(24, 0)
