@@ -1124,6 +1124,20 @@ class Response:
     This class provides an interface to read-in and apply the complex response functions of the
     various components of the signal chain of a RNO-G channel. The class allows to combine the
     response of several components into one response by multiplying them.
+
+    Examples
+    --------
+
+    .. code-block::
+        response = det.get_signal_chain_response(station_id=24, channel_id=0)
+
+        # Multipy the response to a trace. The multiply operator takes care of everything
+        trace_at_readout = trace_at_antenna * response
+
+        # getting the complex response as array
+        freq = np.arange(50, 1000) * units.MHz
+        complex_resp = response(freq)
+
     """
 
     def __init__(self, frequency, y, y_unit, time_delay=0, weight=1,
