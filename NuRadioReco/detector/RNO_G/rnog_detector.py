@@ -1447,7 +1447,7 @@ if __name__ == "__main__":
 
     from NuRadioReco.detector import detector
 
-    det = detector.Detector(source="mongo", log_level=logging.DEBUG, always_query_entire_description=False,
+    det = detector.Detector(source="rnog_mongo", log_level=logging.DEBUG, always_query_entire_description=False,
                             database_connection='RNOG_public', select_stations=24)
 
     det.update(datetime.datetime(2023, 8, 2, 0, 0))
