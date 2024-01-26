@@ -148,12 +148,27 @@ class NoiseModel:
         """
         Calculates the multivariate normal probability of vector x, given means mu and covariance matrix 
         inverse and determinant.
+
+        Parameters
+        ----------
+            x : numpy.ndarray
+                Vector containing noise with dimensions [n_samples]
+            mu : numpy.ndarray
+                Means of the distribution with dimensions [n_samples]
+            cov_inv : numpy.ndarray
+                Inverse covariance matrix of the distribution with dimensions [n_samples,n_samples]
+            cov_det : float
+                Determinant of covariance matrix of the distribution
+
+        Returns
+        -------
+            float
+                Natural logarithm to the PDF value of the vector x given the multivariate normal distribution described by mu, cov_inv, and cov_det
         """
         n = len(x)
         term_1 = -0.5 * n * np.log(2*np.pi)
         term_2 = -0.5 * cov_det
-        # np.matmul sometimes returns a np.matrix instead of np.array, which
-        # needs at least 2 dimensions. So we need to cast and flatten it:
+        # np.matmul sometimes returns a np.matrix instead of np.array, which needs at least 2 dimensions. So we need to cast and flatten it:
         term_3_temp = np.array(np.matmul(cov_inv, x-mu)).flatten()
         term_3 = -0.5 * np.matmul(x-mu, term_3_temp)
         return term_1 + term_2 + term_3
@@ -169,6 +184,11 @@ class NoiseModel:
             signal : numpy.ndarray, optional
                 Array containing neutrino signal signal of dimensions [n_antennas,n_samples].
                 If no signal is provided, it will be set to zeros.
+
+        Returns
+        -------
+            numpy.ndarray
+                The delta log likelihood for the data relative to the most probable noise
         """
         if signal is None:
             means = np.zeros([self.n_antennas, self.n_samples])
@@ -195,6 +215,25 @@ class NoiseModel:
             LLH_array[i] = LLH
 
         return LLH_array - LLH_best
+    
+    def calculate_minus_two_llh(self, data, signal=None):
+        """
+        Calculates the minus two delta log likelihood for the datasets relative to the most probable noise
+
+        Parameters
+        ----------
+            data : numpy.ndarray
+                Array containing data with dimensions [n_datasets,n_antennas,n_samples] or [n_antennas,n_samples]
+            signal : numpy.ndarray, optional
+                Array containing neutrino signal signal of dimensions [n_antennas,n_samples].
+                If no signal is provided, it will be set to zeros.
+
+        Returns
+        -------
+            np.array
+                Minus two delta log likelihood for the data given the noise model
+        """
+        return -2*self.calculate_llh(data, signal=signal)
 
     def get_minus_two_delta_llh_function(self, data_to_fit, signal_function):
         """
@@ -207,15 +246,20 @@ class NoiseModel:
                 Array containing one dataset with dimensions [n_antennas,n_samples]
             signal_function : function
                 Function which takes a vector containing parameters as input and returns a signal array with dimensions [n_antennas,n_samples].
+
+        Returns
+        -------
+            llh_func : function
+                Function that returns a minus two delta log likelihood for a set of parameters given a data realization and the noise model
         """
 
         LLH_best = self.calculate_llh(data_to_fit, data_to_fit)
 
         def llh_func(params):
-            signal = signal_function(*params)
+            signal = signal_function(params)
             LLH_signal = self.calculate_llh(signal, data_to_fit)
-            two_delta_llh_signal = -2 * (LLH_signal - LLH_best)
-            return two_delta_llh_signal
+            minus_two_delta_llh_signal = -2 * (LLH_signal - LLH_best)
+            return minus_two_delta_llh_signal
 
         return llh_func
     
@@ -290,6 +334,12 @@ class NoiseModel:
                 Parameter values for which to calculate the Fisher information matrix
             dx : list
                 Finite differences to use when calculating derivatives of signal_function with respect to the parameters
+
+        Returns
+        -------
+            fisher_information_matrix : numpy.array
+                Fisher information matrix for the parameters given the noise model
+
         """
         n_parameters = len(paramters_x0)
 
