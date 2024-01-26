@@ -4,6 +4,8 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 2.3.0-dev
 new features:
+- added module to create CR templates for shallow RNO-G channels
+- added function to calculate correlation between two traces using a sliding window (with variable window size)
 
 bugfixes:
 
