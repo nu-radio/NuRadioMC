@@ -1,7 +1,7 @@
 """
 Provides an interface to store simulated and reconstructed quantities
 
-The parameters module provides access to store and read simulated or 
+The parameters module provides access to store and read simulated or
 reconstructed quantities in the different custom classes used in NuRadioMC.
 
 """
@@ -36,7 +36,7 @@ class stationParameters(Enum):
     cr_xmax = 28  #: Depth of shower maximum of the air shower
     vertex_2D_fit = 29  #: horizontal distance and z coordinate of the reconstructed vertex of the neutrino
     distance_correlations = 30
-    shower_energy = 31 #: the energy of the shower 
+    shower_energy = 31 #: the energy of the shower
     viewing_angles = 32 #: reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float
 
 
