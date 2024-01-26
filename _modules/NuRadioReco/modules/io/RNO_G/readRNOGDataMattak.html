@@ -595,7 +595,7 @@
 <span class="kn">import</span> <span class="nn">random</span>
 
 
-<div class="viewcode-block" id="create_random_directory_path"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.create_random_directory_path">[docs]</a><span class="k">def</span> <span class="nf">create_random_directory_path</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/tmp/&quot;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_create_random_directory_path</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/tmp/&quot;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Produces a path for a temporary directory with a n letter random suffix</span>
 
@@ -618,10 +618,10 @@
     <span class="n">res</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_lowercase</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">n</span><span class="p">))</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="s2">&quot;readRNOGData_&quot;</span> <span class="o">+</span> <span class="n">res</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">path</span></div>
+    <span class="k">return</span> <span class="n">path</span>
 
 
-<div class="viewcode-block" id="baseline_correction"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.baseline_correction">[docs]</a><span class="k">def</span> <span class="nf">baseline_correction</span><span class="p">(</span><span class="n">wfs</span><span class="p">,</span> <span class="n">n_bins</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">,</span> <span class="n">return_offsets</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_baseline_correction</span><span class="p">(</span><span class="n">wfs</span><span class="p">,</span> <span class="n">n_bins</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">,</span> <span class="n">return_offsets</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Simple baseline correction function. </span>
 <span class="sd">    </span>
@@ -679,7 +679,7 @@
     <span class="k">if</span> <span class="n">return_offsets</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">wfs</span> <span class="o">-</span> <span class="n">baseline_traces</span><span class="p">,</span> <span class="n">baseline_values</span>
     
-    <span class="k">return</span> <span class="n">wfs</span> <span class="o">-</span> <span class="n">baseline_traces</span></div>
+    <span class="k">return</span> <span class="n">wfs</span> <span class="o">-</span> <span class="n">baseline_traces</span>
 
 
 <div class="viewcode-block" id="get_time_offset"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.get_time_offset">[docs]</a><span class="k">def</span> <span class="nf">get_time_offset</span><span class="p">(</span><span class="n">trigger_type</span><span class="p">):</span>
@@ -723,7 +723,7 @@
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown trigger type: </span><span class="si">{</span><span class="n">trigger_type</span><span class="si">}</span><span class="s2">. Known are: </span><span class="si">{</span><span class="n">known_trigger_types</span><span class="si">}</span><span class="s2">. Abort ....&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="all_files_in_directory"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.all_files_in_directory">[docs]</a><span class="k">def</span> <span class="nf">all_files_in_directory</span><span class="p">(</span><span class="n">mattak_dir</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_all_files_in_directory</span><span class="p">(</span><span class="n">mattak_dir</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Checks if all Mattak root files are in a directory.</span>
 <span class="sd">    Ignoring runinfo.root because (asaik) not all runs have those and information is currently not read by Mattak.</span>
@@ -752,18 +752,24 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mattak_dir</span><span class="p">,</span> <span class="n">file</span><span class="p">)):</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="k">return</span> <span class="kc">True</span></div>
+    <span class="k">return</span> <span class="kc">True</span>
 
 
 <div class="viewcode-block" id="readRNOGData"><a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData">[docs]</a><span class="k">class</span> <span class="nc">readRNOGData</span><span class="p">:</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_table_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">load_run_table</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reader for RNO-G ``.root`` files</span>
+
+<span class="sd">        This class provides read access to RNO-G ``.root`` files and converts them</span>
+<span class="sd">        to NuRadioMC :class:`Events &lt;NuRadioReco.framework.event.Event&gt;`. Requires ``mattak``</span>
+<span class="sd">        (https://github.com/RNO-G/mattak) to be installed.</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
 <span class="sd">        run_table_path: str | None</span>
-<span class="sd">            Path to a run_table.cvs file. If None, the run table is queried from the DB. (Default: None)</span>
+<span class="sd">            Path to a run_table.csv file. If None, the run table is queried from the DB. (Default: None)</span>
 
 <span class="sd">        load_run_table: bool</span>
 <span class="sd">            If True, try to load the run_table from run_table_path. Otherwise, skip this.</span>
@@ -771,6 +777,23 @@
 <span class="sd">        log_level: enum</span>
 <span class="sd">            Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).</span>
 <span class="sd">            (Default: logging.INFO)</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        .. code-block::</span>
+
+<span class="sd">            reader = readRNOGDataMattak.readRNOGData() # initialize reader</span>
+<span class="sd">            reader.begin(&#39;/path/to/root_file_or_folder&#39;)</span>
+
+<span class="sd">            evt = reader.get_event_by_index(0) # returns the first event in the file</span>
+<span class="sd">            # OR</span>
+<span class="sd">            evt = reader.get_event(run_nr=1100, event_id=679) # returns the event with run_number 1100 and event_id 679</span>
+<span class="sd">            # OR</span>
+<span class="sd">            for evt in reader.run(): # loop over all events in file</span>
+<span class="sd">                # perform some analysis</span>
+<span class="sd">                pass</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.readRNOGData&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
@@ -795,6 +818,18 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Import of run table failed. Runs can not be filtered.! </span><span class="se">\n</span><span class="s2">&quot;</span>
                             <span class="s2">&quot;You can get the interface from GitHub: git@github.com:RNO-G/rnog-runtable.git&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># some users may mistakenly try to pass the .root files to __init__</span>
+                <span class="c1"># we check for this and raise a (hopefully) helpful error message</span>
+                <span class="n">user_passed_root_file_msg</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="s2">&quot;The optional argument run_table_path expects a csv file, &quot;</span>
+                    <span class="s2">&quot;but you passed a list of files or a .root file. Note that &quot;</span>
+                    <span class="s2">&quot;the .root files to read in should be passed to the `begin` method of this class&quot;</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">run_table_path</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">user_passed_root_file_msg</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">run_table_path</span><span class="p">)</span> <span class="ow">or</span> <span class="n">run_table_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.root&#39;</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">user_passed_root_file_msg</span><span class="p">)</span>
+
                 <span class="kn">import</span> <span class="nn">pandas</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__run_table</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">run_table_path</span><span class="p">)</span>
 
@@ -926,13 +961,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_datasets</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__n_events_per_dataset</span> <span class="o">=</span> <span class="p">[]</span>
 
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dirs_files</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="n">dirs_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">dirs_files</span><span class="p">]</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parse through / read-in </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">dirs_files</span><span class="p">)</span><span class="si">}</span><span class="s2"> directory(ies) / file(s).&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__skipped_runs</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__n_runs</span> <span class="o">=</span> <span class="mi">0</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dirs_files</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
-            <span class="n">dirs_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">dirs_files</span><span class="p">]</span>
 
         <span class="c1"># Set verbose for mattak</span>
         <span class="k">if</span> <span class="s2">&quot;verbose&quot;</span> <span class="ow">in</span> <span class="n">mattak_kwargs</span><span class="p">:</span>
@@ -948,7 +983,7 @@
 
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dir_file</span><span class="p">):</span>
 
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">all_files_in_directory</span><span class="p">(</span><span class="n">dir_file</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">_all_files_in_directory</span><span class="p">(</span><span class="n">dir_file</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Incomplete directory: </span><span class="si">{</span><span class="n">dir_file</span><span class="si">}</span><span class="s2">. Skip ...&quot;</span><span class="p">)</span>
                     <span class="k">continue</span>
             <span class="k">else</span><span class="p">:</span>
@@ -957,7 +992,7 @@
                 <span class="c1"># it is not a combined file). To work around this: Create a tmp directory under `/tmp/`, link the file you want to</span>
                 <span class="c1"># read into this directory with the the name `combined.root`, use this path to read the run.</span>
 
-                <span class="n">path</span> <span class="o">=</span> <span class="n">create_random_directory_path</span><span class="p">()</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">_create_random_directory_path</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Create temporary directory: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Temporary directory </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> already exists.&quot;</span><span class="p">)</span>
@@ -966,7 +1001,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">__temporary_dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>  <span class="c1"># for housekeeping</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Create symlink for </span><span class="si">{</span><span class="n">dir_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">dir_file</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;combined.root&quot;</span><span class="p">))</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">dir_file</span><span class="p">),</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;combined.root&quot;</span><span class="p">))</span>
 
                 <span class="n">dir_file</span> <span class="o">=</span> <span class="n">path</span>  <span class="c1"># set path to e.g. /tmp/NuRadioReco_XXXXXXX/combined.root</span>
 
@@ -1294,10 +1329,10 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loop over all events.</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
+<span class="sd">        Yields</span>
+<span class="sd">        ------</span>
 
-<span class="sd">        evt: generator(NuRadioReco.framework.event)</span>
+<span class="sd">        evt: `NuRadioReco.framework.event.Event`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">event_idx</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datasets</span><span class="p">:</span>
@@ -1347,7 +1382,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        evt: NuRadioReco.framework.event</span>
+<span class="sd">        evt: `NuRadioReco.framework.event.Event`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing event number </span><span class="si">{</span><span class="n">event_index</span><span class="si">}</span><span class="s2"> out of total </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_events_total</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -1389,7 +1424,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        evt: NuRadioReco.framework.event</span>
+<span class="sd">        evt: `NuRadioReco.framework.event.Event`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing event </span><span class="si">{</span><span class="n">event_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>

@@ -790,7 +790,7 @@
     <span class="c1"># obtain guesses for block offsets</span>
     <span class="n">a_guess</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filtered_trace</span><span class="p">,</span> <span class="n">n_blocks</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;approximate&#39;</span><span class="p">:</span>
-        <span class="n">block_offsets</span> <span class="o">=</span> <span class="n">a_guess</span>
+        <span class="n">block_offsets</span> <span class="o">=</span> <span class="n">a_guess</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;fit&#39;</span><span class="p">:</span>
         <span class="c1"># self._offset_guess[channel_id] = a_guess</span>
         <span class="c1"># we can get rid of one parameter through a global shift</span>
