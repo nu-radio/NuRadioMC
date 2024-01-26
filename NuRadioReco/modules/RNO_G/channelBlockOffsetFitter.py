@@ -217,7 +217,7 @@ def fit_block_offsets(
     # obtain guesses for block offsets
     a_guess = np.mean(np.split(filtered_trace, n_blocks), axis=1)
     if mode == 'approximate':
-        block_offsets = a_guess
+        block_offsets = a_guess + np.mean(trace)
     elif mode == 'fit':
         # self._offset_guess[channel_id] = a_guess
         # we can get rid of one parameter through a global shift
