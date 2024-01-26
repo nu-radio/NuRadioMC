@@ -436,16 +436,18 @@ class triggerSimulator:
                     trigger_delays[iTrace][channel_id] = beam_rolls[iTrace][channel_id] * time_step
 
                 triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(squared_mean > threshold)))
-                # logger.debug(f"Station has triggered, at bins {triggered_bins}")
+                logger.debug(f"Station has triggered, at bins {triggered_bins}")
                 # logger.debug(trigger_delays)
                 # logger.debug(f"trigger_delays {trigger_delays[iTrace][triggered_channels[0]]}")
                 is_triggered = True
                 trigger_times[iTrace] = trigger_delays[iTrace][triggered_channels[0]] + triggered_bins * step * time_step + channel_trace_start_time
-                # logger.debug(f"trigger times  = {trigger_times[iTrace]}")
+                logger.debug(f"trigger times  = {trigger_times[iTrace]}")
         if is_triggered:
             # logger.debug(trigger_times)
             trigger_time = min([x.min() for x in trigger_times.values()])
-            # logger.debug(f"minimum trigger time is {trigger_time:.0f}ns")
+            logger.debug(f"minimum trigger time is {trigger_time:.0f}ns")
+        else:
+            logger.debug(f"no trigger for threshold {threshold / units.mV:0.2e} [mV]")
 
         return is_triggered, trigger_delays, trigger_time, trigger_times
 
