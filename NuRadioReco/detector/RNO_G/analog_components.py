@@ -58,7 +58,7 @@ def load_amp_response(amp_type='rno_surface', temp=293.15,
         correction_function = iglu_correction_func
     elif amp_type == 'phased_array' or amp_type == 'ULP_216':
         ph = os.path.join(path, 'HardwareResponses/ULP-216+_Plus25DegC.s2p')
-        ff, S11gain, S21deg, S21gain, S21deg, S12gain, S12deg, S22gain, S22deg = np.loadtxt(ph, comments=['#', '!'], unpack=True)
+        ff, S11gain, S11deg, S21gain, S21deg, S12gain, S12deg, S22gain, S22deg = np.loadtxt(ph, comments=['#', '!'], unpack=True)
         ff *= units.MHz
         amp_gain_discrete = hp.dB_to_linear(S21gain)
         amp_phase_discrete = S21deg * units.deg
