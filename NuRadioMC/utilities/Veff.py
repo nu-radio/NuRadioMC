@@ -644,7 +644,7 @@ def get_Veff_Aeff_array(data):
     * array of unique trigger names
 
     Examples
-    ---------
+    --------
 
     To plot the full sky effective volume for 'all_triggers' do
 
