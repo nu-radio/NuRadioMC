@@ -1,22 +1,12 @@
-import os
-import sys
-import timeit
 import matplotlib.pyplot as plt
 from NuRadioReco.utilities import units
 import astropy
 import numpy as np
-import NuRadioReco.modules.io.coreas.readCoREASShower
 from NuRadioReco.detector.generic_detector import GenericDetector
 import NuRadioReco.modules.efieldToVoltageConverter
 import logging
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
-import NuRadioReco.modules.channelGenericNoiseAdder
-import NuRadioReco.modules.io.NuRadioRecoio
-import json
-import scipy
-from NuRadioReco.modules.base import module
 import datetime
-from NuRadioReco.modules.io import NuRadioRecoio
 from NuRadioReco.framework.event import Event
 from NuRadioReco.framework.station import Station
 from NuRadioReco.framework.channel import Channel
@@ -25,13 +15,7 @@ from NuRadioReco.framework.sim_channel import SimChannel
 from NuRadioReco.framework.parameters import stationParameters
 from NuRadioReco.framework.parameters import electricFieldParameters
 from NuRadioReco.framework.electric_field import ElectricField
-import NuRadioReco.modules.channelResampler
-import NuRadioReco.modules.channelBandPassFilter
 import pickle
-import h5py
-from tqdm import tqdm
-from scipy import interpolate
-
 
 class crRNOGTemplateCreator:
     """
@@ -64,9 +48,8 @@ class crRNOGTemplateCreator:
 
         self.__efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
         self.__hardwareResponseIncorporator = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
-        self.__channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 
-    def begin(self, detector_file, template_save_path='/home/henrichs/software/cr_analysis/artificial_template_bank/', debug=False, logger_level=logging.NOTSET):
+    def begin(self, detector_file, template_save_path, debug=False, logger_level=logging.NOTSET):
         """
                 begin method
 
@@ -146,6 +129,14 @@ class crRNOGTemplateCreator:
 
         creates a pickle file with the Efield trace of the artificial templates
 
+        Parameters
+        ----------
+        template_filename: string
+            filename of the pickle file that will be used to store the templates
+        include_hardware_response: boolean
+            if true, the hardware response of the surface amps (hardwareResponseIncorporator) is applied
+        return_templates: boolean
+            if true, the template traces are returned in an addition to saving them in a pickle file
         """
 
         # if no parameters are set, the standard parameters are used
@@ -168,7 +159,7 @@ class crRNOGTemplateCreator:
 
                         station_time = datetime.datetime(2025, 10, 1)
 
-                        temp_evt = create_Efield(det_temp, rid, eid, cid, sid, station_time, self.__template_sample_number, e_width,
+                        temp_evt = _create_Efield(det_temp, rid, eid, cid, sid, station_time, self.__template_sample_number, e_width,
                                                  self.__Efield_amplitudes[1], self.__Efield_amplitudes[0], cr_zen, cr_az, self.__sampling_rate, self.__debug)
 
                         self.__efieldToVoltageConverter.run(temp_evt, temp_evt.get_station(sid), det_temp)
@@ -198,11 +189,12 @@ class crRNOGTemplateCreator:
             return template_events
 
 
-def gaussian_func(x, A, mu, sigma):
+def _gaussian_func(x, A, mu, sigma):
     return A * np.exp(-(x - mu) ** 2 / (2 * sigma ** 2))
 
 
-def create_Efield(detector, run_id, event_id, channel_id, station_id, station_time, trace_samples, gaussian_width, e_phi, e_theta, cr_zenith, cr_azimuth, sampling_rate, debug):
+def _create_Efield(detector, run_id, event_id, channel_id, station_id, station_time, trace_samples, gaussian_width, e_phi, e_theta, cr_zenith, cr_azimuth, sampling_rate, debug):
+    """ function that creates an event with a gaussian electric field """
     event = Event(run_id, event_id)
 
     station = Station(station_id)
@@ -226,14 +218,13 @@ def create_Efield(detector, run_id, event_id, channel_id, station_id, station_ti
     e_field = [np.zeros(trace_samples), np.zeros(trace_samples), np.zeros(trace_samples)]
     x_data = np.arange(0, trace_samples, 1)
     for ii, x in enumerate(x_data):
-        e_field[1][ii] = gaussian_func(x, e_theta, 1000, gaussian_width)
-        e_field[2][ii] = gaussian_func(x, e_phi, 1000, gaussian_width)
+        e_field[1][ii] = _gaussian_func(x, e_theta, 1000, gaussian_width)
+        e_field[2][ii] = _gaussian_func(x, e_phi, 1000, gaussian_width)
 
     e_field = np.asarray(e_field)
     electric_field.set_trace(e_field, sampling_rate=sampling_rate)
     sim_station.add_electric_field(electric_field)
 
-    # add DEBUG plot of electric fields!!!!!!!!!!!!!!!!!!!!!!!
     if debug:
         # plot the electric field
         plt.plot(electric_field.get_times() / units.ns, electric_field.get_trace()[0])
