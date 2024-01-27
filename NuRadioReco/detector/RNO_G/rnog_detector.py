@@ -577,6 +577,57 @@ class Detector():
         return self.__buffered_stations[station_id]["channels"][channel_id]
 
     @_check_detector_time
+    def get_channel(self, station_id, channel_id):
+        """
+        Returns a dictionary of all channel parameters
+
+        Parameters
+        ----------
+        station_id: int
+            The station id
+        channel_id: int
+            The channel id
+
+        Returns
+        -------
+
+        channel_info: dict
+            Dictionary of channel parameters
+        """
+        self.get_signal_chain_response(station_id, channel_id)  # this adds `total_response` to dict
+        return self.__get_channel(station_id, channel_id, with_position=True, with_signal_chain=True)
+
+    @_check_detector_time
+    def get_station(self, station_id):
+        """
+        Returns a dictionary of all station parameters/information including some channel information.
+        The channel's (signal chain) response is not necessarily returned (they might be if they are
+        already in the buffer but this is not ensured). To get the complete channel information call
+        `self.get_channel(station_id, channel_id)`.
+
+        Parameters
+        ----------
+        station_id: int
+            The station id
+
+        Returns
+        -------
+
+        station_info: dict
+            Dictionary of station parameters/information
+        """
+        if not self.has_station(station_id):
+            err = f"Station id {station_id} not commission at {self.get_detector_time()}"
+            self.logger.error(err)
+            raise ValueError(err)
+
+        if not self._query_all:
+            for ch in self.get_channel_ids(station_id):
+                self.__get_channel(station_id, ch, with_position=True)  # stores all relevant information in buffer
+
+        return self.__buffered_stations[station_id]
+
+    @_check_detector_time
     def get_absolute_position(self, station_id):
         """
         Get the absolute position of a specific station (relative to site)
@@ -700,6 +751,34 @@ class Detector():
         channel_info = self.__get_channel(
             station_id, channel_id, with_signal_chain=True)
         return channel_info["signal_chain"]
+
+    @_check_detector_time
+    def get_amplifier_response(self, station_id, channel_id, frequencies):
+        """
+        Returns the complex response function (for the passed frequencies)
+        for the entire signal chain of a channel. I.e., this includes not
+        only the (main) amplifier but also cables and other components.
+
+        Parameters
+        ----------
+
+        station_id: int
+            The station id
+
+        channel_id: int
+            The channel id
+
+        frequencies: np.array(np.complex128)
+            Array of frequencies for which the response is returned
+
+        Returns
+        -------
+
+        response: array of complex floats
+            Complex response function
+        """
+        response_func = self.get_signal_chain_response(station_id, channel_id)
+        return response_func(frequencies)
 
     @_check_detector_time
     def get_signal_chain_response(self, station_id, channel_id):
