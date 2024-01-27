@@ -1,7 +1,7 @@
 from NuRadioReco.detector import detector
 import logging
 import datetime
-import os
+import numpy as np
 
 
 def test_detector():
