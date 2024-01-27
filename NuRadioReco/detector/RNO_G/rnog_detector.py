@@ -1297,7 +1297,7 @@ class Response:
                         f'{datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S")}_debug.png', transparent=False)
             plt.close()
 
-    def __call__(self, freq):
+    def __call__(self, freq, component_name=None):
         """
         Returns the complex response for a given frequency.
 
@@ -1314,7 +1314,10 @@ class Response:
         """
         response = np.ones_like(freq, dtype=np.complex128)
 
-        for gain, phase, weight in zip(self.__gains, self.__phases, self.__weights):
+        for gain, phase, weight, name in zip(self.__gains, self.__phases, self.__weights, self.__names):
+
+            if component_name is not None and component_name != name:
+                continue
 
             _gain = gain(freq / units.GHz)
 
@@ -1323,6 +1326,14 @@ class Response:
                 _gain = np.where(_gain > 0, _gain, 1e-6)
 
             response *= (_gain * np.exp(1j * phase(freq / units.GHz))) ** weight
+
+        if np.allclose(response, np.ones_like(freq, dtype=np.complex128)):
+            if component_name is not None:
+                raise ValueError("Returned response is equal to 1. "
+                                f"Did you requested a non-existing component ({component_name})? "
+                                f"Options are: {self.__names}")
+            else:
+                self.logger.warning("Returned response is equal to 1.")
 
         return response
 
