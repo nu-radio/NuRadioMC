@@ -18,9 +18,8 @@ def test_detector():
 
 
     from NuRadioReco.framework import electric_field
-    with open(f"{os.path.dirname(__file__)}/test_ef.pkl", "rb") as f:
-        ef = electric_field.ElectricField(channel_ids=[0])
-        ef.deserialize(f.read())
+    ef = electric_field.ElectricField(channel_ids=[0])
+    ef.set_frequency_spectrum(np.ones(1025, dtype=complex), sampling_rate=2.4)
 
     ef *= response
 
