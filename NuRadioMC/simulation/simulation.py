@@ -820,11 +820,11 @@ class simulation:
                                 # following two lines used only for few models( not for all)
                                 emitter_frequency = self._fin['emitter_frequency'][self._shower_index]  # the frequency of cw and tone_burst signal
                                 half_width = self._fin['emitter_half_width'][self._shower_index]  # defines width of square and tone_burst signals
-                                
+
                                 if emitter_model.startswith("efield_"):
                                     eR, eTheta, ePhi = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
                                                                                       emitter_model, half_width=half_width, emitter_frequency=emitter_frequency,
-                                                                                      viewing_angle=viewing_angles[iS])
+                                                                                      launch_vector=self._launch_vector)
                                 else:
                                     # the emitter fuction returns the voltage output of the pulser. We need to convole with the antenna response of the emitting antenna
                                     # to obtain the emitted electric field. 
