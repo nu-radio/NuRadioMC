@@ -1398,11 +1398,13 @@ class Response:
         for gain, weight, name in zip(self.__gains, self.__weights, self.__names):
             _gain = gain(freqs)
 
+            ls = "-" if weight == 1 else "--"
+
             if in_dB:
                 mask = _gain > 0  # to avoid RunTime warning
-                ax.plot(freqs[mask] / units.MHz, weight * 20 * np.log10(_gain[mask]), label=name)
+                ax.plot(freqs[mask] / units.MHz, 20 * np.log10(_gain[mask]), ls=ls, label=name)
             else:
-                ax.plot(freqs / units.MHz, _gain, label=name)
+                ax.plot(freqs / units.MHz, _gain, label=name + f": {weight}", ls=ls)
 
         _gain = np.abs(self(freqs))
         if in_dB:
@@ -1419,6 +1421,7 @@ class Response:
             ax.set_yscale("log")
 
         ax.legend()
+        ax.grid()
 
         if show:
             plt.show()
