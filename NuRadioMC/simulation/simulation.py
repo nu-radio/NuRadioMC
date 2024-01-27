@@ -817,14 +817,14 @@ class simulation:
                                 # NuRadioMC also supports the simulation of emitters. In this case, the signal model specifies the electric field polarization
                                 amplitude = self._fin['emitter_amplitudes'][self._shower_index]
                                 emitter_model = self._fin['emitter_model'][self._shower_index]
-                                # following two lines used only for few models( not for all)
-                                emitter_frequency = self._fin['emitter_frequency'][self._shower_index]  # the frequency of cw and tone_burst signal
-                                half_width = self._fin['emitter_half_width'][self._shower_index]  # defines width of square and tone_burst signals
+                                emitter_kwargs = {}
+                                for key in self._fin.keys():
+                                    if key not in ['emitter_amplitudes', 'emitter_model']:
+                                        if key.startswith("emitter_"):
+                                            emitter_kwargs[key[8:]] = self._fin[key][self._shower_index]
 
                                 if emitter_model.startswith("efield_"):
-                                    eR, eTheta, ePhi = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
-                                                                                      emitter_model, half_width=half_width, emitter_frequency=emitter_frequency,
-                                                                                      launch_vector=self._launch_vector)
+                                    eR, eTheta, ePhi = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt, **emitter_kwargs)
                                 else:
                                     # the emitter fuction returns the voltage output of the pulser. We need to convole with the antenna response of the emitting antenna
                                     # to obtain the emitted electric field. 
@@ -836,7 +836,7 @@ class simulation:
     
                                     # source voltage given to the emitter
                                     voltage_spectrum_emitter = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt,
-                                                                                              emitter_model, half_width=half_width, emitter_frequency=emitter_frequency)
+                                                                                              emitter_model, **emitter_kwargs)
                                     # convolve voltage output with antenna response to obtain emitted electric field
                                     frequencies = np.fft.rfftfreq(self._n_samples, d=self._dt)
                                     zenith_emitter, azimuth_emitter = hp.cartesian_to_spherical(*self._launch_vector)
