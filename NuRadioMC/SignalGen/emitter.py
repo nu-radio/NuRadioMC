@@ -1,6 +1,7 @@
 import numpy as np
 import h5py
 from scipy.interpolate import interp1d
+from radiotools import helper as hp
 from NuRadioReco.utilities import units, fft
 import logging
 logger = logging.getLogger("SignalGen.emitter")
@@ -40,8 +41,8 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         * gaussian : represents a gaussian pulse where sigma is defined through the half width at half maximum
         * ARA02-calPulser : a new normalized voltage signal which depicts the original CalPulser shape used in ARA-02
         * efield_idl1_spice: direct measurement of the efield from the idl1 pulser and its antenna as used in the SPICE
-          calibration campaigns from 2018 and 2019. The viewing angle (angle between the z-axis of the antenna and the
-          launch direction) needs to be specified in the kwargs. See Journal of Instrumentation 15 (2020) P09039,
+          calibration campaigns from 2018 and 2019. 
+          The `launch_vector` needs to be specified in the kwargs. See Journal of Instrumentation 15 (2020) P09039,
           doi:10.1088/1748-0221/15/09/P09039 arXiv:2006.03027 for details.
         * efield_delta_pulse: a simple signal model of a delta pulse emitter. The kwarg `polarization` needs
           to be specified to select the polarization of the efield, defined as float between 0 and 1 with
@@ -125,31 +126,31 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         trace[1, N // 2] = (1.0 - kwargs.get("polarization", 0.5)) ** 0.5 * amplitude
         trace[2, N // 2] = kwargs.get("polarization", 0.5) ** 0.5 * amplitude
     elif(model == "efield_idl1_spice"):
-        viewing_angle = np.rad2deg(kwargs["viewing_angle"])
+        launch_zenith, launch_azimuth = hp.cartesian_to_spherical(kwargs["launch_vector"])
         path = os.path.dirname(os.path.dirname(__file__))
 
-        if viewing_angle <= 7.5:
+        if launch_zenith <= 7.5 * units.deg:
             input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_90_set_0.npy')
-        elif (viewing_angle > 7.5) and (viewing_angle <= 22.5):
+        elif (launch_zenith > 7.5 * units.deg) and (launch_zenith <= 22.5 * units.deg):
             input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_75_set_0.npy')
-        elif (viewing_angle > 22.5) and (viewing_angle <= 37.5):
+        elif (launch_zenith > 22.5 * units.deg) and (launch_zenith <= 37.5 * units.deg):
             input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_60_set_0.npy')
-        elif (viewing_angle > 37.5) and (viewing_angle <= 52.5):
+        elif (launch_zenith > 37.5 * units.deg) and (launch_zenith <= 52.5 * units.deg):
             input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_45_set_0.npy')
-        elif (viewing_angle > 52.5) and (viewing_angle <= 67.5):
+        elif (launch_zenith > 52.5 * units.deg) and (launch_zenith <= 67.5 * units.deg):
             input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_30_set_0.npy')
-        elif (viewing_angle > 67.5) and (viewing_angle <= 82.5):
+        elif (launch_zenith > 67.5 * units.deg) and (launch_zenith <= 82.5 * units.deg):
             input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_15_set_0.npy')
-        elif viewing_angle > 82.5:
+        elif launch_zenith > 82.5 * units.deg:
             input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_0_set_0.npy')
-        
+
         spice_pulse = np.load(input_file)
         time_original = spice_pulse[0]
         voltage_original_theta = spice_pulse[1]
         voltage_original_phi = spice_pulse[2]
 
         time_new = np.linspace(time_original[0], time_original[len(time_original) - 1], (int((time_original[len(time_original) - 1] - time_original[0]) / dt) + 1))
-        
+
         interpolation_theta = interp1d(time_original, voltage_original_theta, kind='cubic')
         voltage_theta_new = interpolation_theta(time_new)
 
