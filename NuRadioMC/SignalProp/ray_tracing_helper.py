@@ -21,7 +21,7 @@ if numba_available:
     ]
 
 @jitclass(spec)
-class ray_tracing_helper():
+class ray_tracing_helper_class():
     def __init__(self, n_ice, reflection, z_0, delta_n):
     
         self.n_ice = n_ice
