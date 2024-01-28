@@ -1,3 +1,13 @@
+"""
+This class is used to optimize with Numba the computation time 
+of long running ray-tracing computations.
+All the methods are compiled upon first call of any item of the class,
+and will remain available without any other required compilation trhoughout
+the whole python run.
+Since the compilation time can vary between 20 to 40 seconds, using this class
+might be far less efficient for a low number of calculations.
+
+"""
 import numpy as np
 try:
     from numba import jit, njit
@@ -29,7 +39,23 @@ class ray_tracing_helper_class():
         self.z_0 = z_0
         self.delta_n = delta_n
         self.__b = 2 * self.n_ice
-    
+    """
+        initialize 2D analytic ray tracing helper class
+
+        Parameters
+        ----------
+        n_ice: float
+            refractive index of the deep bulk ice
+        reflection: int (default 0)
+            the number of bottom reflections to consider
+        z_0: float, NuRadio length units
+            scale depth of the exponential
+        delta_n:  float, NuRadio length units
+            difference between n_ice and the refractive index
+            of the snow at the surface
+
+        """
+            
     def get_C0_from_log(self, logC0):
         """
         transforms the fit parameter C_0 so that the likelihood looks better
