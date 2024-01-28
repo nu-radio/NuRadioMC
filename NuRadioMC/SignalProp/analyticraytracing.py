@@ -48,6 +48,8 @@ try:
 except:
     print("Numba is not available")
     numba_available = False
+    from NuRadioMC.SignalProp.ray_tracing_helper import ray_tracing_helper
+
 
 
 """
@@ -151,6 +153,9 @@ class ray_tracing_2D(ray_tracing_base):
         if overwrite_speedup is not None:
             self._use_optimized_calculation = overwrite_speedup
         self.use_cpp = use_cpp
+        if numba_available:
+            self.helper = ray_tracing_helper(medium.n_ice, self.medium.reflection, medium.z_0, medium.delta_n)            
+
 
     def n(self, z):
         """
