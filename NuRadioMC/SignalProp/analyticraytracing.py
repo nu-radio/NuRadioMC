@@ -40,6 +40,15 @@ except:
         print("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
         cpp_available = False
 
+numba_available = False
+
+try:
+    from numba import jit, njit
+    numba_available = True
+except:
+    print("Numba is not available")
+    numba_available = False
+
 
 """
 analytic ray tracing solution
