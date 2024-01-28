@@ -51,6 +51,18 @@ except:
         print("check NuRadioMC/NuRadioMC/SignalProp/CPPAnalyticRayTracing for manual compilation")
         cpp_available = False
 
+numba_available = False
+
+try:
+    from numba import jit, njit
+    from NuRadioMC.SignalProp.ray_tracing_helper import ray_tracing_helper_class
+    numba_available = True
+    cpp_available = False
+except:
+    print("Numba is not available")
+    numba_available = False
+
+
 
 """
 analytic ray tracing solution
@@ -153,6 +165,9 @@ class ray_tracing_2D(ray_tracing_base):
         if overwrite_speedup is not None:
             self._use_optimized_calculation = overwrite_speedup
         self.use_cpp = use_cpp
+        if numba_available:
+            self.helper = ray_tracing_helper_class(medium.n_ice, self.medium.reflection, medium.z_0, medium.delta_n)            
+
 
     def n(self, z):
         """
@@ -1317,8 +1332,10 @@ class ray_tracing_2D(ray_tracing_base):
                     'starting optimization with x0 = {:.2f} -> C0 = {:.3f}'.format(logC_0_start, C_0_start))
             else:
                 logC_0_start = -1
-
-            result = optimize.root(self.obj_delta_y_square, x0=logC_0_start, args=(x1, x2, reflection, reflection_case), tol=tol)
+            obj_delta_y_square = self.obj_delta_y_square
+            if numba_available:
+                obj_delta_y_square = self.helper.obj_delta_y_square
+            result = optimize.root(obj_delta_y_square, x0=logC_0_start, args=(x1, x2, reflection, reflection_case), tol=tol)
 
             if(plot):
                 import matplotlib.pyplot as plt
