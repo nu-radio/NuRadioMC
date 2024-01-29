@@ -822,9 +822,10 @@ class simulation:
                                     if key not in ['emitter_amplitudes', 'emitter_model']:
                                         if key.startswith("emitter_"):
                                             emitter_kwargs[key[8:]] = self._fin[key][self._shower_index]
+                                            emitter_kwargs["launch_vector"] = self._launch_vector
 
                                 if emitter_model.startswith("efield_"):
-                                    eR, eTheta, ePhi = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt, **emitter_kwargs)
+                                    eR, eTheta, ePhi = emitter.get_frequency_spectrum(amplitude, self._n_samples, self._dt, emitter_model, **emitter_kwargs)
                                 else:
                                     # the emitter fuction returns the voltage output of the pulser. We need to convole with the antenna response of the emitting antenna
                                     # to obtain the emitted electric field. 
