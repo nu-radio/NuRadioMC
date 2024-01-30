@@ -51,6 +51,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
           0 = eTheta polarized and 1 = ePhi polarized. The default is 0.5, i.e. unpolarized. The amplitudes are
           set to preserve the total power of the delta pulse, i.e. A_theta = sqrt(1-polarization)
           and A_phi = sqrt(polarization).
+          Use kwarg `iN` to select a specific pulse from the 10 available pulses. The default is a random selection.
     full_output: bool (default False)
         if True, can return additional output
 
@@ -137,8 +138,8 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
             buffer_emitter_model[model] = {}
             for launch_angle in launch_angles:
                 buffer_emitter_model[model][launch_angle] = []
-                for i in range(0, 10):    
-                    input_file = os.path.join(path, 
+                for i in range(0, 10):
+                    input_file = os.path.join(path,
                         f'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_{(90*units.deg - launch_angle) / units.deg:.0f}_set_{i}.npy')
                     buffer_emitter_model[model][launch_angle].append(np.load(input_file))
 
