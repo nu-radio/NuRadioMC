@@ -130,10 +130,6 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
     elif(model == "efield_idl1_spice"):
         launch_zenith, _ = hp.cartesian_to_spherical(*kwargs["launch_vector"])
         iN = None
-        if "iN" in kwargs:
-            iN = kwargs["iN"]
-        else:
-            iN = np.randint(0, 10)
 
         if model not in buffer_emitter_model:
             path = os.path.dirname(os.path.dirname(__file__))
@@ -145,8 +141,17 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
                     input_file = os.path.join(path, 
                         f'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_{(90*units.deg - launch_angle) / units.deg:.0f}_set_{i}.npy')
                     buffer_emitter_model[model][launch_angle].append(np.load(input_file))
+
         launch_angles = np.array(list(buffer_emitter_model[model].keys()))
         launch_angle = launch_angles[np.argmin(np.abs(launch_angles - launch_zenith))]
+        n_pulses = len(buffer_emitter_model[model][launch_angle])
+
+        if "iN" in kwargs:
+            iN = kwargs["iN"]
+            if iN >= n_pulses:
+                raise ValueError(f"the selected pulse iN {iN} is out of range. Only {n_pulses} different pulses are available")
+        else:
+            iN = np.randint(0, n_pulses)
 
         spice_pulse = buffer_emitter_model[model][launch_angle][iN]
         time_original = spice_pulse[0]
