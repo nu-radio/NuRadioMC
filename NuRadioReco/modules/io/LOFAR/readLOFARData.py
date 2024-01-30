@@ -2,6 +2,7 @@ import re
 import os
 import glob
 import json
+import math
 import logging
 import numpy as np
 
@@ -398,11 +399,15 @@ class readLOFARData:
         # Read in data from LORA file and save it in a HybridShower
         self.__hybrid_shower = NuRadioReco.framework.hybrid_shower.HybridShower("LORA")
 
+        # Read in zenith and azimuth -> make sure they are in range [-pi, pi]
+        zenith = math.remainder(lora_dict["LORA"]["zenith_rad"], 2 * np.pi)
+        azimuth = math.remainder(lora_dict["LORA"]["azimuth_rad"], 2 * np.pi)
+
         # The LORA coordinate system has x pointing East -> set this through magnetic field vector (values from 2015)
         self.__hybrid_shower.set_parameter(showerParameters.magnetic_field_vector,
                                            np.array([0.004675, 0.186270, -0.456412]))
-        self.__hybrid_shower.set_parameter(showerParameters.zenith, lora_dict["LORA"]["zenith_rad"] * units.radian)
-        self.__hybrid_shower.set_parameter(showerParameters.azimuth, lora_dict["LORA"]["azimuth_rad"] * units.radian)
+        self.__hybrid_shower.set_parameter(showerParameters.zenith, zenith * units.radian)
+        self.__hybrid_shower.set_parameter(showerParameters.azimuth, azimuth * units.radian)
 
         # Go through TBB directory and identify all files for this event
         tbb_filename_pattern = tbb_filetag_from_utc(self.__event_id + 1262304000)  # event id is based on timestamp
