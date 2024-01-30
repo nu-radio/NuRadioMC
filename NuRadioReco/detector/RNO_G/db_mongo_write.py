@@ -97,7 +97,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
                                          'primary_measurement': primary_measurement_times
                                      }}}, upsert=True)
 
-    def add_entry_to_database(self, collection, identification_key, identification_value, primary_measurement, data_dict):
+    def add_entry_to_database(self, collection, identification_key, identification_value, primary_measurement, data_dict, primary_measurement_start=None):
         """
         inserts a entry into the database.
         If the measurement dosn't exist yet, it will be created.
@@ -115,6 +115,8 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             indicates the primary measurement to be used for analysis
         data_dict: dict
             dictionary with all the information that should be saved for this entry
+        primary_measurement_start: datetime.datetime
+            If this quantity is given, the start time of the primary measurement is set to this value. Otherwise, the primary start time will be set to the current time
         """
 
         self.set_database_time(datetime.datetime.utcnow())
@@ -126,8 +128,9 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
 
         # define the new primary measurement times
         if primary_measurement:
-            primary_measurement_times = [{'start': datetime.datetime.utcnow(
-            ), 'end': datetime.datetime(2100, 1, 1, 0, 0, 0)}]
+            if primary_measurement_start is None:
+                primary_measurement_start = datetime.datetime.utcnow()
+            primary_measurement_times = [{'start': primary_measurement_start, 'end': datetime.datetime(2100, 1, 1, 0, 0, 0)}]
         else:
             primary_measurement_times = []
 
@@ -281,12 +284,11 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
         """
 
         present_time = self.__database_time
-        print('present_time', present_time)
 
         # find the current primary measurement
         obj_id, measurement_id = self.find_primary_measurement(
             collection_name, name, present_time, identification_label=identification_label, data_dict=data_dict)
-        print(obj_id, measurement_id)
+        
         if obj_id is None and measurement_id[0] == 0:
             #  no primary measurement was found and thus there is no measurement to update
             pass
