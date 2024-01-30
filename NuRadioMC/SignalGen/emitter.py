@@ -3,6 +3,7 @@ import h5py
 from scipy.interpolate import interp1d
 from radiotools import helper as hp
 from NuRadioReco.utilities import units, fft
+import NuRadioReco.framework.base_trace
 import logging
 logger = logging.getLogger("SignalGen.emitter")
 import os
@@ -155,17 +156,17 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
             iN = np.randint(0, n_pulses)
 
         spice_pulse = buffer_emitter_model[model][launch_angle][iN]
+
         time_original = spice_pulse[0]
         voltage_original_theta = spice_pulse[1]
         voltage_original_phi = spice_pulse[2]
-
-        time_new = np.linspace(time_original[0], time_original[len(time_original) - 1], (int((time_original[len(time_original) - 1] - time_original[0]) / dt) + 1))
-
-        interpolation_theta = interp1d(time_original, voltage_original_theta, kind='cubic')
-        voltage_theta_new = interpolation_theta(time_new)
-
-        interpolation_phi = interp1d(time_original, voltage_original_phi, kind='cubic')
-        voltage_phi_new = interpolation_phi(time_new)
+        n_samples_tmp = len(time_original)
+        sampling_rate_tmp = 1/(time_original[1] - time_original[0])
+        trace = NuRadioReco.framework.base_trace.BaseTrace(n_samples_tmp)
+        trace.set_trace(np.array(np.zeros_like(voltage_original_theta), voltage_original_theta, voltage_original_phi), sampling_rate_tmp)
+        trace.resample(N, dt)  # this resamples the trace to have N samples with dt sampling rate
+        voltage_theta_new = trace.get_trace[1]
+        voltage_phi_new = trace.get_trace[2]
 
         if len(voltage_theta_new) > N:
             peak_amplitude_index_theta = np.where(np.abs(voltage_theta_new) == np.max(np.abs(voltage_theta_new)))[0][0]
@@ -201,6 +202,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         peak_amplitude_index_phi_new = np.where(np.abs(trace_phi) == np.max(np.abs(trace_phi)))[0][0]
         trace_phi = np.roll(trace_phi, int(N / 2) - peak_amplitude_index_phi_new)
 
+        trace = np.zeros((3, N))
         trace[1,:] = trace_theta
         trace[2,:] = trace_phi
 
