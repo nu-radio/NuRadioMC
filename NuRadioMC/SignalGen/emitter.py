@@ -126,7 +126,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         trace[1, N // 2] = (1.0 - kwargs.get("polarization", 0.5)) ** 0.5 * amplitude
         trace[2, N // 2] = kwargs.get("polarization", 0.5) ** 0.5 * amplitude
     elif(model == "efield_idl1_spice"):
-        launch_zenith, _ = hp.cartesian_to_spherical(kwargs["launch_vector"][0], kwargs["launch_vector"][1], kwargs["launch_vector"][2])
+        launch_zenith, _ = hp.cartesian_to_spherical(*kwargs["launch_vector"])
         path = os.path.dirname(os.path.dirname(__file__))
 
         if launch_zenith <= 7.5 * units.deg:
