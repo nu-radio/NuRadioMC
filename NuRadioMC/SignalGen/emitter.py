@@ -162,11 +162,20 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         voltage_original_phi = spice_pulse[2]
         n_samples_tmp = len(time_original)
         sampling_rate_tmp = 1/(time_original[1] - time_original[0])
-        trace = NuRadioReco.framework.base_trace.BaseTrace(n_samples_tmp)
-        trace.set_trace(np.array(np.zeros_like(voltage_original_theta), voltage_original_theta, voltage_original_phi), sampling_rate_tmp)
-        trace.resample(N, dt)  # this resamples the trace to have N samples with dt sampling rate
-        voltage_theta_new = trace.get_trace[1]
-        voltage_phi_new = trace.get_trace[2]
+        btrace = NuRadioReco.framework.base_trace.BaseTrace(n_samples_tmp)
+        btrace.set_trace(np.array(np.zeros_like(voltage_original_theta), voltage_original_theta, voltage_original_phi), sampling_rate_tmp)
+        btrace.resample(1/dt)  # this resamples the trace to have 1/dt sampling rate
+
+
+        # @Nils: Here you can further optimize the code and do all the following operations directly on the `trace` 2d array
+        # instead of first extracting the individual traces and then putting them back together. This is just a quick
+        # fix to make the code work. I leave it to you to optimize it further.
+        # you can e.g. first create the 2dtrace with the correct dimension (`trace = np.zeros((3, N))`) and then fill it with the data from the
+        # btrace object. This will be much faster than the current implementation.
+
+        trace = btrace.get_trace()
+        voltage_theta_new = trace[1]
+        voltage_phi_new = trace[2]
 
         if len(voltage_theta_new) > N:
             peak_amplitude_index_theta = np.where(np.abs(voltage_theta_new) == np.max(np.abs(voltage_theta_new)))[0][0]
@@ -202,7 +211,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         peak_amplitude_index_phi_new = np.where(np.abs(trace_phi) == np.max(np.abs(trace_phi)))[0][0]
         trace_phi = np.roll(trace_phi, int(N / 2) - peak_amplitude_index_phi_new)
 
-        trace = np.zeros((3, N))
+        tracee = np.zeros((3,N))
         trace[1,:] = trace_theta
         trace[2,:] = trace_phi
 
