@@ -7,6 +7,8 @@ import logging
 logger = logging.getLogger("SignalGen.emitter")
 import os
 
+buffer_emitter_model = None
+
 
 def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
     """
@@ -127,24 +129,26 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         trace[2, N // 2] = kwargs.get("polarization", 0.5) ** 0.5 * amplitude
     elif(model == "efield_idl1_spice"):
         launch_zenith, _ = hp.cartesian_to_spherical(*kwargs["launch_vector"])
-        path = os.path.dirname(os.path.dirname(__file__))
+        iN = None
+        if "iN" in kwargs:
+            iN = kwargs["iN"]
+        else:
+            iN = np.randint(0, 10)
 
-        if launch_zenith <= 7.5 * units.deg:
-            input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_90_set_0.npy')
-        elif (launch_zenith > 7.5 * units.deg) and (launch_zenith <= 22.5 * units.deg):
-            input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_75_set_0.npy')
-        elif (launch_zenith > 22.5 * units.deg) and (launch_zenith <= 37.5 * units.deg):
-            input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_60_set_0.npy')
-        elif (launch_zenith > 37.5 * units.deg) and (launch_zenith <= 52.5 * units.deg):
-            input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_45_set_0.npy')
-        elif (launch_zenith > 52.5 * units.deg) and (launch_zenith <= 67.5 * units.deg):
-            input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_30_set_0.npy')
-        elif (launch_zenith > 67.5 * units.deg) and (launch_zenith <= 82.5 * units.deg):
-            input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_15_set_0.npy')
-        elif launch_zenith > 82.5 * units.deg:
-            input_file = os.path.join(path, 'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_0_set_0.npy')
+        if model not in buffer_emitter_model:
+            path = os.path.dirname(os.path.dirname(__file__))
+            launch_angles = np.array([0, 15, 30, 45, 60, 75, 90]) * units.deg
+            buffer_emitter_model[model] = {}
+            for launch_angle in launch_angles:
+                buffer_emitter_model[model][launch_angle] = []
+                for i in range(0, 10):    
+                    input_file = os.path.join(path, 
+                        f'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_{(90*units.deg - launch_angle) / units.deg:.0f}_set_{i}.npy')
+                    buffer_emitter_model[model][launch_angle].append(np.load(input_file))
+        launch_angles = np.array(list(buffer_emitter_model[model].keys()))
+        launch_angle = launch_angles[np.argmin(np.abs(launch_angles - launch_zenith))]
 
-        spice_pulse = np.load(input_file)
+        spice_pulse = buffer_emitter_model[model][launch_angle][iN]
         time_original = spice_pulse[0]
         voltage_original_theta = spice_pulse[1]
         voltage_original_phi = spice_pulse[2]
@@ -182,7 +186,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
             if ((N + len(voltage_phi_new)) % 2 != 0):
                 adjustment = 1
             trace_phi = np.pad(voltage_phi_new, (add_zeros + adjustment, add_zeros), 'constant', constant_values=(0, 0))
-        
+
         #trace_theta = amplitude * trace_theta / np.max(np.abs(trace_theta))  # trace now has dimension of amplitude given from event generation file
         peak_amplitude_index_theta_new = np.where(np.abs(trace_theta) == np.max(np.abs(trace_theta)))[0][0]
         trace_theta = np.roll(trace_theta, int(N / 2) - peak_amplitude_index_theta_new)
