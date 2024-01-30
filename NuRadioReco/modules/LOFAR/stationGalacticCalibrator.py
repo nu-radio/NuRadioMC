@@ -168,8 +168,14 @@ class stationGalacticCalibrator:
 
         # Get channel parameters -> group_id = a(even_id), odd_id = even_id + 1
         channel_polarisation = channel.get_id() - int(channel.get_group_id()[1:])  # TODO: need clear function?
-        channel_bandwidth = channel.get_sampling_rate() / channel.get_number_of_samples() / units.s  # 1 / period
+        channel_bandwidth = channel.get_sampling_rate() / channel.get_number_of_samples()
         channel_power = np.sum(np.abs(channel.get_frequency_spectrum()) ** 2) * channel_bandwidth
+
+        # The NRR frequency spectrum has a factor of sampling rate in the denominator, which after squaring and
+        # multiplying with the channel_bandwidth leaves a 1 / sampling_rate in the channel_power calculation.
+        # To properly match the Fourier series evaluation, the sampling_rate should be in Hz, so we multiply
+        # (as the sampling rate is in the denominator) with the unit here.
+        channel_power *= units.Hz
 
         self.logger.debug(f"Channel power of channel {channel.get_id()} is {channel_power}")
 
