@@ -182,7 +182,7 @@ class Database(object):
             logger.error('More than one primary measurement found.')
             return None, [None]
         elif len(matching_entries) == 0:
-            logger.error('No primary measurement found.')
+            logger.warning('No primary measurement found.')
             # the last zero is the information that no primary measurement was found
             return None, [0]
         else:
