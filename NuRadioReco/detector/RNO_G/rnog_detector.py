@@ -1141,7 +1141,7 @@ class Detector():
         """
         return self.get_time_delay(station_id, channel_id, cable_only=True, use_stored=use_stored)
 
-    def get_time_delay(self, station_id, channel_id, cable_only=False, use_stored=False):
+    def get_time_delay(self, station_id, channel_id, cable_only=False, use_stored=True):
         """ Return the sum of the time delay of all components in the signal chain calculated from the phase
 
         Parameters
@@ -1157,7 +1157,7 @@ class Detector():
             If True: Consider only cables to calculate delay. (Default: False)
 
         use_stored: bool
-            If True, take time delay as stored in DB rather than calculated from response. (Default: False)
+            If True, take time delay as stored in DB rather than calculated from response. (Default: True)
 
         Returns
         -------
