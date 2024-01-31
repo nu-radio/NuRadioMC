@@ -1209,14 +1209,6 @@ class Detector():
         """
         return "summit"
 
-    def db(self):
-        """ Temp. interface for development """
-        return self.__db
-
-    def set_detector_time(self, time):
-        """ Temp. interface for development """
-        self.__set_detector_time(time)
-
 
 if __name__ == "__main__":
 
