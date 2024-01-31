@@ -18,6 +18,7 @@ class Response:
     --------
 
     .. code-block::
+
         response = det.get_signal_chain_response(station_id=24, channel_id=0)
 
         # Multipy the response to a trace. The multiply operator takes care of everything
