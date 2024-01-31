@@ -1,12 +1,7 @@
-# Keep that the first import
-import logging
-logging.basicConfig(format="%(asctime)s - %(levelname)s:%(name)s:%(funcName)s : %(message)s", datefmt="%H:%M:%S")
-
 from NuRadioReco.detector.RNO_G.db_mongo_read import Database, _convert_astro_time_to_datetime
 import NuRadioReco.framework.base_trace
 from NuRadioReco.utilities import units
 
-from radiotools import helper
 from scipy import interpolate
 from functools import wraps
 import astropy.time
@@ -14,12 +9,12 @@ import astropy.time
 import datetime
 import numpy as np
 import collections
-import pickle
 import json
 import re
 import copy
 import bson
 import lzma
+import logging
 
 
 def _json_serial(obj):
@@ -99,7 +94,7 @@ class Detector():
             means to descibe all commissioned stations.
         """
 
-        self.logger = logging.getLogger("rno-g-detector")
+        self.logger = logging.getLogger("NuRadioReco.RNOGdetector")
         self.logger.setLevel(log_level)
 
         # Define default values for parameter not (yet) implemented in DB. Those values are taken for all channels.
