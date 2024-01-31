@@ -5,7 +5,7 @@ import fractions
 import decimal
 import numbers
 from NuRadioReco.utilities import fft, bandpass_filter
-from NuRadioReco.detector import detector
+import NuRadioReco.detector.response
 import scipy.signal
 import copy
 try:
@@ -342,8 +342,8 @@ class BaseTrace:
                 self._frequency_spectrum *= x
                 return self
             raise ValueError('Cant multiply baseTrace with number because no value is set for trace.')
-        elif isinstance(x, detector.rnog_detector.Response):
-            return x * self  # operation defined in detector.rnog_detector.Response
+        elif isinstance(x, NuRadioReco.detector.response.Response):
+            return x * self  # operation defined in detector.response.Response
         else:
             raise TypeError('Multiplication of baseTrace object with object of type {} is not defined'.format(type(x)))
 
