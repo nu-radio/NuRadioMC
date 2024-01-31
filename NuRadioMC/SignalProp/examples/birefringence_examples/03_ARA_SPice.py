@@ -131,7 +131,7 @@ waveform = 0
 v_max = []
 h_max = []
 
-pulse = np.load('SPice_pulses/eField_launchAngle_' + str(angle) + '_set_' + str(waveform) + '.npy')
+pulse = np.load('SPICE_efields/eField_launchAngle_' + str(angle) + '_set_' + str(waveform) + '.npy')
 dt = pulse[0, 1] - pulse[0, 0]
 sr = 1 / dt
 
@@ -160,7 +160,8 @@ for depth in range(len(depths)):
     h_max.append(hpol_max)
 
 
-norm_factor = 2150
+#norm_factor = 2150
+norm_factor = 1000
 loaded_data = np.load('extra_files/ARA_data.npy')
 
 axs[1].errorbar(loaded_data[0], loaded_data[1], loaded_data[2], markersize = 3, linestyle='None', marker='s', label = 'measured vpol amplitude')

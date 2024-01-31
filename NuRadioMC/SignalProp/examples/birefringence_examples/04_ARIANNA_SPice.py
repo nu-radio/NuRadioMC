@@ -100,7 +100,7 @@ waveform = 0
 
 polar = []
 
-pulse = np.load('SPice_pulses/eField_launchAngle_' + str(angle) + '_set_' + str(waveform) + '.npy')
+pulse = np.load('SPICE_efields/eField_launchAngle_' + str(angle) + '_set_' + str(waveform) + '.npy')
 dt = pulse[0, 1] - pulse[0, 0]
 sr = 1 / dt
 

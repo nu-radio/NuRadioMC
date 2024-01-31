@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger("SignalGen.emitter")
 import os
 
-buffer_emitter_model = None
+buffer_emitter_model = {}
 
 
 def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
@@ -130,8 +130,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         trace[1, N // 2] = (1.0 - kwargs.get("polarization", 0.5)) ** 0.5 * amplitude
         trace[2, N // 2] = kwargs.get("polarization", 0.5) ** 0.5 * amplitude
     elif(model == "efield_idl1_spice"):
-        launch_zenith, _ = hp.cartesian_to_spherical(*kwargs["launch_vector"])
-        iN = None
+        launch_zenith, _ = np.rad2deg(hp.cartesian_to_spherical(*kwargs["launch_vector"]))
 
         if model not in buffer_emitter_model:
             path = os.path.dirname(os.path.dirname(__file__))
@@ -142,6 +141,7 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
                 for i in range(0, 10):
                     input_file = os.path.join(path,
                         f'SignalProp/examples/birefringence_examples/SPice_pulses/eField_launchAngle_{(90*units.deg - launch_angle) / units.deg:.0f}_set_{i}.npy')
+                        #f'SignalProp/examples/birefringence_examples/SPICE_efields/eField_launchAngle_{(90*units.deg - launch_angle) / units.deg:.0f}_set_{i}.npy')
                     buffer_emitter_model[model][launch_angle].append(np.load(input_file))
 
         launch_angles = np.array(list(buffer_emitter_model[model].keys()))
@@ -153,19 +153,20 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
             if iN >= n_pulses:
                 raise ValueError(f"the selected pulse iN {iN} is out of range. Only {n_pulses} different pulses are available")
         else:
-            iN = np.randint(0, n_pulses)
+            iN = np.random.randint(0, n_pulses)
 
         spice_pulse = buffer_emitter_model[model][launch_angle][iN]
 
         time_original = spice_pulse[0]
         voltage_original_theta = spice_pulse[1]
         voltage_original_phi = spice_pulse[2]
-        n_samples_tmp = len(time_original)
         sampling_rate_tmp = 1/(time_original[1] - time_original[0])
-        btrace = NuRadioReco.framework.base_trace.BaseTrace(n_samples_tmp)
-        btrace.set_trace(np.array(np.zeros_like(voltage_original_theta), voltage_original_theta, voltage_original_phi), sampling_rate_tmp)
-        btrace.resample(1/dt)  # this resamples the trace to have 1/dt sampling rate
 
+        btrace = NuRadioReco.framework.electric_field.ElectricField([1], position=None,
+                shower_id=None, ray_tracing_id=None)
+
+        btrace.set_trace(np.array([np.zeros_like(voltage_original_theta), voltage_original_theta, voltage_original_phi]), sampling_rate_tmp)
+        btrace.resample(1/dt)  # this resamples the trace to have 1/dt sampling rate
 
         # @Nils: Here you can further optimize the code and do all the following operations directly on the `trace` 2d array
         # instead of first extracting the individual traces and then putting them back together. This is just a quick
@@ -174,46 +175,44 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
         # btrace object. This will be much faster than the current implementation.
 
         trace = btrace.get_trace()
-        voltage_theta_new = trace[1]
-        voltage_phi_new = trace[2]
 
-        if len(voltage_theta_new) > N:
-            peak_amplitude_index_theta = np.where(np.abs(voltage_theta_new) == np.max(np.abs(voltage_theta_new)))[0][0]
-            voltage_theta_new = np.roll(voltage_theta_new, int(len(voltage_theta_new) / 2) - peak_amplitude_index_theta)
-            lower_index = int(len(voltage_theta_new) / 2 - N / 2)
-            trace_theta = voltage_theta_new[lower_index: lower_index + N]  # this truncate data making trace lenght of N
+        if len(trace[1]) > N:
+            peak_amplitude_index_theta = np.where(np.abs(trace[1]) == np.max(np.abs(trace[1])))[0][0]
+            trace[1] = np.roll(trace[1], int(len(trace[1]) / 2) - peak_amplitude_index_theta)
+            lower_index = int(len(trace[1]) / 2 - N / 2)
+            final_theta = trace[1, lower_index: lower_index + N]  # this truncate data making trace lenght of N
         # for the case with larger N, trace size will be adjusted depending on whether the number (N + len(voltage_new)) is even or odd
         else:
-            add_zeros = int((N - len(voltage_theta_new)) / 2)
+            add_zeros = int((N - len(trace[1])) / 2)
             adjustment = 0
-            if ((N + len(voltage_theta_new)) % 2 != 0):
+            if ((N + len(trace[1])) % 2 != 0):
                 adjustment = 1
-            trace_theta = np.pad(voltage_theta_new, (add_zeros + adjustment, add_zeros), 'constant', constant_values=(0, 0))
+            final_theta = np.pad(trace[1], (add_zeros + adjustment, add_zeros), 'constant', constant_values=(0, 0))
 
-        if len(voltage_phi_new) > N:
-            peak_amplitude_index_phi = np.where(np.abs(voltage_phi_new) == np.max(np.abs(voltage_phi_new)))[0][0]
-            voltage_phi_new = np.roll(voltage_phi_new, int(len(voltage_phi_new) / 2) - peak_amplitude_index_phi)
-            lower_index = int(len(voltage_phi_new) / 2 - N / 2)
-            trace_phi = voltage_phi_new[lower_index: lower_index + N]  # this truncate data making trace lenght of N
+        if len(trace[2]) > N:
+            peak_amplitude_index_phi = np.where(np.abs(trace[2]) == np.max(np.abs(trace[2])))[0][0]
+            trace[2] = np.roll(trace[2], int(len(trace[2]) / 2) - peak_amplitude_index_phi)
+            lower_index = int(len(trace[2]) / 2 - N / 2)
+            final_phi = trace[2][lower_index: lower_index + N]  # this truncate data making trace lenght of N
         # for the case with larger N, trace size will be adjusted depending on whether the number (N + len(voltage_new)) is even or odd
         else:
-            add_zeros = int((N - len(voltage_phi_new)) / 2)
+            add_zeros = int((N - len(trace[2])) / 2)
             adjustment = 0
-            if ((N + len(voltage_phi_new)) % 2 != 0):
+            if ((N + len(trace[2])) % 2 != 0):
                 adjustment = 1
-            trace_phi = np.pad(voltage_phi_new, (add_zeros + adjustment, add_zeros), 'constant', constant_values=(0, 0))
+            final_phi = np.pad(trace[2], (add_zeros + adjustment, add_zeros), 'constant', constant_values=(0, 0))
 
         #trace_theta = amplitude * trace_theta / np.max(np.abs(trace_theta))  # trace now has dimension of amplitude given from event generation file
-        peak_amplitude_index_theta_new = np.where(np.abs(trace_theta) == np.max(np.abs(trace_theta)))[0][0]
-        trace_theta = np.roll(trace_theta, int(N / 2) - peak_amplitude_index_theta_new)
+        peak_amplitude_index_theta_new = np.where(np.abs(final_theta) == np.max(np.abs(final_theta)))[0][0]
+        final_theta = np.roll(final_theta, int(N / 2) - peak_amplitude_index_theta_new)
 
-        trace_phi = amplitude * trace_phi / np.max(np.abs(trace_phi))  # trace now has dimension of amplitude given from event generation file
-        peak_amplitude_index_phi_new = np.where(np.abs(trace_phi) == np.max(np.abs(trace_phi)))[0][0]
-        trace_phi = np.roll(trace_phi, int(N / 2) - peak_amplitude_index_phi_new)
+        #trace_phi = amplitude * trace_phi / np.max(np.abs(trace_phi))  # trace now has dimension of amplitude given from event generation file
+        peak_amplitude_index_phi_new = np.where(np.abs(final_phi) == np.max(np.abs(final_phi)))[0][0]
+        final_phi = np.roll(final_phi, int(N / 2) - peak_amplitude_index_phi_new)
 
-        tracee = np.zeros((3,N))
-        trace[1,:] = trace_theta
-        trace[2,:] = trace_phi
+        trace = np.zeros((3,N))
+        trace[1,:] = final_theta
+        trace[2,:] = final_phi
 
     else:
         raise NotImplementedError("model {} unknown".format(model))
