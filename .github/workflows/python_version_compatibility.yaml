@@ -1,0 +1,17 @@
+name: Check python version compatibility
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+
+jobs:
+  pythonversionsmatrix:
+    strategy:
+      matrix:
+        python_version: [3.6, 3.8, 3.9, 3.10, 3.11, 3.12, 3.x]
+    uses: ./.github/workflows/run_tests.yaml
+    with:
+      python_version: ${{ matrix.python_version }}
