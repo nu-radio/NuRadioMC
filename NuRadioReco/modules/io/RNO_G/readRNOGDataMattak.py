@@ -50,14 +50,14 @@ def _create_random_directory_path(prefix="/tmp/", n=7):
 
 def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
     """
-    Simple baseline correction function. 
-    
+    Simple baseline correction function.
+
     Determines baseline in discrete chuncks of "n_bins" with
     the function specified (i.e., mean or median).
 
     .. Warning:: This function has been deprecated, use :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
       instead
-    
+
     Parameters
     ----------
 
@@ -69,10 +69,10 @@ def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
 
     func: np.mean or np.median
         Function to calculate pedestal
-    
+
     return_offsets: bool, default False
         if True, additionally return the baseline offsets
-    
+
     Returns
     -------
 
@@ -102,10 +102,10 @@ def _baseline_correction(wfs, n_bins=128, func=np.median, return_offsets=False):
 
     # np.moveaxis -> (n_events, n_channels, 2048)
     baseline_traces = np.moveaxis(baseline_traces, 0, -1)
-     
+
     if return_offsets:
         return wfs - baseline_traces, baseline_values
-    
+
     return wfs - baseline_traces
 
 
@@ -226,7 +226,7 @@ class readRNOGData:
         self.logger.setLevel(log_level)
 
         self._blockoffsetfitter = channelBlockOffsets()
-     
+
         # Initialize run table for run selection
         self.__run_table = None
 
@@ -296,7 +296,7 @@ class readRNOGData:
 
         Other Parameters
         ----------------
-        
+
         apply_baseline_correction: 'approximate' | 'fit' | 'none'
             Only applies when non-calibrated data are read. Removes the DC (baseline)
             block offsets (pedestals).
