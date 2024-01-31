@@ -108,7 +108,7 @@ class Database(object):
         Parameters
         ----------
 
-        time: datetime.datetime or ``astropy.time.Time``
+        time: `datetime.datetime` or ``astropy.time.Time``
             UTC time.
         '''
         if isinstance(time, astropy.time.Time):
