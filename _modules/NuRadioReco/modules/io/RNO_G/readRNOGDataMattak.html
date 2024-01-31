@@ -623,14 +623,14 @@
 
 <span class="k">def</span> <span class="nf">_baseline_correction</span><span class="p">(</span><span class="n">wfs</span><span class="p">,</span> <span class="n">n_bins</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">,</span> <span class="n">return_offsets</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Simple baseline correction function. </span>
-<span class="sd">    </span>
+<span class="sd">    Simple baseline correction function.</span>
+
 <span class="sd">    Determines baseline in discrete chuncks of &quot;n_bins&quot; with</span>
 <span class="sd">    the function specified (i.e., mean or median).</span>
 
 <span class="sd">    .. Warning:: This function has been deprecated, use :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`</span>
 <span class="sd">      instead</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
@@ -642,10 +642,10 @@
 
 <span class="sd">    func: np.mean or np.median</span>
 <span class="sd">        Function to calculate pedestal</span>
-<span class="sd">    </span>
+
 <span class="sd">    return_offsets: bool, default False</span>
 <span class="sd">        if True, additionally return the baseline offsets</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 
@@ -675,10 +675,10 @@
 
     <span class="c1"># np.moveaxis -&gt; (n_events, n_channels, 2048)</span>
     <span class="n">baseline_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">baseline_traces</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-     
+
     <span class="k">if</span> <span class="n">return_offsets</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">wfs</span> <span class="o">-</span> <span class="n">baseline_traces</span><span class="p">,</span> <span class="n">baseline_values</span>
-    
+
     <span class="k">return</span> <span class="n">wfs</span> <span class="o">-</span> <span class="n">baseline_traces</span>
 
 
@@ -799,7 +799,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span> <span class="o">=</span> <span class="n">channelBlockOffsets</span><span class="p">()</span>
-     
+
         <span class="c1"># Initialize run table for run selection</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__run_table</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -869,7 +869,7 @@
 
 <span class="sd">        Other Parameters</span>
 <span class="sd">        ----------------</span>
-<span class="sd">        </span>
+
 <span class="sd">        apply_baseline_correction: &#39;approximate&#39; | &#39;fit&#39; | &#39;none&#39;</span>
 <span class="sd">            Only applies when non-calibrated data are read. Removes the DC (baseline)</span>
 <span class="sd">            block offsets (pedestals).</span>
