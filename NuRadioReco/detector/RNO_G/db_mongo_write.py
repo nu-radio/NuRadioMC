@@ -320,11 +320,17 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
         Parameters
         ----------
         object_type: string
-            type of the input unit (HPol, VPol, surfCABLE, ...)
+            type of the input component (iglu_board, drab_board, ...)
         object_name: string
             the unique identifier of the object
         search_filter:
-            specify the filter pipeline used for aggregate to find the measurement
+            specify the filter used to find the measurement
+        channel_id: int
+            If a channel id is given (e.g. for a drab_board) the value is used to search for the current primary measurement (default: None).
+        breakout_id: int
+            If a brakout id is given (for a downhole_chain) the value is used to search for the current primary measurement (default: None).
+        breakout_channel_id: int
+            If a brakout channel id is given (for a downhole_chain) the value is used to search for the current primary measurement (default: None).
         """
 
         present_time = datetime.datetime.utcnow()
@@ -620,8 +626,6 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
 
         Parameters
         ----------
-        collection: string
-            name of the collection
         station_id: int
             the unique identifier of the station
         decomm_time: datetime
@@ -654,8 +658,6 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
 
         Parameters
         ----------
-        collection: string
-            name of the collection
         station_id: int
             the unique identifier of the station
         channel_id: int
@@ -690,8 +692,6 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
 
         Parameters
         ----------
-        collection: string
-            name of the collection
         station_id: int
             the unique identifier of the station
         device_id: int
