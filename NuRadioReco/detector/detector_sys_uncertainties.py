@@ -1,10 +1,11 @@
 import logging
 import NuRadioReco.detector.detector
+import NuRadioReco.detector.detector_base
 from NuRadioReco.utilities import units
 logger = logging.getLogger('NuRadioReco.DetectorSysUncertainties')
 
 
-class DetectorSysUncertainties(NuRadioReco.detector.detector.Detector):
+class DetectorSysUncertainties(NuRadioReco.detector.detector_base.DetectorBase):
     """
     """
 
