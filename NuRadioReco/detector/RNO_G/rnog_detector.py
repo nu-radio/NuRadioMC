@@ -77,7 +77,7 @@ class Detector():
             Overwrite the default values for the manually set parameter which are not (yet) implemented in the database.
             (Default: {}, the acutally default values for the parameters in question are defined below)
 
-        database_time : `datetime.datetime` or `astropy.time.Time`
+        database_time : `datetime.datetime` or ``astropy.time.Time``
             Set database time which is used to select the primary measurement. By default (= None) the database time
             is set to now (time the code is running) to select the measurement which is now primary.
 
@@ -325,7 +325,7 @@ class Detector():
         Parameters
         ----------
 
-        time: datetime.datetime or `astro.time.Time`
+        time: `datetime.datetime` or ``astropy.time.Time``
             UTC time.
         '''
 
@@ -333,9 +333,9 @@ class Detector():
             time = _convert_astro_time_to_datetime(time)
         elif not isinstance(time, datetime.datetime):
             self.logger.error(
-                "Set invalid time for detector. Time has to be of type datetime.datetime")
+                "Set invalid time for detector. Time has to be of type `datetime.datetime`")
             raise TypeError(
-                "Set invalid time for detector. Time has to be of type datetime.datetime")
+                "Set invalid time for detector. Time has to be of type `datetime.datetime`")
         self.__detector_time = time
 
     def get_detector_time(self):
@@ -343,7 +343,7 @@ class Detector():
         Returns
         -------
 
-        time: datetime.datetime
+        time: `datetime.datetime`
             Detector time
         """
         if self.__detector_time is None:
@@ -359,7 +359,7 @@ class Detector():
         Parameters
         ----------
 
-        time: datetime.datetime or `astro.time.Time`
+        time: `datetime.datetime` or ``astropy.time.Time``
             Unix time of measurement.
         """
         if isinstance(time, astropy.time.Time):
