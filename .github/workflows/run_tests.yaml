@@ -1,6 +1,25 @@
 name: Unit tests
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      python_version:
+        description: Specify Python version to run tests on
+        type: string
+        required: true
+        default: '3.7'
+  workflow_call:
+    inputs:
+      python_version:
+        description: Specify Python version to run tests on
+        type: string
+        required: true
+        default: '3.7'
+
+env: # set the python_version to 3.7 if the workflow is not triggered by workflow_call or workflow_dispatch
+  PYTHON_VERSION: ${{ inputs.python_version || '3.7' }}
 
 jobs:
   build:
@@ -9,10 +28,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python 3.7
+    - name: Set up Python [${{ env.PYTHON_VERSION }}]
       uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: ${{ env.PYTHON_VERSION }}
     - name: Cache pip
       uses: actions/cache@v4
       with:
